@@ -4,6 +4,21 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 1.20.1 客户
 
 详细文件索引见 [PROJECT_INDEX.md](PROJECT_INDEX.md)。
 
+## 1.5.0 首个正式版
+
+WurstB+ Plus `1.5.0` 是项目的第一个正式公开版本，标志着客户端从功能整合与架构迁移阶段进入可构建、可测试和可持续维护的 Forge 版本。该版本面向 Minecraft 1.20.1、Forge 47.4.10 和 Java 17，模组 ID 为 `wurstpenguin`，开发者署名为 Penguin。
+
+正式版主要内容：
+
+- **纯 Forge 工程**：使用 ForgeGradle、Mojmap、Mixin、Access Transformer 与 JarJar，不依赖 Fabric API。
+- **双 GUI 体系**：右 Ctrl 打开 BleachHack 风格浮窗 ClickGUI，右 Shift 打开居中 Navigator；两套界面共享搜索、分类、模块设置和快速按键绑定。
+- **模块化 HUD2**：支持 HackList、通知、Target HUD、按键显示、背包、护甲、药水、Combo、雷达和圆形小地图，并可在 HUD 编辑器中拖动与开关。
+- **核心功能重构**：战斗、移动、玩家、渲染和世界模块统一接入目标追踪、旋转管理、移动规划、库存动作队列与设置层级。
+- **视觉与性能优化**：包含实体快照、渲染状态隔离、VBO 缓存、异步纹理任务、线程本地像素缓冲、实体遮挡查询和 PostEffect 队列。
+- **中文与品牌完善**：功能名称、GUI、HUD、主菜单和通知系统已完成主要中文化，并统一为 WurstB+ Plus 视觉与版本标识。
+
+`1.5.0` 已通过 50 个测试文件中的 133 项单元测试，以及完整 Forge 重混淆和 JarJar 构建。完整版本记录见 [CHANGELOG.md](CHANGELOG.md)。
+
 ## 当前状态
 
 | 项目 | 当前值 |
