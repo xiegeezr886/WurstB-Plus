@@ -1,6 +1,6 @@
 # WurstB+ Plus
 
-WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 1.20.1 客户端项目。当前源码包含战斗、移动、渲染、世界交互、GUI、命令、配置、导航和事件系统，并已吸收 BleachHack、Meteor、LiquidBounce 参考客户端中的目标选择、状态调度、ESP 渲染、智能绑定、宏系统、路径点、代理系统、Addon 扩展等设计。
+WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 1.20.1 客户端项目。当前源码包含战斗、移动、渲染、世界交互、GUI、命令、配置、导航和事件系统。
 
 详细文件索引见 [PROJECT_INDEX.md](PROJECT_INDEX.md)。
 
@@ -281,7 +281,7 @@ build/libs/WurstB+ Plus-v1.5.0-MC1.20.1-all.jar
 项目版本为 `1.5.0`。50 个测试文件中的 133 项单元测试全部通过，Gradle `build`、Forge 重混淆、JarJar 打包、关键 Mixin 方法可见性和 Mixin 包隔离检查成功。`PlayerMixin` 的 KeepSprint 攻击注入使用原生 `@Redirect`，不依赖 Mixin 运行时生成的 `Args` 类，可避免 Forge 47.4.10 + Java 21 启动时的 `Args$1` 类加载崩溃。发布产物为 `build/libs/WurstB+ Plus-v1.5.0-MC1.20.1-all.jar`（29,094,464 bytes），本轮 SHA-256 为 `0B70C7DB27FBBA84D7801F7BEA0E74022043C49D67E92A2818E762C77AE9CED1`。
 
 
-WurstB+ Plus is a Minecraft 1.20.1 client project built upon the Wurst codebase structure. The current source code encompasses combat, movement, rendering, world interaction, GUI, commands, configuration, navigation, and event systems, and has incorporated design patterns from reference clients BleachHack, Meteor, and LiquidBounce in areas such as target selection, state scheduling, ESP rendering, intelligent binding, macro systems, waypoints, proxy systems, and Addon extensions.
+WurstB+ Plus is a Minecraft 1.20.1 client project built upon the Wurst codebase structure. The current source code encompasses combat, movement, rendering, world interaction, GUI, commands, configuration, navigation, and event systems.
 
 For a detailed file index, see [PROJECT_INDEX.md](PROJECT_INDEX.md).
 
