@@ -1,0 +1,157 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.143'
+    id 'idea'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+version = mod_version
+group = mod_group_id
+
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+    srcDir('src/main/templates')
+    exclude("**/*.bbmodel")
+}
+
+repositories {
+    maven {
+        name = 'Sponge'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
+    mavenCentral()
+    flatDir {
+        dirs '.'
+    }
+}
+
+base {
+    archivesName = "WurstB+ Plus"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+
+    addModdingDependenciesTo sourceSets.test
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    annotationProcessor "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
+
+    implementation "io.github.llamalad7:mixinextras-neoforge:${project.mixinextras_version}"
+    compileOnly "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
+
+    implementation "org.java-websocket:Java-WebSocket:1.5.3"
+    implementation "io.netty:netty-codec-socks:4.1.82.Final"
+    implementation "io.netty:netty-handler-proxy:4.1.82.Final"
+
+    implementation "baritone:baritone-api-forge:1.21.2"
+
+    additionalRuntimeClasspath "baritone:baritone-api-forge:1.21.2"
+
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+processResources {
+    def displayVersion = project.version.toString().startsWith("v")
+        ? project.version.toString().substring(1)
+        : project.version.toString()
+    def replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_authors            : mod_authors,
+            mod_version            : displayVersion,
+    ]
+    inputs.properties replaceProperties
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand replaceProperties
+    }
+    filesMatching("wurst.mixins.json") {
+        expand replaceProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+    options.compilerArgs += ['-Xmaxerrs', '1000']
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+java {
+    withSourcesJar()
+}
+
+jar {
+    manifest {
+        attributes(
+            "MixinConfigs": "wurst.mixins.json,mixins.baritone.json",
+            "Specification-Title": project.mod_id,
+            "Specification-Vendor": project.mod_authors,
+            "Specification-Version": "1",
+            "Implementation-Title": project.name,
+            "Implementation-Version": project.version,
+            "Implementation-Vendor": project.mod_authors)
+    }
+    from("LICENSE.txt") {
+        rename { "LICENSE-${project.base.archivesName.get()}.txt" }
+    }
+    from(zipTree("baritone-api-forge-1.21.2.jar")) {
+        exclude "META-INF/**"
+        exclude "mixins.baritone.json"
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude "intentionally_untranslated.json"
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

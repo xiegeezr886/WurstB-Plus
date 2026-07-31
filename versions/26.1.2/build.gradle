@@ -1,0 +1,149 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'eclipse'
+    id 'net.minecraftforge.gradle' version '[7.0.17,8)'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+// Mojang ships Java 25 to end users in 26.1+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+sourceSets.main.output.resourcesDir =
+    sourceSets.main.java.destinationDirectory.get().asFile
+
+// Include generated resources
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+configurations {
+    allJarEmbed
+}
+
+minecraft {
+    runs {
+        configureEach {
+            workingDir = layout.projectDirectory.dir('run')
+
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            systemProperty 'forge.logging.console.level', 'info'
+            systemProperty 'eventbus.api.strictRuntimeChecks', 'true'
+
+            mods {
+                "${project.mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        register('client')
+
+        register('server') {
+            args '--nogui'
+        }
+
+        register('gameTestServer')
+
+        register('data') {
+            workingDir = layout.projectDirectory.dir('run-data')
+
+            args '--mod', project.mod_id, '--all', '--output', layout.projectDirectory.dir('src/generated/resources'), '--existing', layout.projectDirectory.dir('src/main/resources')
+        }
+    }
+}
+
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+    flatDir {
+        dirs ".", "libs"
+    }
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}")
+
+    implementation "io.github.llamalad7:mixinextras-forge:${project.mixinextras_version}"
+    compileOnly "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
+    // annotationProcessor "org.spongepowered:mixin:0.8.7:processor"
+    implementation "org.java-websocket:Java-WebSocket:1.5.3"
+    implementation "io.netty:netty-codec-socks:4.1.82.Final"
+    implementation "io.netty:netty-handler-proxy:4.1.82.Final"
+    compileOnly "baritone:baritone-api-forge:26.1.2"
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+    annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+}
+
+processResources {
+    def displayVersion = project.version.toString().startsWith("v")
+        ? project.version.toString().substring(1)
+        : project.version.toString()
+    inputs.property("version", displayVersion)
+
+    filesMatching("META-INF/mods.toml") {
+        expand(version: displayVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = 25
+    options.compilerArgs += ["-Xmaxerrs", "1000"]
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+java {
+    withSourcesJar()
+}
+
+jar {
+    manifest {
+        attributes(
+            "MixinConfigs": "wurst.mixins.json",
+            "Specification-Title": project.mod_id,
+            "Specification-Vendor": project.mod_authors,
+            "Specification-Version": "1",
+            "Implementation-Title": project.name,
+            "Implementation-Version": project.version,
+            "Implementation-Vendor": project.mod_authors)
+    }
+
+    from("LICENSE.txt") {
+        rename { "LICENSE-${project.base.archivesName.get()}.txt" }
+    }
+
+    exclude "intentionally_untranslated.json"
+}
+
+tasks.register('allJar', Jar) {
+    group = 'build'
+    description = 'Assembles a fat jar including runtime dependencies.'
+    archiveClassifier = 'all'
+    zip64 = true
+    manifest.from(tasks.jar.manifest)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from sourceSets.main.output
+    from {
+        (configurations.runtimeClasspath.files + configurations.allJarEmbed.files).findAll { dependency ->
+            def fileName = dependency.name
+            fileName.startsWith('Java-WebSocket')
+        }.collect { dependency ->
+            dependency.isDirectory() ? dependency : zipTree(dependency)
+        }
+    }
+    exclude 'net/minecraft/**', 'net/minecraftforge/**'
+    exclude 'mixins.baritone.json', 'baritone/launch/**'
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'module-info.class'
+}

@@ -1,0 +1,37 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run
+run-data
+*.log
+compile-errors*.txt
+compile-*.log
+render-errors.txt
+runClient-stdout.log
+runClient-stderr.log
+*.zip
+Wurst7-ref-26.1.2/
+forge-26.1.2-64.1.0-mdk/
+_artifacts/
+
+# Files from Forge MDK
+forge_README.txt
+forge*changelog.txt

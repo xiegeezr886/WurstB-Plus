@@ -1,0 +1,38 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime
+run/
+logs/
+*.log
+
+# Dependencies
+*.jar
+!gradle/wrapper/*.jar
+!versions/*/libs/*.jar
+!newforge/*/libs/*.jar
+
+# Artifacts & Temp
+_artifacts/
+source/
+*.zip
+download/
+hs_err_pid*.log
+compile_errors.txt
+compile-errors-index.txt
+build_log*.txt
+baritone-checksums.txt
+GameRenderer_bytecode.txt
+*.tmp
+*.bak
