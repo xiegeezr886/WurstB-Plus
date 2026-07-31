@@ -82,7 +82,7 @@ C:\Users\ui863\Documents\trae_projects\VAP\
 - baritone 通过 `libs/` flatDir `compileOnly`，运行时安全降级
 - `AbstractBlockStateMixin` 已从 mixin 配置移除（`BlockStateBase` 不存在）
 - 构建需 JDK 25 + `_JAVA_OPTIONS=-Djavax.net.ssl.trustAll=true`
-- 产物：`build/libs/WurstB+ Plus-v1.5.0-MC26.1.2-all.jar`（~26 MB）
+- 产物：`build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar`（~26 MB）
 - CHANGELOG: `versions/26.1.2/CHANGELOG.md`，迁移记录: `versions/26.1.2/PORTING_TASK.md`
 
 ## 渲染管线关键文件

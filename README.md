@@ -12,7 +12,7 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户�
 | 1.20.1 | NeoForge | 47.1.3 | 17 | `newforge/` | `newforge/build/libs/WurstB+ Plus-v1.5.0-NewForge-1.20.1-all.jar` |
 | 1.21.1 | Forge | 52.1.16 | 21 | `versions/1.21.1/` | `versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar` |
 | 1.21.1 | NeoForge | 21.1.244 | 21 | `newforge/versions/1.21.1/` | `newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar` |
-| 26.1.2 | Forge | 64.1.0 | 25 | `versions/26.1.2/` | `versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-MC26.1.2-all.jar` |
+| 26.1.2 | Forge | 64.1.0 | 25 | `versions/26.1.2/` | `versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar` |
 > 26.1.2 为最新适配版本，详见 `versions/26.1.2/CHANGELOG.md`。
 
 ## 根工程状态
@@ -349,7 +349,7 @@ $env:_JAVA_OPTIONS = "-Djavax.net.ssl.trustAll=true"
 可部署产物：
 
 ```text
-versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-MC26.1.2-all.jar
+versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar
 ```
 
 > 26.1.2 使用 ForgeGradle 7.x、Gradle 9.4.1、Mojang 官方映射，内置 Mixin 0.8.7 + MixinExtras。baritone 通过 `libs/` 目录 flatDir 加载（`compileOnly`）。
@@ -390,7 +390,7 @@ Aristois/EMC 主要用于核对 Forge 事件、批量顶点提交、PostChain/Fr
 - 1.20.1 NewForge 47.1.3：`newforge/build/libs/WurstB+ Plus-v1.5.0-NewForge-1.20.1-all.jar`
 - 1.21.1 Forge 52.1.16：`versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar`
 - 1.21.1 NeoForge 21.1.244：`newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar`
-- 26.1.2 Forge 64.1.0：`versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-MC26.1.2-all.jar`（文字颜色、图标渲染、圆角抗锯齿、Mixin 启动崩溃已修复）
+- 26.1.2 Forge 64.1.0：`versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar`（文字颜色、图标渲染、圆角抗锯齿、Mixin 启动崩溃已修复）
 
 ### 1.21.1 渲染管线说明
 
