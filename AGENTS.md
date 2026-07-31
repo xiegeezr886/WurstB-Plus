@@ -73,7 +73,7 @@ C:\Users\ui863\Documents\trae_projects\VAP\
 - 产物：`build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar`，已验证 `clean build` 成功
 
 ### 26.1.2 版本（versions/26.1.2/）
-- Minecraft 1.21.2, Forge 26.1.2-64.1.0, Java 25, FG7, Gradle 9.4.1
+- Minecraft 26.1.2, Forge 26.1.2-64.1.0, Java 25, FG7, Gradle 9.4.1
 - 渲染管线：`render()` → `extractRenderState()`，`GuiGraphics` → `GuiGraphicsExtractor`
 - `blit()` 需 `RenderPipelines.GUI_TEXTURED` 第一参数
 - 文字颜色需 8 位 Alpha（`0xFFxxxxxx`），6 位色视为透明

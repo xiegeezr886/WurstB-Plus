@@ -2,7 +2,7 @@
 
 ## 项目概况
 - 目标目录：`C:\Users\ui863\Documents\trae_projects\VAP\versions\26.1.2`
-- 迁移方向：WurstB+ Plus 适配到 Minecraft 1.21.2 / Forge 26.1.2
+- 迁移方向：WurstB+ Plus 适配到 Minecraft 26.1.2 / Forge 64.1.0
 - 当前阶段：编译通过 + 运行时世界加载成功 + GUI 渲染修复
 
 ## 当前进度

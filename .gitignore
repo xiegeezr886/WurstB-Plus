@@ -17,9 +17,9 @@ run/
 logs/
 *.log
 
-# Dependencies
-libs/*.jar
-baritone-*.jar
+# Dependencies (exclude jars in root but keep version dir libs)
+/*.jar
+!libs/*.jar
 
 # Artifacts & References
 _artifacts/

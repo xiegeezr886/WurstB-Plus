@@ -89,7 +89,7 @@ dependencies {
 	jarJar("io.netty:netty-handler-proxy:[4.1.82.Final]") {
 		transitive = false
 	}
-	implementation fg.deobf("baritone:baritone-api-forge:1.21.2")
+	implementation fg.deobf("baritone:baritone-api-forge:1.21.1")
 	jarJar(group: "baritone", name: "baritone-api-forge",
 		version: "[1.21.2,1.22)")
 	compileOnly "com.google.code.findbugs:jsr305:3.0.2"

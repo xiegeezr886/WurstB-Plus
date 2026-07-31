@@ -1,6 +1,6 @@
 # WurstB+ Plus
 
-WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户端项目，提供 1.20.1、1.21.1 和 26.1.2（1.21.2）多版本支持。源码包含战斗、移动、渲染、世界交互、GUI、命令、配置、导航和事件系统，并已吸收 BleachHack、Meteor、LiquidBounce 参考客户端中的目标选择、状态调度、ESP 渲染、智能绑定、宏系统、路径点、代理系统、Addon 扩展等设计。
+WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户端项目，提供 1.20.1、1.21.1 和 26.1.2 多版本支持。
 
 详细文件索引见 [PROJECT_INDEX.md](PROJECT_INDEX.md)。
 
@@ -19,7 +19,7 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户�
 
 | 项目 | 当前值 |
 | --- | --- |
-| Minecraft | 1.20.1 / 1.21.1 / 1.21.2 |
+| Minecraft | 1.20.1 / 1.21.1 / 26.1.2 |
 | Java | 17 (1.20.1) / 21 (1.21.1) / 25 (26.1.2) |
 | 当前构建插件 | ForgeGradle 6.0 (1.20.1) / FG7 (26.1.2) |
 | 当前映射 | Mojang 官方映射 |
@@ -337,7 +337,7 @@ SHA-256: `C6B4F4C549946BC5944E4D8A361221A68DEB14C517D27FAB97C1142CA983EDD6`
 
 ### Forge 26.1.2
 
-`versions/26.1.2/` 目录为 Forge 1.21.2 分支，需要 Java 25（JDK 25 SSL 问题需设置 `_JAVA_OPTIONS`）：
+`versions/26.1.2/` 目录为 Minecraft 26.1.2 / Forge 64.1.0 分支，需要 Java 25（JDK 25 SSL 问题需设置 `_JAVA_OPTIONS`）：
 
 ```powershell
 cd versions\26.1.2
