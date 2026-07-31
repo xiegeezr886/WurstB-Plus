@@ -17,23 +17,22 @@ run/
 logs/
 *.log
 
-# Dependencies (exclude jars in root but keep version dir libs)
-/*.jar
-!libs/*.jar
+# Dependencies
+*.jar
+!gradle/wrapper/*.jar
+!versions/*/libs/*.jar
+!newforge/*/libs/*.jar
 
-# Artifacts & References
+# Artifacts & Temp
 _artifacts/
 source/
 *.zip
-CozyUI+_v*.zip
-MDK-*.zip
-YetAnotherConfigLib-*.zip
-
-# Java
-*.class
-*.jar
-!gradle/wrapper/*.jar
-
-# Temp
+download/
+hs_err_pid*.log
+compile_errors.txt
+compile-errors-index.txt
+build_log*.txt
+baritone-checksums.txt
+GameRenderer_bytecode.txt
 *.tmp
 *.bak
