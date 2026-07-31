@@ -1,0 +1,692 @@
+﻿To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+MixinGradle did not locate the diffplug APT plugin, skipping eclipse task configuration
+
+> Task :downloadMcpConfig
+> Task :extractSrg UP-TO-DATE
+> Task :createMcpToSrg UP-TO-DATE
+
+> Task :compileJava
+gradlew.bat : 娉? SpongePowered MIXIN Annotation Processor Version=0.8.5 (MixinGradle Version=0.7)
+所在位置 行:1 字符: 82
++ ... e_errors.txt"; & "./gradlew.bat" compileJava --no-daemon *>&1 | Out-F ...
++                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (娉? SpongePowere...le Version=0.7):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+娉? Supported obfuscation types: ObfuscationServiceMCP supports [notch] ObfuscationServiceFG3 supports [searge]
+娉? Loading searge mappings from C:\Users\ui863\Documents\trae_projects\VAP\build\createMcpToSrg\output.tsrg
+娉? Writing refmap to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-refmap.json
+娉? Writing refmap to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-refmap.json
+娉? Writing searge composite mappings to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-ma
+ppings.tsrg
+娉? Writing refmap to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-refmap.json
+娉? Writing refmap to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-refmap.json
+娉? Writing searge composite mappings to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-ma
+ppings.tsrg
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\WurstClient.java:111: 閿欒: 鏃犳硶灏嗙被 ClickGui涓殑鏋
+勯€犲櫒 ClickGui搴旂敤鍒扮粰瀹氱被鍨?
+		gui = new ClickGui(guiFile);
+		      ^
+  闇€瑕? 娌℃湁鍙傛暟
+  鎵惧埌:    Path
+  鍘熷洜: 瀹為檯鍙傛暟鍒楄〃鍜屽舰寮忓弬鏁板垪琛ㄩ暱搴︿笉鍚?
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\IngameHUD.java:32: 閿欒: 鎵句笉鍒扮鍙?		clickGui
+.updateColors();
+		        ^
+  绗﹀彿:   鏂规硶 updateColors()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?clickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\IngameHUD.java:39: 閿欒: 鎵句笉鍒扮鍙?		if(!(Wur
+stClient.MC.screen instanceof ClickGuiScreen))
+		                                      ^
+  绗﹀彿:   绫?ClickGuiScreen
+  浣嶇疆: 绫?IngameHUD
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\IngameHUD.java:40: 閿欒: 鎵句笉鍒扮鍙?			clickGu
+i.renderPinnedWindows(context, partialTicks);
+			        ^
+  绗﹀彿:   鏂规硶 renderPinnedWindows(GuiGraphics,float)
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?clickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\Window.java:30: 閿欒: 鎵句笉鍒扮鍙?	public 
+final int getX() { return Mth.clamp(x, -width+1, WurstClient.MC.getWindow().getScaledWidth()-1); }
+	                                                                                  ^
+  绗﹀彿:   鏂规硶 getScaledWidth()
+  浣嶇疆: 绫?Window
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\Window.java:33: 閿欒: 鎵句笉鍒扮鍙?	public 
+final int getY() { return Mth.clamp(y, -12, WurstClient.MC.getWindow().getScaledHeight()-1); }
+	                                                                             ^
+  绗﹀彿:   鏂规硶 getScaledHeight()
+  浣嶇疆: 绫?Window
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\WurstLogo.java:22: 璀﹀憡: [removal] Resource
+Location 涓殑 ResourceLocation(String,String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?		new ResourceLocation("wurst", "wurst_128.png");
+		^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\WurstLogo.java:36: 閿欒: 鎵句笉鍒扮鍙?			bgColor
+ = RenderUtils.toIntColor(WURST.getGui().getAcColor(), 0.5F);
+			                                               ^
+  绗﹀彿:   鏂规硶 getAcColor()
+  浣嶇疆: 绫?ClickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\HackListHUD.java:49: 閿欒: 鎵句笉鍒扮鍙?			float
+[] acColor = WurstClient.INSTANCE.getGui().getAcColor();
+			                                               ^
+  绗﹀彿:   鏂规硶 getAcColor()
+  浣嶇疆: 绫?ClickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\TabGui.java:132: 閿欒: 鎵句笉鍒扮鍙?		int txtCol
+or = WURST.getGui().getTxtColor();
+		                             ^
+  绗﹀彿:   鏂规硶 getTxtColor()
+  浣嶇疆: 绫?ClickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\TabGui.java:184: 閿欒: 鎵句笉鍒扮鍙?			RenderUti
+ls.toIntColor(gui.getBgColor(), gui.getOpacity());
+			                          ^
+  绗﹀彿:   鏂规硶 getBgColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\TabGui.java:184: 閿欒: 鎵句笉鍒扮鍙?			RenderUti
+ls.toIntColor(gui.getBgColor(), gui.getOpacity());
+			                                            ^
+  绗﹀彿:   鏂规硶 getOpacity()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\settings\EnumSetting.java:111: 閿欒: 鎵句笉鍒扮鍙?		
+return new ComboBoxComponent<>(this);
+		           ^
+  绗﹀彿:   绫?ComboBoxComponent
+  浣嶇疆: 绫?EnumSetting<T>
+  鍏朵腑, T鏄被鍨嬪彉閲?
+    T鎵╁睍宸插湪绫?EnumSetting涓０鏄庣殑Enum<T>
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\PotionCmd.java:130: 璀﹀憡: [removal] Re
+sourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?				ResourceLocation identifier = new ResourceLocation(inp
+ut);
+				                              ^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\TacoCmd.java:25: 璀﹀憡: [removal] Resou
+rceLocation 涓殑 ResourceLocation(String,String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?		{new ResourceLocation("wurst", "dancingtaco1.png"),
+		 ^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\TacoCmd.java:26: 璀﹀憡: [removal] Resou
+rceLocation 涓殑 ResourceLocation(String,String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?			new ResourceLocation("wurst", "dancingtaco2.png"),
+			^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\TacoCmd.java:27: 璀﹀憡: [removal] Resou
+rceLocation 涓殑 ResourceLocation(String,String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?			new ResourceLocation("wurst", "dancingtaco3.png"),
+			^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\TacoCmd.java:28: 璀﹀憡: [removal] Resou
+rceLocation 涓殑 ResourceLocation(String,String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?			new ResourceLocation("wurst", "dancingtaco4.png")};
+			^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\TacoCmd.java:85: 閿欒: 鎵句笉鍒扮鍙?			Rend
+erUtils.setShaderColor(WURST.getGui().getAcColor(), 1);
+			                                         ^
+  绗﹀彿:   鏂规硶 getAcColor()
+  浣嶇疆: 绫?ClickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\settings\BlockSetting.java:115: 閿欒: 鎵句笉鍒扮鍙?	
+	return new BlockComponent(this);
+		           ^
+  绗﹀彿:   绫?BlockComponent
+  浣嶇疆: 绫?BlockSetting
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\settings\ItemListSetting.java:44: 璀﹀憡: [remova
+l] ResourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?			.map(s -> BuiltInRegistries.ITEM.get(new ResourceL
+ocation(s)))
+			                                     ^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\settings\ItemListSetting.java:108: 璀﹀憡: [remov
+al] ResourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?				.map(s -> BuiltInRegistries.ITEM.get(new Resourc
+eLocation(s)))
+				                                     ^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hacks\InvWalkHack.java:103: 閿欒: 鎵句笉鍒扮鍙?		if(
+allowClickGUI.isChecked() && screen instanceof ClickGuiScreen)
+		                                                  ^
+  绗﹀彿:   绫?ClickGuiScreen
+  浣嶇疆: 绫?InvWalkHack
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hacks\LsdHack.java:38: 璀﹀憡: [removal] Resource
+Location 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?			.loadEffect(new ResourceLocation("shaders/post/wobble.json"))
+;
+			            ^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\util\RenderUtils.java:934: 閿欒: 鎵句笉鍒扮鍙?		floa
+t[] acColor = WurstClient.INSTANCE.getGui().getAcColor();
+		                                               ^
+  绗﹀彿:   鏂规硶 getAcColor()
+  浣嶇疆: 绫?ClickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hacks\XRayHack.java:239: 閿欒: 鎵句笉鍒扮鍙?		MC.set
+Screen(new EditBlockListScreen(prevScreen, ores));
+		                 ^
+  绗﹀彿:   绫?EditBlockListScreen
+  浣嶇疆: 绫?XRayHack
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\settings\BookOffersSetting.java:45: 璀﹀憡: [remo
+val] ResourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?			.map(s -> BuiltInRegistries.ENCHANTMENT.get(new 
+ResourceLocation(s)))
+			                                            ^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hacks\autolibrarian\BookOffer.java:28: 璀﹀憡: [r
+emoval] ResourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?		return BuiltInRegistries.ENCHANTMENT.get(new R
+esourceLocation(id));
+		                                         ^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\components\RadarComponent.java:58: 閿欒
+: 鎵句笉鍒扮鍙?			gui.setTooltip("");
+			   ^
+  绗﹀彿:   鏂规硶 setTooltip(String)
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\components\RadarComponent.java:61: 閿欒
+: 鎵句笉鍒扮鍙?			gui.getTheme(), 0, false);
+			   ^
+  绗﹀彿:   鏂规硶 getTheme()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\components\RadarComponent.java:63: 閿欒
+: 鎵句笉鍒扮鍙?			gui.getTheme().accent(0.12F));
+			   ^
+  绗﹀彿:   鏂规硶 getTheme()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\components\RadarComponent.java:65: 閿欒
+: 鎵句笉鍒扮鍙?			gui.getTheme().accent(0.12F));
+			   ^
+  绗﹀彿:   鏂规硶 getTheme()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\components\RadarComponent.java:77: 閿欒
+: 鎵句笉鍒扮鍙?		ClickGuiIcons.drawRadarArrow(context, -2, -2, 2, 2);
+		             ^
+  绗﹀彿:   鏂规硶 drawRadarArrow(GuiGraphics,int,int,int,int)
+  浣嶇疆: 绫?ClickGuiIcons
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\keybinds\KeybindProcessor.java:45: 閿欒: 鎵句笉鍒扮
+鍙?		if(screen != null && !(screen instanceof ClickGuiScreen))
+		                                         ^
+  绗﹀彿:   绫?ClickGuiScreen
+  浣嶇疆: 绫?KeybindProcessor
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorScreen.java:226: 閿欒: 鎵句笉鍒扮
+鍙?		float[] acColor = WurstClient.INSTANCE.getGui().getAcColor();
+		                                               ^
+  绗﹀彿:   鏂规硶 getAcColor()
+  浣嶇疆: 绫?ClickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorScreen.java:258: 閿欒: 鎵句笉鍒扮
+鍙?		gui.updateColors();
+		   ^
+  绗﹀彿:   鏂规硶 updateColors()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorScreen.java:259: 閿欒: 鎵句笉鍒扮
+鍙?		return RenderUtils.toIntColor(gui.getBgColor(), gui.getOpacity());
+		                                 ^
+  绗﹀彿:   鏂规硶 getBgColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorScreen.java:259: 閿欒: 鎵句笉鍒扮
+鍙?		return RenderUtils.toIntColor(gui.getBgColor(), gui.getOpacity());
+		                                                   ^
+  绗﹀彿:   鏂规硶 getOpacity()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:238: 閿欒
+: 鎵句笉鍒扮鍙?		if(WurstClient.INSTANCE.getGui().handleNavigatorPopupClick(x, y,
+		                                ^
+  绗﹀彿:   鏂规硶 handleNavigatorPopupClick(double,double,int)
+  浣嶇疆: 绫?ClickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:267: 閿欒
+: 鎵句笉鍒扮鍙?		WurstClient.INSTANCE.getGui().handleNavigatorMouseClick(
+		                             ^
+  绗﹀彿:   鏂规硶 handleNavigatorMouseClick(double,double,int,Window)
+  浣嶇疆: 绫?ClickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:288: 閿欒
+: 鎵句笉鍒扮鍙?		WurstClient.INSTANCE.getGui().handleMouseRelease(x, y, button);
+		                             ^
+  绗﹀彿:   鏂规硶 handleMouseRelease(double,double,int)
+  浣嶇疆: 绫?ClickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:304: 閿欒
+: 鎵句笉鍒扮鍙?		int txtColor = gui.getTxtColor();
+		                  ^
+  绗﹀彿:   鏂规硶 getTxtColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:330: 閿欒
+: 鎵句笉鍒扮鍙?		gui.setTooltip("");
+		   ^
+  绗﹀彿:   鏂规硶 setTooltip(String)
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:470: 閿欒
+: 鎵句笉鍒扮鍙?		gui.renderPopups(context, mouseX, mouseY);
+		   ^
+  绗﹀彿:   鏂规硶 renderPopups(GuiGraphics,int,int)
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:471: 閿欒
+: 鎵句笉鍒扮鍙?		gui.renderTooltip(context, mouseX, mouseY);
+		   ^
+  绗﹀彿:   鏂规硶 renderTooltip(GuiGraphics,int,int)
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:478: 閿欒
+: 鎵句笉鍒扮鍙?		WurstClient.INSTANCE.getGui().handleMouseClick(Integer.MIN_VALUE,
+		                             ^
+  绗﹀彿:   鏂规硶 handleMouseClick(int,int,int)
+  浣嶇疆: 绫?ClickGui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:56: 閿欒: 鎵句
+笉鍒扮鍙?		int txtColor = gui.getTxtColor();
+		                  ^
+  绗﹀彿:   鏂规硶 getTxtColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:214: 閿欒: 鎵
+句笉鍒扮鍙?		int txtColor = gui.getTxtColor();
+		                  ^
+  绗﹀彿:   鏂规硶 getTxtColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:277: 閿欒: 鎵
+句笉鍒扮鍙?			int bgColor = RenderUtils.toIntColor(gui.getBgColor(),
+			                                        ^
+  绗﹀彿:   鏂规硶 getBgColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:278: 閿欒: 鎵
+句笉鍒扮鍙?				gui.getTooltipOpacity());
+				   ^
+  绗﹀彿:   鏂规硶 getTooltipOpacity()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:282: 閿欒: 鎵
+句笉鍒扮鍙?			int acColor = RenderUtils.toIntColor(gui.getAcColor(), 0.5F);
+			                                        ^
+  绗﹀彿:   鏂规硶 getAcColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:353: 閿欒: 鎵
+句笉鍒扮鍙?			gui.getOpacity() * (renderAsHovered ? 1.5F : 1));
+			   ^
+  绗﹀彿:   鏂规硶 getOpacity()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:352: 閿欒: 鎵
+句笉鍒扮鍙?			feature.isEnabled() ? new float[]{0, 1, 0} : gui.getBgColor(),
+			                                                ^
+  绗﹀彿:   鏂规硶 getBgColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:361: 閿欒: 鎵
+句笉鍒扮鍙?		int sepColor = RenderUtils.toIntColor(gui.getAcColor(), 0.5F);
+		                                         ^
+  绗﹀彿:   鏂规硶 getAcColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:369: 閿欒: 鎵
+句笉鍒扮鍙?		ClickGuiIcons.drawMinimizeArrow(context, bx1 + 2, area.y + 2.5F,
+		             ^
+  绗﹀彿:   鏂规硶 drawMinimizeArrow(GuiGraphics,int,float,int,int,boolean,boolean)
+  浣嶇疆: 绫?ClickGuiIcons
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:379: 閿欒: 鎵
+句笉鍒扮鍙?			int txtColor = gui.getTxtColor();
+			                  ^
+  绗﹀彿:   鏂规硶 getTxtColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorNewKeybindScreen.java:159: 
+閿欒: 鎵句笉鍒扮鍙?		int txtColor = gui.getTxtColor();
+		                  ^
+  绗﹀彿:   鏂规硶 getTxtColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorRemoveKeybindScreen.java:12
+9: 閿欒: 鎵句笉鍒扮鍙?		int txtColor = gui.getTxtColor();
+		                  ^
+  绗﹀彿:   鏂规硶 getTxtColor()
+  浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\util\BlockUtils.java:73: 璀﹀憡: [removal] Resour
+ceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?			return BuiltInRegistries.BLOCK.get(new ResourceLocation(nam
+e));
+			                                   ^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\util\BlockUtils.java:100: 璀﹀憡: [removal] Resou
+rceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?			ResourceLocation id = new ResourceLocation(nameOrId);
+			                      ^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\util\ItemUtils.java:49: 璀﹀憡: [removal] Resourc
+eLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?			return BuiltInRegistries.ITEM.getOptional(new ResourceLocati
+on(nameOrId))
+			                                          ^
+C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\WurstForgeInitializer.java:25: 璀﹀憡: [removal] 
+FMLJavaModLoadingContext 涓殑 get() 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus(
+);
+		                                           ^
+娉? 鏌愪簺杈撳叆鏂囦欢浣跨敤鎴栬鐩栦簡宸茶繃鏃剁殑 API銆?
+娉? 鏈夊叧璇︾粏淇℃伅, 璇蜂娇鐢?-Xlint:deprecation 閲嶆柊缂栬瘧銆?
+47 涓敊璇?
+15 涓鍛?
+
+> Task :compileJava FAILED
+[Incubating] Problems report is available at: file:///C:/Users/ui863/Documents/trae_projects/VAP/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\WurstLogo.java:22: 璀﹀憡: [removal] Resour
+ceLocation 涓殑 ResourceLocation(String,String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  		new ResourceLocation("wurst", "wurst_128.png");
+  		^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\PotionCmd.java:130: 璀﹀憡: [removal] 
+ResourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  				ResourceLocation identifier = new ResourceLocation(input);
+  				                              ^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\TacoCmd.java:25: 璀﹀憡: [removal] Res
+ourceLocation 涓殑 ResourceLocation(String,String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  		{new ResourceLocation("wurst", "dancingtaco1.png"),
+  		 ^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\TacoCmd.java:26: 璀﹀憡: [removal] Res
+ourceLocation 涓殑 ResourceLocation(String,String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  			new ResourceLocation("wurst", "dancingtaco2.png"),
+  			^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\TacoCmd.java:27: 璀﹀憡: [removal] Res
+ourceLocation 涓殑 ResourceLocation(String,String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  			new ResourceLocation("wurst", "dancingtaco3.png"),
+  			^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\TacoCmd.java:28: 璀﹀憡: [removal] Res
+ourceLocation 涓殑 ResourceLocation(String,String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  			new ResourceLocation("wurst", "dancingtaco4.png")};
+  			^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\settings\ItemListSetting.java:44: 璀﹀憡: [remo
+val] ResourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  			.map(s -> BuiltInRegistries.ITEM.get(new ResourceLocation(s)))
+  			                                     ^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\settings\ItemListSetting.java:108: 璀﹀憡: [rem
+oval] ResourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  				.map(s -> BuiltInRegistries.ITEM.get(new ResourceLocation(s)))
+  				                                     ^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hacks\LsdHack.java:38: 璀﹀憡: [removal] Resour
+ceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  			.loadEffect(new ResourceLocation("shaders/post/wobble.json"));
+  			            ^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\settings\BookOffersSetting.java:45: 璀﹀憡: [re
+moval] ResourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  			.map(s -> BuiltInRegistries.ENCHANTMENT.get(new ResourceLocation(s)))
+  			                                            ^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hacks\autolibrarian\BookOffer.java:28: 璀﹀憡: 
+[removal] ResourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  		return BuiltInRegistries.ENCHANTMENT.get(new ResourceLocation(id));
+  		                                         ^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\util\BlockUtils.java:73: 璀﹀憡: [removal] Reso
+urceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  			return BuiltInRegistries.BLOCK.get(new ResourceLocation(name));
+  			                                   ^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\util\BlockUtils.java:100: 璀﹀憡: [removal] Res
+ourceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  			ResourceLocation id = new ResourceLocation(nameOrId);
+  			                      ^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\util\ItemUtils.java:49: 璀﹀憡: [removal] Resou
+rceLocation 涓殑 ResourceLocation(String) 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  			return BuiltInRegistries.ITEM.getOptional(new ResourceLocation(nameOrId))
+  			                                          ^
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\WurstForgeInitializer.java:25: 璀﹀憡: [removal
+] FMLJavaModLoadingContext 涓殑 get() 宸茶繃鏃? 涓旀爣璁颁负寰呭垹闄?
+  		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+  		                                           ^
+  娉? SpongePowered MIXIN Annotation Processor Version=0.8.5 (MixinGradle Version=0.7)
+  娉? Supported obfuscation types: ObfuscationServiceMCP supports [notch] ObfuscationServiceFG3 supports [searge]
+  娉? Loading searge mappings from C:\Users\ui863\Documents\trae_projects\VAP\build\createMcpToSrg\output.tsrg
+  娉? Writing refmap to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-refmap.json
+  娉? Writing refmap to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-refmap.json
+  娉? Writing searge composite mappings to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-
+mappings.tsrg
+  娉? Writing refmap to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-refmap.json
+  娉? Writing refmap to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-refmap.json
+  娉? Writing searge composite mappings to C:\Users\ui863\Documents\trae_projects\VAP\build\tmp\compileJava\compileJava-
+mappings.tsrg
+  娉? 鏈夊叧璇︾粏淇℃伅, 璇蜂娇鐢?-Xlint:deprecation 閲嶆柊缂栬瘧銆?
+  娉? 鏌愪簺杈撳叆鏂囦欢浣跨敤鎴栬鐩栦簡宸茶繃鏃剁殑 API銆?
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\IngameHUD.java:32: 閿欒: 鎵句笉鍒扮鍙?
+  		clickGui.updateColors();
+  		        ^
+    绗﹀彿:   鏂规硶 updateColors()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?clickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\IngameHUD.java:40: 閿欒: 鎵句笉鍒扮鍙?
+  			clickGui.renderPinnedWindows(context, partialTicks);
+  			        ^
+    绗﹀彿:   鏂规硶 renderPinnedWindows(GuiGraphics,float)
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?clickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\Window.java:30: 閿欒: 鎵句笉鍒扮鍙?
+  	public final int getX() { return Mth.clamp(x, -width+1, WurstClient.MC.getWindow().getScaledWidth()-1); }
+  	                                                                                  ^
+    绗﹀彿:   鏂规硶 getScaledWidth()
+    浣嶇疆: 绫?Window
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\Window.java:33: 閿欒: 鎵句笉鍒扮鍙?
+  	public final int getY() { return Mth.clamp(y, -12, WurstClient.MC.getWindow().getScaledHeight()-1); }
+  	                                                                             ^
+    绗﹀彿:   鏂规硶 getScaledHeight()
+    浣嶇疆: 绫?Window
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\WurstLogo.java:36: 閿欒: 鎵句笉鍒扮鍙?
+  			bgColor = RenderUtils.toIntColor(WURST.getGui().getAcColor(), 0.5F);
+  			                                               ^
+    绗﹀彿:   鏂规硶 getAcColor()
+    浣嶇疆: 绫?ClickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\HackListHUD.java:49: 閿欒: 鎵句笉鍒扮鍙?
+  			float[] acColor = WurstClient.INSTANCE.getGui().getAcColor();
+  			                                               ^
+    绗﹀彿:   鏂规硶 getAcColor()
+    浣嶇疆: 绫?ClickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\TabGui.java:132: 閿欒: 鎵句笉鍒扮鍙?
+  		int txtColor = WURST.getGui().getTxtColor();
+  		                             ^
+    绗﹀彿:   鏂规硶 getTxtColor()
+    浣嶇疆: 绫?ClickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\TabGui.java:184: 閿欒: 鎵句笉鍒扮鍙?
+  			RenderUtils.toIntColor(gui.getBgColor(), gui.getOpacity());
+  			                          ^
+    绗﹀彿:   鏂规硶 getBgColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\TabGui.java:184: 閿欒: 鎵句笉鍒扮鍙?
+  			RenderUtils.toIntColor(gui.getBgColor(), gui.getOpacity());
+  			                                            ^
+    绗﹀彿:   鏂规硶 getOpacity()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\commands\TacoCmd.java:85: 閿欒: 鎵句笉鍒扮鍙?
+  			RenderUtils.setShaderColor(WURST.getGui().getAcColor(), 1);
+  			                                         ^
+    绗﹀彿:   鏂规硶 getAcColor()
+    浣嶇疆: 绫?ClickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\util\RenderUtils.java:934: 閿欒: 鎵句笉鍒扮鍙?
+  		float[] acColor = WurstClient.INSTANCE.getGui().getAcColor();
+  		                                               ^
+    绗﹀彿:   鏂规硶 getAcColor()
+    浣嶇疆: 绫?ClickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\components\RadarComponent.java:58: 
+閿欒: 鎵句笉鍒扮鍙?
+  			gui.setTooltip("");
+  			   ^
+    绗﹀彿:   鏂规硶 setTooltip(String)
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\components\RadarComponent.java:61: 
+閿欒: 鎵句笉鍒扮鍙?
+  			gui.getTheme(), 0, false);
+  			   ^
+    绗﹀彿:   鏂规硶 getTheme()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\components\RadarComponent.java:63: 
+閿欒: 鎵句笉鍒扮鍙?
+  			gui.getTheme().accent(0.12F));
+  			   ^
+    绗﹀彿:   鏂规硶 getTheme()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\components\RadarComponent.java:65: 
+閿欒: 鎵句笉鍒扮鍙?
+  			gui.getTheme().accent(0.12F));
+  			   ^
+    绗﹀彿:   鏂规硶 getTheme()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\clickgui\components\RadarComponent.java:77: 
+閿欒: 鎵句笉鍒扮鍙?
+  		ClickGuiIcons.drawRadarArrow(context, -2, -2, 2, 2);
+  		             ^
+    绗﹀彿:   鏂规硶 drawRadarArrow(GuiGraphics,int,int,int,int)
+    浣嶇疆: 绫?ClickGuiIcons
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorScreen.java:226: 閿欒: 鎵句笉
+鍒扮鍙?
+  		float[] acColor = WurstClient.INSTANCE.getGui().getAcColor();
+  		                                               ^
+    绗﹀彿:   鏂规硶 getAcColor()
+    浣嶇疆: 绫?ClickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorScreen.java:258: 閿欒: 鎵句笉
+鍒扮鍙?
+  		gui.updateColors();
+  		   ^
+    绗﹀彿:   鏂规硶 updateColors()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorScreen.java:259: 閿欒: 鎵句笉
+鍒扮鍙?
+  		return RenderUtils.toIntColor(gui.getBgColor(), gui.getOpacity());
+  		                                 ^
+    绗﹀彿:   鏂规硶 getBgColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorScreen.java:259: 閿欒: 鎵句笉
+鍒扮鍙?
+  		return RenderUtils.toIntColor(gui.getBgColor(), gui.getOpacity());
+  		                                                   ^
+    绗﹀彿:   鏂规硶 getOpacity()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:238: 閿
+欒: 鎵句笉鍒扮鍙?
+  		if(WurstClient.INSTANCE.getGui().handleNavigatorPopupClick(x, y,
+  		                                ^
+    绗﹀彿:   鏂规硶 handleNavigatorPopupClick(double,double,int)
+    浣嶇疆: 绫?ClickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:267: 閿
+欒: 鎵句笉鍒扮鍙?
+  		WurstClient.INSTANCE.getGui().handleNavigatorMouseClick(
+  		                             ^
+    绗﹀彿:   鏂规硶 handleNavigatorMouseClick(double,double,int,Window)
+    浣嶇疆: 绫?ClickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:288: 閿
+欒: 鎵句笉鍒扮鍙?
+  		WurstClient.INSTANCE.getGui().handleMouseRelease(x, y, button);
+  		                             ^
+    绗﹀彿:   鏂规硶 handleMouseRelease(double,double,int)
+    浣嶇疆: 绫?ClickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:304: 閿
+欒: 鎵句笉鍒扮鍙?
+  		int txtColor = gui.getTxtColor();
+  		                  ^
+    绗﹀彿:   鏂规硶 getTxtColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:330: 閿
+欒: 鎵句笉鍒扮鍙?
+  		gui.setTooltip("");
+  		   ^
+    绗﹀彿:   鏂规硶 setTooltip(String)
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:470: 閿
+欒: 鎵句笉鍒扮鍙?
+  		gui.renderPopups(context, mouseX, mouseY);
+  		   ^
+    绗﹀彿:   鏂规硶 renderPopups(GuiGraphics,int,int)
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:471: 閿
+欒: 鎵句笉鍒扮鍙?
+  		gui.renderTooltip(context, mouseX, mouseY);
+  		   ^
+    绗﹀彿:   鏂规硶 renderTooltip(GuiGraphics,int,int)
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorFeatureScreen.java:478: 閿
+欒: 鎵句笉鍒扮鍙?
+  		WurstClient.INSTANCE.getGui().handleMouseClick(Integer.MIN_VALUE,
+  		                             ^
+    绗﹀彿:   鏂规硶 handleMouseClick(int,int,int)
+    浣嶇疆: 绫?ClickGui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:56: 閿欒: 
+鎵句笉鍒扮鍙?
+  		int txtColor = gui.getTxtColor();
+  		                  ^
+    绗﹀彿:   鏂规硶 getTxtColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:214: 閿欒:
+ 鎵句笉鍒扮鍙?
+  		int txtColor = gui.getTxtColor();
+  		                  ^
+    绗﹀彿:   鏂规硶 getTxtColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:277: 閿欒:
+ 鎵句笉鍒扮鍙?
+  			int bgColor = RenderUtils.toIntColor(gui.getBgColor(),
+  			                                        ^
+    绗﹀彿:   鏂规硶 getBgColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:278: 閿欒:
+ 鎵句笉鍒扮鍙?
+  				gui.getTooltipOpacity());
+  				   ^
+    绗﹀彿:   鏂规硶 getTooltipOpacity()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:282: 閿欒:
+ 鎵句笉鍒扮鍙?
+  			int acColor = RenderUtils.toIntColor(gui.getAcColor(), 0.5F);
+  			                                        ^
+    绗﹀彿:   鏂规硶 getAcColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:353: 閿欒:
+ 鎵句笉鍒扮鍙?
+  			gui.getOpacity() * (renderAsHovered ? 1.5F : 1));
+  			   ^
+    绗﹀彿:   鏂规硶 getOpacity()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:352: 閿欒:
+ 鎵句笉鍒扮鍙?
+  			feature.isEnabled() ? new float[]{0, 1, 0} : gui.getBgColor(),
+  			                                                ^
+    绗﹀彿:   鏂规硶 getBgColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:361: 閿欒:
+ 鎵句笉鍒扮鍙?
+  		int sepColor = RenderUtils.toIntColor(gui.getAcColor(), 0.5F);
+  		                                         ^
+    绗﹀彿:   鏂规硶 getAcColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:369: 閿欒:
+ 鎵句笉鍒扮鍙?
+  		ClickGuiIcons.drawMinimizeArrow(context, bx1 + 2, area.y + 2.5F,
+  		             ^
+    绗﹀彿:   鏂规硶 drawMinimizeArrow(GuiGraphics,int,float,int,int,boolean,boolean)
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.11/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+4 actionable tasks: 2 executed, 2 up-to-date
+    浣嶇疆: 绫?ClickGuiIcons
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorMainScreen.java:379: 閿欒:
+ 鎵句笉鍒扮鍙?
+  			int txtColor = gui.getTxtColor();
+  			                  ^
+    绗﹀彿:   鏂规硶 getTxtColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorNewKeybindScreen.java:159
+: 閿欒: 鎵句笉鍒扮鍙?
+  		int txtColor = gui.getTxtColor();
+  		                  ^
+    绗﹀彿:   鏂规硶 getTxtColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\navigator\NavigatorRemoveKeybindScreen.java:
+129: 閿欒: 鎵句笉鍒扮鍙?
+  		int txtColor = gui.getTxtColor();
+  		                  ^
+    绗﹀彿:   鏂规硶 getTxtColor()
+    浣嶇疆: 绫诲瀷涓篊lickGui鐨勫彉閲?gui
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\WurstClient.java:111: 閿欒: 鏃犳硶灏嗙被 ClickGui涓
+殑鏋勯€犲櫒 ClickGui搴旂敤鍒扮粰瀹氱被鍨?
+  		gui = new ClickGui(guiFile);
+  		      ^
+    闇€瑕? 娌℃湁鍙傛暟
+    鎵惧埌:    Path
+    鍘熷洜: 瀹為檯鍙傛暟鍒楄〃鍜屽舰寮忓弬鏁板垪琛ㄩ暱搴︿笉鍚?
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hud\IngameHUD.java:39: 閿欒: 鎵句笉鍒扮鍙?
+  		if(!(WurstClient.MC.screen instanceof ClickGuiScreen))
+  		                                      ^
+    绗﹀彿:   绫?ClickGuiScreen
+    浣嶇疆: 绫?IngameHUD
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\settings\EnumSetting.java:111: 閿欒: 鎵句笉鍒扮鍙?
+  		return new ComboBoxComponent<>(this);
+  		           ^
+    绗﹀彿:   绫?ComboBoxComponent
+    浣嶇疆: 绫?EnumSetting<T>
+    鍏朵腑, T鏄被鍨嬪彉閲?
+      T鎵╁睍宸插湪绫?EnumSetting涓０鏄庣殑Enum<T>
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\settings\BlockSetting.java:115: 閿欒: 鎵句笉鍒扮鍙
+?
+  		return new BlockComponent(this);
+  		           ^
+    绗﹀彿:   绫?BlockComponent
+    浣嶇疆: 绫?BlockSetting
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hacks\InvWalkHack.java:103: 閿欒: 鎵句笉鍒扮鍙?
+  		if(allowClickGUI.isChecked() && screen instanceof ClickGuiScreen)
+  		                                                  ^
+    绗﹀彿:   绫?ClickGuiScreen
+    浣嶇疆: 绫?InvWalkHack
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\hacks\XRayHack.java:239: 閿欒: 鎵句笉鍒扮鍙?
+  		MC.setScreen(new EditBlockListScreen(prevScreen, ores));
+  		                 ^
+    绗﹀彿:   绫?EditBlockListScreen
+    浣嶇疆: 绫?XRayHack
+  C:\Users\ui863\Documents\trae_projects\VAP\src\main\java\net\wurstclient\keybinds\KeybindProcessor.java:45: 閿欒: 鎵句笉鍒
+扮鍙?
+  		if(screen != null && !(screen instanceof ClickGuiScreen))
+  		                                         ^
+    绗﹀彿:   绫?ClickGuiScreen
+    浣嶇疆: 绫?KeybindProcessor
+  47 涓敊璇?
+  15 涓鍛?
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 38s

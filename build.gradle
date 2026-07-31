@@ -1,0 +1,149 @@
+buildscript {
+	repositories {
+		maven {
+			name = "Sponge"
+			url = "https://repo.spongepowered.org/repository/maven-public/"
+		}
+	}
+	dependencies {
+		classpath "org.spongepowered:mixingradle:0.7-SNAPSHOT"
+	}
+}
+
+plugins {
+	id "eclipse"
+	id "idea"
+	id "maven-publish"
+	id "net.minecraftforge.gradle" version "[6.0,6.2)"
+}
+
+apply plugin: "org.spongepowered.mixin"
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+	mappings channel: "official", version: project.minecraft_version
+	accessTransformer = file(
+		"src/main/resources/META-INF/accesstransformer.cfg")
+	copyIdeResources = true
+
+	runs {
+		configureEach {
+			workingDirectory project.file("run")
+			property "forge.logging.markers", "REGISTRIES"
+			property "forge.logging.console.level", "info"
+
+			mods {
+				"${project.mod_id}" {
+					source sourceSets.main
+				}
+			}
+		}
+
+		client {}
+	}
+}
+
+repositories {
+	maven {
+		name = "Sponge"
+		url = "https://repo.spongepowered.org/repository/maven-public/"
+	}
+	mavenCentral()
+	flatDir {
+		dirs "."
+	}
+}
+
+jarJar.enable()
+
+dependencies {
+	minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
+
+	implementation fg.deobf(
+		"io.github.llamalad7:mixinextras-forge:${project.mixinextras_version}")
+	compileOnly "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
+	annotationProcessor "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
+	jarJar(group: "io.github.llamalad7", name: "mixinextras-forge",
+		version: "[${project.mixinextras_version},0.5)")
+	annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
+	implementation "org.java-websocket:Java-WebSocket:1.5.3"
+	jarJar("org.java-websocket:Java-WebSocket:[1.5.3]") {
+		transitive = false
+	}
+	implementation "io.netty:netty-codec-socks:4.1.82.Final"
+	implementation "io.netty:netty-handler-proxy:4.1.82.Final"
+	jarJar("io.netty:netty-codec-socks:[4.1.82.Final]") {
+		transitive = false
+	}
+	jarJar("io.netty:netty-handler-proxy:[4.1.82.Final]") {
+		transitive = false
+	}
+	implementation fg.deobf("baritone:baritone-api-forge:1.20.1")
+	jarJar(group: "baritone", name: "baritone-api-forge",
+		version: "[1.20.1,1.21)")
+	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+}
+
+mixin {
+	add sourceSets.main, "wurstpenguin-refmap.json"
+	config "wurst.mixins.json"
+	config "mixins.baritone.json"
+}
+
+processResources {
+	def displayVersion = project.version.toString().startsWith("v")
+		? project.version.toString().substring(1)
+		: project.version.toString()
+	inputs.property("version", displayVersion)
+
+	filesMatching("META-INF/mods.toml") {
+		expand(version: displayVersion)
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = "UTF-8"
+	options.release = 17
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
+}
+
+java {
+	withSourcesJar()
+}
+
+jar {
+	manifest {
+		attributes(
+			"MixinConfigs": "wurst.mixins.json,mixins.baritone.json",
+			"MixinConnector": "baritone.launch.BaritoneMixinConnector",
+			"Specification-Title": project.mod_id,
+			"Specification-Vendor": project.mod_authors,
+			"Specification-Version": "1",
+			"Implementation-Title": project.name,
+			"Implementation-Version": project.version,
+			"Implementation-Vendor": project.mod_authors)
+	}
+
+	from("LICENSE.txt") {
+		rename { "LICENSE-${project.base.archivesName.get()}.txt" }
+	}
+
+	exclude "intentionally_untranslated.json"
+	finalizedBy "reobfJar"
+}
+
+tasks.named("jarJar").configure {
+	finalizedBy "reobfJarJar"
+}

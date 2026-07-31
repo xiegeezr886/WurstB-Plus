@@ -1,0 +1,29 @@
+modLoader="javafml"
+loaderVersion="[64,)"
+license="GPL-3.0-or-later"
+clientSideOnly=true
+
+[[mods]]
+modId="wurstpenguin"
+version="${version}"
+displayName="WurstB+ Plus"
+logoFile="assets/wurst/icon.png"
+authors="Penguin"
+displayTest="IGNORE_ALL_VERSION"
+description='''
+WurstB+ Plus for Minecraft 26.1.2.
+'''
+
+[[dependencies.wurstpenguin]]
+modId="forge"
+mandatory=true
+versionRange="[64.1.0,65)"
+ordering="NONE"
+side="CLIENT"
+
+[[dependencies.wurstpenguin]]
+modId="minecraft"
+mandatory=true
+versionRange="[26.1.2,26.2)"
+ordering="NONE"
+side="CLIENT"

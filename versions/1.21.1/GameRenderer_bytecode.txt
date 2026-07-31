@@ -1,0 +1,7 @@
+﻿javap.exe : 错误: 找不到类: net.minecraft.client.renderer.GameRenderer
+所在位置 行:1 字符: 1
++ & "C:\Program Files\Java\jdk-21\bin\javap.exe" -c -p -cp "C:\Users\ui ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (错误: 找不到类: net.m...er.GameRenderer:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

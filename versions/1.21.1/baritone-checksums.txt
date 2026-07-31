@@ -1,0 +1,12 @@
+fac6993db1d1b1edb1b227f7ab986eebb64688fd  baritone-unoptimized-forge-1.11.2.jar
+08cb24afb2ed416efc765a0b3e74546be48ae57d  baritone-api-1.11.2.jar
+9f67bdaf435825fb51fa47d93d60ccf77a0405a0  baritone-api-fabric-1.11.2.jar
+c72014178d80650df9bbb57819d7542da69866c2  baritone-unoptimized-neoforge-1.11.2.jar
+66e760f5dbf5a7c976b494b77d2cd0b9c87a5b25  baritone-standalone-1.11.2.jar
+b9da5a7c89af23aad5451d229cdb82a2fc608a41  baritone-api-neoforge-1.11.2.jar
+5fe6aafcf6ebb38cc956a11a8410dd6bc6734d31  baritone-standalone-neoforge-1.11.2.jar
+3c368a61ea50551264b7325ff16e108a22116863  baritone-standalone-fabric-1.11.2.jar
+2ed1b3a62c04fd3dcda2cbc8b029a3be379f8430  baritone-unoptimized-1.11.2.jar
+f22d11d2e19219e534e456f6f8588b92aed3c9ed  baritone-api-forge-1.11.2.jar
+8329d36dac8e4625dc17f505d5f78c70498283e7  baritone-standalone-forge-1.11.2.jar
+d74c22d520a1288414fc8f043b885eca2bf14c7f  baritone-unoptimized-fabric-1.11.2.jar

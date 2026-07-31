@@ -1,0 +1,39 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime
+run/
+logs/
+*.log
+
+# Dependencies
+libs/*.jar
+baritone-*.jar
+
+# Artifacts & References
+_artifacts/
+source/
+*.zip
+CozyUI+_v*.zip
+MDK-*.zip
+YetAnotherConfigLib-*.zip
+
+# Java
+*.class
+*.jar
+!gradle/wrapper/*.jar
+
+# Temp
+*.tmp
+*.bak

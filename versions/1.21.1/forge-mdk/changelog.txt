@@ -1,0 +1,385 @@
+1.21.1 Changelog
+52.1
+====
+ - 52.1.0 1.21.1 RB 1
+          https://forums.minecraftforge.net/topic/154391-forge-521-minecraft-1211/
+
+52.0
+====
+ - 52.0.57 Add `#forge:chorus_additionally_grows_on` tag for similiar mechanics to `#minecraft:azalea_grows_on` but for chorus (#10461)
+ - 52.0.56 Speed up mod annotation scanning by ~30% (#10467)
+           Co-authored-by: LexManos <LexManos@gmail.com>
+ - 52.0.55 Add missed license headers (#10476)
+ - 52.0.54 Redstone updates and gametests structure fixes (#10422)
+           Fix game test structure rotations being inconsistent (#10391)
+           Fix redstone update order not matching vanilla. (#10392)
+           Fix redstone updates for comparators going up/down incorrectly. Related: #9973
+           Make block pos assertions in GameTestHelper behave like in 1.21.3, thus fixing rotated tests functionality.
+           This can be disabled in the Forge config if you have old tests that this breaks. Tho it is recommended you update your tests.
+           ---------
+           Co-authored-by: LexManos <LexManos@gmail.com>
+ - 52.0.53 Bump dependencies (#10386)
+           - CoreMods 5.2.4 -> 5.2.6
+           - EventBus 6.2.15 -> 6.2.27
+               - Reduced memory usage
+               - Further performance improvements
+               - Fixed EventBus#39, unregistered listeners are now immediately reclaimable by the GC
+           - Apache MavenArtifact 3.8.5 -> 3.8.8
+           - NightConfig 3.7.3 -> 3.7.4
+ - 52.0.52 Re-introduce ItemStack Capabilities (#10363)
+           Co-authored-by: RealMangoRage <64402114+RealMangorage@users.noreply.github.com>
+           Co-authored-by: LexManos <LexManos@gmail.com>
+ - 52.0.51 Re-introduce IForgeItem.damageItem when an item takes damage, Fixes #10344 (#10373)
+ - 52.0.50 Add updated tag context to AddReloadListenerEvent (#10421)
+           Fixes using custom tags in GlobalLootModifiers.
+ - 52.0.49 Add fast graphics render type to block model jsons (#10396)
+           Make modded leaves behave like vanilla leaves by default (Fixes #10389)
+ - 52.0.48 Fix corrupted and invalidly symlinked worlds crashing on level select (#10420)
+ - 52.0.47 Honor attacker shield disabling status (#10318)
+ - 52.0.46 Fix issues in VillagerTrades.EmeraldsForVillagerTypeItem related to custom Villager Types (#10300)
+           Co-authored-by: Joseph T. McQuigg <J.T.McQuigg12@gmail.com>
+ - 52.0.45 GameTestHelper additions (#10340)
+           Co-authored-by: LexManos <LexManos@gmail.com>
+ - 52.0.44 Update Gradle to 8.12.1 (#10354)
+           Automate IntelliJ download sources in MDK
+ - 52.0.43 Fix JOpt Simple by bumping ModLauncher (#10349)
+ - 52.0.42 Fix JOpt Simple needing a strict version requirement declaration (#10313)
+ - 52.0.41 Fix incorrect method reference in TntBlock.explode() (#10328)
+ - 52.0.40 Bump dependencies (#10276)
+           - EventBus 6.2.8 -> 6.2.15
+           - Bootstrap 2.1.3 -> 2.1.8
+           - SecureModules 2.2.20 -> 2.2.21
+           - AccessTransformers 8.2.0 -> 8.2.1
+           - ModLauncher 10.2.2 -> 10.2.3
+           These bumps include further cleanup and optimisations.
+ - 52.0.39 Simplify Title Screen Brandings (#10289)
+ - 52.0.38 Update jline for better darwin/arm64 support
+ - 52.0.37 Skip Vanilla classes for the CapabilityTokenSubclass transformer (#10224)
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 52.0.36 Bump CoreMods to 5.2.4 (#10266)
+ - 52.0.35 Skip processing Forge classes in `RuntimeDistCleaner` (#10211)
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 52.0.34 Skip Forge classes in the RuntimeEnumExtender transformer (#10197) (#10219)
+           Mod classes are still transformed as usual
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 52.0.33 Deprecate `@ObjectHolder`, add a couple of fast-paths (#10195) (#10231)
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 52.0.32 Allow mipmap lowering to be disabled (#10255)
+ - 52.0.31 Simplify memory usage display on loading screen (#10236)
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 52.0.30 Fix NightConfig FileWatcher causing dedicated server to hang when exiting (#10215)
+ - 52.0.29 Pass player argument when firing `OnDatapackSyncEvent` (#10171)
+ - 52.0.28 Add optional fix of use item duration, disabled by default (#10151)
+ - 52.0.27 Bump CoreMods to 5.2 (#10160)
+           Full Changelog: https://gist.github.com/Jonathing/c3ad28b2a048ac839a7baba5417ee870
+           The key features are:
+           - ES6 language support
+           - Thoroughly updated ASMAPI, with full documentation
+           - Bug fixes (some optional for backwards-compatibility)
+           - Partial internal code cleanup
+           - Request CoreMods to not apply fix for ASMAPI.findFirstInstructionBefore by default
+ - 52.0.26 Add proper support for JPMS in normal mods.toml mods (#10125)
+           Make FMLModContainer read and apply Add-Opens and Add-Exports manifest entries from mod files.
+           Forge is now the `net.minecraftforge.forge` module instead of `forge`
+           https://forums.minecraftforge.net/topic/153333-proper-java-module-support-in-forge-mods/
+ - 52.0.25 Add more `c` fluid tags (#10137)
+           Replaces the existing `forge`-namespaced tags, which are now deprecated.
+           Adds `c:experience`
+ - 52.0.24 Add `c:stripped_logs` and `c:stripped_woods` tags (#10136)
+ - 52.0.23 [1.21.1] Bump CoreMods and ASM (#10127)
+           CoreMods 5.1.13 changelog: https://gist.github.com/Jonathing/905d142447ecef670526ae27243adbba
+ - 52.0.22 Add `c:foods/pie` tag (#10135)
+           Replaces `forge:foods/pie`, which is now deprecated.
+ - 52.0.21 Fix back-compat with legacy `forge:` tags (#10126)
+ - 52.0.20 Implement the de-facto common tags, add many new Forge tags (#9955)
+           https://forums.minecraftforge.net/topic/152815-common-tags-in-forge/
+ - 52.0.19 Patch BlockEntity.java to use getType Method (#10124)
+ - 52.0.18 Fix and cleanup RuntimeDistCleaner
+ - 52.0.17 Sync component registry ids
+           Fix deprecation typo
+           Bump ModLauncher (better stack traces)
+           Set Automatic-Module-Name
+ - 52.0.16 Fix layering of translucent sprites being broken by re-adding blur call Mojang removed (#10115)
+ - 52.0.15 Cleanup length and size checks (#10108)
+ - 52.0.14 Update vulnerable `eclipse` dependency (#10109)
+ - 52.0.13 Add and fire SystemMessageReceivedEvent
+           Replaces ClientChatReceivedEvent.System which was not fired due to Mojang changing ChatType to a registry.
+ - 52.0.12 Fix highlighted item tooltip rendering twice. Closes #10112
+ - 52.0.11 Fix Network hooks not being initialized on GameTestServer (#10081)
+           Add rudimentary custom networking tests.
+ - 52.0.10 Fix inverted logic in TagEmptyCondition (#10069)
+ - 52.0.9  [1.21.1] Optionally supply `FMLJavaModLoadingContext` as a param to mod constructors (#10074)
+           Also made `FMLJavaModLoadingContext` extend `ModLoadingContext`. See the PR description for example usage.
+ - 52.0.8  Fix issues with `QuadBakingVertexConsumer` and Forge's OBJ loader (#10065)
+ - 52.0.7  Fire `OnDatapackSyncEvent` when a player joins a server (#10076)
+ - 52.0.6  Add a few Method Helpers onto ResourceKey to make getting Data Driven Entries Simpler (#10071)
+ - 52.0.5  Fix network channels not initializing during server transfers. Closes #10067
+ - 52.0.4  [1.21.1] ModLoading cleanup and optimisations (#10052)
+ - 52.0.3  Properly ignore unknown mod files (#10063)
+ - 52.0.2  Add level access to Item.TooltipContext if available.
+ - 52.0.1  Load mods that declare explicit 1.21 compatibility as 1.21.1 is a minor bugfix.
+ - 52.0.0  1.21.1
+
+51.0
+====
+ - 51.0.33 Removed unneeded boat patch related to MC-119811 (#10061)
+ - 51.0.32 Fix network sync of custom datapack registries.
+           Add gametest to verify that it functions.
+ - 51.0.31 Add a way to render tooltips from Formatted text and TooltipComponents elements (#10056)
+ - 51.0.30 Fix custom creative tabs with search listing all items instead of just their own.
+ - 51.0.29 Patch CropBlock to use instanceOf FarmBlock check instead of hard coding to Blocks.FARMLAND (#10044)
+ - 51.0.28 Fix ItemStack sensitive getDefaultAttributeModifiers not being called.
+ - 51.0.27 Add missed @user_jvm_args.txt to run.bat
+ - 51.0.26 Fix `onPlaceItemIntoWorld` always resetting item stack when in creative mode (#10047)
+ - 51.0.25 Fix matrix stack translations for `RenderHighlightEvent` (#10050)
+ - 51.0.24 Fix Global Loot Modifier deserialization not having registry access. Closes #10042 and #10043
+ - 51.0.23 Bump Mixin to 0.8.7 and allocate more ram to java compile tasks.
+ - 51.0.22 Use the new `fire()` and Result#isAllowed/isDenied/isDefault methods from EventBus (#10028)
+ - 51.0.21 Some build cleanup
+ - 51.0.20 Make HangingSignBlockEntity useable with custom BlockEntityTypes. #10038
+ - 51.0.19 Send last PoseStack pos to RenderLevelStageEvent AFTER_PARTICLES stage. Fixes #10031
+ - 51.0.18 Fix compile errors in MDK (#10029)
+ - 51.0.17 Fix converting dirt to mud consumes whole bottle (not just emptying) Closes #10027
+ - 51.0.16 Add support for named sub-caps
+ - 51.0.15 Fix conditional checking swallowing decoding errors when loading registry entries from datapacks. Fixes #9995
+ - 51.0.14 Apply license headers
+ - 51.0.13 Some code cleanup in ModInfo/ModFileInfo to use less streams and make things easier to debug.
+ - 51.0.12 Bump NightConfig to 3.7.3, to fix toml sub-configs being completely broken. Fixes #10015
+ - 51.0.11 Make ForgeSpawnEgg assume color is opaque if alpha is set to 0.
+           Fixes "invisible" spawn eggs by default, but still allows modders to specify partial transparency.
+ - 51.0.10 Fixed perspective rendering in SeparateTransformsModel (#10014)
+ - 51.0.9  Fix missed PartEntity patch in Player.attack (#10011)
+ - 51.0.8  Choose default JarJar mod file type based on parent JAR Closes #9939
+ - 51.0.7  Fixed falling block entities not rendering as moving blocks (#10006)
+ - 51.0.6  Bump Night Config, Should fix #9122
+ - 51.0.5  Fix ClientTickEvent not firing properly.
+ - 51.0.4  Change tick event to have pre/post classes (#9890)
+ - 51.0.3  Fix Bogged and Wolf armor not being shearable by custom shears. Closes #10005
+ - 51.0.2  Set team city branch
+ - 51.0.1  Remove Non-HolderLookup methods from INBTSerializeable and mark it as deprecated in favor of using Vanilla's new Component system. Closes #9998
+ - 51.0.0  1.21 Update
+           Co-authored-by: RealMangoRage <64402114+RealMangorage@users.noreply.github.com>
+           Co-authored-by: Daniel Norris <dnorris443@gmail.com>
+           Co-authored-by: Ven <tudurap.com@gmail.com>
+
+50.1
+====
+ - 50.1.3 Cleanup FML Bindings (#10004)
+ - 50.1.2 Fix NPE when calling ForgeHooks.getDefaultCreatorModId(ItemStack) on Spawn Eggs. Closes #10002
+ - 50.1.1 Fix boat travel distance being incorrect. Closes #9997
+ - 50.1.0 1.20.6 RB 1
+          https://forums.minecraftforge.net/topic/149458-forge-501-minecraft-1206/
+
+50.0
+====
+ - 50.0.37 Fix minor typo in MDK build.gradle
+ - 50.0.36 Fire EntityInteractSpecific on server side. Closes #9984
+ - 50.0.35 Unlock wrapped registries when firing register events.
+ - 50.0.34 Update Bootstrap to improve the Java version check error message (#9990)
+ - 50.0.33 Minor cleanup to ModListScreen and VersionChecker (#9988)
+ - 50.0.32 Prevent the `@OnlyIn` being misused on `@EventBusSubscriber` and `@Mod` annotated classes (#9891)
+ - 50.0.31 Fix CustomizeGuiOverlayEvent.DebugText and CustomizeGuiOverlayEvent.Chat not being fired. (#9982)
+ - 50.0.30 Actually fix creative tab count, IDE didn't save the file before regenning patches.
+ - 50.0.29 Move Creative Inventory page count to fix issue with partially transparent tooltips. Closes #9983
+ - 50.0.28 Make OpenContainer and SpawnEntity packets process on main game thread.
+ - 50.0.27 Add File.exists check to ConfigFileTypeHandler. Closes #9976
+ - 50.0.26 Fix crash when reloading a world that uses custom placed features. Closes #9979
+ - 50.0.25 Fix NPE in HurtByTargetGoal when mods set targets to null. Closes #7853
+ - 50.0.24 Fix RenderHandEvent firing with incorrect hand and item for offhand items. (#9977)
+ - 50.0.23 Fix screen layering and re-add the test.  (#9978)
+ - 50.0.22 Add GatherComponentsEvent (#9944)
+ - 50.0.21 Fix powered rails not propogating correctly.
+ - 50.0.20 Remove ICustomPacket and add PayloadChannel. (#9972)
+           New PayloadChannel that uses the vanilla payload Type for packet distinction
+           Implement the minecraft:register/unregister channels using the new PayloadChannel
+           New generic channel builder function allowing people to implement channels however they want.
+ - 50.0.19 Implement entity aware armor model and texture hooks. Closes #9960
+ - 50.0.18 Fix finalizeSpawn's return value not being used correctly. Closes #9964
+ - 50.0.17 Fix Biome patch change that caused our field redirect coremod to not function correctly.
+ - 50.0.16 Make RegistryObject.getHolder lazy, Should help cases where vanilla registries use holders from other vanilla registries. Closes #9961
+ - 50.0.15 Ignore jar files in the mods folder that are not Forge mods. Closes #9968
+ - 50.0.14 Fix canceling MobSpawnEvent.FinalizeSpawn causing a NPE closes #9971
+ - 50.0.13 Fix potion brewing having arguments reversed. Closes #9970
+ - 50.0.12 Fix Melons/Pumpkins not growing correctly.
+ - 50.0.11 Some patch cleanup (#9951)
+ - 50.0.10 Filter paths discovered by ServiceProvider in ClasspathLocator. Closes #9899
+ - 50.0.9  Update SimpleChannel to make StreamCodecs easier (#9959)
+           Rework networking so that RegistryFriendlyByteBuf is useable for modders
+           Simple support for StreamCodec in SimpleChannel
+           Codecify all Forge packets
+           Make simpler builder pattern for SimpleChannel. Will eventually deprecate the old MessageBuilder as it's verbose and poorly written.
+           Co-authored-by: MrCrayfish <4958241+MrCrayfish@users.noreply.github.com>
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 50.0.8  Fix shields not working correctly. Fixes #9966
+ - 50.0.7  Fix RenderTarget stencil patch location. Fixes #9965
+ - 50.0.6  Add ModelLayers patch back (#9962)
+ - 50.0.5  Fix canApplyAtEnchantingTable null pointer, Closes #9956
+           Bump SecureModules for package info and multi-release jar fixes.
+ - 50.0.4  Remove zombie chance config options (#9950)
+ - 50.0.3  Remove deprecated compressLanIPv6Addresses config option (#9949)
+           LAN IPv6 addresses are always compressed these days, so this config option is redundant
+ - 50.0.2  Fix custom payloads not being handled on the server in the game state. Closes #9948
+           Fix villagers not opening trade guis. Closes #9946
+ - 50.0.1  Fix MDK by bumping FG and disabling reobf tasks
+           Fix LAN server IPs being duplicated
+           Fix connecting to vanilla servers due to misapplied patch.
+ - 50.0.0  1.20.6 Initial Update
+           New Decompiler
+           Runtime Official mappings
+           ItemStacks arnt Capability providers anymore, use Vanilla's system.
+           Co-authored-by: RealMangoRage <64402114+RealMangorage@users.noreply.github.com>
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+
+49.0
+====
+ - 49.0.49 Make non-Forge mods.toml detection more robust (#9935)
+ - 49.0.48 Fix early window crash when parsing some forms of options.txt (#9933)
+ - 49.0.47 Fix edge-case regression with single-jar multiloader mods (#9931)
+ - 49.0.46 Add ClientPauseChangeEvent (#9905)
+ - 49.0.45 Improve mod loading errors (#9870)
+ - 49.0.44 Early display fixes/workarounds for buggy drivers (#9921)
+ - 49.0.43 Prevent registering null tiers (#9895)
+           Makes it easier to identify broken mods, as it moves the crash to when the broken mod in question registers the tier, rather than when any mod tries getting the tier.
+ - 49.0.42 Add helper method to `OnDatapackSyncEvent` (#9901)
+           Co-authored-by: blockingHD <9372035+blockinghd@users.noreply.github.com>
+ - 49.0.41 Fix NPE when acceptableValues in defineInList() does not allow nulls, fixes #9300 (#9903)
+ - 49.0.40 [1.20.x] Add ByteValue, ShortValue and FloatValue to ForgeConfigSpec, cleanup code (#9902)
+ - 49.0.39 Add Leaves method to ModelProvider.java (#9887)
+ - 49.0.38 Bump bootstrap
+ - 49.0.37 Fix level data not loading from existing worlds. Whole system needs a re-write.
+ - 49.0.36 Fix modlist size
+ - 49.0.35 Bump Bootstrap
+ - 49.0.34 Optimize Entity capabilities a bit by reordering conditions (#9886)
+ - 49.0.33 [1.20.x] Make common config screen registration tasks easier (#9884)
+ - 49.0.32 [1.20.4] Add CPU usage config option to early window, hide it by default (#9866)
+ - 49.0.31 Fix DatapackBuiltinEntriesProvider issues with forge registries, Fixes #9874
+ - 49.0.30 Readded DatapackBuiltinEntriesProvider (#9848)
+ - 49.0.29 Fix slightly offset mods screen link positioning (#9860)
+           Co-authored-by: Dennis C <11262040+XFactHD@users.noreply.github.com>
+ - 49.0.28 Fix DNS SRV record lookup not working by hacking the module system. Closes #9846
+ - 49.0.27 Add null check to DimensionDataStorage. Fixes #9859
+ - 49.0.26 Fix cases where LivingConversionEvents were not fired for vanilla conversions. Closes #9850
+ - 49.0.25 Update licenser plugin, and re-run it. Closes #9855
+ - 49.0.24 Fix background music looping when it shouldn't
+ - 49.0.23 Fix Criterion Test Mod
+ - 49.0.22 Improve help text on server Java check failure
+ - 49.0.21 [1.20.4] Restore the option of server run scripts (#9849)
+           Executable server jar is still a thing, but the run scripts are restored as an option for those that prefer it.
+ - 49.0.20 [1.20.x] More buildscript clean-up (#9845)
+ - 49.0.19 Fixed Spelling error in credits.txt (#9694)
+ - 49.0.18 Bump JarJar to fix more issues with UnionFileSystem assumptions.
+ - 49.0.17 Criterion test mod + unit test (#9744)
+ - 49.0.16 Fix launcher version name missing - between `forge` and the version. Closes #9843
+ - 49.0.15 Bump JarJar and SecureModule to fix issue with jars containing [] in their name. Closes #9842
+ - 49.0.14 Only add sorted/deduplicated mods to the classpath.
+           Fixes some mods causing the Forge error displays to break. Closes #9833
+ - 49.0.13 Improve server panel compatibility (#9836)
+ - 49.0.12 Make common DisplayTest registration tasks easier (#9822)
+ - 49.0.11 Cleanup Explosion patch but keep bin compatibility by using asm hacks. Closes #9817
+ - 49.0.10 Bump SecureModules, Closes #9820
+ - 49.0.9  Support pack overlay system. Closes #9818
+ - 49.0.8  Fix Server bundle
+ - 49.0.7  Optimise ForgeConfigSpec and make Range public (#9810)
+ - 49.0.6  Add `clientSideOnly` feature to mods.toml (#9804)
+ - 49.0.5  Add impl. of `IModFileInfo#showAsDataPack` (#9802)
+ - 49.0.4  Get rid of LibraryFinder
+ - 49.0.3  1.20.4 - Minor bug fix from Mojang
+ - 49.0.2  Fix java version check in bootstrap shim
+ - 49.0.1  1.20.3 Initial Update
+           https://forums.minecraftforge.net/topic/139822-forge-490-minecraft-1203/
+ - 49.0.0  Revive executable jars for the dedicated server
+           This has a minor change to development time build scripts. So developers, check the MDK
+
+48.1
+====
+ - 48.1.0 1.20.2 RB 1 - https://forums.minecraftforge.net/topic/139824-forge-481-minecraft-1202/
+
+48.0
+====
+ - 48.0.49 Implemented ClientPauseEvent/Hook (#9782)
+ - 48.0.48 Datagen addOptionalTag/s methods that allow passing the TagKey itself instead of passing the location (#9807)
+ - 48.0.47 Deprecate EntityRenderersEvent.AddLayers functions that hard case to LivingEntityRenderers as the backing maps do not guarantee that type. Closes #9683
+ - 48.0.46 Fix TagLoader error not printing tag name correctly. Closes #9693
+ - 48.0.45 Fix LoadingErrorScreen inner headers are not centered. Closes #9687
+ - 48.0.44 Rework KeyModifiers system to properly allow keybinds to be triggered when multiple modifiers are pressed.
+           Fix setting keybinds whel using keyboard inputs to select the menu. Closes #9793
+ - 48.0.43 Fix KeyModifiers not being properly taken into account. Closes #9806
+ - 48.0.42 Don't turn off VSync when rendering from Minecraft context (#9800)
+           Co-authored-by: embeddedt <42941056+embeddedt@users.noreply.github.com>
+ - 48.0.41 [1.20.x] Fix rare crash with early display window, fixes #9673 (#9798)
+           Co-Authored-By: embeddedt <42941056+embeddedt@users.noreply.github.com>
+ - 48.0.40 Move Chunk Watch/Unwatch events to fire after sync packets have been sent to the client (#9790)
+           This makes sure that modders who send extra chunk data will have clients who know about the chunk.
+ - 48.0.39 Add more sanitization to the ChannelListManager because other projects like to impose arbitrary critical restrictions. Closes #9789 #9772
+ - 48.0.38 Fix tag loading being unordered. Closes #9774
+ - 48.0.37 Fix texture UV values for obj models. Closes #9737 (#9767)
+ - 48.0.36 Gradle 8.4 (#9778)
+ - 48.0.35 Make Ingredient check for invalidation on getItems(), invalidate ingredients on tags update (#9688)
+ - 48.0.34 Improve mod description formatting in mods screen (#9768)
+ - 48.0.33 Fix lowcode implementation version, now that it's actually labeling the correct package.
+ - 48.0.32 Buildscript cleanup and organization.
+           Updated to use newer libraries that reduce the command line arguments needed to run the game.
+           Fix issues in the SecureModule's classloader that caused resources to not be seen when they are on parent module layers.
+ - 48.0.31 Fix @GameTestGenerator not functioning correctly. Closes #9748
+ - 48.0.30 Optimise registries by using fastutils collections to minimize boxing.  (#9749)
+ - 48.0.29 Minor MDK changes (#9750)
+ - 48.0.28 Improve mod loading error message for errors inside mod constructors (#9751)
+ - 48.0.27 Add a CrashReportAnalyser that tries to identify the mod that crashed the game (#9732)
+ - 48.0.26 Fix potential threading issue when registering CriteriaTriggers. Closes #9745
+ - 48.0.25 Move to a cache based crowdin solution instead of hitting the api every build.
+ - 48.0.24 Fix Melon/Pumpkin stems having wrong plat type causing them to remain after trampling farmland. Fixes #9495
+ - 48.0.23 Fix loot tables not having their ids set.
+ - 48.0.22 Make horses and llama's fire LivingFallEvent. Fixes #9743
+ - 48.0.21 Fix advancement screen being too dark. Fixes #9727
+ - 48.0.20 Fix ConditionalCodec having an inverted test. Closes #9742
+           Remove clean project on CI.
+           Bump FG version to fix transitive issue on module path.
+ - 48.0.19 More buildscript work
+           Fixed ignoreList for client and server.
+           Lazy configured a few more tasks
+           Fixed early loading screen hardcoded names.. why?
+ - 48.0.18 Bump guava to module path for jimfs. Fixes dedicated server.
+ - 48.0.17 Revive custom ingredient types.
+ - 48.0.16 Revive ConditionalRecipe and ConditionalAdvancement.
+           Also directly add conditional support to all vanilla recipe data generators.
+ - 48.0.15 Rewrite our GameTest hooks to be sane.
+           Add game test to GlobalLootModifierTest which validates the smelting modifiers.
+           Removed FakePlayer system, it's broken and needs a major rewrite.
+ - 48.0.14 Cleanup FMLLoader and Launch Handlers.
+           Cleanup some of the build.gradle
+           Start work on restructuring test mods. They are now treated as their own jars, as well as having their mods.toml auto-generated. No more mods.toml conflicts!
+           Add pattern matching support to Data run modlist.
+ - 48.0.13 Fix Slot Index for Inventory Ticking Items (#9736)
+ - 48.0.12 Make default Entity.getAddPacket automatically use Forge's enhanced spawn packet if nessasary.
+           This spawn packet needs to be re-designed, it is effectively only there to hook into creating the new entity instance. This will be re-evaluated during the cleanup in 1.21+
+ - 48.0.11 Optimise path filter in mod loading (#9710)
+           Co-authored-by: embeddedt <42941056+embeddedt@users.noreply.github.com>
+ - 48.0.10 Fix ignitedByLava making blocks permanently flammable (#9735) Fixes #9730
+ - 48.0.9  Some BackgroundScanHandler code cleanup. Closes #9713
+ - 48.0.8  Fix missed patch causing new onInventoryTick method to not be called.
+ - 48.0.7  Fixed PlayerDestroyItemEvent not triggering for Fishing Rods (#9729)
+ - 48.0.6  Fix migration error causing nether and end portals to not function properly.
+ - 48.0.5  Optimise `ForgeRegistry#validateContent` by removing optimization that ModLauncher broke. (#9715)
+ - 48.0.4  Fix double message encoding in `Channel#toVanillaPacket` #9721 (#9722)
+           Fix OpenContainer message not resetting reader index of additional data.
+ - 48.0.3  Make CriteriaTriggers#register public again. Closes #9723
+ - 48.0.2  Fix Hunger bar rendering incorrectly. Fixes #9725
+ - 48.0.1  Send known channels to the server when they send us theirs.
+ - 48.0.0  1.20.2 Release
+
+47.999
+======
+ - 47.999.12 Enable ForgeLootTableProvider.
+ - 47.999.11 Global Loot Modifiers
+ - 47.999.10 Move old tests.
+ - 47.999.9  1.20.2-rc2
+ - 47.999.8  1.20.2-rc1
+ - 47.999.7  1.20.2-pre4
+ - 47.999.6  1.20.2-pre3
+ - 47.999.5  Use official mappings for in-repo patches, will be converted to SRG during build.
+ - 47.999.4  1.20.2-pre2
+ - 47.999.3  Fix debug overlay text not rendering.
+ - 47.999.2  Make SimpleChannel use a varInt for the discriminator allowing essentially unlimited packets.
+ - 47.999.1  Rewrite networking.
+ - 47.999.0  1.20.2-pre1
+
