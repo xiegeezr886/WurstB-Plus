@@ -13,7 +13,6 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户�
 | 1.21.1 | Forge | 52.1.16 | 21 | `versions/1.21.1/` | `versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar` |
 | 1.21.1 | NeoForge | 21.1.244 | 21 | `newforge/versions/1.21.1/` | `newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar` |
 | 26.1.2 | Forge | 64.1.0 | 25 | `versions/26.1.2/` | `versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar` |
-> 26.1.2 为最新适配版本，详见 `versions/26.1.2/CHANGELOG.md`。
 
 ## 根工程状态
 
@@ -101,7 +100,7 @@ Minecraft / Mixin hook
 - `src/main/java/net/wurstclient/util/json/JsonUtils.java`
 - `src/main/java/net/wurstclient/clickgui2/SettingsWindow.java`
 
-## 新吸收功能
+## 新增功能
 
 ### 架构升级
 
@@ -268,6 +267,7 @@ Minecraft / Mixin hook
 
 ## 构建与运行
 
+### Forge 1.20.1
 根目录 1.20.1 工程需要 Java 17。项目自带 Gradle 8.11 Wrapper，不依赖系统 Gradle：
 
 ```powershell
@@ -286,7 +286,7 @@ build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1-all.jar
 .\gradlew.bat runClient --console=plain
 ```
 
-### NewForge (NeoForge 1.20.1)
+### NeoForge 1.20.1
 
 `newforge/` 目录为 NeoForge 1.20.1 分支，使用 ForgeGradle 6.x + MixinGradle 0.7 + Mixin 0.8.7，需要 Java 17：
 
@@ -301,7 +301,7 @@ cd newforge
 newforge/build/libs/WurstB+ Plus-v1.5.0-NewForge-1.20.1-all.jar
 ```
 
-### 1.21.1
+### Forge 1.21.1
 
 1.21.1 工程需要 Java 21，在独立目录中构建和运行：
 
@@ -355,27 +355,6 @@ versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar
 > 26.1.2 使用 ForgeGradle 7.x、Gradle 9.4.1、Mojang 官方映射，内置 Mixin 0.8.7 + MixinExtras。baritone 通过 `libs/` 目录 flatDir 加载（`compileOnly`）。
 > 渲染管线从 `render()` 迁移到 `extractRenderState()`，文字颜色需 8 位 Alpha（`0xFFxxxxxx`），`blit` 需 `RenderPipelines` 参数。`BufferUploader` 已移除，三角扇批量渲染暂不可用。更新日志见 `versions/26.1.2/CHANGELOG.md`，迁移详情见 `versions/26.1.2/PORTING_TASK.md`。
 
-## 本地参考资料
-
-根目录 ZIP/JAR 只作为静态参考，不应直接执行：
-
-- `source/Wurst7_1_20_1_src/`: 原始 Wurst7 Fabric 源码 (604 文件)
-- `source/WurstCN_main_src/`: WurstCN 中文化 Fork 源码
-- `source/bleachhack_src/`: BleachHack Fabric 源码 (208 文件)
-- `source/meteor_client_master_src/`: Meteor Client Fabric 源码 (950 文件)
-- `source/liquidbounce_src/`: LiquidBounce Nextgen 源码 (1608 文件)
-- `source/FDPClient_main_src/`: FDPClient Kotlin 源码 (1071 文件)
-- `source/RavenBS_Plus_Plus_main_src/`: RavenBS++ Forge 源码
-- `source/Aristois_1.20.1_forge/`: Aristois + EMC 1.20.1 Forge 反编译参考（449 个 Java 文件，未发现许可证文件）
-- `source/FrogClient/`: FrogClient Fabric 1.21.1 完整 Gradle 项目（441 个 Java 文件，MIT）
-- `WurstForge-Decompiled/`: CFR 反编译 Forge Wurst 参考 (558 文件)
-- `clean-keystrokes-1.20.0-4.zip`: 键位 HUD、按压动画和 CPS 统计参考
-- `YetAnotherConfigLib-main.zip`: 设置分组与绑定模型参考；活动项目不依赖 YACL
-- `xaero-minimap-translations-main.zip`: Xaero Minimap 的 CC0 翻译文本，仅用于中文术语参考；压缩包不包含地图源码、纹理或渲染实现
-- `journeymap-legacy-master.zip`: JourneyMap Legacy 参考源码；仅研究其地图瓦片缓存、地形/实体/框架分层与标签布局，当前 1.20.1 Forge 地图实现未复制其旧版 OpenGL/AWT 代码或资源
-
-Aristois/EMC 主要用于核对 Forge 事件、批量顶点提交、PostChain/Framebuffer 生命周期和屏幕抽象；FrogClient 主要用于参考条件设置、HUD 排序、2D/3D ESP 与着色任务队列。FrogClient 使用 Fabric/Yarn、Java 21、Satin 和 Sodium，其代码不能直接进入当前 Forge/Mojmap Java 17 工程。详细审阅结论见 `PROJECT_INDEX.md` 的“新增源码审阅”章节。
-
 ## 安全提示
 
 `WurstForge-1.20.1.jar` 和 `WurstForge-Decompiled/` 内含 HWID、MAC 地址和 Webhook 代码，已从活动源码中完全移除。
@@ -412,8 +391,6 @@ poseStack.mulPose(viewMatrix);
 - 在触发事件前通过 `event.getCamera()` 设置 `BlockEntityRenderDispatcher.camera`，确保 `RenderUtils.getCameraPos()` 返回正确的相机位置
 - `RenderListener.fire()` 不包装 `RenderScope`，由各模块自行管理 GL 状态
 
-发布产物为 `versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar`。
-
 ### 26.1.2 渲染管线说明
 
 26.1.2 使用全新的 extract/render 分离管线（`extractRenderState`），主要变更：
@@ -424,5 +401,3 @@ poseStack.mulPose(viewMatrix);
 - **纹理**：`blit()` 需 `RenderPipelines.GUI_TEXTURED` 第一参数
 - **BufferUploader**：已移除，使用 `GpuBuffer`/`RenderPass` 替代，GUI 三角扇批量渲染暂不可用
 - **圆角**：使用 4×4 超采样抗锯齿像素覆盖，大量圆角矩形有性能开销
-
-详见 `versions/26.1.2/PORTING_TASK.md` 和 `versions/26.1.2/CHANGELOG.md`。
