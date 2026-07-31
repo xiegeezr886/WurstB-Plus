@@ -1,10 +1,10 @@
 # WurstB+ Plus v1.5.0 MC26.1.2 更新日志
 
 ## 版本概述
-WurstB+ Plus 首次适配 Minecraft 1.21.2 (Forge 26.1.2 / 64.1.0)。从 1964 个编译错误开始，完成完整 API 迁移。
+WurstB+ Plus 首次适配 Minecraft 26.1.2 (Forge 64.1.0)
 
 ## 系统要求
-- Minecraft 1.21.2
+- Minecraft 26.1.2
 - Forge 64.1.0
 - Java 25
 - Windows 10/11 x64
@@ -20,7 +20,7 @@ WurstB+ Plus 首次适配 Minecraft 1.21.2 (Forge 26.1.2 / 64.1.0)。从 1964 �
 - **ClickGui 圆角渲染优化**：26.1.2 的 extract 渲染管线下，`fill()` 每次调用都在缓冲区记录指令。原始逐像素抗锯齿每帧产生数千次 `fill()` 调用导致缓冲区膨胀和帧率下降。改用水平条带 + 单像素边缘抗锯齿方案，大幅减少调用次数。`BufferUploader` 在 26.1.2 已移除，原版三角扇渲染方式无法直接移植。
 
 ### Mixin 修复
-- **启动崩溃修复**：从 `wurst.mixins.json` 移除 `AbstractBlockStateMixin`。该 Mixin 的目标类 `BlockBehaviour.BlockStateBase` 在 MC 1.21.2 中已被移除，导致游戏启动时 FATAL 崩溃。
+- **启动崩溃修复**：从 `wurst.mixins.json` 移除 `AbstractBlockStateMixin`。该 Mixin 的目标类 `BlockBehaviour.BlockStateBase` 在 MC 26.1.2 中已被移除
 
 ### API 迁移
 - `render()` → `extractRenderState()`（Screen 类）

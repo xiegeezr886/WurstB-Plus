@@ -77,7 +77,7 @@ dependencies {
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
     implementation "io.netty:netty-codec-socks:4.1.82.Final"
     implementation "io.netty:netty-handler-proxy:4.1.82.Final"
-    compileOnly "baritone:baritone-api-forge:1.11.2"
+    compileOnly "baritone:baritone-api-forge:26.1.2"
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
