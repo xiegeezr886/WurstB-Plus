@@ -456,7 +456,7 @@ public final class ClickGui
 		if(window.isMinimized())
 			y2 = y3;
 		
-		FlatRenderer.drawWindowPanel(context, x1, y1, x2, y2, 2, theme,
+		FlatRenderer.drawWindowPanel(context, x1, y1, x2, y2, 5, theme,
 			focused);
 		
 		if(mouseX >= x1 && mouseY >= y1 && mouseX < x2 && mouseY < y2)

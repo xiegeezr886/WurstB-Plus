@@ -616,17 +616,17 @@ public final class ClickGuiScreen extends Screen
 			updateHeight();
 			selected = isTopVisibleWindow(this);
 			boolean headerHover = isHeaderOver(mouseX, mouseY);
-			FlatRenderer.fillRoundedRect(graphics, x1, y1, x2, y2, 3,
+			FlatRenderer.fillRoundedRect(graphics, x1, y1, x2, y2, 5,
 				headerHover ? BORDER_HOVER : BORDER);
 			FlatRenderer.fillRoundedRect(graphics, x1 + 1, y1 + 1, x2 - 1,
-				y2 - 1, 2, WINDOW_FILL);
+				y2 - 1, 4, WINDOW_FILL);
 			FlatRenderer.fillRoundedRect(graphics, x1 + 1, y1 + 1, x2 - 1,
-				y1 + HEADER_HEIGHT - 1, 2, HEADER_FILL);
+				y1 + HEADER_HEIGHT - 1, 4, HEADER_FILL);
 			if(open)
 				graphics.fill(x1 + 1, y1 + HEADER_HEIGHT / 2, x2 - 1,
 					y1 + HEADER_HEIGHT - 1, HEADER_FILL);
 			graphics.fill(x1 + 1, y1 + HEADER_HEIGHT - 1, x2 - 1,
-				y1 + HEADER_HEIGHT, BORDER);
+				y1 + HEADER_HEIGHT, ROW_FILL);
 			Font font = MC.font;
 			int titleY = y1 + 3;
 			icon.draw(graphics, x1 + 4, y1 + 3, 8, accentColor());

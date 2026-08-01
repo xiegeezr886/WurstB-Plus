@@ -1,9 +1,15 @@
 package net.wurstclient.clickgui2;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 final class RoundedRectRenderer
 {
+	private static final Map<Integer, CornerProfile> CORNER_PROFILES =
+		new ConcurrentHashMap<>();
+
 	private RoundedRectRenderer()
 	{
 	}
@@ -27,18 +33,17 @@ final class RoundedRectRenderer
 		}
 
 		graphics.fill(left, top + safeRadius, right, bottom - safeRadius, color);
-		graphics.fill(left + safeRadius, top, right - safeRadius,
-			top + safeRadius, color);
-		graphics.fill(left + safeRadius, bottom - safeRadius,
-			right - safeRadius, bottom, color);
 
+		CornerProfile profile = getProfile(safeRadius);
 		for(int y = 0; y < safeRadius; y++)
-			for(int x = 0; x < safeRadius; x++)
-			{
-				float coverage = circleCoverage(safeRadius, x, y, 0);
-				fillCorners(graphics, left, top, right, bottom, x, y,
-					withCoverage(color, coverage));
-			}
+		{
+			int inset = profile.insets[y];
+			int edgeColor = withCoverage(color, profile.coverages[y]);
+			fillRoundedRow(graphics, left, top + y, right, inset, color,
+				edgeColor);
+			fillRoundedRow(graphics, left, bottom - y - 1, right, inset,
+				color, edgeColor);
+		}
 	}
 
 	public static void outline(GuiGraphicsExtractor graphics, float x1,
@@ -71,42 +76,54 @@ final class RoundedRectRenderer
 		graphics.fill(right - 1, top + outerRadius, right,
 			bottom - outerRadius, color);
 
+		CornerProfile profile = getProfile(outerRadius);
 		for(int y = 0; y < outerRadius; y++)
-			for(int x = 0; x < outerRadius; x++)
-			{
-				float coverage = circleCoverage(outerRadius, x, y,
-					Math.max(0, outerRadius - 1));
-				fillCorners(graphics, left, top, right, bottom, x, y,
-					withCoverage(color, coverage));
-			}
+		{
+			int inset = profile.insets[y];
+			int edgeColor = withCoverage(color, profile.coverages[y]);
+			fillOutlineRow(graphics, left, top + y, right, inset,
+				profile.innerInsets[y], color, edgeColor);
+			fillOutlineRow(graphics, left, bottom - y - 1, right, inset,
+				profile.innerInsets[y], color, edgeColor);
+		}
 	}
 
-	private static float circleCoverage(int radius, int pixelX, int pixelY,
-		int innerRadius)
+	private static CornerProfile getProfile(int radius)
 	{
-		int covered = 0;
-		for(int sampleY = 0; sampleY < 4; sampleY++)
-			for(int sampleX = 0; sampleX < 4; sampleX++)
-			{
-				double x = pixelX + (sampleX + 0.5) / 4.0 - radius;
-				double y = pixelY + (sampleY + 0.5) / 4.0 - radius;
-				double distanceSquared = x * x + y * y;
-				if(distanceSquared <= radius * radius
-					&& distanceSquared > innerRadius * innerRadius)
-					covered++;
-			}
-		return covered / 16F;
+		return CORNER_PROFILES.computeIfAbsent(radius, CornerProfile::new);
 	}
 
-	private static void fillCorners(GuiGraphicsExtractor graphics, int left,
-		int top, int right, int bottom, int x, int y, int color)
+	private static void fillRoundedRow(GuiGraphicsExtractor graphics, int left,
+		int y, int right, int inset, int color, int edgeColor)
 	{
-		if(color >>> 24 == 0)
+		int start = left + inset;
+		int end = right - inset;
+		if(start + 1 < end - 1)
+			graphics.fill(start + 1, y, end - 1, y + 1, color);
+		if(edgeColor >>> 24 == 0 || start >= end)
 			return;
-		graphics.fill(left + x, top + y, left + x + 1, top + y + 1, color);
-		graphics.fill(right - x - 1, top + y, right - x, top + y + 1, color);
-		graphics.fill(left + x, bottom - y - 1, left + x + 1, bottom - y, color);
-		graphics.fill(right - x - 1, bottom - y - 1, right - x, bottom - y, color);
+		graphics.fill(start, y, start + 1, y + 1, edgeColor);
+		if(end - 1 != start)
+			graphics.fill(end - 1, y, end, y + 1, edgeColor);
+	}
+
+	private static void fillOutlineRow(GuiGraphicsExtractor graphics, int left,
+		int y, int right, int outerInset, int innerInset, int color,
+		int edgeColor)
+	{
+		int leftX = left + outerInset;
+		int rightX = right - outerInset - 1;
+		int leftInner = Math.min(rightX + 1, left + innerInset);
+		int rightInner = Math.max(leftX, right - innerInset);
+		if(leftX + 1 < leftInner)
+			graphics.fill(leftX + 1, y, leftInner, y + 1, color);
+		if(rightInner < rightX)
+			graphics.fill(rightInner, y, rightX, y + 1, color);
+		if(edgeColor >>> 24 == 0)
+			return;
+		graphics.fill(leftX, y, leftX + 1, y + 1, edgeColor);
+		if(rightX != leftX)
+			graphics.fill(rightX, y, rightX + 1, y + 1, edgeColor);
 	}
 
 	private static int withCoverage(int color, float coverage)
@@ -121,5 +138,32 @@ final class RoundedRectRenderer
 	{
 		return Math.max(0,
 			Math.min(radius, Math.min((right - left) / 2, (bottom - top) / 2)));
+	}
+
+	private static final class CornerProfile
+	{
+		private final int[] insets;
+		private final int[] innerInsets;
+		private final float[] coverages;
+
+		private CornerProfile(int radius)
+		{
+			insets = new int[radius];
+			innerInsets = new int[radius];
+			coverages = new float[radius];
+			for(int y = 0; y < radius; y++)
+			{
+				double deltaY = radius - y - 0.5;
+				double exactInset = radius
+					- Math.sqrt(radius * radius - deltaY * deltaY);
+				int inset = Math.max(0, (int)Math.floor(exactInset));
+				insets[y] = inset;
+				coverages[y] = (float)(1 - (exactInset - inset));
+				double innerRadius = radius - 1;
+				innerInsets[y] = deltaY >= innerRadius ? radius
+					: Math.min(radius, (int)Math.ceil(radius - Math.sqrt(
+						innerRadius * innerRadius - deltaY * deltaY)));
+			}
+		}
 	}
 }

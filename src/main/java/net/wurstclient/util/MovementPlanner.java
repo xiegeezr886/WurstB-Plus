@@ -42,7 +42,18 @@ public enum MovementPlanner
 	{
 		try
 		{
-			Method method = input.getClass().getMethod(name);
+			Method method = null;
+			try
+			{
+				method = input.getClass().getMethod(name);
+			}catch(NoSuchMethodException e)
+			{
+				if("forward".equals(name))
+					method = input.getClass()
+						.getMethod("forwardImpulse");
+			}
+			if(method == null)
+				return false;
 			Object value = method.invoke(input);
 			return value instanceof Boolean b && b;
 		}catch(ReflectiveOperationException e)

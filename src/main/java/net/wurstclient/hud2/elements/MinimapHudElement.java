@@ -6,6 +6,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -43,6 +44,7 @@ public final class MinimapHudElement extends HudElement
 	private Identifier textureLocation;
 	private int centerX = Integer.MIN_VALUE;
 	private int centerZ = Integer.MIN_VALUE;
+	private int tickCounter;
 
 	public MinimapHudElement()
 	{
@@ -81,12 +83,13 @@ public final class MinimapHudElement extends HudElement
 			return;
 		}
 
+		tickCounter++;
 		int playerX = Mth.floor(player.getX());
 		int playerZ = Mth.floor(player.getZ());
 		boolean tilesChanged = terrain.refreshVisible(level, playerX, playerZ,
 			MAP_RADIUS, level.getGameTime(), TILE_REFRESH_BUDGET);
 		if(texture == null || playerX != centerX || playerZ != centerZ
-			|| tilesChanged)
+			|| tilesChanged && tickCounter % 2 == 0)
 			composeTerrain(playerX, playerZ);
 	}
 
@@ -118,7 +121,8 @@ public final class MinimapHudElement extends HudElement
 
 		drawFrame(graphics, x, y);
 		if(textureLocation != null)
-			graphics.blit(textureLocation, x + PADDING, y + PADDING, 0, 0,
+			graphics.blit(RenderPipelines.GUI_TEXTURED, textureLocation,
+				x + PADDING, y + PADDING, 0, 0,
 				MAP_SIZE, MAP_SIZE, MAP_SIZE, MAP_SIZE);
 
 		if(player != null)
@@ -163,7 +167,7 @@ public final class MinimapHudElement extends HudElement
 				int worldX = playerX + pixelX - MAP_RADIUS;
 				int worldZ = playerZ + pixelZ - MAP_RADIUS;
 				image.setPixel(pixelX, pixelZ,
-					toNativeColor(terrain.colorAt(worldX, worldZ)));
+					terrain.colorAt(worldX, worldZ));
 			}
 
 		texture.upload();
@@ -307,9 +311,43 @@ public final class MinimapHudElement extends HudElement
 			{centerX - forwardX, centerY - forwardY},
 			{backX + rightX * 3, backY + rightY * 3}};
 		WURST.getGui().updateColors();
-		RenderUtils.fillQuads2D(graphics, arrow,
-			WURST.getGui().getTheme().accent(1));
-		RenderUtils.drawLineStrip2D(graphics, arrow, 0xD0000000);
+		drawArrowPolygon(graphics, arrow,
+			WURST.getGui().getTheme().accent(1) | 0xFF000000);
+	}
+
+	private void drawArrowPolygon(GuiGraphicsExtractor graphics, float[][] vertices,
+		int color)
+	{
+		float minY = vertices[0][1];
+		float maxY = minY;
+		for(int i = 1; i < vertices.length; i++)
+		{
+			minY = Math.min(minY, vertices[i][1]);
+			maxY = Math.max(maxY, vertices[i][1]);
+		}
+
+		for(int pixelY = Mth.floor(minY); pixelY <= Mth.ceil(maxY); pixelY++)
+		{
+			float sampleY = pixelY + 0.5F;
+			float minX = Float.POSITIVE_INFINITY;
+			float maxX = Float.NEGATIVE_INFINITY;
+			for(int i = 0; i < vertices.length; i++)
+			{
+				float[] a = vertices[i];
+				float[] b = vertices[(i + 1) % vertices.length];
+				if((a[1] <= sampleY && b[1] > sampleY)
+					|| (b[1] <= sampleY && a[1] > sampleY))
+				{
+					float x = a[0] + (sampleY - a[1])
+						* (b[0] - a[0]) / (b[1] - a[1]);
+					minX = Math.min(minX, x);
+					maxX = Math.max(maxX, x);
+				}
+			}
+			if(minX <= maxX)
+				graphics.fill(Mth.floor(minX), pixelY, Mth.ceil(maxX) + 1,
+					pixelY + 1, color);
+		}
 	}
 
 	private void drawCompass(GuiGraphicsExtractor graphics, int x, int y)

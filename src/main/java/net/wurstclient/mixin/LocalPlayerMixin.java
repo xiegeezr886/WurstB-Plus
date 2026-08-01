@@ -116,7 +116,12 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		
 		return original.call(input);
 	}
-	
+
+	@Inject(method = "aiStep()V", at = @At("RETURN"))
+	private void applyAutoSprintAfterVanillaChecks(CallbackInfo ci)
+	{
+		WurstClient.INSTANCE.getHax().autoSprintHack.applySprint();
+	}
 	/**
 	 * Makes you keep sprinting when using an item while NoSlowdown is enabled.
 	 */
