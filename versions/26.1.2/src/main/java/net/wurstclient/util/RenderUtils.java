@@ -17,14 +17,19 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix3x2f;
+import org.joml.Matrix3x2fc;
 import org.joml.Matrix3x2fStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -832,7 +837,10 @@ public enum RenderUtils
 	public static void fillQuads2D(GuiGraphicsExtractor context, float[][] vertices,
 		int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(vertices == null || vertices.length < 4 || color >>> 24 == 0)
+			return;
+		context.getRenderState().addGuiElement(new PolygonRenderState(
+			context.pose(), vertices, color));
 	}
 	
 	/**
@@ -844,7 +852,10 @@ public enum RenderUtils
 	public static void fillTriangle2D(GuiGraphicsExtractor context, float[][] vertices,
 		int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(vertices == null || vertices.length < 3 || color >>> 24 == 0)
+			return;
+		float[][] quad = {vertices[0], vertices[1], vertices[2], vertices[2]};
+		fillQuads2D(context, quad, color);
 	}
 	
 	/**
@@ -899,6 +910,68 @@ public enum RenderUtils
 		
 		int outlineColor = toIntColor(acColor, 0.5F);
 		drawBorder2D(context, xo1, yo1, xo2, yo2, outlineColor);
+	}
+
+	private static final class PolygonRenderState implements GuiElementRenderState
+	{
+		private final Matrix3x2fc pose;
+		private final float[][] vertices;
+		private final int color;
+		private final ScreenRectangle bounds;
+
+		private PolygonRenderState(Matrix3x2fc pose, float[][] vertices,
+			int color)
+		{
+			this.pose = pose;
+			this.vertices = vertices;
+			this.color = color;
+			float minX = vertices[0][0];
+			float minY = vertices[0][1];
+			float maxX = minX;
+			float maxY = minY;
+			for(int i = 1; i < 4; i++)
+			{
+				minX = Math.min(minX, vertices[i][0]);
+				minY = Math.min(minY, vertices[i][1]);
+				maxX = Math.max(maxX, vertices[i][0]);
+				maxY = Math.max(maxY, vertices[i][1]);
+			}
+			bounds = new ScreenRectangle((int)Math.floor(minX),
+				(int)Math.floor(minY), (int)Math.ceil(maxX - minX + 1),
+				(int)Math.ceil(maxY - minY + 1));
+		}
+
+		@Override
+		public void buildVertices(VertexConsumer consumer)
+		{
+			for(float[] vertex : vertices)
+				consumer.addVertexWith2DPose(pose, vertex[0], vertex[1])
+					.setColor(color);
+		}
+
+		@Override
+		public com.mojang.blaze3d.pipeline.RenderPipeline pipeline()
+		{
+			return RenderPipelines.GUI;
+		}
+
+		@Override
+		public TextureSetup textureSetup()
+		{
+			return TextureSetup.noTexture();
+		}
+
+		@Override
+		public ScreenRectangle scissorArea()
+		{
+			return null;
+		}
+
+		@Override
+		public ScreenRectangle bounds()
+		{
+			return bounds;
+		}
 	}
 	
 	public record ColoredPoint(Vec3 point, int color)

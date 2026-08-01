@@ -79,7 +79,7 @@ public class Window {
 		int mouseY) {
 		FlatTheme theme = WurstClient.INSTANCE.getGui().getTheme();
 		boolean focused = selected || isOver(mouseX, mouseY);
-		FlatRenderer.drawWindowPanel(drawContext, x1, y1, x2, y2, 2,
+		FlatRenderer.drawWindowPanel(drawContext, x1, y1, x2, y2, 5,
 			theme, focused);
 		drawContext.fill(x1 + 4, y1 + 13, x2 - 4, y1 + 14,
 			theme.accent(focused ? 0.5F : 0.28F));

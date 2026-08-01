@@ -15,7 +15,7 @@ final class MinimapTerrainCache
 {
 	static final int CHUNK_SIZE = 16;
 	static final int UNKNOWN_COLOR = 0xFF181B20;
-	static final long TILE_TTL = 100;
+	static final long TILE_TTL = 72000;
 	private static final int MAX_TILES = 256;
 
 	private final LinkedHashMap<Long, TerrainTile> tiles =
@@ -116,7 +116,7 @@ final class MinimapTerrainCache
 		int[] colors = new int[CHUNK_SIZE * CHUNK_SIZE];
 		int[] heights = new int[colors.length];
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-		int minHeight = level.getMinY() * 16;
+		int minHeight = level.getMinY();
 		int worldStartX = chunkX * CHUNK_SIZE;
 		int worldStartZ = chunkZ * CHUNK_SIZE;
 

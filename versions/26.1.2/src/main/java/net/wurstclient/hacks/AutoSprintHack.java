@@ -97,10 +97,12 @@ public final class AutoSprintHack extends Hack
 		if(!hungry.isChecked() && !player.getAbilities().mayfly
 			&& player.getFoodData().getFoodLevel() <= 6)
 			return false;
-		if(!allDirections.isChecked()
-			&& MovementPlanner.getMoveVector(player.input).y <= 0)
+		boolean forward = MC.options.keyUp.isDown();
+		boolean moving = forward || MC.options.keyDown.isDown()
+			|| MC.options.keyLeft.isDown() || MC.options.keyRight.isDown();
+		if(!allDirections.isChecked() && !forward)
 			return false;
-		return MovementPlanner.isMoving(player.input);
+		return moving;
 	}
 
 	private void stopOwnedSprint()

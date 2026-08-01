@@ -42,9 +42,9 @@ public final class WurstLogo
 		int bottom = y + PANEL_HEIGHT;
 		int textColor = ensureReadable(otf.getTextColor());
 		FlatRenderer.fillRoundedRect(context, x, y, right, bottom,
-			5, 0x74070A0F);
-		FlatRenderer.drawRoundedOutline(context, x, y, right,
-			bottom, 5, 0x2CFFFFFF);
+			4, 0xA010141B);
+		FlatRenderer.drawRoundedOutline(context, x, y, right, bottom,
+			4, 0x2CFFFFFF);
 		FlatRenderer.fillRoundedRect(context, x + 1, y + 4,
 			x + 3, bottom - 4, 1, accent);
 
