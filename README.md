@@ -8,9 +8,20 @@
 - Java 17
 
 ## 构建
-```powershell
-.\gradlew.bat jarJar --console=plain
+```bash
+# macOS / Linux（必须使用 Java 17）
+export JAVA_HOME=/path/to/jdk-17
+chmod +x gradlew
+./gradlew clean jarJar --console=plain
 ```
+
+```powershell
+# Windows（必须使用 Java 17）
+.\gradlew.bat clean jarJar --console=plain
+```
+
+Baritone 1.10.3（对应 Minecraft 1.20/1.20.1）会在构建时从官方 GitHub Release 自动下载，无需手动放置本地 JAR。
+
 产物：`build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1-all.jar`
 
 ## 开发

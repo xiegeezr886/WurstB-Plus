@@ -24,19 +24,7 @@ public final class WurstMixinConfigPlugin implements IMixinConfigPlugin
 	public boolean shouldApplyMixin(String targetClassName,
 		String mixinClassName)
 	{
-		if(!mixinClassName.endsWith("SodiumBlockOcclusionCacheMixin")
-			&& !mixinClassName.endsWith("SodiumFluidRendererMixin"))
-			return true;
-
-		try
-		{
-			Class.forName(targetClassName, false,
-				Thread.currentThread().getContextClassLoader());
-			return true;
-		}catch(ClassNotFoundException | LinkageError ignored)
-		{
-			return false;
-		}
+		return true;
 	}
 
 	@Override
