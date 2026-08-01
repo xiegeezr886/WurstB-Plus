@@ -67,8 +67,6 @@
     "ServerboundMovePlayerPacketMixin",
     "ShulkerBoxScreenMixin",
     "SimpleOptionMixin",
-    "SodiumBlockOcclusionCacheMixin",
-    "SodiumFluidRendererMixin",
     "StatsScreenMixin",
     "StatusEffectInstanceMixin",
     "TelemetryManagerMixin",

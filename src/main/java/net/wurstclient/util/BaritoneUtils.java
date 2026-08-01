@@ -11,7 +11,7 @@ import net.wurstclient.WurstClient;
 
 public final class BaritoneUtils
 {
-	public static final boolean IS_AVAILABLE = true;
+	public static final boolean IS_AVAILABLE = false;
 
 	public static IBaritone getBaritone()
 	{
