@@ -11,8 +11,10 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户�
 | 1.20.1 | Forge | 47.4.10 | 17 | 根目录 | `build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1-all.jar` |
 | 1.20.1 | NeoForge | 47.1.3 | 17 | `newforge/` | `newforge/build/libs/WurstB+ Plus-v1.5.0-NewForge-1.20.1-all.jar` |
 | 1.21.1 | Forge | 52.1.16 | 21 | `versions/1.21.1/` | `versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar` |
-| 1.21.1 | NeoForge | 21.1.244 | 21 | `newforge/versions/1.21.1/` | `newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar` |
+| 1.21.1 | NeoForge | 21.1.244 | 21 | `newforge/versions/1.21.1/` | `newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar` |
 | 26.1.2 | Forge | 64.1.0 | 25 | `versions/26.1.2/` | `versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar` |
+| 26.1.2 | NeoForge | 26.1.2.87 | 25 | `neoforge/versions/26.1.2/` | `neoforge/versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2-all.jar` |
+> 26.1.2 为最新适配版本，详见 `versions/26.1.2/CHANGELOG.md`。
 
 ## 根工程状态
 
@@ -22,12 +24,12 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户�
 | Java | 17 (1.20.1) / 21 (1.21.1) / 25 (26.1.2) |
 | 当前构建插件 | ForgeGradle 6.0 (1.20.1) / FG7 (26.1.2) |
 | 当前映射 | Mojang 官方映射 |
-| 当前加载器 | Forge 47.4.10 (1.20.1) / NeoForge 47.1.3 (1.20.1 newforge) / Forge 52.1.16 (1.21.1) / NeoForge 21.1.244 (1.21.1) / Forge 64.1.0 (26.1.2) |
+| 当前加载器 | Forge 47.4.10 (1.20.1) / NeoForge 47.1.3 (1.20.1 newforge) / Forge 52.1.16 (1.21.1) / NeoForge 21.1.244 (1.21.1) / Forge 64.1.0 (26.1.2) / NeoForge 26.1.2.87 (26.1.2) |
 | MixinExtras | Forge 0.4.1 / 0.5.4 |
 | 模组 ID | `wurstpenguin` |
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
-| 构建状态 | 五版本均通过构建 |
+| 构建状态 | 六版本均通过构建 |
 | 注册 Hack | 197 |
 | 注册命令 | 54 |
 | Other Feature | 2 |
@@ -330,10 +332,10 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 可部署 NeoForge 产物位于（已内嵌 baritone jarJar）：
 
 ```text
-newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar
+newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar
 ```
 
-SHA-256: `C6B4F4C549946BC5944E4D8A361221A68DEB14C517D27FAB97C1142CA983EDD6`
+SHA-256: `59F958CC532ECAD117C25E80ED84BEB739A056E1BED6AE508867EEFE96534032`
 
 ### Forge 26.1.2
 
@@ -355,6 +357,27 @@ versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar
 > 26.1.2 使用 ForgeGradle 7.x、Gradle 9.4.1、Mojang 官方映射，内置 Mixin 0.8.7 + MixinExtras。baritone 通过 `libs/` 目录 flatDir 加载（`compileOnly`）。
 > 渲染管线从 `render()` 迁移到 `extractRenderState()`，文字颜色需 8 位 Alpha（`0xFFxxxxxx`），`blit` 需 `RenderPipelines` 参数。`BufferUploader` 已移除，三角扇批量渲染暂不可用。更新日志见 `versions/26.1.2/CHANGELOG.md`，迁移详情见 `versions/26.1.2/PORTING_TASK.md`。
 
+### NeoForge 26.1.2
+
+`neoforge/versions/26.1.2/` 目录为 Minecraft 26.1.2 / NeoForge 26.1.2.87 分支，使用 ModDevGradle 2.0.143、Gradle 9.4.1 和 Java 25：
+
+```powershell
+cd neoforge\versions\26.1.2
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-25.0.4"
+$env:_JAVA_OPTIONS = "-Djavax.net.ssl.trustAll=true"
+.\gradlew.bat clean build --console=plain
+```
+
+可部署的全依赖产物位于：
+
+```text
+neoforge/versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2-all.jar
+```
+
+SHA-256: `B05BB45ECB94FBBECE0E7DE1DBE6FD29B4E948B982F5DCC3C4098B990FD1A1AD`
+
+该产物内嵌 Java-WebSocket 和所需 Netty 组件。现有 Forge Baritone 与 NeoForge 26.1.2 不兼容，因此只参与编译，相关功能会在运行时安全降级。`runClient` 可能在 Minecraft 启动前因 NeoForm 资源下载器报 `PKIX path building failed`；这是本机 JDK 信任库问题，不影响 `compileJava` 和 `build` 通过。
+
 ## 安全提示
 
 `WurstForge-1.20.1.jar` 和 `WurstForge-Decompiled/` 内含 HWID、MAC 地址和 Webhook 代码，已从活动源码中完全移除。
@@ -363,13 +386,14 @@ versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar
 
 ## 验证状态
 
-项目版本为 `1.5.0`。五版本均通过构建，Gradle 重混淆、JarJar 打包、关键 Mixin 方法可见性和 Mixin 包隔离检查成功。`PlayerMixin` 的 KeepSprint 攻击注入使用原生 `@Redirect`，只保留攻击前已经存在的疾跑，不再逐 Tick 主动启动疾跑，也不依赖 Mixin 运行时生成的 `Args` 类。
+项目版本为 `1.5.0`。六版本均通过构建，Gradle 重混淆、JarJar 打包、关键 Mixin 方法可见性和 Mixin 包隔离检查成功。`PlayerMixin` 的 KeepSprint 攻击注入使用原生 `@Redirect`，只保留攻击前已经存在的疾跑，不再逐 Tick 主动启动疾跑，也不依赖 Mixin 运行时生成的 `Args` 类。
 
 - 1.20.1 Forge 47.4.10：`build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1-all.jar`
 - 1.20.1 NewForge 47.1.3：`newforge/build/libs/WurstB+ Plus-v1.5.0-NewForge-1.20.1-all.jar`
 - 1.21.1 Forge 52.1.16：`versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar`
-- 1.21.1 NeoForge 21.1.244：`newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar`
+- 1.21.1 NeoForge 21.1.244：`newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar`
 - 26.1.2 Forge 64.1.0：`versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar`（文字颜色、图标渲染、圆角抗锯齿、Mixin 启动崩溃已修复）
+- 26.1.2 NeoForge 26.1.2.87：`neoforge/versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2-all.jar`（Java-WebSocket 与 Netty 运行依赖已内嵌）
 
 ### 1.21.1 渲染管线说明
 

@@ -75,11 +75,19 @@ dependencies {
     implementation "io.github.llamalad7:mixinextras-neoforge:${project.mixinextras_version}"
     compileOnly "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
 
-    implementation "org.java-websocket:Java-WebSocket:1.5.3"
-    implementation "io.netty:netty-codec-socks:4.1.82.Final"
-    implementation "io.netty:netty-handler-proxy:4.1.82.Final"
+	jarJar(implementation("org.java-websocket:Java-WebSocket:1.5.3")) {
+		transitive = false
+	}
+	jarJar(implementation("io.netty:netty-codec-socks:4.1.82.Final")) {
+		transitive = false
+	}
+	jarJar(implementation("io.netty:netty-handler-proxy:4.1.82.Final")) {
+		transitive = false
+	}
 
-    implementation "baritone:baritone-api-forge:1.21.2"
+	jarJar(implementation("baritone:baritone-api-forge:1.21.2")) {
+		transitive = false
+	}
 
     additionalRuntimeClasspath "baritone:baritone-api-forge:1.21.2"
 
@@ -128,6 +136,7 @@ java {
 }
 
 jar {
+	archiveFileName = "WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar"
     manifest {
         attributes(
             "MixinConfigs": "wurst.mixins.json,mixins.baritone.json",
@@ -141,11 +150,7 @@ jar {
     from("LICENSE.txt") {
         rename { "LICENSE-${project.base.archivesName.get()}.txt" }
     }
-    from(zipTree("baritone-api-forge-1.21.2.jar")) {
-        exclude "META-INF/**"
-        exclude "mixins.baritone.json"
-    }
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     exclude "intentionally_untranslated.json"
 }
 
