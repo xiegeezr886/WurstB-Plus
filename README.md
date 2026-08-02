@@ -9,9 +9,9 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户�
 | Minecraft | 加载器 | Forge 版本 | Java | 工程目录 | 发布产物 |
 | --- | --- | --- | --- | --- | --- |
 | 1.20.1 | Forge | 47.4.10 | 17 | 根目录 | `build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1-all.jar` |
-| 1.20.1 | NeoForge | 47.1.3 | 17 | `newforge/` | `newforge/build/libs/WurstB+ Plus-v1.5.0-NewForge-1.20.1-all.jar` |
+| 1.20.1 | NeoForge | 47.1.3 | 17 | `neoforge/` | `neoforge/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.20.1-all.jar` |
 | 1.21.1 | Forge | 52.1.16 | 21 | `versions/1.21.1/` | `versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar` |
-| 1.21.1 | NeoForge | 21.1.244 | 21 | `newforge/versions/1.21.1/` | `newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar` |
+| 1.21.1 | NeoForge | 21.1.244 | 21 | `neoforge/versions/1.21.1/` | `neoforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar` |
 | 26.1.2 | Forge | 64.1.0 | 25 | `versions/26.1.2/` | `versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar` |
 | 26.1.2 | NeoForge | 26.1.2.87 | 25 | `neoforge/versions/26.1.2/` | `neoforge/versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2-all.jar` |
 > 26.1.2 为最新适配版本，详见 `versions/26.1.2/CHANGELOG.md`。
@@ -24,7 +24,7 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户�
 | Java | 17 (1.20.1) / 21 (1.21.1) / 25 (26.1.2) |
 | 当前构建插件 | ForgeGradle 6.0 (1.20.1) / FG7 (26.1.2) |
 | 当前映射 | Mojang 官方映射 |
-| 当前加载器 | Forge 47.4.10 (1.20.1) / NeoForge 47.1.3 (1.20.1 newforge) / Forge 52.1.16 (1.21.1) / NeoForge 21.1.244 (1.21.1) / Forge 64.1.0 (26.1.2) / NeoForge 26.1.2.87 (26.1.2) |
+| 当前加载器 | Forge 47.4.10 (1.20.1) / NeoForge 47.1.3 (1.20.1) / Forge 52.1.16 (1.21.1) / NeoForge 21.1.244 (1.21.1) / Forge 64.1.0 (26.1.2) / NeoForge 26.1.2.87 (26.1.2) |
 | MixinExtras | Forge 0.4.1 / 0.5.4 |
 | 模组 ID | `wurstpenguin` |
 | 模组名称 | WurstB+ Plus |
@@ -290,17 +290,17 @@ build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1-all.jar
 
 ### NeoForge 1.20.1
 
-`newforge/` 目录为 NeoForge 1.20.1 分支，使用 ForgeGradle 6.x + MixinGradle 0.7 + Mixin 0.8.7，需要 Java 17：
+`neoforge/` 目录为 NeoForge 1.20.1 分支，使用 ForgeGradle 6.x + MixinGradle 0.7 + Mixin 0.8.7，需要 Java 17：
 
 ```powershell
-cd newforge
+cd neoforge
 .\gradlew.bat clean jarJar --console=plain
 ```
 
-可部署 NewForge JarJar 产物位于：
+可部署 NeoForge JarJar 产物位于：
 
 ```text
-newforge/build/libs/WurstB+ Plus-v1.5.0-NewForge-1.20.1-all.jar
+neoforge/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.20.1-all.jar
 ```
 
 ### Forge 1.21.1
@@ -321,10 +321,10 @@ versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar
 
 ### NeoForge 1.21.1
 
-`newforge/versions/1.21.1/` 目录为 NeoForge 1.21.1 分支，使用 ModDevGradle `net.neoforged.moddev` 2.0.143，需要 Java 21：
+`neoforge/versions/1.21.1/` 目录为 NeoForge 1.21.1 分支，使用 ModDevGradle `net.neoforged.moddev` 2.0.143，需要 Java 21：
 
 ```powershell
-cd newforge\versions\1.21.1
+cd neoforge\versions\1.21.1
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 .\gradlew.bat clean build --console=plain
 ```
@@ -332,7 +332,7 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 可部署 NeoForge 产物位于（已内嵌 baritone jarJar）：
 
 ```text
-newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar
+neoforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar
 ```
 
 SHA-256: `59F958CC532ECAD117C25E80ED84BEB739A056E1BED6AE508867EEFE96534032`
@@ -389,9 +389,9 @@ SHA-256: `B05BB45ECB94FBBECE0E7DE1DBE6FD29B4E948B982F5DCC3C4098B990FD1A1AD`
 项目版本为 `1.5.0`。六版本均通过构建，Gradle 重混淆、JarJar 打包、关键 Mixin 方法可见性和 Mixin 包隔离检查成功。`PlayerMixin` 的 KeepSprint 攻击注入使用原生 `@Redirect`，只保留攻击前已经存在的疾跑，不再逐 Tick 主动启动疾跑，也不依赖 Mixin 运行时生成的 `Args` 类。
 
 - 1.20.1 Forge 47.4.10：`build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1-all.jar`
-- 1.20.1 NewForge 47.1.3：`newforge/build/libs/WurstB+ Plus-v1.5.0-NewForge-1.20.1-all.jar`
+- 1.20.1 NeoForge 47.1.3：`neoforge/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.20.1-all.jar`
 - 1.21.1 Forge 52.1.16：`versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar`
-- 1.21.1 NeoForge 21.1.244：`newforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar`
+- 1.21.1 NeoForge 21.1.244：`neoforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar`
 - 26.1.2 Forge 64.1.0：`versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar`（文字颜色、图标渲染、圆角抗锯齿、Mixin 启动崩溃已修复）
 - 26.1.2 NeoForge 26.1.2.87：`neoforge/versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2-all.jar`（Java-WebSocket 与 Netty 运行依赖已内嵌）
 
