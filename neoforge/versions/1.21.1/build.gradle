@@ -85,11 +85,11 @@ dependencies {
 		transitive = false
 	}
 
-	jarJar(implementation("baritone:baritone-api-forge:1.21.2")) {
+	jarJar(implementation("baritone:baritone-api-forge:1.21.1")) {
 		transitive = false
 	}
 
-    additionalRuntimeClasspath "baritone:baritone-api-forge:1.21.2"
+    additionalRuntimeClasspath "baritone:baritone-api-forge:1.21.1"
 
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 
@@ -105,6 +105,7 @@ processResources {
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
             loader_version_range   : loader_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
