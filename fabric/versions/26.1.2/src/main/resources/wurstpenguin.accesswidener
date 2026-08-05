@@ -1,0 +1,6 @@
+accessWidener	v1	official
+
+accessible	field	net/minecraft/client/gui/screens/Screen	renderables	Ljava/util/List;
+accessible	method	net/minecraft/client/gui/components/ChatComponent	getWidth	()I
+accessible	method	net/minecraft/client/gui/components/ChatComponent	getScale	()D
+accessible	field	net/minecraft/client/renderer/RenderPipelines	PIPELINES_BY_LOCATION	Ljava/util/Map;
