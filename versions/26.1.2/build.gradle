@@ -58,6 +58,10 @@ minecraft {
 }
 
 repositories {
+	maven {
+		name = "BundledBaritone"
+		url = uri("../../baritone-maven")
+	}
     minecraft.mavenizer(it)
     maven fg.forgeMaven
     maven fg.minecraftLibsMaven
@@ -75,9 +79,9 @@ dependencies {
     annotationProcessor "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
     // annotationProcessor "org.spongepowered:mixin:0.8.7:processor"
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
-    implementation "io.netty:netty-codec-socks:4.1.82.Final"
-    implementation "io.netty:netty-handler-proxy:4.1.82.Final"
-    compileOnly "baritone:baritone-api-forge:26.1.2"
+    implementation "io.netty:netty-codec-socks:4.2.7.Final"
+    implementation "io.netty:netty-handler-proxy:4.2.7.Final"
+    implementation "baritone:baritone-forge:1.18.0"
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
@@ -139,11 +143,15 @@ tasks.register('allJar', Jar) {
         (configurations.runtimeClasspath.files + configurations.allJarEmbed.files).findAll { dependency ->
             def fileName = dependency.name
             fileName.startsWith('Java-WebSocket')
+                || fileName.startsWith('netty-codec-socks')
+                || fileName.startsWith('netty-handler-proxy')
         }.collect { dependency ->
             dependency.isDirectory() ? dependency : zipTree(dependency)
         }
     }
+    from("../../baritone-maven/baritone/baritone-forge/1.18.0/baritone-forge-1.18.0.jar") {
+        into "META-INF/jarjar"
+    }
     exclude 'net/minecraft/**', 'net/minecraftforge/**'
-    exclude 'mixins.baritone.json', 'baritone/launch/**'
     exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'module-info.class'
 }

@@ -225,7 +225,7 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	 * This mixin allows AutoSprint to enable sprinting even when the player is
 	 * too hungry.
 	 */
-	@Inject(at = @At("HEAD"), method = "hasEnoughFoodToStartSprinting()Z", cancellable = true)
+	@Inject(at = @At("HEAD"), method = "canStartSprinting()Z", cancellable = true)
 	private void onCanSprint(CallbackInfoReturnable<Boolean> cir)
 	{
 		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldSprintHungry())

@@ -17,7 +17,7 @@ WurstB+ Plus for Minecraft 1.21.1.
 [[dependencies.wurstpenguin]]
 modId="forge"
 mandatory=true
-versionRange="[52.1.16,53)"
+versionRange="[52,53)"
 ordering="NONE"
 side="CLIENT"
 

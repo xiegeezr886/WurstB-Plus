@@ -85,11 +85,7 @@ dependencies {
 		transitive = false
 	}
 
-	jarJar(implementation("baritone:baritone-api-forge:1.21.1")) {
-		transitive = false
-	}
-
-    additionalRuntimeClasspath "baritone:baritone-api-forge:1.21.1"
+	implementation files("baritone-api-forge-1.21.1.jar")
 
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 
@@ -151,7 +147,10 @@ jar {
     from("LICENSE.txt") {
         rename { "LICENSE-${project.base.archivesName.get()}.txt" }
     }
+	zip64 = true
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	from { zipTree(file("baritone-api-forge-1.21.1.jar")) }
+	exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/mods.toml', 'module-info.class'
     exclude "intentionally_untranslated.json"
 }
 

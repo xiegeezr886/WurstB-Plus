@@ -11,6 +11,10 @@ base {
 
 repositories {
 	maven {
+		name = "BundledBaritone"
+		url = uri("baritone-maven")
+	}
+	maven {
 		name = "Fabric"
 		url = "https://maven.fabricmc.net/"
 	}
@@ -40,8 +44,8 @@ dependencies {
 	include implementation("io.netty:netty-codec-socks:4.1.118.Final")
 	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
 
-	// Baritone
-	include implementation("baritone:baritone-api-fabric:1.15.0")
+	// Baritone is bundled from the checked-in local Maven repository.
+	include implementation("baritone:baritone-api-fabric:1.10.3")
 
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"

@@ -36,3 +36,8 @@ baritone-checksums.txt
 GameRenderer_bytecode.txt
 *.tmp
 *.bak
+
+# Local test environment (PCL instances, logs, natives, reports)
+.test/
+baritone-maven/
+fabric/baritone-maven/

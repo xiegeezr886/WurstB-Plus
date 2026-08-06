@@ -1,62 +1,61 @@
-<# 
-  CC Switch Proxy Guardian - OpenAI Codex CLI 专用
-  功能:
-    1. 检测 CC Switch 代理是否在线 (127.0.0.1:15721)
-    2. 如果离线，尝试启动 cc-switch proxy serve --takeover codex
-    3. 配置 Codex CLI 环境变量
-    4. 静默守护，日志写入文件
-  用法:
-    - 直接运行: .\ccswitch-guardian.ps1
-    - 开机自启: 添加到 Task Scheduler (见下方注释)
+<#
+  CC Switch Proxy Guardian
+  Monitors a local CC Switch listener and optionally starts it when unavailable.
+  The guardian does not change Codex's user environment unless explicitly asked.
 #>
 
+[CmdletBinding()]
 param(
+    [ValidateRange(5, 3600)]
     [int]$CheckIntervalSeconds = 30,
     [string]$LogFile = "$env:USERPROFILE\.ccswitch-guardian.log",
-    [int]$Port = 15721
+    [ValidateRange(1, 65535)]
+    [int]$Port = 15721,
+    [string]$CcSwitchPath = "",
+    [string]$ProxyArguments = "proxy serve --takeover codex",
+    [string]$ApiBaseUrl = "",
+    [switch]$UseLocalProxy,
+    [switch]$PersistUserEnvironment,
+    [bool]$StartProxy = $true
 )
 
-$ErrorActionPreference = "SilentlyContinue"
+$ErrorActionPreference = "Stop"
 $MaxLogSize = 1MB
+$script:LastUnverifiedWarning = $false
 
-# --- 日志函数 ---
+$logParent = Split-Path -Parent $LogFile
+if ($logParent) { New-Item -ItemType Directory -Path $logParent -Force | Out-Null }
+
 function Write-Log {
     param([string]$Message)
-    $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $line = "[$ts] $Message"
-    Add-Content -Path $LogFile -Value $line -Encoding UTF8
-    # 日志超过 1MB 自动轮转
-    if ((Get-Item $LogFile -ErrorAction SilentlyContinue).Length -gt $MaxLogSize) {
-        $backup = $LogFile -replace '\.log$', ('_{0}.log' -f (Get-Date -Format "yyyyMMdd_HHmmss"))
-        Move-Item $LogFile $backup -Force
-        Add-Content -Path $LogFile -Value "[$ts] Log rotated" -Encoding UTF8
-    }
-}
-
-# --- 检测代理是否在线 ---
-function Test-ProxyAlive {
     try {
-        $tcp = New-Object System.Net.Sockets.TcpClient
-        $result = $tcp.BeginConnect("127.0.0.1", $Port, $null, $null)
-        $wait = $result.AsyncWaitHandle.WaitOne(2000, $false)
-        if ($wait -and $tcp.Connected) {
-            $tcp.EndConnect($result)
-            $tcp.Close()
-            return $true
+        $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        $line = "[$ts] $Message"
+        Add-Content -Path $LogFile -Value $line -Encoding UTF8
+        $logItem = Get-Item -LiteralPath $LogFile -ErrorAction SilentlyContinue
+        if ($logItem -and $logItem.Length -gt $MaxLogSize) {
+            $backup = $LogFile -replace '\.log$', ('_{0}.log' -f (Get-Date -Format "yyyyMMdd_HHmmss"))
+            Move-Item -LiteralPath $LogFile -Destination $backup -Force
+            Add-Content -Path $LogFile -Value "[$ts] Log rotated" -Encoding UTF8
         }
-        $tcp.Close()
-        return $false
     } catch {
-        return $false
+        Write-Warning "Unable to write guardian log: $($_.Exception.Message)"
     }
 }
 
-# --- 查找 cc-switch 可执行文件 ---
-function Find-ccswitch {
-    # 1. PATH 中
+function Find-CcSwitch {
+    if ($CcSwitchPath) {
+        if (-not (Test-Path -LiteralPath $CcSwitchPath -PathType Leaf)) {
+            throw "Configured cc-switch executable does not exist: $CcSwitchPath"
+        }
+        return (Resolve-Path -LiteralPath $CcSwitchPath).Path
+    }
+
     $inPath = Get-Command cc-switch -ErrorAction SilentlyContinue
-    if ($inPath) { return $inPath.Source }
-    # 2. 常见安装路径
+    if ($inPath) {
+        if ($inPath.Path) { return $inPath.Path }
+        if ($inPath.Source) { return $inPath.Source }
+    }
     $candidates = @(
         "$env:LOCALAPPDATA\Programs\cc-switch\cc-switch.exe",
         "$env:ProgramFiles\cc-switch\cc-switch.exe",
@@ -64,103 +63,129 @@ function Find-ccswitch {
         "$env:USERPROFILE\AppData\Local\Programs\cc-switch\cc-switch.exe",
         "C:\Windows\System32\cc-switch.exe"
     )
-    foreach ($c in $candidates) {
-        if (Test-Path $c) { return $c }
+    foreach ($candidate in $candidates) {
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return (Resolve-Path -LiteralPath $candidate).Path
+        }
     }
     return $null
 }
 
-# --- 配置 Codex CLI 环境变量 ---
-function Set-CodexProxy {
-    $baseUrl = "http://127.0.0.1:${Port}"
-    # Codex CLI 使用 OPENAI_BASE_URL 或 OPENAI_API_BASE
-    [Environment]::SetEnvironmentVariable("OPENAI_BASE_URL", $baseUrl, "Process")
-    [Environment]::SetEnvironmentVariable("OPENAI_API_BASE", $baseUrl, "Process")
-    [Environment]::SetEnvironmentVariable("OPENAI_BASE_URL", $baseUrl, "User")
-    [Environment]::SetEnvironmentVariable("OPENAI_API_BASE", $baseUrl, "User")
-    Write-Log "Set OPENAI_BASE_URL=$baseUrl (Process + User)"
+function Test-ProxyAlive {
+    $tcp = $null
+    try {
+        $tcp = New-Object System.Net.Sockets.TcpClient
+        $async = $tcp.BeginConnect("127.0.0.1", $Port, $null, $null)
+        if (-not $async.AsyncWaitHandle.WaitOne(2000, $false)) { return $false }
+        $tcp.EndConnect($async)
+        return $tcp.Connected
+    } catch {
+        return $false
+    } finally {
+        if ($tcp) { $tcp.Dispose() }
+    }
 }
 
-# --- 主循环 ---
-Write-Log "=== CC Switch Guardian started (port $Port, interval ${CheckIntervalSeconds}s) ==="
+function Set-CodexProxy {
+    $target = $ApiBaseUrl
+    if ($UseLocalProxy) { $target = "http://127.0.0.1:${Port}" }
+    if ([string]::IsNullOrWhiteSpace($target)) {
+        Write-Log "Leaving OPENAI_BASE_URL unchanged; pass -UseLocalProxy or -ApiBaseUrl to configure it."
+        return
+    }
+    $uri = $null
+    if (-not [System.Uri]::TryCreate($target, [System.UriKind]::Absolute, [ref]$uri) -or
+        $uri.Scheme -notin @("http", "https")) {
+        throw "ApiBaseUrl must be an absolute http or https URL: $target"
+    }
+    $currentProcess = [Environment]::GetEnvironmentVariable("OPENAI_BASE_URL", "Process")
+    $currentUser = [Environment]::GetEnvironmentVariable("OPENAI_BASE_URL", "User")
+    if ($currentProcess -eq $target -and (-not $PersistUserEnvironment -or $currentUser -eq $target)) {
+        return
+    }
+    [Environment]::SetEnvironmentVariable("OPENAI_BASE_URL", $target, "Process")
+    [Environment]::SetEnvironmentVariable("OPENAI_API_BASE", $target, "Process")
+    if ($PersistUserEnvironment) {
+        [Environment]::SetEnvironmentVariable("OPENAI_BASE_URL", $target, "User")
+        [Environment]::SetEnvironmentVariable("OPENAI_API_BASE", $target, "User")
+        Write-Log "Persisted Codex API base URL at user scope: $target"
+    } else {
+        Write-Log "Set API base URL for guardian process only: $target"
+    }
+}
 
-$ccswitchPath = Find-ccswitch
-if (-not $ccswitchPath) {
-    Write-Log "WARNING: cc-switch not found in PATH or common locations"
-    Write-Log "Searched: PATH, LocalAppData, ProgramFiles, AppData"
+Write-Log "=== CC Switch Guardian started (port $Port, interval ${CheckIntervalSeconds}s, start=$StartProxy) ==="
+$ccswitchPath = Find-CcSwitch
+if (-not $ccswitchPath -and $StartProxy) {
+    Write-Log "WARNING: cc-switch was not found; guardian will keep monitoring and retry discovery."
 }
 
 $proxyProcess = $null
+$nextStart = Get-Date
+$failureCount = 0
 
 while ($true) {
-    $alive = Test-ProxyAlive
-
-    if ($alive) {
-        # 代理在线，确保环境变量正确
-        $currentUrl = [Environment]::GetEnvironmentVariable("OPENAI_BASE_URL", "Process")
-        if ($currentUrl -ne "http://127.0.0.1:${Port}") {
-            Set-CodexProxy
-        }
-        # 静默等待
-        Start-Sleep -Seconds $CheckIntervalSeconds
-        continue
-    }
-
-    Write-Log "Proxy offline on port $Port"
-
-    # 代理离线，尝试启动
-    if (-not $ccswitchPath) {
-        $ccswitchPath = Find-ccswitch
-        if (-not $ccswitchPath) {
-            Write-Log "ERROR: cc-switch still not found, retry in 60s"
-            Start-Sleep -Seconds 60
+    try {
+        if (Test-ProxyAlive) {
+            if ($failureCount -gt 0) {
+                Write-Log "Proxy is online again."
+                $failureCount = 0
+            }
+            if ($UseLocalProxy -or $ApiBaseUrl) { Set-CodexProxy }
+            Start-Sleep -Seconds $CheckIntervalSeconds
             continue
         }
-    }
 
-    Write-Log "Starting cc-switch proxy serve --takeover codex ..."
-    try {
-        # 以隐藏窗口方式启动
+        if (-not $StartProxy) {
+            Write-Log "Proxy is offline; auto-start is disabled."
+            Start-Sleep -Seconds $CheckIntervalSeconds
+            continue
+        }
+
+        if ($proxyProcess -and -not $proxyProcess.HasExited) {
+            Write-Log "Proxy process is still running but its port is unavailable; waiting before retry."
+            Start-Sleep -Seconds $CheckIntervalSeconds
+            continue
+        }
+        if ((Get-Date) -lt $nextStart) {
+            Start-Sleep -Seconds ([Math]::Min($CheckIntervalSeconds, [int][Math]::Ceiling(($nextStart - (Get-Date)).TotalSeconds)))
+            continue
+        }
+
+        if (-not $ccswitchPath) { $ccswitchPath = Find-CcSwitch }
+        if (-not $ccswitchPath) {
+            Write-Log "ERROR: cc-switch not found; retrying in 60 seconds."
+            $nextStart = (Get-Date).AddSeconds(60)
+            continue
+        }
+
+        Write-Log "Starting cc-switch with configured arguments."
         $psi = New-Object System.Diagnostics.ProcessStartInfo
         $psi.FileName = $ccswitchPath
-        $psi.Arguments = "proxy serve --takeover codex"
+        $psi.Arguments = $ProxyArguments
         $psi.UseShellExecute = $false
         $psi.CreateNoWindow = $true
-        $psi.RedirectStandardOutput = $true
-        $psi.RedirectStandardError = $true
+        # Do not redirect streams without asynchronous readers: a verbose proxy can deadlock.
         $proxyProcess = [System.Diagnostics.Process]::Start($psi)
-
-        # 等待 5 秒让代理启动
+        Set-CodexProxy
         Start-Sleep -Seconds 5
 
         if ($proxyProcess.HasExited) {
-            $stderr = $proxyProcess.StandardError.ReadToEnd()
-            Write-Log "ERROR: cc-switch exited immediately (code $($proxyProcess.ExitCode)): $stderr"
-            Start-Sleep -Seconds 30
-            continue
+            Write-Log "ERROR: cc-switch exited immediately with code $($proxyProcess.ExitCode)."
+            $failureCount++
+            $delay = [Math]::Min(300, 30 * [Math]::Pow(2, [Math]::Min($failureCount - 1, 3)))
+            $nextStart = (Get-Date).AddSeconds($delay)
+        } elseif (Test-ProxyAlive) {
+            Write-Log "Proxy is online (PID $($proxyProcess.Id))."
+            $failureCount = 0
+        } else {
+            Write-Log "WARNING: cc-switch started but port $Port is not responding yet."
+            $nextStart = (Get-Date).AddSeconds(30)
         }
-
-        Write-Log "cc-switch started (PID: $($proxyProcess.Id))"
-        Set-CodexProxy
-
-        # 等待代理真正在线
-        $retries = 0
-        while ($retries -lt 10) {
-            if (Test-ProxyAlive) {
-                Write-Log "Proxy is now online on port $Port"
-                break
-            }
-            Start-Sleep -Seconds 2
-            $retries++
-        }
-
-        if ($retries -ge 10) {
-            Write-Log "WARNING: Proxy did not come online after 10 retries"
-        }
-
     } catch {
-        Write-Log "ERROR starting cc-switch: $_"
+        Write-Log "ERROR: $($_.Exception.Message)"
+        $failureCount++
+        $nextStart = (Get-Date).AddSeconds([Math]::Min(300, 30 * $failureCount))
     }
-
     Start-Sleep -Seconds $CheckIntervalSeconds
 }

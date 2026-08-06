@@ -51,6 +51,15 @@ minecraft {
 	}
 }
 
+sourceSets {
+	main {
+		java {
+			exclude "net/wurstclient/clickgui2/component/*.java"
+			exclude "net/wurstclient/clickgui2/component.disabled/*.java"
+		}
+	}
+}
+
 repositories {
 	maven {
 		name = "Sponge"
@@ -72,7 +81,7 @@ dependencies {
 	compileOnly "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
 	annotationProcessor "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
 	jarJar(group: "io.github.llamalad7", name: "mixinextras-forge",
-		version: "[${project.mixinextras_version},0.5)")
+		version: "[${project.mixinextras_version},)")
 	annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 	implementation "org.java-websocket:Java-WebSocket:1.5.3"
 	jarJar("org.java-websocket:Java-WebSocket:[1.5.3]") {

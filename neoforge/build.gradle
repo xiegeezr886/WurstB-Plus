@@ -68,11 +68,11 @@ dependencies {
     minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
 
     implementation fg.deobf(
-        "io.github.llamalad7:mixinextras-forge:0.4.1")
-    compileOnly "io.github.llamalad7:mixinextras-common:0.4.1"
-    annotationProcessor "io.github.llamalad7:mixinextras-common:0.4.1"
+        "io.github.llamalad7:mixinextras-forge:0.5.4")
+    compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:0.5.4"
     jarJar(group: "io.github.llamalad7", name: "mixinextras-forge",
-        version: "[0.4.1,0.5)")
+        version: "[0.5.4,)")
     annotationProcessor "org.spongepowered:mixin:0.8.7:processor"
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
     implementation "io.netty:netty-codec-socks:4.1.82.Final"

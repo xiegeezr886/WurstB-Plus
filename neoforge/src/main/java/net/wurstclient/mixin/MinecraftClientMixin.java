@@ -169,7 +169,8 @@ public abstract class MinecraftClientMixin
 		cancellable = true)
 	private void onGetProfileKeys(CallbackInfoReturnable<ProfileKeyPairManager> cir)
 	{
-		if(WurstClient.INSTANCE.getOtfs().noChatReportsOtf.isActive())
+		if(WurstClient.INSTANCE.getOtfs() != null
+			&& WurstClient.INSTANCE.getOtfs().noChatReportsOtf.isActive())
 			cir.setReturnValue(ProfileKeyPairManager.EMPTY_KEY_MANAGER);
 		
 		if(wurstProfileKeys == null)
@@ -183,6 +184,9 @@ public abstract class MinecraftClientMixin
 		cancellable = true)
 	private void onIsTelemetryEnabledByApi(CallbackInfoReturnable<Boolean> cir)
 	{
+		if(WurstClient.INSTANCE.getOtfs() == null)
+			return;
+
 		cir.setReturnValue(
 			!WurstClient.INSTANCE.getOtfs().noTelemetryOtf.isEnabled());
 	}
@@ -193,6 +197,9 @@ public abstract class MinecraftClientMixin
 	private void onIsOptionalTelemetryEnabledByApi(
 		CallbackInfoReturnable<Boolean> cir)
 	{
+		if(WurstClient.INSTANCE.getOtfs() == null)
+			return;
+
 		cir.setReturnValue(
 			!WurstClient.INSTANCE.getOtfs().noTelemetryOtf.isEnabled());
 	}

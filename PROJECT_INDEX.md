@@ -1,6 +1,32 @@
 # 项目索引
 
-本文档记录当前工作区的实际结构。统计基于 `src/main`，不包含根目录参考压缩包中的源码文件。
+本文档记录当前工作区的实际结构。统计基于各工程自身的 `src/main`，不包含根目录参考压缩包中的源码文件。
+
+## 版本与源码路径索引
+
+仓库内共有 9 个独立构建工程。源码一律位于各工程 `<工程根>/src/main/java/`（下表给出文件数），资源与元数据位于 `<工程根>/src/main/resources/`。
+
+| 工程（构建目录） | 平台 / 游戏版本 | 工具链 | 源码文件数 | 入口类 | 元数据 / 配置 | 发布产物（build/libs/） | 备注 |
+| --- | --- | --- | ---: | --- | --- | --- | --- |
+| 根目录 `.` | Forge 47.4.10 / 1.20.1 | JDK 17 · Gradle 8.11 · ForgeGradle 6.0 | 753 | `WurstForgeInitializer` | `META-INF/mods.toml`、`wurst.mixins.json`、`accesstransformer.cfg` | 历史产物 `WurstB+ Plus-v1.5.0-MC1.20.1-all.jar`（当前 build/libs 无 jar） | v1.5 基线工程；v1.6 VAPE 组件以 `.disabled` 后缀目录停放在 `clickgui2/` 下（`animation/`、`component.disabled/`） |
+| `versions/1.21.1/` | Forge 52.1.16 / 1.21.1 | JDK 21 · Gradle 8.11 · ForgeGradle 6.0 | 741 | `WurstForgeInitializer` | `META-INF/mods.toml`、`wurst.mixins.json`、`accesstransformer.cfg` | `WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar` | v1.5 形态（ClickGUI/HUD2 为 v1.5 版本） |
+| `versions/26.1.2/` | Forge 64.1.0 / 26.1.2 | JDK 25 · Gradle 9.4.1 · ForgeGradle 7.0.17 | 790 | `WurstForgeInitializer` | `META-INF/mods.toml`（依赖 `forge [64.1.0,65)`）、`wurst.mixins.json`、`accesstransformer.cfg` | `WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar` | allJar 内嵌 Java-WebSocket、netty socks/proxy 4.2.7，baritone-forge-1.18.0 置于 `META-INF/jarjar/`（源取自 `baritone-maven/`）；排除游戏自带包避免 Java 25 模块冲突 |
+| `fabric/` | Fabric / 1.20.1 | JDK 17 · Loom 1.9.2 · loader 0.16.14 · fabric-api 0.92.6+1.20.1 | 766 | `WurstInitializer` | `fabric.mod.json`（仅 client 入口）、`wurstpenguin.mixins.json`、`wurstpenguin.accesswidener`（named） | `WurstB+ Plus-1.5.0-Fabric-1.20.1.jar` | `include implementation` 内嵌 baritone-api-fabric-1.15.0、Java-WebSocket 1.5.3、netty socks/proxy 4.1.118 至 `META-INF/jars/` |
+| `fabric/versions/1.21.1/` | Fabric / 1.21.1 | JDK 21 · Loom 1.9.2 · loader 0.16.14 · fabric-api 0.115.0+1.21.1 | 777 | `WurstInitializer` | 同上（named） | `WurstB+ Plus-1.5.0-Fabric-1.21.1.jar` | 仅 v1.5（v1.5 ClickGUI/HUD2 以 git HEAD `versions/1.21.1` 为基线恢复，勿用 fabric 1.20.1 文件，其 clickgui2/hud2 为 v1.6） |
+| `fabric/versions/26.1.2/` | Fabric / 26.1.2 | JDK 25 · Gradle 9.6.0 · Loom 1.17.17 · loader 0.19.3 · fabric-api 0.155.2+26.1.2 | 791 | `WurstInitializer` | `fabric.mod.json`、`wurstpenguin.mixins.json`、`wurstpenguin.accesswidener`（**official**） | `WurstB+ Plus-1.5.0-Fabric-26.1.2.jar` | **非混淆版本**（无 mappings）：插件为 `net.fabricmc.fabric-loom`、无 mappings 声明、依赖用 `implementation`；Gradle 9.6.0 手动缓存于 `~/.gradle/wrapper/dists/gradle-9.6.0-bin/...` |
+| `neoforge/` | NeoForge 47.1.3 / 1.20.1 | JDK 17 · Gradle 8.11 | 738 | `WurstForgeInitializer` | `META-INF/mods.toml`、`wurst.mixins.json` | `WurstB+ Plus-v1.5.0-NeoForge-1.20.1-all.jar` | |
+| `neoforge/versions/1.21.1/` | NeoForge 21.1.244 / 1.21.1 | JDK 21 · ModDevGradle 2.0.143 | 741 | `WurstForgeInitializer` | `src/main/templates/META-INF/neoforge.mods.toml`、`wurst.mixins.json` | `WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar` + `-sources.jar` | |
+| `neoforge/versions/26.1.2/` | NeoForge 26.1.2.87 / 26.1.2 | JDK 25 · Gradle 9.6.0 · ModDevGradle 2.0.143 | 790 | `WurstForgeInitializer` | `src/main/templates/META-INF/neoforge.mods.toml`（依赖 `neoforge [26.1.2.87,)`）、`wurst.mixins.json`、`accesstransformer.cfg` | `WurstB+ Plus-v1.5.0-NeoForge-26.1.2-all.jar` | jarJar 内嵌 baritone-neoforge-1.18.0、Java-WebSocket 1.5.3、netty socks/proxy 4.1.82；排除游戏自带包避免 Java 25 模块冲突 |
+
+配套目录：
+
+| 路径 | 说明 |
+| --- | --- |
+| `baritone-maven/` | 本地 Maven 仓库：`baritone/baritone-forge/1.18.0/`、`baritone/baritone-neoforge/1.18.0/` 等，供 Forge/NeoForge 工程 jarJar 引用 |
+| `fabric/libs/`、`fabric/versions/*/libs/` | baritone-api-fabric-1.15.0.jar 的 flatDir 目录 |
+| `forge-mdk/`、`download/`、`_artifacts/` | MDK 模板与下载/归档材料，不参与编译 |
+
+Git 分支：`main`（v1.5 基线，含全部 Fabric/NeoForge 移植）、`1.20.1`、`1.21.1`、`26.1.2`（各版本同步分支）；`1.21.1-clean/fix/fix2/tmp`、`1.20.1-tmp`（v1.6 VAPE 源码试验分支，其 `versions/1.21.1` 下仅 README）。
 
 ## 根目录
 
@@ -10,9 +36,15 @@
 | `gradle.properties` | Minecraft、Forge、MixinExtras 和项目版本 |
 | `settings.gradle` | ForgeGradle 插件仓库配置 |
 | `gradle/` | Gradle 8.11 wrapper |
-| `src/main/java/` | 纯 Forge/Mojmap Java 源码，共 729 个文件 |
+| `src/main/java/` | 纯 Forge/Mojmap Java 源码，共 753 个文件（v1.6 VAPE 组件以 `.disabled` 后缀目录停用） |
 | `src/main/resources/` | Mixin、Access Transformer、Forge 元数据、图像和翻译资源 |
 | `versions/1.21.1/` | 独立 Minecraft 1.21.1、Forge 52.1.16、Java 21 工程；不改变根目录 1.20.1 工程 |
+| `versions/26.1.2/` | 独立 Minecraft 26.1.2、Forge 64.1.0、Java 25 工程（ForgeGradle 7） |
+| `fabric/` | 独立 Fabric 1.20.1 工程（Loom） |
+| `fabric/versions/` | 独立 Fabric 1.21.1 与 26.1.2 工程（26.1.2 为非混淆构建） |
+| `neoforge/` | 独立 NeoForge 1.20.1 工程 |
+| `neoforge/versions/` | 独立 NeoForge 1.21.1 与 26.1.2 工程（ModDevGradle） |
+| `baritone-maven/` | 本地 Maven 仓库（baritone-forge / baritone-neoforge 1.18.0） |
 | `source/` | 外部客户端与库的静态参考源码，不参与活动项目编译 |
 | `WurstForge-Decompiled/` | CFR 反编译的 Forge Wurst 参考源码，共 558 个 Java 文件 |
 | `LICENSE.txt` | GPL-3.0 许可证 |
@@ -278,58 +310,6 @@
 | `src/main/resources/assets/minecraft/textures/font/` | 19 张字体图集 |
 | `src/main/resources/META-INF/licenses/cozyui/` | CozyUI 归属说明及许可证 |
 
-## 外部参考包
-
-| 文件 | 说明 |
-| --- | --- |
-| `source/Wurst7_1_20_1_src/` | 原始 Wurst7 Fabric 源码 (604 文件) |
-| `source/WurstCN_main_src/` | WurstCN 中文化 Fork 源码 |
-| `source/bleachhack_src/` | BleachHack Fabric 源码 (208 文件) |
-| `source/meteor_client_master_src/` | Meteor Client Fabric 源码 (950 文件) |
-| `source/liquidbounce_src/` | LiquidBounce Nextgen 源码 (1608 文件) |
-| `source/FDPClient_main_src/` | FDPClient Kotlin 源码 (1071 文件) |
-| `source/RavenBS_Plus_Plus_main_src/` | RavenBS++ Forge 源码 |
-| `source/sinka_decompiled/` | Sinka 客户端反编译 JAR |
-| `source/labymod_full/` | LabyMod 旧版 Forge 反编译源码 |
-| `source/Aristois_1.20.1_forge/` | Aristois + EMC 1.20.1 Forge 反编译源码，共 449 个 Java 文件；未发现许可证文件 |
-| `source/FrogClient/` | FrogClient Fabric 1.21.1 完整项目，共 441 个 Java 文件；MIT 许可证 |
-| `clean-keystrokes-1.20.0-4.zip` | Clean Keystrokes HUD 源码参考 |
-| `YetAnotherConfigLib-main.zip` | YACL 设置模型参考，不作为活动依赖 |
-| `xaero-minimap-translations-main.zip` | Xaero Minimap 的 CC0 翻译文本，仅用于中文术语参考；不包含地图源码、纹理或渲染实现 |
-| `journeymap-legacy-master.zip` | JourneyMap Legacy 参考源码；仅用于研究瓦片缓存、分层绘制和标签布局，不直接复制其旧版渲染代码或主题资源 |
-
-## 新增源码审阅
-
-### Aristois / EMC
-
-`source/Aristois_1.20.1_forge/` 共 451 个文件，其中 Aristois 40 个 Java 文件、EMC 409 个 Java 文件。EMC 通过 `@Mod("emc")` 和 `FMLClientSetupEvent` 初始化 Forge 客户端，并在启动时为主 RenderTarget 启用 stencil，版本和加载器方向与当前工程接近。
-
-| 子系统 | 规模/入口 | 审阅结论 |
-| --- | --- | --- |
-| 事件 | `framework/event/`，63 个 Java 文件 | 支持优先级、继承类方法扫描和渲染异常后的 BufferBuilder 清理；当前 `EventManager` 已有 LambdaMetafactory 与继承分发，只值得补充统一渲染恢复边界 |
-| 实体抽象 | `framework/entity/`，27 个 Java 文件 | 多层 wrapper 适合跨版本框架，当前项目固定 Forge 1.20.1，整体引入会增加无效间接层 |
-| 网络 | `framework/network/`，23 个 Java 文件 | 适合平台框架，不替换当前 Forge/Mixin 数据包事件链 |
-| 渲染 | `framework/render/`，19 个 Java 文件 | `RenderStack` 将 quad/line/cube/font 顶点集中提交，批次生命周期值得借鉴；混淆方法名和共享 BufferBuilder 不可直接复制 |
-| GUI | `framework/gui/`，16 个 Java 文件 | `ScreenRegistry`、`Component`、`SelectableList` 提供统一屏幕和控件抽象；当前 ClickGUI2 已有更完整的窗口、设置树和双界面体系 |
-| Shader/FBO | `Shader`、`Framebuffer`、`EntityShader` | 基于 Minecraft `PostChain` 与命名 RenderTarget，适合研究资源重载和 resize 生命周期；当前已按需求移除玻璃 GUI，不重新引入模糊管线 |
-
-可移植重点是增加一个 Forge/Mojmap 原生的渲染批次作用域：保证 begin/end 成对、异常时关闭正在构建的 BufferBuilder，并在 `finally` 中恢复 blend、depth、line width 和 framebuffer。由于目录为 CFR 反编译结果且未发现许可证文件，只允许行为级研究，不复制大段实现或资源。
-
-### FrogClient
-
-`source/FrogClient/` 共 484 个文件、441 个 Java 文件，包含 134 个模块实现、70 个 Mixin、53 个事件和 12 个设置相关类。它是 Minecraft 1.21.1、Fabric Loader 0.16.10、Yarn、Java 21 工程，并依赖 Satin、Sodium、Baritone 与 Nether Pathfinder；许可证为 MIT。
-
-| 子系统 | 参考价值 | Forge 1.20.1 处理方式 |
-| --- | --- | --- |
-| Module/Setting | 条件可见性、父级折叠、页面分组、颜色附加开关 | 当前 `Setting` 已支持任意深度父子树和条件可见性，只参考页面分组与组合控件，不降级为 Frog 的单层 `BooleanSupplier` 模型 |
-| HUD | 信息项排序、上下方向渲染、统一字体/阴影/间距选项 | 当前 HUD2 已是可拖动独立元素体系；可增加 TPS、速度、服务器信息等独立元素，不回退到单个巨型 HUD 模块 |
-| ESP | 2D 屏幕包围盒、生命条、护甲耐久；3D 实体/方块实体分类颜色 | 扩展现有 `EntityEspRenderer` 的 2D 投影层与附属条目，继续使用 Mojmap、Forge 渲染事件和现有批处理 |
-| ShaderManager | 先把目标绘制到独立 FBO，再统一执行 PostEffect | 仅供实体轮廓特效研究；Satin API、Yarn 名称和 Fabric Mixin hook 不进入活动依赖 |
-| BlurManager | 矩形区域 uniform 裁剪 | 当前设计已放弃 glass GUI，不迁移背景模糊 |
-| EventBus | LambdaMetafactory、优先级和 CopyOnWriteArrayList | 当前事件系统功能更完整，Frog 只按事件精确类型分发且无统一异常隔离，不替换现有实现 |
-| 实体快照 | tick 后复制实体/玩家列表供渲染和后台计算读取 | 可按需求引入每 tick 不可变快照，但必须使用有界执行器和明确生命周期 |
-
-明确不采用的实现：`ThreadManager.ClientService` 在空闲时持续 `Thread.onSpinWait()`，会长期占用 CPU；`ShaderManager` 的 FBO 切换缺少完整 `try/finally` 状态恢复；静态可变着色任务列表不是线程安全队列；`ColorSetting.getValue()` 在读取时修改值，破坏只读语义；事件总线不支持父事件分发。这些部分只能作为反例或重写依据。
 
 ### 移植优先级
 

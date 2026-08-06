@@ -7,13 +7,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 
-/**
- * Baritone 集成工具（平台无关，反射调用）。
- * 若 Baritone 未安装或 API 不兼容，自动降级为不可用。
- */
+/** Optional Baritone bridge. Baritone is resolved after the client has loaded. */
 public final class BaritoneUtils
 {
-	public static volatile boolean IS_AVAILABLE = detectAvailability();
+	public static volatile boolean IS_AVAILABLE = ensureInitialized();
 
 	private static Object primaryBaritone;
 	private static Object mineProcess;
@@ -21,184 +18,123 @@ public final class BaritoneUtils
 	private static Object builderProcess;
 	private static Object pathingBehavior;
 
-	private BaritoneUtils()
-	{
-	}
+	private BaritoneUtils() {}
 
-	private static boolean detectAvailability()
+	private static synchronized boolean ensureInitialized()
 	{
+		if(primaryBaritone != null)
+			return true;
 		try
 		{
-			Class<?> apiClass = Class.forName("baritone.api.BaritoneAPI");
-			Method getProvider = apiClass.getMethod("getProvider");
-			Object provider = getProvider.invoke(null);
-			Method getPrimaryBaritone =
-				provider.getClass().getMethod("getPrimaryBaritone");
-			primaryBaritone = getPrimaryBaritone.invoke(provider);
-
+			Class<?> api = Class.forName("baritone.api.BaritoneAPI");
+			Object provider = api.getMethod("getProvider").invoke(null);
+			primaryBaritone = provider.getClass().getMethod("getPrimaryBaritone").invoke(provider);
 			if(primaryBaritone == null)
 				return false;
-
-			Class<?> baritoneClass = primaryBaritone.getClass();
-			mineProcess = invokeNoThrow(baritoneClass, primaryBaritone,
-				"getMineProcess");
-			customGoalProcess = invokeNoThrow(baritoneClass, primaryBaritone,
-				"getCustomGoalProcess");
-			builderProcess = invokeNoThrow(baritoneClass, primaryBaritone,
-				"getBuilderProcess");
-			pathingBehavior = invokeNoThrow(baritoneClass, primaryBaritone,
-				"getPathingBehavior");
-
-			return mineProcess != null && customGoalProcess != null;
-		}catch(Throwable e)
+			Object baritone = primaryBaritone;
+			mineProcess = namedMethod(baritone, "getMineProcess");
+			customGoalProcess = namedMethod(baritone, "getCustomGoalProcess");
+			builderProcess = namedMethod(baritone, "getBuilderProcess");
+			pathingBehavior = namedMethod(baritone, "getPathingBehavior");
+			IS_AVAILABLE = mineProcess != null && customGoalProcess != null;
+			return IS_AVAILABLE;
+		}catch(Throwable ignored)
 		{
+			primaryBaritone = null;
+			IS_AVAILABLE = false;
 			return false;
 		}
 	}
 
-	private static Object invokeNoThrow(Class<?> clazz, Object target,
-		String methodName, Object... args)
+	private static Object namedMethod(Object target, String name)
+	{
+		try { return target.getClass().getMethod(name).invoke(target); }
+		catch(Throwable ignored) { return null; }
+	}
+
+	private static Method compatibleMethod(Object target, String name, Object... args)
+	{
+		for(Method method : target.getClass().getMethods())
+		{
+			Class<?>[] parameters = method.getParameterTypes();
+			if(!method.getName().equals(name) || parameters.length != args.length)
+				continue;
+			boolean compatible = true;
+			for(int i = 0; i < args.length; i++)
+				if(args[i] == null || !parameters[i].isAssignableFrom(args[i].getClass()))
+					compatible = false;
+			if(compatible)
+				return method;
+		}
+		return null;
+	}
+
+	private static boolean invoke(Object target, String name, Object... args)
 	{
 		try
 		{
-			Class<?>[] paramTypes = new Class<?>[args.length];
-			for(int i = 0; i < args.length; i++)
-				paramTypes[i] = args[i].getClass();
-			Method method = clazz.getMethod(methodName, paramTypes);
-			return method.invoke(target, args);
-		}catch(Throwable e)
-		{
-			return null;
-		}
-	}
-
-	private static Object invoke(String methodName, Object... args)
-	{
-		try
-		{
-			Class<?>[] paramTypes = new Class<?>[args.length];
-			for(int i = 0; i < args.length; i++)
-				paramTypes[i] = args[i].getClass();
-			Method method =
-				primaryBaritone.getClass().getMethod(methodName, paramTypes);
-			return method.invoke(primaryBaritone, args);
-		}catch(Throwable e)
-		{
-			markUnavailable(e);
-			return null;
-		}
-	}
-
-	private static void markUnavailable(Throwable error)
-	{
-		IS_AVAILABLE = false;
-		System.err.println("Baritone is incompatible: " + error);
+			Method method = compatibleMethod(target, name, args);
+			if(method == null)
+				return false;
+			method.invoke(target, args);
+			return true;
+		}catch(Throwable ignored) { return false; }
 	}
 
 	public static boolean startMining(Block... blocks)
 	{
-		try
-		{
-			Method mine = mineProcess.getClass().getMethod("mine",
-				Block[].class);
-			mine.invoke(mineProcess, (Object)blocks);
-			return true;
-		}catch(Throwable e)
-		{
-			markUnavailable(e);
-			return false;
-		}
+		return ensureInitialized() && invoke(mineProcess, "mine", (Object)blocks);
 	}
 
 	public static void walkTo(BlockPos pos)
 	{
-		try
-		{
-			Class<?> goalClass =
-				Class.forName("baritone.api.pathing.goals.GoalBlock");
-			Object goal = goalClass.getConstructor(BlockPos.class)
-				.newInstance(pos);
-			customGoalProcess.getClass().getMethod("setGoalAndPath",
-				goalClass).invoke(customGoalProcess, goal);
-		}catch(Throwable e)
-		{
-			markUnavailable(e);
-		}
+		if(ensureInitialized())
+			invoke(customGoalProcess, "setGoalAndPath", newGoal("GoalBlock", BlockPos.class, pos));
 	}
 
 	public static void clearArea(BlockPos corner1, BlockPos corner2)
 	{
-		try
-		{
-			builderProcess.getClass().getMethod("clearArea", BlockPos.class,
-				BlockPos.class).invoke(builderProcess, corner1, corner2);
-		}catch(Throwable e)
-		{
-			markUnavailable(e);
-		}
+		if(ensureInitialized() && builderProcess != null)
+			invoke(builderProcess, "clearArea", corner1, corner2);
 	}
 
 	public static void walkDirection(float yaw, double distance)
 	{
+		if(!ensureInitialized() || WurstClient.MC.player == null)
+			return;
 		try
 		{
-			if(WurstClient.MC.player == null)
-				return;
+			Class<?> goal = Class.forName("baritone.api.pathing.goals.GoalXZ");
+			Object origin = WurstClient.MC.player.getEyePosition();
+			Object target = goal.getMethod("fromDirection", Vec3.class, float.class, double.class)
+				.invoke(null, origin, yaw, distance);
+			invoke(customGoalProcess, "setGoalAndPath", target);
+		}catch(Throwable ignored) {}
+	}
 
-			Vec3 origin = WurstClient.MC.player.getEyePosition();
-			Class<?> goalXZClass =
-				Class.forName("baritone.api.pathing.goals.GoalXZ");
-			Object goal = goalXZClass.getMethod("fromDirection", Vec3.class,
-				float.class, double.class).invoke(null, origin, yaw, distance);
-			customGoalProcess.getClass().getMethod("setGoalAndPath",
-				goalXZClass).invoke(customGoalProcess, goal);
-		}catch(Throwable e)
-		{
-			markUnavailable(e);
-		}
+	private static Object newGoal(String name, Class<?> argumentType, Object argument)
+	{
+		try { return Class.forName("baritone.api.pathing.goals." + name).getConstructor(argumentType).newInstance(argument); }
+		catch(Throwable ignored) { return null; }
 	}
 
 	public static void stop()
 	{
-		try
-		{
-			pathingBehavior.getClass().getMethod("cancelEverything")
-				.invoke(pathingBehavior);
-		}catch(Throwable e)
-		{
-			markUnavailable(e);
-		}
+		if(ensureInitialized() && pathingBehavior != null)
+			invoke(pathingBehavior, "cancelEverything");
 	}
 
 	public static boolean isPathing()
 	{
-		try
-		{
-			return (boolean)pathingBehavior.getClass()
-				.getMethod("isPathing").invoke(pathingBehavior);
-		}catch(Throwable e)
-		{
-			markUnavailable(e);
+		if(!ensureInitialized() || pathingBehavior == null)
 			return false;
-		}
+		try { return (boolean)pathingBehavior.getClass().getMethod("isPathing").invoke(pathingBehavior); }
+		catch(Throwable ignored) { return false; }
 	}
 
 	public static void walkHome()
 	{
-		try
-		{
-			if(WurstClient.MC.level == null)
-				return;
-
-			BlockPos homePos = WurstClient.MC.level.getSharedSpawnPos();
-
-			if(homePos == null)
-				return;
-
-			walkTo(homePos);
-		}catch(Throwable e)
-		{
-			markUnavailable(e);
-		}
+		if(WurstClient.MC.level != null)
+			walkTo(WurstClient.MC.level.getSharedSpawnPos());
 	}
 }

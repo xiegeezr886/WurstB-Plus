@@ -28,6 +28,10 @@ sourceSets.main.resources {
 }
 
 repositories {
+	maven {
+		name = "BundledBaritone"
+		url = uri("../../../baritone-maven")
+	}
 	mavenCentral()
 	flatDir {
 		dirs "libs"
@@ -113,7 +117,9 @@ configurations {
 }
 
 dependencies {
-	compileOnly files("libs/baritone-api-forge-26.1.2.jar")
+	jarJar(implementation("baritone:baritone-neoforge:1.18.0")) {
+		transitive = false
+	}
 	jarJar(implementation("org.java-websocket:Java-WebSocket:1.5.3")) {
 		transitive = false
 	}
@@ -152,6 +158,10 @@ tasks.named('jar', Jar).configure {
 	manifest {
 		attributes 'MixinConfigs': 'wurst.mixins.json'
 	}
+	zip64 = true
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	from sourceSets.main.output
+	exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/mods.toml', 'module-info.class'
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

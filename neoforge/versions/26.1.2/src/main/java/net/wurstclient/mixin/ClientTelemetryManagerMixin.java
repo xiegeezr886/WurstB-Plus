@@ -25,7 +25,8 @@ public class ClientTelemetryManagerMixin
 		cancellable = true)
 	private void onGetSender(CallbackInfoReturnable<TelemetryEventSender> cir)
 	{
-		if(!WurstClient.INSTANCE.getOtfs().noTelemetryOtf.isEnabled())
+		if(WurstClient.INSTANCE.getOtfs() == null
+			|| !WurstClient.INSTANCE.getOtfs().noTelemetryOtf.isEnabled())
 			return;
 		
 		// Return a dummy that can't actually send anything. :)

@@ -1,43 +1,63 @@
-<# 
-  注册 CC Switch Guardian 为开机自启任务
-  以管理员权限运行此脚本即可
+<#
+  Register the CC Switch guardian as a current-user logon task.
+  Existing tasks are never replaced unless -Replace is specified.
 #>
 
-$taskName = "CCSwitchGuardian"
+[CmdletBinding()]
+param(
+    [string]$TaskName = "CCSwitchGuardian",
+    [switch]$Replace,
+    [switch]$UseLocalProxy,
+    [string]$ApiBaseUrl = "",
+    [switch]$PersistUserEnvironment,
+    [switch]$RunWithHighestPrivileges,
+    [bool]$StartProxy = $true
+)
+
+$ErrorActionPreference = "Stop"
 $scriptPath = Join-Path $PSScriptRoot "ccswitch-guardian.ps1"
+if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
+    throw "Guardian script is missing: $scriptPath"
+}
 
-# 删除旧任务（如果存在）
-Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+$existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+if ($existing) {
+    if (-not $Replace) {
+        throw "Scheduled task '$TaskName' already exists. Re-run with -Replace to update it."
+    }
+    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+}
 
-# 创建触发器：用户登录时启动
+$arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptPath`""
+if (-not $StartProxy) { $arguments += " -StartProxy:`$false" }
+if ($UseLocalProxy) { $arguments += " -UseLocalProxy" }
+if ($PersistUserEnvironment) { $arguments += " -PersistUserEnvironment" }
+if (-not [string]::IsNullOrWhiteSpace($ApiBaseUrl)) {
+    $escapedApiBaseUrl = $ApiBaseUrl.Replace('"', '`"')
+    $arguments += " -ApiBaseUrl `"$escapedApiBaseUrl`""
+}
+
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
-
-# 创建操作：静默运行 PowerShell
-$action = New-ScheduledTaskAction `
-    -Execute "powershell.exe" `
-    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptPath`""
-
-# 设置：允许按需运行、不唤醒电脑、最高权限
+$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $arguments
 $settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
     -DontStopIfGoingOnBatteries `
     -StartWhenAvailable `
     -RunOnlyIfNetworkAvailable `
     -RestartCount 3 `
-    -RestartInterval (New-TimeSpan -Minutes 1)
+    -RestartInterval (New-TimeSpan -Minutes 1) `
+    -MultipleInstances IgnoreNew
 
-# 注册任务
-Register-ScheduledTask `
-    -TaskName $taskName `
-    -Trigger $trigger `
-    -Action $action `
-    -Settings $settings `
-    -Description "CC Switch Proxy Guardian - auto-start proxy for Codex CLI" `
-    -RunLevel Highest
+$registerArgs = @{
+    TaskName = $TaskName
+    Trigger = $trigger
+    Action = $action
+    Settings = $settings
+    Description = "CC Switch Proxy Guardian for Codex"
+}
+if ($RunWithHighestPrivileges) { $registerArgs.RunLevel = "Highest" }
+Register-ScheduledTask @registerArgs | Out-Null
 
-Write-Host "Task '$taskName' registered successfully!" -ForegroundColor Green
-Write-Host "It will start automatically when you log in." -ForegroundColor Cyan
-Write-Host ""
-Write-Host "To start now:    Start-ScheduledTask -TaskName '$taskName'" -ForegroundColor Yellow
-Write-Host "To stop:         Stop-ScheduledTask -TaskName '$taskName'" -ForegroundColor Yellow
-Write-Host "To remove:       Unregister-ScheduledTask -TaskName '$taskName'" -ForegroundColor Yellow
+Write-Host "Task '$TaskName' registered for the current user." -ForegroundColor Green
+Write-Host "Replace safely with: powershell -File scripts\install-ccswitch-guardian.ps1 -Replace" -ForegroundColor Cyan
+Write-Host "Remove with: Unregister-ScheduledTask -TaskName '$TaskName'" -ForegroundColor Yellow

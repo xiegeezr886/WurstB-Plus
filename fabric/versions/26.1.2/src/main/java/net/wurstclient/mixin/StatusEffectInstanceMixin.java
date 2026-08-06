@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.wurstclient.WurstClient;
 
@@ -22,7 +23,9 @@ public abstract class StatusEffectInstanceMixin
 	@Shadow
 	private int duration;
 	
-	@Inject(at = @At("HEAD"), method = "tickDownDuration()I", cancellable = true)
+	@Inject(at = @At("HEAD"),
+		method = "mapDuration(Lit/unimi/dsi/fastutil/ints/Int2IntFunction;)I",
+		cancellable = true)
 	private void onUpdateDuration(CallbackInfoReturnable<Integer> cir)
 	{
 		if(WurstClient.INSTANCE.getHax().potionSaverHack.isFrozen())

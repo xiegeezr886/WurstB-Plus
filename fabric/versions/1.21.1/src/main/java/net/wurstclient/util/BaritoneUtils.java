@@ -25,6 +25,11 @@ public final class BaritoneUtils
 	{
 	}
 
+	private static boolean ensureAvailable()
+	{
+		return IS_AVAILABLE || (IS_AVAILABLE = detectAvailability());
+	}
+
 	private static boolean detectAvailability()
 	{
 		try
@@ -91,12 +96,13 @@ public final class BaritoneUtils
 
 	private static void markUnavailable(Throwable error)
 	{
-		IS_AVAILABLE = false;
 		System.err.println("Baritone is incompatible: " + error);
 	}
 
 	public static boolean startMining(Block... blocks)
 	{
+		if(!ensureAvailable() || mineProcess == null)
+			return false;
 		try
 		{
 			Method mine = mineProcess.getClass().getMethod("mine",
@@ -114,12 +120,16 @@ public final class BaritoneUtils
 	{
 		try
 		{
+			if(!ensureAvailable() || customGoalProcess == null)
+				return;
+			Class<?> goalInterface =
+				Class.forName("baritone.api.pathing.goals.Goal");
 			Class<?> goalClass =
 				Class.forName("baritone.api.pathing.goals.GoalBlock");
 			Object goal = goalClass.getConstructor(BlockPos.class)
 				.newInstance(pos);
 			customGoalProcess.getClass().getMethod("setGoalAndPath",
-				goalClass).invoke(customGoalProcess, goal);
+				goalInterface).invoke(customGoalProcess, goal);
 		}catch(Throwable e)
 		{
 			markUnavailable(e);
@@ -130,6 +140,8 @@ public final class BaritoneUtils
 	{
 		try
 		{
+			if(!ensureAvailable() || builderProcess == null)
+				return;
 			builderProcess.getClass().getMethod("clearArea", BlockPos.class,
 				BlockPos.class).invoke(builderProcess, corner1, corner2);
 		}catch(Throwable e)
@@ -142,16 +154,20 @@ public final class BaritoneUtils
 	{
 		try
 		{
+			if(!ensureAvailable() || customGoalProcess == null)
+				return;
 			if(WurstClient.MC.player == null)
 				return;
 
 			Vec3 origin = WurstClient.MC.player.getEyePosition();
 			Class<?> goalXZClass =
 				Class.forName("baritone.api.pathing.goals.GoalXZ");
+			Class<?> goalInterface =
+				Class.forName("baritone.api.pathing.goals.Goal");
 			Object goal = goalXZClass.getMethod("fromDirection", Vec3.class,
 				float.class, double.class).invoke(null, origin, yaw, distance);
 			customGoalProcess.getClass().getMethod("setGoalAndPath",
-				goalXZClass).invoke(customGoalProcess, goal);
+				goalInterface).invoke(customGoalProcess, goal);
 		}catch(Throwable e)
 		{
 			markUnavailable(e);
@@ -162,6 +178,8 @@ public final class BaritoneUtils
 	{
 		try
 		{
+			if(!ensureAvailable() || pathingBehavior == null)
+				return;
 			pathingBehavior.getClass().getMethod("cancelEverything")
 				.invoke(pathingBehavior);
 		}catch(Throwable e)
@@ -174,6 +192,8 @@ public final class BaritoneUtils
 	{
 		try
 		{
+			if(!ensureAvailable() || pathingBehavior == null)
+				return false;
 			return (boolean)pathingBehavior.getClass()
 				.getMethod("isPathing").invoke(pathingBehavior);
 		}catch(Throwable e)
