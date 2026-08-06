@@ -88,7 +88,7 @@ neoforge/versions/26.1.2/    NeoForge 26.1.2
 fabric/                      Fabric 1.20.1
 fabric/versions/1.21.1/      Fabric 1.21.1
 fabric/versions/26.1.2/      Fabric 26.1.2
-download/                    Forge/NeoForge 发布 JAR 聚合目录（Fabric 产物在各工程 build/libs）
+download/                    Forge/NeoForge/fabric 发布 JAR 聚合目录
 ```
 
 各加载器工程拥有独立的构建脚本、Mixin 配置和平台适配层。不要把 Fabric JAR、Forge JAR 或 NeoForge JAR 混放到同一个实例中。
