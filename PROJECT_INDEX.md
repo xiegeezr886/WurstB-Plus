@@ -25,6 +25,8 @@
 | `baritone-maven/` | 本地 Maven 仓库：`baritone/baritone-forge/1.18.0/`、`baritone/baritone-neoforge/1.18.0/` 等，供 Forge/NeoForge 工程 jarJar 引用 |
 | `fabric/libs/`、`fabric/versions/*/libs/` | baritone-api-fabric-1.15.0.jar 的 flatDir 目录 |
 | `forge-mdk/`、`download/`、`_artifacts/` | MDK 模板与下载/归档材料，不参与编译 |
+| `scripts/` | 构建与运维脚本：`build-all.ps1`（一键构建 9 个版本）、`run-version-tests.ps1`（批量启动测试）、`replace-jar-entry.ps1`（JAR 条目替换）、`upgrade-lwjgl.ps1`（LWJGL 原生库升级）、`ccswitch-guardian.ps1` + `install-ccswitch-guardian.ps1`（代理守护） |
+| `.test/` | PCL 格式本地测试环境：9 个版本实例（`versions/`）、依赖库（`libraries/`）、资源（`assets/`）、natives/out/报告；不入库 |
 
 Git 分支：`main`（v1.5 基线，含全部 Fabric/NeoForge 移植）、`1.20.1`、`1.21.1`、`26.1.2`（各版本同步分支）；`1.21.1-clean/fix/fix2/tmp`、`1.20.1-tmp`（v1.6 VAPE 源码试验分支，其 `versions/1.21.1` 下仅 README）。
 
@@ -337,6 +339,8 @@ Git 分支：`main`（v1.5 基线，含全部 Fabric/NeoForge 移植）、`1.20.
 
 Killaura 与 MultiAura 的攻击冷却现在通过 `CombatActionPolicy` 区分原版真实 `1..10` Tick 挥空冷却和 Screen 设置的 `missTime=10000` 哨兵，打开 ClickGUI、Navigator、HUD 编辑器或其他界面时不再被永久跳过攻击。
 
-项目版本为 `1.5.0`。Forge 47.4.10、Java 17、Gradle 8.11。50 个测试文件中的 134 项测试、完整构建、重混淆、JarJar 打包、关键 Mixin 方法可见性及 Mixin 包隔离检查通过；69 个 Mixin 已写入发布包。KeepSprint 的 `PlayerMixin` 已改用原生 `@Redirect`，只保留攻击前已经存在的疾跑，不再逐 Tick 主动启动疾跑，发布包也不引用运行时生成的 Mixin `Args` 类。发布产物为 `build/libs/WurstB+ Plus-v1.5.0-MC1.20.1-all.jar`（29,094,213 bytes），SHA-256 为 `E8FD5AC885FA160007245ABEB08DBB902C3135AF5FC30BC22741E3D4F8095FB8`。
+项目版本为 `1.5.0`。Forge 47.4.10、Java 17、Gradle 8.11。50 个测试文件中的 134 项测试、完整构建、重混淆、JarJar 打包、关键 Mixin 方法可见性及 Mixin 包隔离检查通过；69 个 Mixin 已写入发布包。KeepSprint 的 `PlayerMixin` 已改用原生 `@Redirect`，只保留攻击前已经存在的疾跑，不再逐 Tick 主动启动疾跑，发布包也不引用运行时生成的 Mixin `Args` 类。
+
+发布矩阵为 3 个 MC 版本 × Forge/NeoForge/Fabric 共 9 个产物（Forge/NeoForge 聚合于 `download/`，Fabric 在各工程 `build/libs/`，SHA-256 见 README「发布包校验」）。`scripts/build-all.ps1` 可一键重建全部 9 个版本；`scripts/run-version-tests.ps1` 可在 `.test/` 环境对 9 个产物做真实启动验证（当前 9/9 通过）。
 
 `versions/1.21.1/` 保持相同的 `1.5.0` 功能版本，使用 Minecraft 1.21.1、Forge 52.1.16、Mojang 官方映射、Java 21、Gradle 8.11、Mixin 0.8.7 和 Baritone Forge 1.11.2。该工程已完成 GUI、渲染、动态注册表、数据组件、药水、属性、伤害、网络、假玩家、HUD、Forge 事件和 Mixin 目标迁移；HUD 事件由 `IngameHudMixin` 在原版 `Gui.renderTabList` 层单路派发，避免 Forge 自定义覆盖层注册失效导致全部 HUD 消失。135 项测试、`clean build jarJar` 和客户端启动验证通过。发布产物为 `versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-MC1.21.1-all.jar`（30,129,813 bytes），SHA-256 为 `406D985F55B9A76F09648058315BC91F3CDB0D4AA8F29AF53C77770851A599A5`。
