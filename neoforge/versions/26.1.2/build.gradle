@@ -154,7 +154,7 @@ dependencies {
 }
 
 tasks.named('jar', Jar).configure {
-	archiveFileName = "WurstB+ Plus-v${mod_version}-NeoForge-26.1.2-all.jar"
+	archiveFileName = "WurstB+ Plus-v${mod_version}-NeoForge-26.1.2.jar"
 	manifest {
 		attributes 'MixinConfigs': 'wurst.mixins.json'
 	}

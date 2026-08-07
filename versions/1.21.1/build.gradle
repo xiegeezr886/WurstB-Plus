@@ -128,6 +128,7 @@ java {
 }
 
 jar {
+	archiveClassifier = "dev"
 	manifest {
 		attributes(
 			"MixinConfigs": "wurst.mixins.json,mixins.baritone.json",
@@ -145,4 +146,8 @@ jar {
 	}
 
 	exclude "intentionally_untranslated.json"
+}
+
+tasks.named("jarJar").configure {
+	archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
 }

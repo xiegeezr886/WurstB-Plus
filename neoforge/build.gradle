@@ -112,7 +112,8 @@ java {
 }
 
 jar {
-    manifest {
+	archiveClassifier = "dev"
+	manifest {
         attributes(
             "MixinConfigs": "wurst.mixins.json",
             "Specification-Title": project.mod_id,
@@ -132,5 +133,6 @@ jar {
 }
 
 tasks.named("jarJar").configure {
+    archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
     finalizedBy "reobfJarJar"
 }

@@ -113,6 +113,7 @@ java {
 }
 
 jar {
+    archiveClassifier = "dev"
     manifest {
         attributes(
             "MixinConfigs": "wurst.mixins.json",
@@ -134,7 +135,7 @@ jar {
 tasks.register('allJar', Jar) {
     group = 'build'
     description = 'Assembles a fat jar including runtime dependencies.'
-    archiveClassifier = 'all'
+    archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
     zip64 = true
     manifest.from(tasks.jar.manifest)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE

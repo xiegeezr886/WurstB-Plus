@@ -133,7 +133,7 @@ java {
 }
 
 jar {
-	archiveFileName = "WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar"
+	archiveFileName = "WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar"
     manifest {
         attributes(
             "MixinConfigs": "wurst.mixins.json,mixins.baritone.json",

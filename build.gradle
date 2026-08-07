@@ -133,6 +133,7 @@ java {
 }
 
 jar {
+	archiveClassifier = "dev"
 	manifest {
 		attributes(
 			"MixinConfigs": "wurst.mixins.json,mixins.baritone.json",
@@ -154,5 +155,6 @@ jar {
 }
 
 tasks.named("jarJar").configure {
+	archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
 	finalizedBy "reobfJarJar"
 }

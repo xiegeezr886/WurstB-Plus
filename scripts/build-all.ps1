@@ -54,12 +54,12 @@ function Test-Jdk($jdkHome) {
 
 # ---------- project table ----------
 $projects = @(
-    @{ Name = "Forge 1.20.1";    Dir = "";                          MC = "1.20.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.20.1-all.jar") },
-    @{ Name = "Forge 1.21.1";    Dir = "versions\1.21.1";          MC = "1.21.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.21.1-all.jar") },
-    @{ Name = "Forge 26.1.2";    Dir = "versions\26.1.2";          MC = "26.1.2"; Tasks = @("allJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar") },
-    @{ Name = "NeoForge 1.20.1"; Dir = "neoforge";                 MC = "1.20.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-1.20.1-all.jar") },
-    @{ Name = "NeoForge 1.21.1"; Dir = "neoforge\versions\1.21.1"; MC = "1.21.1"; Tasks = @("jar");                                Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-1.21.1-all.jar") },
-    @{ Name = "NeoForge 26.1.2"; Dir = "neoforge\versions\26.1.2"; MC = "26.1.2"; Tasks = @("jar");                                Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-26.1.2-all.jar") },
+    @{ Name = "Forge 1.20.1";    Dir = "";                          MC = "1.20.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.20.1.jar") },
+    @{ Name = "Forge 1.21.1";    Dir = "versions\1.21.1";          MC = "1.21.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.21.1.jar") },
+    @{ Name = "Forge 26.1.2";    Dir = "versions\26.1.2";          MC = "26.1.2"; Tasks = @("allJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-26.1.2.jar") },
+    @{ Name = "NeoForge 1.20.1"; Dir = "neoforge";                 MC = "1.20.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-1.20.1.jar") },
+    @{ Name = "NeoForge 1.21.1"; Dir = "neoforge\versions\1.21.1"; MC = "1.21.1"; Tasks = @("jar");                                Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar") },
+    @{ Name = "NeoForge 26.1.2"; Dir = "neoforge\versions\26.1.2"; MC = "26.1.2"; Tasks = @("jar");                                Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar") },
     @{ Name = "Fabric 1.20.1";   Dir = "fabric";                   MC = "1.20.1"; Tasks = @("build"); Args = @("-x", "test");       Out = @("build\libs\WurstB+ Plus-1.5.0-Fabric-1.20.1.jar") },
     @{ Name = "Fabric 1.21.1";   Dir = "fabric\versions\1.21.1";   MC = "1.21.1"; Tasks = @("build"); Args = @("-x", "test");       Out = @("build\libs\WurstB+ Plus-1.5.0-Fabric-1.21.1.jar") },
     @{ Name = "Fabric 26.1.2";   Dir = "fabric\versions\26.1.2";   MC = "26.1.2"; Tasks = @("build"); Args = @("-x", "test");       Out = @("build\libs\WurstB+ Plus-1.5.0-Fabric-26.1.2.jar") }
