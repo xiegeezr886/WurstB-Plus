@@ -1,5 +1,9 @@
 # WurstB+ Plus
 
+<p align="center">
+  <img src="logo.png" alt="WurstB+ Plus" width="256"/>
+</p>
+
 WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目，提供 1.20.1、1.21.1、1.21.11、26.1.2 和 26.2 的 Forge、NeoForge 与 Fabric 版本。
 
 详细文件索引见 [PROJECT_INDEX.md](PROJECT_INDEX.md)。
