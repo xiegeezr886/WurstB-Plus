@@ -72,11 +72,12 @@ public final class MusicLyricsHudElement extends HudElement
 		if(visibility < 0.01F)
 			return;
 
-		String current = preview && lyrics.isEmpty()
-			? "Music flows with every adventure"
-			: lyrics.get(index).text();
-		String next = preview && lyrics.isEmpty() ? "NetEase Cloud Music"
-			: index + 1 < lyrics.size() ? lyrics.get(index + 1).text() : "";
+		String current = !lyrics.isEmpty() && index >= 0
+			? lyrics.get(index).text()
+			: preview ? "Music flows with every adventure" : "";
+		String next = !lyrics.isEmpty() && index >= 0
+			&& index + 1 < lyrics.size() ? lyrics.get(index + 1).text()
+				: preview ? "NetEase Cloud Music" : "";
 		long songId = song == null ? -1 : song.id();
 		long now = System.nanoTime();
 		if(songId != displayedSongId)

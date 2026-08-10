@@ -2,7 +2,7 @@
   "providers": [
     {
       "type": "ttf",
-      "file": "wurst:font/sf_pro_rounded_regular.otf",
+      "file": "wurst:sf_pro_rounded_regular.otf",
       "shift": [0, 0],
       "size": 11.0,
       "oversample": 2.0
