@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.util.VelocityPlanner.Trigger;
+import net.wurstclient.util.VelocityPlanner.JumpResetDecision;
 import org.junit.jupiter.api.Test;
 
 final class VelocityPlannerTest
@@ -37,5 +38,25 @@ final class VelocityPlannerTest
 	{
 		assertTrue(VelocityPlanner.isFallDamageVelocity(new Vec3(0, -0.1, 0)));
 		assertFalse(VelocityPlanner.isFallDamageVelocity(new Vec3(0.1, -0.1, 0)));
+	}
+
+	@Test
+	void jumpResetHasExplicitWaitJumpAndCancelStates()
+	{
+		assertEquals(JumpResetDecision.NONE,
+			VelocityPlanner.evaluateJumpReset(-1, 0, 2, true, true, true,
+				true, true));
+		assertEquals(JumpResetDecision.WAIT,
+			VelocityPlanner.evaluateJumpReset(2, 0, 4, true, true, true,
+				true, true));
+		assertEquals(JumpResetDecision.JUMP,
+			VelocityPlanner.evaluateJumpReset(0, 2, 4, true, true, true,
+				true, true));
+		assertEquals(JumpResetDecision.CANCEL,
+			VelocityPlanner.evaluateJumpReset(1, 1, 4, false, true, true,
+				true, true));
+		assertEquals(JumpResetDecision.CANCEL,
+			VelocityPlanner.evaluateJumpReset(1, 5, 4, true, true, true,
+				true, true));
 	}
 }

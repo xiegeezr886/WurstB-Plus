@@ -25,7 +25,8 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.wurstclient.WurstClient;
-import net.wurstclient.clickgui2.ClickGuiScreen;
+import net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen;
+import net.wurstclient.clickgui2.component.VapeClickGuiScreen;
 import net.wurstclient.command.CmdProcessor;
 import net.wurstclient.events.KeyPressListener;
 import net.wurstclient.events.UpdateListener;
@@ -132,8 +133,11 @@ public final class MacroManager implements KeyPressListener, UpdateListener
 		if(screen != null && !ScreenRegistry.isAny(screen,
 			ScreenRegistry.CLICK_GUI, ScreenRegistry.NAVIGATOR))
 			return;
-		if(screen instanceof ClickGuiScreen clickGui
+		if(screen instanceof SuperSoftClickGuiScreen clickGui
 			&& clickGui.isWaitingForKeybind())
+			return;
+		if(screen instanceof VapeClickGuiScreen vapeGui
+			&& vapeGui.isWaitingForKeybind())
 			return;
 
 		String keyName = getKeyName(event);

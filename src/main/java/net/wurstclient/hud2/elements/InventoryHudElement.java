@@ -6,6 +6,7 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
+import net.wurstclient.gui.visual.VisualTheme;
 
 public final class InventoryHudElement extends HudElement
 {
@@ -18,11 +19,11 @@ public final class InventoryHudElement extends HudElement
 	private static final int SLOT_STEP = 17;
 	private static final int SLOT_START_X = 6;
 	private static final int SLOT_START_Y = 14;
-	private static final int CARD_FILL = 0xAD050505;
-	private static final int CARD_OUTLINE = 0x10FFFFFF;
-	private static final int SLOT_FILL = 0x78101010;
-	private static final int SLOT_OUTLINE = 0x0FFFFFFF;
-	private static final int TEXT = 0xFFF2F4F7;
+	private static final int CARD_FILL = VisualTheme.SURFACE_68;
+	private static final int CARD_OUTLINE = VisualTheme.BORDER;
+	private static final int SLOT_FILL = VisualTheme.SURFACE_36;
+	private static final int SLOT_OUTLINE = VisualTheme.BORDER;
+	private static final int TEXT = VisualTheme.TEXT;
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 
 	public InventoryHudElement()
@@ -51,8 +52,7 @@ public final class InventoryHudElement extends HudElement
 	@Override
 	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
-		WURST.getGui().updateColors();
-		int accent = WURST.getGui().getTheme().accent(1);
+		int accent = VisualTheme.ACCENT;
 		FlatRenderer.fillRoundedRect(graphics, x, y, x + WIDTH, y + HEIGHT,
 			4, CARD_FILL);
 		FlatRenderer.drawRoundedOutline(graphics, x, y, x + WIDTH, y + HEIGHT,

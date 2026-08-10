@@ -70,8 +70,11 @@ import net.wurstclient.util.CombatAimPointPlanner;
 import net.wurstclient.util.CombatAimPointPlanner.AimPoint;
 import net.wurstclient.util.CombatActionPolicy;
 import net.wurstclient.util.CombatClickScheduler;
+import net.wurstclient.util.CombatIntentQueue;
+import net.wurstclient.util.CombatRotationController;
 import net.wurstclient.util.CombatTargetUtils;
 import net.wurstclient.util.CombatTargetUtils.Priority;
+import net.wurstclient.util.CombatTargetSession;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.Rotation;
@@ -80,8 +83,9 @@ import net.wurstclient.util.RotationSmoothing;
 import net.wurstclient.util.RotationUtils;
 import net.wurstclient.util.render.AuraRangeRenderer;
 
-@SearchTags({"kill aura", "ForceField", "force field", "CrystalAura",
-	"crystal aura", "AutoCrystal", "auto crystal"})
+@SearchTags({"kill aura", "ForceField", "force field", "SilentAura",
+	"silent aura", "CrystalAura", "crystal aura", "AutoCrystal",
+	"auto crystal"})
 public final class KillauraHack extends Hack
 	implements UpdateListener, HandleInputListener, RenderListener
 {
@@ -121,6 +125,16 @@ public final class KillauraHack extends Hack
 		true);
 	private final EnumSetting<Priority> priority = new EnumSetting<>("Priority",
 		Priority.values(), Priority.HEALTH);
+	private final CheckboxSetting stickyTarget = new CheckboxSetting(
+		"Sticky target", "Keeps a valid target until it leaves the scan range.",
+		true);
+	private final SliderSetting switchDelay = new SliderSetting("Switch delay",
+		"Ticks to wait before changing to a better target.", 3, 0, 20, 1,
+		ValueDisplay.INTEGER.withSuffix(" ticks"));
+	private final SliderSetting switchAdvantage = new SliderSetting(
+		"Switch advantage",
+		"How much better another target must rank before switching.", 10, 0,
+		100, 1, ValueDisplay.PERCENTAGE);
 	private final SliderSetting fov = new SliderSetting("FOV", 180, 0, 180,
 		5, ValueDisplay.DEGREES);
 	private final SliderSetting hurtTime = new SliderSetting("Hurt time", 10,
@@ -226,13 +240,15 @@ public final class KillauraHack extends Hack
 
 	private final CombatClickScheduler clickScheduler =
 		new CombatClickScheduler();
+	private final CombatTargetSession<Entity> targetSession =
+		new CombatTargetSession<>();
+	private final CombatIntentQueue<Entity> intentQueue =
+		new CombatIntentQueue<>();
+	private final CombatRotationController rotationController =
+		new CombatRotationController(RotationQueue.Priority.COMBAT);
 	private final Random random = new Random();
 	private TargetPlan targetPlan;
-	private Entity pendingAttack;
 	private Entity renderTarget;
-	private Rotation plannedRotation;
-	private RotationQueue rotationQueue;
-	private boolean pendingFailSwing;
 	private boolean blockVisual;
 	private boolean hasBlockedSinceAttack;
 	private boolean isInDanger;
@@ -264,6 +280,9 @@ public final class KillauraHack extends Hack
 		addSetting(ignoreCooldownWhenExitingRange);
 		addSetting(prioritizeType);
 		addSetting(priority);
+		addSetting(stickyTarget);
+		addSetting(switchDelay);
+		addSetting(switchAdvantage);
 		addSetting(fov);
 		addSetting(hurtTime);
 		addSetting(aimAt);
@@ -318,8 +337,7 @@ public final class KillauraHack extends Hack
 		clickScheduler.reset(minCps.getValueI(), maxCps.getValueI(),
 			clickPattern.getSelected(), minimumCooldown.getValueF(),
 			maximumCooldown.getValueF(), System.currentTimeMillis());
-		rotationQueue = new RotationQueue(RotationQueue.Priority.COMBAT);
-		rotationQueue.start();
+		rotationController.start();
 		EVENTS.add(UpdateListener.class, this);
 		EVENTS.add(HandleInputListener.class, this);
 		EVENTS.add(RenderListener.class, this);
@@ -332,11 +350,7 @@ public final class KillauraHack extends Hack
 		EVENTS.remove(HandleInputListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
 		stopBlocking(false);
-		if(rotationQueue != null)
-		{
-			rotationQueue.stop();
-			rotationQueue = null;
-		}
+		rotationController.stop();
 		clearTracking();
 	}
 
@@ -345,8 +359,8 @@ public final class KillauraHack extends Hack
 	{
 		configureClicker();
 		clickScheduler.advanceTick();
-		pendingAttack = null;
-		pendingFailSwing = false;
+		targetSession.tick();
+		intentQueue.beginTick();
 		if(MC.options.keyAttack.isDown())
 			lastAttackKeyTime = System.currentTimeMillis();
 		if(waitTicks > 0)
@@ -364,11 +378,13 @@ public final class KillauraHack extends Hack
 		updateDangerState();
 		if(targetPlan == null)
 		{
-			plannedRotation = null;
-			rotationQueue.clear();
+			rotationController.clear();
 			boolean unblocked = stopBlocking(false);
 			if(!unblocked || pauseOnUnblockTicks == 0)
-				pendingFailSwing = canScheduleFailSwing();
+			{
+				if(canScheduleFailSwing())
+					intentQueue.scheduleMiss();
+			}
 			else
 				waitTicks = pauseOnUnblockTicks;
 			return;
@@ -395,13 +411,16 @@ public final class KillauraHack extends Hack
 			if(unblocked && pauseOnUnblockTicks > 0)
 				waitTicks = pauseOnUnblockTicks;
 			else
-				pendingFailSwing = canScheduleFailSwing();
+			{
+				if(canScheduleFailSwing())
+					intentQueue.scheduleMiss();
+			}
 			return;
 		}
 
 		if(clickTick && canAttackNow(targetPlan.entity())
 			&& !isPrioritizingBlocking() && waitTicks == 0)
-			pendingAttack = targetPlan.entity();
+			intentQueue.scheduleAttack(targetPlan.entity());
 		else if(clickScheduler.getTicksSinceLastClick() >= reblockTicks)
 			startBlocking();
 	}
@@ -409,16 +428,13 @@ public final class KillauraHack extends Hack
 	@Override
 	public void onHandleInput()
 	{
-		Entity selected = pendingAttack;
-		boolean fakeSwing = pendingFailSwing;
-		pendingAttack = null;
-		pendingFailSwing = false;
+		CombatIntentQueue.Intent<Entity> intent = intentQueue.consume();
 		if(shouldResetTarget() || waitTicks > 0)
 			return;
 
-		if(selected != null)
-			performScheduledAttacks(selected);
-		else if(fakeSwing)
+		if(intent.kind() == CombatIntentQueue.Kind.ATTACK)
+			performScheduledAttacks(intent.target());
+		else if(intent.kind() == CombatIntentQueue.Kind.MISS)
 			performFailSwing();
 	}
 
@@ -661,12 +677,35 @@ public final class KillauraHack extends Hack
 		candidates = candidates.stream().sorted(Comparator.comparingInt(entity ->
 			CombatTargetUtils.distanceToBoxSqr(entity) <= normalRangeSq ? 0 : 1))
 			.toList();
-		for(Entity candidate : candidates)
+		List<TargetPlan> plans = candidates.stream()
+			.map(candidate -> createPlan(candidate, true))
+			.filter(plan -> plan != null).toList();
+		Entity candidate = plans.isEmpty() ? null : plans.get(0).entity();
+		CombatTargetSession.Selection<Entity> selection = targetSession.update(
+			candidate,
+			entity -> findPlan(plans, entity) != null,
+			entity -> {
+				for(int i = 0; i < plans.size(); i++)
+					if(plans.get(i).entity() == entity)
+						return i;
+				return Double.POSITIVE_INFINITY;
+			}, stickyTarget.isChecked(), switchDelay.getValueI(),
+			switchAdvantage.getValue());
+		if(selection.changed())
 		{
-			TargetPlan plan = createPlan(candidate, true);
-			if(plan != null)
-				return plan;
+			clickScheduler.resetTiming(System.currentTimeMillis());
+			rotationController.resetAcceleration();
 		}
+		return findPlan(plans, selection.current());
+	}
+
+	private TargetPlan findPlan(List<TargetPlan> plans, Entity entity)
+	{
+		if(entity == null)
+			return null;
+		for(TargetPlan plan : plans)
+			if(plan.entity() == entity)
+				return plan;
 		return null;
 	}
 
@@ -745,13 +784,12 @@ public final class KillauraHack extends Hack
 		RotationMode mode = rotationMode.getSelected();
 		if(mode == RotationMode.NONE)
 		{
-			plannedRotation = null;
-			rotationQueue.clear();
+			rotationController.clear();
 			return;
 		}
 
-		Rotation start = plannedRotation != null ? plannedRotation
-			: currentServerRotation();
+		Rotation start = rotationController.getPlanned() != null
+			? rotationController.getPlanned() : currentServerRotation();
 		Rotation needed = RotationUtils.getNeededRotations(point);
 		float maxChange = getMaximumRotationChange();
 		int rotationTicks = Math.max(1,
@@ -763,21 +801,20 @@ public final class KillauraHack extends Hack
 			return;
 		if(timing == RotationTiming.ON_TICK && rotationTicks <= 1)
 		{
-			plannedRotation = needed;
-			rotationQueue.clear();
+			rotationController.planExact(start, needed);
+			rotationController.clearRequest();
 			return;
 		}
 
-		plannedRotation = RotationSmoothing.smooth(start, needed, maxChange,
-			rotationCurve.getSelected());
+		rotationController.plan(start, needed, maxChange,
+			Math.max(1, maxChange * 0.35F), rotationCurve.getSelected());
 		if(mode == RotationMode.SILENT)
-			rotationQueue.setRotation(plannedRotation);
+			rotationController.requestSilent();
 		else
-		{
-			rotationQueue.clear();
-			MC.player.setYRot(plannedRotation.yaw());
-			MC.player.setXRot(plannedRotation.pitch());
-		}
+			rotationController.applyClient(rotation -> {
+				MC.player.setYRot(rotation.yaw());
+				MC.player.setXRot(rotation.pitch());
+			});
 	}
 
 	private float getMaximumRotationChange()
@@ -1073,16 +1110,14 @@ public final class KillauraHack extends Hack
 	private void clearTracking()
 	{
 		targetPlan = null;
-		pendingAttack = null;
-		pendingFailSwing = false;
+		intentQueue.clear();
 		renderTarget = null;
-		plannedRotation = null;
+		rotationController.clear();
+		targetSession.clear();
 		hasBlockedSinceAttack = false;
 		blockVisual = false;
 		isInDanger = false;
 		waitTicks = 0;
-		if(rotationQueue != null)
-			rotationQueue.clear();
 	}
 
 	public Entity getCurrentTarget()

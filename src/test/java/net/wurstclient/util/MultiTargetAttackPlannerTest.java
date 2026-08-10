@@ -44,4 +44,19 @@ final class MultiTargetAttackPlannerTest
 		assertEquals(List.of(1, 2, 3), MultiTargetAttackPlanner.plan(
 			List.of(1, 2, 3), value -> true, value -> 0, 10, 0));
 	}
+
+	@Test
+	void removesDuplicateAndNullCandidatesWithoutChangingOrder()
+	{
+		assertEquals(List.of("first", "last"), MultiTargetAttackPlanner.plan(
+			java.util.Arrays.asList("first", null, "first", "last", "last"),
+			value -> true, value -> 0, 10, 0));
+	}
+
+	@Test
+	void treatsNegativeHurtTimeAsZero()
+	{
+		assertEquals(List.of("target"), MultiTargetAttackPlanner.plan(
+			List.of("target"), value -> true, value -> -5, 0, 1));
+	}
 }

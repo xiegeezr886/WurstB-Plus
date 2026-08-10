@@ -22,7 +22,7 @@ $env:_JAVA_OPTIONS = "-Djavax.net.ssl.trustAll=true"
 > JDK 25 SSL 需要 `_JAVA_OPTIONS`。baritone 通过 flatDir 加载（`libs/` 目录）。
 
 ## 产物
-- `build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar`
+- `build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2.jar`
 - SHA-256：见构建输出
 
 ## 已修复问题

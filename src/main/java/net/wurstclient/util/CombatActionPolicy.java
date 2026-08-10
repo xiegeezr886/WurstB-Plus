@@ -28,6 +28,13 @@ public enum CombatActionPolicy
 			&& (allowSprinting || !state.sprinting());
 	}
 
+	public static boolean canStartSpoofedCritical(CriticalState state,
+		boolean requiresGround, boolean canStopSprinting)
+	{
+		return canCritical(state, true, canStopSprinting)
+			&& (!requiresGround || state.onGround());
+	}
+
 	public record CriticalState(boolean onGround, boolean inFluid,
 		boolean onClimbable, boolean passenger, boolean flying,
 		boolean fallFlying, boolean noGravity, boolean handsBusy,

@@ -9,6 +9,7 @@ package net.wurstclient.clickgui2;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.util.RenderUtils;
 
 public enum ClickGuiIcons
@@ -85,14 +86,14 @@ public enum ClickGuiIcons
 		float yc6 = y2 - 2.5F;
 		
 		// check
-		int checkColor =
-			grayedOut ? 0xC0808080 : hovering ? 0xFF00FF00 : 0xFF00D900;
+		int checkColor = grayedOut ? VisualTheme.TEXT_DISABLED
+			: hovering ? VisualTheme.ACCENT : VisualTheme.SUCCESS;
 		float[][] checkVertices = {{xc2, yc3}, {xc1, yc4}, {xc3, yc6},
 			{xc3, yc5}, {xc3, yc5}, {xc3, yc6}, {xc5, yc2}, {xc4, yc1}};
 		RenderUtils.fillQuads2D(context, checkVertices, checkColor);
 		
 		// outline
-		int outlineColor = 0x80101010;
+		int outlineColor = VisualTheme.SHADOW;
 		float[][] outlineVertices = {{xc2, yc3}, {xc3, yc5}, {xc4, yc1},
 			{xc5, yc2}, {xc3, yc6}, {xc1, yc4}, {xc2, yc3}};
 		RenderUtils.drawLineStrip2D(context, outlineVertices, outlineColor);

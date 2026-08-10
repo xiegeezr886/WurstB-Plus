@@ -1,0 +1,35 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+[Incubating] Problems report is available at: file:///C:/Users/ui863/Documents/trae_projects/VAP/fabric/versions/1.21.11/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred configuring root project '1.21.11'.
+> Could not resolve all artifacts for configuration 'classpath'.
+   > Could not resolve net.fabricmc:fabric-loom:1.17.19.
+     Required by:
+         root project : > fabric-loom:fabric-loom.gradle.plugin:1.17.19
+      > No matching variant of net.fabricmc:fabric-loom:1.17.19 was found. The consumer was configured to find a library for use during runtime, compatible with Java 21, packaged as a jar, and its dependencies declared externally, as well as attribute 'org.gradle.plugin.api-version' with value '8.11' but:
+          - Variant 'apiElements' declares a library, compatible with Java 21, packaged as a jar, and its dependencies declared externally:
+              - Incompatible because this component declares a component for use during compile-time and the consumer needed a component for use during runtime
+              - Other compatible attribute:
+                  - Doesn't say anything about org.gradle.plugin.api-version (required '8.11')
+          - Variant 'runtimeElements' declares a library for use during runtime, compatible with Java 21, packaged as a jar, and its dependencies declared externally:
+              - Incompatible because this component declares a component, as well as attribute 'org.gradle.plugin.api-version' with value '9.5.0' and the consumer needed a component, as well as attribute 'org.gradle.plugin.api-version' with value '8.11'
+          - Variant 'sourcesElements' declares a component for use during runtime, and its dependencies declared externally:
+              - Incompatible because this component declares documentation and the consumer needed a library
+              - Other compatible attributes:
+                  - Doesn't say anything about its elements (required them packaged as a jar)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 21)
+                  - Doesn't say anything about org.gradle.plugin.api-version (required '8.11')
+
+* Try:
+> No matching variant errors are explained in more detail at https://docs.gradle.org/8.11/userguide/variant_model.html#sub:variant-no-match.
+> Review the variant matching algorithm at https://docs.gradle.org/8.11/userguide/variant_attributes.html#sec:abm_algorithm.
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 19s

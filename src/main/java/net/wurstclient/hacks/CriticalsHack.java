@@ -90,8 +90,9 @@ public final class CriticalsHack extends Hack
 			return;
 
 		CriticalState state = getState();
-		if(!CombatActionPolicy.canCritical(state, true,
-			stopSprinting.isChecked()))
+		Mode selectedMode = mode.getSelected();
+		if(!CombatActionPolicy.canStartSpoofedCritical(state,
+			selectedMode.requiresGround, stopSprinting.isChecked()))
 			return;
 		if(stopSprinting.isChecked() && MC.player.isSprinting())
 		{
@@ -100,7 +101,7 @@ public final class CriticalsHack extends Hack
 			MC.player.setSprinting(false);
 		}
 
-		switch(mode.getSelected())
+		switch(selectedMode)
 		{
 			case PACKET -> sendPacketProfile(packetProfile.getSelected());
 			case NO_GROUND -> sendOffset(-0.000001, false);
@@ -178,14 +179,21 @@ public final class CriticalsHack extends Hack
 	{
 		PACKET("Packet"),
 		NO_GROUND("NoGround"),
-		MINI_JUMP("Mini jump"),
-		JUMP("Jump");
+		MINI_JUMP("Mini jump", true),
+		JUMP("Jump", true);
 
 		private final String name;
+		private final boolean requiresGround;
 
 		Mode(String name)
 		{
+			this(name, false);
+		}
+
+		Mode(String name, boolean requiresGround)
+		{
 			this.name = name;
+			this.requiresGround = requiresGround;
 		}
 
 		@Override

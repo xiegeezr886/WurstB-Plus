@@ -28,6 +28,7 @@ import net.wurstclient.util.json.JsonException;
 public final class HackList implements UpdateListener
 {
 	public final AimAssistHack aimAssistHack = new AimAssistHack();
+	public final AirJumpHack airJumpHack = new AirJumpHack();
 	public final AirPlaceHack airPlaceHack = new AirPlaceHack();
 	public final AnchorAuraHack anchorAuraHack = new AnchorAuraHack();
 	public final AnchorHack anchorHack = new AnchorHack();
@@ -147,6 +148,7 @@ public final class HackList implements UpdateListener
 	public final LsdHack lsdHack = new LsdHack();
 	public final MassTpaHack massTpaHack = new MassTpaHack();
 	public final MileyCyrusHack mileyCyrusHack = new MileyCyrusHack();
+	public final MusicPlayerHack musicPlayerHack = new MusicPlayerHack();
 	public final MobEspHack mobEspHack = new MobEspHack();
 	public final MobSpawnEspHack mobSpawnEspHack = new MobSpawnEspHack();
 	public final MultiAuraHack multiAuraHack = new MultiAuraHack();
@@ -162,8 +164,11 @@ public final class HackList implements UpdateListener
 	public final NoHurtcamHack noHurtcamHack = new NoHurtcamHack();
 	public final NoJumpDelayHack noJumpDelayHack = new NoJumpDelayHack();
 	public final NoLevitationHack noLevitationHack = new NoLevitationHack();
+	public final NoMissCooldownHack noMissCooldownHack =
+		new NoMissCooldownHack();
 	public final NoOverlayHack noOverlayHack = new NoOverlayHack();
 	public final NoPumpkinHack noPumpkinHack = new NoPumpkinHack();
+	public final NoRotateHack noRotateHack = new NoRotateHack();
 	public final NoShieldOverlayHack noShieldOverlayHack =
 		new NoShieldOverlayHack();
 	public final NoSlowdownHack noSlowdownHack = new NoSlowdownHack();
@@ -185,11 +190,15 @@ public final class HackList implements UpdateListener
 	public final PotionSaverHack potionSaverHack = new PotionSaverHack();
 	public final ProphuntEspHack prophuntEspHack = new ProphuntEspHack();
 	public final ProtectHack protectHack = new ProtectHack();
+	public final ProjectilePuncherHack projectilePuncherHack =
+		new ProjectilePuncherHack();
 	public final RadarHack radarHack = new RadarHack();
 	public final RainbowUiHack rainbowUiHack = new RainbowUiHack();
 	public final ReachHack reachHack = new ReachHack();
 	public final RemoteViewHack remoteViewHack = new RemoteViewHack();
 	public final RestockHack restockHack = new RestockHack();
+	public final ReverseStepHack reverseStepHack = new ReverseStepHack();
+	public final RightClickerHack rightClickerHack = new RightClickerHack();
 	public final RotationSnapHack rotationSnapHack = new RotationSnapHack();
 	public final SafeWalkHack safeWalkHack = new SafeWalkHack();
 	public final ScaffoldWalkHack scaffoldWalkHack = new ScaffoldWalkHack();
@@ -204,6 +213,8 @@ public final class HackList implements UpdateListener
 	public final SpiderHack spiderHack = new SpiderHack();
 	public final StepHack stepHack = new StepHack();
 	public final SurroundHack surroundHack = new SurroundHack();
+	public final SuperKnockbackHack superKnockbackHack =
+		new SuperKnockbackHack();
 	public final TemplateToolHack templateToolHack = new TemplateToolHack();
 	public final ThrowHack throwHack = new ThrowHack();
 	public final TillauraHack tillauraHack = new TillauraHack();
@@ -220,6 +231,8 @@ public final class HackList implements UpdateListener
 	public final TrueSightHack trueSightHack = new TrueSightHack();
 	public final TunnellerHack tunnellerHack = new TunnellerHack();
 	public final VeinMinerHack veinMinerHack = new VeinMinerHack();
+	public final VehicleBoostHack vehicleBoostHack = new VehicleBoostHack();
+	public final WTapHack wTapHack = new WTapHack();
 	public final XRayHack xRayHack = new XRayHack();
 
 	public final AntiBotHack antiBotHack = new AntiBotHack();

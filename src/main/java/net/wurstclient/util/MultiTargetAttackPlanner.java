@@ -9,6 +9,7 @@
 package net.wurstclient.util;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 
@@ -24,8 +25,11 @@ public enum MultiTargetAttackPlanner
 			return List.of();
 
 		int hurtTimeLimit = Math.max(0, maxHurtTime);
-		var stream = candidates.stream().filter(validator).filter(
-			candidate -> hurtTime.applyAsInt(candidate) <= hurtTimeLimit);
+		Objects.requireNonNull(validator, "validator");
+		Objects.requireNonNull(hurtTime, "hurtTime");
+		var stream = candidates.stream().filter(Objects::nonNull).distinct()
+			.filter(validator).filter(candidate -> Math.max(0,
+				hurtTime.applyAsInt(candidate)) <= hurtTimeLimit);
 		return maxTargets == 0 ? stream.toList()
 			: stream.limit(maxTargets).toList();
 	}

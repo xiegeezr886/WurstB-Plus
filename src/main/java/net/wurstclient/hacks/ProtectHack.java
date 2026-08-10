@@ -89,6 +89,7 @@ public final class ProtectHack extends Hack
 	
 	private Entity friend;
 	private Entity enemy;
+	private Entity attackTarget;
 	
 	private double distanceF = 2;
 	private double distanceE = 3;
@@ -119,6 +120,12 @@ public final class ProtectHack extends Hack
 	@Override
 	protected void onEnable()
 	{
+		if(MC.player == null || MC.level == null)
+		{
+			setEnabled(false);
+			return;
+		}
+
 		WURST.getHax().followHack.setEnabled(false);
 		WURST.getHax().tunnellerHack.setEnabled(false);
 		
@@ -137,8 +144,15 @@ public final class ProtectHack extends Hack
 					.comparingDouble(e -> MC.player.distanceToSqr(e)))
 				.orElse(null);
 		}
-		
-		pathFinder = new EntityPathFinder(friend, distanceF);
+		if(friend == null)
+		{
+			setEnabled(false);
+			return;
+		}
+
+		pathFinder = null;
+		processor = null;
+		attackTarget = null;
 		
 		speed.resetTimer();
 		EVENTS.add(UpdateListener.class, this);
@@ -157,6 +171,7 @@ public final class ProtectHack extends Hack
 		PathProcessor.releaseControls();
 		
 		enemy = null;
+		attackTarget = null;
 		
 		if(friend != null)
 		{
@@ -168,10 +183,19 @@ public final class ProtectHack extends Hack
 	@Override
 	public void onUpdate()
 	{
+		if(MC.player == null || MC.level == null || MC.gameMode == null)
+		{
+			setEnabled(false);
+			return;
+		}
+
 		speed.updateTimer();
 		
 		if(pauseOnContainers.shouldPause())
+		{
+			suspendAutomation();
 			return;
+		}
 		
 		// check if player died, friend died or disappeared
 		if(friend == null || friend.isRemoved()
@@ -200,15 +224,22 @@ public final class ProtectHack extends Hack
 		Entity target =
 			enemy == null || MC.player.distanceToSqr(friend) >= 24 * 24
 				? friend : enemy;
+		Entity nextAttackTarget = target == enemy ? enemy : null;
+		if(nextAttackTarget != attackTarget)
+		{
+			attackTarget = nextAttackTarget;
+			speed.resetTimer();
+		}
 		
 		double distance = target == enemy ? distanceE : distanceF;
 		
 		if(useAi.isChecked())
 		{
 			// reset pathfinder
-			if((processor == null || processor.isDone() || ticksProcessing >= 10
+			if(pathFinder == null || pathFinder.entity != target
+				|| (processor == null || processor.isDone() || ticksProcessing >= 10
 				|| !pathFinder.isPathStillValid(processor.getIndex()))
-				&& (pathFinder.isDone() || pathFinder.isFailed()))
+					&& (pathFinder.isDone() || pathFinder.isFailed()))
 			{
 				pathFinder = new EntityPathFinder(target, distance);
 				processor = null;
@@ -227,13 +258,19 @@ public final class ProtectHack extends Hack
 			}
 			
 			// process path
-			if(!processor.isDone())
+			if(processor != null && !processor.isDone())
 			{
 				processor.process();
 				ticksProcessing++;
 			}
 		}else
 		{
+			if(pathFinder != null || processor != null)
+			{
+				PathProcessor.releaseControls();
+				resetPath();
+			}
+
 			// jump if necessary
 			if(MC.player.horizontalCollision && MC.player.onGround())
 				MC.player.jumpFromGround();
@@ -274,6 +311,8 @@ public final class ProtectHack extends Hack
 			// check cooldown
 			if(!speed.isTimeToAttack())
 				return;
+			if(MC.player.distanceToSqr(enemy) > distanceE * distanceE)
+				return;
 			
 			// attack enemy
 			MC.gameMode.attack(MC.player, enemy);
@@ -285,7 +324,7 @@ public final class ProtectHack extends Hack
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
-		if(!useAi.isChecked())
+		if(!useAi.isChecked() || pathFinder == null)
 			return;
 		
 		PathCmd pathCmd = WURST.getCmds().pathCmd;
@@ -296,6 +335,23 @@ public final class ProtectHack extends Hack
 	public void setFriend(Entity friend)
 	{
 		this.friend = friend;
+	}
+
+	private void suspendAutomation()
+	{
+		if(attackTarget != null)
+			speed.resetTimer();
+		attackTarget = null;
+		enemy = null;
+		PathProcessor.releaseControls();
+		resetPath();
+	}
+
+	private void resetPath()
+	{
+		pathFinder = null;
+		processor = null;
+		ticksProcessing = 0;
 	}
 	
 	private class EntityPathFinder extends PathFinder

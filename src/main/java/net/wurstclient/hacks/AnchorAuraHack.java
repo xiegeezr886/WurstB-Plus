@@ -42,6 +42,7 @@ import net.wurstclient.settings.filterlists.AnchorAuraFilterList;
 import net.wurstclient.settings.filterlists.EntityFilterList;
 import net.wurstclient.util.BlockUtils;
 import net.wurstclient.util.ChatUtils;
+import net.wurstclient.util.CombatRotationController;
 import net.wurstclient.util.DamageUtils;
 import net.wurstclient.util.FakePlayerEntity;
 import net.wurstclient.util.InventoryUtils;
@@ -102,7 +103,8 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 	private final EntityFilterList entityFilters =
 		AnchorAuraFilterList.create();
 
-	private RotationQueue rotationQueue;
+	private final CombatRotationController rotationController =
+		new CombatRotationController(RotationQueue.Priority.COMBAT);
 	private BlockPos pendingPos;
 	private PendingAction pendingAction = PendingAction.NONE;
 	private int actionDelay;
@@ -136,9 +138,7 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 	{
 		clearPending();
 		placeTimer = placeDelay.getValueI();
-		rotationQueue =
-			new RotationQueue(RotationQueue.Priority.COMBAT);
-		rotationQueue.start();
+		rotationController.start();
 		EVENTS.add(UpdateListener.class, this);
 	}
 
@@ -147,8 +147,7 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 	{
 		EVENTS.remove(UpdateListener.class, this);
 		clearPending();
-		rotationQueue.stop();
-		rotationQueue = null;
+		rotationController.stop();
 	}
 	
 	@Override
@@ -511,7 +510,7 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 	{
 		Facing mode = faceBlocks.getSelected();
 		if(mode == Facing.SERVER)
-			rotationQueue.setRotation(
+			rotationController.request(
 				RotationUtils.getNeededRotations(vec));
 		else
 			mode.face(vec);

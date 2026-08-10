@@ -22,7 +22,7 @@ $env:_JAVA_OPTIONS = "-Djavax.net.ssl.trustAll=true"
 构建产物：
 
 ```text
-build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2-all.jar
+build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar
 ```
 
 全依赖包内嵌 Java-WebSocket 1.5.3、Netty Socks 4.1.82.Final 和 Netty Proxy 4.1.82.Final。现有 Forge Baritone 与 NeoForge 26.1.2 不兼容，因此仅作为编译依赖，相关功能会在运行时安全降级。

@@ -46,4 +46,20 @@ final class CombatActionPolicyTest
 		assertFalse(CombatActionPolicy.canCritical(sprinting, true, false));
 		assertTrue(CombatActionPolicy.canCritical(sprinting, true, true));
 	}
+
+	@Test
+	void groundedModesRejectAirborneStateBeforeSideEffects()
+	{
+		CriticalState grounded = new CriticalState(true, false, false, false,
+			false, false, false, false, false, false, false, 1, true);
+		CriticalState airborne = new CriticalState(false, false, false, false,
+			false, false, false, false, false, false, false, 1, true);
+
+		assertTrue(CombatActionPolicy.canStartSpoofedCritical(grounded, true,
+			true));
+		assertFalse(CombatActionPolicy.canStartSpoofedCritical(airborne, true,
+			true));
+		assertTrue(CombatActionPolicy.canStartSpoofedCritical(airborne, false,
+			true));
+	}
 }

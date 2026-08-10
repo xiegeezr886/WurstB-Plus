@@ -10,8 +10,10 @@ public final class HudLayout
 	public static final class HudElementConfig
 	{
 		public static final String HORIZONTAL_LEFT = "Left";
+		public static final String HORIZONTAL_CENTER = "Center";
 		public static final String HORIZONTAL_RIGHT = "Right";
 		public static final String VERTICAL_TOP = "Top";
+		public static final String VERTICAL_CENTER = "Center";
 		public static final String VERTICAL_BOTTOM = "Bottom";
 
 		private boolean enabled = true;
@@ -19,6 +21,7 @@ public final class HudLayout
 		private String verticalAlignment = VERTICAL_TOP;
 		private int horizontalOffset;
 		private int verticalOffset;
+		private float scale = 1;
 
 		public HudElementConfig() {}
 
@@ -80,6 +83,18 @@ public final class HudLayout
 		{
 			this.verticalOffset = verticalOffset;
 		}
+
+		public float getScale()
+		{
+			return scale;
+		}
+
+		public void setScale(float scale)
+		{
+			if(!Float.isFinite(scale))
+				scale = 1;
+			this.scale = Math.max(0.2F, Math.min(5, scale));
+		}
 	}
 
 	public Map<String, HudElementConfig> getElements()
@@ -98,6 +113,7 @@ public final class HudLayout
 			defaults.getHorizontalOffset(),
 			defaults.getVerticalOffset());
 		config.setEnabled(defaults.isEnabled());
+		config.setScale(defaults.getScale());
 		elements.put(element.getId(), config);
 	}
 

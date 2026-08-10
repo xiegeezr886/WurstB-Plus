@@ -14,6 +14,7 @@ package net.wurstclient.util;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import net.minecraft.util.Mth;
@@ -29,27 +30,47 @@ public enum CombatAimPointPlanner
 		Predicate<Vec3> lineOfSight, ToDoubleFunction<Vec3> rotationScore)
 	{
 		if(box == null || eyes == null || preferred == null
-			|| visibleRange < 0 || throughWallsRange < 0)
+			|| !isFinite(box) || !isFinite(eyes) || !isFinite(preferred)
+			|| !Double.isFinite(visibleRange) || visibleRange < 0
+			|| !Double.isFinite(throughWallsRange) || throughWallsRange < 0)
 			return null;
+		Objects.requireNonNull(lineOfSight, "lineOfSight");
+		Objects.requireNonNull(rotationScore, "rotationScore");
 
 		double visibleRangeSq = visibleRange * visibleRange;
 		double wallsRangeSq = throughWallsRange * throughWallsRange;
+		double maximumRangeSq = Math.max(visibleRangeSq, wallsRangeSq);
 		List<Vec3> points = sample(box, eyes, preferred);
-		return points.stream().map(point -> {
+		return points.stream().distinct().map(point -> {
 			double distanceSq = eyes.distanceToSqr(point);
+			if(!Double.isFinite(distanceSq) || distanceSq > maximumRangeSq)
+				return null;
 			boolean visible = lineOfSight.test(point);
-			if(visible && distanceSq <= visibleRangeSq)
-				return new AimPoint(point, false, distanceSq,
-					rotationScore.applyAsDouble(point));
-			if(!visible && distanceSq <= wallsRangeSq)
-				return new AimPoint(point, true, distanceSq,
-					rotationScore.applyAsDouble(point));
-			return null;
+			boolean throughWalls = !visible;
+			if(visible ? distanceSq > visibleRangeSq
+				: distanceSq > wallsRangeSq)
+				return null;
+			double score = rotationScore.applyAsDouble(point);
+			return Double.isFinite(score)
+				? new AimPoint(point, throughWalls, distanceSq, score) : null;
 		}).filter(point -> point != null)
 			.min(Comparator.comparing(AimPoint::throughWalls)
 				.thenComparingDouble(AimPoint::rotationScore)
 				.thenComparingDouble(AimPoint::distanceSq))
 			.orElse(null);
+	}
+
+	private static boolean isFinite(AABB box)
+	{
+		return Double.isFinite(box.minX) && Double.isFinite(box.minY)
+			&& Double.isFinite(box.minZ) && Double.isFinite(box.maxX)
+			&& Double.isFinite(box.maxY) && Double.isFinite(box.maxZ);
+	}
+
+	private static boolean isFinite(Vec3 point)
+	{
+		return Double.isFinite(point.x) && Double.isFinite(point.y)
+			&& Double.isFinite(point.z);
 	}
 
 	private static List<Vec3> sample(AABB box, Vec3 eyes, Vec3 preferred)

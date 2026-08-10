@@ -11,7 +11,7 @@
 ```powershell
 .\gradlew.bat jarJar --console=plain
 ```
-产物：`build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1-all.jar`
+产物：`build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1.jar`
 
 ## 开发
 ```powershell

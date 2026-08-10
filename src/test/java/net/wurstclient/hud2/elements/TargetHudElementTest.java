@@ -3,73 +3,56 @@ package net.wurstclient.hud2.elements;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 
 final class TargetHudElementTest
 {
 	@Test
-	void usesCompactPanelDimensions()
+	void usesRiseModernDimensions()
 	{
 		TargetHudElement element = new TargetHudElement();
-		assertEquals(150, element.getWidth());
-		assertEquals(38, element.getHeight());
+		assertEquals(145, element.getWidth());
+		assertEquals(48, element.getHeight());
 	}
 
 	@Test
-	void expandsOnlyWhenEquipmentIsVisible()
+	void widthFollowsRiseModernTextFormula()
 	{
-		assertEquals(38, TargetHudElement.heightForEquipmentCount(0));
-		assertEquals(58, TargetHudElement.heightForEquipmentCount(1));
-		assertEquals(58, TargetHudElement.heightForEquipmentCount(5));
+		assertEquals(65, TargetHudElement.healthBarWidth(40, 20));
+		assertEquals(75, TargetHudElement.healthBarWidth(60, 20));
+		assertEquals(145, TargetHudElement.panelWidth(40, 20));
+		assertEquals(155, TargetHudElement.panelWidth(60, 20));
 	}
 
 	@Test
-	void equipmentRowUsesCompactFixedSpacing()
+	void healthIsRoundedToOneDecimal()
 	{
-		assertEquals(0, TargetHudElement.equipmentRowWidth(0));
-		assertEquals(16, TargetHudElement.equipmentRowWidth(1));
-		assertEquals(88, TargetHudElement.equipmentRowWidth(5));
+		assertEquals("19.9", TargetHudElement.formatHealth(19.94F));
+		assertEquals("20.0", TargetHudElement.formatHealth(20));
 	}
 
 	@Test
-	void fullHealthUsesThemeColor()
+	void healthAnimationUsesRiseQuintCurve()
 	{
-		int themeColor = 0xFF006366;
-		assertEquals(themeColor, TargetHudElement.healthColor(themeColor, 1));
-		assertEquals(0xFFFF4130,
-			TargetHudElement.healthColor(themeColor, 0));
+		assertEquals(10.3125F, TargetHudElement.interpolateHealth(20, 10,
+			TargetHudElement.HEALTH_ANIMATION_NANOS / 2), 0.001F);
+		assertEquals(10, TargetHudElement.interpolateHealth(20, 10,
+			TargetHudElement.HEALTH_ANIMATION_NANOS), 0.001F);
 	}
 
 	@Test
-	void targetStaysVisibleThenFadesOut()
+	void openingAnimationHasElasticOvershoot()
 	{
-		long lastVisible = 1_000_000_000L;
-		assertEquals(1, TargetHudElement.calculateOpacity(lastVisible
-			+ TargetHudElement.HOLD_NANOS, lastVisible));
-		float halfway = TargetHudElement.calculateOpacity(lastVisible
-			+ TargetHudElement.HOLD_NANOS
-			+ TargetHudElement.FADE_NANOS / 2, lastVisible);
-		assertTrue(halfway > 0 && halfway < 1);
-		assertEquals(0, TargetHudElement.calculateOpacity(lastVisible
-			+ TargetHudElement.HOLD_NANOS + TargetHudElement.FADE_NANOS,
-			lastVisible));
+		assertEquals(0, TargetHudElement.easeOutElastic(0));
+		assertTrue(TargetHudElement.easeOutElastic(0.15F) > 1);
+		assertEquals(1, TargetHudElement.easeOutElastic(1));
 	}
 
 	@Test
-	void healthAnimationApproachesLatestValue()
+	void closingAnimationUsesBackOvershoot()
 	{
-		float halfway = TargetHudElement.smoothHealth(20, 10, 90_000_000L);
-		assertEquals(15, halfway, 0.01F);
-		assertEquals(10,
-			TargetHudElement.smoothHealth(20, 10, 180_000_000L), 0.01F);
-	}
-
-	@Test
-	void uuidUsesStableCompactForm()
-	{
-		UUID uuid = UUID.fromString("12345678-1234-5678-9abc-def012345678");
-		assertEquals("12345678", TargetHudElement.compactUuid(uuid));
+		assertEquals(1, TargetHudElement.exitScale(0));
+		assertTrue(TargetHudElement.exitScale(0.2F) > 1);
+		assertEquals(0, TargetHudElement.exitScale(1));
 	}
 }

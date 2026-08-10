@@ -45,6 +45,9 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 
 	private final CheckboxSetting autoJump = new CheckboxSetting("Auto jump",
 		"Automatically jumps while moving in air-capable modes.", true);
+	private final CheckboxSetting whileUsingItems = new CheckboxSetting(
+		"While using items", "Allows speed control during item-use slowdown.",
+		false);
 
 	private boolean lowHopActive;
 
@@ -57,6 +60,7 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 		addSetting(speed);
 		addSetting(strafeSpeed);
 		addSetting(autoJump);
+		addSetting(whileUsingItems);
 	}
 
 	@Override
@@ -108,9 +112,13 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 			case LOW_HOP -> applyLowHop(player, forward, sideways, targetSpeed);
 			case ON_GROUND -> {
 				if(player.onGround())
-					player.setDeltaMovement(MovementPlanner.setHorizontal(
-						player.getDeltaMovement(), forward, sideways,
-						player.getYRot(), targetSpeed));
+				{
+					Vec3 current = player.getDeltaMovement();
+					Vec3 proposed = MovementPlanner.setHorizontal(current,
+						forward, sideways, player.getYRot(), targetSpeed);
+					player.setDeltaMovement(MovementPlanner
+						.clampControlledHorizontal(current, proposed, targetSpeed));
+				}
 			}
 			case BRUTAL -> applyHop(player, forward, sideways,
 				Math.max(targetSpeed, speed.getValue() * 0.45), 0.42, 1);
@@ -121,13 +129,16 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 	{
 		return player != null && !player.isShiftKeyDown() && !player.isPassenger()
 			&& !player.onClimbable() && !player.isFallFlying()
-			&& !player.isInWaterOrBubble() && !player.isInLava();
+			&& !player.getAbilities().flying && !player.isInWaterOrBubble()
+			&& !player.isInLava()
+			&& (whileUsingItems.isChecked() || !player.isUsingItem());
 	}
 
 	private void applyHop(LocalPlayer player, float forward, float sideways,
 		double targetSpeed, double jumpMotion, double airStrength)
 	{
-		Vec3 movement = player.getDeltaMovement();
+		Vec3 current = player.getDeltaMovement();
+		Vec3 movement = current;
 		if(player.onGround())
 		{
 			movement = MovementPlanner.setHorizontal(movement, forward, sideways,
@@ -138,26 +149,28 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 			movement = MovementPlanner.blendHorizontal(movement, forward, sideways,
 				player.getYRot(), targetSpeed, airStrength);
 
-		player.setDeltaMovement(
-			MovementPlanner.clampHorizontal(movement, targetSpeed));
+		player.setDeltaMovement(MovementPlanner.clampControlledHorizontal(current,
+			movement, targetSpeed));
 	}
 
 	private void applyStrafe(LocalPlayer player, float forward, float sideways,
 		double targetSpeed)
 	{
-		Vec3 movement = MovementPlanner.blendHorizontal(player.getDeltaMovement(),
+		Vec3 current = player.getDeltaMovement();
+		Vec3 movement = MovementPlanner.blendHorizontal(current,
 			forward, sideways, player.getYRot(), targetSpeed,
 			player.onGround() ? 1 : strafeSpeed.getValue());
 		if(player.onGround() && autoJump.isChecked())
 			movement = new Vec3(movement.x, 0.42, movement.z);
-		player.setDeltaMovement(
-			MovementPlanner.clampHorizontal(movement, targetSpeed));
+		player.setDeltaMovement(MovementPlanner.clampControlledHorizontal(current,
+			movement, targetSpeed));
 	}
 
 	private void applyLowHop(LocalPlayer player, float forward, float sideways,
 		double targetSpeed)
 	{
-		Vec3 movement = MovementPlanner.blendHorizontal(player.getDeltaMovement(),
+		Vec3 current = player.getDeltaMovement();
+		Vec3 movement = MovementPlanner.blendHorizontal(current,
 			forward, sideways, player.getYRot(), targetSpeed,
 			player.onGround() ? 1 : strafeSpeed.getValue());
 		if(player.onGround())
@@ -169,8 +182,8 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 			lowHopActive = false;
 		else if(lowHopActive && movement.y < -0.08)
 			movement = new Vec3(movement.x, -0.08, movement.z);
-		player.setDeltaMovement(
-			MovementPlanner.clampHorizontal(movement, targetSpeed));
+		player.setDeltaMovement(MovementPlanner.clampControlledHorizontal(current,
+			movement, targetSpeed));
 	}
 
 	private enum Mode

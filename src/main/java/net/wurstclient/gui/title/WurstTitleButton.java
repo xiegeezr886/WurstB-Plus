@@ -9,12 +9,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
+import net.wurstclient.gui.visual.VisualRenderer;
+import net.wurstclient.gui.visual.VisualTheme;
 
 final class WurstTitleButton extends AbstractButton
 {
-	private static final int TEXT_COLOR = 0xFFF2F6F6;
-	private static final int ACCENT_COLOR = 0xFF006366;
-	private static final int DANGER_COLOR = 0xFFD95D63;
+	private static final int TEXT_COLOR = VisualTheme.TEXT;
+	private static final int ACCENT_COLOR = VisualTheme.ACCENT;
+	private static final int DANGER_COLOR = VisualTheme.ERROR;
 	private static final int ICON_SIZE = 22;
 	private static final int TEXTURE_SIZE = 88;
 
@@ -51,20 +53,26 @@ final class WurstTitleButton extends AbstractButton
 		int x2 = x1 + getWidth();
 		int y2 = y1 + getHeight();
 		int accent = dangerous ? DANGER_COLOR : ACCENT_COLOR;
-		int fill = mixColor(0xD9141B1C, withAlpha(accent, 230), hover * 0.72F);
-		FlatRenderer.fillRoundedRect(graphics, x1, y1, x2, y2,
-			compact ? 5 : 7, fill);
-		FlatRenderer.drawRoundedOutline(graphics, x1, y1, x2, y2,
-			compact ? 5 : 7, withAlpha(0xFFFFFFFF, 22 + Math.round(hover * 48)));
+		int radius = compact ? VisualTheme.RADIUS_MEDIUM
+			: VisualTheme.RADIUS_LARGE;
+		VisualRenderer.button(graphics, x1, y1, x2, y2, radius, hover,
+			false, dangerous);
+		int iconArea = compact ? 36 : 46;
+		int iconBackground = VisualTheme.mix(
+			VisualTheme.ACCENT_SUBTLE_STRONG, accent, hover);
+		FlatRenderer.fillRoundedRect(graphics, x1 + 1, y1 + 1,
+			x1 + iconArea, y2 - 1, radius - 1, iconBackground);
+		graphics.fill(x1 + iconArea - radius, y1 + 1, x1 + iconArea,
+			y2 - 1, iconBackground);
 
 		Font font = Minecraft.getInstance().font;
 		int iconSize = ICON_SIZE;
-		int iconX = x1 + (compact ? 9 : 12);
+		int iconX = x1 + (iconArea - iconSize) / 2;
 		int iconY = y1 + (getHeight() - iconSize) / 2;
 		graphics.blit(icon, iconX, iconY, iconSize, iconSize, 0, 0,
 			TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
 
-		int color = active ? TEXT_COLOR : 0xFF707A7B;
+		int color = active ? TEXT_COLOR : VisualTheme.TEXT_DISABLED;
 		int textX = iconX + iconSize + (compact ? 7 : 11);
 		graphics.drawString(font, getMessage(), textX,
 			y1 + (getHeight() - font.lineHeight) / 2 + 1, color, false);
@@ -79,21 +87,6 @@ final class WurstTitleButton extends AbstractButton
 	protected void updateWidgetNarration(NarrationElementOutput output)
 	{
 		defaultButtonNarrationText(output);
-	}
-
-	private static int mixColor(int first, int second, float amount)
-	{
-		float weight = Math.max(0, Math.min(1, amount));
-		float inverse = 1 - weight;
-		int alpha = Math.round((first >>> 24) * inverse
-			+ (second >>> 24) * weight);
-		int red = Math.round((first >> 16 & 0xFF) * inverse
-			+ (second >> 16 & 0xFF) * weight);
-		int green = Math.round((first >> 8 & 0xFF) * inverse
-			+ (second >> 8 & 0xFF) * weight);
-		int blue = Math.round((first & 0xFF) * inverse
-			+ (second & 0xFF) * weight);
-		return alpha << 24 | red << 16 | green << 8 | blue;
 	}
 
 	private static int withAlpha(int color, int alpha)

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.wurstclient.clickgui2.ClickGuiScreen;
+import net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen;
 import net.wurstclient.clickgui2.screens.EditSliderScreen;
 import net.wurstclient.hud2.HudEditorScreen;
 import net.wurstclient.options.WurstOptionsScreen;
@@ -34,7 +34,7 @@ class ScreenRegistryTest
 	void recognizesAllWurstIngameScreenPackages()
 	{
 		assertTrue(ScreenRegistry
-			.isWurstIngameScreenType(ClickGuiScreen.class));
+			.isWurstIngameScreenType(SuperSoftClickGuiScreen.class));
 		assertTrue(ScreenRegistry
 			.isWurstIngameScreenType(EditSliderScreen.class));
 		assertTrue(ScreenRegistry

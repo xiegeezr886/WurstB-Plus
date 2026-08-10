@@ -26,6 +26,7 @@ import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.VelocityPlanner;
+import net.wurstclient.util.VelocityPlanner.JumpResetDecision;
 import net.wurstclient.util.VelocityPlanner.Trigger;
 
 @SearchTags({"no velocity", "novelocity", "antivelocity", "velocity",
@@ -84,6 +85,8 @@ public final class NoVelocityHack extends Hack
 		"Require sprint", "Only performs JumpReset while sprinting.", true);
 
 	private int pendingJumpTicks = -1;
+	private int pendingJumpAge;
+	private int pendingJumpMaximumAge;
 
 	public NoVelocityHack()
 	{
@@ -113,7 +116,7 @@ public final class NoVelocityHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		pendingJumpTicks = -1;
+		clearPendingJump();
 		EVENTS.add(PacketInputListener.class, this);
 		EVENTS.add(UpdateListener.class, this);
 	}
@@ -123,7 +126,7 @@ public final class NoVelocityHack extends Hack
 	{
 		EVENTS.remove(PacketInputListener.class, this);
 		EVENTS.remove(UpdateListener.class, this);
-		pendingJumpTicks = -1;
+		clearPendingJump();
 	}
 
 	@Override
@@ -152,7 +155,11 @@ public final class NoVelocityHack extends Hack
 		if(mode.getSelected() == Mode.JUMP_RESET)
 		{
 			if(!VelocityPlanner.isFallDamageVelocity(incoming))
+			{
 				pendingJumpTicks = jumpDelay.getValueI();
+				pendingJumpAge = 0;
+				pendingJumpMaximumAge = pendingJumpTicks + 2;
+			}
 			return;
 		}
 
@@ -194,22 +201,38 @@ public final class NoVelocityHack extends Hack
 	{
 		if(mode.getSelected() != Mode.JUMP_RESET)
 		{
-			pendingJumpTicks = -1;
+			clearPendingJump();
 			return;
 		}
-		if(pendingJumpTicks < 0 || MC.player == null)
+		if(pendingJumpTicks < 0)
 			return;
-		if(pendingJumpTicks > 0)
+		if(MC.player == null)
+		{
+			clearPendingJump();
+			return;
+		}
+
+		boolean moving = MC.player.input.getMoveVector().length() > 1.0E-5F;
+		JumpResetDecision decision = VelocityPlanner.evaluateJumpReset(
+			pendingJumpTicks, pendingJumpAge, pendingJumpMaximumAge,
+			MC.player.onGround(), moving, onlyMoving.isChecked(),
+			MC.player.isSprinting(), requireSprint.isChecked());
+		if(decision == JumpResetDecision.WAIT)
 		{
 			pendingJumpTicks--;
+			pendingJumpAge++;
 			return;
 		}
-		if(!MC.player.onGround()
-			|| requireSprint.isChecked() && !MC.player.isSprinting())
-			return;
+		if(decision == JumpResetDecision.JUMP)
+			MC.player.jumpFromGround();
+		clearPendingJump();
+	}
 
-		MC.player.jumpFromGround();
+	private void clearPendingJump()
+	{
 		pendingJumpTicks = -1;
+		pendingJumpAge = 0;
+		pendingJumpMaximumAge = 0;
 	}
 
 	private enum Mode

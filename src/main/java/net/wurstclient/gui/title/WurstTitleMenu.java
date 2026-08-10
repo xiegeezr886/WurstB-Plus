@@ -18,15 +18,17 @@ import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.versions.forge.ForgeVersion;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
+import net.wurstclient.gui.visual.VisualTheme;
+import net.wurstclient.gui.visual.VisualRenderer;
 import net.wurstclient.util.ScreenRegistry;
 
 public final class WurstTitleMenu
 {
 	private static final int ICON_TEXTURE_SIZE = 88;
-	private static final int ACCENT = 0xFF006366;
-	private static final int TEXT = 0xFFF1F7F7;
-	private static final int MUTED_TEXT = 0xFFA4B4B5;
-	private static final int DIM_TEXT = 0xFF738687;
+	private static final int ACCENT = VisualTheme.ACCENT;
+	private static final int TEXT = VisualTheme.TEXT;
+	private static final int MUTED_TEXT = VisualTheme.TEXT_DIMMED;
+	private static final int DIM_TEXT = VisualTheme.TEXT_MUTED;
 
 	private static final ResourceLocation SINGLEPLAYER = icon("singleplayer");
 	private static final ResourceLocation MULTIPLAYER = icon("multiplayer");
@@ -126,11 +128,7 @@ public final class WurstTitleMenu
 	private void drawBackground(GuiGraphics graphics, int screenWidth,
 		int screenHeight)
 	{
-		graphics.fillGradient(0, 0, screenWidth, screenHeight, 0xFF02090A,
-			ACCENT);
-		graphics.fillGradient(0, 0, screenWidth, screenHeight, 0xD9000000,
-			0x00000000);
-		graphics.fill(0, 0, screenWidth, screenHeight, 0x18000000);
+		VisualRenderer.gridBackground(graphics, screenWidth, screenHeight);
 	}
 
 	private void drawBrand(GuiGraphics graphics, int screenWidth)

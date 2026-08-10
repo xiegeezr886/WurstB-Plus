@@ -25,16 +25,32 @@ import net.wurstclient.hud2.elements.CoordsHudElement;
 import net.wurstclient.hud2.elements.ClockHudElement;
 import net.wurstclient.hud2.elements.ArmorHudElement;
 import net.wurstclient.hud2.elements.ComboHudElement;
+import net.wurstclient.hud2.elements.CompassHudElement;
 import net.wurstclient.hud2.elements.FpsHudElement;
+import net.wurstclient.hud2.elements.CpsHudElement;
+import net.wurstclient.hud2.elements.DayCounterHudElement;
+import net.wurstclient.hud2.elements.GameModeHudElement;
+import net.wurstclient.hud2.elements.HealthHudElement;
 import net.wurstclient.hud2.elements.InventoryHudElement;
 import net.wurstclient.hud2.elements.KeystrokesHudElement;
+import net.wurstclient.hud2.elements.MemoryHudElement;
 import net.wurstclient.hud2.elements.MinimapHudElement;
+import net.wurstclient.hud2.elements.MusicIslandHudElement;
+import net.wurstclient.hud2.elements.MusicLyricsHudElement;
+import net.wurstclient.hud2.elements.NameHudElement;
 import net.wurstclient.hud2.elements.PingHudElement;
+import net.wurstclient.hud2.elements.PlayerCounterHudElement;
+import net.wurstclient.hud2.elements.PlayTimeHudElement;
 import net.wurstclient.hud2.elements.PotionHudElement;
+import net.wurstclient.hud2.elements.PotionCounterHudElement;
+import net.wurstclient.hud2.elements.ReachHudElement;
+import net.wurstclient.hud2.elements.ScoreboardHudElement;
 import net.wurstclient.hud2.elements.TargetHudElement;
 import net.wurstclient.hud2.elements.ServerHudElement;
 import net.wurstclient.hud2.elements.SpeedHudElement;
 import net.wurstclient.hud2.elements.TpsHudElement;
+import net.wurstclient.hud2.elements.WeatherHudElement;
+import net.wurstclient.hud2.render.RiseFrostedGlass;
 import net.wurstclient.util.ScreenRegistry;
 
 public final class HudManager implements GUIRenderListener
@@ -84,6 +100,7 @@ public final class HudManager implements GUIRenderListener
 			if(config != null && config.isEnabled())
 				element.onDisable(this);
 		}
+		RiseFrostedGlass.close();
 	}
 
 	@Override
@@ -93,15 +110,24 @@ public final class HudManager implements GUIRenderListener
 		if(ScreenRegistry.HUD_EDITOR.isOpen())
 			return;
 
+		if(isElementEnabled(ScoreboardHudElement.ID)
+			|| isElementEnabled("target_hud"))
+		{
+			graphics.flush();
+			RiseFrostedGlass.captureFrame();
+		}
+
 		for(HudElement element : elements.values())
 		{
 			HudElementConfig config = layout.get(element.getId());
 			if(config == null || !config.isEnabled()
 				|| element.getId().equals("notifications"))
 				continue;
-			int x = getElementX(config, graphics.guiWidth(), element.getWidth());
-			int y = getElementY(config, graphics.guiHeight(), element.getHeight());
-			element.render(graphics, x, y, partialTicks);
+			int scaledWidth = getScaledWidth(element, config);
+			int scaledHeight = getScaledHeight(element, config);
+			int x = getElementX(config, graphics.guiWidth(), scaledWidth);
+			int y = getElementY(config, graphics.guiHeight(), scaledHeight);
+			renderElement(graphics, element, config, x, y, partialTicks);
 		}
 		notificationRenderer.onRenderGUI(graphics, partialTicks);
 	}
@@ -112,6 +138,10 @@ public final class HudManager implements GUIRenderListener
 		if(config.getHorizontalAlignment()
 			.equals(HudElementConfig.HORIZONTAL_RIGHT))
 			return screenWidth - elementWidth - config.getHorizontalOffset();
+		if(config.getHorizontalAlignment()
+			.equals(HudElementConfig.HORIZONTAL_CENTER))
+			return (screenWidth - elementWidth) / 2
+				+ config.getHorizontalOffset();
 		return config.getHorizontalOffset();
 	}
 
@@ -120,6 +150,9 @@ public final class HudManager implements GUIRenderListener
 	{
 		if(config.getVerticalAlignment().equals(HudElementConfig.VERTICAL_BOTTOM))
 			return screenHeight - elementHeight - config.getVerticalOffset();
+		if(config.getVerticalAlignment().equals(HudElementConfig.VERTICAL_CENTER))
+			return (screenHeight - elementHeight) / 2
+				+ config.getVerticalOffset();
 		return config.getVerticalOffset();
 	}
 
@@ -146,6 +179,34 @@ public final class HudManager implements GUIRenderListener
 		config.setHorizontalOffset(horizontalOffset);
 		config.setVerticalOffset(verticalOffset);
 		saveLayout();
+	}
+
+	private int getScaledWidth(HudElement element, HudElementConfig config)
+	{
+		return Math.max(1, Math.round(element.getWidth() * config.getScale()));
+	}
+
+	private int getScaledHeight(HudElement element, HudElementConfig config)
+	{
+		return Math.max(1, Math.round(element.getHeight() * config.getScale()));
+	}
+
+	void renderElement(net.minecraft.client.gui.GuiGraphics graphics,
+		HudElement element, HudElementConfig config, int x, int y,
+		float partialTicks)
+	{
+		float scale = config.getScale();
+		graphics.pose().pushPose();
+		try
+		{
+			graphics.pose().translate(x, y, 0);
+			graphics.pose().scale(scale, scale, 1);
+			graphics.pose().translate(-x, -y, 0);
+			element.render(graphics, x, y, partialTicks);
+		}finally
+		{
+			graphics.pose().popPose();
+		}
 	}
 
 	void toggleElementEnabled(String elementId)
@@ -176,6 +237,12 @@ public final class HudManager implements GUIRenderListener
 		return elements;
 	}
 
+	public boolean isElementEnabled(String elementId)
+	{
+		HudElementConfig config = layout.get(elementId);
+		return config != null && config.isEnabled();
+	}
+
 	public void registerElement(HudElement element)
 	{
 		elements.put(element.getId(), element);
@@ -198,7 +265,22 @@ public final class HudManager implements GUIRenderListener
 		registerElement(new ComboHudElement());
 		registerElement(new KeystrokesHudElement());
 		registerElement(new TargetHudElement());
+		registerElement(new ScoreboardHudElement());
 		registerElement(new MinimapHudElement());
+		registerElement(new MusicIslandHudElement());
+		registerElement(new MusicLyricsHudElement());
+		registerElement(new CpsHudElement());
+		registerElement(new CompassHudElement());
+		registerElement(new DayCounterHudElement());
+		registerElement(new GameModeHudElement());
+		registerElement(new HealthHudElement());
+		registerElement(new MemoryHudElement());
+		registerElement(new NameHudElement());
+		registerElement(new PlayerCounterHudElement());
+		registerElement(new PlayTimeHudElement());
+		registerElement(new PotionCounterHudElement());
+		registerElement(new ReachHudElement());
+		registerElement(new WeatherHudElement());
 
 		registerElement(new HudElement("hacklist", "Hack List")
 		{
@@ -345,6 +427,8 @@ public final class HudManager implements GUIRenderListener
 				if(obj.has("verticalOffset"))
 					config.setVerticalOffset(
 						obj.get("verticalOffset").getAsInt());
+				if(obj.has("scale"))
+					config.setScale(obj.get("scale").getAsFloat());
 			}
 		}catch(IOException | JsonException e)
 		{
@@ -353,7 +437,7 @@ public final class HudManager implements GUIRenderListener
 		}
 	}
 
-	private void saveLayout()
+	void saveLayout()
 	{
 		if(layoutFile == null)
 			return;
@@ -374,6 +458,7 @@ public final class HudManager implements GUIRenderListener
 				entry.getValue().getHorizontalOffset());
 			el.addProperty("verticalOffset",
 				entry.getValue().getVerticalOffset());
+			el.addProperty("scale", entry.getValue().getScale());
 			arr.add(el);
 		}
 		root.add("elements", arr);

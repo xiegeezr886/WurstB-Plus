@@ -12,7 +12,7 @@ import net.wurstclient.other_feature.OtherFeature;
 import net.wurstclient.util.ChatUtils;
 import net.wurstclient.util.FuzzySearch;
 
-final class FeatureMenuSupport
+public final class FeatureMenuSupport
 {
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private static final Map<Feature, String> ONE_LINE_DESCRIPTIONS =
@@ -24,7 +24,7 @@ final class FeatureMenuSupport
 	{
 	}
 
-	static List<Feature> getAllFeatures()
+	public static List<Feature> getAllFeatures()
 	{
 		int featureCount = WURST.getHax().countHax()
 			+ WURST.getCmds().countCmds() + WURST.getOtfs().countOtfs();
@@ -74,7 +74,7 @@ final class FeatureMenuSupport
 			FuzzySearch.score(combined, query), 60));
 	}
 
-	static List<Feature> searchFeatures(List<Feature> features, String query)
+	public static List<Feature> searchFeatures(List<Feature> features, String query)
 	{
 		return features.stream()
 			.map(feature -> new ScoredFeature(feature,
@@ -100,7 +100,7 @@ final class FeatureMenuSupport
 	private record ScoredFeature(Feature feature, int score)
 	{}
 
-	static boolean runPrimaryAction(Feature feature)
+	public static boolean runPrimaryAction(Feature feature)
 	{
 		if(feature.getPrimaryAction().isEmpty())
 			return false;

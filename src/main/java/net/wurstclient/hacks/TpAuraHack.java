@@ -28,6 +28,8 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.settings.filterlists.EntityFilterList;
+import net.wurstclient.util.CombatRotationController;
+import net.wurstclient.util.CombatTargetSession;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RotationQueue;
 import net.wurstclient.util.RotationUtils;
@@ -58,7 +60,10 @@ public final class TpAuraHack extends Hack implements UpdateListener
 	
 	private final EntityFilterList entityFilters =
 		EntityFilterList.genericCombat();
-	private RotationQueue rotationQueue;
+	private final CombatRotationController rotationController =
+		new CombatRotationController(RotationQueue.Priority.COMBAT);
+	private final CombatTargetSession<Entity> targetSession =
+		new CombatTargetSession<>();
 	
 	public TpAuraHack()
 	{
@@ -78,10 +83,9 @@ public final class TpAuraHack extends Hack implements UpdateListener
 	@Override
 	protected void onEnable()
 	{
+		targetSession.clear();
 		speed.resetTimer();
-		rotationQueue =
-			new RotationQueue(RotationQueue.Priority.COMBAT);
-		rotationQueue.start();
+		rotationController.start();
 		EVENTS.add(UpdateListener.class, this);
 	}
 
@@ -89,20 +93,25 @@ public final class TpAuraHack extends Hack implements UpdateListener
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
-		rotationQueue.stop();
-		rotationQueue = null;
+		rotationController.stop();
+		targetSession.clear();
 	}
 	
 	@Override
 	public void onUpdate()
 	{
-		speed.updateTimer();
-		if(!speed.isTimeToAttack())
+		if(MC.player == null || MC.level == null || MC.gameMode == null)
+		{
+			clearTarget();
 			return;
-		
+		}
 		if(pauseOnContainers.shouldPause())
+		{
+			clearTarget();
 			return;
-		
+		}
+
+		speed.updateTimer();
 		LocalPlayer player = MC.player;
 		
 		// set entity
@@ -115,6 +124,20 @@ public final class TpAuraHack extends Hack implements UpdateListener
 		Entity entity =
 			stream.min(priority.getSelected().comparator).orElse(null);
 		if(entity == null)
+		{
+			clearTarget();
+			return;
+		}
+		CombatTargetSession.Selection<Entity> selection =
+			targetSession.track(entity);
+		if(selection.changed())
+		{
+			speed.resetTimer();
+			rotationController.clear();
+		}
+		if(!speed.isTimeToAttack())
+			return;
+		if(player.getAttackStrengthScale(0) < 1)
 			return;
 		
 		WURST.getHax().autoSwordHack.setSlot(entity);
@@ -123,17 +146,21 @@ public final class TpAuraHack extends Hack implements UpdateListener
 		player.setPos(entity.getX() + random.nextInt(3) * 2 - 2,
 			entity.getY(), entity.getZ() + random.nextInt(3) * 2 - 2);
 		
-		// check cooldown
-		if(player.getAttackStrengthScale(0) < 1)
-			return;
-		
 		// attack entity
-		rotationQueue.setRotation(RotationUtils.getNeededRotations(
+		rotationController.request(RotationUtils.getNeededRotations(
 			entity.getBoundingBox().getCenter()));
 		
 		MC.gameMode.attack(player, entity);
 		swingHand.swing(InteractionHand.MAIN_HAND);
 		speed.resetTimer();
+	}
+
+	private void clearTarget()
+	{
+		if(targetSession.getTarget() != null)
+			speed.resetTimer();
+		targetSession.clear();
+		rotationController.clear();
 	}
 	
 	private enum Priority

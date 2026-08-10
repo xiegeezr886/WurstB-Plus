@@ -36,6 +36,9 @@ public class IngameHudMixin
 	private void onRenderPlayerList(GuiGraphics context,
 		DeltaTracker deltaTracker, CallbackInfo ci)
 	{
+		if(WurstClient.MC.screen != null)
+			return;
+		
 		if(debugOverlay.showDebugScreen())
 			return;
 

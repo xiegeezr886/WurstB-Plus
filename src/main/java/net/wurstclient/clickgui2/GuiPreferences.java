@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -23,6 +27,7 @@ import net.wurstclient.util.json.JsonUtils;
 
 public final class GuiPreferences
 {
+	private static final int CURRENT_VAPE_LAYOUT_VERSION = 2;
 	public static final String BUILTIN_FONT = "CozyUI";
 	private static final String FONT_PACK_NAME = "WurstBPlus-Font";
 	private static final String FONT_PACK_ID = "file/" + FONT_PACK_NAME;
@@ -33,12 +38,17 @@ public final class GuiPreferences
 	private final Path fontsFolder;
 	private boolean commandsEnabled = true;
 	private boolean fontEnabled = true;
+	private boolean vapeMode;
+	private int vapeLayoutVersion;
 	private String selectedFont = BUILTIN_FONT;
 	private boolean targetPlayers = true;
 	private boolean targetMonsters = true;
 	private boolean targetAnimals = true;
 	private boolean targetTeams = true;
 	private boolean targetVillagers = true;
+	private final Map<String, VapeFrameState> vapeFrames = new HashMap<>();
+	private final Set<String> vapeFavorites = new LinkedHashSet<>();
+	private final Set<String> vapeHiddenModules = new LinkedHashSet<>();
 
 	public GuiPreferences(Path wurstFolder)
 	{
@@ -56,6 +66,10 @@ public final class GuiPreferences
 				commandsEnabled = json.get("commandsEnabled").getAsBoolean();
 			if(json.has("fontEnabled"))
 				fontEnabled = json.get("fontEnabled").getAsBoolean();
+			if(json.has("vapeMode"))
+				vapeMode = json.get("vapeMode").getAsBoolean();
+			if(json.has("vapeLayoutVersion"))
+				vapeLayoutVersion = json.get("vapeLayoutVersion").getAsInt();
 			if(json.has("selectedFont"))
 				selectedFont = json.get("selectedFont").getAsString();
 			if(json.has("targetPlayers"))
@@ -68,6 +82,23 @@ public final class GuiPreferences
 				targetTeams = json.get("targetTeams").getAsBoolean();
 			if(json.has("targetVillagers"))
 				targetVillagers = json.get("targetVillagers").getAsBoolean();
+			if(json.has("vapeFrames") && json.get("vapeFrames").isJsonObject())
+			{
+				JsonObject frames = json.getAsJsonObject("vapeFrames");
+				for(var entry : frames.entrySet())
+				{
+					JsonObject frame = entry.getValue().getAsJsonObject();
+					vapeFrames.put(entry.getKey(), new VapeFrameState(
+						frame.get("x").getAsDouble(),
+						frame.get("y").getAsDouble(),
+						frame.has("collapsed")
+							&& frame.get("collapsed").getAsBoolean(),
+						!frame.has("visible")
+							|| frame.get("visible").getAsBoolean()));
+				}
+			}
+			loadStringSet(json, "vapeFavorites", vapeFavorites);
+			loadStringSet(json, "vapeHiddenModules", vapeHiddenModules);
 		}catch(NoSuchFileException e)
 		{
 			return;
@@ -83,12 +114,27 @@ public final class GuiPreferences
 		JsonObject json = new JsonObject();
 		json.addProperty("commandsEnabled", commandsEnabled);
 		json.addProperty("fontEnabled", fontEnabled);
+		json.addProperty("vapeMode", vapeMode);
+		json.addProperty("vapeLayoutVersion", vapeLayoutVersion);
 		json.addProperty("selectedFont", selectedFont);
 		json.addProperty("targetPlayers", targetPlayers);
 		json.addProperty("targetMonsters", targetMonsters);
 		json.addProperty("targetAnimals", targetAnimals);
 		json.addProperty("targetTeams", targetTeams);
 		json.addProperty("targetVillagers", targetVillagers);
+		JsonObject frames = new JsonObject();
+		for(var entry : vapeFrames.entrySet())
+		{
+			JsonObject frame = new JsonObject();
+			frame.addProperty("x", entry.getValue().x());
+			frame.addProperty("y", entry.getValue().y());
+			frame.addProperty("collapsed", entry.getValue().collapsed());
+			frame.addProperty("visible", entry.getValue().visible());
+			frames.add(entry.getKey(), frame);
+		}
+		json.add("vapeFrames", frames);
+		json.add("vapeFavorites", toJsonArray(vapeFavorites));
+		json.add("vapeHiddenModules", toJsonArray(vapeHiddenModules));
 		try
 		{
 			JsonUtils.toJson(json, path);
@@ -118,6 +164,104 @@ public final class GuiPreferences
 	{
 		this.fontEnabled = fontEnabled;
 		save();
+	}
+
+	public boolean isVapeMode()
+	{
+		return vapeMode;
+	}
+
+	public void setVapeMode(boolean vapeMode)
+	{
+		this.vapeMode = vapeMode;
+		save();
+	}
+
+	public void migrateVapeLayout()
+	{
+		if(vapeLayoutVersion >= CURRENT_VAPE_LAYOUT_VERSION)
+			return;
+		vapeFrames.clear();
+		vapeLayoutVersion = CURRENT_VAPE_LAYOUT_VERSION;
+		save();
+	}
+
+	public VapeFrameState getVapeFrameState(String name)
+	{
+		return vapeFrames.get(name);
+	}
+
+	public void setVapeFrameState(String name, double x, double y,
+		boolean collapsed)
+	{
+		VapeFrameState old = vapeFrames.get(name);
+		setVapeFrameState(name, x, y, collapsed,
+			old == null || old.visible());
+	}
+
+	public void setVapeFrameState(String name, double x, double y,
+		boolean collapsed, boolean visible)
+	{
+		vapeFrames.put(name, new VapeFrameState(x, y, collapsed, visible));
+		save();
+	}
+
+	public void clearVapeFrameStates()
+	{
+		vapeFrames.clear();
+		save();
+	}
+
+	public boolean isVapeFavorite(String featureName)
+	{
+		return vapeFavorites.contains(normalizeFeatureName(featureName));
+	}
+
+	public void toggleVapeFavorite(String featureName)
+	{
+		toggleName(vapeFavorites, featureName);
+		save();
+	}
+
+	public boolean isVapeModuleHidden(String featureName)
+	{
+		return vapeHiddenModules.contains(normalizeFeatureName(featureName));
+	}
+
+	public void toggleVapeModuleHidden(String featureName)
+	{
+		toggleName(vapeHiddenModules, featureName);
+		save();
+	}
+
+	private static void toggleName(Set<String> names, String featureName)
+	{
+		String normalized = normalizeFeatureName(featureName);
+		if(!names.remove(normalized))
+			names.add(normalized);
+	}
+
+	private static String normalizeFeatureName(String featureName)
+	{
+		return featureName.toLowerCase(Locale.ROOT);
+	}
+
+	private static void loadStringSet(JsonObject json, String key,
+		Set<String> target)
+	{
+		if(!json.has(key) || !json.get(key).isJsonArray())
+			return;
+		for(var value : json.getAsJsonArray(key))
+			if(value.isJsonPrimitive())
+				target.add(normalizeFeatureName(value.getAsString()));
+	}
+
+	private static JsonArray toJsonArray(Set<String> values)
+	{
+		JsonArray array = new JsonArray();
+		for(String value : values)
+			array.add(value);
+		return array;
 	}
 
 	public String getSelectedFont()
@@ -272,5 +416,14 @@ public final class GuiPreferences
 		ANIMALS,
 		TEAMS,
 		VILLAGERS
+	}
+
+	public record VapeFrameState(double x, double y, boolean collapsed,
+		boolean visible)
+	{
+		public VapeFrameState(double x, double y, boolean collapsed)
+		{
+			this(x, y, collapsed, true);
+		}
 	}
 }

@@ -17,6 +17,7 @@ import net.wurstclient.events.MouseButtonListener;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.hud2.HudManager;
+import net.wurstclient.gui.visual.VisualTheme;
 
 public final class KeystrokesHudElement extends HudElement
 	implements MouseButtonListener
@@ -26,12 +27,12 @@ public final class KeystrokesHudElement extends HudElement
 	private static final int GAP = 2;
 	private static final int WIDTH = KEY_SIZE * 3 + GAP * 2;
 	private static final int HEIGHT = KEY_SIZE * 2 + HALF_HEIGHT * 3 + GAP * 4;
-	private static final int IDLE_BACKGROUND = 0xB0070A0F;
-	private static final int PRESSED_BACKGROUND = 0xE0006366;
-	private static final int IDLE_TEXT = 0xFFE4E8ED;
-	private static final int PRESSED_TEXT = 0xFFFFFFFF;
-	private static final int IDLE_BORDER = 0x28FFFFFF;
-	private static final int PRESSED_BORDER = 0xB000888C;
+	private static final int IDLE_BACKGROUND = VisualTheme.SURFACE_68;
+	private static final int PRESSED_BACKGROUND = VisualTheme.ACCENT;
+	private static final int IDLE_TEXT = VisualTheme.TEXT_DIMMED;
+	private static final int PRESSED_TEXT = VisualTheme.TEXT;
+	private static final int IDLE_BORDER = VisualTheme.BORDER;
+	private static final int PRESSED_BORDER = VisualTheme.ACCENT_HOVER;
 
 	private final Map<KeyMapping, Float> animation = new IdentityHashMap<>();
 	private final CpsCounter leftCps = new CpsCounter();

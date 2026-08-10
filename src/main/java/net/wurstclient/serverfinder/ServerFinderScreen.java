@@ -24,6 +24,8 @@ import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.CommonColors;
+import net.wurstclient.gui.visual.VisualRenderer;
+import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.mixinterface.IMultiplayerScreen;
 import net.wurstclient.util.MathUtils;
 
@@ -233,36 +235,38 @@ public class ServerFinderScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		VisualRenderer.gridBackground(context, width, height);
+		VisualRenderer.panel(context, width / 2 - 118, 12,
+			width / 2 + 118, height - 28, VisualTheme.RADIUS_LARGE, false);
 		
 		context.drawCenteredString(font, "服务器搜索",
 			width / 2, 20, CommonColors.WHITE);
 		context.drawCenteredString(font,
 			"This will search for servers with similar IPs", width / 2, 40,
-			0xFFA0A0A0);
+			VisualTheme.TEXT_DIMMED);
 		context.drawCenteredString(font,
 			"to the IP you type into the field below.", width / 2, 50,
-			0xFFA0A0A0);
+			VisualTheme.TEXT_DIMMED);
 		context.drawCenteredString(font,
 			"The servers it finds will be added to your server list.",
-			width / 2, 60, 0xFFA0A0A0);
+			width / 2, 60, VisualTheme.TEXT_DIMMED);
 		
 		context.drawString(font, "Server address:",
-			width / 2 - 100, height / 4 + 24, 0xFFA0A0A0);
+			width / 2 - 100, height / 4 + 24, VisualTheme.TEXT_DIMMED);
 		ipBox.render(context, mouseX, mouseY, partialTicks);
 		
 		context.drawString(font, "Max. threads:",
-			width / 2 - 100, height / 4 + 60, 0xFFA0A0A0);
+			width / 2 - 100, height / 4 + 60, VisualTheme.TEXT_DIMMED);
 		maxThreadsBox.render(context, mouseX, mouseY, partialTicks);
 		
 		context.drawCenteredString(font, state.toString(),
-			width / 2, height / 4 + 73, 0xFFA0A0A0);
+			width / 2, height / 4 + 73, VisualTheme.TEXT_DIMMED);
 		
 		context.drawString(font,
 			"Checked: " + checked + " / 1792", width / 2 - 100, height / 4 + 84,
-			0xFFA0A0A0);
+			VisualTheme.TEXT_DIMMED);
 		context.drawString(font, "Working: " + working,
-			width / 2 - 100, height / 4 + 94, 0xFFA0A0A0);
+			width / 2 - 100, height / 4 + 94, VisualTheme.TEXT_DIMMED);
 		
 		for(Renderable drawable : renderables)
 			drawable.render(context, mouseX, mouseY, partialTicks);

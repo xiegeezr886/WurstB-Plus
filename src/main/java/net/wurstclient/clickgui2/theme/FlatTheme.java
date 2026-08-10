@@ -1,5 +1,7 @@
 package net.wurstclient.clickgui2.theme;
 
+import net.wurstclient.gui.visual.VisualTheme;
+
 public final class FlatTheme
 {
 	private final float[] background = new float[3];
@@ -80,7 +82,7 @@ public final class FlatTheme
 
 	public int border(boolean focused)
 	{
-		return focused ? accent(0.72F) : 0xFF303030;
+		return focused ? accent(0.72F) : VisualTheme.BORDER_STRONG;
 	}
 
 	public int highlight(float alpha)

@@ -51,21 +51,16 @@ minecraft {
 	}
 }
 
-sourceSets {
-	main {
-		java {
-			exclude "net/wurstclient/clickgui2/component/*.java"
-			exclude "net/wurstclient/clickgui2/component.disabled/*.java"
-		}
-	}
-}
-
 repositories {
+	mavenCentral()
 	maven {
 		name = "Sponge"
 		url = "https://repo.spongepowered.org/repository/maven-public/"
 	}
-	mavenCentral()
+	maven {
+		name = "JitPack"
+		url = "https://jitpack.io"
+	}
 	flatDir {
 		dirs "."
 	}
@@ -84,6 +79,9 @@ dependencies {
 		version: "[${project.mixinextras_version},)")
 	annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 	implementation "org.java-websocket:Java-WebSocket:1.5.3"
+	minecraftLibrary("org.java-websocket:Java-WebSocket:1.5.3") {
+		exclude group: "org.slf4j", module: "slf4j-api"
+	}
 	jarJar("org.java-websocket:Java-WebSocket:[1.5.3]") {
 		transitive = false
 	}
@@ -93,6 +91,54 @@ dependencies {
 		transitive = false
 	}
 	jarJar("io.netty:netty-handler-proxy:[4.1.82.Final]") {
+		transitive = false
+	}
+	implementation("com.github.goxr3plus:java-stream-player:10.0.2") {
+		exclude group: "junit", module: "junit"
+	}
+	minecraftLibrary("com.github.goxr3plus:java-stream-player:10.0.2") {
+		exclude group: "junit", module: "junit"
+	}
+	[
+		"com.googlecode.soundlibs:mp3spi:1.9.5.4",
+		"com.googlecode.soundlibs:jlayer:1.0.1.4",
+		"org.jflac:jflac-codec:1.5.2",
+		"com.github.trilarion:vorbis-support:1.1.0",
+		"com.googlecode.soundlibs:tritonus-all:0.3.7.2",
+		"com.googlecode.soundlibs:jorbis:0.0.17-2",
+		"com.github.goxr3plus:jaudiotagger:2.2.7"
+	].each { dependency ->
+		minecraftLibrary(dependency) {
+			transitive = false
+		}
+	}
+	jarJar("com.github.goxr3plus:java-stream-player:[10.0.2,10.1)") {
+		transitive = false
+	}
+	jarJar("com.googlecode.soundlibs:mp3spi:[1.9.5.4]") {
+		transitive = false
+	}
+	jarJar("com.googlecode.soundlibs:jlayer:[1.0.1.4]") {
+		transitive = false
+	}
+	jarJar("org.jflac:jflac-codec:[1.5.2]") {
+		transitive = false
+	}
+	jarJar("com.github.trilarion:vorbis-support:[1.1.0]") {
+		transitive = false
+	}
+	jarJar("com.googlecode.soundlibs:tritonus-all:[0.3.7.2]") {
+		transitive = false
+	}
+	jarJar("com.googlecode.soundlibs:jorbis:[0.0.17-2]") {
+		transitive = false
+	}
+	jarJar("com.github.goxr3plus:jaudiotagger:[2.2.7]") {
+		transitive = false
+	}
+	implementation "com.google.zxing:core:3.5.3"
+	minecraftLibrary "com.google.zxing:core:3.5.3"
+	jarJar("com.google.zxing:core:[3.5.3]") {
 		transitive = false
 	}
 	implementation fg.deobf("baritone:baritone-api-forge:1.20.1")

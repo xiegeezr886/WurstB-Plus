@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "wurstpenguin",
+  "version": "${version}",
+  "name": "WurstB+ Plus",
+  "description": "WurstB+ Plus for Minecraft 1.21.11 (Fabric).",
+  "authors": [
+    "Penguin"
+  ],
+  "license": "GPL-3.0-or-later",
+  "icon": "assets/wurst/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "net.wurstclient.WurstInitializer"
+    ]
+  },
+  "mixins": [
+    "wurstpenguin.mixins.json"
+  ],
+  "accessWidener": "wurstpenguin.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.11",
+    "java": ">=21"
+  }
+}

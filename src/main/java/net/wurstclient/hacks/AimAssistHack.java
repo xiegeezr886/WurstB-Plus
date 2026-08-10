@@ -24,12 +24,12 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.filterlists.EntityFilterList;
 import net.wurstclient.settings.filters.*;
 import net.wurstclient.util.BlockUtils;
+import net.wurstclient.util.CombatTargetSession;
 import net.wurstclient.util.CombatTargetUtils;
 import net.wurstclient.util.CombatTargetUtils.Priority;
 import net.wurstclient.util.Rotation;
 import net.wurstclient.util.RotationSmoothing;
 import net.wurstclient.util.RotationUtils;
-import net.wurstclient.util.TargetTracker;
 
 public final class AimAssistHack extends Hack
 	implements UpdateListener, MouseUpdateListener
@@ -116,10 +116,11 @@ public final class AimAssistHack extends Hack
 			FilterArmorStandsSetting.genericCombat(true),
 			FilterCrystalsSetting.genericCombat(true));
 	
-	private Entity target;
 	private float nextYaw;
 	private float nextPitch;
-	private final TargetTracker<Entity> targetTracker = new TargetTracker<>();
+	private Rotation rotationDelta = new Rotation(0, 0);
+	private final CombatTargetSession<Entity> targetSession =
+		new CombatTargetSession<>();
 	
 	public AimAssistHack()
 	{
@@ -160,36 +161,46 @@ public final class AimAssistHack extends Hack
 	{
 		EVENTS.remove(UpdateListener.class, this);
 		EVENTS.remove(MouseUpdateListener.class, this);
-		target = null;
-		targetTracker.reset();
+		clearTarget();
 	}
 	
 	@Override
 	public void onUpdate()
 	{
+		if(MC.player == null || MC.level == null)
+		{
+			clearTarget();
+			return;
+		}
+
 		// don't aim when a container/inventory screen is open
 		if(MC.screen instanceof AbstractContainerScreen)
 		{
-			target = null;
-			targetTracker.reset();
+			clearTarget();
 			return;
 		}
 		
 		if(!aimWhileBlocking.isChecked() && MC.player.isUsingItem())
 		{
-			target = null;
+			clearTarget();
 			return;
 		}
 		
-		targetTracker.tick();
-		chooseTarget();
+		targetSession.tick();
+		CombatTargetSession.Selection<Entity> selection = chooseTarget();
+		Entity target = selection.current();
 		if(target == null)
+		{
+			rotationDelta = new Rotation(0, 0);
 			return;
+		}
+		if(selection.changed())
+			rotationDelta = new Rotation(0, 0);
 		
 		Vec3 hitVec = aimAt.getAimPoint(target);
 		if(checkLOS.isChecked() && !BlockUtils.hasLineOfSight(hitVec))
 		{
-			target = null;
+			clearTarget();
 			return;
 		}
 		
@@ -201,18 +212,27 @@ public final class AimAssistHack extends Hack
 		// turn towards center of boundingBox
 		Rotation current =
 			new Rotation(MC.player.getYRot(), MC.player.getXRot());
-		Rotation next = RotationSmoothing.smooth(current, needed,
-			rotationSpeed.getValueI() / 20F, smoothing.getSelected());
-		nextYaw = next.yaw();
-		nextPitch = next.pitch();
+		float maxChange = rotationSpeed.getValueI() / 20F;
+		RotationSmoothing.Step step = RotationSmoothing.smoothWithAcceleration(
+			current, needed, rotationDelta, maxChange,
+			Math.max(1, maxChange * 0.35F), smoothing.getSelected());
+		rotationDelta = step.delta();
+		nextYaw = step.rotation().yaw();
+		nextPitch = step.rotation().pitch();
+	}
+
+	private void clearTarget()
+	{
+		rotationDelta = new Rotation(0, 0);
+		targetSession.clear();
 	}
 	
-	private void chooseTarget()
+	private CombatTargetSession.Selection<Entity> chooseTarget()
 	{
 		Entity candidate = CombatTargetUtils.get(range.getValue(), fov.getValue(),
 			aimAt::getAimPoint, entityFilters, checkLOS.isChecked(),
 			priority.getSelected());
-		target = targetTracker.update(candidate, this::isValidTarget,
+		return targetSession.update(candidate, this::isValidTarget,
 			entity -> CombatTargetUtils.getScore(entity, priority.getSelected(),
 				aimAt::getAimPoint), stickyTarget.isChecked(),
 			switchDelay.getValueI(), switchAdvantage.getValue());
@@ -227,6 +247,7 @@ public final class AimAssistHack extends Hack
 	@Override
 	public void onMouseUpdate(MouseUpdateEvent event)
 	{
+		Entity target = targetSession.getTarget();
 		if(target == null || MC.player == null)
 			return;
 		

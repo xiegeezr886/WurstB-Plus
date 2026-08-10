@@ -29,6 +29,25 @@ public enum InteractionSimulator
 	;
 	
 	private static final Minecraft MC = WurstClient.MC;
+
+	/**
+	 * Uses the first equipped item that accepts the interaction, following
+	 * vanilla's main-hand then off-hand order.
+	 */
+	public static void rightClickItem(SwingHand swing)
+	{
+		for(InteractionHand hand : InteractionHand.values())
+		{
+			ItemStack stack = MC.player.getItemInHand(hand);
+			if(interactItemAndSwing(stack, swing, hand))
+				return;
+		}
+	}
+
+	public static void rightClickItem()
+	{
+		rightClickItem(SwingHand.CLIENT);
+	}
 	
 	/**
 	 * @see #rightClickBlock(BlockHitResult, SwingHand)

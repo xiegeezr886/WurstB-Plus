@@ -34,6 +34,8 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.settings.filterlists.EntityFilterList;
+import net.wurstclient.util.CombatRotationController;
+import net.wurstclient.util.CombatTargetSession;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RotationQueue;
 import net.wurstclient.util.RotationUtils;
@@ -69,7 +71,10 @@ public final class FightBotHack extends Hack
 	private EntityPathFinder pathFinder;
 	private PathProcessor processor;
 	private int ticksProcessing;
-	private RotationQueue rotationQueue;
+	private final CombatRotationController rotationController =
+		new CombatRotationController(RotationQueue.Priority.COMBAT);
+	private final CombatTargetSession<Entity> targetSession =
+		new CombatTargetSession<>();
 	
 	public FightBotHack()
 	{
@@ -90,16 +95,20 @@ public final class FightBotHack extends Hack
 	@Override
 	protected void onEnable()
 	{
+		if(MC.player == null || MC.level == null)
+		{
+			setEnabled(false);
+			return;
+		}
+
 		WURST.getHax().tunnellerHack.setEnabled(false);
-		
-		pathFinder = new EntityPathFinder(MC.player);
-		
+		pathFinder = null;
+		processor = null;
+		targetSession.clear();
 		speed.resetTimer();
 		EVENTS.add(UpdateListener.class, this);
 		EVENTS.add(RenderListener.class, this);
-		rotationQueue =
-			new RotationQueue(RotationQueue.Priority.COMBAT);
-		rotationQueue.start();
+		rotationController.start();
 	}
 
 	@Override
@@ -107,22 +116,26 @@ public final class FightBotHack extends Hack
 	{
 		EVENTS.remove(UpdateListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
-		rotationQueue.stop();
-		rotationQueue = null;
-		
-		pathFinder = null;
-		processor = null;
-		ticksProcessing = 0;
-		PathProcessor.releaseControls();
+		rotationController.stop();
+		suspendTargeting(false);
 	}
 	
 	@Override
 	public void onUpdate()
 	{
+		if(MC.player == null || MC.level == null || MC.gameMode == null)
+		{
+			setEnabled(false);
+			return;
+		}
+
 		speed.updateTimer();
 		
 		if(pauseOnContainers.shouldPause())
+		{
+			suspendTargeting(true);
 			return;
+		}
 		
 		// set entity
 		Stream<Entity> stream = EntityUtils.getAttackableEntities();
@@ -133,16 +146,27 @@ public final class FightBotHack extends Hack
 				Comparator.comparingDouble(e -> MC.player.distanceToSqr(e)))
 			.orElse(null);
 		if(entity == null)
+		{
+			suspendTargeting(true);
 			return;
+		}
+		CombatTargetSession.Selection<Entity> selection =
+			targetSession.track(entity);
+		if(selection.changed())
+		{
+			speed.resetTimer();
+			resetPath();
+		}
 		
 		WURST.getHax().autoSwordHack.setSlot(entity);
 		
 		if(useAi.isChecked())
 		{
 			// reset pathfinder
-			if((processor == null || processor.isDone() || ticksProcessing >= 10
+			if(pathFinder == null || pathFinder.entity != entity
+				|| (processor == null || processor.isDone() || ticksProcessing >= 10
 				|| !pathFinder.isPathStillValid(processor.getIndex()))
-				&& (pathFinder.isDone() || pathFinder.isFailed()))
+					&& (pathFinder.isDone() || pathFinder.isFailed()))
 			{
 				pathFinder = new EntityPathFinder(entity);
 				processor = null;
@@ -153,7 +177,7 @@ public final class FightBotHack extends Hack
 			if(!pathFinder.isDone() && !pathFinder.isFailed())
 			{
 				PathProcessor.lockControls();
-				rotationQueue.setRotation(RotationUtils.getNeededRotations(
+				rotationController.request(RotationUtils.getNeededRotations(
 					entity.getBoundingBox().getCenter()));
 				pathFinder.think();
 				pathFinder.formatPath();
@@ -161,13 +185,19 @@ public final class FightBotHack extends Hack
 			}
 			
 			// process path
-			if(!processor.isDone())
+			if(processor != null && !processor.isDone())
 			{
 				processor.process();
 				ticksProcessing++;
 			}
 		}else
 		{
+			if(pathFinder != null || processor != null)
+			{
+				PathProcessor.releaseControls();
+				resetPath();
+			}
+
 			// jump if necessary
 			if(MC.player.horizontalCollision && MC.player.onGround())
 				MC.player.jumpFromGround();
@@ -197,7 +227,7 @@ public final class FightBotHack extends Hack
 			// follow entity
 			MC.options.keyUp.setDown(
 				MC.player.distanceTo(entity) > distance.getValueF());
-			rotationQueue.setRotation(RotationUtils.getNeededRotations(
+			rotationController.request(RotationUtils.getNeededRotations(
 				entity.getBoundingBox().getCenter()));
 		}
 		
@@ -218,9 +248,28 @@ public final class FightBotHack extends Hack
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
+		if(pathFinder == null)
+			return;
 		PathCmd pathCmd = WURST.getCmds().pathCmd;
 		pathFinder.renderPath(matrixStack, pathCmd.isDebugMode(),
 			pathCmd.isDepthTest());
+	}
+
+	private void suspendTargeting(boolean resetTimer)
+	{
+		if(resetTimer && targetSession.getTarget() != null)
+			speed.resetTimer();
+		targetSession.clear();
+		rotationController.clear();
+		PathProcessor.releaseControls();
+		resetPath();
+	}
+
+	private void resetPath()
+	{
+		pathFinder = null;
+		processor = null;
+		ticksProcessing = 0;
 	}
 	
 	private class EntityPathFinder extends PathFinder

@@ -1,6 +1,7 @@
 package net.wurstclient.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
@@ -49,6 +50,46 @@ final class CombatClickSchedulerTest
 	}
 
 	@Test
+	void resetTimingPreventsAnIdleWatchdogClick()
+	{
+		CombatClickScheduler scheduler =
+			new CombatClickScheduler(new Random(2));
+		scheduler.reset(1, 1, ClickPattern.STABILIZED, 2, 2, 1_000);
+		scheduler.advanceTick();
+		scheduler.resetTiming(2_000);
+
+		assertEquals(0, scheduler.getClickAmount(tick -> false, 2_999));
+		assertEquals(1, scheduler.getClickAmount(tick -> false, 3_000));
+	}
+
+	@Test
+	void searchesTheWholeBufferedWindowForNextClick()
+	{
+		CombatClickScheduler scheduler =
+			new CombatClickScheduler(new Random(2));
+		scheduler.reset(1, 1, ClickPattern.STABILIZED, 2, 2, 0);
+		scheduler.advanceTick();
+		scheduler.resetTiming(0);
+
+		assertEquals(19,
+			scheduler.getTicksUntilClick(tick -> false, 0));
+	}
+
+	@Test
+	void handlesClockRollbackAndRejectsInvalidLookahead()
+	{
+		CombatClickScheduler scheduler =
+			new CombatClickScheduler(new Random(2));
+		scheduler.reset(1, 1, ClickPattern.STABILIZED, Float.NaN,
+			Float.POSITIVE_INFINITY, 1_000);
+		scheduler.advanceTick();
+
+		assertEquals(0, scheduler.getClickAmount(tick -> false, 500));
+		assertThrows(IllegalArgumentException.class,
+			() -> scheduler.getClickAmount(tick -> false, 1_000, -1));
+	}
+
+	@Test
 	void everyTechniqueProducesValidCycle()
 	{
 		for(ClickPattern pattern : ClickPattern.values())
@@ -58,10 +99,6 @@ final class CombatClickSchedulerTest
 			int sum = java.util.Arrays.stream(clicks).sum();
 			if(pattern == ClickPattern.DOUBLE_CLICK)
 				assertEquals(16, sum, pattern.toString());
-			else if(pattern == ClickPattern.BUTTERFLY)
-				assertTrue(sum >= 8 && sum <= 9, pattern.toString());
-			else if(pattern == ClickPattern.NORMAL_DISTRIBUTION)
-				assertTrue(sum > 0, pattern.toString());
 			else
 				assertEquals(8, sum, pattern.toString());
 		}

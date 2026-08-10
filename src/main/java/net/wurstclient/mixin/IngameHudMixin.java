@@ -15,12 +15,26 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.scores.Objective;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hack.HackList;
+import net.wurstclient.hud2.HudManager;
+import net.wurstclient.hud2.elements.ScoreboardHudElement;
 
 @Mixin(Gui.class)
 public class IngameHudMixin
 {
+	@Inject(at = @At("HEAD"), method = "displayScoreboardSidebar",
+		cancellable = true)
+	private void replaceScoreboardSidebar(GuiGraphics graphics,
+		Objective objective, CallbackInfo ci)
+	{
+		HudManager hudManager = WurstClient.INSTANCE.getHudManager();
+		if(hudManager != null && !WurstClient.MC.options.renderDebug
+			&& hudManager.isElementEnabled(ScoreboardHudElement.ID))
+			ci.cancel();
+	}
+
 	@Inject(at = @At("HEAD"),
 		method = "renderTextureOverlay(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/resources/ResourceLocation;F)V",
 		cancellable = true)

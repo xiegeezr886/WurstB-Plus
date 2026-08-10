@@ -58,6 +58,13 @@ public final class ClickGui
 		}
 		addWindow(radarWindow);
 	}
+
+	public void initEmbedded()
+	{
+		windows.clear();
+		popups.clear();
+		updateColors();
+	}
 	
 	public void handleMouseClick(int mouseX, int mouseY, int mouseButton)
 	{

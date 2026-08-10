@@ -46,4 +46,4 @@ WurstB+ Plus 首次适配 Minecraft 26.1.2 (Forge 64.1.0)
 ## 构建信息
 - 构建系统：ForgeGradle 7.x / Gradle 9.4.1
 - 映射：Mojang 官方映射
-- 产物：`versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2-all.jar`
+- 产物：`versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2.jar`

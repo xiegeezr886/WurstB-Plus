@@ -11,8 +11,10 @@ package net.wurstclient.hacks;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.util.ReachPolicy;
 
 @SearchTags({"range"})
 public final class ReachHack extends Hack
@@ -24,6 +26,11 @@ public final class ReachHack extends Hack
 	private final SliderSetting blockRange = new SliderSetting("Block range",
 		"Maximum range for selecting and interacting with blocks.", 5, 1, 15,
 		0.05, ValueDisplay.DECIMAL);
+	private final CheckboxSetting onlyWhileSprinting = new CheckboxSetting(
+		"Only while sprinting", "Only extends entity range while sprinting.",
+		false);
+	private final CheckboxSetting disableInFluid = new CheckboxSetting(
+		"Disable in fluids", "Uses vanilla entity range in water or lava.", true);
 	
 	public ReachHack()
 	{
@@ -31,6 +38,8 @@ public final class ReachHack extends Hack
 		setCategory(Category.OTHER);
 		addSetting(entityRange);
 		addSetting(blockRange);
+		addSetting(onlyWhileSprinting);
+		addSetting(disableInFluid);
 	}
 	
 	public float getReachDistance()
@@ -40,7 +49,12 @@ public final class ReachHack extends Hack
 
 	public float getEntityRange()
 	{
-		return entityRange.getValueF();
+		boolean playerAvailable = MC.player != null;
+		boolean inFluid = playerAvailable && (MC.player.isInWaterOrBubble()
+			|| MC.player.isInLava());
+		return ReachPolicy.resolveEntityRange(entityRange.getValueF(), 3,
+			playerAvailable, playerAvailable && MC.player.isSprinting(),
+			onlyWhileSprinting.isChecked(), inFluid, disableInFluid.isChecked());
 	}
 
 	public float getBlockRange()

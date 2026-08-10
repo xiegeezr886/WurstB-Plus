@@ -72,7 +72,10 @@ import net.wurstclient.util.CombatAimPointPlanner;
 import net.wurstclient.util.CombatAimPointPlanner.AimPoint;
 import net.wurstclient.util.CombatActionPolicy;
 import net.wurstclient.util.CombatClickScheduler;
+import net.wurstclient.util.CombatIntentQueue;
+import net.wurstclient.util.CombatRotationController;
 import net.wurstclient.util.CombatTargetUtils;
+import net.wurstclient.util.CombatTargetSession;
 import net.wurstclient.util.MultiTargetAttackPlanner;
 import net.wurstclient.util.Rotation;
 import net.wurstclient.util.RotationQueue;
@@ -240,13 +243,14 @@ public final class MultiAuraHack extends Hack
 	private final EntityFilterList entityFilters = EntityFilterList.genericCombat();
 	private final CombatClickScheduler clickScheduler =
 		new CombatClickScheduler();
+	private final CombatTargetSession<Entity> targetSession =
+		new CombatTargetSession<>();
+	private final CombatIntentQueue<Entity> intentQueue =
+		new CombatIntentQueue<>();
+	private final CombatRotationController rotationController =
+		new CombatRotationController(RotationQueue.Priority.COMBAT);
 	private final Random random = new Random();
 	private List<Entity> targets = List.of();
-	private Entity currentTarget;
-	private Entity pendingPrimary;
-	private Rotation plannedRotation;
-	private RotationQueue rotationQueue;
-	private boolean pendingFailSwing;
 	private boolean blockVisual;
 	private InteractionHand blockingHand;
 	private float rolledRange = -1;
@@ -327,8 +331,7 @@ public final class MultiAuraHack extends Hack
 		clickScheduler.reset(minCps.getValueI(), maxCps.getValueI(),
 			clickPattern.getSelected(), minimumCooldown.getValueF(),
 			maximumCooldown.getValueF(), System.currentTimeMillis());
-		rotationQueue = new RotationQueue(RotationQueue.Priority.COMBAT);
-		rotationQueue.start();
+		rotationController.start();
 		EVENTS.add(UpdateListener.class, this);
 		EVENTS.add(HandleInputListener.class, this);
 		EVENTS.add(RenderListener.class, this);
@@ -341,11 +344,7 @@ public final class MultiAuraHack extends Hack
 		EVENTS.remove(HandleInputListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
 		stopBlocking(true);
-		if(rotationQueue != null)
-		{
-			rotationQueue.stop();
-			rotationQueue = null;
-		}
+		rotationController.stop();
 		clearTargets();
 	}
 
@@ -354,8 +353,7 @@ public final class MultiAuraHack extends Hack
 	{
 		configureClicker();
 		clickScheduler.advanceTick();
-		pendingPrimary = null;
-		pendingFailSwing = false;
+		intentQueue.beginTick();
 		if(shouldCancel())
 		{
 			stopBlocking(false);
@@ -368,13 +366,19 @@ public final class MultiAuraHack extends Hack
 		if(autoBlock.getSelected() == AutoBlockMode.OFF)
 			blockVisual = false;
 
-		currentTarget = selectPrimaryTarget();
+		CombatTargetSession.Selection<Entity> selection =
+			targetSession.track(selectPrimaryTarget());
+		Entity currentTarget = selection.current();
+		if(selection.changed())
+		{
+			clickScheduler.resetTiming(System.currentTimeMillis());
+			rotationController.resetAcceleration();
+		}
 		if(currentTarget == null)
 		{
 			targets = List.of();
-			plannedRotation = null;
+			rotationController.clear();
 			blockVisual = false;
-			rotationQueue.clear();
 			stopBlocking(false);
 			return;
 		}
@@ -393,9 +397,9 @@ public final class MultiAuraHack extends Hack
 		boolean hittable = attackPlan != null
 			&& isLookingAtPrimary(currentTarget, rotationForAttack(attackPlan));
 		if(isClickTick() && hittable)
-			pendingPrimary = currentTarget;
+			intentQueue.scheduleAttack(currentTarget);
 		else if(isClickTick() && failSwing.isChecked())
-			pendingFailSwing = true;
+			intentQueue.scheduleMiss();
 		else
 			startBlocking(currentTarget);
 	}
@@ -403,15 +407,12 @@ public final class MultiAuraHack extends Hack
 	@Override
 	public void onHandleInput()
 	{
-		Entity primary = pendingPrimary;
-		boolean fakeSwing = pendingFailSwing;
-		pendingPrimary = null;
-		pendingFailSwing = false;
+		CombatIntentQueue.Intent<Entity> intent = intentQueue.consume();
 		if(shouldCancel())
 			return;
-		if(primary != null)
-			performClickCycles(primary);
-		else if(fakeSwing)
+		if(intent.kind() == CombatIntentQueue.Kind.ATTACK)
+			performClickCycles(intent.target());
+		else if(intent.kind() == CombatIntentQueue.Kind.MISS)
 			performFailSwing();
 	}
 
@@ -442,7 +443,7 @@ public final class MultiAuraHack extends Hack
 					&& isValidScanTarget(raycastTarget))
 				{
 					primary = raycastTarget;
-					currentTarget = raycastTarget;
+					targetSession.track(raycastTarget);
 					refreshed = createPlan(primary, rolledRangeFor());
 					if(refreshed == null)
 						continue;
@@ -710,6 +711,7 @@ public final class MultiAuraHack extends Hack
 
 	private boolean predictExitingRange(double ticks)
 	{
+		Entity currentTarget = targetSession.getTarget();
 		if(currentTarget == null)
 			return false;
 		Vec3 futureEyes = RotationUtils.getEyesPos().add(
@@ -729,12 +731,11 @@ public final class MultiAuraHack extends Hack
 		RotationMode mode = rotationMode.getSelected();
 		if(mode == RotationMode.NONE)
 		{
-			plannedRotation = null;
-			rotationQueue.clear();
+			rotationController.clear();
 			return;
 		}
-		Rotation start = plannedRotation != null ? plannedRotation
-			: currentServerRotation();
+		Rotation start = rotationController.getPlanned() != null
+			? rotationController.getPlanned() : currentServerRotation();
 		Rotation needed = RotationUtils.getNeededRotations(point);
 		float maxChange = 180 - rotationSmooth.getValueF() * 175;
 		int ticks = Math.max(1,
@@ -745,20 +746,19 @@ public final class MultiAuraHack extends Hack
 			return;
 		if(rotationTiming.getSelected() == RotationTiming.ON_TICK && ticks <= 1)
 		{
-			plannedRotation = needed;
-			rotationQueue.clear();
+			rotationController.planExact(start, needed);
+			rotationController.clearRequest();
 			return;
 		}
-		plannedRotation = RotationSmoothing.smooth(start, needed, maxChange,
-			rotationCurve.getSelected());
+		rotationController.plan(start, needed, maxChange,
+			Math.max(1, maxChange * 0.35F), rotationCurve.getSelected());
 		if(mode == RotationMode.SILENT)
-			rotationQueue.setRotation(plannedRotation);
+			rotationController.requestSilent();
 		else
-		{
-			rotationQueue.clear();
-			MC.player.setYRot(plannedRotation.yaw());
-			MC.player.setXRot(plannedRotation.pitch());
-		}
+			rotationController.applyClient(rotation -> {
+				MC.player.setYRot(rotation.yaw());
+				MC.player.setXRot(rotation.pitch());
+			});
 	}
 
 	private Rotation rotationForAttack(TargetPlan plan)
@@ -983,20 +983,17 @@ public final class MultiAuraHack extends Hack
 	private void clearTargets()
 	{
 		targets = List.of();
-		currentTarget = null;
-		pendingPrimary = null;
-		pendingFailSwing = false;
-		plannedRotation = null;
+		targetSession.clear();
+		intentQueue.clear();
+		rotationController.clear();
 		blockVisual = false;
 		rolledRange = -1;
 		rangeRollCounter = 0;
-		if(rotationQueue != null)
-			rotationQueue.clear();
 	}
 
 	public Entity getCurrentTarget()
 	{
-		return currentTarget;
+		return targetSession.getTarget();
 	}
 
 	@Override
@@ -1006,7 +1003,7 @@ public final class MultiAuraHack extends Hack
 			return;
 		AuraRangeRenderer.render(poseStack, MC.player, partialTicks,
 			getMaximumRange(), WURST.getGui().getTheme().accent(1),
-			currentTarget != null);
+			targetSession.getTarget() != null);
 	}
 
 	private record TargetPlan(Entity entity, AimPoint aimPoint)

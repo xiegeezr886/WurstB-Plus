@@ -5,7 +5,7 @@
 - Target: Minecraft 26.1.2 / NeoForge 26.1.2.87 / Java 25.
 - Build system: ModDevGradle 2.0.143 with Gradle 9.4.1.
 - `clean build` succeeds.
-- Release jar: `build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2-all.jar`.
+- Release jar: `build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar`.
 
 ## Ported Systems
 

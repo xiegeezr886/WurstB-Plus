@@ -1,5 +1,6 @@
 package net.wurstclient.clickgui2;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -38,12 +39,15 @@ public enum GuiIcon
 
 	public void draw(GuiGraphics graphics, int x, int y, int size, int color)
 	{
-		graphics.setColor((color >> 16 & 0xFF) / 255F,
-			(color >> 8 & 0xFF) / 255F, (color & 0xFF) / 255F,
-			(color >>> 24) / 255F);
+		float[] previousColor = RenderSystem.getShaderColor().clone();
+		graphics.setColor((color >> 16 & 0xFF) / 255F * previousColor[0],
+			(color >> 8 & 0xFF) / 255F * previousColor[1],
+			(color & 0xFF) / 255F * previousColor[2],
+			(color >>> 24) / 255F * previousColor[3]);
 		graphics.blit(texture, x, y, size, size, 0, 0, TEXTURE_SIZE,
 			TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
-		graphics.setColor(1, 1, 1, 1);
+		graphics.setColor(previousColor[0], previousColor[1], previousColor[2],
+			previousColor[3]);
 	}
 
 	public void drawRotated(GuiGraphics graphics, int x, int y, int size,

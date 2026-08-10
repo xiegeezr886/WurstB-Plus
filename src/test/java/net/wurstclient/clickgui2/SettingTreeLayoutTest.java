@@ -27,4 +27,25 @@ final class SettingTreeLayoutTest
 		childVisible.set(false);
 		assertEquals(List.of(root), SettingTreeLayout.flatten(roots));
 	}
+
+	@Test
+	void hidesDescendantsOfCollapsedOrHiddenParents()
+	{
+		AtomicBoolean rootVisible = new AtomicBoolean(true);
+		CheckboxSetting grandchild = new CheckboxSetting("Grandchild", true);
+		CheckboxSetting child = new CheckboxSetting("Child", true)
+			.withChildren(grandchild);
+		CheckboxSetting root = new CheckboxSetting("Root", true)
+			.visibleWhen(rootVisible::get).withChildren(child);
+		root.setExpanded(true);
+		child.setExpanded(true);
+
+		assertEquals(List.of(root, child, grandchild),
+			SettingTreeLayout.flatten(List.of(root)));
+		child.setExpanded(false);
+		assertEquals(List.of(root, child),
+			SettingTreeLayout.flatten(List.of(root)));
+		rootVisible.set(false);
+		assertEquals(List.of(), SettingTreeLayout.flatten(List.of(root)));
+	}
 }

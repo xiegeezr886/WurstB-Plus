@@ -15,8 +15,10 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
-import net.wurstclient.clickgui2.ClickGuiScreen;
+import net.wurstclient.clickgui2.ClickGuiScreens;
 import net.wurstclient.clickgui2.NavigatorScreen;
+import net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen;
+import net.wurstclient.clickgui2.component.VapeClickGuiScreen;
 import net.wurstclient.hud2.HudEditorScreen;
 
 public enum ScreenRegistry
@@ -34,8 +36,8 @@ public enum ScreenRegistry
 	INVENTORY(EffectRenderingInventoryScreen.class),
 	CHAT(ChatScreen.class),
 	DEATH(DeathScreen.class),
-	CLICK_GUI(ClickGuiScreen.class,
-		(client, parent) -> new ClickGuiScreen()),
+	CLICK_GUI(SuperSoftClickGuiScreen.class,
+		(client, parent) -> ClickGuiScreens.create(parent)),
 	NAVIGATOR(NavigatorScreen.class,
 		(client, parent) -> new NavigatorScreen()),
 	HUD_EDITOR(HudEditorScreen.class,
@@ -58,11 +60,17 @@ public enum ScreenRegistry
 
 	public boolean matches(Screen screen)
 	{
+		if(this == CLICK_GUI)
+			return screen instanceof SuperSoftClickGuiScreen
+				|| screen instanceof VapeClickGuiScreen;
 		return screen != null && screenType.isInstance(screen);
 	}
 
 	public boolean matchesType(Class<? extends Screen> type)
 	{
+		if(this == CLICK_GUI)
+			return SuperSoftClickGuiScreen.class.isAssignableFrom(type)
+				|| VapeClickGuiScreen.class.isAssignableFrom(type);
 		return screenType.isAssignableFrom(Objects.requireNonNull(type));
 	}
 

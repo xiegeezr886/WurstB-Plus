@@ -31,13 +31,14 @@ import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.settings.filterlists.EntityFilterList;
 import net.wurstclient.settings.filters.*;
+import net.wurstclient.util.CombatTargetSession;
 import net.wurstclient.util.CombatTargetUtils;
 import net.wurstclient.util.CombatTargetUtils.Priority;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.Rotation;
+import net.wurstclient.util.RotationSmoothing;
 import net.wurstclient.util.RotationUtils;
-import net.wurstclient.util.TargetTracker;
 
 public final class KillauraLegitHack extends Hack implements UpdateListener,
 	HandleInputListener, MouseUpdateListener, RenderListener
@@ -137,10 +138,11 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 			FilterArmorStandsSetting.genericCombat(false),
 			FilterCrystalsSetting.genericCombat(false));
 	
-	private Entity target;
 	private float nextYaw;
 	private float nextPitch;
-	private final TargetTracker<Entity> targetTracker = new TargetTracker<>();
+	private Rotation rotationDelta = new Rotation(0, 0);
+	private final CombatTargetSession<Entity> targetSession =
+		new CombatTargetSession<>();
 	
 	public KillauraLegitHack()
 	{
@@ -183,8 +185,7 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 		EVENTS.remove(HandleInputListener.class, this);
 		EVENTS.remove(MouseUpdateListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
-		target = null;
-		targetTracker.reset();
+		clearTarget();
 	}
 	
 	@Override
@@ -192,40 +193,48 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 	{
 		if(MC.player == null || MC.gameMode == null)
 		{
-			target = null;
-			targetTracker.reset();
+			clearTarget();
 			return;
 		}
 
 		// don't attack when a container/inventory screen is open
 		if(MC.screen instanceof AbstractContainerScreen)
 		{
-			target = null;
-			targetTracker.reset();
+			clearTarget();
 			return;
 		}
 		if(!attackWhileUsing.isChecked() && MC.player.isUsingItem())
 		{
-			target = null;
+			clearTarget();
 			return;
 		}
 		if(pauseWhileMining.isChecked() && MC.gameMode.isDestroying())
 		{
-			target = null;
+			clearTarget();
 			return;
 		}
 
-		targetTracker.tick();
+		targetSession.tick();
 		Entity candidate = CombatTargetUtils.get(range.getValue(), fov.getValue(),
 			entity -> entity.getBoundingBox().getCenter(), entityFilters,
 			checkLOS.isChecked(), priority.getSelected());
-		target = targetTracker.update(candidate, this::isValidTarget,
+		CombatTargetSession.Selection<Entity> selection = targetSession.update(
+			candidate, this::isValidTarget,
 			entity -> CombatTargetUtils.getScore(entity, priority.getSelected(),
 				value -> value.getBoundingBox().getCenter()),
 			stickyTarget.isChecked(), switchDelay.getValueI(),
 			switchAdvantage.getValue());
+		Entity target = selection.current();
 		if(target == null)
+		{
+			rotationDelta = new Rotation(0, 0);
 			return;
+		}
+		if(selection.changed())
+		{
+			rotationDelta = new Rotation(0, 0);
+			speed.resetTimer(speedRandMS.getValue());
+		}
 		
 		// face entity
 		WURST.getHax().autoSwordHack.setSlot(target);
@@ -242,6 +251,7 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 	@Override
 	public void onHandleInput()
 	{
+		Entity target = targetSession.getTarget();
 		if(target == null || MC.player == null || MC.gameMode == null
 			|| MC.screen instanceof AbstractContainerScreen
 			|| !attackWhileUsing.isChecked() && MC.player.isUsingItem()
@@ -270,10 +280,15 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 		Rotation needed = RotationUtils.getNeededRotations(box.getCenter());
 		
 		// turn towards center of boundingBox
-		Rotation next = RotationUtils.slowlyTurnTowards(needed,
-			rotationSpeed.getValueI() / 20F);
-		nextYaw = next.yaw();
-		nextPitch = next.pitch();
+		Rotation current =
+			new Rotation(MC.player.getYRot(), MC.player.getXRot());
+		float maxChange = rotationSpeed.getValueI() / 20F;
+		RotationSmoothing.Step step = RotationSmoothing.smoothWithAcceleration(
+			current, needed, rotationDelta, maxChange,
+			Math.max(1, maxChange * 0.35F), RotationSmoothing.LINEAR);
+		rotationDelta = step.delta();
+		nextYaw = step.rotation().yaw();
+		nextPitch = step.rotation().pitch();
 		
 		// check if facing center
 		if(RotationUtils.isAlreadyFacing(needed))
@@ -282,10 +297,17 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 		// if not facing center, check if facing anything in boundingBox
 		return RotationUtils.isFacingBox(box, range.getValue());
 	}
+
+	private void clearTarget()
+	{
+		rotationDelta = new Rotation(0, 0);
+		targetSession.clear();
+	}
 	
 	@Override
 	public void onMouseUpdate(MouseUpdateEvent event)
 	{
+		Entity target = targetSession.getTarget();
 		if(target == null || MC.player == null)
 			return;
 		
@@ -301,6 +323,7 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
+		Entity target = targetSession.getTarget();
 		if(target == null || !damageIndicator.isChecked())
 			return;
 		

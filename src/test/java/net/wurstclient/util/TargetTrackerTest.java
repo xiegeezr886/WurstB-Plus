@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 final class TargetTrackerTest
@@ -44,5 +45,55 @@ final class TargetTrackerTest
 
 		assertNull(tracker.update("invalid", "valid"::equals,
 			value -> 0, false, 2, 0));
+	}
+
+	@Test
+	void ignoresInvalidCandidateWhileCurrentTargetIsValid()
+	{
+		TargetTracker<String> tracker = new TargetTracker<>();
+		tracker.update("current", "current"::equals, value -> 1, false, 0, 0);
+
+		assertEquals("current", tracker.update("invalid", "current"::equals,
+			value -> {
+				throw new AssertionError("invalid candidate must not be scored");
+			}, false, 0, 0));
+	}
+
+	@Test
+	void replacesTargetWithInvalidScoreButRejectsInvalidCandidateScore()
+	{
+		TargetTracker<String> tracker = new TargetTracker<>();
+		tracker.update("current", value -> true, value -> 0, false, 0, 0);
+
+		assertEquals("candidate", tracker.update("candidate", value -> true,
+			value -> value.equals("current") ? Double.NaN : 1, false, 0, 0));
+		assertEquals("candidate", tracker.update("other", value -> true,
+			value -> value.equals("other") ? Double.POSITIVE_INFINITY : 1,
+			false, 0, 0));
+	}
+
+	@Test
+	void validatesEachDistinctTargetAtMostOncePerUpdate()
+	{
+		TargetTracker<String> tracker = new TargetTracker<>();
+		tracker.update("current", value -> true, value -> 10, false, 0, 0);
+		AtomicInteger calls = new AtomicInteger();
+
+		tracker.update("candidate", value -> {
+			calls.incrementAndGet();
+			return true;
+		}, value -> value.equals("current") ? 10 : 5, false, 0, 0);
+		assertEquals(2, calls.get());
+	}
+
+	@Test
+	void sanitizesNonFiniteSwitchAdvantage()
+	{
+		TargetTracker<String> tracker = new TargetTracker<>();
+		tracker.update("current", value -> true, value -> 10, false, 0, 0);
+
+		assertEquals("candidate", tracker.update("candidate", value -> true,
+			value -> value.equals("current") ? 10 : 9.9, false, 0,
+			Double.NaN));
 	}
 }

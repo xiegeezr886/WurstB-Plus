@@ -48,6 +48,27 @@ public enum VelocityPlanner
 		return velocity.x == 0 && velocity.z == 0 && velocity.y < 0;
 	}
 
+	public static JumpResetDecision evaluateJumpReset(int ticksRemaining,
+		int age, int maximumAge, boolean onGround, boolean moving,
+		boolean requireMoving, boolean sprinting, boolean requireSprint)
+	{
+		if(ticksRemaining < 0)
+			return JumpResetDecision.NONE;
+		if(age > Math.max(0, maximumAge) || !onGround
+			|| requireMoving && !moving || requireSprint && !sprinting)
+			return JumpResetDecision.CANCEL;
+		return ticksRemaining == 0 ? JumpResetDecision.JUMP
+			: JumpResetDecision.WAIT;
+	}
+
+	public enum JumpResetDecision
+	{
+		NONE,
+		WAIT,
+		JUMP,
+		CANCEL
+	}
+
 	public enum Trigger
 	{
 		ALWAYS("Always"),

@@ -12,6 +12,7 @@
 package net.wurstclient.util;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 import java.util.function.IntPredicate;
 
@@ -46,11 +47,9 @@ public final class CombatClickScheduler
 	public void reset(int minimumCps, int maximumCps, ClickPattern pattern,
 		float minimumCooldown, float maximumCooldown, long nowMillis)
 	{
-		configure(minimumCps, maximumCps, pattern, minimumCooldown,
+		applyConfiguration(minimumCps, maximumCps, pattern, minimumCooldown,
 			maximumCooldown);
-		lastClickTime = nowMillis;
-		ticksSinceLastClick = 0;
-		clickAmount = null;
+		resetTiming(nowMillis);
 		newCooldown();
 		fill();
 	}
@@ -58,29 +57,44 @@ public final class CombatClickScheduler
 	public void configure(int minimumCps, int maximumCps,
 		ClickPattern pattern, float minimumCooldown, float maximumCooldown)
 	{
+		if(applyConfiguration(minimumCps, maximumCps, pattern,
+			minimumCooldown, maximumCooldown))
+			fill();
+	}
+
+	private boolean applyConfiguration(int minimumCps, int maximumCps,
+		ClickPattern pattern, float minimumCooldown, float maximumCooldown)
+	{
 		int newMinimumCps = Math.max(1,
 			Math.min(minimumCps, maximumCps));
 		int newMaximumCps = Math.max(newMinimumCps,
 			Math.max(minimumCps, maximumCps));
-		float newMinimumCooldown = Math.max(0,
-			Math.min(minimumCooldown, maximumCooldown));
+		float firstCooldown = sanitizeCooldown(minimumCooldown);
+		float secondCooldown = sanitizeCooldown(maximumCooldown);
+		float newMinimumCooldown = Math.min(firstCooldown, secondCooldown);
 		float newMaximumCooldown = Math.max(newMinimumCooldown,
-			Math.max(minimumCooldown, maximumCooldown));
+			Math.max(firstCooldown, secondCooldown));
+		ClickPattern newPattern = Objects.requireNonNull(pattern, "pattern");
 		boolean refill = this.minimumCps != newMinimumCps
-			|| this.maximumCps != newMaximumCps || this.pattern != pattern;
+			|| this.maximumCps != newMaximumCps || this.pattern != newPattern;
 
 		this.minimumCps = newMinimumCps;
 		this.maximumCps = newMaximumCps;
 		this.minimumCooldown = newMinimumCooldown;
 		this.maximumCooldown = newMaximumCooldown;
-		this.pattern = pattern;
-		if(refill)
-			fill();
+		this.pattern = newPattern;
+		return refill;
+	}
+
+	private float sanitizeCooldown(float cooldown)
+	{
+		return Float.isFinite(cooldown) ? Math.max(0, cooldown) : 0;
 	}
 
 	public void advanceTick()
 	{
-		ticksSinceLastClick++;
+		if(ticksSinceLastClick < Integer.MAX_VALUE)
+			ticksSinceLastClick++;
 		clickAmount = null;
 		if(clickArray.advance())
 		{
@@ -98,10 +112,22 @@ public final class CombatClickScheduler
 	public int getClickAmount(IntPredicate cooldownPassed, long nowMillis,
 		int tick)
 	{
+		if(tick < 0)
+			throw new IllegalArgumentException("tick must not be negative");
+		Objects.requireNonNull(cooldownPassed, "cooldownPassed");
 		if(cooldownPassed.test(tick)
-			|| nowMillis - lastClickTime + tick * 50L >= 1000L)
+			|| elapsedMillis(nowMillis, tick) >= 1000L)
 			return 1;
 		return clickArray.get(tick);
+	}
+
+	private long elapsedMillis(long nowMillis, int tick)
+	{
+		long elapsed = nowMillis >= lastClickTime
+			? nowMillis - lastClickTime : 0;
+		long prediction = tick * 50L;
+		return elapsed > Long.MAX_VALUE - prediction ? Long.MAX_VALUE
+			: elapsed + prediction;
 	}
 
 	public boolean willClickAt(IntPredicate cooldownPassed, long nowMillis,
@@ -112,10 +138,11 @@ public final class CombatClickScheduler
 
 	public int getTicksUntilClick(IntPredicate cooldownPassed, long nowMillis)
 	{
-		for(int i = 0; i < clickArray.getIterations(); i++)
+		Objects.requireNonNull(cooldownPassed, "cooldownPassed");
+		for(int i = 0; i < clickArray.length(); i++)
 			if(willClickAt(cooldownPassed, nowMillis, i))
 				return i;
-		return clickArray.getIterations();
+		return clickArray.length();
 	}
 
 	public boolean isCooldownPassed(float cooldownProgress)
@@ -126,6 +153,13 @@ public final class CombatClickScheduler
 	public void beginClickTick()
 	{
 		clickAmount = 0;
+	}
+
+	public void resetTiming(long nowMillis)
+	{
+		lastClickTime = nowMillis;
+		ticksSinceLastClick = 0;
+		clickAmount = null;
 	}
 
 	public void recordSuccessfulClick(long nowMillis)

@@ -12,6 +12,7 @@
 package net.wurstclient.util;
 
 import java.util.Random;
+import java.util.Objects;
 
 public enum ClickPattern
 {
@@ -21,21 +22,10 @@ public enum ClickPattern
 		public void fill(int[] clicks, int minimumCps, int maximumCps,
 			Random random)
 		{
+			if(!canFill(clicks, random))
+				return;
 			int amount = randomCps(minimumCps, maximumCps, random);
-			int interval = amount > 0 ? clicks.length / amount : 0;
-			int remainder = amount > 0 ? clicks.length % amount : 0;
-			int currentIndex = 0;
-
-			for(int i = 0; i < amount; i++)
-			{
-				clicks[currentIndex % clicks.length]++;
-				currentIndex += Math.max(interval, 1);
-				if(remainder > 0)
-				{
-					currentIndex++;
-					remainder--;
-				}
-			}
+			fillStabilized(clicks, amount);
 		}
 	},
 	EFFICIENT
@@ -44,10 +34,12 @@ public enum ClickPattern
 		public void fill(int[] clicks, int minimumCps, int maximumCps,
 			Random random)
 		{
+			if(!canFill(clicks, random))
+				return;
 			int amount = randomCps(minimumCps, maximumCps, random);
 			if(amount < 10)
 			{
-				STABILIZED.fill(clicks, minimumCps, maximumCps, random);
+				fillStabilized(clicks, amount);
 				return;
 			}
 
@@ -61,6 +53,8 @@ public enum ClickPattern
 		public void fill(int[] clicks, int minimumCps, int maximumCps,
 			Random random)
 		{
+			if(!canFill(clicks, random))
+				return;
 			int amount = randomCps(minimumCps, maximumCps, random);
 			for(int i = 0; i < amount; i++)
 				clicks[random.nextInt(clicks.length)]++;
@@ -72,6 +66,8 @@ public enum ClickPattern
 		public void fill(int[] clicks, int minimumCps, int maximumCps,
 			Random random)
 		{
+			if(!canFill(clicks, random))
+				return;
 			int amount = randomCps(minimumCps, maximumCps, random);
 			for(int i = 0; i < amount; i++)
 				clicks[random.nextInt(clicks.length)] += 2;
@@ -83,8 +79,10 @@ public enum ClickPattern
 		public void fill(int[] clicks, int minimumCps, int maximumCps,
 			Random random)
 		{
+			if(!canFill(clicks, random))
+				return;
 			int amount = randomCps(minimumCps, maximumCps, random);
-			int travelTime = random.nextInt(17, 19);
+			int travelTime = Math.min(clicks.length, random.nextInt(17, 19));
 			while(sum(clicks) < amount)
 			{
 				int lowestIndex = 0;
@@ -101,6 +99,8 @@ public enum ClickPattern
 		public void fill(int[] clicks, int minimumCps, int maximumCps,
 			Random random)
 		{
+			if(!canFill(clicks, random))
+				return;
 			int amount = randomCps(minimumCps, maximumCps, random);
 			while(sum(clicks) < amount)
 			{
@@ -119,7 +119,8 @@ public enum ClickPattern
 				for(int i = 0; i < clicks.length; i++)
 					if(clicks[i] == 0 && selectedZero-- == 0)
 					{
-						clicks[i] = random.nextInt(1, 3);
+						clicks[i] = Math.min(random.nextInt(1, 3),
+							amount - sum(clicks));
 						break;
 					}
 			}
@@ -131,26 +132,27 @@ public enum ClickPattern
 		public void fill(int[] clicks, int minimumCps, int maximumCps,
 			Random random)
 		{
-			double time = 0;
-			while(true)
-			{
-				double value = random.nextDouble();
-				double mean;
-				double deviation;
-				if(value >= 10.0 / 110.0)
-				{
-					mean = 179.5242718446602;
-					deviation = 20.416937885616676;
-				}else
-				{
-					mean = 87.88;
-					deviation = 13.420088130563776;
-				}
+			if(!canFill(clicks, random))
+				return;
+			int amount = randomCps(minimumCps, maximumCps, random);
+			if(amount <= 0)
+				return;
 
-				time += (mean + random.nextGaussian() * deviation) * 20 / 1000;
-				if(time > 20)
-					break;
-				clicks[(int)time]++;
+			double[] intervals = new double[amount];
+			double total = 0;
+			for(int i = 0; i < amount; i++)
+			{
+				intervals[i] = Math.max(0.1, 1 + random.nextGaussian() * 0.2);
+				total += intervals[i];
+			}
+
+			double time = random.nextDouble() * total / amount;
+			for(double interval : intervals)
+			{
+				int index = Math.min(clicks.length - 1,
+					(int)(time / total * clicks.length));
+				clicks[index]++;
+				time += interval;
 			}
 		}
 	};
@@ -161,10 +163,35 @@ public enum ClickPattern
 	private static int randomCps(int minimumCps, int maximumCps,
 		Random random)
 	{
-		int minimum = Math.min(minimumCps, maximumCps);
-		int maximum = Math.max(minimumCps, maximumCps);
+		int minimum = Math.max(0, Math.min(minimumCps, maximumCps));
+		int maximum = Math.max(minimum,
+			Math.max(minimumCps, maximumCps));
 		return minimum == maximum ? minimum
-			: random.nextInt(minimum, maximum + 1);
+			: (int)random.nextLong(minimum, (long)maximum + 1);
+	}
+
+	private static boolean canFill(int[] clicks, Random random)
+	{
+		Objects.requireNonNull(clicks, "clicks");
+		Objects.requireNonNull(random, "random");
+		return clicks.length > 0;
+	}
+
+	private static void fillStabilized(int[] clicks, int amount)
+	{
+		int interval = amount > 0 ? clicks.length / amount : 0;
+		int remainder = amount > 0 ? clicks.length % amount : 0;
+		int currentIndex = 0;
+		for(int i = 0; i < amount; i++)
+		{
+			clicks[currentIndex % clicks.length]++;
+			currentIndex += Math.max(interval, 1);
+			if(remainder > 0)
+			{
+				currentIndex++;
+				remainder--;
+			}
+		}
 	}
 
 	private static int sum(int[] clicks)

@@ -22,12 +22,14 @@ import net.wurstclient.events.PreMotionListener;
  */
 public final class RotationQueue
 {
+	private static final int DIRECT_REQUEST_LEASE_TICKS = 1;
 	private static final Minecraft MC = WurstClient.MC;
 	private static final Object LOCK = new Object();
 	private static final Set<RotationQueue> ACTIVE = new LinkedHashSet<>();
 	private static final RotationDispatcher DISPATCHER = new RotationDispatcher();
 	private static boolean dispatcherRegistered;
 	private static long requestSequence;
+	private static long dispatchTick;
 
 	private final Queue<RotationTarget> targets = new ArrayDeque<>();
 	private RotationTarget current;
@@ -37,6 +39,7 @@ public final class RotationQueue
 	private Rotation nextRotation;
 	private boolean registered;
 	private long requestOrder;
+	private long directRequestTick = -1;
 	private Priority priority;
 
 	public RotationQueue()
@@ -64,6 +67,7 @@ public final class RotationQueue
 		synchronized(LOCK)
 		{
 			nextRotation = target;
+			directRequestTick = dispatchTick;
 			requestOrder = ++requestSequence;
 			start();
 		}
@@ -136,6 +140,7 @@ public final class RotationQueue
 			step = 0;
 			lastSent = null;
 			nextRotation = null;
+			directRequestTick = -1;
 			requestOrder = 0;
 		}
 	}
@@ -144,7 +149,7 @@ public final class RotationQueue
 	{
 		synchronized(LOCK)
 		{
-			return !hasWork();
+			return !hasDispatchableWork();
 		}
 	}
 
@@ -161,6 +166,17 @@ public final class RotationQueue
 		return current != null || !targets.isEmpty() || nextRotation != null;
 	}
 
+	private boolean hasDispatchableWork()
+	{
+		if(nextRotation != null && !RotationRequestPolicy.isFresh(
+			directRequestTick, dispatchTick, DIRECT_REQUEST_LEASE_TICKS))
+		{
+			nextRotation = null;
+			directRequestTick = -1;
+		}
+		return hasWork();
+	}
+
 	private Rotation pollRotation()
 	{
 		if(MC.player == null)
@@ -170,6 +186,7 @@ public final class RotationQueue
 			Rotation result = nextRotation;
 			lastSent = result;
 			nextRotation = null;
+			directRequestTick = -1;
 			return result;
 		}
 
@@ -212,7 +229,9 @@ public final class RotationQueue
 			Rotation next;
 			synchronized(LOCK)
 			{
-				RotationQueue owner = ACTIVE.stream().filter(RotationQueue::hasWork)
+				dispatchTick++;
+				RotationQueue owner = ACTIVE.stream()
+					.filter(RotationQueue::hasDispatchableWork)
 					.max((left, right) -> {
 						int priorityComparison = Integer.compare(
 							left.priority.weight, right.priority.weight);

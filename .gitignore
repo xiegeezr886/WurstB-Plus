@@ -41,3 +41,7 @@ GameRenderer_bytecode.txt
 .test/
 baritone-maven/
 fabric/baritone-maven/
+
+# Stale porting artifacts and baritone tool workspaces
+_porting_stale/
+_tools/

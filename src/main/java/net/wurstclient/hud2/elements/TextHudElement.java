@@ -4,6 +4,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hud2.HudElement;
+import net.wurstclient.gui.visual.VisualTheme;
 
 public abstract class TextHudElement extends HudElement
 {
@@ -13,6 +14,12 @@ public abstract class TextHudElement extends HudElement
 	}
 
 	protected abstract String getText();
+
+	@Override
+	public boolean renderEditorPreview()
+	{
+		return true;
+	}
 
 	@Override
 	public int getWidth()
@@ -32,7 +39,7 @@ public abstract class TextHudElement extends HudElement
 		Font font = WurstClient.MC.font;
 		String text = getText();
 		graphics.fill(x, y, x + font.width(text) + 4, y + font.lineHeight + 2,
-			0x80000000);
-		graphics.drawString(font, text, x + 2, y + 1, 0xFFFFFFFF, false);
+			VisualTheme.SURFACE_50);
+		graphics.drawString(font, text, x + 2, y + 1, VisualTheme.TEXT, false);
 	}
 }

@@ -1,6 +1,7 @@
 package net.wurstclient.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.world.phys.Vec3;
@@ -52,5 +53,40 @@ final class MovementPlannerTest
 		assertEquals(0, clamped.x, 1.0E-9);
 		assertEquals(-0.3, clamped.y, 1.0E-9);
 		assertEquals(0, clamped.z, 1.0E-9);
+	}
+
+	@Test
+	void preservesExternalHorizontalImpulse()
+	{
+		Vec3 current = new Vec3(1.2, 0.1, -0.4);
+		Vec3 proposed = new Vec3(0.3, 0.42, 0);
+		Vec3 result = MovementPlanner.clampControlledHorizontal(current,
+			proposed, 0.5);
+
+		assertEquals(current.x, result.x, 1.0E-9);
+		assertEquals(current.z, result.z, 1.0E-9);
+		assertEquals(proposed.y, result.y, 1.0E-9);
+	}
+
+	@Test
+	void rejectsNonFiniteControlInput()
+	{
+		assertFalse(MovementPlanner.isMoving(Float.NaN, 1));
+		assertEquals(Vec3.ZERO,
+			MovementPlanner.horizontalMotion(1, 0, Float.NaN, 1));
+
+		Vec3 current = new Vec3(0.2, -0.1, 0);
+		assertEquals(current, MovementPlanner.blendHorizontal(current, 1, 0, 0,
+			1, Double.NaN));
+		Vec3 clamped = MovementPlanner.clampHorizontal(current, Double.NaN);
+		assertEquals(0, clamped.x, 1.0E-9);
+		assertEquals(-0.1, clamped.y, 1.0E-9);
+
+		Vec3 recovered = MovementPlanner.blendHorizontal(
+			new Vec3(Double.NaN, 0.2, Double.POSITIVE_INFINITY), 0, 0, 0, 1,
+			0);
+		assertEquals(new Vec3(0, 0.2, 0), recovered);
+		assertEquals(new Vec3(0, 0.2, 0), MovementPlanner.clampHorizontal(
+			new Vec3(Double.NaN, 0.2, 1), 1));
 	}
 }

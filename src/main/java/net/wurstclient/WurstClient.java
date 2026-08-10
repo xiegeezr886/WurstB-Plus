@@ -51,6 +51,7 @@ import net.wurstclient.update.ProblematicResourcePackDetector;
 import net.wurstclient.update.WurstUpdater;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.render.AsyncTextureLoader;
+import net.wurstclient.music.NeteaseMusicPlayer;
 import net.wurstclient.util.render.PostEffectQueue;
 import net.wurstclient.util.EntitySnapshotManager;
 import net.wurstclient.util.inventory.InventoryActionQueue;
@@ -62,7 +63,7 @@ public enum WurstClient
 	public static Minecraft MC;
 	public static IMinecraftClient IMC;
 	
-	public static final String VERSION = "1.5.0";
+	public static final String VERSION = "1.6.0";
 	public static final String MC_VERSION = "1.20.1";
 	public static final String CLIENT_NAME = "WurstB+ Plus";
 	public static final String MOD_ID = "wurstpenguin";
@@ -206,6 +207,7 @@ public enum WurstClient
 			entitySnapshotManager.stop();
 		if(inventoryActionQueue != null && eventManager != null)
 			inventoryActionQueue.stop();
+		NeteaseMusicPlayer.INSTANCE.shutdown();
 		AsyncTextureLoader.shutdown();
 	}
 	

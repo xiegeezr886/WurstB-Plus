@@ -1,6 +1,6 @@
 # WurstB+ Plus
 
-WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户端项目，提供 1.20.1、1.21.1 和 26.1.2 多版本支持。
+WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目，提供 1.20.1、1.21.1、1.21.11、26.1.2 和 26.2 的 Forge、NeoForge 与 Fabric 版本。
 
 详细文件索引见 [PROJECT_INDEX.md](PROJECT_INDEX.md)。
 
@@ -14,16 +14,24 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft Forge 客户�
 | 1.21.1 | Forge | 52.1.16 | 21 | `versions/1.21.1/` | `versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1.jar` |
 | 1.21.1 | NeoForge | 21.1.244 | 21 | `neoforge/versions/1.21.1/` | `neoforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar` |
 | 1.21.1 | Fabric | Loader 0.16.14 / API 0.115.0 | 21 | `fabric/versions/1.21.1/` | `fabric/versions/1.21.1/build/libs/WurstB+ Plus-1.5.0-Fabric-1.21.1.jar` |
+| 1.21.11 | Forge | 61.2.0 | 21 | `versions/1.21.11/` | `versions/1.21.11/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.11.jar` |
+| 1.21.11 | NeoForge | 21.11.45 | 21 | `neoforge/versions/1.21.11/` | `neoforge/versions/1.21.11/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.11.jar` |
+| 1.21.11 | Fabric | Loader 0.19.3 / API 0.141.6 | 21 | `fabric/versions/1.21.11/` | `fabric/versions/1.21.11/build/libs/WurstB+ Plus-1.5.0-Fabric-1.21.11.jar` |
 | 26.1.2 | Forge | 64.1.0 | 25 | `versions/26.1.2/` | `versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2.jar` |
 | 26.1.2 | NeoForge | 26.1.2.87 | 25 | `neoforge/versions/26.1.2/` | `neoforge/versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar` |
 | 26.1.2 | Fabric | Loader 0.19.3 / API 0.155.2 | 25 | `fabric/versions/26.1.2/` | `fabric/versions/26.1.2/build/libs/WurstB+ Plus-1.5.0-Fabric-26.1.2.jar` |
-> 26.1.2 为最新适配版本，详见 `versions/26.1.2/CHANGELOG.md`。
+| 26.2 | Forge | 65.1.0 | 25 | `versions/26.2/` | `versions/26.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.2.jar` |
+| 26.2 | NeoForge | 26.2.0.53-beta | 25 | `neoforge/versions/26.2/` | `neoforge/versions/26.2/build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.2.jar` |
+| 26.2 | Fabric | Loader 0.19.3 / API 0.156.0 | 25 | `fabric/versions/26.2/` | `fabric/versions/26.2/build/libs/WurstB+ Plus-1.5.0-Fabric-26.2.jar` |
+> 26.2 为最新适配版本。六个 1.21.11/26.2 工程的最终状态见 [PORTING_TASK.md](PORTING_TASK.md)。全平台变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ### Baritone 依赖兼容性
 
 - Forge/NeoForge 1.20.1 使用 `baritone-api-forge-1.20.1`。
 - Forge/NeoForge 1.21.1 使用 `baritone-api-forge-1.21.1`，不能替换为 1.21.2。
+- Forge、NeoForge 和 Fabric 1.21.11 均内嵌 Baritone 1.17.0-1.21.11。
 - Forge、NeoForge 和 Fabric 26.1.2 均内嵌由 `baritone-26.1.zip` 源码构建的 Baritone 1.18.0，并保留其独立加载器元数据、Mixin 配置与 Mixin Connector。
+- Forge、NeoForge 和 Fabric 26.2 均内嵌经过 26.2 渲染 API 兼容补丁的 Baritone 1.18.0-26.2。
 - Fabric 1.20.1 内嵌官方 `baritone-api-fabric-1.10.3`，仅匹配 MC 1.20-1.20.1。
 - Fabric 1.21.1 内嵌 `baritone-api-fabric-1.11.2`，仅匹配 MC 1.21-1.21.1。
 
@@ -35,16 +43,16 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 
 | 项目 | 当前值 |
 | --- | --- |
-| Minecraft | 1.20.1 / 1.21.1 / 26.1.2 |
-| Java | 17 (1.20.1) / 21 (1.21.1) / 25 (26.1.2) |
-| 当前构建插件 | ForgeGradle 6.x / ForgeGradle 7.x / NeoForge ModDevGradle 2.0.143 / Fabric Loom 1.9.2、1.17.17 |
+| Minecraft | 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2 |
+| Java | 17 (1.20.1) / 21 (1.21.1、1.21.11) / 25 (26.1.2、26.2) |
+| 当前构建插件 | ForgeGradle 6.x / ForgeGradle 7.x / NeoForge ModDevGradle 2.0.143 / Fabric Loom 1.9.2、1.17.17、1.17.19 |
 | 当前映射 | Mojang 官方映射 |
-| 当前加载器 | Forge 47.4.10、52.1.16、64.1.0 / NeoForge 47.1.3、21.1.244、26.1.2.87 / Fabric Loader 0.16.14、0.19.3 |
+| 当前加载器 | Forge 47.4.10、52.1.16、61.2.0、64.1.0、65.1.0 / NeoForge 47.1.3、21.1.244、21.11.45、26.1.2.87、26.2.0.53-beta / Fabric Loader 0.16.14、0.19.3 |
 | MixinExtras | Forge/NeoForge/Fabric 0.5.4（根 Forge 工程保留兼容配置） |
 | 模组 ID | `wurstpenguin` |
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
-| 构建状态 | Forge、NeoForge、Fabric 的 1.20.1、1.21.1、26.1.2 发布产物均已生成；三个 26.1.2 工程已通过完整 Gradle 构建 |
+| 构建状态 | 15 个 v1.5 发布产物均已生成；1.21.11/26.2 六工程已通过构建、包结构、进世界和 Baritone `#goto` 测试 |
 | 注册 Hack | 197 |
 | 注册命令 | 54 |
 | Other Feature | 2 |
@@ -81,14 +89,20 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 ```text
 src/                         Forge 1.20.1 根工程的共享源码
 versions/1.21.1/             Forge 1.21.1
+versions/1.21.11/            Forge 1.21.11
 versions/26.1.2/             Forge 26.1.2
+versions/26.2/               Forge 26.2
 neoforge/                    NeoForge 1.20.1
 neoforge/versions/1.21.1/    NeoForge 1.21.1
+neoforge/versions/1.21.11/   NeoForge 1.21.11
 neoforge/versions/26.1.2/    NeoForge 26.1.2
+neoforge/versions/26.2/      NeoForge 26.2
 fabric/                      Fabric 1.20.1
 fabric/versions/1.21.1/      Fabric 1.21.1
+fabric/versions/1.21.11/     Fabric 1.21.11
 fabric/versions/26.1.2/      Fabric 26.1.2
-download/                    Forge/NeoForge 发布 JAR 聚合目录（Fabric 产物在各工程 build/libs）
+fabric/versions/26.2/        Fabric 26.2
+download/                    全加载器发布 JAR 聚合目录
 ```
 
 各加载器工程拥有独立的构建脚本、Mixin 配置和平台适配层。不要把 Fabric JAR、Forge JAR 或 NeoForge JAR 混放到同一个实例中。
@@ -369,9 +383,9 @@ neoforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar
 
 SHA-256: `3666C972CCCBBE95303DEF35CA63CA505DF3FDFEEADC8CAEABB306403A86547C`
 
-### Fabric 1.20.1、1.21.1 和 26.1.2
+### Fabric 1.20.1、1.21.1、1.21.11、26.1.2 和 26.2
 
-Fabric 版本使用独立的 Fabric Loom 工程。1.20.1 使用 Java 17，1.21.1 使用 Java 21，26.1.2 使用 Java 25。三个版本都使用官方 Minecraft 映射，并将匹配的 Fabric API、MixinExtras、WebSocket、代理 Netty 和 Baritone 依赖打入发布包；26.1.2 使用源码构建的 Baritone 1.18.0 Fabric 模组。
+Fabric 版本使用独立的 Fabric Loom 工程。1.20.1 使用 Java 17，1.21.1/1.21.11 使用 Java 21，26.1.2/26.2 使用 Java 25。五个版本均将匹配的 Fabric API、MixinExtras、WebSocket、代理 Netty 和 Baritone 依赖打入发布包。
 
 ```powershell
 cd fabric
@@ -382,9 +396,17 @@ cd versions\1.21.1
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 ..\..\..\gradlew.bat -p . build --console=plain
 
+cd ..\1.21.11
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
+..\..\..\gradlew.bat -p . clean build --console=plain
+
 cd ..\26.1.2
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-25.0.4"
 ..\..\..\gradlew.bat -p . build --console=plain
+
+cd ..\26.2
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-25.0.4"
+..\..\..\gradlew.bat -p . clean build --console=plain
 ```
 
 Fabric 发布包由各 Fabric 工程自行输出到各自的 `build/libs/` 目录：
@@ -392,7 +414,9 @@ Fabric 发布包由各 Fabric 工程自行输出到各自的 `build/libs/` 目�
 ```text
 fabric/build/libs/WurstB+ Plus-1.5.0-Fabric-1.20.1.jar
 fabric/versions/1.21.1/build/libs/WurstB+ Plus-1.5.0-Fabric-1.21.1.jar
+fabric/versions/1.21.11/build/libs/WurstB+ Plus-1.5.0-Fabric-1.21.11.jar
 fabric/versions/26.1.2/build/libs/WurstB+ Plus-1.5.0-Fabric-26.1.2.jar
+fabric/versions/26.2/build/libs/WurstB+ Plus-1.5.0-Fabric-26.2.jar
 ```
 
 Fabric 不加载 Forge Baritone JAR，也不会触发 NeoForge 的 `baritone.api.forge` 模块读取错误。26.1.2 Fabric 发布包通过 Loom `include` 内嵌 `baritone-api-fabric-1.18.0.jar`。
@@ -403,7 +427,7 @@ Fabric 不加载 Forge Baritone JAR，也不会触发 NeoForge 的 `baritone.api
 
 ```powershell
 cd versions\26.1.2
-$env:_JAVA_OPTIONS = "-Djavax.net.ssl.trustAll=true"
+$env:_JAVA_OPTIONS = "-Djavax.net.ssl.trustStoreType=Windows-ROOT"
 ..\gradlew.bat -p . allJar --console=plain
 ..\gradlew.bat -p . runClient --console=plain
 ```
@@ -424,7 +448,7 @@ versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2.jar
 ```powershell
 cd neoforge\versions\26.1.2
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-25.0.4"
-$env:_JAVA_OPTIONS = "-Djavax.net.ssl.trustAll=true"
+$env:_JAVA_OPTIONS = "-Djavax.net.ssl.trustStoreType=Windows-ROOT"
 ..\..\..\gradlew.bat -p . clean build --console=plain
 ```
 
@@ -438,11 +462,27 @@ SHA-256: `2C92F68247C79C387191DD1659777092C1D47E99319D0AAE0DF576E741BC6CAA`
 
 该产物通过 NeoForge JarJar 内嵌 Baritone 1.18.0、Java-WebSocket 和所需 Netty 组件；Baritone 保持独立 NeoForge 模组元数据与 Mixin Connector，不会触发旧 Forge Baritone 包的模块读取错误。
 
+### 1.21.11 和 26.2 新版本工程
+
+六个新工程统一由批量脚本构建，避免手工使用错误 JDK、漏跑 Baritone 兼容补丁或生成缺少主类的 Forge 包：
+
+```powershell
+# 1.21.11 三加载器
+powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 `
+  -Version 1.21.11 -Clean -PublishToDownload
+
+# 26.2 三加载器
+powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 `
+  -Version 26.2 -Clean -PublishToDownload
+```
+
+Forge 1.21.11/26.2 使用 `allJar`，NeoForge 与 Fabric 使用 `build`。所有六个最终 JAR 均包含 Wurst 核心类和独立的内嵌 Baritone JAR，不需要额外安装 Baritone。
+
 ## 批量构建与版本启动测试
 
-### 一键构建 9 个发布产物
+### 一键构建 15 个发布产物
 
-`scripts/build-all.ps1` 依次构建 9 个版本（3 个 MC 版本 × Forge/NeoForge/Fabric），每个工程的产物输出到各自的 `build/libs/`：
+`scripts/build-all.ps1` 依次构建 15 个版本（5 个 MC 版本 × Forge/NeoForge/Fabric），每个工程的产物输出到各自的 `build/libs/`：
 
 ```powershell
 # 全量构建
@@ -456,9 +496,12 @@ powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 -Loader NeoForge
 
 # 先 clean 再构建（-Clean）；跳过匹配工程（-Skip 26.1.2）
 powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 -Clean -Skip 26.1.2
+
+# 构建后同步到 download/
+powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 -Version 26.2 -Clean -PublishToDownload
 ```
 
-脚本自动完成：按 MC 版本选择 JDK（17/21/25，可用 `WURSTBPLUS_JAVA17/21/25` 环境变量覆盖）、26.1.2 工程注入 `_JAVA_OPTIONS` SSL 兼容参数、以 `--no-daemon` 前台构建避免 daemon 残留、构建后校验产物存在并输出汇总。报告保存到 `.test/report-build-<时间戳>.txt`。
+脚本自动完成：按 MC 版本选择 JDK（17/21/25，可用 `WURSTBPLUS_JAVA17/21/25` 环境变量覆盖）、使用 Windows 根证书库兼容本地 TLS 代理、在 26.2 构建前重建 Baritone 兼容包、以 `--no-daemon` 构建，并校验核心类、内嵌 Baritone API、26.2 兼容类及 Mixin Manifest。报告保存到 `.test/report-build-<时间戳>.txt`。
 
 产物清单：
 
@@ -466,29 +509,35 @@ powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 -Clean -Skip 26.1
 | --- | --- | --- |
 | 根目录 (Forge 1.20.1) | `jarJar` | `build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1.jar` |
 | `versions/1.21.1` | `jarJar` | `build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1.jar` |
+| `versions/1.21.11` | `allJar test` | `build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.11.jar` |
 | `versions/26.1.2` | `allJar` | `build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2.jar` |
+| `versions/26.2` | `allJar test` | `build/libs/WurstB+ Plus-v1.5.0-Forge-26.2.jar` |
 | `neoforge/` | `jarJar` | `build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.20.1.jar` |
 | `neoforge/versions/1.21.1` | `jar` | `build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar` |
+| `neoforge/versions/1.21.11` | `build` | `build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.11.jar` |
 | `neoforge/versions/26.1.2` | `jar` | `build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar` |
+| `neoforge/versions/26.2` | `build` | `build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.2.jar` |
 | `fabric/` | `build -x test` | `build/libs/WurstB+ Plus-1.5.0-Fabric-1.20.1.jar` |
 | `fabric/versions/1.21.1` | `build -x test` | `build/libs/WurstB+ Plus-1.5.0-Fabric-1.21.1.jar` |
+| `fabric/versions/1.21.11` | `build` | `build/libs/WurstB+ Plus-1.5.0-Fabric-1.21.11.jar` |
 | `fabric/versions/26.1.2` | `build -x test` | `build/libs/WurstB+ Plus-1.5.0-Fabric-26.1.2.jar` |
+| `fabric/versions/26.2` | `build` | `build/libs/WurstB+ Plus-1.5.0-Fabric-26.2.jar` |
 
 ### 批量版本启动测试
 
-`scripts/run-version-tests.ps1` 批量把发布 JAR（3 个 MC 版本 × Fabric/Forge/NeoForge）部署到 `.test/versions/` 下对应的版本实例，逐个真实启动游戏，确认启动日志、游戏窗口和稳定运行状态，并输出汇总报告。脚本默认以仓库根目录作为路径基准，不依赖当前 PowerShell 工作目录。
+`scripts/run-version-tests.ps1` 批量把发布 JAR（5 个 MC 版本 × Fabric/Forge/NeoForge）部署到 `.test/versions/` 下对应实例，逐个真实启动游戏。除主菜单测试外，还可通过 Quick Play 进入指定单人世界并发送 Baritone 命令，验证 Wurst、Baritone、世界加载和命令响应。脚本默认以仓库根目录作为路径基准。
 
 ### 前置条件
 
 - `.test/` 是 PCL 启动器格式的测试环境，包含 `assets/`、`libraries/` 和 `versions/`；
 - 每个版本实例（如 `1.20.1-Forge_47.4.22/`）内含 `<版本名>.json`（Mojang 格式版本描述，已含完整启动参数与 FML 参数）和 `<版本名>.jar`（客户端）；
 - 待测 JAR 与实例按“加载器 + MC 版本”自动匹配（例如 `WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar` → `1.21.1-NeoForge_21.1.248`）；默认从 `download/` 读取（Forge/NeoForge 聚合目录），Fabric 产物可用 `-DownloadDir` 指向对应的 `build/libs`（或先复制到 `download/`）；
-- JDK 按 MC 版本自动选择：1.20.1 → `jdk-17`、1.21.1 → `jdk-21`、26.1.2 → `jdk-25.0.4`（可在脚本顶部 `$JDKs` 表修改）。
+- JDK 按 MC 版本自动选择：1.20.1 → `jdk-17`，1.21.1/1.21.11 → `jdk-21`，26.1.2/26.2 → `jdk-25.0.4`（可通过 `WURSTBPLUS_JAVA17/21/25` 覆盖）。
 
 ### 用法
 
 ```powershell
-# 全量测试 9 个版本
+# 全量测试 15 个版本
 powershell -ExecutionPolicy Bypass -File scripts\run-version-tests.ps1
 
 # 只测某个 MC 版本
@@ -499,6 +548,10 @@ powershell -ExecutionPolicy Bypass -File scripts\run-version-tests.ps1 -Loader N
 
 # 组合过滤 + 自定义超时（秒）
 powershell -ExecutionPolicy Bypass -File scripts\run-version-tests.ps1 -Version 26.1.2 -Loader Fabric -TimeoutSeconds 300
+
+# 进入单人世界并验证 Baritone 命令
+powershell -ExecutionPolicy Bypass -File scripts\run-version-tests.ps1 -Version 26.2 `
+  -QuickPlayWorld WurstSmokeFresh -BaritoneCommand '#goto 0 88 0'
 ```
 
 ### 参数
@@ -512,14 +565,16 @@ powershell -ExecutionPolicy Bypass -File scripts\run-version-tests.ps1 -Version 
 | `-ProjectRoot` | 自动检测 | 手动指定仓库根目录 |
 | `-TimeoutSeconds` | 240 | 单个版本的最长等待秒数 |
 | `-SettleSeconds` | 20 | 出现启动标志后还需稳定运行的秒数 |
-| `-Version` | 空 | 过滤 MC 版本（1.20.1 / 1.21.1 / 26.1.2） |
+| `-Version` | 空 | 过滤 MC 版本（1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2） |
 | `-Loader` | 空 | 过滤加载器（Fabric / Forge / NeoForge） |
+| `-QuickPlayWorld` | 空 | 启动后直接进入指定单人世界 |
+| `-BaritoneCommand` | 空 | 进入世界后发送命令并验证预期响应 |
 | `-KeepOldJars` | 关 | 保留旧 WurstB JAR（可能导致实例同时加载多个版本） |
 | `-Quiet` | 关 | 不输出过程信息 |
 
 ### 判定逻辑
 
-- **PASS**：日志出现 `Backend library` / `Reloading ResourceManager` / `Minecraft version`，Minecraft 窗口出现，并稳定运行 `-SettleSeconds` 秒；
+- **PASS**：主菜单模式要求 Wurst 与所需 Baritone 初始化并稳定运行；Quick Play 模式还要求玩家加入世界，设置命令时必须出现对应 Baritone 响应；
 - **FAIL**：进程提前退出（非零退出码）、`crash-reports/` 出现新报告（附崩溃摘要）、或日志出现 `FATAL` / `Mod Loading has failed`；
 - **TIMEOUT**：超时未完成启动标志与窗口检查（进程会被强制结束）；
 - **ERROR**：实例缺失、客户端 jar 缺失、依赖缺失或 natives 提取失败（不启动）。
@@ -534,6 +589,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-version-tests.ps1 -Version 
 
 - 自动解析版本 JSON：按启动器的“最后一个匹配规则”语义过滤依赖与参数、展开 `${...}` 变量，按 `natives` classifier 提取 natives 到 `.test/natives/<实例名>/`；
 - 自动修复 JPMS 启动参数：module path（`-p`）上的 JAR 会从 `-cp` 中剔除，classpath 去重，避免 `bootstraplauncher already on module path` 与 `Duplicate key` 崩溃；
+- Quick Play 命令通过 GLFW 窗口消息投递，Windows 拒绝前台焦点时仍可在后台完成自动输入；
 - 默认部署前把实例 `mods/` 中已有的 WurstB JAR 备份为 `.backup-<时间戳>.jar.disabled`；启用 `-KeepOldJars` 时不改动旧文件；
 - 启动前只清理脚本自己记录且命令行确实指向该实例的 PID，不扫描或终止其他 Minecraft 进程；
 - 窗口以最小化方式启动（854×480），测试结束后进程被强制结束。
@@ -569,33 +625,45 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 
 ## 验证状态
 
-项目版本为 `1.5.0`。当前发布矩阵包含 9 个加载器/游戏版本组合。Forge、NeoForge 和 Fabric 26.1.2 均已通过 Gradle 构建及嵌套包结构检查，内嵌源码构建的 Baritone 1.18.0。`PlayerMixin` 的 KeepSprint 攻击注入使用原生 `@Redirect`，只保留攻击前已经存在的疾跑，不再逐 Tick 主动启动疾跑，也不依赖 Mixin 运行时生成的 `Args` 类。
+项目版本为 `1.5.0`。当前发布矩阵包含 15 个加载器/游戏版本组合。本轮对新增的 1.21.11 与 26.2 六个版本完成 clean 构建、核心类检查、内嵌 Baritone 检查、真实客户端启动、单人世界加载及 `#goto 0 88 0` 命令验证，测试范围内未发现阻塞发布的问题。该结论不代表所有战斗、移动、GUI 和 HUD 功能均已穷举测试。
 
 - 1.20.1 Forge 47.4.10：`build/libs/WurstB+ Plus-v1.5.0-Forge-1.20.1.jar`
 - 1.20.1 NeoForge 47.1.3：`neoforge/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.20.1.jar`
 - 1.21.1 Forge 52.1.16：`versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.1.jar`
 - 1.21.1 NeoForge 21.1.244：`neoforge/versions/1.21.1/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar`
+- 1.21.11 Forge 61.2.0：`versions/1.21.11/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.11.jar`
+- 1.21.11 NeoForge 21.11.45：`neoforge/versions/1.21.11/build/libs/WurstB+ Plus-v1.5.0-NeoForge-1.21.11.jar`
 - 26.1.2 Forge 64.1.0：`versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.1.2.jar`（文字颜色、图标渲染、圆角抗锯齿、Mixin 启动崩溃已修复）
 - 26.1.2 NeoForge 26.1.2.87：`neoforge/versions/26.1.2/build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar`（Java-WebSocket 与 Netty 运行依赖已内嵌）
+- 26.2 Forge 65.1.0：`versions/26.2/build/libs/WurstB+ Plus-v1.5.0-Forge-26.2.jar`
+- 26.2 NeoForge 26.2.0.53-beta：`neoforge/versions/26.2/build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.2.jar`
 - 1.20.1 Fabric Loader 0.16.14：`fabric/build/libs/WurstB+ Plus-1.5.0-Fabric-1.20.1.jar`
 - 1.21.1 Fabric Loader 0.16.14：`fabric/versions/1.21.1/build/libs/WurstB+ Plus-1.5.0-Fabric-1.21.1.jar`
+- 1.21.11 Fabric Loader 0.19.3：`fabric/versions/1.21.11/build/libs/WurstB+ Plus-1.5.0-Fabric-1.21.11.jar`
 - 26.1.2 Fabric Loader 0.19.3：`fabric/versions/26.1.2/build/libs/WurstB+ Plus-1.5.0-Fabric-26.1.2.jar`
+- 26.2 Fabric Loader 0.19.3：`fabric/versions/26.2/build/libs/WurstB+ Plus-1.5.0-Fabric-26.2.jar`
 
 ### 发布包校验
 
-以下 SHA-256 对应各工程 `build/libs/` 目录（Forge/NeoForge 亦聚合于项目 `download/` 目录）中的当前文件：
+以下 SHA-256 对应项目 `download/` 目录中的当前 15 个 v1.5 发布文件：
 
 | 文件 | SHA-256 |
 | --- | --- |
-| `fabric/build/libs/WurstB+ Plus-1.5.0-Fabric-1.20.1.jar` | `CA40257484C2E65C415F0BB16B4D92288D317F54D08499E46E08CEECCF0FD4A4` |
-| `fabric/versions/1.21.1/build/libs/WurstB+ Plus-1.5.0-Fabric-1.21.1.jar` | `C304496FF307C19E3F2F130B6C45665266125F71FCD68A54F396D08BAC99A6E9` |
-| `fabric/versions/26.1.2/build/libs/WurstB+ Plus-1.5.0-Fabric-26.1.2.jar` | `03D82FFB1802029649D81045A91AAFE998DDDF900648AA320BC78B5404945BE6` |
-| `WurstB+ Plus-v1.5.0-Forge-1.20.1.jar` | `1308382CBE30EAB55A5E39BC54405B6CE034204F5AB2C7868D1E1344A5CF5779` |
-| `WurstB+ Plus-v1.5.0-Forge-1.21.1.jar` | `A45F428A731192C459F5081CEF0E637055E113F62AE922F4A618E7A3CF2E31FD` |
-| `WurstB+ Plus-v1.5.0-Forge-26.1.2.jar` | `CF7FD6BF51A34AD953F966EB84524008431240D388084CD289EB5C8FAD20A3E6` |
-| `WurstB+ Plus-v1.5.0-NeoForge-1.20.1.jar` | `69D4ECE497609B27A12CFD4F8D60FD8129F3BE5DA95D50EA9A495136526FCC67` |
-| `WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar` | `3666C972CCCBBE95303DEF35CA63CA505DF3FDFEEADC8CAEABB306403A86547C` |
-| `WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar` | `2C92F68247C79C387191DD1659777092C1D47E99319D0AAE0DF576E741BC6CAA` |
+| `WurstB+ Plus-1.5.0-Fabric-1.20.1.jar` | `5382A8066844B38CE868590714F2B5F1A547DEAFFFD290934CAA3C32340F3727` |
+| `WurstB+ Plus-1.5.0-Fabric-1.21.1.jar` | `0E3838806FC21AC158CB3EB1550AE143F10D6066F84ADE7F73A69134ECCC110B` |
+| `WurstB+ Plus-1.5.0-Fabric-1.21.11.jar` | `A9BF64ABC3674F859E42759038FDE65A4857EFCACF0E35D2DAAA61295B0E5ECD` |
+| `WurstB+ Plus-1.5.0-Fabric-26.1.2.jar` | `8A2B04A5994B585BC3B8B7204DBA45BA3B5B1A6A5078CD8F10CA6F33E26865E0` |
+| `WurstB+ Plus-1.5.0-Fabric-26.2.jar` | `D5F1E340A9B47B28512C0DDC989EF327BC6876E7C6DCE2211284053015A809C5` |
+| `WurstB+ Plus-v1.5.0-Forge-1.20.1.jar` | `CFC5EF862A0D822E20895AA69D952EB809D253D80CC89B2CB27172A5D2CDB9C0` |
+| `WurstB+ Plus-v1.5.0-Forge-1.21.1.jar` | `A78BFEFA7BD7B4220EB7017827742CA477B971450CA08362D4C66C7BD32F00C8` |
+| `WurstB+ Plus-v1.5.0-Forge-1.21.11.jar` | `ABEB6903587A70D1EBC2F13D6E24381145943359CC705CDFD8AC1DE3EB11834D` |
+| `WurstB+ Plus-v1.5.0-Forge-26.1.2.jar` | `489DC385B0389AFF604B276829821E354F4FBD1EDBB384EA29708C3B4A27D5A2` |
+| `WurstB+ Plus-v1.5.0-Forge-26.2.jar` | `E9921F1847E3F58802FF0E1B1D9182DE2885CF4BF65300DEEC6E9EBBB7C4A35A` |
+| `WurstB+ Plus-v1.5.0-NeoForge-1.20.1.jar` | `0C05A07ED15B5E4B84259D592777A00231A6C8639027E2C0E50C0E91E88ACB4D` |
+| `WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar` | `87622A2F7BC0692377A58B87D3B1787AC13CC12E7D87D872EB8DBD70E7452343` |
+| `WurstB+ Plus-v1.5.0-NeoForge-1.21.11.jar` | `BD0003E63077383C8429DE28BB69214C11C7EE3C948558C96AF6B288B66D3BB9` |
+| `WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar` | `5B772ED2791B2A1FE3315BF2F032BFFCC5F48B36F6D1EF306F10A85744C70BB3` |
+| `WurstB+ Plus-v1.5.0-NeoForge-26.2.jar` | `08A2DF2A6DF6A5A947905B8648D33F931FB628794BD439098D75A94F5884701C` |
 
 ### 1.21.1 渲染管线说明
 

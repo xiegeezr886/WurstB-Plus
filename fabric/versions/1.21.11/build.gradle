@@ -1,0 +1,85 @@
+plugins {
+	id "fabric-loom" version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	maven {
+		name = "BundledBaritone"
+		url = uri("../../../baritone-maven")
+	}
+	maven {
+		name = "Fabric"
+		url = "https://maven.fabricmc.net/"
+	}
+	mavenCentral()
+	flatDir {
+		dirs "libs"
+	}
+}
+
+dependencies {
+	// Minecraft + Mojang official mappings (matches Forge port source)
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings loom.officialMojangMappings()
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.2"
+
+	// Fabric API
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	// JSR305 (needed for BlockPos @Immutable)
+	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+
+	// Discord support
+	include implementation("org.java-websocket:Java-WebSocket:1.5.3")
+
+	// Proxy support
+	include implementation("io.netty:netty-codec-socks:4.1.118.Final")
+	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
+
+	include implementation("baritone:baritone-api-fabric:1.17.0-1.21.11")
+
+	// MixinExtras
+	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"
+	annotationProcessor "io.github.llamalad7:mixinextras-common:0.5.4"
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/wurstpenguin.accesswidener")
+}
+
+processResources {
+	inputs.property "version", project.version
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = 21
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+test {
+	useJUnitPlatform()
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.archivesBaseName}" }
+	}
+}

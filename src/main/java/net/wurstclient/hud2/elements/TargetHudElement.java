@@ -1,9 +1,10 @@
 package net.wurstclient.hud2.elements;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
+import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -14,43 +15,51 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.events.PlayerAttacksEntityListener;
+import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.hack.HackList;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.hud2.HudManager;
+import net.wurstclient.hud2.render.RiseFrostedGlass;
+import net.wurstclient.hud2.render.RiseHudFont;
+import net.wurstclient.util.ScreenRegistry;
 
+/** Rise 6.1.30 Modern TargetInfo adapted to the current combat events. */
 public final class TargetHudElement extends HudElement
 	implements PlayerAttacksEntityListener
 {
-	static final long ATTACK_PRIORITY_NANOS = 1_250_000_000L;
-	static final long HOLD_NANOS = 550_000_000L;
-	static final long FADE_NANOS = 400_000_000L;
-	private static final int WIDTH = 150;
-	private static final int BASE_HEIGHT = 38;
-	private static final int EQUIPMENT_HEIGHT = 58;
-	private static final int EQUIPMENT_ITEM_SIZE = 16;
-	private static final int EQUIPMENT_ITEM_STEP = 18;
-	private static final int CARD_RADIUS = 4;
-	private static final int CARD_FILL = 0xAD050505;
-	private static final int CARD_OUTLINE = 0x10FFFFFF;
-	private static final int FACE_FILL = 0x68070B10;
-	private static final int FACE_OUTLINE = 0x14FFFFFF;
-	private static final int TEXT_SHADOW = 0x91000000;
-	private static final int TEXT_PRIMARY = 0xFFF2F4F7;
-	private static final int HEALTH_TRACK = 0xA020252A;
+	static final long TARGET_TIMEOUT_NANOS = 1_000_000_000L;
+	static final long ENTER_NANOS = 850_000_000L;
+	static final long EXIT_NANOS = 400_000_000L;
+	static final long HEALTH_ANIMATION_NANOS = 250_000_000L;
+	private static final long PARTICLE_INTERVAL_NANOS = 45_000_000L;
+	private static final long PARTICLE_LIFETIME_NANOS = 650_000_000L;
+	private static final int DEFAULT_WIDTH = 145;
+	private static final int HEIGHT = 48;
+	private static final int EDGE_OFFSET = 8;
+	private static final int FACE_SIZE = 32;
+	private static final int PADDING = 7;
+	private static final int INDENT = 4;
+	private static final int PANEL_RADIUS = 19;
+	private static final int ACCENT_SECONDARY = 0xFF79A0FF;
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 
+	private final List<HitParticle> particles = new ArrayList<>();
 	private Player attackedTarget;
 	private long attackedAtNanos;
 	private Player displayedTarget;
+	private long shownAtNanos;
 	private long lastVisibleNanos;
 	private long lastRenderNanos;
+	private long lastParticleNanos;
 	private float displayedHealth = Float.NaN;
+	private float healthAnimationFrom;
+	private float healthAnimationTarget;
+	private long healthAnimationStarted;
 
 	public TargetHudElement()
 	{
@@ -83,19 +92,40 @@ public final class TargetHudElement extends HudElement
 	@Override
 	public int getWidth()
 	{
-		return WIDTH;
+		Player target = WurstClient.MC != null
+			&& ScreenRegistry.HUD_EDITOR.isOpen() ? WurstClient.MC.player
+				: displayedTarget;
+		if(target == null || WurstClient.MC == null
+			|| WurstClient.MC.font == null)
+			return DEFAULT_WIDTH;
+		float health = Float.isNaN(displayedHealth) ? target.getHealth()
+			: displayedHealth;
+		return widthFor(target, health, WurstClient.MC.font);
 	}
 
 	@Override
 	public int getHeight()
 	{
-		return heightForEquipmentCount(getEquipment(displayedTarget).size());
+		return HEIGHT;
+	}
+
+	@Override
+	public boolean renderEditorPreview()
+	{
+		return true;
 	}
 
 	@Override
 	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
 		long now = System.nanoTime();
+		if(ScreenRegistry.HUD_EDITOR.isOpen() && WurstClient.MC.player != null)
+		{
+			Player player = WurstClient.MC.player;
+			displayedHealth = player.getHealth();
+			drawPanel(graphics, x, y, player, 1, partialTicks);
+			return;
+		}
 		if(WurstClient.MC.player == null || WurstClient.MC.level == null)
 		{
 			clearTarget();
@@ -109,18 +139,17 @@ public final class TargetHudElement extends HudElement
 		if(candidate != null)
 		{
 			if(candidate != displayedTarget)
-			{
-				displayedTarget = candidate;
-				displayedHealth = candidate.getHealth();
-			}
+				beginTarget(candidate, now);
 			lastVisibleNanos = now;
 		}
-
 		if(displayedTarget == null)
 			return;
-		float opacity = candidate != null ? 1
-			: calculateOpacity(now, lastVisibleNanos);
-		if(opacity <= 0)
+
+		boolean exiting = candidate == null;
+		float scale = exiting
+			? exitScale((now - lastVisibleNanos) / (float)EXIT_NANOS)
+			: easeOutElastic((now - shownAtNanos) / (float)ENTER_NANOS);
+		if(exiting && now - lastVisibleNanos >= EXIT_NANOS)
 		{
 			clearTarget();
 			return;
@@ -128,14 +157,27 @@ public final class TargetHudElement extends HudElement
 
 		long elapsed = lastRenderNanos == 0 ? 0 : now - lastRenderNanos;
 		lastRenderNanos = now;
-		displayedHealth = smoothHealth(displayedHealth,
-			displayedTarget.getHealth(), elapsed);
-		drawPanel(graphics, x, y, displayedTarget, opacity);
+		updateHealth(displayedTarget.getHealth(), now);
+		updateParticles(displayedTarget, now, elapsed);
+		drawPanel(graphics, x, y, displayedTarget, Math.max(0, scale),
+			partialTicks);
+	}
+
+	private void beginTarget(Player target, long now)
+	{
+		displayedTarget = target;
+		shownAtNanos = now;
+		lastVisibleNanos = now;
+		displayedHealth = target.getHealth();
+		healthAnimationFrom = displayedHealth;
+		healthAnimationTarget = displayedHealth;
+		healthAnimationStarted = now;
+		particles.clear();
 	}
 
 	private Player resolveTarget(long now)
 	{
-		if(now - attackedAtNanos <= ATTACK_PRIORITY_NANOS
+		if(now - attackedAtNanos <= TARGET_TIMEOUT_NANOS
 			&& isUsable(attackedTarget))
 			return attackedTarget;
 
@@ -159,141 +201,233 @@ public final class TargetHudElement extends HudElement
 		return null;
 	}
 
-	private Player asPlayer(Entity entity)
+	private static Player asPlayer(Entity entity)
 	{
 		return entity instanceof Player player ? player : null;
 	}
 
-	private boolean isUsable(Player player)
+	private static boolean isUsable(Player player)
 	{
 		return player != null && player != WurstClient.MC.player
 			&& player.level() == WurstClient.MC.level && !player.isRemoved()
 			&& player.isAlive();
 	}
 
-	private void drawPanel(GuiGraphics graphics, int x, int y, Player target,
-		float opacity)
+	private void updateHealth(float targetHealth, long now)
 	{
-		Font font = WurstClient.MC.font;
-		List<ItemStack> equipment = getEquipment(target);
-		int panelHeight = heightForEquipmentCount(equipment.size());
-		FlatRenderer.fillRoundedRect(graphics, x, y, x + WIDTH, y + panelHeight,
-			CARD_RADIUS, withOpacity(CARD_FILL, opacity));
-		FlatRenderer.drawRoundedOutline(graphics, x, y, x + WIDTH,
-			y + panelHeight,
-			CARD_RADIUS, withOpacity(CARD_OUTLINE, opacity));
-
-		int themeColor = getThemeAccentColor();
-		FlatRenderer.fillRoundedRect(graphics, x + 1, y + 2, x + 3,
-			y + panelHeight - 2, 1,
-			withOpacity(themeColor, opacity * 0.94F));
-		drawFace(graphics, target, x + 7, y + 5, 28, opacity);
-
-		String name = font.plainSubstrByWidth(target.getGameProfile().getName(),
-			WIDTH - 49);
-		graphics.drawString(font, name, x + 42, y + 7,
-			withOpacity(TEXT_SHADOW, opacity), false);
-		graphics.drawString(font, name, x + 41, y + 6,
-			withOpacity(TEXT_PRIMARY, opacity), false);
-
-		float maxHealth = Math.max(1, target.getMaxHealth());
-		int barLeft = x + 41;
-		int barRight = x + WIDTH - 7;
-		int barTop = y + 23;
-		FlatRenderer.fillRoundedRect(graphics, barLeft, barTop, barRight,
-			barTop + 5, 2, withOpacity(HEALTH_TRACK, opacity));
-		float healthRatio = Mth.clamp(displayedHealth / maxHealth, 0, 1);
-		int progressRight = barLeft
-			+ Math.round((barRight - barLeft) * healthRatio);
-		if(progressRight > barLeft)
-			FlatRenderer.fillRoundedRect(graphics, barLeft, barTop,
-				progressRight, barTop + 5, 2,
-				withOpacity(healthColor(themeColor, healthRatio), opacity));
-
-		if(!equipment.isEmpty())
-			drawEquipment(graphics, equipment, x, y, opacity);
+		if(Float.isNaN(displayedHealth))
+			displayedHealth = targetHealth;
+		if(Math.abs(targetHealth - healthAnimationTarget) > 0.001F)
+		{
+			displayedHealth = interpolateHealth(healthAnimationFrom,
+				healthAnimationTarget, now - healthAnimationStarted);
+			healthAnimationFrom = displayedHealth;
+			healthAnimationTarget = targetHealth;
+			healthAnimationStarted = now;
+		}
+		displayedHealth = interpolateHealth(healthAnimationFrom,
+			healthAnimationTarget, now - healthAnimationStarted);
 	}
 
-	private void drawEquipment(GuiGraphics graphics, List<ItemStack> equipment,
-		int x, int y, float opacity)
+	private void drawPanel(GuiGraphics graphics, int x, int y, Player target,
+		float scale, float partialTicks)
 	{
-		graphics.fill(x + 7, y + BASE_HEIGHT - 1, x + WIDTH - 7,
-			y + BASE_HEIGHT, withOpacity(0x14FFFFFF, opacity));
-		int rowWidth = equipmentRowWidth(equipment.size());
-		int itemX = x + (WIDTH - rowWidth) / 2;
-		int itemY = y + BASE_HEIGHT + 1;
-
-		RenderSystem.setShaderColor(1, 1, 1, opacity);
+		Font font = WurstClient.MC.font;
+		int width = widthFor(target, displayedHealth, font);
+		graphics.pose().pushPose();
+		graphics.pose().translate((x + width / 2F) * (1 - scale),
+			(y + HEIGHT / 2F) * (1 - scale), 0);
+		graphics.pose().scale(scale, scale, 1);
 		try
 		{
-			for(ItemStack stack : equipment)
-			{
-				graphics.renderItem(stack, itemX, itemY);
-				graphics.renderItemDecorations(WurstClient.MC.font, stack, itemX,
-					itemY);
-				itemX += EQUIPMENT_ITEM_STEP;
-			}
+			drawPanelContents(graphics, x, y, width, target, partialTicks);
 		}finally
 		{
-			RenderSystem.setShaderColor(1, 1, 1, 1);
+			graphics.pose().popPose();
 		}
 	}
 
-	private static List<ItemStack> getEquipment(Player target)
+	private void drawPanelContents(GuiGraphics graphics, int x, int y,
+		int width, Player target, float partialTicks)
 	{
-		if(target == null)
-			return List.of();
+		Font font = WurstClient.MC.font;
+		RiseFrostedGlass.draw(graphics, x, y, x + width - 1, y + HEIGHT,
+			PANEL_RADIUS, 1, 0x6E000000);
 
-		List<ItemStack> equipment = new ArrayList<>(5);
-		ItemStack mainHand = target.getMainHandItem();
-		if(!mainHand.isEmpty())
-			equipment.add(mainHand);
+		float health = Math.min(displayedHealth, target.getMaxHealth());
+		String healthText = formatHealth(health);
+		int healthTextWidth = RiseHudFont.width(font, healthText);
+		int nameWidth = RiseHudFont.width(font, target.getGameProfile().getName());
+		int healthBarWidth = healthBarWidth(nameWidth, healthTextWidth);
+		int contentX = x + EDGE_OFFSET + FACE_SIZE + PADDING;
 
-		List<ItemStack> armor = new ArrayList<>(4);
-		target.getArmorSlots().forEach(armor::add);
-		Collections.reverse(armor);
-		armor.stream().filter(stack -> !stack.isEmpty()).forEach(equipment::add);
-		return equipment;
+		RiseHudFont.draw(graphics, font, "Name:", contentX,
+			y + EDGE_OFFSET + INDENT + 2, VisualTheme.TEXT, true);
+		int labelWidth = RiseHudFont.width(font, "Name:");
+		RiseHudFont.draw(graphics, font, target.getGameProfile().getName(),
+			contentX + labelWidth + 3, y + EDGE_OFFSET + INDENT + 2,
+			VisualTheme.ACCENT, true);
+
+		int barY = y + EDGE_OFFSET + FACE_SIZE - INDENT - 7;
+		FlatRenderer.fillRoundedRect(graphics, contentX, barY,
+			contentX + healthBarWidth, barY + 6, 3, 0x76000000);
+		float healthRatio = Mth.clamp(health / Math.max(1, target.getMaxHealth()),
+			0, 1);
+		int progressWidth = Math.round(healthBarWidth * healthRatio);
+		if(progressWidth > 0)
+			drawHealthGradient(graphics, contentX, barY, progressWidth);
+		RiseHudFont.draw(graphics, font, healthText,
+			contentX + healthBarWidth + INDENT, barY - 1, VisualTheme.ACCENT,
+			true);
+
+		drawParticles(graphics, x, y);
+		drawFace(graphics, target, x, y, partialTicks);
 	}
 
-	static int heightForEquipmentCount(int equipmentCount)
+	private static void drawHealthGradient(GuiGraphics graphics, int x, int y,
+		int width)
 	{
-		return equipmentCount > 0 ? EQUIPMENT_HEIGHT : BASE_HEIGHT;
+		FlatRenderer.fillRoundedRect(graphics, x, y, x + width, y + 6, 3,
+			ACCENT_SECONDARY);
+		if(width <= 4)
+			return;
+		for(int column = 2; column < width - 2; column++)
+		{
+			float progress = column / (float)Math.max(1, width - 1);
+			int color = VisualTheme.mix(ACCENT_SECONDARY, VisualTheme.ACCENT,
+				progress);
+			graphics.fill(x + column, y, x + column + 1, y + 6, color);
+		}
 	}
 
-	static int equipmentRowWidth(int equipmentCount)
+	private static int widthFor(Player target, float health, Font font)
 	{
-		if(equipmentCount <= 0)
-			return 0;
-		return EQUIPMENT_ITEM_SIZE
-			+ (equipmentCount - 1) * EQUIPMENT_ITEM_STEP;
+		String name = target.getGameProfile().getName();
+		String healthText = formatHealth(health);
+		return panelWidth(RiseHudFont.width(font, name),
+			RiseHudFont.width(font, healthText));
 	}
 
-	private void drawFace(GuiGraphics graphics, Player target, int x, int y,
-		int size, float opacity)
+	static int panelWidth(int nameWidth, int healthTextWidth)
 	{
-		FlatRenderer.fillRoundedRect(graphics, x, y, x + size, y + size, 4,
-			withOpacity(FACE_FILL, opacity));
+		int barWidth = healthBarWidth(nameWidth, healthTextWidth);
+		return EDGE_OFFSET + FACE_SIZE + EDGE_OFFSET + barWidth + INDENT
+			+ healthTextWidth + EDGE_OFFSET;
+	}
+
+	static int healthBarWidth(int nameWidth, int healthTextWidth)
+	{
+		return Math.max(nameWidth + 35 - healthTextWidth, 65);
+	}
+
+	static String formatHealth(float health)
+	{
+		double rounded = Math.round(Math.max(0, health) * 10) / 10D;
+		return String.format(Locale.ROOT, "%.1f", rounded);
+	}
+
+	private void drawFace(GuiGraphics graphics, Player target, int panelX,
+		int panelY, float partialTicks)
+	{
+		float hurt = target.hurtTime == 0 ? 0
+			: Math.max(0, target.hurtTime - partialTicks) * 0.5F;
+		int size = Math.max(24, Math.round(FACE_SIZE - hurt));
+		int offset = Math.round(hurt / 2F);
+		int x = panelX + EDGE_OFFSET + offset;
+		int y = panelY + EDGE_OFFSET + offset;
+		FlatRenderer.fillRoundedRect(graphics, x, y, x + size, y + size, 8,
+			0xAA000000);
+
 		ResourceLocation skin = target instanceof AbstractClientPlayer player
 			? player.getSkinTextureLocation() : null;
 		if(skin != null)
 		{
-			RenderSystem.setShaderColor(1, 1, 1, opacity);
+			float tint = 1 - Mth.clamp(hurt / 9F, 0, 0.75F);
+			RenderSystem.setShaderColor(1, tint, tint, 1);
 			try
 			{
-				graphics.blit(skin, x + 2, y + 2, size - 4, size - 4,
+				graphics.blit(skin, x + 1, y + 1, size - 2, size - 2,
 					8, 8, 8, 8, 64, 64);
-				graphics.blit(skin, x + 2, y + 2, size - 4, size - 4,
+				graphics.blit(skin, x + 1, y + 1, size - 2, size - 2,
 					40, 8, 8, 8, 64, 64);
 			}finally
 			{
 				RenderSystem.setShaderColor(1, 1, 1, 1);
 			}
-		}else
-			graphics.drawCenteredString(WurstClient.MC.font, "?", x + size / 2,
-				y + size / 2 - 4, withOpacity(TEXT_PRIMARY, opacity));
+		}
 		FlatRenderer.drawRoundedOutline(graphics, x, y, x + size, y + size,
-			4, withOpacity(FACE_OUTLINE, opacity));
+			8, 0x28000000);
+	}
+
+	private void updateParticles(Player target, long now, long elapsedNanos)
+	{
+		float elapsedSeconds = Math.min(0.1F, elapsedNanos / 1_000_000_000F);
+		for(HitParticle particle : particles)
+		{
+			particle.x += particle.velocityX * elapsedSeconds;
+			particle.y += particle.velocityY * elapsedSeconds;
+		}
+		particles.removeIf(particle -> now - particle.startedAt
+			>= PARTICLE_LIFETIME_NANOS);
+
+		if(target.hurtTime <= 0 || now - lastParticleNanos
+			< PARTICLE_INTERVAL_NANOS)
+			return;
+		lastParticleNanos = now;
+		ThreadLocalRandom random = ThreadLocalRandom.current();
+		for(int i = 0; i < 2 && particles.size() < 24; i++)
+			particles.add(new HitParticle(20, 20,
+				(float)random.nextDouble(-28, 28),
+				(float)random.nextDouble(-28, 28), now,
+				random.nextBoolean() ? 1 : 2));
+	}
+
+	private void drawParticles(GuiGraphics graphics, int panelX, int panelY)
+	{
+		long now = System.nanoTime();
+		for(HitParticle particle : particles)
+		{
+			float life = Mth.clamp((now - particle.startedAt)
+				/ (float)PARTICLE_LIFETIME_NANOS, 0, 1);
+			int alpha = Math.round((1 - life) * 210);
+			int x = panelX + Math.round(particle.x);
+			int y = panelY + Math.round(particle.y);
+			int color = VisualTheme.withAlpha(VisualTheme.ACCENT, alpha);
+			FlatRenderer.fillRoundedRect(graphics, x, y,
+				x + particle.size, y + particle.size, particle.size, color);
+		}
+	}
+
+	static float interpolateHealth(float from, float to, long elapsedNanos)
+	{
+		float progress = Mth.clamp(elapsedNanos
+			/ (float)HEALTH_ANIMATION_NANOS, 0, 1);
+		return Mth.lerp(easeOutQuint(progress), from, to);
+	}
+
+	static float easeOutQuint(float progress)
+	{
+		float value = Mth.clamp(progress, 0, 1);
+		return 1 - (float)Math.pow(1 - value, 5);
+	}
+
+	static float easeOutElastic(float progress)
+	{
+		float value = Mth.clamp(progress, 0, 1);
+		if(value == 0 || value == 1)
+			return value;
+		double phase = 2 * Math.PI / 3;
+		return (float)(Math.pow(2, -10 * value)
+			* Math.sin((value * 10 - 0.75) * phase) + 1);
+	}
+
+	static float exitScale(float progress)
+	{
+		float value = Mth.clamp(progress, 0, 1);
+		float overshoot = 1.70158F;
+		float eased = (overshoot + 1) * value * value * value
+			- overshoot * value * value;
+		return 1 - eased;
 	}
 
 	private void clearTarget()
@@ -301,56 +435,15 @@ public final class TargetHudElement extends HudElement
 		attackedTarget = null;
 		attackedAtNanos = 0;
 		displayedTarget = null;
+		shownAtNanos = 0;
 		lastVisibleNanos = 0;
 		lastRenderNanos = 0;
+		lastParticleNanos = 0;
 		displayedHealth = Float.NaN;
-	}
-
-	static float calculateOpacity(long now, long lastVisible)
-	{
-		long elapsed = Math.max(0, now - lastVisible);
-		if(elapsed <= HOLD_NANOS)
-			return 1;
-		if(elapsed >= HOLD_NANOS + FADE_NANOS)
-			return 0;
-		float progress = (elapsed - HOLD_NANOS) / (float)FADE_NANOS;
-		float eased = progress * progress * (3 - 2 * progress);
-		return 1 - eased;
-	}
-
-	static float smoothHealth(float current, float target, long elapsedNanos)
-	{
-		if(Float.isNaN(current) || elapsedNanos <= 0)
-			return target;
-		float step = Mth.clamp(elapsedNanos / 180_000_000F, 0, 1);
-		return Mth.lerp(step, current, target);
-	}
-
-	static String compactUuid(UUID uuid)
-	{
-		return uuid.toString().substring(0, 8);
-	}
-
-	private static int getThemeAccentColor()
-	{
-		WURST.getGui().updateColors();
-		return WURST.getGui().getTheme().accent(1);
-	}
-
-	static int healthColor(int themeColor, float healthRatio)
-	{
-		float ratio = Mth.clamp(healthRatio, 0, 1);
-		int red = Math.round(Mth.lerp(ratio, 255, themeColor >> 16 & 0xFF));
-		int green = Math.round(Mth.lerp(ratio, 65, themeColor >> 8 & 0xFF));
-		int blue = Math.round(Mth.lerp(ratio, 48, themeColor & 0xFF));
-		return 0xFF000000 | red << 16 | green << 8 | blue;
-	}
-
-	private static int withOpacity(int color, float opacity)
-	{
-		int alpha = color >>> 24;
-		int fadedAlpha = Math.round(alpha * Mth.clamp(opacity, 0, 1));
-		return color & 0x00FFFFFF | fadedAlpha << 24;
+		healthAnimationFrom = 0;
+		healthAnimationTarget = 0;
+		healthAnimationStarted = 0;
+		particles.clear();
 	}
 
 	@Override
@@ -358,5 +451,26 @@ public final class TargetHudElement extends HudElement
 	{
 		return new HudElementConfig(HudElementConfig.HORIZONTAL_LEFT,
 			HudElementConfig.VERTICAL_TOP, 8, 126);
+	}
+
+	private static final class HitParticle
+	{
+		private float x;
+		private float y;
+		private final float velocityX;
+		private final float velocityY;
+		private final long startedAt;
+		private final int size;
+
+		private HitParticle(float x, float y, float velocityX, float velocityY,
+			long startedAt, int size)
+		{
+			this.x = x;
+			this.y = y;
+			this.velocityX = velocityX;
+			this.velocityY = velocityY;
+			this.startedAt = startedAt;
+			this.size = size;
+		}
 	}
 }

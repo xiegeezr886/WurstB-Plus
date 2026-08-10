@@ -9,7 +9,7 @@ package net.wurstclient.hacks;
 
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
-import net.wurstclient.clickgui2.ClickGuiScreen;
+import net.wurstclient.clickgui2.ClickGuiScreens;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.NotificationSeverity;
@@ -44,7 +44,7 @@ public final class ClickGuiHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		MC.setScreen(new ClickGuiScreen());
+		MC.setScreen(ClickGuiScreens.create());
 		if(WURST.getHudManager() != null)
 			WURST.getHudManager().addNotification("Info", getDisplayName(),
 				NotificationSeverity.INFO);

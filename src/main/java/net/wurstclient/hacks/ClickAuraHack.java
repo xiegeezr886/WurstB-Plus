@@ -9,6 +9,7 @@ package net.wurstclient.hacks;
 
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.LeftClickListener;
@@ -116,7 +117,8 @@ public final class ClickAuraHack extends Hack
 	
 	private boolean attack()
 	{
-		if(!speed.isTimeToAttack() || pauseOnContainers.shouldPause())
+		if(MC.player == null || MC.level == null || MC.gameMode == null
+			|| pauseOnContainers.shouldPause() || !speed.isTimeToAttack())
 			return false;
 
 		Entity target = CombatTargetUtils.get(range.getValue(), fov.getValue(),
@@ -126,9 +128,9 @@ public final class ClickAuraHack extends Hack
 			return false;
 		
 		WURST.getHax().autoSwordHack.setSlot(target);
-		
-		RotationUtils.getNeededRotations(aimAt.getAimPoint(target))
-			.sendPlayerLookPacket();
+
+		Vec3 hitVec = aimAt.getAimPoint(target);
+		RotationUtils.getNeededRotations(hitVec).sendPlayerLookPacket();
 		MC.gameMode.attack(MC.player, target);
 		swingHand.swing(InteractionHand.MAIN_HAND);
 		speed.resetTimer();

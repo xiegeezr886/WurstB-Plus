@@ -25,6 +25,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.visual.VisualRenderer;
+import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.altmanager.AltRenderer;
 import net.wurstclient.altmanager.NameGenerator;
 import net.wurstclient.altmanager.SkinStealer;
@@ -234,7 +236,9 @@ public abstract class AltEditorScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		VisualRenderer.gridBackground(context, width, height);
+		VisualRenderer.panel(context, width / 2 - 116, 26,
+			width / 2 + 116, 178, VisualTheme.RADIUS_LARGE, false);
 		
 		// skin preview
 		AltRenderer.drawAltBack(context, nameOrEmailBox.getValue(),
@@ -246,18 +250,18 @@ public abstract class AltEditorScreen extends Screen
 		
 		// text
 		context.drawString(font, "Name (for cracked alts), or",
-			width / 2 - 100, 37, 10526880);
+			width / 2 - 100, 37, VisualTheme.TEXT_DIMMED);
 		context.drawString(font, "E-Mail (for premium alts)",
-			width / 2 - 100, 47, 10526880);
+			width / 2 - 100, 47, VisualTheme.TEXT_DIMMED);
 		context.drawString(font, "Password (for premium alts)",
-			width / 2 - 100, 87, 10526880);
+			width / 2 - 100, 87, VisualTheme.TEXT_DIMMED);
 		context.drawString(font, "Account type: " + accountType,
-			width / 2 - 100, 127, 10526880);
+			width / 2 - 100, 127, VisualTheme.TEXT_DIMMED);
 		
 		String[] lines = message.split("\n");
 		for(int i = 0; i < lines.length; i++)
 			context.drawCenteredString(font, lines[i],
-				width / 2, 142 + 10 * i, 16777215);
+				width / 2, 142 + 10 * i, VisualTheme.TEXT);
 		
 		// text boxes
 		nameOrEmailBox.render(context, mouseX, mouseY, partialTicks);

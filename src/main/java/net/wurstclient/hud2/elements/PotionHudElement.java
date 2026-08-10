@@ -10,6 +10,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
+import net.wurstclient.gui.visual.VisualTheme;
 
 public final class PotionHudElement extends HudElement
 {
@@ -38,10 +39,11 @@ public final class PotionHudElement extends HudElement
 		List<String> lines = getLines();
 		if(lines.isEmpty())
 			return;
-		graphics.fill(x, y, x + getWidth(), y + getHeight(), 0x80000000);
+		graphics.fill(x, y, x + getWidth(), y + getHeight(),
+			VisualTheme.SURFACE_50);
 		for(int index = 0; index < lines.size(); index++)
 			graphics.drawString(font, lines.get(index), x + 2,
-				y + 1 + index * font.lineHeight, 0xFFFFFFFF, false);
+				y + 1 + index * font.lineHeight, VisualTheme.TEXT, false);
 	}
 
 	private List<String> getLines()

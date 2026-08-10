@@ -22,6 +22,8 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.commands.FriendsCmd;
 import net.wurstclient.hacks.XRayHack;
 import net.wurstclient.hud2.HudEditorScreen;
+import net.wurstclient.gui.visual.VisualRenderer;
+import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.other_features.VanillaSpoofOtf;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.ChatUtils;
@@ -118,7 +120,10 @@ public class WurstOptionsScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		VisualRenderer.gridBackground(context, width, height);
+		VisualRenderer.panel(context, width / 2 - 164,
+			height / 4 - 36, width / 2 + 164, height / 4 + 116,
+			VisualTheme.RADIUS_LARGE, false);
 		renderTitles(context);
 		super.render(context, mouseX, mouseY, partialTicks);
 		renderButtonTooltip(context, mouseX, mouseY);
@@ -132,14 +137,14 @@ public class WurstOptionsScreen extends Screen
 		int y2 = height / 4 + 24 - 28;
 		
 		context.drawCenteredString(tr, WurstClient.CLIENT_NAME + " 设置", middleX, y1,
-			0xffffff);
+			VisualTheme.TEXT);
 		
 		context.drawCenteredString(tr, "Settings", middleX - 104, y2,
-			0xcccccc);
+			VisualTheme.TEXT_DIMMED);
 		context.drawCenteredString(tr, "Managers", middleX, y2,
-			0xcccccc);
+			VisualTheme.TEXT_DIMMED);
 		context.drawCenteredString(tr, "Links", middleX + 104, y2,
-			0xcccccc);
+			VisualTheme.TEXT_DIMMED);
 	}
 	
 	private void renderButtonTooltip(GuiGraphics context, int mouseX,

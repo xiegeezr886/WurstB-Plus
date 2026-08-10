@@ -33,13 +33,31 @@ public final class WurstCnNamesTest
 			JsonObject names = JsonParser
 				.parseReader(new InputStreamReader(stream, UTF_8)).getAsJsonObject();
 
-			assertEquals(182, names.size());
+			assertEquals(192, names.size());
+			assertEquals("空中跳跃",
+				names.get("hack.name.airjump").getAsString());
 			assertEquals("杀戮光环",
 				names.get("hack.name.killaura").getAsString());
 			assertEquals("玩家透视",
 				names.get("hack.name.playeresp").getAsString());
 			assertEquals("玩家光环",
 				names.get("hack.name.playerhalo").getAsString());
+			assertEquals("无未命中冷却",
+				names.get("hack.name.nomisscooldown").getAsString());
+			assertEquals("弹射物反击",
+				names.get("hack.name.projectilepuncher").getAsString());
+			assertEquals("快速下台阶",
+				names.get("hack.name.reversestep").getAsString());
+			assertEquals("右键连点",
+				names.get("hack.name.rightclicker").getAsString());
+			assertEquals("疾跑重置",
+				names.get("hack.name.wtap").getAsString());
+			assertEquals("防强制旋转",
+				names.get("hack.name.norotate").getAsString());
+			assertEquals("增强击退",
+				names.get("hack.name.superknockback").getAsString());
+			assertEquals("载具弹射",
+				names.get("hack.name.vehicleboost").getAsString());
 			assertTrue(names.keySet().stream()
 				.allMatch(key -> key.startsWith("hack.name.")));
 			assertFalse(names.entrySet().stream()

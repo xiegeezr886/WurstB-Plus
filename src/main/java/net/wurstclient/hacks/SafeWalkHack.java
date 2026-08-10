@@ -17,8 +17,8 @@ import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
-@SearchTags({"safe walk", "SneakSafety", "sneak safety", "SpeedBridgeHelper",
-	"speed bridge helper"})
+@SearchTags({"safe walk", "Eagle", "eagle", "SneakSafety", "sneak safety",
+	"SpeedBridgeHelper", "speed bridge helper"})
 public final class SafeWalkHack extends Hack
 {
 	private final CheckboxSetting sneak =

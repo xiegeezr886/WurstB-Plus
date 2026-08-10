@@ -31,6 +31,7 @@ import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.settings.filterlists.EntityFilterList;
 import net.wurstclient.util.CombatTargetUtils;
+import net.wurstclient.util.CombatTargetSession;
 
 @SearchTags({"trigger bot", "AutoAttack", "auto attack", "AutoClicker",
 	"auto clicker"})
@@ -86,6 +87,8 @@ public final class TriggerBotHack extends Hack
 		EntityFilterList.genericCombat();
 	
 	private boolean simulatingMouseClick;
+	private final CombatTargetSession<Entity> targetSession =
+		new CombatTargetSession<>();
 	
 	public TriggerBotHack()
 	{
@@ -111,6 +114,7 @@ public final class TriggerBotHack extends Hack
 	@Override
 	protected void onEnable()
 	{
+		targetSession.clear();
 		speed.resetTimer(speedRandMS.getValue());
 		EVENTS.add(PreMotionListener.class, this);
 		EVENTS.add(HandleInputListener.class, this);
@@ -119,6 +123,7 @@ public final class TriggerBotHack extends Hack
 	@Override
 	protected void onDisable()
 	{
+		targetSession.clear();
 		if(simulatingMouseClick)
 		{
 			IKeyBinding.get(MC.options.keyAttack).simulatePress(false);
@@ -142,41 +147,25 @@ public final class TriggerBotHack extends Hack
 	@Override
 	public void onHandleInput()
 	{
+		CombatTargetSession.Selection<Entity> selection =
+			targetSession.track(findEligibleTarget());
+		Entity target = selection.current();
+		if(selection.changed())
+		{
+			speed.resetTimer(speedRandMS.getValue());
+		}
+		if(target == null)
+			return;
+
 		speed.updateTimer();
 		if(!speed.isTimeToAttack())
 			return;
-		if(requireAttackKey.isChecked() && !MC.options.keyAttack.isDown())
-			return;
-		if(pauseWhileMining.isChecked() && MC.gameMode.isDestroying())
-			return;
-		
-		// don't attack when a container/inventory screen is open
-		if(MC.screen instanceof AbstractContainerScreen)
-			return;
-		
+
 		LocalPlayer player = MC.player;
-		if(requireWeapon.isChecked()
-			&& !(player.getMainHandItem().getItem() instanceof SwordItem)
-			&& !(player.getMainHandItem().getItem() instanceof AxeItem))
-			return;
 		if(player.getAttackStrengthScale(0.5F) < minCooldown.getValueF())
 			return;
-		if(player.isUsingItem())
-		{
-			if(onItemUse.getSelected() == ItemUseMode.WAIT)
-				return;
-			if(onItemUse.getSelected() == ItemUseMode.STOP)
-				MC.gameMode.releaseUsingItem(player);
-		}
-		
-		if(MC.hitResult == null
-			|| !(MC.hitResult instanceof EntityHitResult eResult))
-			return;
-		
-		Entity target = eResult.getEntity();
-		if(!CombatTargetUtils.isValid(target, range.getValue(), 360,
-			entity -> entity.getBoundingBox().getCenter(), entityFilters, false))
-			return;
+		if(player.isUsingItem() && onItemUse.getSelected() == ItemUseMode.STOP)
+			MC.gameMode.releaseUsingItem(player);
 		
 		WURST.getHax().autoSwordHack.setSlot(target);
 		
@@ -192,6 +181,34 @@ public final class TriggerBotHack extends Hack
 		}
 		
 		speed.resetTimer(speedRandMS.getValue());
+	}
+
+	private Entity findEligibleTarget()
+	{
+		if(MC.player == null || MC.level == null || MC.gameMode == null)
+			return null;
+		if(requireAttackKey.isChecked() && !MC.options.keyAttack.isDown())
+			return null;
+		if(pauseWhileMining.isChecked() && MC.gameMode.isDestroying())
+			return null;
+		if(MC.screen instanceof AbstractContainerScreen)
+			return null;
+
+		LocalPlayer player = MC.player;
+		if(requireWeapon.isChecked()
+			&& !(player.getMainHandItem().getItem() instanceof SwordItem)
+			&& !(player.getMainHandItem().getItem() instanceof AxeItem))
+			return null;
+		if(player.isUsingItem()
+			&& onItemUse.getSelected() == ItemUseMode.WAIT)
+			return null;
+		if(!(MC.hitResult instanceof EntityHitResult eResult))
+			return null;
+
+		Entity target = eResult.getEntity();
+		return CombatTargetUtils.isValid(target, range.getValue(), 360,
+			entity -> entity.getBoundingBox().getCenter(), entityFilters, false)
+				? target : null;
 	}
 
 	private enum ItemUseMode
