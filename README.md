@@ -1,4 +1,3 @@
-
 <p align="center">
   <img src="logo.png" alt="WurstB+ Plus" width="768"/>
 </p>
