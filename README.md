@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="WurstB+ Plus" width="1024"/>
+  <img src="logo.png" alt="WurstB+ Plus" width="768"/>
 </p>
 
 # WurstB+ Plus
