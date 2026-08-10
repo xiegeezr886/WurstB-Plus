@@ -13,6 +13,7 @@ import net.wurstclient.clickgui2.ClickGuiScreens;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.NotificationSeverity;
+import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
@@ -33,12 +34,18 @@ public final class ClickGuiHack extends Hack
 			"Maximum height for settings windows\n" + "0 = no limit", 200, 0,
 			1000, 50, ValueDisplay.INTEGER);
 	
+	private final CheckboxSetting vapeMode = new CheckboxSetting("Vape mode",
+		"Switches the ClickGUI to the Vape-style interface.", false);
+	
 	public ClickGuiHack()
 	{
 		super("ClickGUI");
 		addSetting(ttOpacity);
 		addSetting(maxHeight);
 		addSetting(maxSettingsHeight);
+		addSetting(vapeMode);
+		vapeMode.addChangeListener(() -> ClickGuiScreens.setVapeMode(
+			vapeMode.isChecked()));
 	}
 	
 	@Override
