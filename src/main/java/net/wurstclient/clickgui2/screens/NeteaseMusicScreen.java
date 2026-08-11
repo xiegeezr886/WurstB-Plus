@@ -231,7 +231,7 @@ public final class NeteaseMusicScreen extends Screen
 		float hover = motion("account").update(hovered ? 1 : 0);
 		FlatRenderer.fillRoundedRect(graphics, b.left + 4, accountTop,
 			b.left + SIDEBAR_WIDTH - 4, accountTop + 22, 4,
-			SuperSoftTheme.mix(0x00000000, 0x33EC4141, hover));
+			SuperSoftTheme.mix(0x00000000, withAlpha(accentColor, 0.2F), hover));
 		drawCenteredText(graphics, hasAnyAccount() ? "账户" : "登录", 7,
 			b.left + SIDEBAR_WIDTH / 2, accountTop + 7,
 			PLAYER.isLoggedIn() ? MUTED : accentColor, SIDEBAR_WIDTH - 8);
@@ -246,7 +246,7 @@ public final class NeteaseMusicScreen extends Screen
 			target == page ? 1 : hovered ? 0.5F : 0);
 		FlatRenderer.fillRoundedRect(graphics, b.left + 4, top,
 			b.left + SIDEBAR_WIDTH - 4, top + 22, 4,
-			SuperSoftTheme.mix(0x00000000, 0x3DEC4141, progress));
+			SuperSoftTheme.mix(0x00000000, withAlpha(accentColor, 0.24F), progress));
 		drawCenteredText(graphics, label, 7, b.left + SIDEBAR_WIDTH / 2,
 			top + 7, target == page ? accentColor : 0xCCFFFFFF,
 			SIDEBAR_WIDTH - 8);
@@ -430,7 +430,7 @@ public final class NeteaseMusicScreen extends Screen
 		FlatRenderer.fillRoundedRect(graphics, inputLeft, top + 8, inputRight,
 			top + 30, 4, CARD);
 		FlatRenderer.drawRoundedOutline(graphics, inputLeft, top + 8, inputRight,
-			top + 30, 4, SuperSoftTheme.mix(0x4DEC4141, accentColor, focus));
+			top + 30, 4, SuperSoftTheme.mix(withAlpha(accentColor, 0.3F), accentColor, focus));
 		String display = query.isEmpty() ? "输入歌曲名或歌手..." : query;
 		drawText(graphics, display, query.isEmpty() ? 6 : 7, inputLeft + 7,
 			top + 15, query.isEmpty() ? 0x669F8997 : TEXT,
@@ -536,7 +536,7 @@ public final class NeteaseMusicScreen extends Screen
 		float progress = motion("provider-" + provider).update(
 			selected ? 1 : hovered ? 0.55F : 0);
 		FlatRenderer.fillRoundedRect(graphics, left, top, left + 68, top + 22,
-			5, SuperSoftTheme.mix(0x16FFFFFF, 0x30EC4141, progress));
+			5, SuperSoftTheme.mix(0x16FFFFFF, withAlpha(accentColor, 0.19F), progress));
 		drawText(graphics, provider.getShortName(), 6, left + 7, top + 7,
 			selected ? accentColor : MUTED, 18);
 		drawText(graphics, provider.getDisplayName(), 5, left + 25, top + 8,
@@ -760,7 +760,7 @@ public final class NeteaseMusicScreen extends Screen
 				selected ? 1 : hovered ? 0.62F : 0);
 			FlatRenderer.fillRoundedRect(graphics, left, rowTop, right,
 				rowTop + SONG_HEIGHT - 2, 4,
-				SuperSoftTheme.mix(0x1AFFFFFF, 0x52EC4141, highlight));
+				SuperSoftTheme.mix(0x1AFFFFFF, withAlpha(accentColor, 0.32F), highlight));
 			int coverLeft = left + 3;
 			if(showIndex)
 			{
@@ -772,6 +772,8 @@ public final class NeteaseMusicScreen extends Screen
 			}
 			drawCover(graphics, song.coverUrl(), coverLeft, rowTop + 2,
 				coverLeft + 20, rowTop + 22, 1);
+			FlatRenderer.drawRoundedOutline(graphics, coverLeft, rowTop + 2,
+				coverLeft + 20, rowTop + 22, 4, 0x1AFFFFFF);
 			int titleLeft = coverLeft + 25;
 			drawText(graphics, song.name(), 6, titleLeft, rowTop + 4,
 				selected ? accentColor : TEXT, right - titleLeft - 18);
@@ -803,15 +805,24 @@ public final class NeteaseMusicScreen extends Screen
 		float progressHover = motion("bottom-progress").update(
 			progressHovered || draggingBottomProgress ? 1 : 0);
 		int progressY = top + 4;
-		graphics.fill(progressLeft, progressY, progressRight,
-			progressY + 1 + Math.round(progressHover), 0x2AFFFFFF);
+		int barHeight = 2 + Math.round(progressHover);
+		FlatRenderer.fillRoundedRect(graphics, progressLeft, progressY,
+			progressRight, progressY + barHeight, barHeight / 2 + 1,
+			0x2AFFFFFF);
 		int thumbX = progressLeft
 			+ Math.round((progressRight - progressLeft) * progress);
-		graphics.fill(progressLeft, progressY, thumbX,
-			progressY + 1 + Math.round(progressHover), accentColor);
+		if(thumbX > progressLeft)
+			FlatRenderer.fillRoundedRect(graphics, progressLeft, progressY,
+				thumbX, progressY + barHeight, barHeight / 2 + 1, accentColor);
 		if(progressHover > 0.02F)
+		{
 			FlatRenderer.fillRoundedRect(graphics, thumbX - 2, progressY - 2,
-				thumbX + 3, progressY + 3, 3, withAlpha(TEXT, progressHover));
+				thumbX + 4, progressY + barHeight + 2, 4,
+				withAlpha(accentColor, 0.55F * progressHover));
+			FlatRenderer.fillRoundedRect(graphics, thumbX - 3, progressY - 3,
+				thumbX + 5, progressY + barHeight + 3, 4,
+				withAlpha(TEXT, progressHover));
+		}
 
 		NeteaseSong song = PLAYER.getCurrentSong();
 		if(song != null)
@@ -875,7 +886,7 @@ public final class NeteaseMusicScreen extends Screen
 			queueVisible ? 1 : queueHovered ? 0.65F : 0);
 		FlatRenderer.fillRoundedRect(graphics, b.right - 30, top + 18,
 			b.right - 6, top + 46, 7,
-			SuperSoftTheme.mix(0x00FFFFFF, 0x24EC4141, queueHover));
+			SuperSoftTheme.mix(0x00FFFFFF, withAlpha(accentColor, 0.14F), queueHover));
 		drawQueue(graphics, b.right - 18, controlY,
 			SuperSoftTheme.mix(MUTED, TEXT, queueHover));
 	}
@@ -886,7 +897,7 @@ public final class NeteaseMusicScreen extends Screen
 		boolean hovered = distance(mouseX, mouseY, x, y) <= 12;
 		float hover = motion("play-mode").update(hovered ? 1 : 0);
 		FlatRenderer.fillRoundedRect(graphics, x - 11, y - 11, x + 11,
-			y + 11, 7, SuperSoftTheme.mix(0x00FFFFFF, 0x22EC4141, hover));
+			y + 11, 7, SuperSoftTheme.mix(0x00FFFFFF, withAlpha(accentColor, 0.13F), hover));
 		drawCenteredText(graphics, playbackModeLabel(), 6, x, y - 3,
 			hovered ? TEXT : MUTED, 18);
 	}
@@ -899,7 +910,7 @@ public final class NeteaseMusicScreen extends Screen
 			detailVisible ? 1 : hovered ? 0.65F : 0);
 		FlatRenderer.fillRoundedRect(graphics, x - 11, y - 11, x + 11,
 			y + 11, 7,
-			SuperSoftTheme.mix(0x00FFFFFF, 0x28EC4141, hover));
+			SuperSoftTheme.mix(0x00FFFFFF, withAlpha(accentColor, 0.16F), hover));
 		drawCenteredText(graphics, "\u8bcd", 7, x, y - 4,
 			SuperSoftTheme.mix(MUTED, TEXT, hover), 18);
 	}
@@ -1061,7 +1072,7 @@ public final class NeteaseMusicScreen extends Screen
 		drawText(graphics, song.name(), 10, b.left + 36, top + 21, TEXT, 116);
 		drawText(graphics, song.artist(), 6, b.left + 36, top + 36, MUTED, 116);
 
-		int coverSize = Math.max(82, Math.min(104, b.height() - 138));
+		int coverSize = Math.max(96, Math.min(120, b.height() - 132));
 		int coverLeft = b.left + 28;
 		int coverTop = top + 53;
 		FlatRenderer.fillRoundedRect(graphics, coverLeft - 5, coverTop + 5,
@@ -1171,7 +1182,7 @@ public final class NeteaseMusicScreen extends Screen
 		float resetHover = motion("lyric-reset").update(resetHovered ? 1 : 0);
 		FlatRenderer.fillRoundedRect(graphics, center - 19, top + 12,
 			center + 19, top + 27, 5,
-			SuperSoftTheme.mix(0x16FFFFFF, 0x30EC4141, resetHover));
+			SuperSoftTheme.mix(0x16FFFFFF, withAlpha(accentColor, 0.19F), resetHover));
 		String offset = String.format(java.util.Locale.ROOT, "%+.1fs",
 			PLAYER.getLyricOffsetMs() / 1000D);
 		drawCenteredText(graphics, offset, 5, center, top + 17,
@@ -1187,7 +1198,7 @@ public final class NeteaseMusicScreen extends Screen
 			y + 8);
 		float hover = motion("lyric-timing-" + label).update(hovered ? 1 : 0);
 		FlatRenderer.fillRoundedRect(graphics, x - 8, y - 7, x + 8, y + 8,
-			5, SuperSoftTheme.mix(0x16FFFFFF, 0x30EC4141, hover));
+			5, SuperSoftTheme.mix(0x16FFFFFF, withAlpha(accentColor, 0.19F), hover));
 		drawCenteredText(graphics, label, 6, x, y - 3,
 			hovered ? TEXT : MUTED, 12);
 	}
