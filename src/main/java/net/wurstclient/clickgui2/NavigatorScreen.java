@@ -29,9 +29,8 @@ public final class NavigatorScreen extends Screen
 {
 	private static final Minecraft MC = WurstClient.MC;
 	private static final WurstClient WURST = WurstClient.INSTANCE;
-	private static final int RISE_WIDTH = 400;
-	private static final int RISE_HEIGHT = 300;
-	private static final int SIDEBAR_WIDTH = 100;
+	private static final int MAX_PANEL_WIDTH = 540;
+	private static final int MAX_PANEL_HEIGHT = 400;
 	private static final int MODULE_GAP = 7;
 	private static final int SEARCH_CONTENT_OFFSET = 35;
 	private static final int CATEGORY_TRANSITION_MS = 200;
@@ -139,10 +138,15 @@ public final class NavigatorScreen extends Screen
 
 	private void updateDimensions()
 	{
-		panelWidth = Math.min(Math.max(1, width - 16), RISE_WIDTH);
-		panelHeight = Math.min(Math.max(1, height - 16), RISE_HEIGHT);
-		sidebarWidth = Math.min(SIDEBAR_WIDTH,
-			Math.max(68, Math.round(panelWidth * 0.25F)));
+		int targetWidth = Math.round(width * 0.415F);
+		int targetHeight = Math.round(height * 0.555F);
+		panelWidth = Math.min(Math.max(1, width - 24),
+			Mth.clamp(targetWidth, 180, MAX_PANEL_WIDTH));
+		panelHeight = Math.min(Math.max(1, height - 24),
+			Mth.clamp(targetHeight, 140, MAX_PANEL_HEIGHT));
+		sidebarWidth = Mth.clamp(Math.round(panelWidth * 0.25F), 48, 122);
+		panelX = Mth.clamp(panelX, 0, Math.max(0, width - panelWidth));
+		panelY = Mth.clamp(panelY, 0, Math.max(0, height - panelHeight));
 	}
 
 	private void refreshFeatures(boolean categoryChange)
