@@ -40,7 +40,6 @@ public final class NeteaseMusicScreen extends Screen
 	private static final int SIDEBAR_WIDTH = 76;
 	private static final int PLAYER_HEIGHT = 58;
 	private static final int SONG_HEIGHT = 26;
-	private static final int PRIMARY = 0xFFEC4141;
 	private static final int BACKGROUND = VisualTheme.BACKGROUND;
 	private static final int SURFACE = VisualTheme.PANEL_SECONDARY;
 	private static final int CARD = VisualTheme.CONTROL;
@@ -62,6 +61,8 @@ public final class NeteaseMusicScreen extends Screen
 	private final UiTween queueMotion = new UiTween(0, 220);
 	private final UiTween searchMotion = new UiTween(0, 200);
 	private final Map<String, UiTween> hoverMotions = new HashMap<>();
+	private int accentColor = 0xFFEC4141;
+	private int accentTarget = 0xFFEC4141;
 
 	private Page page = Page.HOME;
 	private List<NeteaseSong> homeSongs = List.of();
@@ -130,6 +131,17 @@ public final class NeteaseMusicScreen extends Screen
 	@Override
 	public void tick()
 	{
+		NeteaseSong currentSong = PLAYER.getCurrentSong();
+		int target = 0xFFEC4141;
+		if(currentSong != null)
+		{
+			NeteaseImageCache.Texture cover = images.get(currentSong.coverUrl());
+			if(cover != null)
+				target = cover.accent();
+		}
+		accentTarget = target;
+		if(accentColor != accentTarget)
+			accentColor = lerpAccent(accentColor, accentTarget, 0.09F);
 		if(page == Page.LOGIN && loginMode == LoginMode.QR && !loginLoading
 			&& qrLogin != null && (qrStatus == NeteaseCloudApi.QrStatus.WAITING
 				|| qrStatus == NeteaseCloudApi.QrStatus.SCANNED)
@@ -202,7 +214,7 @@ public final class NeteaseMusicScreen extends Screen
 			drawCover(graphics, profile.avatarUrl(), b.left + 22, b.top + 27,
 				b.left + 48, b.top + 53, 1);
 			FlatRenderer.drawRoundedOutline(graphics, b.left + 21, b.top + 26,
-				b.left + 49, b.top + 54, 14, PRIMARY);
+				b.left + 49, b.top + 54, 14, accentColor);
 			drawCenteredText(graphics, profile.nickname(), 5,
 				b.left + SIDEBAR_WIDTH / 2, b.top + 57, TEXT, 58);
 		}
@@ -222,7 +234,7 @@ public final class NeteaseMusicScreen extends Screen
 			SuperSoftTheme.mix(0x00000000, 0x33EC4141, hover));
 		drawCenteredText(graphics, hasAnyAccount() ? "账户" : "登录", 7,
 			b.left + SIDEBAR_WIDTH / 2, accountTop + 7,
-			PLAYER.isLoggedIn() ? MUTED : PRIMARY, SIDEBAR_WIDTH - 8);
+			PLAYER.isLoggedIn() ? MUTED : accentColor, SIDEBAR_WIDTH - 8);
 	}
 
 	private void renderNav(GuiGraphics graphics, Bounds b, Page target,
@@ -236,7 +248,7 @@ public final class NeteaseMusicScreen extends Screen
 			b.left + SIDEBAR_WIDTH - 4, top + 22, 4,
 			SuperSoftTheme.mix(0x00000000, 0x3DEC4141, progress));
 		drawCenteredText(graphics, label, 7, b.left + SIDEBAR_WIDTH / 2,
-			top + 7, target == page ? PRIMARY : 0xCCFFFFFF,
+			top + 7, target == page ? accentColor : 0xCCFFFFFF,
 			SIDEBAR_WIDTH - 8);
 	}
 
@@ -349,7 +361,7 @@ public final class NeteaseMusicScreen extends Screen
 			int cx = (left + right) / 2;
 			int cy = (top + bottom) / 2;
 			FlatRenderer.fillRoundedRect(graphics, cx - 12, cy - 12, cx + 12,
-				cy + 12, 12, withAlpha(PRIMARY, hover * 0.92F));
+				cy + 12, 12, withAlpha(accentColor, hover * 0.92F));
 			drawPlay(graphics, cx + 1, cy, withAlpha(TEXT, hover));
 		}
 		int totalWidth = size * 8 + 4;
@@ -357,7 +369,7 @@ public final class NeteaseMusicScreen extends Screen
 		{
 			int dotX = (left + right - totalWidth) / 2 + index * 8;
 			graphics.fill(dotX, bottom - 5, dotX + (index == carouselIndex ? 8 : 4),
-				bottom - 2, index == carouselIndex ? PRIMARY : 0x99FFFFFF);
+				bottom - 2, index == carouselIndex ? accentColor : 0x99FFFFFF);
 		}
 	}
 
@@ -372,7 +384,7 @@ public final class NeteaseMusicScreen extends Screen
 			left + 50 - inset, top + 50 - inset, 1);
 		FlatRenderer.drawRoundedOutline(graphics, left + inset, top + inset,
 			left + 50 - inset, top + 50 - inset, 5,
-			SuperSoftTheme.mix(0x33171C24, PRIMARY, hover));
+			SuperSoftTheme.mix(0x33171C24, accentColor, hover));
 		String count = formatCount(playlist.playCount());
 		graphics.fill(left + 28, top + 2, left + 48, top + 11, 0x99000000);
 		drawText(graphics, count, 4, left + 30, top + 3, TEXT, 17);
@@ -418,7 +430,7 @@ public final class NeteaseMusicScreen extends Screen
 		FlatRenderer.fillRoundedRect(graphics, inputLeft, top + 8, inputRight,
 			top + 30, 4, CARD);
 		FlatRenderer.drawRoundedOutline(graphics, inputLeft, top + 8, inputRight,
-			top + 30, 4, SuperSoftTheme.mix(0x4DEC4141, PRIMARY, focus));
+			top + 30, 4, SuperSoftTheme.mix(0x4DEC4141, accentColor, focus));
 		String display = query.isEmpty() ? "输入歌曲名或歌手..." : query;
 		drawText(graphics, display, query.isEmpty() ? 6 : 7, inputLeft + 7,
 			top + 15, query.isEmpty() ? 0x669F8997 : TEXT,
@@ -427,14 +439,14 @@ public final class NeteaseMusicScreen extends Screen
 		{
 			int cursor = inputLeft + 7 + font.width(font.plainSubstrByWidth(query,
 				inputRight - inputLeft - 14));
-			graphics.fill(cursor, top + 13, cursor + 1, top + 26, PRIMARY);
+			graphics.fill(cursor, top + 13, cursor + 1, top + 26, accentColor);
 		}
 		boolean searchHovered = contains(mouseX, mouseY, right - 32, top + 8,
 			right - 8, top + 30);
 		float searchHover = motion("search-button").update(searchHovered ? 1 : 0);
 		int inset = Math.round(searchHover);
 		FlatRenderer.fillRoundedRect(graphics, right - 32 - inset,
-			top + 8 - inset, right - 8 + inset, top + 30 + inset, 4, PRIMARY);
+			top + 8 - inset, right - 8 + inset, top + 30 + inset, 4, accentColor);
 		drawIcon(graphics, ICON_SEARCH, right - 26, top + 13, 12, TEXT, 1);
 		if(contentLoading)
 			renderLoading(graphics, (left + right) / 2, top + 72);
@@ -526,7 +538,7 @@ public final class NeteaseMusicScreen extends Screen
 		FlatRenderer.fillRoundedRect(graphics, left, top, left + 68, top + 22,
 			5, SuperSoftTheme.mix(0x16FFFFFF, 0x30EC4141, progress));
 		drawText(graphics, provider.getShortName(), 6, left + 7, top + 7,
-			selected ? PRIMARY : MUTED, 18);
+			selected ? accentColor : MUTED, 18);
 		drawText(graphics, provider.getDisplayName(), 5, left + 25, top + 8,
 			selected ? TEXT : withAlpha(TEXT, 0.65F), 34);
 		if(isProviderConnected(provider))
@@ -543,7 +555,7 @@ public final class NeteaseMusicScreen extends Screen
 		float progress = motion("login-tab-" + target).update(
 			selected ? 1 : hovered ? 0.5F : 0);
 		FlatRenderer.fillRoundedRect(graphics, left, top, left + 56, top + 22,
-			4, withAlpha(PRIMARY, progress));
+			4, withAlpha(accentColor, progress));
 		drawCenteredText(graphics, label, 7, left + 28, top + 7,
 			selected ? TEXT : MUTED, 48);
 	}
@@ -571,7 +583,7 @@ public final class NeteaseMusicScreen extends Screen
 		FlatRenderer.fillRoundedRect(graphics, sendLeft - Math.round(sendHover),
 			captchaTop - Math.round(sendHover), formRight + Math.round(sendHover),
 			captchaTop + 26 + Math.round(sendHover), 4,
-			canSend ? PRIMARY : CARD);
+			canSend ? accentColor : CARD);
 		long seconds = Math.max(0,
 			(captchaAvailableAt - System.currentTimeMillis() + 999) / 1000);
 		drawCenteredText(graphics,
@@ -586,7 +598,7 @@ public final class NeteaseMusicScreen extends Screen
 		FlatRenderer.fillRoundedRect(graphics, formLeft - Math.round(loginHover),
 			loginTop - Math.round(loginHover), formRight + Math.round(loginHover),
 			loginTop + 29 + Math.round(loginHover), 4,
-			loginLoading ? CARD : PRIMARY);
+			loginLoading ? CARD : accentColor);
 		drawCenteredText(graphics, loginLoading ? "登录中..." : "登录", 8,
 			(formLeft + formRight) / 2, loginTop + 10,
 			loginLoading ? MUTED : TEXT, formRight - formLeft - 12);
@@ -595,7 +607,7 @@ public final class NeteaseMusicScreen extends Screen
 		drawCenteredText(graphics, status, 6, (left + right) / 2,
 			loginTop + 39,
 			loginMessage.contains("成功") ? 0xFF75D58A
-				: loginMessage.isBlank() ? 0x778F7A88 : PRIMARY,
+				: loginMessage.isBlank() ? 0x778F7A88 : accentColor,
 			right - left - 30);
 	}
 
@@ -608,7 +620,7 @@ public final class NeteaseMusicScreen extends Screen
 		float border = motion("login-input-" + id).update(
 			active || hovered ? 1 : 0);
 		FlatRenderer.drawRoundedOutline(graphics, left, top, right, bottom, 4,
-			SuperSoftTheme.mix(0x664F3948, PRIMARY, border));
+			SuperSoftTheme.mix(0x664F3948, accentColor, border));
 		String shown = value.isEmpty() ? placeholder : value;
 		drawText(graphics, shown, value.isEmpty() ? 6 : 7, left + 7,
 			top + 10, value.isEmpty() ? 0x779F8997 : TEXT, right - left - 14);
@@ -616,7 +628,7 @@ public final class NeteaseMusicScreen extends Screen
 		{
 			int cursor = left + 7
 				+ font.width(font.plainSubstrByWidth(value, right - left - 14));
-			graphics.fill(cursor, top + 7, cursor + 1, bottom - 6, PRIMARY);
+			graphics.fill(cursor, top + 7, cursor + 1, bottom - 6, accentColor);
 		}
 	}
 
@@ -655,7 +667,7 @@ public final class NeteaseMusicScreen extends Screen
 		};
 		drawCenteredText(graphics, status, 6, (left + right) / 2,
 			qrTop + size + 10,
-			qrStatus == NeteaseCloudApi.QrStatus.ERROR ? PRIMARY : MUTED,
+			qrStatus == NeteaseCloudApi.QrStatus.ERROR ? accentColor : MUTED,
 			right - left - 30);
 		drawCenteredText(graphics, "请使用网易云音乐APP扫码登录", 5,
 			(left + right) / 2, qrTop + size + 24, withAlpha(TEXT, 0.4F),
@@ -684,18 +696,18 @@ public final class NeteaseMusicScreen extends Screen
 			cookieFocused || hovered ? 1 : 0);
 		FlatRenderer.drawRoundedOutline(graphics, formLeft, fieldTop, formRight,
 			fieldTop + 32, 5,
-			SuperSoftTheme.mix(0x334F5A62, PRIMARY, focus));
+			SuperSoftTheme.mix(0x334F5A62, accentColor, focus));
 		String inputText = cookieInput.isEmpty() ? cookiePlaceholder()
 			: "Cookie 已输入 " + cookieInput.length() + " 字符";
 		drawText(graphics, inputText, 6, formLeft + 8, fieldTop + 11,
 			cookieInput.isEmpty() ? MUTED : TEXT, formRight - formLeft - 16);
 		if(cookieFocused && System.currentTimeMillis() / 500 % 2 == 0)
 			graphics.fill(formRight - 9, fieldTop + 8, formRight - 8,
-				fieldTop + 24, PRIMARY);
+				fieldTop + 24, accentColor);
 
 		int actionTop = fieldTop + 40;
 		FlatRenderer.fillRoundedRect(graphics, formLeft, actionTop, formRight,
-			actionTop + 27, 5, loginLoading ? CARD : PRIMARY);
+			actionTop + 27, 5, loginLoading ? CARD : accentColor);
 		drawCenteredText(graphics, loginLoading ? "正在验证..." : "保存并连接",
 			7, (left + right) / 2, actionTop + 9,
 			loginLoading ? MUTED : 0xFF03110F, formRight - formLeft - 12);
@@ -716,7 +728,7 @@ public final class NeteaseMusicScreen extends Screen
 			? "Cookie 仅保存在 WurstB 本地配置目录" : loginMessage;
 		drawCenteredText(graphics, hint, 5, (left + right) / 2,
 			actionTop + 58, loginMessage.isBlank() ? withAlpha(TEXT, 0.42F)
-				: loginMessage.contains("已保存") ? 0xFF62D98B : PRIMARY,
+				: loginMessage.contains("已保存") ? 0xFF62D98B : accentColor,
 			right - left - 28);
 	}
 
@@ -755,19 +767,19 @@ public final class NeteaseMusicScreen extends Screen
 				int shownIndex = index + indexOffset + 1;
 				String number = Integer.toString(shownIndex);
 				drawCenteredText(graphics, number, 6, left + 9, rowTop + 9,
-					shownIndex <= 3 ? PRIMARY : withAlpha(TEXT, 0.5F), 14);
+					shownIndex <= 3 ? accentColor : withAlpha(TEXT, 0.5F), 14);
 				coverLeft += 14;
 			}
 			drawCover(graphics, song.coverUrl(), coverLeft, rowTop + 2,
 				coverLeft + 20, rowTop + 22, 1);
 			int titleLeft = coverLeft + 25;
 			drawText(graphics, song.name(), 6, titleLeft, rowTop + 4,
-				selected ? PRIMARY : TEXT, right - titleLeft - 18);
+				selected ? accentColor : TEXT, right - titleLeft - 18);
 			drawText(graphics, song.artist(), 5, titleLeft, rowTop + 15, MUTED,
 				right - titleLeft - 18);
 			if(selected && PLAYER.getState()
 				== NeteaseMusicPlayer.PlaybackState.PLAYING)
-				drawPlaying(graphics, right - 12, rowTop + 13);
+				drawPlaying(graphics, right - 12, rowTop + 13, accentColor);
 		}
 	}
 
@@ -796,7 +808,7 @@ public final class NeteaseMusicScreen extends Screen
 		int thumbX = progressLeft
 			+ Math.round((progressRight - progressLeft) * progress);
 		graphics.fill(progressLeft, progressY, thumbX,
-			progressY + 1 + Math.round(progressHover), PRIMARY);
+			progressY + 1 + Math.round(progressHover), accentColor);
 		if(progressHover > 0.02F)
 			FlatRenderer.fillRoundedRect(graphics, thumbX - 2, progressY - 2,
 				thumbX + 3, progressY + 3, 3, withAlpha(TEXT, progressHover));
@@ -805,13 +817,17 @@ public final class NeteaseMusicScreen extends Screen
 		if(song != null)
 		{
 			int coverLeft = b.left + 9;
-			int coverTop = top + 13;
+			int coverTop = top + 10;
+			int coverSize = 42;
+			FlatRenderer.drawRoundedOutline(graphics, coverLeft - 1, coverTop - 1,
+				coverLeft + coverSize + 1, coverTop + coverSize + 1, 9,
+				withAlpha(accentColor, 0.4F));
 			drawCover(graphics, song.coverUrl(), coverLeft, coverTop,
-				coverLeft + 36, coverTop + 36, 1);
+				coverLeft + coverSize, coverTop + coverSize, 1);
 			FlatRenderer.drawRoundedOutline(graphics, coverLeft, coverTop,
-				coverLeft + 36, coverTop + 36, 8, 0x2AFFFFFF);
+				coverLeft + coverSize, coverTop + coverSize, 8, 0x2AFFFFFF);
 			int transportX = b.left + b.width() / 2;
-			int infoLeft = coverLeft + 44;
+			int infoLeft = coverLeft + coverSize + 6;
 			int infoWidth = Math.max(42, transportX - 64 - infoLeft);
 			drawText(graphics, song.name(), 7, infoLeft, top + 15, TEXT,
 				infoWidth);
@@ -823,10 +839,10 @@ public final class NeteaseMusicScreen extends Screen
 				4, infoLeft, top + 39, withAlpha(TEXT, 0.42F), infoWidth);
 		}else
 		{
-			FlatRenderer.fillRoundedRect(graphics, b.left + 9, top + 13,
-				b.left + 45, top + 49, 8, 0x12FFFFFF);
-			drawText(graphics, "MINERADIO", 7, b.left + 53, top + 19, TEXT, 90);
-			drawText(graphics, "Ready to play", 5, b.left + 53, top + 31,
+			FlatRenderer.fillRoundedRect(graphics, b.left + 9, top + 10,
+				b.left + 51, top + 52, 10, 0x12FFFFFF);
+			drawText(graphics, "MINERADIO", 7, b.left + 59, top + 19, TEXT, 90);
+			drawText(graphics, "Ready to play", 5, b.left + 59, top + 31,
 				MUTED, 90);
 		}
 
@@ -852,7 +868,7 @@ public final class NeteaseMusicScreen extends Screen
 			0x2AFFFFFF);
 		graphics.fill(volumeLeft, volumeY,
 			volumeLeft + Math.round((volumeRight - volumeLeft) * PLAYER.getVolume()),
-			volumeY + 1, PRIMARY);
+			volumeY + 1, accentColor);
 		boolean queueHovered = contains(mouseX, mouseY, b.right - 30, top + 18,
 			b.right - 6, top + 46);
 		float queueHover = motion("queue-button").update(
@@ -945,13 +961,13 @@ public final class NeteaseMusicScreen extends Screen
 				y + 22);
 			float hover = motion("queue-row-" + queuedSong.id()).update(
 				current ? 1 : hovered ? 0.55F : 0);
-			int rowColor = SuperSoftTheme.mix(TEXT, PRIMARY, hover);
+			int rowColor = SuperSoftTheme.mix(TEXT, accentColor, hover);
 			FlatRenderer.fillRoundedRect(graphics, left + 6, y, right - 6,
 				y + 22, 5,
 				withAlpha(rowColor, progress * (0.03F + hover * 0.08F)));
 			if(current)
 				graphics.fill(left + 6, y + 4, left + 8, y + 18,
-					withAlpha(PRIMARY, progress));
+					withAlpha(accentColor, progress));
 			drawCover(graphics, queuedSong.coverUrl(), left + 11, y + 2,
 				left + 29, y + 20, progress);
 			drawText(graphics, queuedSong.name(), 6, left + 34, y + 3,
@@ -960,7 +976,7 @@ public final class NeteaseMusicScreen extends Screen
 				withAlpha(MUTED, progress), 112);
 			if(current && PLAYER.getState()
 				== NeteaseMusicPlayer.PlaybackState.PLAYING)
-				drawPlaying(graphics, right - 18, y + 11);
+				drawPlaying(graphics, right - 18, y + 11, accentColor);
 		}
 		if(queue.isEmpty())
 			drawCenteredText(graphics, "Queue is empty", 6, (left + right) / 2,
@@ -975,7 +991,7 @@ public final class NeteaseMusicScreen extends Screen
 				- thumbHeight) * queueScroll / (float)maxScroll);
 			graphics.fill(right - 4, trackTop, right - 3, trackBottom, 0x1FFFFFFF);
 			graphics.fill(right - 4, thumbTop, right - 2,
-				thumbTop + thumbHeight, withAlpha(PRIMARY, progress * 0.55F));
+				thumbTop + thumbHeight, withAlpha(accentColor, progress * 0.55F));
 		}
 	}
 
@@ -997,7 +1013,7 @@ public final class NeteaseMusicScreen extends Screen
 		if(primary)
 			FlatRenderer.fillRoundedRect(graphics, x - radius - Math.round(hover),
 				y - radius - Math.round(hover), x + radius + Math.round(hover),
-				y + radius + Math.round(hover), radius + 2, PRIMARY);
+				y + radius + Math.round(hover), radius + 2, accentColor);
 		if(id.equals("toggle"))
 		{
 			if(PLAYER.getState() == NeteaseMusicPlayer.PlaybackState.PLAYING)
@@ -1031,7 +1047,7 @@ public final class NeteaseMusicScreen extends Screen
 		graphics.fill(b.left, top, b.right, panelBottom, 0xE7080A0E);
 		graphics.fill(b.left, top, b.right, top + 1, 0x24FFFFFF);
 		graphics.fill(b.left, top, b.left + 2, panelBottom,
-			withAlpha(PRIMARY, 0.45F));
+			withAlpha(accentColor, 0.45F));
 
 		boolean closeHovered = contains(mouseX, mouseY, b.left + 8, top + 8,
 			b.left + 28, top + 28);
@@ -1041,7 +1057,7 @@ public final class NeteaseMusicScreen extends Screen
 			SuperSoftTheme.mix(0x1AFFFFFF, 0x44FFFFFF, closeHover));
 		drawIcon(graphics, ICON_CLOSE, b.left + 15, top + 15, 6, TEXT, 1);
 		drawText(graphics, "NOW PLAYING", 5, b.left + 36, top + 10,
-			withAlpha(PRIMARY, 0.82F), 100);
+			withAlpha(accentColor, 0.82F), 100);
 		drawText(graphics, song.name(), 10, b.left + 36, top + 21, TEXT, 116);
 		drawText(graphics, song.artist(), 6, b.left + 36, top + 36, MUTED, 116);
 
@@ -1060,7 +1076,7 @@ public final class NeteaseMusicScreen extends Screen
 				/ 420D) * 0.5 + 0.5) * 40);
 			FlatRenderer.drawRoundedOutline(graphics, coverLeft - 2, coverTop - 2,
 				coverLeft + coverSize + 2, coverTop + coverSize + 2, 9,
-				withAlpha(PRIMARY, (70 + pulse) / 255F));
+				withAlpha(accentColor, (70 + pulse) / 255F));
 		}
 
 		int lyricLeft = b.left + 154;
@@ -1080,7 +1096,7 @@ public final class NeteaseMusicScreen extends Screen
 			0x26FFFFFF);
 		int thumbX = progressLeft
 			+ Math.round((progressRight - progressLeft) * songProgress);
-		graphics.fill(progressLeft, progressY, thumbX, progressY + 2, PRIMARY);
+		graphics.fill(progressLeft, progressY, thumbX, progressY + 2, accentColor);
 		FlatRenderer.fillRoundedRect(graphics, thumbX - 3, progressY - 3,
 			thumbX + 4, progressY + 5, 4, TEXT);
 		drawText(graphics,
@@ -1108,7 +1124,7 @@ public final class NeteaseMusicScreen extends Screen
 			0x33FFFFFF);
 		graphics.fill(volumeLeft, controlY - 1,
 			volumeLeft + Math.round((volumeRight - volumeLeft) * PLAYER.getVolume()),
-			controlY + 1, PRIMARY);
+			controlY + 1, accentColor);
 	}
 
 	private void renderDetailLyrics(GuiGraphics graphics, int left, int top,
@@ -1137,7 +1153,7 @@ public final class NeteaseMusicScreen extends Screen
 				+ (offset == 0 ? Math.round((1 - activeMotion) * 6) : 0);
 			if(offset == 0)
 				FlatRenderer.fillRoundedRect(graphics, left + 3, y - 1,
-					left + 5, y + 10, 1, withAlpha(PRIMARY, activeMotion));
+					left + 5, y + 10, 1, withAlpha(accentColor, activeMotion));
 			drawText(graphics, lyrics.get(index).text(), offset == 0 ? 9 : 6,
 				left + 10, y, offset == 0 ? TEXT : withAlpha(TEXT, emphasis),
 				right - left - 14);
@@ -2157,7 +2173,7 @@ public final class NeteaseMusicScreen extends Screen
 			/ (float)Math.max(1, maxScroll));
 		graphics.fill(x, top, x + 2, bottom, 0x22FFFFFF);
 		graphics.fill(x, thumbY, x + 2, thumbY + thumb,
-			withAlpha(PRIMARY, 0.6F));
+			withAlpha(accentColor, 0.6F));
 	}
 
 	private void renderLoading(GuiGraphics graphics, int centerX, int centerY)
@@ -2169,7 +2185,7 @@ public final class NeteaseMusicScreen extends Screen
 			int x = centerX + (int)Math.round(Math.cos(angle) * 8);
 			int y = centerY + (int)Math.round(Math.sin(angle) * 8);
 			graphics.fill(x, y, x + 2, y + 2,
-				withAlpha(PRIMARY, index == phase ? 1 : 0.22F));
+				withAlpha(accentColor, index == phase ? 1 : 0.22F));
 		}
 	}
 
@@ -2381,14 +2397,15 @@ public final class NeteaseMusicScreen extends Screen
 		}
 	}
 
-	private static void drawPlaying(GuiGraphics graphics, int x, int y)
+	private static void drawPlaying(GuiGraphics graphics, int x, int y,
+		int color)
 	{
 		int phase = (int)(System.currentTimeMillis() / 130 % 4);
 		for(int index = 0; index < 3; index++)
 		{
 			int height = 3 + (phase + index * 2) % 4;
 			graphics.fill(x + index * 3, y - height / 2, x + index * 3 + 2,
-				y + (height + 1) / 2, PRIMARY);
+				y + (height + 1) / 2, color);
 		}
 	}
 
@@ -2492,6 +2509,25 @@ public final class NeteaseMusicScreen extends Screen
 	{
 		return Math.round(Mth.clamp(alpha, 0, 1) * 255) << 24
 			| color & 0xFFFFFF;
+	}
+
+	private static int lerpAccent(int from, int to, float t)
+	{
+		float progress = Mth.clamp(t, 0, 1);
+		int r = Math.round(Mth.lerp(progress, from >>> 16 & 0xFF,
+			to >>> 16 & 0xFF));
+		int g = Math.round(Mth.lerp(progress, from >>> 8 & 0xFF,
+			to >>> 8 & 0xFF));
+		int b = Math.round(Mth.lerp(progress, from & 0xFF, to & 0xFF));
+		float luminance = (0.299F * r + 0.587F * g + 0.114F * b) / 255F;
+		if(luminance < 0.35F)
+		{
+			float boost = Math.min(1.6F, 0.35F / Math.max(luminance, 0.01F));
+			r = Math.min(255, Math.round(r * boost));
+			g = Math.min(255, Math.round(g * boost));
+			b = Math.min(255, Math.round(b * boost));
+		}
+		return 0xFF000000 | r << 16 | g << 8 | b;
 	}
 
 	private enum Page
