@@ -22,6 +22,7 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FeatureMenuSupport;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.GuiIcon;
+import net.wurstclient.clickgui2.ClickGuiScreens;
 import net.wurstclient.clickgui2.GuiPreferences;
 import net.wurstclient.clickgui2.GuiPreferences.TargetType;
 import net.wurstclient.clickgui2.screens.NeteaseMusicScreen;
@@ -681,6 +682,10 @@ public final class SuperSoftClickGuiScreen extends Screen
 					var setting = WURST.getOtfs().translationsOtf.getForceEnglish();
 					setting.setChecked(!setting.isChecked());
 				}),
+			SuperSoftRowsWindow.switchRow("Vape mode",
+				preferences::isVapeMode,
+				() -> ClickGuiScreens.setVapeMode(
+					!preferences.isVapeMode())),
 			SuperSoftRowsWindow.switchRow("Commands",
 				preferences::isCommandsEnabled,
 				() -> preferences.setCommandsEnabled(
