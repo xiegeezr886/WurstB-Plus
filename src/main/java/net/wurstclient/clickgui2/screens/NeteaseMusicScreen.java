@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.clickgui2.PingFangFont;
 import net.wurstclient.clickgui2.screens.NeteaseImageCache.Texture;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.clickgui2.supersoft.UiTween;
@@ -2301,7 +2302,8 @@ public final class NeteaseMusicScreen extends Screen
 		graphics.pose().pushPose();
 		graphics.pose().translate(x, y, 0);
 		graphics.pose().scale(scale, scale, 1);
-		graphics.drawString(font, shown, 0, 0, color, false);
+		graphics.drawString(font, PingFangFont.text(shown), 0, 0, color,
+			false);
 		graphics.pose().popPose();
 	}
 
@@ -2313,8 +2315,8 @@ public final class NeteaseMusicScreen extends Screen
 		graphics.pose().pushPose();
 		graphics.pose().translate(centerX, y, 0);
 		graphics.pose().scale(scale, scale, 1);
-		graphics.drawString(font, shown, -font.width(shown) / 2, 0, color,
-			false);
+		graphics.drawString(font, PingFangFont.text(shown),
+			-PingFangFont.width(font, shown) / 2, 0, color, false);
 		graphics.pose().popPose();
 	}
 
@@ -2326,7 +2328,8 @@ public final class NeteaseMusicScreen extends Screen
 		graphics.pose().pushPose();
 		graphics.pose().translate(right, y, 0);
 		graphics.pose().scale(scale, scale, 1);
-		graphics.drawString(font, shown, -font.width(shown), 0, color, false);
+		graphics.drawString(font, PingFangFont.text(shown),
+			-PingFangFont.width(font, shown), 0, color, false);
 		graphics.pose().popPose();
 	}
 
@@ -2338,11 +2341,11 @@ public final class NeteaseMusicScreen extends Screen
 		String remaining = text;
 		for(int line = 0; line < maxLines && !remaining.isEmpty(); line++)
 		{
-			String shown = font.plainSubstrByWidth(remaining, baseWidth);
+			String shown = PingFangFont.trim(font, remaining, baseWidth);
 			if(shown.isEmpty())
 				break;
 			if(line == maxLines - 1 && shown.length() < remaining.length())
-				shown = font.plainSubstrByWidth(remaining, baseWidth);
+				shown = PingFangFont.trim(font, remaining, baseWidth);
 			drawCenteredText(graphics, shown, size, centerX,
 				y + Math.round(line * (size + 1)), color, maxWidth);
 			remaining = remaining.substring(shown.length()).stripLeading();
@@ -2353,7 +2356,7 @@ public final class NeteaseMusicScreen extends Screen
 	{
 		if(maxWidth <= 0)
 			return text;
-		return font.plainSubstrByWidth(text,
+		return PingFangFont.trim(font, text,
 			Math.max(1, (int)(maxWidth / Math.max(0.01F, scale))));
 	}
 

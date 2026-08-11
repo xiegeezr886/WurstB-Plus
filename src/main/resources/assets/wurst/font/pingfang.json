@@ -1,0 +1,15 @@
+{
+  "providers": [
+    {
+      "type": "ttf",
+      "file": "wurst:pingfang_regular.ttf",
+      "shift": [0, 0],
+      "size": 11.0,
+      "oversample": 2.0
+    },
+    {
+      "type": "reference",
+      "id": "minecraft:default"
+    }
+  ]
+}

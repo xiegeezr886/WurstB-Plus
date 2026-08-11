@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.clickgui2.PingFangFont;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.gui.visual.VisualTheme;
@@ -63,11 +64,11 @@ public final class MusicIslandHudElement extends HudElement
 		String base = "WurstB FPS: " + WurstClient.MC.getFps();
 		String music = preview && song == null ? "Now Playing: NetEase Music"
 			: song == null ? "" : "\u6b63\u5728\u64ad\u653e: " + song.name();
-		music = font.plainSubstrByWidth(music, 132);
-		int baseWidth = font.width(base) + 20;
+		music = PingFangFont.trim(font, music, 132);
+		int baseWidth = PingFangFont.width(font, base) + 20;
 		int targetWidth = baseWidth;
 		if(showMusic)
-			targetWidth += font.width("  \u00b7  " + music) + 14;
+			targetWidth += PingFangFont.width(font, "  \u00b7  " + music) + 14;
 		targetWidth = Mth.clamp(targetWidth, MIN_WIDTH, MAX_WIDTH);
 		updateWidth(targetWidth);
 
@@ -84,14 +85,15 @@ public final class MusicIslandHudElement extends HudElement
 			y + Math.round(HEIGHT * hudScale));
 		try
 		{
-			graphics.drawString(font, base, x + 10, y + 6, PRIMARY_TEXT, false);
+			graphics.drawString(font, PingFangFont.text(base), x + 10, y + 6,
+				PRIMARY_TEXT, false);
 			if(showMusic)
 			{
 				int musicX = x + baseWidth;
-				graphics.drawString(font, "\u00b7", musicX, y + 6,
-					VisualTheme.TEXT_MUTED, false);
-				graphics.drawString(font, music, musicX + 8, y + 6,
-					PRIMARY_TEXT, false);
+				graphics.drawString(font, PingFangFont.text("\u00b7"), musicX,
+					y + 6, VisualTheme.TEXT_MUTED, false);
+				graphics.drawString(font, PingFangFont.text(music),
+					musicX + 8, y + 6, PRIMARY_TEXT, false);
 				drawCoverIndicator(graphics, x + width - 15, y + 5);
 			}
 		}finally

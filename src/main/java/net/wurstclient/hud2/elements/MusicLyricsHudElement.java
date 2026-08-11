@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.clickgui2.PingFangFont;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.gui.visual.VisualTheme;
@@ -159,12 +160,13 @@ public final class MusicLyricsHudElement extends HudElement
 		int centerX, int y, float scale, float opacity)
 	{
 		Font font = WurstClient.MC.font;
-		String shown = font.plainSubstrByWidth(text,
+		String shown = PingFangFont.trim(font, text,
 			Math.round((WIDTH - 18) / scale));
 		graphics.pose().pushPose();
 		graphics.pose().translate(centerX, y, 0);
 		graphics.pose().scale(scale, scale, 1);
-		graphics.drawString(font, shown, -font.width(shown) / 2, 0,
+		graphics.drawString(font, PingFangFont.text(shown),
+			-PingFangFont.width(font, shown) / 2, 0,
 			withOpacity(TEXT, opacity), false);
 		graphics.pose().popPose();
 	}
