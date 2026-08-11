@@ -36,8 +36,8 @@ import com.mojang.math.Axis;
 public final class NeteaseMusicScreen extends Screen
 {
 	private static final NeteaseMusicPlayer PLAYER = NeteaseMusicPlayer.INSTANCE;
-	private static final int PANEL_WIDTH = 430;
-	private static final int PANEL_HEIGHT = 286;
+	private static final int PANEL_WIDTH = 620;
+	private static final int PANEL_HEIGHT = 372;
 	private static final int SIDEBAR_WIDTH = 76;
 	private static final int PLAYER_HEIGHT = 58;
 	private static final int SONG_HEIGHT = 26;
@@ -109,8 +109,8 @@ public final class NeteaseMusicScreen extends Screen
 	private BitMatrix qrMatrix;
 	private boolean draggingDetailProgress;
 	private boolean draggingDetailVolume;
-	private boolean draggingBottomProgress;
-	private boolean draggingBottomVolume;
+	private boolean draggingPanelProgress;
+	private boolean draggingPanelVolume;
 	private int queueScroll;
 
 	public NeteaseMusicScreen(Screen parent)
@@ -196,6 +196,33 @@ public final class NeteaseMusicScreen extends Screen
 			0xCC000000);
 		graphics.fill(b.left + SIDEBAR_WIDTH, b.top,
 			b.right, mainBottom, 0x6610141B);
+		NeteaseSong song = PLAYER.getCurrentSong();
+		if(song != null)
+		{
+			NeteaseImageCache.Texture cover = images.get(song.coverUrl());
+			if(cover != null)
+				drawCover(graphics, song.coverUrl(), b.left, b.top, b.right,
+					mainBottom, 0.05F);
+		}
+		long duration = PLAYER.getDurationMs();
+		float progress = duration <= 0 ? 0
+			: Mth.clamp(PLAYER.getPositionMs() / (float)duration, 0, 1);
+		int progressLeft = b.left + 10;
+		int progressRight = b.right - 10;
+		boolean progressHovered = contains(mouseX, mouseY, progressLeft,
+			b.top + 8, progressRight, b.top + 18);
+		float progressHover = motion("panel-progress").update(
+			progressHovered || draggingPanelProgress ? 1 : 0);
+		int progressY = b.top + 13;
+		int barHeight = 1 + Math.round(progressHover);
+		FlatRenderer.fillRoundedRect(graphics, progressLeft, progressY,
+			progressRight, progressY + barHeight, barHeight / 2 + 1,
+			0x2AFFFFFF);
+		int thumbX = progressLeft
+			+ Math.round((progressRight - progressLeft) * progress);
+		if(thumbX > progressLeft)
+			FlatRenderer.fillRoundedRect(graphics, progressLeft, progressY,
+				thumbX, progressY + barHeight, barHeight / 2 + 1, accentColor);
 		renderSidebar(graphics, b, mouseX, mouseY);
 		renderPage(graphics, b, mouseX, mouseY);
 		renderBottomPlayer(graphics, b, mouseX, mouseY);
@@ -292,17 +319,15 @@ public final class NeteaseMusicScreen extends Screen
 		int x = left + 8;
 		int width = right - left - 16;
 		int y = top + 8 - scroll;
-		drawText(graphics, "热门歌曲", 8, x, y, TEXT, width);
-		y += 15;
-		if(homeLoading)
-			renderLoading(graphics, (left + right) / 2, y + 27);
-		else if(homeSongs.isEmpty())
-			drawCenteredText(graphics,
-				message.isBlank() ? "暂无热门歌曲" : message, 7,
-				(left + right) / 2, y + 27, MUTED, width - 12);
-		else
-			renderCarousel(graphics, x, y, x + width, y + 62, mouseX, mouseY);
-		y += 73;
+
+		renderHomeHero(graphics, x, y, x + width, y + 84, mouseX, mouseY);
+		y += 92;
+
+		drawText(graphics, "快捷入口", 7, x, y, MUTED, width);
+		y += 12;
+		renderQuickGrid(graphics, x, y, x + width, y + 52, mouseX, mouseY);
+		y += 62;
+
 		drawText(graphics, "推荐歌单", 8, x, y, TEXT, width);
 		y += 14;
 		if(playlistLoading)
@@ -316,20 +341,102 @@ public final class NeteaseMusicScreen extends Screen
 				int cardX = x + index * 61 - playlistScroll;
 				if(cardX + 55 <= x || cardX >= right)
 					continue;
-				renderPlaylistCard(graphics, playlists.get(index), index, cardX, y,
-					mouseX, mouseY);
+				renderPlaylistCard(graphics, playlists.get(index), index,
+					cardX, y, mouseX, mouseY);
 			}
-		y += 68;
+		y += 74;
 		drawText(graphics, "新歌速递", 8, x, y, TEXT, width);
 		y += 13;
 		int songStart = Math.min(5, homeSongs.size());
 		int songEnd = Math.min(songStart + 6, homeSongs.size());
-		renderSongRows(graphics, homeSongs.subList(songStart, songEnd), homeSongs,
-			5, false, x, y, x + width, bottom, mouseX, mouseY);
+		renderSongRows(graphics, homeSongs.subList(songStart, songEnd),
+			homeSongs, 5, false, x, y, x + width, bottom, mouseX, mouseY);
 		renderScrollbar(graphics, right - 3, top + 5, bottom - 5,
-			Math.max(0, 178 + Math.min(6, Math.max(0, homeSongs.size() - 5))
-				* SONG_HEIGHT),
-			bottom - top);
+			contentHeight(), bottom - top);
+	}
+
+	private void renderHomeHero(GuiGraphics graphics, int left, int top,
+		int right, int bottom, int mouseX, int mouseY)
+	{
+		boolean hovered = contains(mouseX, mouseY, left, top, right, bottom);
+		float hover = motion("hero").update(hovered ? 1 : 0);
+		FlatRenderer.fillRoundedRect(graphics, left, top, right, bottom, 10,
+			SuperSoftTheme.mix(0x14181F, withAlpha(accentColor, 0.16F),
+				hover));
+		FlatRenderer.drawRoundedOutline(graphics, left, top, right, bottom,
+			10, SuperSoftTheme.mix(0x24FFFFFF, withAlpha(accentColor, 0.55F),
+				hover));
+		NeteaseSong song = PLAYER.getCurrentSong();
+		if(song != null)
+		{
+			drawCover(graphics, song.coverUrl(), left + 6, top + 6,
+				left + 78, top + 78, 1);
+			FlatRenderer.drawRoundedOutline(graphics, left + 6, top + 6,
+				left + 78, top + 78, 8, 0x2AFFFFFF);
+			drawText(graphics, song.name(), 11, left + 90, top + 16, TEXT,
+				right - left - 130);
+			drawText(graphics, song.artist(), 7, left + 90, top + 34, MUTED,
+				right - left - 130);
+			boolean playing = PLAYER.getState()
+				== NeteaseMusicPlayer.PlaybackState.PLAYING;
+			String state = playing ? "正在播放 · 点击打开详情"
+				: "已暂停 · 点击继续播放";
+			drawText(graphics, state, 6, left + 90, top + 54,
+				withAlpha(accentColor, 0.9F), right - left - 130);
+			if(hover > 0.01F)
+			{
+				int cx = right - 34;
+				int cy = (top + bottom) / 2;
+				FlatRenderer.fillRoundedRect(graphics, cx - 13, cy - 13,
+					cx + 13, cy + 13, 13, withAlpha(accentColor, hover));
+				drawPlay(graphics, cx + 1, cy, withAlpha(TEXT, hover));
+			}
+		}else
+		{
+			FlatRenderer.fillRoundedRect(graphics, left + 6, top + 6,
+				left + 78, top + 78, 8, 0x12FFFFFF);
+			drawText(graphics, "MINERADIO", 12, left + 90, top + 18, TEXT,
+				right - left - 130);
+			drawText(graphics, "搜索并播放你的网易云音乐", 7, left + 90,
+				top + 38, MUTED, right - left - 130);
+			if(hover > 0.01F)
+			{
+				int cx = right - 34;
+				int cy = (top + bottom) / 2;
+				FlatRenderer.fillRoundedRect(graphics, cx - 13, cy - 13,
+					cx + 13, cy + 13, 13, withAlpha(accentColor, hover));
+				drawPlay(graphics, cx + 1, cy, withAlpha(TEXT, hover));
+			}
+		}
+	}
+
+	private void renderQuickGrid(GuiGraphics graphics, int left, int top,
+		int right, int bottom, int mouseX, int mouseY)
+	{
+		int count = 4;
+		int gap = 6;
+		int cardWidth = (right - left - gap * (count - 1)) / count;
+		String[] labels = { "音乐库", "每日推荐", "最近播放", "搜索" };
+		String[] subs = { "我的喜欢", "每日新歌", "播放队列", "搜索歌曲" };
+		for(int index = 0; index < count; index++)
+		{
+			int cardLeft = left + index * (cardWidth + gap);
+			boolean hovered = contains(mouseX, mouseY, cardLeft, top,
+				cardLeft + cardWidth, bottom);
+			float hover = motion("quick-" + index).update(hovered ? 1 : 0);
+			FlatRenderer.fillRoundedRect(graphics, cardLeft, top,
+				cardLeft + cardWidth, bottom, 8,
+				SuperSoftTheme.mix(0x14181F, withAlpha(accentColor, 0.18F),
+					hover));
+			FlatRenderer.drawRoundedOutline(graphics, cardLeft, top,
+				cardLeft + cardWidth, bottom, 8,
+				SuperSoftTheme.mix(0x16FFFFFF, withAlpha(accentColor, 0.5F),
+					hover));
+			drawCenteredText(graphics, labels[index], 8,
+				cardLeft + cardWidth / 2, top + 9, TEXT, cardWidth - 10);
+			drawCenteredText(graphics, subs[index], 5,
+				cardLeft + cardWidth / 2, top + 24, MUTED, cardWidth - 10);
+		}
 	}
 
 	private void renderCarousel(GuiGraphics graphics, int left, int top,
@@ -796,99 +903,77 @@ public final class NeteaseMusicScreen extends Screen
 			b.right - 4, b.bottom - 4, 14, 0xE60B0E13);
 		FlatRenderer.drawRoundedOutline(graphics, b.left + 4, top + 4,
 			b.right - 4, b.bottom - 4, 14, 0x20FFFFFF);
-		long duration = PLAYER.getDurationMs();
-		float progress = duration <= 0 ? 0
-			: Mth.clamp(PLAYER.getPositionMs() / (float)duration, 0, 1);
-		int progressLeft = b.left + 10;
-		int progressRight = b.right - 10;
-		boolean progressHovered = contains(mouseX, mouseY, progressLeft, top,
-			progressRight, top + 8);
-		float progressHover = motion("bottom-progress").update(
-			progressHovered || draggingBottomProgress ? 1 : 0);
-		int progressY = top + 4;
-		int barHeight = 2 + Math.round(progressHover);
-		FlatRenderer.fillRoundedRect(graphics, progressLeft, progressY,
-			progressRight, progressY + barHeight, barHeight / 2 + 1,
-			0x2AFFFFFF);
-		int thumbX = progressLeft
-			+ Math.round((progressRight - progressLeft) * progress);
-		if(thumbX > progressLeft)
-			FlatRenderer.fillRoundedRect(graphics, progressLeft, progressY,
-				thumbX, progressY + barHeight, barHeight / 2 + 1, accentColor);
-		if(progressHover > 0.02F)
-		{
-			FlatRenderer.fillRoundedRect(graphics, thumbX - 2, progressY - 2,
-				thumbX + 4, progressY + barHeight + 2, 4,
-				withAlpha(accentColor, 0.55F * progressHover));
-			FlatRenderer.fillRoundedRect(graphics, thumbX - 3, progressY - 3,
-				thumbX + 5, progressY + barHeight + 3, 4,
-				withAlpha(TEXT, progressHover));
-		}
+
+		int toggleX = b.left + b.width() / 2;
+		int controlY = top + 32;
 
 		NeteaseSong song = PLAYER.getCurrentSong();
 		if(song != null)
 		{
-			int coverLeft = b.left + 9;
-			int coverTop = top + 10;
-			int coverSize = 42;
-			FlatRenderer.drawRoundedOutline(graphics, coverLeft - 1, coverTop - 1,
-				coverLeft + coverSize + 1, coverTop + coverSize + 1, 9,
-				withAlpha(accentColor, 0.4F));
+			int coverLeft = b.left + 10;
+			int coverTop = top + 8;
+			int coverSize = 44;
+			FlatRenderer.drawRoundedOutline(graphics, coverLeft - 1,
+				coverTop - 1, coverLeft + coverSize + 1,
+				coverTop + coverSize + 1, 9, withAlpha(accentColor, 0.4F));
 			drawCover(graphics, song.coverUrl(), coverLeft, coverTop,
 				coverLeft + coverSize, coverTop + coverSize, 1);
 			FlatRenderer.drawRoundedOutline(graphics, coverLeft, coverTop,
 				coverLeft + coverSize, coverTop + coverSize, 8, 0x2AFFFFFF);
-			int transportX = b.left + b.width() / 2;
-			int infoLeft = coverLeft + coverSize + 6;
-			int infoWidth = Math.max(42, transportX - 64 - infoLeft);
-			drawText(graphics, song.name(), 7, infoLeft, top + 15, TEXT,
-				infoWidth);
-			drawText(graphics, song.artist(), 5, infoLeft, top + 27, MUTED,
-				infoWidth);
+			int infoLeft = coverLeft + coverSize + 8;
+			int infoRight = toggleX - 62;
+			drawText(graphics, song.name(), 8, infoLeft, top + 15, TEXT,
+				infoRight - infoLeft);
+			drawText(graphics, song.artist(), 6, infoLeft, top + 28, MUTED,
+				infoRight - infoLeft);
 			drawText(graphics,
 				NeteaseMusicPlayer.formatTime(PLAYER.getPositionMs()) + " / "
-					+ NeteaseMusicPlayer.formatTime(duration),
-				4, infoLeft, top + 39, withAlpha(TEXT, 0.42F), infoWidth);
+					+ NeteaseMusicPlayer.formatTime(PLAYER.getDurationMs()),
+				5, infoLeft, top + 41, withAlpha(TEXT, 0.42F),
+				infoRight - infoLeft);
 		}else
 		{
-			FlatRenderer.fillRoundedRect(graphics, b.left + 9, top + 10,
-				b.left + 51, top + 52, 10, 0x12FFFFFF);
-			drawText(graphics, "MINERADIO", 7, b.left + 59, top + 19, TEXT, 90);
-			drawText(graphics, "Ready to play", 5, b.left + 59, top + 31,
-				MUTED, 90);
+			FlatRenderer.fillRoundedRect(graphics, b.left + 10, top + 8,
+				b.left + 54, top + 52, 10, 0x12FFFFFF);
+			drawText(graphics, "MINERADIO", 8, b.left + 62, top + 18, TEXT,
+				120);
+			drawText(graphics, "Ready to play", 6, b.left + 62, top + 32,
+				MUTED, 120);
 		}
 
-		int toggleX = b.left + b.width() / 2;
-		int controlY = top + 32;
-		int previousX = toggleX - 28;
-		int nextX = toggleX + 28;
-		renderModeButton(graphics, toggleX - 56, controlY, mouseX, mouseY);
+		int previousX = toggleX - 31;
+		int nextX = toggleX + 31;
+		renderModeButton(graphics, toggleX - 62, controlY, mouseX, mouseY);
 		renderControl(graphics, "previous", previousX, controlY, 10, mouseX,
 			mouseY, false);
-		renderControl(graphics, "toggle", toggleX, controlY, 15, mouseX, mouseY,
-			true);
+		renderControl(graphics, "toggle", toggleX, controlY, 16, mouseX,
+			mouseY, true);
 		renderControl(graphics, "next", nextX, controlY, 10, mouseX,
 			mouseY, false);
-		renderLyricsButton(graphics, toggleX + 56, controlY, mouseX, mouseY);
+		renderLyricsButton(graphics, toggleX + 62, controlY, mouseX, mouseY);
 
-		int volumeLeft = b.right - 76;
-		int volumeRight = b.right - 34;
+		int volumeRight = b.right - 44;
+		int volumeLeft = volumeRight - 58;
 		int volumeY = controlY;
-		drawVolume(graphics, volumeLeft - 9, volumeY, MUTED,
+		drawVolume(graphics, volumeLeft - 12, volumeY, MUTED,
 			PLAYER.getVolume() > 0.55F);
-		graphics.fill(volumeLeft, volumeY, volumeRight, volumeY + 1,
+		graphics.fill(volumeLeft, volumeY, volumeRight, volumeY + 2,
 			0x2AFFFFFF);
 		graphics.fill(volumeLeft, volumeY,
-			volumeLeft + Math.round((volumeRight - volumeLeft) * PLAYER.getVolume()),
-			volumeY + 1, accentColor);
-		boolean queueHovered = contains(mouseX, mouseY, b.right - 30, top + 18,
-			b.right - 6, top + 46);
+			volumeLeft + Math.round((volumeRight - volumeLeft)
+				* PLAYER.getVolume()),
+			volumeY + 2, accentColor);
+		drawText(graphics, Math.round(PLAYER.getVolume() * 100) + "%", 5,
+			volumeRight + 4, volumeY - 4, withAlpha(TEXT, 0.55F), 24);
+		boolean queueHovered = contains(mouseX, mouseY, b.right - 34, top + 16,
+			b.right - 8, top + 48);
 		float queueHover = motion("queue-button").update(
 			queueVisible ? 1 : queueHovered ? 0.65F : 0);
-		FlatRenderer.fillRoundedRect(graphics, b.right - 30, top + 18,
-			b.right - 6, top + 46, 7,
-			SuperSoftTheme.mix(0x00FFFFFF, withAlpha(accentColor, 0.14F), queueHover));
-		drawQueue(graphics, b.right - 18, controlY,
+		FlatRenderer.fillRoundedRect(graphics, b.right - 34, top + 16,
+			b.right - 8, top + 48, 8,
+			SuperSoftTheme.mix(0x00FFFFFF,
+				withAlpha(accentColor, 0.14F), queueHover));
+		drawQueue(graphics, b.right - 21, controlY,
 			SuperSoftTheme.mix(MUTED, TEXT, queueHover));
 	}
 
@@ -1255,32 +1340,64 @@ public final class NeteaseMusicScreen extends Screen
 	{
 		int left = b.left + SIDEBAR_WIDTH + 8;
 		int right = b.right - 8;
-		int y = b.top + 23 - scroll;
-		if(!homeSongs.isEmpty() && contains(mouseX, mouseY, left, y, right,
-			y + 62))
+		int y = b.top + 8 - scroll;
+		if(contains(mouseX, mouseY, left, y, right, y + 84))
 		{
-			PLAYER.play(homeSongs, carouselIndex);
+			if(PLAYER.getCurrentSong() != null)
+			{
+				queueVisible = false;
+				detailVisible = true;
+			}
+			else if(!homeSongs.isEmpty())
+				PLAYER.play(homeSongs, 0);
 			return true;
 		}
-		y += 87;
+		y += 104;
+		int count = 4;
+		int gap = 6;
+		int width = right - left - 16;
+		int cardWidth = (width - gap * (count - 1)) / count;
+		for(int index = 0; index < count; index++)
+		{
+			int cardLeft = left + 8 + index * (cardWidth + gap);
+			if(contains(mouseX, mouseY, cardLeft, y, cardLeft + cardWidth,
+				y + 52))
+			{
+				switch(index)
+				{
+					case 0 -> switchPage(Page.LIKE);
+					case 1 ->
+					{
+						if(!playlists.isEmpty())
+							openPlaylist(playlists.get(0));
+						else
+							loadHome();
+					}
+					case 2 -> queueVisible = !queueVisible;
+					case 3 -> switchPage(Page.SEARCH);
+				}
+				return true;
+			}
+		}
+		y += 62;
+		y += 14;
 		for(int index = 0; index < playlists.size(); index++)
 		{
-			int cardX = left + index * 61 - playlistScroll;
+			int cardX = left + 8 + index * 61 - playlistScroll;
 			if(contains(mouseX, mouseY, cardX, y, cardX + 52, y + 64))
 			{
 				openPlaylist(playlists.get(index));
 				return true;
 			}
 		}
-		int songTop = y + 81;
+		int songTop = y + 74 + 13;
 		int songStart = Math.min(5, homeSongs.size());
-		List<NeteaseSong> rows = homeSongs.subList(songStart,
-			Math.min(songStart + 6, homeSongs.size()));
 		int clicked = songIndex(mouseX, mouseY, left, songTop, right,
-			b.bottom - PLAYER_HEIGHT, rows.size());
+			b.bottom - PLAYER_HEIGHT,
+			Math.min(6, Math.max(0, homeSongs.size() - songStart)));
 		if(clicked >= 0)
 		{
-			PLAYER.play(homeSongs, clicked + 5);
+			PLAYER.play(homeSongs, clicked + songStart);
 			return true;
 		}
 		return false;
@@ -1436,38 +1553,39 @@ public final class NeteaseMusicScreen extends Screen
 		if(!contains(mouseX, mouseY, b.left, top, b.right, b.bottom))
 			return false;
 		long duration = PLAYER.getDurationMs();
-		if(mouseY < top + 9 && duration > 0)
+		if(contains(mouseX, mouseY, b.left + 10, b.top + 8, b.right - 10,
+			b.top + 18) && duration > 0)
 		{
-			draggingBottomProgress = true;
-			seekBottom(mouseX, b);
+			draggingPanelProgress = true;
+			seekPanelProgress(mouseX, b);
 			return true;
 		}
 		int toggleX = b.left + b.width() / 2;
 		int controlY = top + 32;
-		int previousX = toggleX - 28;
-		int nextX = toggleX + 28;
-		if(distance(mouseX, mouseY, toggleX - 56, controlY) <= 12)
+		int previousX = toggleX - 31;
+		int nextX = toggleX + 31;
+		if(distance(mouseX, mouseY, toggleX - 62, controlY) <= 12)
 			PLAYER.cyclePlaybackMode();
 		else if(distance(mouseX, mouseY, previousX, controlY) <= 13)
 			PLAYER.playPrevious();
-		else if(distance(mouseX, mouseY, toggleX, controlY) <= 16)
+		else if(distance(mouseX, mouseY, toggleX, controlY) <= 17)
 			PLAYER.toggle();
 		else if(distance(mouseX, mouseY, nextX, controlY) <= 13)
 			PLAYER.playNext();
-		else if(distance(mouseX, mouseY, toggleX + 56, controlY) <= 12
+		else if(distance(mouseX, mouseY, toggleX + 62, controlY) <= 12
 			&& PLAYER.getCurrentSong() != null)
 		{
 			queueVisible = false;
 			detailVisible = true;
 		}
-		else if(contains(mouseX, mouseY, b.right - 30, top + 18, b.right - 6,
-			top + 46))
+		else if(contains(mouseX, mouseY, b.right - 34, top + 16, b.right - 8,
+			top + 48))
 			queueVisible = !queueVisible;
-		else if(contains(mouseX, mouseY, b.right - 78, top + 18,
-			b.right - 32, top + 36))
+		else if(contains(mouseX, mouseY, b.right - 116, top + 20,
+			b.right - 40, top + 44))
 		{
-			draggingBottomVolume = true;
-			setBottomVolume(mouseX, b);
+			draggingPanelVolume = true;
+			setPanelVolume(mouseX, b);
 		}
 		else if(PLAYER.getCurrentSong() != null)
 		{
@@ -1632,14 +1750,14 @@ public final class NeteaseMusicScreen extends Screen
 			setDetailVolume(mouseX, bounds());
 			return true;
 		}
-		if(button == 0 && draggingBottomProgress)
+		if(button == 0 && draggingPanelProgress)
 		{
-			seekBottom(mouseX, bounds());
+			seekPanelProgress(mouseX, bounds());
 			return true;
 		}
-		if(button == 0 && draggingBottomVolume)
+		if(button == 0 && draggingPanelVolume)
 		{
-			setBottomVolume(mouseX, bounds());
+			setPanelVolume(mouseX, bounds());
 			return true;
 		}
 		return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
@@ -1649,12 +1767,12 @@ public final class NeteaseMusicScreen extends Screen
 	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
 		if(button == 0 && (draggingDetailProgress || draggingDetailVolume
-			|| draggingBottomProgress || draggingBottomVolume))
+			|| draggingPanelProgress || draggingPanelVolume))
 		{
 			draggingDetailProgress = false;
 			draggingDetailVolume = false;
-			draggingBottomProgress = false;
-			draggingBottomVolume = false;
+			draggingPanelProgress = false;
+			draggingPanelVolume = false;
 			return true;
 		}
 		return super.mouseReleased(mouseX, mouseY, button);
@@ -1676,7 +1794,7 @@ public final class NeteaseMusicScreen extends Screen
 			0, 1));
 	}
 
-	private void seekBottom(double mouseX, Bounds b)
+	private void seekPanelProgress(double mouseX, Bounds b)
 	{
 		long duration = PLAYER.getDurationMs();
 		if(duration <= 0)
@@ -1686,9 +1804,9 @@ public final class NeteaseMusicScreen extends Screen
 		PLAYER.seekTo(Math.round(duration * value));
 	}
 
-	private void setBottomVolume(double mouseX, Bounds b)
+	private void setPanelVolume(double mouseX, Bounds b)
 	{
-		PLAYER.setVolume(Mth.clamp((float)((mouseX - (b.right - 76)) / 42D),
+		PLAYER.setVolume(Mth.clamp((float)((mouseX - (b.right - 116)) / 76D),
 			0, 1));
 	}
 
@@ -2164,7 +2282,7 @@ public final class NeteaseMusicScreen extends Screen
 			return playlistSongs.size() * SONG_HEIGHT;
 		return switch(page)
 		{
-			case HOME -> 191
+			case HOME -> 226
 				+ Math.min(6, Math.max(0, homeSongs.size() - 5)) * SONG_HEIGHT;
 			case SEARCH -> searchSongs.size() * SONG_HEIGHT;
 			case LIKE -> likedSongs.size() * SONG_HEIGHT;
