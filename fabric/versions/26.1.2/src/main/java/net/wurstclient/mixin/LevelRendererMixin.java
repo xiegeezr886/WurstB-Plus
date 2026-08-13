@@ -41,7 +41,7 @@ public class LevelRendererMixin
 		PoseStack matrixStack = new PoseStack();
 		matrixStack.mulPose(positionMatrix);
 		float tickProgress = tickCounter.getGameTimeDeltaPartialTick(false);
-		RenderEvent event = new RenderEvent(matrixStack, tickProgress);
+		RenderEvent event = new RenderEvent(matrixStack, tickProgress, cameraState.projectionMatrix);
 		EventManager.fire(event);
 	}
 }

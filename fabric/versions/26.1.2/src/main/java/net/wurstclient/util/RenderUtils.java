@@ -814,18 +814,9 @@ public enum RenderUtils
 	public static void fill2D(GuiGraphicsExtractor context, float x1, float y1, float x2,
 		float y2, int color)
 	{
-		// TODO: 26.1.2 - new GUI rendering pipeline
-		// Scale to pixel coordinates and use context.fill()
-		int scale = WurstClient.MC.getWindow().getGuiScale();
-		int xs1 = (int)(x1 * scale);
-		int ys1 = (int)(y1 * scale);
-		int xs2 = (int)(x2 * scale);
-		int ys2 = (int)(y2 * scale);
-		
-		context.pose().pushMatrix();
-		context.pose().scale(1F / scale);
-		context.fill(xs1, ys1, xs2, ys2, color);
-		context.pose().popMatrix();
+		// Coordinates are already in GUI space (the caller projects with
+		// gui-scaled dimensions), so no manual rescaling is needed.
+		context.fill((int)x1, (int)y1, (int)x2, (int)y2, color);
 	}
 	
 	/**
@@ -844,6 +835,25 @@ public enum RenderUtils
 			.addGuiElement(new PolygonRenderState(
 			context.pose(), vertices, color));
 	}
+	/**
+	 * Submits a batch of quads (4 vertices per quad, QUADS draw mode) as a
+	 * single GUI element. Quads whose color alpha is 0 are skipped. Collapsing
+	 * many small fills into one element avoids the per-element intersection
+	 * checks that the vanilla GUI render state performs.
+	 */
+	public static void submitQuadMesh2D(GuiGraphicsExtractor context,
+		float[][] vertices, int[] quadColors)
+	{
+		if(vertices == null || quadColors == null
+			|| vertices.length < 4
+			|| quadColors.length * 4 != vertices.length)
+			return;
+		((net.wurstclient.mixin.GuiGraphicsExtractorAccessor)(Object)context)
+			.wurst_getGuiRenderState()
+			.addGuiElement(new QuadMeshRenderState(
+			context.pose(), vertices, quadColors));
+	}
+
 	
 	/**
 	 * Renders the given vertices in TRIANGLE_STRIP draw mode.
@@ -871,7 +881,24 @@ public enum RenderUtils
 	public static void drawLine2D(GuiGraphicsExtractor context, float x1, float y1,
 		float x2, float y2, int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(color >>> 24 == 0)
+			return;
+		
+		// Simulate a 1px line with a quad, like vanilla hLine/vLine do
+		// (the 26.x GUI pipeline only supports QUADS topology).
+		float dx = x2 - x1;
+		float dy = y2 - y1;
+		float length = (float)Math.sqrt(dx * dx + dy * dy);
+		if(length < 0.0001F)
+			return;
+		
+		float nx = -dy / length * 0.5F;
+		float ny = dx / length * 0.5F;
+		
+		// CCW order: left-top, left-bottom, right-bottom, right-top
+		float[][] quad = {{x1 - nx, y1 - ny}, {x1 + nx, y1 + ny},
+			{x2 + nx, y2 + ny}, {x2 - nx, y2 - ny}};
+		fillQuads2D(context, quad, color);
 	}
 	
 	/**
@@ -883,7 +910,13 @@ public enum RenderUtils
 	public static void drawBorder2D(GuiGraphicsExtractor context, float x1, float y1,
 		float x2, float y2, int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(color >>> 24 == 0)
+			return;
+		
+		drawLine2D(context, x1, y1, x2, y1, color);
+		drawLine2D(context, x2, y1, x2, y2, color);
+		drawLine2D(context, x2, y2, x1, y2, color);
+		drawLine2D(context, x1, y2, x1, y1, color);
 	}
 	
 	/**
@@ -892,7 +925,12 @@ public enum RenderUtils
 	public static void drawLineStrip2D(GuiGraphicsExtractor context, float[][] vertices,
 		int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(vertices == null || vertices.length < 2 || color >>> 24 == 0)
+			return;
+		
+		for(int i = 0; i < vertices.length - 1; i++)
+			drawLine2D(context, vertices[i][0], vertices[i][1],
+				vertices[i + 1][0], vertices[i + 1][1], color);
 	}
 	
 	/**
@@ -914,7 +952,80 @@ public enum RenderUtils
 		drawBorder2D(context, xo1, yo1, xo2, yo2, outlineColor);
 	}
 
-	private static final class PolygonRenderState implements GuiElementRenderState
+	
+	private static final class QuadMeshRenderState
+		implements GuiElementRenderState
+	{
+		private final Matrix3x2fc pose;
+		private final float[][] vertices;
+		private final int[] quadColors;
+		private final ScreenRectangle bounds;
+
+		private QuadMeshRenderState(Matrix3x2fc pose, float[][] vertices,
+			int[] quadColors)
+		{
+			this.pose = pose;
+			this.vertices = vertices;
+			this.quadColors = quadColors;
+			int minX = Integer.MAX_VALUE;
+			int minY = Integer.MAX_VALUE;
+			int maxX = Integer.MIN_VALUE;
+			int maxY = Integer.MIN_VALUE;
+			for(int i = 0; i < vertices.length; i++)
+			{
+				if(quadColors[i / 4] >>> 24 == 0)
+					continue;
+				minX = Math.min(minX, (int)Math.floor(vertices[i][0]));
+				minY = Math.min(minY, (int)Math.floor(vertices[i][1]));
+				maxX = Math.max(maxX, (int)Math.ceil(vertices[i][0] + 1));
+				maxY = Math.max(maxY, (int)Math.ceil(vertices[i][1] + 1));
+			}
+			if(minX > maxX)
+			{
+				minX = minY = 0;
+				maxX = maxY = 1;
+			}
+			bounds = new ScreenRectangle(minX, minY, maxX - minX,
+				maxY - minY);
+		}
+
+		@Override
+		public void buildVertices(VertexConsumer consumer)
+		{
+			for(int i = 0; i < vertices.length; i++)
+			{
+				if(quadColors[i / 4] >>> 24 == 0)
+					continue;
+				consumer.addVertexWith2DPose(pose, vertices[i][0],
+					vertices[i][1]).setColor(quadColors[i / 4]);
+			}
+		}
+
+		@Override
+		public com.mojang.blaze3d.pipeline.RenderPipeline pipeline()
+		{
+			return RenderPipelines.GUI;
+		}
+
+		@Override
+		public TextureSetup textureSetup()
+		{
+			return TextureSetup.noTexture();
+		}
+
+		@Override
+		public ScreenRectangle scissorArea()
+		{
+			return null;
+		}
+
+		@Override
+		public ScreenRectangle bounds()
+		{
+			return bounds;
+		}
+	}
+private static final class PolygonRenderState implements GuiElementRenderState
 	{
 		private final Matrix3x2fc pose;
 		private final float[][] vertices;

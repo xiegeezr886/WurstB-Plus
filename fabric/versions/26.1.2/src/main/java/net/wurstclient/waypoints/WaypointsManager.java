@@ -16,21 +16,20 @@ import java.util.List;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-// BufferUploader removed in MC 26.1.2
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
+import net.wurstclient.WurstRenderLayers;
 import net.wurstclient.events.RenderListener;
+import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
 import net.wurstclient.util.json.WsonArray;
@@ -126,61 +125,47 @@ public final class WaypointsManager implements RenderListener
 		Identifier currentDim = mc.level.dimension().identifier();
 
 		Vec3 camPos = mc.gameRenderer.getMainCamera().position();
-		// Blend state managed by render pipeline
-		// Blend state managed by render pipeline
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		// Shader managed by render pipeline
-		try
+		// Depth/blend state managed by render pipeline
+		MultiBufferSource.BufferSource vcp = RenderUtils.getVCP();
+		RenderType layer = WurstRenderLayers.getQuads(true);
+		VertexConsumer builder = vcp.getBuffer(layer);
+
+		org.joml.Matrix4f matrix = PoseStack.last().pose();
+		for(Waypoint wp : waypoints)
 		{
-			Tesselator tesselator = Tesselator.getInstance();
-			BufferBuilder builder = tesselator.begin(VertexFormat.Mode.QUADS,
-				DefaultVertexFormat.POSITION_COLOR);
+			if(!wp.getDimension().equals(currentDim))
+				continue;
 
-			org.joml.Matrix4f matrix = PoseStack.last().pose();
-			for(Waypoint wp : waypoints)
-			{
-				if(!wp.getDimension().equals(currentDim))
-					continue;
+			Vec3 pos = Vec3.atCenterOf(wp.getPos());
+			int argb = wp.getColor();
+			float r = ((argb >> 16) & 0xFF) / 255F;
+			float g = ((argb >> 8) & 0xFF) / 255F;
+			float b = (argb & 0xFF) / 255F;
+			float a = 0.6F;
 
-				Vec3 pos = Vec3.atCenterOf(wp.getPos());
-				int argb = wp.getColor();
-				float r = ((argb >> 16) & 0xFF) / 255F;
-				float g = ((argb >> 8) & 0xFF) / 255F;
-				float b = (argb & 0xFF) / 255F;
-				float a = 0.6F;
+			float x = (float)(pos.x - camPos.x);
+			float y = (float)(pos.y - camPos.y);
+			float z = (float)(pos.z - camPos.z);
+			float hs = 0.3F;
 
-				float x = (float)(pos.x - camPos.x);
-				float y = (float)(pos.y - camPos.y);
-				float z = (float)(pos.z - camPos.z);
-				float hs = 0.3F;
+			builder.addVertex(matrix, x - hs, y + hs, z)
+				.setColor(r, g, b, a);
+			builder.addVertex(matrix, x + hs, y + hs, z)
+				.setColor(r, g, b, a);
+			builder.addVertex(matrix, x + hs, y - hs, z)
+				.setColor(r, g, b, a);
+			builder.addVertex(matrix, x - hs, y - hs, z)
+				.setColor(r, g, b, a);
 
-				builder.addVertex(matrix, x - hs, y + hs, z)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x + hs, y + hs, z)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x + hs, y - hs, z)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x - hs, y - hs, z)
-					.setColor(r, g, b, a);
-
-				builder.addVertex(matrix, x, y + hs, z - hs)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x, y + hs, z + hs)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x, y - hs, z + hs)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x, y - hs, z - hs)
-					.setColor(r, g, b, a);
-			}
-
-			com.mojang.blaze3d.vertex.MeshData rendered = builder.build();
-			if(rendered != null)
-			{
-				// BufferUploader removed in MC 26.1.2
-			}
-		}finally
-		{
+			builder.addVertex(matrix, x, y + hs, z - hs)
+				.setColor(r, g, b, a);
+			builder.addVertex(matrix, x, y + hs, z + hs)
+				.setColor(r, g, b, a);
+			builder.addVertex(matrix, x, y - hs, z + hs)
+				.setColor(r, g, b, a);
+			builder.addVertex(matrix, x, y - hs, z - hs)
+				.setColor(r, g, b, a);
 		}
+		vcp.endBatch(layer);
 	}
 }

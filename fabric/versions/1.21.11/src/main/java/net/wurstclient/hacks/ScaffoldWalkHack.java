@@ -302,7 +302,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		if(result instanceof InteractionResult.Success success
 			&& success.swingSource() != InteractionResult.SwingSource.NONE)
 			swingHand.swing(InteractionHand.MAIN_HAND);
-		// MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+		MC.rightClickDelay = 4;
 		currentPlan = plan;
 		return true;
 	}

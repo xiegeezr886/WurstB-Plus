@@ -11,6 +11,8 @@ import java.util.ArrayList;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import org.joml.Matrix4f;
+
 import net.wurstclient.event.Event;
 import net.wurstclient.event.Listener;
 
@@ -23,10 +25,19 @@ public interface RenderListener extends Listener
 		private final PoseStack matrixStack;
 		private final float partialTicks;
 		
-		public RenderEvent(PoseStack matrixStack, float partialTicks)
+		private static final Matrix4f LAST_PROJECTION = new Matrix4f();
+
+		public RenderEvent(PoseStack matrixStack, float partialTicks,
+			Matrix4f projection)
 		{
 			this.matrixStack = matrixStack;
 			this.partialTicks = partialTicks;
+			LAST_PROJECTION.set(projection);
+		}
+
+		public static Matrix4f getLastProjection()
+		{
+			return LAST_PROJECTION;
 		}
 		
 		@Override

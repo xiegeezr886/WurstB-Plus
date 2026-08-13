@@ -316,8 +316,8 @@ function Initialize-TestOptions($instanceDir) {
         (New-Object System.Text.UTF8Encoding($false)))
 }
 
-function Send-GameText($process, $text) {
-    if (-not ("WurstTestWindow" -as [type])) {
+function Ensure-WurstTestWindow {
+if (-not ("WurstTestWindow" -as [type])) {
         Add-Type @"
 using System;
 using System.Runtime.InteropServices;
@@ -436,28 +436,40 @@ public static class WurstTestWindow {
 }
 "@
     }
+}
+
+function Send-GameText($process, $text) {
+            Ensure-WurstTestWindow
 
     $process.Refresh()
     if ($process.MainWindowHandle -eq [IntPtr]::Zero) { return $false }
+    $sent = $false
     $focused = $false
     for ($attempt = 0; $attempt -lt 3 -and -not $focused; $attempt++) {
         $focused = [WurstTestWindow]::ForceForeground($process.MainWindowHandle)
         if (-not $focused) { Start-Sleep -Milliseconds 500 }
     }
     if (-not $focused) {
-        return [WurstTestWindow]::PostText($process.MainWindowHandle, $text)
-    }
-
-    Start-Sleep -Milliseconds 750
-    if ([WurstTestWindow]::SendVirtualKey(0x54)) {
-        Start-Sleep -Milliseconds 1000
-        if ([WurstTestWindow]::SendUnicodeText($text)) {
-            Start-Sleep -Milliseconds 250
-            if ([WurstTestWindow]::SendVirtualKey(0x0D)) { return $true }
+        $sent = [WurstTestWindow]::PostText($process.MainWindowHandle, $text)
+    } else {
+        Start-Sleep -Milliseconds 750
+        if ([WurstTestWindow]::SendVirtualKey(0x54)) {
+            Start-Sleep -Milliseconds 1000
+            if ([WurstTestWindow]::SendUnicodeText($text)) {
+                Start-Sleep -Milliseconds 250
+                $sent = [WurstTestWindow]::SendVirtualKey(0x0D)
+            }
+        }
+        if (-not $sent) {
+            $sent = [WurstTestWindow]::PostText($process.MainWindowHandle, $text)
         }
     }
-
-    return [WurstTestWindow]::PostText($process.MainWindowHandle, $text)
+    # 发送完成立即最小化窗口：MC 窗口获得焦点会 grab 鼠标，
+    # 最小化后失焦释放鼠标，避免测试期间系统操作被接管。
+    if ($process.MainWindowHandle -ne [IntPtr]::Zero) {
+        [WurstTestWindow]::ShowWindow($process.MainWindowHandle, 6) | Out-Null
+    }
+    return $sent
 }
 
 function Test-EmbeddedBaritone($jarPath) {
@@ -697,10 +709,18 @@ function Test-Version($jarPath, $instanceDir) {
     $commandResponsePattern = Get-BaritoneResponsePattern $BaritoneCommand
     $result = $null
 
+    # 预加载窗口工具类型（轮询循环会调用 ShowWindow 压制窗口弹出）
+    Ensure-WurstTestWindow
+
     while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $TimeoutSeconds)) {
         if ($p.HasExited) {
             $result = @{ Status = "FAIL"; Note = "process exited early, code $($p.ExitCode)" }
             break
+        }
+        # 周期压制：MC 窗口若自行弹出前台会 grab 鼠标，
+        # 每轮强制最小化，保证测试期间系统操作不被接管。
+        if ($p.MainWindowHandle -ne [IntPtr]::Zero) {
+            [WurstTestWindow]::ShowWindow($p.MainWindowHandle, 6) | Out-Null
         }
         $newCrash = @(Get-ChildItem -LiteralPath $crashDir -Filter "*.txt" -ErrorAction SilentlyContinue |
             Where-Object { $crashSnap -notcontains $_.FullName })

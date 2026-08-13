@@ -31,7 +31,7 @@ public final class PlayerHaloHack extends Hack implements RenderListener
 	}
 
 	@Override
-	public void onRender(PoseStack PoseStack, float partialTicks)
+	public void onRender(PoseStack poseStack, float partialTicks)
 	{
 		if(MC.player == null || MC.level == null)
 			return;
@@ -40,7 +40,7 @@ public final class PlayerHaloHack extends Hack implements RenderListener
 		int color = WURST.getGui().getTheme().accent(1);
 		boolean renderLocalPlayer =
 			MC.options.getCameraType() != CameraType.FIRST_PERSON;
-		PlayerHaloRenderer.render(PoseStack,
+		PlayerHaloRenderer.render(poseStack,
 			WURST.getEntitySnapshotManager().getCurrent().players(), MC.player,
 			partialTicks, color, renderLocalPlayer);
 	}

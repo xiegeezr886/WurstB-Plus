@@ -63,7 +63,7 @@ public enum WurstClient
 	public static IMinecraftClient IMC;
 	
 	public static final String VERSION = "1.5.0";
-	public static final String MC_VERSION = "26.1.2";
+	public static final String MC_VERSION = "1.21.1";
 	public static final String CLIENT_NAME = "WurstB+ Plus";
 	public static final String MOD_ID = "wurstpenguin";
 	

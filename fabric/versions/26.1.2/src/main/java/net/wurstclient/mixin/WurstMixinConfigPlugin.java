@@ -28,9 +28,15 @@ public final class WurstMixinConfigPlugin implements IMixinConfigPlugin
 			&& !mixinClassName.endsWith("SodiumFluidRendererMixin"))
 			return true;
 
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		String classResource = targetClassName.replace('.', '/') + ".class";
-		return classLoader != null && classLoader.getResource(classResource) != null;
+		try
+		{
+			Class.forName(targetClassName, false,
+				Thread.currentThread().getContextClassLoader());
+			return true;
+		}catch(ClassNotFoundException | LinkageError ignored)
+		{
+			return false;
+		}
 	}
 
 	@Override

@@ -109,6 +109,8 @@ public enum ChunkUtils
 		if(i == -1)
 			return chunk.getMinY() * 16;
 		
-		return SectionPos.sectionToBlockCoord(chunk.getSectionYFromSectionIndex(i));
+		// ChunkAccess.getSectionYFromSectionIndex was removed in 26.1.2;
+		// section Y == minSectionY + index.
+		return SectionPos.sectionToBlockCoord(chunk.getMinSectionY() + i);
 	}
 }

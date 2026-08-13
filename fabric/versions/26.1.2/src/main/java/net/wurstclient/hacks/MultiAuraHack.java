@@ -1151,7 +1151,7 @@ public final class MultiAuraHack extends Hack
 					entity instanceof LivingEntity living && living.onClimbable() ? 0 : 1);
 				case IN_LIQUID -> Comparator.comparingInt(entity ->
 					entity instanceof LivingEntity living
-						&& (living.isInWater() || living.isSwimming() || living.isInLava()) ? 0 : 1);
+						&& (living.isInWater() || living.isInLava()) ? 0 : 1);
 				case IN_WEB -> Comparator.comparingInt(entity ->
 					aura.MC.level.getBlockState(entity.blockPosition())
 						.is(Blocks.COBWEB) ? 0 : 1);

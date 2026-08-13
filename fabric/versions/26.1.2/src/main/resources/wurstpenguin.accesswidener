@@ -4,3 +4,12 @@ accessible	field	net/minecraft/client/gui/screens/Screen	renderables	Ljava/util/
 accessible	method	net/minecraft/client/gui/components/ChatComponent	getWidth	()I
 accessible	method	net/minecraft/client/gui/components/ChatComponent	getScale	()D
 accessible	field	net/minecraft/client/renderer/RenderPipelines	PIPELINES_BY_LOCATION	Ljava/util/Map;
+accessible	field	net/minecraft/client/renderer/RenderPipelines	MATRICES_FOG_SNIPPET	Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+accessible	field	net/minecraft/client/renderer/RenderPipelines	GLOBALS_SNIPPET	Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+accessible	field	net/minecraft/client/renderer/RenderPipelines	DEBUG_FILLED_SNIPPET	Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+accessible	method	net/minecraft/client/renderer/rendertype/RenderType	create	(Ljava/lang/String;Lnet/minecraft/client/renderer/rendertype/RenderSetup;)Lnet/minecraft/client/renderer/rendertype/RenderType;
+accessible	method	net/minecraft/client/Minecraft	startUseItem	()V
+accessible	field	net/minecraft/client/Minecraft	rightClickDelay	I
+accessible	field	net/minecraft/client/multiplayer/MultiPlayerGameMode	destroyDelay	I
+accessible	field	net/minecraft/client/multiplayer/MultiPlayerGameMode	isDestroying	Z
+accessible	field	net/minecraft/client/player/ClientInput	moveVector	Lnet/minecraft/world/phys/Vec2;

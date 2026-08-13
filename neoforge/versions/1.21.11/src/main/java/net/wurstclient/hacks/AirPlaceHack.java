@@ -74,7 +74,7 @@ public final class AirPlaceHack extends Hack
 		if(hitResult == null)
 			return;
 		
-		// MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+		MC.rightClickDelay = 4;
 		if(MC.player.isHandsBusy())
 			return;
 		

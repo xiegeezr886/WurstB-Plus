@@ -69,8 +69,8 @@ public final class LightOverlayHack extends Hack implements RenderListener
 						&& !MC.level.getBlockState(pos).isSolid())
 						pos = pos.below();
 
-					int light = MC.level.getBrightness(LightLayer.BLOCK,
-						pos.above());
+					int light = MC.level.getLightEngine().getLayerListener(LightLayer.BLOCK)
+						.getLightValue(pos.above());
 					if(light >= 8)
 						continue;
 

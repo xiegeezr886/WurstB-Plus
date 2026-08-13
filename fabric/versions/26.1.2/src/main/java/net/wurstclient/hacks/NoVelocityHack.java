@@ -179,7 +179,7 @@ public final class NoVelocityHack extends Hack
 		return VelocityPlanner.shouldApply(chance.getValueI(),
 			ThreadLocalRandom.current().nextInt(100), onlyMoving.isChecked(),
 			moving, trigger.getSelected(), MC.player.onGround(),
-			MC.player.isInWater() || MC.player.isSwimming() || MC.player.isInLava(),
+			MC.player.isInWater() || MC.player.isInLava(),
 			allowInFluid.isChecked(), MC.player.isFallFlying(),
 			allowWhileFlying.isChecked());
 	}

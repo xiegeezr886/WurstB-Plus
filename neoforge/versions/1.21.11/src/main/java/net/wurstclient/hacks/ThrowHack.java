@@ -49,7 +49,7 @@ public final class ThrowHack extends Hack implements RightClickListener
 	@Override
 	public void onRightClick(RightClickEvent event)
 	{
-		if(false) // TODO: 26.1.2 - rightClickDelay is private
+		if(MC.rightClickDelay > 0)
 			return;
 		
 		if(!MC.options.keyUse.isDown())

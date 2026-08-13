@@ -4,7 +4,18 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.RenderUtils;
 
+/**
+ * Renders rounded rectangles with anti-aliased corners.
+ *
+ * <p>Each rounded rectangle is submitted as a single quad mesh element
+ * (one {@code submitQuadMesh2D} call) instead of one {@code fill} call per
+ * pixel row. The vanilla GUI render state runs an O(n) intersection check
+ * per element, so collapsing ~20-40 fills into one element removes a large
+ * part of the per-frame GUI cost while keeping the exact same rounded,
+ * coverage-blended corner appearance.</p>
+ */
 final class RoundedRectRenderer
 {
 	private static final Map<Integer, CornerProfile> CORNER_PROFILES =
@@ -32,18 +43,32 @@ final class RoundedRectRenderer
 			return;
 		}
 
-		graphics.fill(left, top + safeRadius, right, bottom - safeRadius, color);
+		// Worst case: 1 body quad + 2 rows * 2 corners * 3 segments per
+		// radius unit.
+		int quadCount = 1 + safeRadius * 12;
+		float[][] mesh = new float[quadCount * 4][2];
+		int[] quadColors = new int[quadCount];
+		int quad = 0;
+
+		// body
+		quadColors[quad] = color;
+		addQuad(mesh, quad++, left, top + safeRadius, left, bottom - safeRadius,
+			right, bottom - safeRadius, right, top + safeRadius);
 
 		CornerProfile profile = getProfile(safeRadius);
 		for(int y = 0; y < safeRadius; y++)
 		{
 			int inset = profile.insets[y];
 			int edgeColor = withCoverage(color, profile.coverages[y]);
-			fillRoundedRow(graphics, left, top + y, right, inset, color,
-				edgeColor);
-			fillRoundedRow(graphics, left, bottom - y - 1, right, inset,
+			addFillRow(mesh, quadColors, quad, left, top + y, right, inset,
 				color, edgeColor);
+			quad += 3;
+			addFillRow(mesh, quadColors, quad, left, bottom - y - 1, right,
+				inset, color, edgeColor);
+			quad += 3;
 		}
+
+		RenderUtils.submitQuadMesh2D(graphics, mesh, quadColors);
 	}
 
 	public static void outline(GuiGraphicsExtractor graphics, float x1,
@@ -67,63 +92,131 @@ final class RoundedRectRenderer
 			return;
 		}
 
-		graphics.fill(left + outerRadius, top, right - outerRadius,
-			top + 1, color);
-		graphics.fill(left + outerRadius, bottom - 1,
-			right - outerRadius, bottom, color);
-		graphics.fill(left, top + outerRadius, left + 1,
-			bottom - outerRadius, color);
-		graphics.fill(right - 1, top + outerRadius, right,
-			bottom - outerRadius, color);
+		// Worst case: 4 straight edges + 2 rows * 2 corners * 4 segments
+		// per radius unit.
+		int quadCount = 4 + outerRadius * 16;
+		float[][] mesh = new float[quadCount * 4][2];
+		int[] quadColors = new int[quadCount];
+		int quad = 0;
+
+		// straight edges
+		quadColors[quad] = color;
+		addQuad(mesh, quad++, left + outerRadius, top, left + outerRadius,
+			top + 1, right - outerRadius, top + 1, right - outerRadius, top);
+		quadColors[quad] = color;
+		addQuad(mesh, quad++, left + outerRadius, bottom - 1,
+			left + outerRadius, bottom, right - outerRadius, bottom,
+			right - outerRadius, bottom - 1);
+		quadColors[quad] = color;
+		addQuad(mesh, quad++, left, top + outerRadius, left,
+			bottom - outerRadius, left + 1, bottom - outerRadius, left + 1,
+			top + outerRadius);
+		quadColors[quad] = color;
+		addQuad(mesh, quad++, right - 1, top + outerRadius, right - 1,
+			bottom - outerRadius, right, bottom - outerRadius, right,
+			top + outerRadius);
 
 		CornerProfile profile = getProfile(outerRadius);
 		for(int y = 0; y < outerRadius; y++)
 		{
 			int inset = profile.insets[y];
+			int innerInset = profile.innerInsets[y];
 			int edgeColor = withCoverage(color, profile.coverages[y]);
-			fillOutlineRow(graphics, left, top + y, right, inset,
-				profile.innerInsets[y], color, edgeColor);
-			fillOutlineRow(graphics, left, bottom - y - 1, right, inset,
-				profile.innerInsets[y], color, edgeColor);
+			addOutlineRow(mesh, quadColors, quad, left, top + y, right, inset,
+				innerInset, color, edgeColor);
+			quad += 4;
+			addOutlineRow(mesh, quadColors, quad, left, bottom - y - 1, right,
+				inset, innerInset, color, edgeColor);
+			quad += 4;
 		}
+
+		RenderUtils.submitQuadMesh2D(graphics, mesh, quadColors);
 	}
 
-	private static CornerProfile getProfile(int radius)
-	{
-		return CORNER_PROFILES.computeIfAbsent(radius, CornerProfile::new);
-	}
-
-	private static void fillRoundedRow(GuiGraphicsExtractor graphics, int left,
-		int y, int right, int inset, int color, int edgeColor)
+	private static void addFillRow(float[][] mesh, int[] quadColors, int quad,
+		int left, int y, int right, int inset, int color, int edgeColor)
 	{
 		int start = left + inset;
 		int end = right - inset;
+		// Slot quad: middle segment. Unused slots keep alpha 0 and are
+		// invisible (the vertex array defaults to 0,0).
 		if(start + 1 < end - 1)
-			graphics.fill(start + 1, y, end - 1, y + 1, color);
+		{
+			quadColors[quad] = color;
+			addQuad(mesh, quad, start + 1, y, start + 1, y + 1, end - 1, y + 1,
+				end - 1, y);
+		}
 		if(edgeColor >>> 24 == 0 || start >= end)
 			return;
-		graphics.fill(start, y, start + 1, y + 1, edgeColor);
+		// Slot quad + 1: left edge pixel.
+		quadColors[quad + 1] = edgeColor;
+		addQuad(mesh, quad + 1, start, y, start, y + 1, start + 1, y + 1,
+			start + 1, y);
+		// Slot quad + 2: right edge pixel.
 		if(end - 1 != start)
-			graphics.fill(end - 1, y, end, y + 1, edgeColor);
+		{
+			quadColors[quad + 2] = edgeColor;
+			addQuad(mesh, quad + 2, end - 1, y, end - 1, y + 1, end, y + 1,
+				end, y);
+		}
 	}
 
-	private static void fillOutlineRow(GuiGraphicsExtractor graphics, int left,
-		int y, int right, int outerInset, int innerInset, int color,
-		int edgeColor)
+	private static void addOutlineRow(float[][] mesh, int[] quadColors,
+		int quad, int left, int y, int right, int outerInset, int innerInset,
+		int color, int edgeColor)
 	{
 		int leftX = left + outerInset;
 		int rightX = right - outerInset - 1;
 		int leftInner = Math.min(rightX + 1, left + innerInset);
 		int rightInner = Math.max(leftX, right - innerInset);
+		// Slot quad: left inner segment; slot quad + 1: right inner segment.
 		if(leftX + 1 < leftInner)
-			graphics.fill(leftX + 1, y, leftInner, y + 1, color);
+		{
+			quadColors[quad] = color;
+			addQuad(mesh, quad, leftX + 1, y, leftX + 1, y + 1, leftInner,
+				y + 1, leftInner, y);
+		}
 		if(rightInner < rightX)
-			graphics.fill(rightInner, y, rightX, y + 1, color);
+		{
+			quadColors[quad + 1] = color;
+			addQuad(mesh, quad + 1, rightInner, y, rightInner, y + 1, rightX,
+				y + 1, rightX, y);
+		}
 		if(edgeColor >>> 24 == 0)
 			return;
-		graphics.fill(leftX, y, leftX + 1, y + 1, edgeColor);
+		// Slot quad + 2: left edge pixel; slot quad + 3: right edge pixel.
+		quadColors[quad + 2] = edgeColor;
+		addQuad(mesh, quad + 2, leftX, y, leftX, y + 1, leftX + 1, y + 1,
+			leftX + 1, y);
 		if(rightX != leftX)
-			graphics.fill(rightX, y, rightX + 1, y + 1, edgeColor);
+		{
+			quadColors[quad + 3] = edgeColor;
+			addQuad(mesh, quad + 3, rightX, y, rightX, y + 1, rightX + 1,
+				y + 1, rightX + 1, y);
+		}
+	}
+
+	/**
+	 * Writes one quad into the mesh in vanilla CCW order: left-top,
+	 * left-bottom, right-bottom, right-top.
+	 */
+	private static void addQuad(float[][] mesh, int quad, float ltX, float ltY,
+		float lbX, float lbY, float rbX, float rbY, float rtX, float rtY)
+	{
+		int base = quad * 4;
+		mesh[base][0] = ltX;
+		mesh[base][1] = ltY;
+		mesh[base + 1][0] = lbX;
+		mesh[base + 1][1] = lbY;
+		mesh[base + 2][0] = rbX;
+		mesh[base + 2][1] = rbY;
+		mesh[base + 3][0] = rtX;
+		mesh[base + 3][1] = rtY;
+	}
+
+	private static CornerProfile getProfile(int radius)
+	{
+		return CORNER_PROFILES.computeIfAbsent(radius, CornerProfile::new);
 	}
 
 	private static int withCoverage(int color, float coverage)

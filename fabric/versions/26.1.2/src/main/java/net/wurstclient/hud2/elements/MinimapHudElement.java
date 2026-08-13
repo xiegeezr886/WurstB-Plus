@@ -87,7 +87,7 @@ public final class MinimapHudElement extends HudElement
 		int playerX = Mth.floor(player.getX());
 		int playerZ = Mth.floor(player.getZ());
 		boolean tilesChanged = terrain.refreshVisible(level, playerX, playerZ,
-			MAP_RADIUS, level.getGameTime(), TILE_REFRESH_BUDGET);
+			MAP_RADIUS, level.getLevelData().getGameTime(), TILE_REFRESH_BUDGET);
 		if(texture == null || playerX != centerX || playerZ != centerZ
 			|| tilesChanged && tickCounter % 2 == 0)
 			composeTerrain(playerX, playerZ);
@@ -115,7 +115,7 @@ public final class MinimapHudElement extends HudElement
 			int playerX = Mth.floor(player.getX());
 			int playerZ = Mth.floor(player.getZ());
 			terrain.refreshVisible(level, playerX, playerZ, MAP_RADIUS,
-				level.getGameTime(), TILE_REFRESH_BUDGET * 2);
+				level.getLevelData().getGameTime(), TILE_REFRESH_BUDGET * 2);
 			composeTerrain(playerX, playerZ);
 		}
 

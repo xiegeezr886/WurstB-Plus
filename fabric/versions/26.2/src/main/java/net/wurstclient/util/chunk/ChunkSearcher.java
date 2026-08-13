@@ -18,6 +18,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.wurstclient.util.MinPriorityThreadFactory;
 
@@ -73,7 +74,12 @@ public final class ChunkSearcher
 						return results;
 					
 					BlockPos pos = new BlockPos(x, y, z);
-					BlockState state = chunk.getBlockState(pos);
+					// ChunkAccess.getBlockState(BlockPos) was removed in 26.1.2;
+					// resolve the section first, like the vanilla renderer does.
+					LevelChunkSection section =
+						chunk.getSection(chunk.getSectionIndex(y));
+					BlockState state = section.getBlockState(x & 15, y & 15,
+						z & 15);
 					if(!query.test(pos, state))
 						continue;
 					

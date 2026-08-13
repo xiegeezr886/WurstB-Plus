@@ -12,25 +12,24 @@ import java.util.List;
 
 import org.joml.Matrix4f;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-// BufferUploader removed in MC 26.1.2
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.WurstRenderLayers;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.events.WorldChangeListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.ColorSetting;
+import net.wurstclient.util.RenderUtils;
 
 @SearchTags({"breadcrumbs", "trail", "path", "footprints"})
 public final class BreadcrumbsHack extends Hack
@@ -108,38 +107,21 @@ public final class BreadcrumbsHack extends Hack
 		float g = ((argb >> 8) & 0xFF) / 255F;
 		float b = (argb & 0xFF) / 255F;
 
-		// Blend state managed by render pipeline
-		// Blend state managed by render pipeline
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		// Shader managed by render pipeline
-		try
+		// Depth/blend state managed by render pipeline
+		MultiBufferSource.BufferSource vcp = RenderUtils.getVCP();
+		RenderType layer = WurstRenderLayers.getLineStrip(true);
+		VertexConsumer buf = vcp.getBuffer(layer);
+		for(int i = 0; i < points.size(); i++)
 		{
-			Tesselator tess = Tesselator.getInstance();
-			BufferBuilder buf = tess.begin(VertexFormat.Mode.DEBUG_LINE_STRIP,
-				DefaultVertexFormat.POSITION_COLOR);
-		// RenderSystem.lineWidth removed in 26.1.2
-			for(int i = 0; i < points.size(); i++)
-			{
-				Vec3 point = points.get(i);
-				float progress = i / (float)points.size();
-				float alpha = progress * 0.8F;
+			Vec3 point = points.get(i);
+			float progress = i / (float)points.size();
+			float alpha = progress * 0.8F;
 
-				float x = (float)(point.x - cam.x);
-				float y = (float)(point.y - cam.y + 0.1);
-				float z = (float)(point.z - cam.z);
-				buf.addVertex(matrix, x, y, z).setColor(r, g, b, alpha)
-					;
-			}
-
-			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
-			if(rendered != null)
-			{
-				// BufferUploader removed in MC 26.1.2
-			}
-		}finally
-		{
-		// RenderSystem.lineWidth removed in 26.1.2
+			float x = (float)(point.x - cam.x);
+			float y = (float)(point.y - cam.y + 0.1);
+			float z = (float)(point.z - cam.z);
+			buf.addVertex(matrix, x, y, z).setColor(r, g, b, alpha);
 		}
+		vcp.endBatch(layer);
 	}
 }

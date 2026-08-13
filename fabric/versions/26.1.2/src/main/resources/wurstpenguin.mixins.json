@@ -17,6 +17,7 @@
                    "CactusBlockMixin",
                    "CameraMixin",
                    "ChatComponentAccessor",
+                   "GuiGraphicsExtractorAccessor",
                    "ChatComponentMixin",
                    "ChatInputSuggestorMixin",
                    "ChatScreenMixin",

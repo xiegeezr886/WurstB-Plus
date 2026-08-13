@@ -150,7 +150,7 @@ public final class NoFallHack extends Hack
 	{
 		if(player == null || player.isCreative() || player.isSpectator()
 			|| player.isPassenger() || player.onClimbable()
-			|| player.isInWater() || player.isSwimming() || player.isInLava()
+			|| player.isInWater() || player.isInLava()
 			|| player.isNoGravity())
 			return false;
 		if(player.isFallFlying() && !allowElytra.isChecked())

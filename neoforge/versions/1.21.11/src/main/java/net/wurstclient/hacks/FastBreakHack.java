@@ -78,7 +78,7 @@ public final class FastBreakHack extends Hack
 	@Override
 	public void onUpdate()
 	{
-		// MC.gameMode.destroyDelay = 0; // TODO: 26.1.2 - destroyDelay is private
+		MC.gameMode.destroyDelay = 0;
 	}
 
 	@Override

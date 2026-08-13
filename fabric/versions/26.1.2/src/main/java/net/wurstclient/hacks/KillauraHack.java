@@ -1149,7 +1149,7 @@ public final class KillauraHack extends Hack
 			if(this != ALWAYS || target == null)
 				return true;
 			return !MC.player.onGround() && MC.player.fallDistance > 0
-				&& !MC.player.onClimbable() && !MC.player.isInWater() || MC.player.isSwimming()
+				&& !MC.player.onClimbable() && !MC.player.isInWater()
 				&& !MC.player.isInLava() && !MC.player.isPassenger()
 				&& !MC.player.isSprinting()
 				&& !MC.player.hasEffect(MobEffects.BLINDNESS);

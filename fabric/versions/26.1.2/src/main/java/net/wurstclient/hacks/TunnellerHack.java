@@ -139,7 +139,7 @@ public final class TunnellerHack extends Hack
 		if(currentBlock != null)
 		{
 			// TODO: 26.1.2 - isDestroying is now private
-			// MC.gameMode.isDestroying = true;
+			MC.gameMode.isDestroying = true;
 			MC.gameMode.stopDestroyBlock();
 			currentBlock = null;
 		}
@@ -796,7 +796,7 @@ public final class TunnellerHack extends Hack
 			return;
 		
 		// check timer
-		if(false) // TODO: 26.1.2 - rightClickDelay is private
+		if(MC.rightClickDelay > 0)
 			return;
 		
 		// place block
@@ -807,7 +807,7 @@ public final class TunnellerHack extends Hack
 		SwingHand.SERVER.swing(InteractionHand.MAIN_HAND);
 		
 		// reset timer
-		// MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+		MC.rightClickDelay = 4;
 	}
 	
 	private boolean breakBlock(BlockPos pos)

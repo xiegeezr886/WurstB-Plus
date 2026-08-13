@@ -14,29 +14,27 @@ import java.util.UUID;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-// BufferUploader removed in MC 26.1.2
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.WurstRenderLayers;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.events.WorldChangeListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.util.RenderUtils;
 
 @SearchTags({"logout spots", "log off", "disconnect marker"})
 public final class LogoutSpotsHack extends Hack
@@ -132,42 +130,28 @@ public final class LogoutSpotsHack extends Hack
 		Vec3 cam = MC.gameRenderer.getMainCamera().position();
 		Matrix4f matrix = PoseStack.last().pose();
 
-		// Blend state managed by render pipeline
-		// Blend state managed by render pipeline
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		// Shader managed by render pipeline
-		try
+		// Depth/blend state managed by render pipeline
+		MultiBufferSource.BufferSource vcp = RenderUtils.getVCP();
+		RenderType layer = WurstRenderLayers.getQuads(true);
+		VertexConsumer buf = vcp.getBuffer(layer);
+
+		for(Spot spot : spots.values())
 		{
-			Tesselator tess = Tesselator.getInstance();
-			BufferBuilder buf = tess.begin(VertexFormat.Mode.QUADS,
-				DefaultVertexFormat.POSITION_COLOR);
+			float x = (float)(spot.pos.x - cam.x);
+			float y = (float)(spot.pos.y - cam.y);
+			float z = (float)(spot.pos.z - cam.z);
+			float s = 0.4F;
 
-			for(Spot spot : spots.values())
-			{
-				float x = (float)(spot.pos.x - cam.x);
-				float y = (float)(spot.pos.y - cam.y);
-				float z = (float)(spot.pos.z - cam.z);
-				float s = 0.4F;
-
-				buf.addVertex(matrix, x - s, y + s, z)
-					.setColor(1, 0.3F, 0.3F, 0.7F);
-				buf.addVertex(matrix, x + s, y + s, z)
-					.setColor(1, 0.3F, 0.3F, 0.7F);
-				buf.addVertex(matrix, x + s, y - s, z)
-					.setColor(1, 0.3F, 0.3F, 0.7F);
-				buf.addVertex(matrix, x - s, y - s, z)
-					.setColor(1, 0.3F, 0.3F, 0.7F);
-			}
-
-			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
-			if(rendered != null)
-			{
-				// BufferUploader removed in MC 26.1.2
-			}
-		}finally
-		{
+			buf.addVertex(matrix, x - s, y + s, z)
+				.setColor(1, 0.3F, 0.3F, 0.7F);
+			buf.addVertex(matrix, x + s, y + s, z)
+				.setColor(1, 0.3F, 0.3F, 0.7F);
+			buf.addVertex(matrix, x + s, y - s, z)
+				.setColor(1, 0.3F, 0.3F, 0.7F);
+			buf.addVertex(matrix, x - s, y - s, z)
+				.setColor(1, 0.3F, 0.3F, 0.7F);
 		}
+		vcp.endBatch(layer);
 
 		if(showName.isChecked())
 			renderNames(PoseStack, cam);

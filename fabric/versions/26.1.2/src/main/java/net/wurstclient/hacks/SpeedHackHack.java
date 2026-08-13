@@ -123,7 +123,7 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 	{
 		return player != null && !player.isShiftKeyDown() && !player.isPassenger()
 			&& !player.onClimbable() && !player.isFallFlying()
-			&& !player.isInWater() || player.isSwimming() && !player.isInLava();
+			&& !player.isInWater() && !player.isInLava();
 	}
 
 	private void applyHop(LocalPlayer player, float forward, float sideways,
