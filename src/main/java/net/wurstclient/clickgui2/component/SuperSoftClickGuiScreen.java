@@ -27,6 +27,7 @@ import net.wurstclient.clickgui2.GuiPreferences;
 import net.wurstclient.clickgui2.GuiPreferences.TargetType;
 import net.wurstclient.clickgui2.screens.NeteaseMusicScreen;
 import net.wurstclient.clickgui2.supersoft.SuperSoftRenderer;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.clickgui2.supersoft.UiMotion;
 import net.wurstclient.clickgui2.supersoft.UiTween;
@@ -255,14 +256,14 @@ public final class SuperSoftClickGuiScreen extends Screen
 		float hover = hudButtonHoverMotion.update(hovered ? 1 : 0);
 		float pressed = hudButtonPressMotion.update(openingHudEditor ? 1 : 0);
 		int offsetY = pressed > 0.5F ? 1 : 0;
-		int color = SuperSoftTheme.mix(0xFF282828,
+		int color = SuperSoftTheme.mix(EpsilonMd3Theme.SURFACE_CONTAINER,
 			SuperSoftTheme.SETTING_HOVER, hover);
 		color = SuperSoftTheme.mix(color, SuperSoftTheme.ACCENT,
 			pressed * 0.8F);
 
 		FlatRenderer.fillRoundedRect(graphics, left - 1, top + 2,
 			left + HUD_BUTTON_WIDTH + 1, top + HUD_BUTTON_HEIGHT + 3, 5,
-			0x50000000);
+			EpsilonMd3Theme.SHADOW);
 		FlatRenderer.fillRoundedRect(graphics, left, top + offsetY,
 			left + HUD_BUTTON_WIDTH, top + HUD_BUTTON_HEIGHT + offsetY, 5,
 			color);

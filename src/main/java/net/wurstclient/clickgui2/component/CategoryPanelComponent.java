@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.util.Mth;
 import net.wurstclient.Feature;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 
 public final class CategoryPanelComponent extends GuiComponent
@@ -130,7 +131,7 @@ public final class CategoryPanelComponent extends GuiComponent
 		int thumbY = (int)(y + scrollOffset / maxOffset
 			* (getHeight() - thumbHeight));
 		graphics.fill(trackX, thumbY, trackX + 2, thumbY + thumbHeight,
-			0xFF363536);
+			EpsilonMd3Theme.SURFACE_CONTAINER_HIGHEST);
 	}
 
 	private ModuleCardComponent findCard(double mouseX, double mouseY)

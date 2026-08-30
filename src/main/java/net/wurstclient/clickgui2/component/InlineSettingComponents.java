@@ -15,6 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.GuiIcon;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.clickgui2.supersoft.UiTween;
 import net.wurstclient.hacks.autolibrarian.BookOffer;
@@ -159,7 +160,7 @@ final class BlockInlineSettingComponent extends ValueRowComponent
 			23, "Set", actionMotion.update(actionHovered ? 1 : 0));
 		if(!error.isEmpty())
 			InlineSettingRender.message(graphics, x, top + 17, getWidth(), error,
-				0xFFFF6B6B);
+				EpsilonMd3Theme.ERROR);
 		graphics.disableScissor();
 	}
 
@@ -351,7 +352,7 @@ final class RegistryListInlineSettingComponent extends ValueRowComponent
 			rowY + 1, 15, "+", actionMotion.update(actionHovered ? 1 : 0));
 		if(!error.isEmpty())
 			InlineSettingRender.message(graphics, x, rowY + 18, getWidth(), error,
-				0xFFFF6B6B);
+				EpsilonMd3Theme.ERROR);
 		graphics.disableScissor();
 	}
 
@@ -571,7 +572,7 @@ final class BookOffersInlineSettingComponent extends ValueRowComponent
 			actionMotion.update(actionHovered ? 1 : 0));
 		if(!error.isEmpty())
 			InlineSettingRender.message(graphics, x, rowY + 17, getWidth(), error,
-				0xFFFF6B6B);
+				EpsilonMd3Theme.ERROR);
 		graphics.disableScissor();
 	}
 
@@ -790,9 +791,9 @@ final class InlineSettingRender
 		float highlight = selected ? 1 : hoverProgress;
 		if(highlight > 0.001F)
 			graphics.fill((int)x + 2, y, (int)(x + width) - 2, y + 16,
-				SuperSoftTheme.mix(0x003C3C3C,
-					selected ? 0x99000000
-						| SuperSoftTheme.ACCENT & 0xFFFFFF
+				SuperSoftTheme.mix(EpsilonMd3Theme.SURFACE_CONTAINER,
+					selected ? EpsilonMd3Theme.withAlpha(
+						SuperSoftTheme.ACCENT, 0.6F)
 						: SuperSoftTheme.SETTING_HOVER,
 					highlight));
 		Font font = Minecraft.getInstance().font;
@@ -830,13 +831,14 @@ final class InlineSettingRender
 		FlatRenderer.fillRoundedRect(graphics, left, top, right, top + 15, 3,
 			SuperSoftTheme.SETTING);
 		FlatRenderer.drawRoundedOutline(graphics, left, top, right, top + 15, 3,
-			SuperSoftTheme.mix(0x66FFFFFF, SuperSoftTheme.TEXT,
-				borderProgress));
+			SuperSoftTheme.mix(EpsilonMd3Theme.OUTLINE_SOFT,
+				SuperSoftTheme.TEXT, borderProgress));
 		Font font = Minecraft.getInstance().font;
 		String visible = value.isEmpty() ? "value"
 			: font.plainSubstrByWidth(value, Math.max(4, right - left - 8));
 		graphics.drawString(font, visible, left + 4, top + 3,
-			value.isEmpty() ? 0x66FFFFFF : SuperSoftTheme.TEXT, false);
+			value.isEmpty() ? EpsilonMd3Theme.TEXT_MUTED : SuperSoftTheme.TEXT,
+			false);
 		if(focused && System.currentTimeMillis() / 500 % 2 == 0)
 		{
 			int cursor = Math.min(right - 3, left + 4 + font.width(visible));

@@ -22,7 +22,7 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 {
 	INSTANCE;
 
-	private final NeteaseCloudApi api = new NeteaseCloudApi();
+	private final MusicPlatform api = new NeteaseCloudApi();
 	private final MusicAccountManager accountManager =
 		new MusicAccountManager();
 	private final StreamPlayer player = new StreamPlayer();
@@ -36,6 +36,9 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 	private final AtomicLong requestId = new AtomicLong();
 	private final Object playerLock = new Object();
 	private final Map<Long, Long> lyricOffsets = new ConcurrentHashMap<>();
+	private final PlayerListenerRegistry listenerRegistry =
+		new PlayerListenerRegistry();
+	private volatile long lastPositionEventMs;
 
 	private volatile PlaybackState state = PlaybackState.IDLE;
 	private volatile NeteaseSong currentSong;
@@ -122,6 +125,16 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 		return accountManager;
 	}
 
+	public void addListener(PlayerListener listener)
+	{
+		listenerRegistry.add(listener);
+	}
+
+	public void removeListener(PlayerListener listener)
+	{
+		listenerRegistry.remove(listener);
+	}
+
 	public CompletableFuture<NeteaseCloudApi.QrLogin> beginQrLogin()
 	{
 		return supplyAsync(api::beginQrLogin);
@@ -164,7 +177,7 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 	{
 		long expectedRequest = requestId.incrementAndGet();
 		changingSong = true;
-		state = PlaybackState.LOADING;
+		setState(PlaybackState.LOADING);
 		error = "";
 		positionMs = 0;
 		durationMs = song.durationMs();
@@ -192,14 +205,15 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 					seekOffset = 0;
 					player.play();
 				}
-				state = PlaybackState.PLAYING;
+				fireSongChanged(song);
+				setState(PlaybackState.PLAYING);
 				CompletableFuture.runAsync(() -> loadLyrics(song.id(),
 					expectedRequest), executor);
 			}catch(Exception e)
 			{
 				if(expectedRequest == requestId.get())
 				{
-					state = PlaybackState.ERROR;
+					setState(PlaybackState.ERROR);
 					error = readableMessage(e);
 				}
 			}finally
@@ -230,11 +244,17 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 		{
 			List<LyricLine> loaded = api.lyrics(songId);
 			if(expectedRequest == requestId.get())
+			{
 				lyrics = loaded;
+				fireLyricsLoaded(loaded);
+			}
 		}catch(Exception ignored)
 		{
 			if(expectedRequest == requestId.get())
+			{
 				lyrics = List.of();
+				fireLyricsLoaded(List.of());
+			}
 		}
 	}
 
@@ -260,7 +280,7 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 			{
 				player.pause();
 			}
-			state = PlaybackState.PAUSED;
+			setState(PlaybackState.PAUSED);
 		});
 	}
 
@@ -271,7 +291,7 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 			{
 				player.resume();
 			}
-			state = PlaybackState.PLAYING;
+			setState(PlaybackState.PLAYING);
 		});
 	}
 
@@ -303,6 +323,38 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 		load(songs.get(currentIndex));
 	}
 
+	private void fireLyricsLoaded(List<LyricLine> lyrics)
+	{
+		listenerRegistry.fireLyricsLoaded(lyrics);
+	}
+
+	private void fireSongChanged(NeteaseSong song)
+	{
+		listenerRegistry.fireSongChanged(song);
+	}
+
+	private void setState(PlaybackState newState)
+	{
+		if(state == newState)
+			return;
+		state = newState;
+		fireState(newState);
+	}
+
+	private void fireState(PlaybackState state)
+	{
+		listenerRegistry.firePlaybackStateChanged(state);
+	}
+
+	private void firePosition()
+	{
+		long now = System.currentTimeMillis();
+		if(now - lastPositionEventMs < 250)
+			return;
+		lastPositionEventMs = now;
+		listenerRegistry.firePositionChanged(positionMs, durationMs);
+	}
+
 	static int nextIndex(int size, int current, PlaybackMode mode)
 	{
 		if(size <= 1)
@@ -324,6 +376,7 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 		positionMs = target;
 		seekOffset = target;
 		seeking = true;
+		firePosition();
 		executor.execute(() -> {
 			try
 			{
@@ -355,7 +408,7 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 		{
 			player.stop();
 		}
-		state = PlaybackState.IDLE;
+		setState(PlaybackState.IDLE);
 		positionMs = 0;
 		changingSong = false;
 	}
@@ -369,6 +422,7 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 		lyrics = List.of();
 		durationMs = 0;
 		seekOffset = 0;
+		fireSongChanged(null);
 	}
 
 	public void cyclePlaybackMode()
@@ -443,7 +497,10 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 		byte[] pcmData, Map<String, Object> properties)
 	{
 		if(!seeking)
+		{
 			positionMs = seekOffset + microsecondPosition / 1000;
+			firePosition();
+		}
 	}
 
 	@Override
@@ -451,13 +508,13 @@ public enum NeteaseMusicPlayer implements StreamPlayerListener
 	{
 		Status status = event.getPlayerStatus();
 		if(status == Status.PLAYING || status == Status.RESUMED)
-			state = PlaybackState.PLAYING;
+			setState(PlaybackState.PLAYING);
 		else if(status == Status.PAUSED && !seeking)
-			state = PlaybackState.PAUSED;
+			setState(PlaybackState.PAUSED);
 		else if(status == Status.STOPPED && !seeking && !changingSong)
 		{
 			boolean completed = durationMs > 0 && positionMs >= durationMs * 0.9;
-			state = PlaybackState.IDLE;
+			setState(PlaybackState.IDLE);
 			if(completed)
 				playAfterCompletion();
 		}

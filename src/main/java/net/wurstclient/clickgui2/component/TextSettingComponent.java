@@ -10,6 +10,7 @@ package net.wurstclient.clickgui2.component;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.settings.Setting;
 
 /**
@@ -32,7 +33,7 @@ public class TextSettingComponent extends ValueRowComponent
 		String value = getSettingValueString();
 		graphics.drawString(font, value,
 			(int)(x + getWidth() - font.width(value) - 4), (int)y + 3,
-			0xFFA3A3A3, false);
+			EpsilonMd3Theme.TEXT_MUTED, false);
 	}
 	
 	private String getSettingValueString()

@@ -11,6 +11,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.wurstclient.clickgui2.GuiIcon;
 import net.wurstclient.clickgui2.supersoft.SuperSoftRenderer;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.clickgui2.supersoft.UiTween;
 
@@ -132,7 +133,7 @@ final class SuperSoftRowsWindow implements SuperSoftFloatingWindow
 			animatedRow = SuperSoftTheme.mix(animatedRow,
 				SuperSoftTheme.ACCENT, active);
 			int color = row.kind == RowKind.SECTION ? SuperSoftTheme.HEADER
-				: row.kind == RowKind.DISABLED ? 0xFF151515
+				: row.kind == RowKind.DISABLED ? EpsilonMd3Theme.SURFACE_DIM
 					: animatedRow;
 			graphics.fill((int)x, rowY, (int)x + WIDTH, rowY + ROW_HEIGHT,
 				color);
@@ -245,7 +246,7 @@ final class SuperSoftRowsWindow implements SuperSoftFloatingWindow
 		int thumbY = (int)y + HEADER_HEIGHT + Math.round((float)scrollOffset
 			/ (contentHeight - bodyHeight) * (bodyHeight - thumbHeight));
 		graphics.fill((int)x + WIDTH - 2, thumbY, (int)x + WIDTH,
-			thumbY + thumbHeight, 0xAAFFFFFF);
+			thumbY + thumbHeight, EpsilonMd3Theme.TEXT_MUTED);
 	}
 
 	private static void drawScaled(GuiGraphics graphics, Font font, String text,
@@ -287,7 +288,7 @@ final class SuperSoftRowsWindow implements SuperSoftFloatingWindow
 		Runnable action)
 	{}
 
-	private enum RowKind
+	enum RowKind
 	{
 		SECTION,
 		ACTION,

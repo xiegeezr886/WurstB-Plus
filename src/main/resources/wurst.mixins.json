@@ -27,6 +27,8 @@
     "ClientConnectionMixin",
     "ClientboundExplodePacketMixin",
 	"ClientboundPlayerPositionPacketMixin",
+	"AbstractTextureMixin",
+	"TextureManagerMixin",
     "ClientPlayerEntityMixin",
     "ClientPlayerInteractionManagerMixin",
     "ClientPlayNetworkHandlerMixin",

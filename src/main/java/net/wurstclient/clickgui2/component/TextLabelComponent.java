@@ -10,6 +10,7 @@ package net.wurstclient.clickgui2.component;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 
 /**
  * 仿 VAPE SimpleTextLabelComponent 的文本标签。
@@ -17,7 +18,7 @@ import net.minecraft.client.gui.GuiGraphics;
 public class TextLabelComponent extends GuiComponent
 {
 	protected String text;
-	protected int color = 0xFFD1D1D1;
+	protected int color = EpsilonMd3Theme.TEXT_SECONDARY;
 	
 	public TextLabelComponent(String text)
 	{

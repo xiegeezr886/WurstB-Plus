@@ -9,7 +9,9 @@ package net.wurstclient.mixin;
 
 import org.joml.Matrix4fc;
 import org.joml.Vector4f;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -20,14 +22,20 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.RenderListener.RenderEvent;
+import net.wurstclient.util.RenderUtils;
 
 @Mixin(LevelRenderer.class)
 public class LevelRendererMixin
 {
+	@Shadow
+	@Final
+	private SubmitNodeStorage submitNodeStorage;
+	
 	@Inject(
 		method = "renderLevel(Lcom/mojang/blaze3d/resource/GraphicsResourceAllocator;Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/renderer/state/level/CameraRenderState;Lorg/joml/Matrix4fc;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lorg/joml/Vector4f;ZLnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V",
 		at = @At("RETURN"))
@@ -38,6 +46,7 @@ public class LevelRendererMixin
 		boolean shouldRenderSky, ChunkSectionsToRender chunkSectionsToRender,
 		CallbackInfo ci)
 	{
+		RenderUtils.setSubmitNodeStorage(submitNodeStorage);
 		PoseStack matrixStack = new PoseStack();
 		matrixStack.mulPose(positionMatrix);
 		float tickProgress = tickCounter.getGameTimeDeltaPartialTick(false);

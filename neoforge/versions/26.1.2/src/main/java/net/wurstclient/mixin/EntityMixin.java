@@ -37,7 +37,12 @@ public abstract class EntityMixin
 	@WrapOperation(method = "updateFluidInteraction()Z",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/entity/Entity;isPushedByFluid()Z",
-			ordinal = 0))
+			ordinal = 0),
+		// require=0: NeoForge's patched Entity no longer calls isPushedByFluid()
+		// from updateFluidInteraction() (fluid system reworked into
+		// EntityFluidInteraction), so the injection has no target there and
+		// would crash startup without this. Vanilla/Fabric still call it.
+		require = 0)
 	private boolean wrapUpdateFluidInteractionIsPushedByFluid(Entity instance,
 		Operation<Boolean> original)
 	{

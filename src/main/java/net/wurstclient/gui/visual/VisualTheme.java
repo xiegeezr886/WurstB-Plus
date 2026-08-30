@@ -22,10 +22,10 @@ public final class VisualTheme
 	public static final int TEXT_MUTED = 0xA6FFFFFF;
 	public static final int TEXT_DISABLED = 0x667F8794;
 
-	public static final int ACCENT = 0xFF4677FF;
-	public static final int ACCENT_HOVER = 0xFF365FCC;
-	public static final int ACCENT_SUBTLE = 0x1F4677FF;
-	public static final int ACCENT_SUBTLE_STRONG = 0x554677FF;
+	public static final int ACCENT = 0xFF007CFF;
+	public static final int ACCENT_HOVER = 0xFF1A8BFF;
+	public static final int ACCENT_SUBTLE = 0x1F007CFF;
+	public static final int ACCENT_SUBTLE_STRONG = 0x55007CFF;
 	public static final int SUCCESS = 0xFF4DAC68;
 	public static final int ERROR = 0xFFFC4130;
 	public static final int WARNING = 0xFFefbf04;

@@ -2,8 +2,8 @@ package net.wurstclient.clickgui2;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.wurstclient.WurstClient;
-import net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen;
 import net.wurstclient.clickgui2.component.VapeClickGuiScreen;
+import net.wurstclient.clickgui2.epsilon.EpsilonDropdownScreen;
 
 public final class ClickGuiScreens
 {
@@ -20,7 +20,7 @@ public final class ClickGuiScreens
 	{
 		if(WurstClient.INSTANCE.getGuiPreferences().isVapeMode())
 			return new VapeClickGuiScreen();
-		return new SuperSoftClickGuiScreen(parent);
+		return new EpsilonDropdownScreen(parent);
 	}
 
 	public static void setVapeMode(boolean enabled)

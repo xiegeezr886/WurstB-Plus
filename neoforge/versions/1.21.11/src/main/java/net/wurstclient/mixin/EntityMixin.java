@@ -38,7 +38,11 @@ public abstract class EntityMixin
 		method = "updateFluidHeightAndDoFluidPushing(Z)V",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/entity/Entity;isPushedByFluid()Z",
-			ordinal = 0))
+			ordinal = 0),
+		// require=0: NeoForge/Forge patched clients may rework fluid
+		// interaction, making this injection target absent there. Without
+		// require=0 the client fails to start. Vanilla/Fabric still call it.
+		require = 0)
 	private boolean wrapUpdateFluidInteractionIsPushedByFluid(Entity instance,
 		Operation<Boolean> original)
 	{

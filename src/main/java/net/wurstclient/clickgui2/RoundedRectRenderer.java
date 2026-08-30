@@ -83,6 +83,34 @@ final class RoundedRectRenderer
 		state.restore();
 	}
 
+	public static void outlineGradient(GuiGraphics graphics, float x1,
+		float y1, float x2, float y2, float radius,
+		FlatRenderer.GradientColorFn colorFn)
+	{
+		if(x2 <= x1 || y2 <= y1)
+			return;
+
+		float safeRadius = clampRadius(x1, y1, x2, y2, radius);
+		int segments = segmentsFor(safeRadius);
+		prepareContour(0, x1 - 0.5F, y1 - 0.5F, x2 + 0.5F,
+			y2 + 0.5F, safeRadius + 0.5F, segments);
+		prepareContour(1, x1 + 0.3F, y1 + 0.3F, x2 - 0.3F,
+			y2 - 0.3F, Math.max(0, safeRadius - 0.3F), segments);
+		prepareContour(2, x1 + 1.35F, y1 + 1.35F, x2 - 1.35F,
+			y2 - 1.35F, Math.max(0, safeRadius - 1.35F), segments);
+
+		RenderState state = begin(graphics);
+		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+		buffer.begin(VertexFormat.Mode.TRIANGLES,
+			DefaultVertexFormat.POSITION_COLOR);
+		Matrix4f pose = graphics.pose().last().pose();
+		addGradientColorStrip(buffer, pose, 0, 1, segments, colorFn, false);
+		addGradientColorStrip(buffer, pose, 1, 2, segments, colorFn, true);
+		Tesselator.getInstance().end();
+		state.restore();
+	}
+
 	private static RenderState begin(GuiGraphics graphics)
 	{
 		graphics.flush();
@@ -141,6 +169,40 @@ final class RoundedRectRenderer
 			addColorVertex(buffer, pose, POINT_X[inner][next],
 				POINT_Y[inner][next], innerColor);
 		}
+	}
+
+	private static void addGradientColorStrip(BufferBuilder buffer,
+		Matrix4f pose, int inner, int outer, int segments,
+		FlatRenderer.GradientColorFn colorFn, boolean innerIsColor)
+	{
+		int points = segments * 4;
+		for(int i = 0; i < points; i++)
+		{
+			int next = (i + 1) % points;
+			int ic = colorFor(colorFn, POINT_X[inner][i], innerIsColor);
+			int oc = colorFor(colorFn, POINT_X[outer][i], !innerIsColor);
+			int inc = colorFor(colorFn, POINT_X[inner][next], innerIsColor);
+			int onc = colorFor(colorFn, POINT_X[outer][next], !innerIsColor);
+			addColorVertex(buffer, pose, POINT_X[inner][i], POINT_Y[inner][i],
+				ic);
+			addColorVertex(buffer, pose, POINT_X[outer][i], POINT_Y[outer][i],
+				oc);
+			addColorVertex(buffer, pose, POINT_X[outer][next],
+				POINT_Y[outer][next], onc);
+			addColorVertex(buffer, pose, POINT_X[inner][i], POINT_Y[inner][i],
+				ic);
+			addColorVertex(buffer, pose, POINT_X[outer][next],
+				POINT_Y[outer][next], onc);
+			addColorVertex(buffer, pose, POINT_X[inner][next],
+				POINT_Y[inner][next], inc);
+		}
+	}
+
+	private static int colorFor(FlatRenderer.GradientColorFn colorFn, float x,
+		boolean isColor)
+	{
+		int color = colorFn.colorAt(x);
+		return isColor ? color : color & 0xFFFFFF;
 	}
 
 	private static void addColorVertex(BufferBuilder buffer, Matrix4f pose,

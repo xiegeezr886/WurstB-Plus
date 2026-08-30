@@ -2,6 +2,7 @@ package net.wurstclient.clickgui2.component;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.clickgui2.supersoft.UiTween;
 import net.wurstclient.settings.TextFieldSetting;
@@ -63,16 +64,19 @@ final class VapeTextInputComponent extends ValueRowComponent
 		graphics.pose().pushPose();
 		graphics.pose().translate(left, (int)y + 11, 0);
 		graphics.pose().scale(0.65F, 0.65F, 1);
-		graphics.drawString(font(), description, 0, 0, 0x80FFFFFF, false);
+		graphics.drawString(font(), description, 0, 0,
+			EpsilonMd3Theme.TEXT_MUTED, false);
 		graphics.pose().popPose();
 		FlatRenderer.fillRoundedRect(graphics, left, top, right, top + 15, 4,
 			SuperSoftTheme.SETTING);
 		FlatRenderer.drawRoundedOutline(graphics, left, top, right, top + 15, 4,
-			SuperSoftTheme.mix(0x66FFFFFF, SuperSoftTheme.TEXT,
+			SuperSoftTheme.mix(EpsilonMd3Theme.OUTLINE_SOFT,
+				SuperSoftTheme.TEXT,
 				borderMotion.update(focused || hovered ? 1 : 0)));
 		String visible = draft.isEmpty() ? "value" : draft;
 		graphics.drawString(font(), visible, left + 5, top + 3,
-			draft.isEmpty() ? 0x66FFFFFF : SuperSoftTheme.TEXT, false);
+			draft.isEmpty() ? EpsilonMd3Theme.TEXT_MUTED : SuperSoftTheme.TEXT,
+			false);
 		if(focused && System.currentTimeMillis() / 500 % 2 == 0)
 		{
 			int cursor = left + 5 + font().width(draft);

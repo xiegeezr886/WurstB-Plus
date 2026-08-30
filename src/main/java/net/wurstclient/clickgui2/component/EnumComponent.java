@@ -12,6 +12,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.GuiIcon;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.clickgui2.supersoft.UiTween;
 import net.wurstclient.settings.EnumSetting;
@@ -102,7 +103,7 @@ public class EnumComponent<T extends Enum<T>> extends ValueRowComponent
 		float expansion = expansionMotion.update(expanded ? 1 : 0);
 		int right = (int)(x + getWidth()) - 4;
 		GuiIcon.CHEVRON.drawRotated(graphics, right - 7, (int)y + 5, 6,
-			0x99FFFFFF, arrowMotion.update(expanded ? 90 : 0));
+			EpsilonMd3Theme.TEXT_MUTED, arrowMotion.update(expanded ? 90 : 0));
 		graphics.drawString(font, value,
 			right - 10 - font.width(value), (int)y + 3,
 			SuperSoftTheme.ACCENT, false);
@@ -113,7 +114,7 @@ public class EnumComponent<T extends Enum<T>> extends ValueRowComponent
 		int panelHeight = Math.round(16 * enumSetting.getValues().length
 			* expansion);
 		graphics.fill((int)x, panelY, (int)(x + getWidth()),
-			panelY + panelHeight, 0xFF1E1E1E);
+			panelY + panelHeight, EpsilonMd3Theme.SURFACE_CONTAINER);
 		graphics.enableScissor((int)x, panelY, (int)(x + getWidth()),
 			panelY + panelHeight);
 		T[] values = enumSetting.getValues();
@@ -132,7 +133,7 @@ public class EnumComponent<T extends Enum<T>> extends ValueRowComponent
 					rowY + 16, withAlpha(selected ? SuperSoftTheme.ACCENT
 						: SuperSoftTheme.SETTING_HOVER, alpha));
 			graphics.drawString(font, values[index].name(), (int)x + 6,
-				rowY + 3, selected ? SuperSoftTheme.TEXT : 0xCCFFFFFF, false);
+				rowY + 3, selected ? SuperSoftTheme.TEXT : EpsilonMd3Theme.TEXT_MUTED, false);
 		}
 		graphics.disableScissor();
 	}

@@ -39,6 +39,7 @@ public final class GuiPreferences
 	private boolean commandsEnabled = true;
 	private boolean fontEnabled = true;
 	private boolean vapeMode;
+	private boolean riseMode;
 	private int vapeLayoutVersion;
 	private String selectedFont = BUILTIN_FONT;
 	private boolean targetPlayers = true;
@@ -68,6 +69,8 @@ public final class GuiPreferences
 				fontEnabled = json.get("fontEnabled").getAsBoolean();
 			if(json.has("vapeMode"))
 				vapeMode = json.get("vapeMode").getAsBoolean();
+			if(json.has("riseMode"))
+				riseMode = json.get("riseMode").getAsBoolean();
 			if(json.has("vapeLayoutVersion"))
 				vapeLayoutVersion = json.get("vapeLayoutVersion").getAsInt();
 			if(json.has("selectedFont"))
@@ -115,6 +118,7 @@ public final class GuiPreferences
 		json.addProperty("commandsEnabled", commandsEnabled);
 		json.addProperty("fontEnabled", fontEnabled);
 		json.addProperty("vapeMode", vapeMode);
+		json.addProperty("riseMode", riseMode);
 		json.addProperty("vapeLayoutVersion", vapeLayoutVersion);
 		json.addProperty("selectedFont", selectedFont);
 		json.addProperty("targetPlayers", targetPlayers);
@@ -174,6 +178,17 @@ public final class GuiPreferences
 	public void setVapeMode(boolean vapeMode)
 	{
 		this.vapeMode = vapeMode;
+		save();
+	}
+
+	public boolean isRiseMode()
+	{
+		return riseMode;
+	}
+
+	public void setRiseMode(boolean riseMode)
+	{
+		this.riseMode = riseMode;
 		save();
 	}
 

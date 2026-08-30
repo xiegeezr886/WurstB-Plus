@@ -1,7 +1,7 @@
 package net.wurstclient.clickgui2.component;
 
 /** Prevents the key press that opens ClickGUI from immediately closing it. */
-final class ClickGuiKeyLatch
+public final class ClickGuiKeyLatch
 {
 	private boolean closeArmed;
 

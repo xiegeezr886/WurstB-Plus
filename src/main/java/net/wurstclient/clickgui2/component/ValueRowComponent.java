@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.clickgui2.supersoft.UiTween;
 import net.wurstclient.settings.Setting;
@@ -46,8 +47,9 @@ public abstract class ValueRowComponent extends GuiComponent
 			SuperSoftTheme.TEXT, hover);
 		if(hover > 0.001F)
 			graphics.fill((int)x, (int)y, (int)(x + getWidth()),
-				(int)(y + getHeight()), SuperSoftTheme.mix(0x003C3C3C,
-					0x443C3C3C, hover));
+				(int)(y + getHeight()),
+				SuperSoftTheme.mix(EpsilonMd3Theme.SURFACE_CONTAINER,
+					EpsilonMd3Theme.SURFACE_CONTAINER_HIGH, hover));
 		if(usesSuperSoftTheme())
 		{
 			drawScaled(graphics, label, (int)x + 4, (int)y + 3, labelColor,
@@ -56,7 +58,7 @@ public abstract class ValueRowComponent extends GuiComponent
 				Math.max(20, Math.round(((int)getWidth() - 10)
 					/ DESCRIPTION_TEXT_SCALE)));
 			drawScaled(graphics, description, (int)x + 4, (int)y + 10,
-				0x80FFFFFF, DESCRIPTION_TEXT_SCALE);
+				EpsilonMd3Theme.TEXT_MUTED, DESCRIPTION_TEXT_SCALE);
 		}else
 		{
 			graphics.drawString(font, label, (int)x + 4, (int)y + 3,

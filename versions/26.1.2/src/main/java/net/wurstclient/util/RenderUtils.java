@@ -8,11 +8,11 @@
 package net.wurstclient.util;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -27,10 +27,12 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -83,6 +85,41 @@ public enum RenderUtils
 		return RegionPos.of(getCameraBlockPos());
 	}
 	
+	private static SubmitNodeStorage submitNodeStorage;
+	
+	public static void setSubmitNodeStorage(SubmitNodeStorage storage)
+	{
+		submitNodeStorage = storage;
+	}
+	
+	/**
+	 * Submits custom geometry to the current render frame. The renderer
+	 * callback receives a VertexConsumer that writes into the given RenderType.
+	 */
+	public static void submit(PoseStack matrices, RenderType layer,
+		Consumer<VertexConsumer> renderer)
+	{
+		if(submitNodeStorage == null)
+			return;
+		submitNodeStorage.submitCustomGeometry(matrices, layer,
+			(pose, buffer) -> renderer.accept(buffer));
+	}
+	
+	/**
+	 * Submits text to the current render frame, transformed by the given
+	 * PoseStack (world-space text).
+	 */
+	public static void submitText(PoseStack matrices, float x, float y,
+		FormattedCharSequence text, boolean dropShadow,
+		Font.DisplayMode displayMode, int lightCoords, int color,
+		int backgroundColor, int outlineColor)
+	{
+		if(submitNodeStorage == null)
+			return;
+		submitNodeStorage.submitText(matrices, x, y, text, dropShadow,
+			displayMode, lightCoords, color, backgroundColor, outlineColor);
+	}
+	
 	public static MultiBufferSource.BufferSource getVCP()
 	{
 		return WurstClient.MC.renderBuffers().bufferSource();
@@ -116,17 +153,10 @@ public enum RenderUtils
 	public static void drawLine(PoseStack matrices, Vec3 start, Vec3 end,
 		int color, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 offset = getCameraPos().reverse();
-		drawLine(matrices, buffer, start.add(offset), end.add(offset), color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> drawLine(matrices, buffer,
+			start.add(offset), end.add(offset), color));
 	}
 	
 	private static Vec3 getTracerOrigin(float partialTicks)
@@ -142,55 +172,36 @@ public enum RenderUtils
 	public static void drawTracer(PoseStack matrices, float partialTicks,
 		Vec3 end, int color, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 start = getTracerOrigin(partialTicks);
 		Vec3 offset = getCameraPos().reverse();
-		drawLine(matrices, buffer, start, end.add(offset), color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> drawLine(matrices, buffer, start,
+			end.add(offset), color));
 	}
 	
 	public static void drawTracers(PoseStack matrices, float partialTicks,
 		List<Vec3> ends, int color, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 start = getTracerOrigin(partialTicks);
 		Vec3 offset = getCameraPos().reverse();
-		for(Vec3 end : ends)
-			drawLine(matrices, buffer, start, end.add(offset), color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> {
+			for(Vec3 end : ends)
+				drawLine(matrices, buffer, start, end.add(offset), color);
+		});
 	}
 	
 	public static void drawTracers(PoseStack matrices, float partialTicks,
 		List<ColoredPoint> ends, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 start = getTracerOrigin(partialTicks);
 		Vec3 offset = getCameraPos().reverse();
-		for(ColoredPoint end : ends)
-			drawLine(matrices, buffer, start, end.point().add(offset),
-				end.color());
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> {
+			for(ColoredPoint end : ends)
+				drawLine(matrices, buffer, start, end.point().add(offset),
+					end.color());
+		});
 	}
 	
 	public static void drawLine(PoseStack matrices, VertexConsumer buffer,
@@ -251,18 +262,11 @@ public enum RenderUtils
 	public static void drawCurvedLine(PoseStack matrices, List<Vec3> points,
 		int color, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLineStrip(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 offset = getCameraPos().reverse();
 		List<Vec3> points2 = points.stream().map(v -> v.add(offset)).toList();
-		drawCurvedLine(matrices, buffer, points2, color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> drawCurvedLine(matrices, buffer,
+			points2, color));
 	}
 	
 	public static void drawCurvedLine(PoseStack matrices,
@@ -297,52 +301,32 @@ public enum RenderUtils
 	public static void drawSolidBox(PoseStack matrices, AABB box, int color,
 		boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getQuads(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
-		drawSolidBox(matrices, buffer, box.move(getCameraPos().reverse()),
-			color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> drawSolidBox(matrices, buffer,
+			box.move(getCameraPos().reverse()), color));
 	}
 	
 	public static void drawSolidBoxes(PoseStack matrices, List<AABB> boxes,
 		int color, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getQuads(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 camOffset = getCameraPos().reverse();
-		for(AABB box : boxes)
-			drawSolidBox(matrices, buffer, box.move(camOffset), color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> {
+			for(AABB box : boxes)
+				drawSolidBox(matrices, buffer, box.move(camOffset), color);
+		});
 	}
 	
 	public static void drawSolidBoxes(PoseStack matrices,
 		List<ColoredBox> boxes, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getQuads(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 camOffset = getCameraPos().reverse();
-		for(ColoredBox box : boxes)
-			drawSolidBox(matrices, buffer, box.box().move(camOffset),
-				box.color());
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> {
+			for(ColoredBox box : boxes)
+				drawSolidBox(matrices, buffer, box.box().move(camOffset),
+					box.color());
+		});
 	}
 	
 	public static void drawSolidBox(VertexConsumer buffer, AABB box, int color)
@@ -419,52 +403,32 @@ public enum RenderUtils
 	public static void drawOutlinedBox(PoseStack matrices, AABB box, int color,
 		boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
-		drawOutlinedBox(matrices, buffer, box.move(getCameraPos().reverse()),
-			color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> drawOutlinedBox(matrices, buffer,
+			box.move(getCameraPos().reverse()), color));
 	}
 	
 	public static void drawOutlinedBoxes(PoseStack matrices, List<AABB> boxes,
 		int color, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 camOffset = getCameraPos().reverse();
-		for(AABB box : boxes)
-			drawOutlinedBox(matrices, buffer, box.move(camOffset), color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> {
+			for(AABB box : boxes)
+				drawOutlinedBox(matrices, buffer, box.move(camOffset), color);
+		});
 	}
 	
 	public static void drawOutlinedBoxes(PoseStack matrices,
 		List<ColoredBox> boxes, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 camOffset = getCameraPos().reverse();
-		for(ColoredBox box : boxes)
-			drawOutlinedBox(matrices, buffer, box.box().move(camOffset),
-				box.color());
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> {
+			for(ColoredBox box : boxes)
+				drawOutlinedBox(matrices, buffer, box.box().move(camOffset),
+					box.color());
+		});
 	}
 	
 	public static void drawOutlinedBox(VertexConsumer buffer, AABB box,
@@ -542,52 +506,32 @@ public enum RenderUtils
 	public static void drawCrossBox(PoseStack matrices, AABB box, int color,
 		boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
-		drawCrossBox(matrices, buffer, box.move(getCameraPos().reverse()),
-			color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> drawCrossBox(matrices, buffer,
+			box.move(getCameraPos().reverse()), color));
 	}
 	
 	public static void drawCrossBoxes(PoseStack matrices, List<AABB> boxes,
 		int color, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 camOffset = getCameraPos().reverse();
-		for(AABB box : boxes)
-			drawCrossBox(matrices, buffer, box.move(camOffset), color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> {
+			for(AABB box : boxes)
+				drawCrossBox(matrices, buffer, box.move(camOffset), color);
+		});
 	}
 	
 	public static void drawCrossBoxes(PoseStack matrices,
 		List<ColoredBox> boxes, boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
 		Vec3 camOffset = getCameraPos().reverse();
-		for(ColoredBox box : boxes)
-			drawCrossBox(matrices, buffer, box.box().move(camOffset),
-				box.color());
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> {
+			for(ColoredBox box : boxes)
+				drawCrossBox(matrices, buffer, box.box().move(camOffset),
+					box.color());
+		});
 	}
 	
 	public static void drawCrossBox(VertexConsumer buffer, AABB box, int color)
@@ -670,16 +614,9 @@ public enum RenderUtils
 	public static void drawNode(PoseStack matrices, AABB box, int color,
 		boolean depthTest)
 	{
-		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
-		VertexConsumer buffer = vcp.getBuffer(layer);
-		
-		drawNode(matrices, buffer, box.move(getCameraPos().reverse()), color);
-		
-		vcp.endBatch(layer);
+		submit(matrices, layer, buffer -> drawNode(matrices, buffer,
+			box.move(getCameraPos().reverse()), color));
 	}
 	
 	public static void drawNode(VertexConsumer buffer, AABB box, int color)
@@ -922,19 +859,29 @@ public enum RenderUtils
 		private PolygonRenderState(Matrix3x2fc pose, float[][] vertices,
 			int color)
 		{
-			this.pose = pose;
+			this.pose = new Matrix3x2f(pose);
 			this.vertices = vertices;
 			this.color = color;
-			float minX = vertices[0][0];
-			float minY = vertices[0][1];
+			float[] tx = new float[4];
+			float[] ty = new float[4];
+			Matrix3x2f poseCopy = new Matrix3x2f(pose);
+			for(int i = 0; i < 4; i++)
+			{
+				tx[i] = poseCopy.m00 * vertices[i][0]
+					+ poseCopy.m01 * vertices[i][1] + poseCopy.m20;
+				ty[i] = poseCopy.m10 * vertices[i][0]
+					+ poseCopy.m11 * vertices[i][1] + poseCopy.m21;
+			}
+			float minX = tx[0];
+			float minY = ty[0];
 			float maxX = minX;
 			float maxY = minY;
 			for(int i = 1; i < 4; i++)
 			{
-				minX = Math.min(minX, vertices[i][0]);
-				minY = Math.min(minY, vertices[i][1]);
-				maxX = Math.max(maxX, vertices[i][0]);
-				maxY = Math.max(maxY, vertices[i][1]);
+				minX = Math.min(minX, tx[i]);
+				minY = Math.min(minY, ty[i]);
+				maxX = Math.max(maxX, tx[i]);
+				maxY = Math.max(maxY, ty[i]);
 			}
 			bounds = new ScreenRectangle((int)Math.floor(minX),
 				(int)Math.floor(minY), (int)Math.ceil(maxX - minX + 1),

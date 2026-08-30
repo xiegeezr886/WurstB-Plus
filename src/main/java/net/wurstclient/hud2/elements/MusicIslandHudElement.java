@@ -8,10 +8,12 @@ import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.PingFangFont;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
+import net.wurstclient.hud2.HudManager;
 import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.music.NeteaseMusicPlayer;
 import net.wurstclient.music.NeteaseMusicPlayer.PlaybackState;
 import net.wurstclient.music.NeteaseSong;
+import net.wurstclient.music.PlayerListener;
 import net.wurstclient.util.ScreenRegistry;
 
 public final class MusicIslandHudElement extends HudElement
@@ -26,6 +28,15 @@ public final class MusicIslandHudElement extends HudElement
 
 	private float animatedWidth = MIN_WIDTH;
 	private long lastRenderNanos;
+	private volatile boolean stateDirty;
+	private final PlayerListener listener = new PlayerListener()
+	{
+		@Override
+		public void onPlaybackStateChanged(PlaybackState state)
+		{
+			stateDirty = true;
+		}
+	};
 
 	public MusicIslandHudElement()
 	{
@@ -51,8 +62,21 @@ public final class MusicIslandHudElement extends HudElement
 	}
 
 	@Override
+	public void onEnable(HudManager manager)
+	{
+		NeteaseMusicPlayer.INSTANCE.addListener(listener);
+	}
+
+	@Override
+	public void onDisable(HudManager manager)
+	{
+		NeteaseMusicPlayer.INSTANCE.removeListener(listener);
+	}
+
+	@Override
 	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
+		stateDirty = false;
 		NeteaseMusicPlayer player = NeteaseMusicPlayer.INSTANCE;
 		NeteaseSong song = player.getCurrentSong();
 		boolean preview = ScreenRegistry.HUD_EDITOR.isOpen();

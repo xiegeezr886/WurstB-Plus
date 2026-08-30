@@ -16,6 +16,7 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FeatureMenuSupport;
 import net.wurstclient.clickgui2.GuiIcon;
 import net.wurstclient.clickgui2.SettingTreeLayout;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.clickgui2.supersoft.UiMotion;
 import net.wurstclient.clickgui2.supersoft.UiTween;
@@ -136,7 +137,7 @@ public final class ModuleCardComponent extends GuiComponent
 		float click = clickMotion.update(0);
 		if(click > 0.001F)
 			graphics.fill((int)x, (int)y, (int)(x + getWidth()),
-				(int)y + rowHeight(), withAlpha(0xFF555555, click * 0.35F));
+				(int)y + rowHeight(), withAlpha(EpsilonMd3Theme.TEXT_PRIMARY, click * 0.35F));
 
 		Font font = Minecraft.getInstance().font;
 		int textColor = superSoft ? SuperSoftTheme.TEXT
@@ -255,7 +256,7 @@ public final class ModuleCardComponent extends GuiComponent
 		int keyWidth = Math.round(font.width(key) * SUPERSOFT_SETTING_TEXT_SCALE);
 		drawScaled(graphics, Component.literal(key),
 			(int)(x + getWidth()) - keyWidth - 5, (int)rowY + 4,
-			context.isBinding(feature) ? 0xFFFFFF55 : accentColor,
+			context.isBinding(feature) ? EpsilonMd3Theme.SECONDARY : accentColor,
 			SUPERSOFT_SETTING_TEXT_SCALE);
 	}
 
@@ -295,7 +296,7 @@ public final class ModuleCardComponent extends GuiComponent
 		int left = (int)x + 7;
 		int top = (int)y + 7;
 		graphics.fill(left, top, left + 6, top + 6,
-			hidden ? 0xFF363536 : VapePalette.ACCENT);
+			hidden ? EpsilonMd3Theme.SURFACE_CONTAINER_HIGHEST : VapePalette.ACCENT);
 		graphics.fill(left + 1, top + 1, left + 5, top + 5,
 			hidden ? VapePalette.FRAME : VapePalette.ACCENT);
 	}

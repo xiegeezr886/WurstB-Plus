@@ -12,6 +12,7 @@ import net.wurstclient.Feature;
 import net.wurstclient.clickgui2.GuiIcon;
 import net.wurstclient.clickgui2.SettingTreeLayout;
 import net.wurstclient.clickgui2.supersoft.SuperSoftRenderer;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.clickgui2.supersoft.UiTween;
 import net.wurstclient.settings.Setting;
@@ -392,7 +393,7 @@ final class SuperSoftSettingsWindow implements SuperSoftFloatingWindow
 		int thumbY = (int)y + HEADER_HEIGHT + Math.round((float)scrollOffset
 			/ (contentHeight - bodyHeight) * (bodyHeight - thumbHeight));
 		graphics.fill((int)x + WIDTH - 2, thumbY, (int)x + WIDTH,
-			thumbY + thumbHeight, 0xAAFFFFFF);
+			thumbY + thumbHeight, EpsilonMd3Theme.TEXT_MUTED);
 	}
 
 	private record Entry(Setting setting, GuiComponent component)

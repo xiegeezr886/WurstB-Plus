@@ -1,8 +1,10 @@
 package net.wurstclient.gui.visual;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.hud2.NotificationSeverity;
 import org.junit.jupiter.api.Test;
@@ -20,12 +22,16 @@ final class VisualThemeTest
 	}
 
 	@Test
-	void supersoftUsesTheSharedVisualSystem()
+	void supersoftUsesTheEpsilonMd3Palette()
 	{
+		assertEquals(EpsilonMd3Theme.PRIMARY, SuperSoftTheme.ACCENT);
+		assertEquals(EpsilonMd3Theme.TEXT_PRIMARY, SuperSoftTheme.TEXT);
+		assertEquals(EpsilonMd3Theme.SURFACE_CONTAINER_HIGH,
+			SuperSoftTheme.WINDOW);
+		assertEquals(EpsilonMd3Theme.OUTLINE_SOFT, SuperSoftTheme.BORDER);
+		// 统一客户端色调后,SuperSoft 强调色与 VisualTheme 一致。
 		assertEquals(VisualTheme.ACCENT, SuperSoftTheme.ACCENT);
-		assertEquals(VisualTheme.TEXT, SuperSoftTheme.TEXT);
-		assertEquals(VisualTheme.PANEL, SuperSoftTheme.WINDOW);
-		assertEquals(VisualTheme.BORDER, SuperSoftTheme.BORDER);
+		assertNotEquals(VisualTheme.PANEL, SuperSoftTheme.WINDOW);
 	}
 
 	@Test

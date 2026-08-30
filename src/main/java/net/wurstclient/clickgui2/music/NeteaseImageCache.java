@@ -1,4 +1,4 @@
-package net.wurstclient.clickgui2.screens;
+package net.wurstclient.clickgui2.music;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
@@ -14,7 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 
-final class NeteaseImageCache implements AutoCloseable
+public final class NeteaseImageCache implements AutoCloseable
 {
 	private static final int MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 	private static final HttpClient HTTP = HttpClient.newBuilder()
@@ -24,7 +24,7 @@ final class NeteaseImageCache implements AutoCloseable
 	private final Map<String, Entry> entries = new ConcurrentHashMap<>();
 	private volatile boolean closed;
 
-	Texture get(String url)
+	public Texture get(String url)
 	{
 		if(closed || url == null || url.isBlank())
 			return null;
@@ -32,7 +32,7 @@ final class NeteaseImageCache implements AutoCloseable
 		return entry.texture;
 	}
 
-	boolean isClosed()
+	public boolean isClosed()
 	{
 		return closed;
 	}
@@ -75,7 +75,7 @@ final class NeteaseImageCache implements AutoCloseable
 		{}
 	}
 
-	private static final int DEFAULT_ACCENT = 0xFFEC4141;
+	private static final int DEFAULT_ACCENT = 0xFF007CFF;
 
 	private static int sampleAccent(NativeImage image)
 	{
@@ -125,7 +125,8 @@ final class NeteaseImageCache implements AutoCloseable
 		entries.clear();
 	}
 
-	record Texture(ResourceLocation location, int width, int height, int accent)
+	public record Texture(ResourceLocation location, int width, int height,
+		int accent)
 	{}
 
 	private static final class Entry

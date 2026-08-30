@@ -87,4 +87,17 @@ public final class FlatRenderer
 			base[2] * inverseWeight + accent[2] * weight};
 		return RenderUtils.toIntColor(mixed, opacity);
 	}
+
+	@FunctionalInterface
+	public interface GradientColorFn
+	{
+		int colorAt(float x);
+	}
+
+	public static void drawGradientOutline(GuiGraphics context, int x1, int y1,
+		int x2, int y2, int radius, GradientColorFn colorFn)
+	{
+		RoundedRectRenderer.outlineGradient(context, x1, y1, x2, y2, radius,
+			colorFn);
+	}
 }

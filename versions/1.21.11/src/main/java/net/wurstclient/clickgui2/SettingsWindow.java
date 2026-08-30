@@ -95,9 +95,15 @@ public final class SettingsWindow extends Window
 		if(y + getHeight() > mcWindow.getGuiScaledHeight())
 			y = mcWindow.getGuiScaledHeight() - getHeight();
 
-		setX(Mth.clamp(x, 0,
-			Math.max(0, mcWindow.getGuiScaledWidth() - getWidth())));
-		setY(Mth.clamp(y, 0,
-			Math.max(0, mcWindow.getGuiScaledHeight() - getHeight())));
+		if(getWidth() <= mcWindow.getGuiScaledWidth())
+			setX(Mth.clamp(x, 0,
+				Math.max(0, mcWindow.getGuiScaledWidth() - getWidth())));
+		else
+			setX(Math.max(0, x));
+		if(getHeight() <= mcWindow.getGuiScaledHeight())
+			setY(Mth.clamp(y, 0,
+				Math.max(0, mcWindow.getGuiScaledHeight() - getHeight())));
+		else
+			setY(Math.max(0, y));
 	}
 }

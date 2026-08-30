@@ -36,7 +36,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.wurstclient.WurstClient;
 
-public final class NeteaseCloudApi
+public final class NeteaseCloudApi implements MusicPlatform
 {
 	private static final String ORIGIN = "https://music.163.com";
 	private static final String USER_AGENT =
@@ -65,6 +65,12 @@ public final class NeteaseCloudApi
 	public NeteaseCloudApi()
 	{
 		loadCookie();
+	}
+
+	@Override
+	public String providerName()
+	{
+		return "NETEASE";
 	}
 
 	public List<NeteaseSong> search(String query, int limit)

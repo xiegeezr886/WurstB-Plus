@@ -16,6 +16,7 @@ import net.minecraft.world.BossEvent;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.GUIRenderListener;
+import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.mixinterface.IBossHealthOverlay;
 
@@ -62,7 +63,7 @@ public final class BossStackHack extends Hack implements GUIRenderListener
 			graphics.fill(x, y, x + 182, y + barHeight, 0x80000000);
 			graphics.fill(x + 1, y + 1,
 				x + 1 + (int)(180 * progress), y + barHeight - 1,
-				0xFF006366);
+				VisualTheme.ACCENT);
 
 			graphics.drawCenteredString(MC.font, name.getString(),
 				screenWidth / 2, y + 2, 0xFFFFFFFF);

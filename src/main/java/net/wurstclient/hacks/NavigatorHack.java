@@ -9,7 +9,9 @@ package net.wurstclient.hacks;
 
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
+import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.NavigatorScreen;
+import net.wurstclient.clickgui2.PvPUtilsNavigatorScreen;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.NotificationSeverity;
@@ -27,8 +29,12 @@ public final class NavigatorHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		if(!(MC.screen instanceof NavigatorScreen))
-			MC.setScreen(new NavigatorScreen());
+		if(WURST.getGuiPreferences().isRiseMode())
+		{
+			if(!(MC.screen instanceof NavigatorScreen))
+				MC.setScreen(new NavigatorScreen());
+		}else if(!(MC.screen instanceof PvPUtilsNavigatorScreen))
+			MC.setScreen(new PvPUtilsNavigatorScreen());
 		if(WURST.getHudManager() != null)
 			WURST.getHudManager().addNotification("Info", getDisplayName(),
 				NotificationSeverity.INFO);

@@ -898,14 +898,19 @@ public enum RenderUtils
 			int minY = Integer.MAX_VALUE;
 			int maxX = Integer.MIN_VALUE;
 			int maxY = Integer.MIN_VALUE;
+			Matrix3x2f poseCopy = new Matrix3x2f(pose);
 			for(int i = 0; i < vertices.length; i++)
 			{
 				if(quadColors[i / 4] >>> 24 == 0)
 					continue;
-				minX = Math.min(minX, (int)Math.floor(vertices[i][0]));
-				minY = Math.min(minY, (int)Math.floor(vertices[i][1]));
-				maxX = Math.max(maxX, (int)Math.ceil(vertices[i][0] + 1));
-				maxY = Math.max(maxY, (int)Math.ceil(vertices[i][1] + 1));
+				float px = poseCopy.m00 * vertices[i][0]
+					+ poseCopy.m01 * vertices[i][1] + poseCopy.m20;
+				float py = poseCopy.m10 * vertices[i][0]
+					+ poseCopy.m11 * vertices[i][1] + poseCopy.m21;
+				minX = Math.min(minX, (int)Math.floor(px));
+				minY = Math.min(minY, (int)Math.floor(py));
+				maxX = Math.max(maxX, (int)Math.ceil(px + 1));
+				maxY = Math.max(maxY, (int)Math.ceil(py + 1));
 			}
 			if(minX > maxX)
 			{
@@ -965,16 +970,26 @@ private static final class PolygonRenderState implements GuiElementRenderState
 			this.pose = pose;
 			this.vertices = vertices;
 			this.color = color;
-			float minX = vertices[0][0];
-			float minY = vertices[0][1];
+			float[] tx = new float[4];
+			float[] ty = new float[4];
+			Matrix3x2f poseCopy = new Matrix3x2f(pose);
+			for(int i = 0; i < 4; i++)
+			{
+				tx[i] = poseCopy.m00 * vertices[i][0]
+					+ poseCopy.m01 * vertices[i][1] + poseCopy.m20;
+				ty[i] = poseCopy.m10 * vertices[i][0]
+					+ poseCopy.m11 * vertices[i][1] + poseCopy.m21;
+			}
+			float minX = tx[0];
+			float minY = ty[0];
 			float maxX = minX;
 			float maxY = minY;
 			for(int i = 1; i < 4; i++)
 			{
-				minX = Math.min(minX, vertices[i][0]);
-				minY = Math.min(minY, vertices[i][1]);
-				maxX = Math.max(maxX, vertices[i][0]);
-				maxY = Math.max(maxY, vertices[i][1]);
+				minX = Math.min(minX, tx[i]);
+				minY = Math.min(minY, ty[i]);
+				maxX = Math.max(maxX, tx[i]);
+				maxY = Math.max(maxY, ty[i]);
 			}
 			bounds = new ScreenRectangle((int)Math.floor(minX),
 				(int)Math.floor(minY), (int)Math.ceil(maxX - minX + 1),

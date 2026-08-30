@@ -2,7 +2,6 @@ package net.wurstclient.clickgui2.supersoft;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.clickgui2.FlatRenderer;
-import net.wurstclient.gui.visual.VisualTheme;
 
 public final class SuperSoftRenderer
 {
@@ -38,7 +37,7 @@ public final class SuperSoftRenderer
 			color);
 		graphics.fill(left, (top + bottom) / 2, right, bottom, color);
 		graphics.fill(left, bottom - 1, right, bottom,
-			VisualTheme.ACCENT);
+			EpsilonMd3Theme.PRIMARY);
 	}
 
 	public static void row(GuiGraphics graphics, int left, int top, int right,
@@ -54,23 +53,27 @@ public final class SuperSoftRenderer
 	public static void switchControl(GuiGraphics graphics, int x, int y,
 		int accentColor, float progress)
 	{
-		int track = SuperSoftTheme.mix(0xFF40434A,
-			VisualTheme.mix(VisualTheme.BACKGROUND, accentColor, 0.4F), progress);
+		int track = SuperSoftTheme.mix(SuperSoftTheme.SETTING_HOVER,
+			EpsilonMd3Theme.mix(SuperSoftTheme.ROW, accentColor, 0.4F),
+			progress);
 		FlatRenderer.fillRoundedRect(graphics, x, y, x + 14, y + 8, 4, track);
 		int knobX = x + 1 + Math.round(6 * progress);
 		FlatRenderer.fillRoundedRect(graphics, knobX, y + 1, knobX + 6, y + 7,
-			3, SuperSoftTheme.mix(VisualTheme.TEXT, accentColor, progress));
+			3, SuperSoftTheme.mix(EpsilonMd3Theme.TEXT_PRIMARY, accentColor,
+				progress));
 	}
 
 	public static void settingSwitch(GuiGraphics graphics, int x, int y,
 		int accentColor, float progress)
 	{
-		int track = SuperSoftTheme.mix(0xFF40434A,
-			VisualTheme.mix(VisualTheme.BACKGROUND, accentColor, 0.4F), progress);
+		int track = SuperSoftTheme.mix(SuperSoftTheme.SETTING_HOVER,
+			EpsilonMd3Theme.mix(SuperSoftTheme.ROW, accentColor, 0.4F),
+			progress);
 		FlatRenderer.fillRoundedRect(graphics, x, y, x + 24, y + 12, 6, track);
 		int knobX = x + 2 + Math.round(12 * progress);
 		FlatRenderer.fillRoundedRect(graphics, knobX, y + 2, knobX + 8, y + 10,
-			4, SuperSoftTheme.mix(VisualTheme.TEXT, accentColor, progress));
+			4, SuperSoftTheme.mix(EpsilonMd3Theme.TEXT_PRIMARY, accentColor,
+				progress));
 	}
 
 	public static void slider(GuiGraphics graphics, int left, int right, int y,
@@ -83,7 +86,7 @@ public final class SuperSoftRenderer
 		int accentColor, float progress, float thumbScale)
 	{
 		FlatRenderer.fillRoundedRect(graphics, left, y - 1, right, y + 2, 2,
-			VisualTheme.BORDER_STRONG);
+			EpsilonMd3Theme.OUTLINE);
 		int valueX = left + Math.round((right - left) * progress);
 		if(valueX > left)
 			FlatRenderer.fillRoundedRect(graphics, left, y - 1, valueX, y + 2,

@@ -42,11 +42,11 @@ public final class NavigatorScreen extends Screen
 	private static final String[] CATEGORY_NAMES = {
 		"\u641c\u7d22", "\u65b9\u5757", "\u79fb\u52a8", "\u6218\u6597",
 		"\u6e32\u67d3", "\u804a\u5929", "\u5a31\u4e50", "\u7269\u54c1",
-		"\u5176\u4ed6", "\u754c\u9762"};
+		"\u5176\u4ed6", "\u754c\u9762", "\u98ce\u683c"};
 	private static final GuiIcon[] CATEGORY_ICONS = {GuiIcon.SEARCH,
 		GuiIcon.WORLD, GuiIcon.MOVEMENT, GuiIcon.COMBAT, GuiIcon.RENDER,
 		GuiIcon.PLAYER, GuiIcon.FUN, GuiIcon.BOOK, GuiIcon.MISC,
-		GuiIcon.CLIENT};
+		GuiIcon.CLIENT, GuiIcon.CONFIG};
 
 	private final List<Feature> visibleFeatures = new ArrayList<>();
 	private List<Feature> previousFeatures = List.of();
@@ -172,6 +172,10 @@ public final class NavigatorScreen extends Screen
 			for(Feature feature : FeatureMenuSupport.getAllFeatures())
 				if(feature.getCategory() == category)
 					visibleFeatures.add(feature);
+		}else if(selectedCategory == CATEGORY_NAMES.length - 1)
+		{
+			// 风格页：无模块列表，只渲染切换开关。
+			visibleFeatures.clear();
 		}else
 			visibleFeatures.addAll(getInterfaceFeatures());
 
@@ -231,6 +235,7 @@ public final class NavigatorScreen extends Screen
 	{
 		updateDimensions();
 		WURST.getGui().updateColors();
+		RiseColors.setRiseMode(WURST.getGuiPreferences().isRiseMode());
 		animationProgress = scaleAnimation.run(closing ? 0 : 1);
 		float opacity = opacityAnimation.run(closing ? 0 : 1);
 		if(closing && animationProgress <= 0.001F)
@@ -251,7 +256,7 @@ public final class NavigatorScreen extends Screen
 		if(animationProgress > 0.993F)
 			RiseShadow.draw(graphics, panelX, panelY,
 				panelX + panelWidth, panelY + panelHeight, 12, 18,
-				0x1E000000);
+				RiseColors.isRiseMode() ? 0x1E000000 : PvPUtilsTheme.SHADOW);
 		FlatUiRenderer.fill(graphics, panelX, panelY, panelX + panelWidth,
 			panelY + panelHeight, 12, RiseColors.BACKGROUND.argb());
 		graphics.enableScissor(panelX + 1, panelY + 1,
@@ -265,8 +270,11 @@ public final class NavigatorScreen extends Screen
 				clip);
 		else
 			searchBox.visible = false;
-		renderModules(graphics, renderingFeatures, renderingCategory == 0,
-			localMouseX, localMouseY, partialTicks, clip);
+		if(renderingCategory == CATEGORY_NAMES.length - 1)
+			renderStylePage(graphics, localMouseX, localMouseY, clip);
+		else
+			renderModules(graphics, renderingFeatures, renderingCategory == 0,
+				localMouseX, localMouseY, partialTicks, clip);
 		renderCategoryTransition(graphics);
 		WURST.getGui().render(graphics, localMouseX, localMouseY, partialTicks);
 		graphics.disableScissor();
@@ -285,6 +293,10 @@ public final class NavigatorScreen extends Screen
 		FlatUiRenderer.fill(graphics, panelX + 1, panelY + 1,
 			panelX + sidebarWidth, panelY + panelHeight - 1, 11,
 			RiseColors.SECONDARY.argb());
+		if(!RiseColors.isRiseMode())
+			graphics.fill(panelX + sidebarWidth, panelY + 14,
+				panelX + sidebarWidth + 1, panelY + panelHeight - 14,
+				PvPUtilsTheme.DIVIDER);
 		renderSidebar(graphics, mouseX, mouseY);
 		graphics.flush();
 		RenderSystem.setShaderColor(previousColor[0], previousColor[1],
@@ -311,7 +323,7 @@ public final class NavigatorScreen extends Screen
 			panelY + 11, 0);
 		graphics.pose().scale(versionScale, versionScale, 1);
 		RiseFont.draw(graphics, font, WurstClient.VERSION, 0, 0,
-			accentColor());
+			navigatorAccent());
 		graphics.pose().popPose();
 
 		int top = panelY + 38;
@@ -333,7 +345,7 @@ public final class NavigatorScreen extends Screen
 				panelX + sidebarWidth - 7, y + RiseSidebarCategory.HEIGHT);
 			categories.get(index).render(graphics, font, panelX + 9, y,
 				sidebarWidth - 16, selectedCategory == index, hovering,
-				accentColor());
+				navigatorAccent(), RiseColors.isRiseMode());
 		}
 		if(animationProgress >= 0.995F)
 			graphics.disableScissor();
@@ -385,7 +397,7 @@ public final class NavigatorScreen extends Screen
 			int componentHeight = component.updateHeight(width);
 			if(y + componentHeight >= viewportTop() && y < listBottom())
 				component.render(graphics, left, y, width, mouseX, mouseY,
-					searchResult, accentColor(), theme, partialTicks, clip);
+					searchResult, navigatorAccent(), theme, partialTicks, clip);
 			y += componentHeight + MODULE_GAP;
 			total += componentHeight + MODULE_GAP;
 		}
@@ -418,7 +430,51 @@ public final class NavigatorScreen extends Screen
 		int thumbY = top
 			+ (int)Math.round((maxHeight - thumbHeight) * ratio);
 		FlatUiRenderer.fill(graphics, right, thumbY, right + 1,
-			thumbY + thumbHeight, 1, 0x3CFFFFFF);
+			thumbY + thumbHeight, 1,
+			RiseColors.isRiseMode() ? 0x3CFFFFFF
+				: PvPUtilsTheme.SCROLL_THUMB);
+	}
+
+	private void renderStylePage(GuiGraphics graphics, int mouseX, int mouseY,
+		boolean clip)
+	{
+		int left = contentLeft() + 20;
+		int right = contentRight() - 20;
+		int top = panelY + 7;
+		int bottom = panelY + 63;
+		int accent = navigatorAccent();
+		FlatUiRenderer.fill(graphics, left, top, right, bottom, 10,
+			RiseColors.isRiseMode() ? RiseTheme.OVERLAY
+				: PvPUtilsTheme.MODULE);
+		graphics.drawString(MC.font,
+			RiseFont.text("风格"),
+			left + 16, top + 13,
+			RiseColors.isRiseMode() ? RiseColors.TEXT.argb()
+				: PvPUtilsTheme.TEXT, false);
+		graphics.drawString(MC.font,
+			RiseFont.text("选择导航器的外观主题"),
+			left + 16, top + 28,
+			RiseColors.isRiseMode() ? RiseColors.TRINARY_TEXT.argb()
+				: PvPUtilsTheme.TEXT_MUTED, false);
+
+		boolean riseMode = RiseColors.isRiseMode();
+		int trackX = right - 44 - 20;
+		int trackY = top + (bottom - top - 24) / 2;
+		FlatUiRenderer.fill(graphics, trackX, trackY, trackX + 44, trackY + 24,
+			12, riseMode ? accent : PvPUtilsTheme.TRACK_OFF);
+		int knobX = riseMode ? trackX + 22 : trackX + 2;
+		FlatUiRenderer.fill(graphics, knobX, trackY + 2, knobX + 20,
+			trackY + 22, 10, PvPUtilsTheme.THUMB);
+		graphics.drawString(MC.font,
+			RiseFont.text(riseMode ? "Rise 模式:开" : "Rise 模式:关"),
+			left + 16, top + 44,
+			RiseColors.isRiseMode() ? RiseColors.SECONDARY_TEXT.argb()
+				: PvPUtilsTheme.TEXT_ROW, false);
+		if(clip)
+			graphics.enableScissor(left, top, right, bottom);
+		graphics.flush();
+		if(clip)
+			graphics.disableScissor();
 	}
 
 	private void renderCategoryTransition(GuiGraphics graphics)
@@ -486,10 +542,30 @@ public final class NavigatorScreen extends Screen
 			return true;
 		}
 
+		if(selectedCategory == CATEGORY_NAMES.length - 1)
+		{
+			if(button == 0 && inside(localX, localY,
+				styleToggleLeft(), styleToggleTop(),
+				styleToggleLeft() + 44, styleToggleTop() + 24))
+				WURST.getGuiPreferences().setRiseMode(
+					!WURST.getGuiPreferences().isRiseMode());
+			return true;
+		}
+
 		if(handleModuleClick(localX, localY, button))
 			return true;
 
 		return super.mouseClicked(localX, localY, button);
+	}
+
+	private int styleToggleLeft()
+	{
+		return contentRight() - 20 - 44 - 20;
+	}
+
+	private int styleToggleTop()
+	{
+		return panelY + 7 + (56 - 24) / 2;
 	}
 
 	private boolean handleModuleClick(double mouseX, double mouseY, int button)
@@ -720,9 +796,10 @@ public final class NavigatorScreen extends Screen
 		return x >= left && x < right && y >= top && y < bottom;
 	}
 
-	private int accentColor()
+	private int navigatorAccent()
 	{
-		return WURST.getGui().getTheme().accent(1);
+		return RiseColors.isRiseMode() ? RiseTheme.ACCENT
+			: PvPUtilsTheme.ACCENT;
 	}
 
 	private static int withAlpha(int color, float opacity)

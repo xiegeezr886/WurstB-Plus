@@ -9,6 +9,7 @@ import net.minecraft.util.Mth;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.GuiIcon;
 import net.wurstclient.clickgui2.supersoft.SuperSoftRenderer;
+import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
 import net.wurstclient.clickgui2.supersoft.UiTween;
 import net.wurstclient.settings.ColorSetting;
@@ -47,7 +48,7 @@ public final class ColorComponent extends ValueRowComponent
 			swatchX + 16, swatchY + 12, 2, colorSetting.getColor().getRGB());
 		FlatRenderer.drawRoundedOutline(graphics, swatchX, swatchY,
 			swatchX + 16, swatchY + 12, 2,
-			usesSuperSoftTheme() ? 0x80FFFFFF : VapePalette.BORDER);
+			usesSuperSoftTheme() ? SuperSoftTheme.BORDER : VapePalette.BORDER);
 		GuiIcon.CHEVRON.drawRotated(graphics, (int)(x + getWidth()) - 11,
 			(int)y + 9, 6,
 			usesSuperSoftTheme() ? SuperSoftTheme.TEXT_SECONDARY : VapePalette.TEXT,
@@ -61,7 +62,7 @@ public final class ColorComponent extends ValueRowComponent
 			(int)(x + getWidth()), animatedBottom);
 		graphics.fill((int)x, (int)y + HEADER_HEIGHT,
 			(int)(x + getWidth()), (int)y + HEADER_HEIGHT + CONTENT_HEIGHT,
-			0xFF1E1E1E);
+			EpsilonMd3Theme.SURFACE_CONTAINER);
 		renderHue(graphics, mouseX, mouseY);
 		for(int channel = 0; channel < 4; channel++)
 			renderChannel(graphics, mouseX, mouseY, channel);

@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -156,10 +157,30 @@ public final class HudManager implements GUIRenderListener
 		return config.getVerticalOffset();
 	}
 
+	public void addNotification(HudNotification notification)
+	{
+		notificationRenderer.addNotification(notification);
+	}
+
 	public void addNotification(String title, String message,
 		NotificationSeverity severity)
 	{
-		notificationRenderer.addNotification(title, message, severity);
+		addNotification(new HudNotification(title, message, severity));
+	}
+
+	public void addNotification(String title, String message,
+		NotificationSeverity severity, long durationMillis)
+	{
+		addNotification(new HudNotification(title, message, severity,
+			durationMillis));
+	}
+
+	public void addNotification(String title, String message,
+		NotificationSeverity severity, long durationMillis,
+		NotificationContent content)
+	{
+		addNotification(new HudNotification(title, message, severity,
+			durationMillis, content));
 	}
 
 	public void addNotification(Feature feature)
@@ -167,7 +188,19 @@ public final class HudManager implements GUIRenderListener
 		NotificationSeverity severity = feature.isEnabled()
 			? NotificationSeverity.ENABLED : NotificationSeverity.DISABLED;
 		String title = feature.isEnabled() ? "Enabled" : "Disabled";
-		notificationRenderer.addNotification(title, feature.getDisplayName(), severity);
+		addNotification(
+			new HudNotification(title, feature.getDisplayName(), severity));
+	}
+
+	public void removeNotification(String title)
+	{
+		notificationRenderer.removeNotificationIf(
+			notification -> notification.getTitle().equals(title));
+	}
+
+	public void removeNotificationIf(Predicate<HudNotification> predicate)
+	{
+		notificationRenderer.removeNotificationIf(predicate);
 	}
 
 	public void updateElementLayout(String elementId, String horizontalAlignment,

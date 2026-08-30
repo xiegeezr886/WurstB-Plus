@@ -7,6 +7,7 @@
  */
 package net.wurstclient.util;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import org.joml.Matrix4f;
@@ -30,6 +31,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
+import net.minecraft.client.renderer.state.gui.GuiRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
@@ -40,13 +42,53 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 import net.wurstclient.WurstRenderLayers;
-import net.wurstclient.mixin.GuiGraphicsExtractorAccessor;
 
 public enum RenderUtils
 {
 	;
 	
-	private static SubmitNodeStorage submitNodeStorage;
+	/**
+	 * Reflection-based access to GuiGraphicsExtractor.guiRenderState.
+	 *
+	 * <p>We intentionally avoid the GuiGraphicsExtractorAccessor mixin here:
+	 * the accessor interface can end up loaded before its target class is
+	 * transformed (e.g. with the game language set to zh_cn), which makes
+	 * Mixin throw an IllegalClassLoadError when the interface is loaded from
+	 * game code ("mixin has not been applied"), crashing the client as soon
+	 * as any custom GUI geometry is rendered (Radar, checkboxes, lines, ...).
+	 * Reading the field via reflection skips the accessor class-load check
+	 * entirely and is equally fast after the initial lookup.
+	 */
+	private static final Field GUI_RENDER_STATE_FIELD;
+	
+	static
+	{
+		Field field = null;
+		try
+		{
+			field = GuiGraphicsExtractor.class.getDeclaredField("guiRenderState");
+			field.setAccessible(true);
+		}catch(ReflectiveOperationException e)
+		{
+			System.err.println("Wurst: failed to access "
+				+ "GuiGraphicsExtractor.guiRenderState: " + e);
+		}
+		GUI_RENDER_STATE_FIELD = field;
+	}
+	
+	private static GuiRenderState getGuiRenderState(
+		GuiGraphicsExtractor context)
+	{
+		try
+		{
+			return (GuiRenderState)GUI_RENDER_STATE_FIELD.get(context);
+		}catch(ReflectiveOperationException e)
+		{
+			throw new RuntimeException(
+				"Failed to read GuiGraphicsExtractor.guiRenderState", e);
+		}
+	}
+		private static SubmitNodeStorage submitNodeStorage;
 	
 	public static void setSubmitNodeStorage(SubmitNodeStorage storage)
 	{
@@ -762,7 +804,7 @@ public enum RenderUtils
 	{
 		if(vertices == null || vertices.length < 4 || color >>> 24 == 0)
 			return;
-		((GuiGraphicsExtractorAccessor)(Object)context).wurst_getGuiRenderState()
+		getGuiRenderState(context)
 			.addGuiElement(new PolygonRenderState(
 			context.pose(), vertices, color));
 	}
@@ -779,8 +821,7 @@ public enum RenderUtils
 			|| vertices.length < 4
 			|| quadColors.length * 4 != vertices.length)
 			return;
-		((net.wurstclient.mixin.GuiGraphicsExtractorAccessor)(Object)context)
-			.wurst_getGuiRenderState()
+		getGuiRenderState(context)
 			.addGuiElement(new QuadMeshRenderState(
 			context.pose(), vertices, quadColors));
 	}
@@ -895,21 +936,26 @@ public enum RenderUtils
 		private QuadMeshRenderState(Matrix3x2fc pose, float[][] vertices,
 			int[] quadColors)
 		{
-			this.pose = pose;
+			this.pose = new Matrix3x2f(pose);
 			this.vertices = vertices;
 			this.quadColors = quadColors;
 			int minX = Integer.MAX_VALUE;
 			int minY = Integer.MAX_VALUE;
 			int maxX = Integer.MIN_VALUE;
 			int maxY = Integer.MIN_VALUE;
+			Matrix3x2f poseCopy = new Matrix3x2f(pose);
 			for(int i = 0; i < vertices.length; i++)
 			{
 				if(quadColors[i / 4] >>> 24 == 0)
 					continue;
-				minX = Math.min(minX, (int)Math.floor(vertices[i][0]));
-				minY = Math.min(minY, (int)Math.floor(vertices[i][1]));
-				maxX = Math.max(maxX, (int)Math.ceil(vertices[i][0] + 1));
-				maxY = Math.max(maxY, (int)Math.ceil(vertices[i][1] + 1));
+				float px = poseCopy.m00 * vertices[i][0]
+					+ poseCopy.m01 * vertices[i][1] + poseCopy.m20;
+				float py = poseCopy.m10 * vertices[i][0]
+					+ poseCopy.m11 * vertices[i][1] + poseCopy.m21;
+				minX = Math.min(minX, (int)Math.floor(px));
+				minY = Math.min(minY, (int)Math.floor(py));
+				maxX = Math.max(maxX, (int)Math.ceil(px + 1));
+				maxY = Math.max(maxY, (int)Math.ceil(py + 1));
 			}
 			if(minX > maxX)
 			{
@@ -966,19 +1012,29 @@ private static final class PolygonRenderState implements GuiElementRenderState
 		private PolygonRenderState(Matrix3x2fc pose, float[][] vertices,
 			int color)
 		{
-			this.pose = pose;
+			this.pose = new Matrix3x2f(pose);
 			this.vertices = vertices;
 			this.color = color;
-			float minX = vertices[0][0];
-			float minY = vertices[0][1];
+			float[] tx = new float[4];
+			float[] ty = new float[4];
+			Matrix3x2f poseCopy = new Matrix3x2f(pose);
+			for(int i = 0; i < 4; i++)
+			{
+				tx[i] = poseCopy.m00 * vertices[i][0]
+					+ poseCopy.m01 * vertices[i][1] + poseCopy.m20;
+				ty[i] = poseCopy.m10 * vertices[i][0]
+					+ poseCopy.m11 * vertices[i][1] + poseCopy.m21;
+			}
+			float minX = tx[0];
+			float minY = ty[0];
 			float maxX = minX;
 			float maxY = minY;
 			for(int i = 1; i < 4; i++)
 			{
-				minX = Math.min(minX, vertices[i][0]);
-				minY = Math.min(minY, vertices[i][1]);
-				maxX = Math.max(maxX, vertices[i][0]);
-				maxY = Math.max(maxY, vertices[i][1]);
+				minX = Math.min(minX, tx[i]);
+				minY = Math.min(minY, ty[i]);
+				maxX = Math.max(maxX, tx[i]);
+				maxY = Math.max(maxY, ty[i]);
 			}
 			bounds = new ScreenRectangle((int)Math.floor(minX),
 				(int)Math.floor(minY), (int)Math.ceil(maxX - minX + 1),

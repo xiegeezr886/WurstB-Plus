@@ -15,7 +15,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.Category;
 import net.wurstclient.WurstClient;
-import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.compose.ComposeHackList;
+import net.wurstclient.compose.ModuleColors;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.other_features.HackListOtf;
@@ -31,7 +32,7 @@ public final class HackListHUD implements UpdateListener
 	private float baseX;
 	private int containerWidth;
 	private boolean alignRight;
-	private int textColor;
+
 	
 	public HackListHUD()
 	{
@@ -64,23 +65,28 @@ public final class HackListHUD implements UpdateListener
 		containerWidth = getWidth();
 		alignRight = rightAligned;
 
-		// color
+		// 颜色模式：rainbowUi 开启走 RAINBOW，否则 STATIC 单色
+		ModuleColors colors = buildColors();
+
+		float height = y + activeHax.size() * ENTRY_HEIGHT;
+
+		if(otf.getMode() == Mode.COUNT || height > context.guiHeight())
+			drawCounter(context, colors);
+		else
+			drawHackList(context, partialTicks, colors);
+	}
+
+	private ModuleColors buildColors()
+	{
+		ModuleColors colors = new ModuleColors();
 		if(WurstClient.INSTANCE.getHax().rainbowUiHack.isEnabled())
 		{
 			float[] acColor = WurstClient.INSTANCE.getGui().getAcColor();
-			textColor = 0x04 << 24 | (int)(acColor[0] * 0xFF) << 16
-				| (int)(acColor[1] * 0xFF) << 8 | (int)(acColor[2] * 0xFF);
-			
+			colors.mode(ModuleColors.Mode.RAINBOW).rainbow(3, 0.6F, 1, 0.05F);
 		}else
-			textColor = otf.getColor(0x04);
-		
-		float height = y + activeHax.size() * ENTRY_HEIGHT;
-		
-		if(otf.getMode() == Mode.COUNT
-			|| height > context.guiHeight())
-			drawCounter(context);
-		else
-			drawHackList(context, partialTicks);
+			colors.mode(ModuleColors.Mode.STATIC)
+				.staticColor(otf.getColor(0x04));
+		return colors;
 	}
 
 	public void renderPreview(GuiGraphics context, int x, int y,
@@ -90,8 +96,11 @@ public final class HackListHUD implements UpdateListener
 		posY = y;
 		containerWidth = getWidth();
 		alignRight = rightAligned;
-		textColor = 0xFF006366;
-		drawEntry(context, "HackList", 1);
+		ComposeHackList.Entry preview = new ComposeHackList.Entry("HackList");
+		preview.progress = 1;
+		preview.color = 0xFF007CFF;
+		ComposeHackList.renderEntry(context, preview, baseX, posY,
+			containerWidth, alignRight);
 	}
 
 	public int getWidth()
@@ -112,14 +121,21 @@ public final class HackListHUD implements UpdateListener
 		return Math.max(ENTRY_HEIGHT, activeHax.size() * ENTRY_HEIGHT);
 	}
 	
-	private void drawCounter(GuiGraphics context)
+	private void drawCounter(GuiGraphics context, ModuleColors colors)
 	{
 		long size = activeHax.stream().filter(e -> e.hack.isEnabled()).count();
-		drawEntry(context, size + " 项功能已启用", 1);
+		ComposeHackList.Entry entry = new ComposeHackList.Entry(size
+			+ " 项功能已启用");
+		entry.progress = 1;
+		entry.color = colors.colorFor(0, 1, System.currentTimeMillis());
+		ComposeHackList.renderEntry(context, entry, baseX, posY,
+			containerWidth, alignRight);
 	}
-	
-	private void drawHackList(GuiGraphics context, float partialTicks)
+
+	private void drawHackList(GuiGraphics context, float partialTicks,
+		ModuleColors colors)
 	{
+		ArrayList<ComposeHackList.Entry> composeEntries = new ArrayList<>();
 		for(Iterator<HackListEntry> iterator = activeHax.iterator();
 			iterator.hasNext();)
 		{
@@ -131,8 +147,17 @@ public final class HackListHUD implements UpdateListener
 				iterator.remove();
 				continue;
 			}
-			drawEntry(context, entry.hack.getDisplayName(), progress);
+			ComposeHackList.Entry composeEntry = new ComposeHackList.Entry(
+				entry.hack.getDisplayName());
+			composeEntry.progress = progress;
+			composeEntries.add(composeEntry);
 		}
+		long now = System.currentTimeMillis();
+		for(int index = 0; index < composeEntries.size(); index++)
+			composeEntries.get(index).color = colors.colorFor(index,
+				composeEntries.size(), now);
+		ComposeHackList.render(context, composeEntries, baseX, posY,
+			alignRight, partialTicks);
 	}
 	
 	public void updateState(Hack hack)
@@ -163,60 +188,14 @@ public final class HackListHUD implements UpdateListener
 	{
 		if(otf.shouldSort())
 			sort();
-		
+
 		if(!otf.isAnimations())
 		{
 			activeHax.removeIf(entry -> !entry.hack.isEnabled());
 			return;
 		}
 	}
-	
-	private void drawEntry(GuiGraphics context, String text, float progress)
-	{
-		if(progress <= 0)
-			return;
 
-		Font font = WurstClient.MC.font;
-		int textWidth = font.width(text);
-		float slide = (textWidth + 12) * (1 - progress);
-		float x1;
-		float x2;
-		if(!alignRight)
-		{
-			x1 = baseX - slide;
-			x2 = x1 + textWidth + 11;
-		}
-		else
-		{
-			x2 = baseX + containerWidth + slide;
-			x1 = x2 - textWidth - 11;
-		}
-
-		int top = Math.round(posY);
-		int bottom = top + 11;
-		int left = Math.round(x1);
-		int right = Math.round(x2);
-		FlatRenderer.fillRoundedRect(context, left, top, right, bottom, 3,
-			withAlpha(0x070B10, Math.round(104 * progress)));
-		FlatRenderer.drawRoundedOutline(context, left, top, right, bottom, 3,
-			withAlpha(0xFFFFFF, Math.round(20 * progress)));
-		int accentX = alignRight ? right - 3 : left + 1;
-		FlatRenderer.fillRoundedRect(context, accentX, top + 2, accentX + 2,
-			bottom - 2, 1, withAlpha(textColor, Math.round(220 * progress)));
-		int textX = alignRight ? left + 4 : left + 6;
-		int textY = top + 2;
-		context.drawString(font, text, textX + 1, textY + 1,
-			withAlpha(0, Math.round(145 * progress)), false);
-		context.drawString(font, text, textX, textY,
-			withAlpha(textColor, Math.round(255 * progress)), false);
-		posY += ENTRY_HEIGHT * progress;
-	}
-
-	private static int withAlpha(int color, int alpha)
-	{
-		return Math.max(0, Math.min(255, alpha)) << 24 | color & 0xFFFFFF;
-	}
-	
 	private static final class HackListEntry
 	{
 		private final Hack hack;

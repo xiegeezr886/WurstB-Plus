@@ -10,12 +10,14 @@ import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.PingFangFont;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
+import net.wurstclient.hud2.HudManager;
 import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.music.LyricLine;
 import net.wurstclient.music.LyricParser;
 import net.wurstclient.music.NeteaseMusicPlayer;
 import net.wurstclient.music.NeteaseMusicPlayer.PlaybackState;
 import net.wurstclient.music.NeteaseSong;
+import net.wurstclient.music.PlayerListener;
 import net.wurstclient.util.ScreenRegistry;
 
 public final class MusicLyricsHudElement extends HudElement
@@ -33,6 +35,15 @@ public final class MusicLyricsHudElement extends HudElement
 	private long transitionStarted;
 	private float visibility;
 	private long lastRenderNanos;
+	private volatile boolean songChangedPending;
+	private final PlayerListener listener = new PlayerListener()
+	{
+		@Override
+		public void onSongChanged(NeteaseSong song)
+		{
+			songChangedPending = true;
+		}
+	};
 
 	public MusicLyricsHudElement()
 	{
@@ -55,6 +66,18 @@ public final class MusicLyricsHudElement extends HudElement
 	public boolean renderEditorPreview()
 	{
 		return true;
+	}
+
+	@Override
+	public void onEnable(HudManager manager)
+	{
+		NeteaseMusicPlayer.INSTANCE.addListener(listener);
+	}
+
+	@Override
+	public void onDisable(HudManager manager)
+	{
+		NeteaseMusicPlayer.INSTANCE.removeListener(listener);
 	}
 
 	@Override
@@ -81,8 +104,9 @@ public final class MusicLyricsHudElement extends HudElement
 				: preview ? "NetEase Cloud Music" : "";
 		long songId = song == null ? -1 : song.id();
 		long now = System.nanoTime();
-		if(songId != displayedSongId)
+		if(songChangedPending || songId != displayedSongId)
 		{
+			songChangedPending = false;
 			displayedSongId = songId;
 			displayedIndex = Integer.MIN_VALUE;
 			previousText = "";

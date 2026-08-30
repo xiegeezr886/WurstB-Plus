@@ -54,6 +54,11 @@ minecraft {
 repositories {
 	mavenCentral()
 	maven {
+		// 国内镜像，避免 Maven Central 直连超时
+		name = "Aliyun Central"
+		url = "https://maven.aliyun.com/repository/central"
+	}
+	maven {
 		name = "Sponge"
 		url = "https://repo.spongepowered.org/repository/maven-public/"
 	}
@@ -144,6 +149,21 @@ dependencies {
 	implementation fg.deobf("baritone:baritone-api-forge:1.20.1")
 	jarJar(group: "baritone", name: "baritone-api-forge",
 		version: "[1.20.1,1.21)")
+	// ---- Skia 矢量渲染管线（歌词像素级等价渲染用）----
+	// natives（skiko-windows-x64.dll + icudtl.dat）不 jarJar：jarJar 会重定位
+	// 资源路径，Skiko 将无法在 jar 内定位它们。改为随 mod 资源打包
+	// （assets/wurst/skiko/），运行时由 SkikoNatives 解压到 gameDir 并
+	// 通过 skiko.library.path / skiko.data.path 系统属性显式加载。
+	implementation "org.jetbrains.skiko:skiko-awt:0.8.19"
+	jarJar("org.jetbrains.skiko:skiko-awt:[0.8.19]") {
+		transitive = false
+	}
+	jarJar("org.jetbrains.kotlin:kotlin-stdlib:[1.9.21,1.9.21]") {
+		transitive = false
+	}
+	jarJar("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:[1.8.0,1.8.0]") {
+		transitive = false
+	}
 	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 	testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
 }
@@ -203,4 +223,25 @@ jar {
 tasks.named("jarJar").configure {
 	archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
 	finalizedBy "reobfJarJar"
+	finalizedBy "copyJarToTestMods"
+}
+
+// 每次 jarJar 构建完成后，自动把最终产物复制到本地测试实例的 mods 目录。
+tasks.register("copyJarToTestMods") {
+	dependsOn "reobfJarJar"
+	doLast {
+		def targetDir = file(".test/versions/1.20.1-Forge_47.4.22/mods")
+		targetDir.mkdirs()
+		// 清理旧版本 jar，避免多个 WurstB+ 版本并存导致 Forge 重复加载
+		targetDir.eachFile { oldJar ->
+			if(oldJar.name.endsWith(".jar")
+				&& oldJar.name.contains("WurstB+ Plus"))
+				oldJar.delete()
+		}
+		copy {
+			from "build/libs/${project.base.archivesName.get()}-${project.version}.jar"
+			into targetDir
+		}
+		println "Deployed to " + targetDir.absolutePath
+	}
 }

@@ -2,53 +2,61 @@ package net.wurstclient.hud2;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.function.Predicate;
 
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
-import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.compose.ComposeNotifications;
 import net.wurstclient.events.GUIRenderListener;
-import net.wurstclient.gui.visual.VisualTheme;
 
 public final class HudNotificationRenderer implements GUIRenderListener
 {
 	private final ArrayList<NotificationEntry> entries = new ArrayList<>();
-	private static final int MIN_WIDTH = 180;
-	private static final int PADDING = 8;
-	private static final int CARD_RADIUS = 4;
-	private static final int CARD_GAP = 4;
-	static final long DURATION_NANOS = 3_000_000_000L;
-	private static final int MAX_NOTIFICATIONS = 8;
+	private static final int MAX_NOTIFICATIONS = 5;
+
+	/** HackAI NotificationContainer 的动画参数。 */
+	private static final long ENTER_MS = 300;
+	private static final long EXIT_MS = 250;
 
 	HudNotificationRenderer() {}
 
-	void addNotification(String title, String message,
-		NotificationSeverity severity)
+	void addNotification(HudNotification notification)
 	{
 		synchronized(entries)
 		{
+			NotificationSeverity severity = notification.getSeverity();
 			if(severity == NotificationSeverity.ENABLED
 				|| severity == NotificationSeverity.DISABLED)
 				for(Iterator<NotificationEntry> it = entries.iterator();
 					it.hasNext();)
 				{
 					NotificationEntry e = it.next();
-					if(e.message.equals(message))
+					if(e.notification.getMessage()
+						.equals(notification.getMessage()))
 						it.remove();
 				}
 
 			while(entries.size() >= MAX_NOTIFICATIONS)
 				entries.remove(0);
-			entries.add(new NotificationEntry(title, message, severity));
+			entries.add(new NotificationEntry(notification));
+		}
+	}
+
+	void removeNotificationIf(Predicate<HudNotification> predicate)
+	{
+		synchronized(entries)
+		{
+			entries.removeIf(e -> predicate.test(e.notification));
 		}
 	}
 
 	void renderPreview(GuiGraphics graphics, int x, int y)
 	{
-		NotificationEntry preview = new NotificationEntry("Notifications",
-			"HUD notification preview", NotificationSeverity.INFO);
-		drawCard(graphics, preview, x, y, x + MIN_WIDTH,
-			y + PADDING * 2 + 22, 1, 0.62F);
+		ComposeNotifications.Card preview = new ComposeNotifications.Card(
+			"Notifications", "HUD notification preview");
+		ComposeNotifications.render(graphics, List.of(preview), x, y, false,
+			false, false, System.nanoTime());
 	}
 
 	@Override
@@ -93,62 +101,42 @@ public final class HudNotificationRenderer implements GUIRenderListener
 			graphics.pose().scale(config.getScale(), config.getScale(), 1);
 			synchronized(entries)
 			{
-				float posY = 0;
+				// 构建 Compose 卡片快照（数据与计时保留在本类）
+				ArrayList<ComposeNotifications.Card> cards =
+					new ArrayList<>();
 				for(Iterator<NotificationEntry> it = entries.iterator();
 					it.hasNext();)
 				{
 					NotificationEntry entry = it.next();
-					float visibility = entry.update(now);
-					float lifetimeProgress = entry.getLifetimeProgress(now);
 
-					if(lifetimeProgress >= 1 && entry.active)
+					if(entry.notification.isExpired())
 						entry.active = false;
 
-					if(!entry.active && visibility <= 0)
+					entry.update(now);
+
+					if(!entry.active && entry.fade <= 0)
 					{
 						it.remove();
 						continue;
 					}
 
-					float entryW = entry.getWidth();
-					float entryH = PADDING * 2 + 22;
-					float slide = (entryW + CARD_GAP) * (1 - visibility);
-
-					float x1;
-					if(config.getHorizontalAlignment()
-						.equals(HudLayout.HudElementConfig.HORIZONTAL_RIGHT))
-						x1 = slide - entryW;
-					else if(config.getHorizontalAlignment()
-						.equals(HudLayout.HudElementConfig.HORIZONTAL_CENTER))
-						x1 = -entryW / 2 + slide;
-					else
-						x1 = -slide;
-					float x2 = x1 + entryW;
-
-					float cardY;
-					if(config.getVerticalAlignment()
-						.equals(HudLayout.HudElementConfig.VERTICAL_BOTTOM))
-						cardY = posY - entryH * visibility;
-					else if(config.getVerticalAlignment()
-						.equals(HudLayout.HudElementConfig.VERTICAL_CENTER))
-						cardY = posY - entryH / 2;
-					else
-						cardY = posY;
-
-					int top = Math.round(cardY);
-					int bottom = top + Math.round(entryH);
-					int left = Math.round(x1);
-					int right = Math.round(x2);
-
-					drawCard(graphics, entry, left, top, right, bottom,
-						visibility, lifetimeProgress);
-
-					if(config.getVerticalAlignment()
-						.equals(HudLayout.HudElementConfig.VERTICAL_BOTTOM))
-						posY -= (entryH + CARD_GAP) * visibility;
-					else
-						posY += (entryH + CARD_GAP) * visibility;
+					HudNotification n = entry.notification;
+					ComposeNotifications.Card card =
+						new ComposeNotifications.Card(
+							truncate(n.getTitle(), 26),
+							truncate(n.getMessage(), 34), n.getContent());
+					card.anim = entry.anim;
+					card.fade = entry.fade;
+					cards.add(card);
 				}
+				boolean rightAligned = config.getHorizontalAlignment().equals(
+					HudLayout.HudElementConfig.HORIZONTAL_RIGHT);
+				boolean centerAligned = config.getHorizontalAlignment().equals(
+					HudLayout.HudElementConfig.HORIZONTAL_CENTER);
+				boolean bottomAligned = config.getVerticalAlignment().equals(
+					HudLayout.HudElementConfig.VERTICAL_BOTTOM);
+				ComposeNotifications.render(graphics, cards, 0, 0,
+					rightAligned, bottomAligned, centerAligned, now);
 			}
 		}finally
 		{
@@ -156,132 +144,75 @@ public final class HudNotificationRenderer implements GUIRenderListener
 		}
 	}
 
-	private void drawCard(GuiGraphics graphics, NotificationEntry entry,
-		int left, int top, int right, int bottom, float visibility,
-		float lifetimeProgress)
-	{
-		FlatRenderer.fillRoundedRect(graphics, left, top, right, bottom,
-			CARD_RADIUS, withAlpha(VisualTheme.PANEL,
-				Math.round(220 * visibility)));
-
-		FlatRenderer.drawRoundedOutline(graphics, left, top, right, bottom,
-			CARD_RADIUS, withAlpha(VisualTheme.BORDER_STRONG,
-				Math.round(75 * visibility)));
-
-		int accColor = getAccentColor(entry.severity);
-		FlatRenderer.fillRoundedRect(graphics, left + 1, top + 2, left + 3,
-			bottom - 2, 1,
-			withAlpha(accColor, Math.round(240 * visibility)));
-
-		Font font = WurstClient.MC.font;
-		String title = truncate(entry.title, 26);
-		String message = truncate(entry.message, 34);
-
-		int textX = left + PADDING;
-		int titleY = top + (bottom - top - font.lineHeight * 2 + 2) / 2;
-
-		graphics.drawString(font, title, textX + 1, titleY + 1,
-			withAlpha(0, Math.round(145 * visibility)), false);
-		graphics.drawString(font, title, textX, titleY,
-			withAlpha(VisualTheme.TEXT, Math.round(255 * visibility)), false);
-
-		graphics.drawString(font, message, textX + 1, titleY + font.lineHeight + 1,
-			withAlpha(0, Math.round(145 * visibility)), false);
-		graphics.drawString(font, message, textX, titleY + font.lineHeight,
-			withAlpha(VisualTheme.TEXT_DIMMED,
-				Math.round(255 * visibility)), false);
-
-		int barLeft = left + PADDING;
-		int barRight = right - PADDING;
-		int barTop = bottom - 4;
-		FlatRenderer.fillRoundedRect(graphics, barLeft, barTop, barRight,
-			barTop + 2, 1,
-			withAlpha(VisualTheme.BORDER, Math.round(170 * visibility)));
-		int progressRight = barLeft
-			+ Math.round((barRight - barLeft) * lifetimeProgress);
-		if(progressRight > barLeft)
-			FlatRenderer.fillRoundedRect(graphics, barLeft, barTop,
-				progressRight, barTop + 2, 1,
-				withAlpha(accColor, Math.round(230 * visibility)));
-	}
-
-	static float lifetimeProgress(long spawnNanos, long nowNanos)
-	{
-		return Math.max(0, Math.min(1,
-			(float)(nowNanos - spawnNanos) / DURATION_NANOS));
-	}
-
-	private static int getAccentColor(NotificationSeverity severity)
-	{
-		return switch(severity)
-		{
-			case SUCCESS, ENABLED -> VisualTheme.SUCCESS;
-			case ERROR, DISABLED -> VisualTheme.ERROR;
-			case INFO -> VisualTheme.ACCENT;
-		};
-	}
-
 	private static String truncate(String text, int maxLen)
 	{
 		if(text.length() <= maxLen)
 			return text;
-		return text.substring(0, maxLen - 1) + "\u2026";
-	}
-
-	private static int withAlpha(int color, int alpha)
-	{
-		return Math.max(0, Math.min(255, alpha)) << 24 | color & 0xFFFFFF;
+		return text.substring(0, maxLen - 1) + "…";
 	}
 
 	private static final class NotificationEntry
 	{
-		final String title;
-		final String message;
-		final NotificationSeverity severity;
+		final HudNotification notification;
 		boolean active = true;
-		final long spawnNanos = System.nanoTime();
-		private float progress;
-		private long lastUpdateNanos;
+		/** 位置动画 0..1：入场 0→1，存活 1，退场 1→0。 */
+		float anim;
+		/** alpha 乘数：入场/存活 1，退场随动画淡出。 */
+		float fade = 1;
+		private final long enterStartNanos = System.nanoTime();
+		private boolean entered;
+		private long exitAtNanos;
+		private boolean exiting;
+		private long exitStartNanos;
 
-		NotificationEntry(String title, String message,
-			NotificationSeverity severity)
+		NotificationEntry(HudNotification notification)
 		{
-			this.title = title;
-			this.message = message;
-			this.severity = severity;
+			this.notification = notification;
 		}
 
-		float getWidth()
+		/**
+		 * HackAI NotificationContainer 阶段机：入场 300ms easeOut 横滑
+		 * （期间不淡入），入场完成后启动存活计时，到点退场 250ms easeIn
+		 * 滑出 + 淡出。
+		 */
+		void update(long now)
 		{
-			Font font = WurstClient.MC.font;
-			float w = font.width(truncate(title, 26));
-			float mw = font.width(truncate(message, 34));
-			float contentW = Math.max(w, mw) + PADDING * 2 + 3;
-			return Math.max(MIN_WIDTH, contentW);
-		}
-
-		float update(long now)
-		{
-			if(lastUpdateNanos == 0)
+			if(!entered)
 			{
-				lastUpdateNanos = now;
-				return progress;
+				long elapsed = now - enterStartNanos;
+				if(elapsed >= ENTER_MS * 1_000_000L)
+				{
+					entered = true;
+					exitAtNanos = notification.isPersistent()
+						? Long.MAX_VALUE
+						: now + notification.getDurationMillis() * 1_000_000L;
+					anim = 1;
+				}else
+					anim = ComposeNotifications.easeOut(
+						elapsed / (float)(ENTER_MS * 1_000_000L));
+				return;
 			}
-
-			float frameTime = Math.min(0.05F,
-				(now - lastUpdateNanos) / 1_000_000_000F);
-			lastUpdateNanos = now;
-			float target = active ? 1 : 0;
-			progress += (target - progress)
-				* (1 - (float)Math.exp(-16 * frameTime));
-			if(Math.abs(target - progress) < 0.002F)
-				progress = target;
-			return progress;
-		}
-
-		float getLifetimeProgress(long now)
-		{
-			return lifetimeProgress(spawnNanos, now);
+			if(!exiting && now >= exitAtNanos)
+			{
+				exiting = true;
+				exitStartNanos = now;
+			}
+			if(exiting)
+			{
+				float t = (now - exitStartNanos)
+					/ (float)(EXIT_MS * 1_000_000L);
+				if(t >= 1)
+				{
+					active = false;
+					anim = 0;
+					fade = 0;
+				}else
+				{
+					float p = 1 - ComposeNotifications.easeIn(t);
+					anim = p;
+					fade = p;
+				}
+			}
 		}
 	}
 }
