@@ -36,5 +36,28 @@ final class MusicAccountManagerTest
 			.parseCookie(MusicProvider.QQ, "uin=123456").valid());
 		assertFalse(MusicAccountManager
 			.parseCookie(MusicProvider.KUGOU, "userid=42").valid());
+		assertFalse(MusicAccountManager
+			.parseCookie(MusicProvider.NETEASE, "MUSIC_U=token").valid());
+		assertFalse(MusicAccountManager.parseCookie(MusicProvider.QQ, null)
+			.valid());
+		assertFalse(MusicAccountManager.parseCookie(MusicProvider.QQ, "   ")
+			.valid());
+	}
+
+	@Test
+	void rejectsCookiesLongerThanTheStoredLimit()
+	{
+		String oversized = "uin=123456; qqmusic_key=" + "x".repeat(16_400);
+		assertFalse(MusicAccountManager
+			.parseCookie(MusicProvider.QQ, oversized).valid());
+	}
+
+	@Test
+	void acceptsKugouFlatCookies()
+	{
+		MusicAccountManager.ParsedCookie parsed = MusicAccountManager
+			.parseCookie(MusicProvider.KUGOU, "userid=99; token=abc");
+		assertTrue(parsed.valid());
+		assertEquals("99", parsed.userId());
 	}
 }

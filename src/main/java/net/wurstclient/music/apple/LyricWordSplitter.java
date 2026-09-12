@@ -31,12 +31,21 @@ public final class LyricWordSplitter
 	 */
 	public static List<String> split(String line)
 	{
+		if(line == null || line.isEmpty())
+			return List.of();
 		List<String> words = new ArrayList<>();
 		StringBuilder current = new StringBuilder();
 		for(int i = 0; i < line.length(); i++)
 		{
 			char c = line.charAt(i);
-			if(isCJK(c))
+			if(c == ' ' || c == '\u3000' || Character.isWhitespace(c))
+			{
+				if(current.length() > 0)
+				{
+					words.add(current.toString());
+					current.setLength(0);
+				}
+			}else if(isCJK(c))
 			{
 				if(current.length() > 0)
 				{
@@ -44,13 +53,6 @@ public final class LyricWordSplitter
 					current.setLength(0);
 				}
 				words.add(String.valueOf(c));
-			}else if(c == ' ' || c == '　')
-			{
-				if(current.length() > 0)
-				{
-					words.add(current.toString());
-					current.setLength(0);
-				}
 			}else
 				current.append(c);
 		}
@@ -65,6 +67,8 @@ public final class LyricWordSplitter
 	 */
 	public static float[][] wordFractions(List<String> words)
 	{
+		if(words == null || words.isEmpty())
+			return new float[0][];
 		int total = 0;
 		for(String word : words)
 			total += word.length();

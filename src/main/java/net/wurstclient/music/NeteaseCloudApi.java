@@ -84,18 +84,46 @@ public final class NeteaseCloudApi implements MusicPlatform
 		JsonObject result = object(root, "result");
 		JsonArray songs = array(result, "songs");
 		List<NeteaseSong> parsed = new ArrayList<>(songs.size());
-		for(JsonElement element : songs)
-		{
-			JsonObject song = element.getAsJsonObject();
-			JsonObject album = object(song, "album");
-			JsonArray artists = array(song, "artists");
-			String artist = artists.isEmpty() ? ""
-				: string(artists.get(0).getAsJsonObject(), "name");
-			parsed.add(new NeteaseSong(number(song, "id"),
-				string(song, "name"), artist, string(album, "name"),
-				imageUrl(string(album, "picUrl")), number(song, "duration")));
-		}
+		for(JsonObject song : objects(songs))
+			parsed.add(parseSong(song));
 		return List.copyOf(parsed);
+	}
+
+	/**
+	 * 网易云不同接口的歌曲对象字段名不一致（{@code al/ar/dt} 与
+	 * {@code album/artists/duration}），且同一接口也可能返回字符串或数字。
+	 * 与 {@code search()} 使用同一套安全访问器，避免单个畸形条目中断整页结果。
+	 */
+	static NeteaseSong parseSong(JsonObject song)
+	{
+		JsonObject album = object(song, "al");
+		if(album.size() == 0)
+			album = object(song, "album");
+		JsonArray artists = array(song, "ar");
+		if(artists.isEmpty())
+			artists = array(song, "artists");
+		List<JsonObject> artistObjects = objects(artists);
+		String artist = artistObjects.isEmpty() ? ""
+			: string(artistObjects.get(0), "name");
+		long duration = number(song, "dt");
+		if(duration <= 0)
+			duration = number(song, "duration");
+		return new NeteaseSong(number(song, "id"), string(song, "name"),
+			artist, string(album, "name"), imageUrl(string(album, "picUrl")),
+			duration);
+	}
+
+	/**
+	 * 网易云封面地址通常不带尺寸参数；已带 {@code ?param=} 的地址原样返回，
+	 * 空值返回空串，避免把 {@code null} 传给渲染层。
+	 */
+	static String imageUrl(String url)
+	{
+		if(url == null || url.isBlank())
+			return "";
+		if(url.contains("?param="))
+			return url;
+		return url + "?param=200y200";
 	}
 
 	public List<NeteaseSong> topNewSongs(int limit)
@@ -107,11 +135,11 @@ public final class NeteaseCloudApi implements MusicPlatform
 			false).body();
 		JsonArray data = array(root, "data");
 		List<NeteaseSong> songs = new ArrayList<>();
-		for(JsonElement element : data)
+		for(JsonObject song : objects(data))
 		{
 			if(songs.size() >= actualLimit)
 				break;
-			songs.add(parseSong(element.getAsJsonObject()));
+			songs.add(parseSong(song));
 		}
 		return List.copyOf(songs);
 	}
@@ -125,13 +153,10 @@ public final class NeteaseCloudApi implements MusicPlatform
 			+ "&order=hot&offset=0&total=true&limit=" + actualLimit, false)
 			.body();
 		List<NeteasePlaylist> playlists = new ArrayList<>();
-		for(JsonElement element : array(root, "playlists"))
-		{
-			JsonObject item = element.getAsJsonObject();
+		for(JsonObject item : objects(array(root, "playlists")))
 			playlists.add(new NeteasePlaylist(number(item, "id"),
 				string(item, "name"), imageUrl(string(item, "coverImgUrl")),
 				number(item, "playCount")));
-		}
 		return List.copyOf(playlists);
 	}
 
@@ -142,24 +167,25 @@ public final class NeteaseCloudApi implements MusicPlatform
 		int actualOffset = Math.max(0, offset);
 		JsonObject root = getJson(ORIGIN + "/api/v3/playlist/detail?id="
 			+ playlistId + "&n=100000&s=0", isLoggedIn()).body();
-		JsonArray trackIds = array(object(root, "playlist"), "trackIds");
-		int end = Math.min(trackIds.size(), actualOffset + actualLimit);
+		List<JsonObject> tracks = objects(array(object(root, "playlist"),
+			"trackIds"));
+		int end = Math.min(tracks.size(), actualOffset + actualLimit);
 		if(actualOffset >= end)
 			return List.of();
 		StringBuilder ids = new StringBuilder("[");
-		for(int index = actualOffset; index < end; index++)
+		for(JsonObject track : tracks.subList(actualOffset, end))
 		{
 			if(ids.length() > 1)
 				ids.append(',');
-			ids.append(number(trackIds.get(index).getAsJsonObject(), "id"));
+			ids.append(number(track, "id"));
 		}
 		ids.append(']');
 		String encoded = URLEncoder.encode(ids.toString(), StandardCharsets.UTF_8);
 		JsonObject details = getJson(ORIGIN + "/api/song/detail/?ids=" + encoded,
 			false).body();
 		List<NeteaseSong> songs = new ArrayList<>();
-		for(JsonElement element : array(details, "songs"))
-			songs.add(parseSong(element.getAsJsonObject()));
+		for(JsonObject song : objects(array(details, "songs")))
+			songs.add(parseSong(song));
 		return List.copyOf(songs);
 	}
 
@@ -173,10 +199,10 @@ public final class NeteaseCloudApi implements MusicPlatform
 		JsonObject root = getJson(ORIGIN + "/api/user/playlist?uid="
 			+ profile.userId() + "&limit=1&timestamp=" + System.currentTimeMillis(),
 			true).body();
-		JsonArray playlists = array(root, "playlist");
+		List<JsonObject> playlists = objects(array(root, "playlist"));
 		if(playlists.isEmpty())
 			return List.of();
-		long playlistId = number(playlists.get(0).getAsJsonObject(), "id");
+		long playlistId = number(playlists.get(0), "id");
 		return playlistSongs(playlistId, limit, offset);
 	}
 
@@ -188,10 +214,10 @@ public final class NeteaseCloudApi implements MusicPlatform
 		JsonObject root = getJson(ORIGIN
 			+ "/api/song/enhance/player/url?id=" + song.id() + "&ids=" + ids
 			+ "&br=320000", true).body();
-		JsonArray data = array(root, "data");
+		List<JsonObject> data = objects(array(root, "data"));
 		if(data.isEmpty())
 			throw new IOException("网易云没有返回播放地址");
-		JsonObject item = data.get(0).getAsJsonObject();
+		JsonObject item = data.get(0);
 		String url = string(item, "url");
 		if(url.isBlank())
 			throw new IOException("该歌曲受版权或会员限制，当前账号无法播放");
@@ -202,9 +228,21 @@ public final class NeteaseCloudApi implements MusicPlatform
 	public List<LyricLine> lyrics(long songId)
 		throws IOException, InterruptedException
 	{
-		JsonObject root = getJson(ORIGIN + "/api/song/lyric?id=" + songId
-			+ "&lv=-1&kv=-1&tv=-1", false).body();
-		return LyricParser.parse(string(object(root, "lrc"), "lyric"));
+		JsonObject root;
+		try
+		{
+			root = getJson(ORIGIN + "/api/song/lyric/v1?id=" + songId
+				+ "&lv=-1&kv=-1&tv=-1&rv=-1&yv=-1", false).body();
+		}catch(IOException e)
+		{
+			// 旧接口不返回 romalrc，音译行会缺失，其余照常
+			root = getJson(ORIGIN + "/api/song/lyric?id=" + songId
+				+ "&lv=-1&kv=-1&tv=-1", false).body();
+		}
+		return LyricParser.parseBest(string(object(root, "yrc"), "lyric"),
+			string(object(root, "lrc"), "lyric"),
+			string(object(root, "tlyric"), "lyric"),
+			string(object(root, "romalrc"), "lyric"));
 	}
 
 	public LoginResult sendCaptcha(String phone, String countryCode)
@@ -557,7 +595,7 @@ public final class NeteaseCloudApi implements MusicPlatform
 			cipher.doFinal(value.getBytes(StandardCharsets.UTF_8)));
 	}
 
-	private static String normalizeCountryCode(String value)
+	static String normalizeCountryCode(String value)
 	{
 		return value == null || !value.matches("\\d{1,4}") ? "86" : value;
 	}
@@ -570,55 +608,67 @@ public final class NeteaseCloudApi implements MusicPlatform
 		return message.isBlank() ? fallback : message;
 	}
 
-	private static JsonObject object(JsonObject parent, String key)
+	static JsonObject object(JsonObject parent, String key)
 	{
 		JsonElement value = parent == null ? null : parent.get(key);
 		return value != null && value.isJsonObject() ? value.getAsJsonObject()
 			: new JsonObject();
 	}
 
-	private static JsonArray array(JsonObject parent, String key)
+	static JsonArray array(JsonObject parent, String key)
 	{
 		JsonElement value = parent == null ? null : parent.get(key);
 		return value != null && value.isJsonArray() ? value.getAsJsonArray()
 			: new JsonArray();
 	}
 
-	private static String string(JsonObject parent, String key)
+	/**
+	 * 与 {@link #number(JsonObject, String)} 对称的宽松字符串读取：仅在确认是
+	 * JSON 字符串/数字/布尔时才解析，对象或数组返回空串，避免 Gson 抛出
+	 * {@link UnsupportedOperationException} 中断整页解析。
+	 */
+	static String string(JsonObject parent, String key)
 	{
 		JsonElement value = parent == null ? null : parent.get(key);
-		return value == null || value.isJsonNull() ? "" : value.getAsString();
+		if(value == null || value.isJsonNull())
+			return "";
+		if(value.isJsonPrimitive())
+			return value.getAsString();
+		return "";
 	}
 
-	private static long number(JsonObject parent, String key)
+	/**
+	 * 宽松数字读取：网易云对同一字段可能返回数字或数字字符串；无法解析时
+	 * 返回 0 而不是抛出异常，使调用方可以走各自的空值分支。
+	 */
+	static long number(JsonObject parent, String key)
 	{
 		JsonElement value = parent == null ? null : parent.get(key);
-		return value == null || value.isJsonNull() ? 0 : value.getAsLong();
+		if(value == null || value.isJsonNull() || !value.isJsonPrimitive())
+			return 0;
+		try
+		{
+			return value.getAsLong();
+		}catch(NumberFormatException | UnsupportedOperationException e)
+		{
+			return 0;
+		}
 	}
 
-	private static NeteaseSong parseSong(JsonObject song)
+	/**
+	 * 从数组中取出对象元素，跳过 null 或非对象元素。网易云在部分接口中用
+	 * {@code null} 占位，直接 {@code getAsJsonObject()} 会抛
+	 * {@link IllegalStateException} 并丢掉整页数据。
+	 */
+	static List<JsonObject> objects(JsonArray array)
 	{
-		JsonObject album = object(song, "al");
-		if(album.size() == 0)
-			album = object(song, "album");
-		JsonArray artists = array(song, "ar");
-		if(artists.isEmpty())
-			artists = array(song, "artists");
-		String artist = artists.isEmpty() ? ""
-			: string(artists.get(0).getAsJsonObject(), "name");
-		long duration = number(song, "dt");
-		if(duration <= 0)
-			duration = number(song, "duration");
-		return new NeteaseSong(number(song, "id"), string(song, "name"),
-			artist, string(album, "name"), imageUrl(string(album, "picUrl")),
-			duration);
-	}
-
-	private static String imageUrl(String url)
-	{
-		if(url == null || url.isBlank() || url.contains("?param="))
-			return url == null ? "" : url;
-		return url + "?param=200y200";
+		if(array == null || array.isEmpty())
+			return List.of();
+		List<JsonObject> objects = new ArrayList<>(array.size());
+		for(JsonElement element : array)
+			if(element != null && element.isJsonObject())
+				objects.add(element.getAsJsonObject());
+		return objects;
 	}
 
 	private record JsonResponse(JsonObject body, HttpHeaders headers)

@@ -156,20 +156,19 @@ public final class PlayerDetailOverlay extends MusicRegion
 			return;
 		}
 		// Apple Music 风格歌词播放器（applemusic-like-lyrics 1:1 移植）
+		appleLyrics.setContentWidth(right - left);
+		appleLyrics.setContainerHeight(bottom - top);
 		if(song.id() != appleSongId)
 		{
 			appleSongId = song.id();
 			appleLyrics.setLyricLines(lyrics,
 				player().getAdjustedLyricPositionMs());
 		}
-		appleLyrics.setContainerHeight(bottom - top);
 		appleLyrics.setPlaying(player().getState()
 			== NeteaseMusicPlayer.PlaybackState.PLAYING);
 		appleLyrics.setCurrentTime(player().getAdjustedLyricPositionMs(),
 			false);
-		// 每帧推进弹簧（位置/缩放解析解），否则所有行冻结在初始位置
 		appleLyrics.update();
-		// Skia 区域管线：真模糊/真渐变/真缩放的矢量歌词；失败时回退 MC 字体
 		org.jetbrains.skia.Canvas canvas = null;
 		try
 		{
@@ -183,8 +182,7 @@ public final class PlayerDetailOverlay extends MusicRegion
 		{
 			try
 			{
-				appleLyrics.renderSkia(canvas, left, top, right, bottom,
-					0xFF007CFF, 0x59FFFFFF);
+				appleLyrics.renderSkia(canvas, left, top, right, bottom);
 			}finally
 			{
 				net.wurstclient.render.skia.SkiaRegionRenderer.get()
@@ -192,8 +190,7 @@ public final class PlayerDetailOverlay extends MusicRegion
 			}
 			return;
 		}
-		appleLyrics.render(graphics, left + 4, top, right - 4, bottom,
-			0xFF007CFF, 0x59FFFFFF);
+		appleLyrics.render(graphics, left, top, right, bottom);
 	}
 
 	/**

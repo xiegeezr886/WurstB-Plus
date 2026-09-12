@@ -65,6 +65,13 @@ public final class AppleLayout
 	{
 		if(!prefixDirty)
 			return;
+		if(heights.length == 0)
+		{
+			prefixSums = new double[]{0};
+			totalLyricHeight = 0;
+			prefixDirty = false;
+			return;
+		}
 		double sum = 0;
 		prefixSums[0] = 0;
 		for(int i = 0; i < heights.length; i++)
@@ -184,6 +191,13 @@ public final class AppleLayout
 	public double lineY(int index)
 	{
 		return lineYs[index];
+	}
+
+	public double lineHeight(int index)
+	{
+		if(index < 0 || index >= heights.length)
+			return 0;
+		return heights[index];
 	}
 
 	public boolean isInViewport(int index)

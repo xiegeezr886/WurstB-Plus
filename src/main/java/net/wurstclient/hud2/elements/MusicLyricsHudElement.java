@@ -2,37 +2,31 @@ package net.wurstclient.hud2.elements;
 
 import java.util.List;
 
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
-import net.wurstclient.clickgui2.PingFangFont;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.hud2.HudManager;
 import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.music.LyricLine;
-import net.wurstclient.music.LyricParser;
 import net.wurstclient.music.NeteaseMusicPlayer;
 import net.wurstclient.music.NeteaseMusicPlayer.PlaybackState;
 import net.wurstclient.music.NeteaseSong;
 import net.wurstclient.music.PlayerListener;
+import net.wurstclient.music.apple.AppleLyricPlayer;
 import net.wurstclient.util.ScreenRegistry;
 
 public final class MusicLyricsHudElement extends HudElement
 {
-	private static final int WIDTH = 200;
-	private static final int HEIGHT = 40;
+	private static final int WIDTH = 280;
+	private static final int HEIGHT = 92;
 	private static final int BACKGROUND = VisualTheme.SURFACE_68;
 	private static final int OUTLINE = VisualTheme.BORDER;
-	private static final int TEXT = VisualTheme.TEXT;
-	private static final long TRANSITION_NANOS = 340_000_000L;
 
+	private final AppleLyricPlayer lyricsView = new AppleLyricPlayer();
 	private long displayedSongId = Long.MIN_VALUE;
-	private int displayedIndex = Integer.MIN_VALUE;
-	private String previousText = "";
-	private long transitionStarted;
 	private float visibility;
 	private long lastRenderNanos;
 	private volatile boolean songChangedPending;
@@ -40,6 +34,12 @@ public final class MusicLyricsHudElement extends HudElement
 	{
 		@Override
 		public void onSongChanged(NeteaseSong song)
+		{
+			songChangedPending = true;
+		}
+
+		@Override
+		public void onLyricsLoaded(List<LyricLine> lyrics)
 		{
 			songChangedPending = true;
 		}
@@ -88,39 +88,28 @@ public final class MusicLyricsHudElement extends HudElement
 		List<LyricLine> lyrics = player.getLyrics();
 		boolean preview = ScreenRegistry.HUD_EDITOR.isOpen();
 		boolean playing = player.getState() == PlaybackState.PLAYING;
-		int index = preview && lyrics.isEmpty() ? 0
-			: LyricParser.findCurrentIndex(lyrics,
-				player.getAdjustedLyricPositionMs());
-		boolean hasLyrics = song != null && index >= 0 && !lyrics.isEmpty();
+		boolean hasLyrics = song != null && !lyrics.isEmpty();
 		updateVisibility(preview || playing && hasLyrics);
 		if(visibility < 0.01F)
 			return;
 
-		String current = !lyrics.isEmpty() && index >= 0
-			? lyrics.get(index).text()
-			: preview ? "Music flows with every adventure" : "";
-		String next = !lyrics.isEmpty() && index >= 0
-			&& index + 1 < lyrics.size() ? lyrics.get(index + 1).text()
-				: preview ? "NetEase Cloud Music" : "";
 		long songId = song == null ? -1 : song.id();
-		long now = System.nanoTime();
 		if(songChangedPending || songId != displayedSongId)
 		{
 			songChangedPending = false;
 			displayedSongId = songId;
-			displayedIndex = Integer.MIN_VALUE;
-			previousText = "";
+			List<LyricLine> shown = lyrics.isEmpty() && preview
+				? List.of(new LyricLine(0, "Music flows with every adventure"),
+					new LyricLine(4_000, "NetEase Cloud Music"))
+				: lyrics;
+			lyricsView.setLyricLines(shown, player.getAdjustedLyricPositionMs());
 		}
-		if(index != displayedIndex)
-		{
-			if(displayedIndex != Integer.MIN_VALUE)
-				previousText = currentTextFor(lyrics, displayedIndex, current);
-			displayedIndex = index;
-			transitionStarted = now;
-		}
-		float transition = transitionStarted == 0 ? 1 : Mth.clamp(
-			(now - transitionStarted) / (float)TRANSITION_NANOS, 0, 1);
-		transition = smoothStep(transition);
+		lyricsView.setContentWidth(WIDTH - 8);
+		lyricsView.setContainerHeight(HEIGHT - 8);
+		lyricsView.setPlaying(playing || preview);
+		lyricsView.setCurrentTime(preview && lyrics.isEmpty()
+			? 1_200 : player.getAdjustedLyricPositionMs(), false);
+		lyricsView.update();
 
 		FlatRenderer.fillRoundedRect(graphics, x, y, x + WIDTH, y + HEIGHT,
 			10, withOpacity(BACKGROUND, visibility));
@@ -133,31 +122,12 @@ public final class MusicLyricsHudElement extends HudElement
 			y + Math.round(HEIGHT * hudScale));
 		try
 		{
-			if(!previousText.isEmpty() && transition < 1)
-				drawScaledCentered(graphics, previousText, x + WIDTH / 2,
-					y + 15 - Math.round(transition * 13), 1.05F - 0.15F
-						* transition,
-					visibility * (1 - transition * 0.5F));
-			drawScaledCentered(graphics, current, x + WIDTH / 2,
-				y + 15 + Math.round((1 - transition) * 13),
-				0.9F + 0.15F * transition,
-				visibility * (0.5F + transition * 0.5F));
-			if(!next.isEmpty())
-				drawScaledCentered(graphics, next, x + WIDTH / 2,
-					y + 29 + Math.round((1 - transition) * 4), 0.9F,
-					visibility * 0.5F);
+			lyricsView.render(graphics, x + 4, y + 4, x + WIDTH - 4,
+				y + HEIGHT - 4);
 		}finally
 		{
 			graphics.disableScissor();
 		}
-	}
-
-	private String currentTextFor(List<LyricLine> lyrics, int index,
-		String fallback)
-	{
-		if(index >= 0 && index < lyrics.size())
-			return lyrics.get(index).text();
-		return fallback;
 	}
 
 	private void updateVisibility(boolean visible)
@@ -178,26 +148,6 @@ public final class MusicLyricsHudElement extends HudElement
 			* (1 - (float)Math.exp(-speed * delta));
 		if(Math.abs(target - visibility) < 0.005F)
 			visibility = target;
-	}
-
-	private void drawScaledCentered(GuiGraphics graphics, String text,
-		int centerX, int y, float scale, float opacity)
-	{
-		Font font = WurstClient.MC.font;
-		String shown = PingFangFont.trim(font, text,
-			Math.round((WIDTH - 18) / scale));
-		graphics.pose().pushPose();
-		graphics.pose().translate(centerX, y, 0);
-		graphics.pose().scale(scale, scale, 1);
-		graphics.drawString(font, PingFangFont.text(shown),
-			-PingFangFont.width(font, shown) / 2, 0,
-			withOpacity(TEXT, opacity), false);
-		graphics.pose().popPose();
-	}
-
-	private static float smoothStep(float value)
-	{
-		return value * value * (3 - 2 * value);
 	}
 
 	private static int withOpacity(int color, float opacity)
