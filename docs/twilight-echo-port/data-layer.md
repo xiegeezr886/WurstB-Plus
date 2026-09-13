@@ -2,6 +2,14 @@
 
 > 目标：为「把现有网易云音乐数据层对齐参考项目 Twilight Echo」提供数据层规范与差距分析。
 >
+> **实施状态（2026-05 更新）**：本文第 5 节的**架构 A**已经落地，见
+> `wiring-status.md` §2/§3。实现是新增的
+> `net.wurstclient.twilight.TwilightApiEndpoint` + `TwilightMusicService`，
+> **没有改造 `NeteaseCloudApi`**——后者走 `music.163.com` 的直连加密
+> weapi/eapi，与本地服务的 REST 协议是两套东西，无法靠改基址切换；两者靠歌曲
+> id 与登录 cookie 对齐。下文凡写「建议 / 待实现」的段落，请以
+> `wiring-status.md` 为准。
+>
 > **本文只描述数据层（登录 / cookie / 请求 / 端点 / 音质 / 歌词取数 / 缓存）。**
 > 按用户明确要求：**歌词界面与歌词渲染继续使用本工程现有的「类苹果歌词」（AMLL / Apple Music-like Lyrics）实现，不改用参考项目那套。** 因此第 3.4 节的歌词链路以本工程现状为准，目标是保证**逐字（YRC）歌词 + 翻译 + 音译**字段与解析的完整性；参考项目的 TTML 歌词与桌面歌词只作为「可选来源 / 不做」列入差距表（第 3.6 节），**不进入第一阶段必做清单**。
 >
