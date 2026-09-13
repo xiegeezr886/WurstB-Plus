@@ -1117,8 +1117,27 @@ public final class TwilightShellScreen extends Screen
 		if(openedStatus != null)
 			return openedStatus;
 		
-		return "共 " + (openedTracks == null ? 0 : openedTracks.size()) + " 首"
-			+ sourceTag();
+		StringBuilder line = new StringBuilder("共 ");
+		line.append(openedTracks == null ? 0 : openedTracks.size())
+			.append(" 首");
+		
+		if(openedPlaylist != null && openedPlaylist.playCount() > 0)
+			line.append(" · 播放 ")
+				.append(formatPlayCount(openedPlaylist.playCount()));
+		
+		return line.append(sourceTag()).toString();
+	}
+	
+	/** 网易云自己就用「万 / 亿」计数，这里跟参考一样压成一个大数。 */
+	private static String formatPlayCount(long count)
+	{
+		if(count >= 100_000_000L)
+			return String.format("%.1f亿", count / 100_000_000D);
+		
+		if(count >= 10_000L)
+			return String.format("%.1f万", count / 10_000D);
+		
+		return Long.toString(count);
 	}
 	
 	/** The body rect below the detail header, so rows never overlap it. */
