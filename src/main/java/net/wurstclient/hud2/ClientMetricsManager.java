@@ -6,6 +6,8 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.events.WorldChangeListener;
 
+import net.wurstclient.util.TpsCompensation;
+
 public final class ClientMetricsManager
 	implements PacketInputListener, WorldChangeListener
 {
@@ -56,6 +58,26 @@ public final class ClientMetricsManager
 	public double getTicksPerSecond()
 	{
 		return ticksPerSecond;
+	}
+	
+	/**
+	 * 把"按 20 TPS 写的毫秒延迟"换算成当前 tick 速率下应该等的毫秒。
+	 *
+	 * <p>
+	 * 本工程一直在测 TPS，但此前只有 HUD 显示在用；这才是有节奏逻辑的 hack
+	 * 应该调的那个口子（换算本身在 {@code util/TpsCompensation} 里，是纯函数）。
+	 * 服务端掉到 10 TPS 时同样"等 500 毫秒"只等于 5 个服务端 tick，所以这里
+	 * 会把它拉长成 1000 毫秒——与参考项目 {@code delay*(20/tickRate)} 一致。
+	 */
+	public double getCompensatedMillis(double millis)
+	{
+		return TpsCompensation.scaleMillis(millis, ticksPerSecond);
+	}
+	
+	/** 这个毫秒延迟在当前 tick 速率下相当于多少个服务端 tick。 */
+	public double getTicksFor(double millis)
+	{
+		return TpsCompensation.ticksFor(millis, ticksPerSecond);
 	}
 
 	static double calculateTps(long intervalNanos)
