@@ -67,11 +67,11 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
 | 构建状态 | 15 个工程各自输出 `build/libs/` 产物；根目录 **v1.6.0** 已通过 `compileJava` + `test` 验证，其余 14 个工程为 **v1.5.0** 既有产物；另有 49 个在研移植工程（详见 [PORTING_TASK.md](PORTING_TASK.md) 与 [PROJECT_INDEX.md](PROJECT_INDEX.md)） |
-| 注册 Hack | 208 个（根工程 v1.6.0；`hacks/` 目录含内部辅助类共 252 个 Java 文件） |
-| 注册命令 | 55 |
+| 注册 Hack | 209 个（根工程 v1.6.0；`hacks/` 目录含内部辅助类共 252 个 Java 文件） |
+| 注册命令 | 56 |
 | Other Feature | 17 |
 | Forge Mixin | 74 (1.20.1 根工程，见 `wurst.mixins.json`) |
-| 活跃 Java 文件 | 931 (根 1.20.1 `src/main/java`) / 741 (1.21.1) / 791 (26.2) |
+| 活跃 Java 文件 | 941 (根 1.20.1 `src/main/java`) / 741 (1.21.1) / 791 (26.2) |
 | 单元测试 | 103 个测试类 / 436 项 / 0 失败（根工程 1.20.1 最近一次 `test`），覆盖 v1.6 音乐解析、AMLL 歌词流水线与布局、Compose 动画、MD3 主题与周界挖掘全套（区域几何、边界检测、液体策略、配置迁移、双语文本） |
 
 > 根目录是 Forge 1.20.1-47.4.10 工程；`neoforge/`、`versions/` 和 `fabric/` 是独立版本工程，不共享加载器运行时。Forge/NeoForge 使用 Mojang 官方映射，Fabric 使用 Fabric Loom + 官方映射；Fabric 版本通过 Access Widener 和 Fabric API 适配，不代表根工程是 Fabric 项目。
@@ -90,7 +90,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 
 以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 63 个工程（已发布的 14 个平台工程 + 在研的 49 个新版本工程）均未移植。
 
-### 源码包（134 个 Java 文件）
+### 源码包（142 个 Java 文件）
 
 | 包 | 文件数 | 说明 |
 | --- | ---: | --- |
@@ -106,10 +106,13 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 | `perimeter` | 35 | 周界挖掘全套：区域模型与游标、液体策略与边界封闭、方块限制与批次、导航 / 交互 / 装备 / 补给策略、28 状态自动化编排、双语文本 |
 | `perimeter.config` | 11 | 按服务器 / 存档分存的配置模型、迁移与原子写盘（`PerimeterConfigStore`） |
 | `perimeter.detect` | 2 | 不规则区域边界检测（`BoundaryDetector` / `PerimeterGrid`） |
+| `seed` | 8 | 种子矿透核心：种子存储、纯 Java 矿物预测（含逐条 placed_feature 规则表）、Baritone 目标挖掘作业 |
 
-新增 Hack（12 个）：`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SuperKnockback`、`VehicleBoost`、`WTap`。
+新增 Hack（13 个）：`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SeedOreESP`、`SuperKnockback`、`VehicleBoost`、`WTap`。
 
 其中 `PerimeterDigger`（Blocks 分类）配合 `.perimeter` 与 Brigadier `/perimeterdig`（含 Tab 补全）在 v1.6 **原生等价移植**了社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 的全部功能：闭区间矩形规划与**不规则区域边界检测**、**液体 avoid / replace / seal_boundary** 策略与边界封堵、批次上限与背包满自动暂停、**自动拾取与多卸货点卸货**、**工具/鞘翅耐久替换**、**自动进食、补给、睡觉**、**跨维度熔炉修复**、**行走与鞘翅寻路**、**按服务器/存档分存配置**、**中英双语文本与命令**。原模组为 Fabric / MC 26.1.1 / Java 25 且依赖修改版 Baritone，无法直接内置，故本实现把区域挖掘语义落在本项目自己的 `PerimeterMiningSchematic` 上、交给官方 Baritone 的 `BuilderProcess` 执行，并按同样判定复刻液体与边界语义（具体偏差见 `CHANGELOG.md`）。
+
+其中 `SeedOreESP`（Render 分类）配合 `.seed` 实现**种子矿透**：按服务器 / 存档分存已知种子（单人模式直接读取集成服务器种子），用纯 Java 复刻原版矿物生成数学（Xoroshiro 随机源 + `setDecorationSeed` / `setFeatureSeed` + 逐条 placed_feature 规则表，含 count / rarity / height_range / 矿脉椭圆与 `discardOnAirChance`）预测区块内矿物坐标，在客户端渲染 ESP，并可选把预测目标批量交给官方 Baritone 的 `GoalComposite` 自动挖掘（`.seed mine` 切换）。该路线**零新增依赖**：不内置 Meteor Client（Fabric 专用）、不引入 Cubiomes 与 seedfinding/latticg，也不注入 Baritone 内部类（只用公开 API）。已知局限：不按生物群系过滤规则（结果是超集）、不反推种子、未在真实世界生成中逐格校验坐标。
 
 ### GUI 入口切换
 
@@ -223,7 +226,7 @@ Minecraft / Mixin hook
 - `src/main/java/net/wurstclient/util/json/JsonUtils.java`
 - `src/main/java/net/wurstclient/clickgui2/SettingsWindow.java`
 
-## 新增功能
+## v1.5 新增功能
 
 ### 架构升级
 
@@ -247,7 +250,7 @@ Minecraft / Mixin hook
 - **Brigadier 命令**：`BrigadierCommand` 基类，通过 Forge `RegisterClientCommandsEvent` 注册到客户端 `CommandDispatcher`。
 - **Discord RPC**：仅显示单人/多人/主菜单状态、客户端版本和活动 Hack 数量，不泄露服务器地址；IPC 在独立单线程执行器中更新。
 
-### 新增 Hacks（v1.5，15 个）
+### 新增 Hacks（15 个）
 
 | Hack | 分类 | 功能 |
 |------|------|------|
@@ -267,7 +270,7 @@ Minecraft / Mixin hook
 | **Twerk** | Fun | 快速下蹲/起立舞蹈 |
 | **Vomit** | Fun | 快速使用食物（呕吐效果） |
 
-### 新增 Commands（v1.5，3 个）
+### 新增 Commands（3 个）
 
 | 命令 | 功能 |
 |------|------|
