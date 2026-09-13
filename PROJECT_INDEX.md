@@ -5,6 +5,12 @@
 > **当前状态（重要）**：根目录工程已推进到 **v1.6.0**，其余 14 个平台工程仍停留在 **v1.5.0**。
 > v1.6 新增的 18 个源码包（152 个 Java 文件）**只存在于根目录 Forge 1.20.1 工程**，尚未移植。
 > 详见「v1.6 新增子系统」与 [CHANGELOG.md](CHANGELOG.md)。
+>
+> 本文件的下表只覆盖上述 **15 个已发布工程**。工作区另有 **46 个新版本工程**
+> （`versions/` 无 1.20.5 / 1.21.2；`fabric/versions/`、`neoforge/versions/` 各 21 个），
+> 它们的 `compileJava` 已全部通过，但**没有 `build/libs/` 产物、没有启动验证**，
+> 逐版本状态见 [README.md](README.md#多版本平行移植) 与
+> [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
 
 ## 版本与源码路径索引
 

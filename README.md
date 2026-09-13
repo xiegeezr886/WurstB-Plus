@@ -4,12 +4,14 @@
 
 # WurstB+ Plus
 
-WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **64 个独立 Gradle 构建工程**，分为两类：
+WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **61 个独立 Gradle 构建工程**，分为两类：
 
 - **15 个已发布工程**：Minecraft 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2 × Forge / NeoForge / Fabric，各自已有 `build/libs/` 产物；
-- **49 个在研移植工程**：MC 1.20.2–1.20.6、1.21–1.21.10、26.1、26.1.1 的加载器脚手架（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric），按组推进编译，见[多版本平行移植（在研）](#多版本平行移植在研)。
+- **46 个新版本工程**：MC 1.20.2–1.20.6、1.21–1.21.10、26.1、26.1.1 的加载器工程（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）。截至最近一轮，**这 46 个工程的 `compileJava` 全部通过**（有测试源码的工程 `compileTestJava` 也通过），但**尚无 `build/libs/` 发布产物、无启动验证**，见[多版本平行移植](#多版本平行移植)。
 
-详细文件索引见 [PROJECT_INDEX.md](PROJECT_INDEX.md)，版本变更见 [CHANGELOG.md](CHANGELOG.md)，移植计划见 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
+> 计数口径：**61 个工程目录** = `versions/` 19（Forge）+ `fabric/versions/` 21 + `neoforge/versions/` 21。加上 3 个 1.20.1 根工程（根目录 Forge、`neoforge/`、`fabric/`）合计 **64 个独立 Gradle 构建**，与「多加载器目录」一节的 64 一致。
+
+详细文件索引见 [PROJECT_INDEX.md](PROJECT_INDEX.md)，版本变更见 [CHANGELOG.md](CHANGELOG.md)，移植计划与逐版本状态见 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
 
 > **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
 > 其余 **63 个工程均为 v1.5.0 形态**，v1.6 子系统尚未移植，见「v1.6 新增子系统」。
@@ -36,7 +38,7 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 
 > 26.2 为最新的 **v1.5 形态**适配版本。6 个 1.21.11/26.2 工程的最终状态见 [PORTING_TASK.md](PORTING_TASK.md)。
 > **v1.6 新子系统目前只在根目录 Forge 1.20.1 工程中实现**，见「v1.6 新增子系统」。
-> 上表以外的 49 个新版本工程仍在移植中，它们没有 `build/libs/` 产物，状态见[多版本平行移植（在研）](#多版本平行移植在研)。
+> 上表以外的 46 个新版本工程**编译已全部通过**，但都还没有 `build/libs/` 产物，状态见[多版本平行移植](#多版本平行移植)。
 
 ### Baritone 依赖兼容性
 
@@ -47,7 +49,9 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 - Forge、NeoForge 和 Fabric 26.2 均内嵌经过 26.2 渲染 API 兼容补丁的 Baritone 1.18.0-26.2。
 - Fabric 1.20.1 内嵌官方 `baritone-api-fabric-1.10.3`，仅匹配 MC 1.20-1.20.1。
 - Fabric 1.21.1 内嵌 `baritone-api-fabric-1.11.2`，仅匹配 MC 1.21-1.21.1。
-- 在研工程沿用各自源码基线的 Baritone 依赖。Forge 1.21 与 1.21.1 已在 `build.gradle` 中启用 `flatDir { dirs "libs" }`，由工程内的 `libs/baritone-api-forge-1.21.1.jar` 提供依赖，避开 ForgeGradle 重映射仓库解析失败的问题。
+- 新版本工程沿用各自源码基线的 Baritone 依赖。Forge 1.21 与 1.21.1 已在 `build.gradle` 中启用 `flatDir { dirs "libs" }`，由工程内的 `libs/baritone-api-forge-1.21.1.jar` 提供依赖，避开 ForgeGradle 重映射仓库解析失败的问题。
+
+> **注意**：`baritone-maven/` 在 `.gitignore` 中，不随仓库分发。Fabric 26.2 依赖的 `baritone-api-fabric-1.18.0-26.2.jar` 曾因 `META-INF/MANIFEST.MF` 把 `MixinConfigs` 放到空行之后而非法，导致 javac 对每个 `net.minecraft.*` 导入报 `invalid manifest format`（101 个假错误）。本地已重打包修复；克隆仓库后如遇同样报错，需按 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) 的说明重建该 jar。
 
 > 注意：为避免 JPMS 模块读取错误（`baritone.api.forge does not read module minecraft`），NeoForge 1.21.1、Forge/NeoForge 26.1.2 的发布包已将 Baritone 类直接合并进 WurstB+ Plus 主模块（类归属 `wurstpenguin` 模块，可访问 `minecraft` 模块）；Forge 1.20.1/1.21.1 仍以 Jar-in-Jar 形式打包。Fabric 版本不受 JPMS 模块读取限制，仍按各自版本内嵌 Baritone JAR。
 
@@ -66,7 +70,7 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组 ID | `wurstpenguin` |
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
-| 构建状态 | 15 个工程各自输出 `build/libs/` 产物；根目录 **v1.6.0** 已通过 `compileJava` + `test` 验证，其余 14 个工程为 **v1.5.0** 既有产物；另有 49 个在研移植工程（详见 [PORTING_TASK.md](PORTING_TASK.md) 与 [PROJECT_INDEX.md](PROJECT_INDEX.md)） |
+| 构建状态 | 15 个工程各自输出 `build/libs/` 产物；根目录 **v1.6.0** 已通过 `compileJava` + `test` 验证，其余 14 个工程为 **v1.5.0** 既有产物；另有 46 个新版本工程 `compileJava` 全部通过、但无发布产物（详见 [PORTING_TASK.md](PORTING_TASK.md) 与 [PROJECT_INDEX.md](PROJECT_INDEX.md)） |
 | 注册 Hack | 210 个（根工程 v1.6.0；`hacks/` 目录含内部辅助类共 252 个 Java 文件） |
 | 注册命令 | 56 |
 | Other Feature | 17 |
@@ -80,7 +84,7 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 
 64 个工程全部含完整的 `gradle-wrapper.jar`（43,764 bytes，含 `Main-Class: org.gradle.wrapper.GradleWrapperMain`）。
 四种发行版（8.11 / 8.14.4 / 9.4.1 / 9.6.0）可用 `scripts/seed-gradle-wrapper.ps1` 从工作区 `tools/` 播种到 `~/.gradle/wrapper/dists/`，因此 `gradlew.bat` 在离线环境下可直接解析发行版，无需联网下载。
-`scripts/doctor.ps1` 检查 JDK、wrapper 发行版和 v1.6 基准测试是否齐全；它依据 `scripts/common.ps1` 的工程表工作，目前只覆盖已发布的 15 个工程，新版本在研工程需手工指定 JDK。根工程单测用：
+`scripts/doctor.ps1` 检查 JDK、wrapper 发行版和 v1.6 基准测试是否齐全；它依据 `scripts/common.ps1` 的工程表工作，目前只覆盖已发布的 15 个工程，新版本工程需手工指定 JDK。根工程单测用：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
@@ -88,7 +92,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 
 ## v1.6 新增子系统
 
-以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 63 个工程（已发布的 14 个平台工程 + 在研的 49 个新版本工程）均未移植。
+以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 63 个工程（已发布的 14 个平台工程 + 46 个新版本工程）均未移植。
 
 ### 源码包（152 个 Java 文件）
 
@@ -564,58 +568,64 @@ powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 `
 
 Forge 1.21.11/26.2 使用 `allJar`，NeoForge 与 Fabric 使用 `build`。所有六个最终 JAR 均包含 Wurst 核心类和独立的内嵌 Baritone JAR，不需要额外安装 Baritone。
 
-## 多版本平行移植（在研）
+## 多版本平行移植
 
-已发布矩阵之外，工作区为 **1.20.2 / 1.20.3 / 1.20.4 / 1.20.5 / 1.20.6 / 1.21 / 1.21.2 / 1.21.3 / 1.21.4 / 1.21.5 / 1.21.6 / 1.21.7 / 1.21.8 / 1.21.9 / 1.21.10 / 26.1 / 26.1.1** 建好了加载器工程，共 **49 个**（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）。计划与基线见 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)：只从最近的 v1.5 工程拷贝源码，再按目标 MC API 修编译，**不引入根工程的 v1.6 GUI/音乐/Skia 子系统**。
+已发布矩阵之外，工作区为 **1.20.2 / 1.20.3 / 1.20.4 / 1.20.5 / 1.20.6 / 1.21 / 1.21.2 / 1.21.3 / 1.21.4 / 1.21.5 / 1.21.6 / 1.21.7 / 1.21.8 / 1.21.9 / 1.21.10 / 26.1 / 26.1.1** 建好了加载器工程，共 **46 个**（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）。做法是只从最近的 v1.5 工程拷贝源码，再按目标 MC API 修编译，**不引入根工程的 v1.6 GUI/音乐/Skia 子系统**。
 
-### 分组与进度
+### 编译状态：46 / 46 通过
 
-进度统计口径：工程目录下存在 `build/classes/java/main` 类文件产物。
+最近一轮完整验收（61 个工程目录、`compileJava`，有测试源码的工程加跑 `compileTestJava`）：**0 失败**。验收方式为避免 `clean` 抹掉构建中间产物的增量编译；逐工程日志与 `BUILD SUCCESSFUL` 原文留存在本地 `tmp-recon/acceptance/`。
 
-| 组 | MC 版本 | 加载器 | 源码基线 | 工程数 | 产出类文件 |
-| --- | --- | --- | --- | ---: | ---: |
-| A | 1.20.2 / 1.20.3 / 1.20.4 | Forge、NeoForge、Fabric | 1.20.1 | 9 | 9 |
-| B | 1.20.5 / 1.20.6 | NeoForge、Fabric；Forge 仅 1.20.6 | 1.20.1 | 5 | 1（Fabric 1.20.5，仅部分类） |
-| C | 1.21 / 1.21.2 | Forge（无 1.21.2）、NeoForge、Fabric | 1.21.1 | 5 | 3 |
-| D | 1.21.3–1.21.10 | Forge、NeoForge、Fabric | 1.21.11 | 24 | 0 |
-| E | 26.1 / 26.1.1 | Forge、NeoForge、Fabric | 26.1.2 | 6 | 4 |
+| MC 版本 | Forge | NeoForge | Fabric |
+| --- | --- | --- | --- |
+| 1.20.2 / 1.20.3 / 1.20.4 | ✅ | ✅ | ✅ |
+| 1.20.5 | 无官方包 | ✅ | ✅ |
+| 1.20.6 | ✅ | ✅ | ✅ |
+| 1.21 | ✅ | ✅ | ✅ |
+| 1.21.1 | ✅ | ✅ | ✅ |
+| 1.21.2 | 无官方包 | ✅ | ✅ |
+| 1.21.3 / 1.21.4 | ✅ | ✅ | ✅ |
+| 1.21.5 | ✅ | ✅ | ✅ |
+| 1.21.6 / 1.21.7 / 1.21.8 | ✅ | ✅ | ✅ |
+| 1.21.9 / 1.21.10 | ✅ | ✅ | ✅ |
+| 26.1 / 26.1.1 | ✅ | ✅ | ✅ |
 
-合计 **17 / 49** 个在研工程至少完成过一次 `compileJava`。49 个工程目前**都没有 `build/libs/` 发布产物**，也没有做过游戏内运行验证；Forge 26.1 的 `compileJava` 已成功但构建目录随后被清理，因此不在计数内。
+产出的类文件数（`compileJava` 产物，不含依赖）：Forge 993–1065、Fabric 994–1053、NeoForge 1036–1052（NeoForge 1.20.x 的 `build/` 另含整套反编译 MC 的 class，故目录总数上万）。
 
-### 最近一次移植运行记录
+### 本轮完成的关键工程与做法
 
-| 工程 | 结果 | 备注 |
+| 工程 | 做法 | 结果 |
 | --- | --- | --- |
-| Forge 1.21 | 通过 | `compileJava` BUILD SUCCESSFUL（4m01s）；此前因 `mixinextras-forge:mapped_official_1.21` 等重映射依赖无法解析而失败，改成与 1.21.1 相同的 `flatDir libs` 本地依赖布局（放置 `versions/1.21/libs/baritone-api-forge-1.21.1.jar`）后通过 |
-| Forge 26.1 | 通过 | `compileJava` BUILD SUCCESSFUL（13m06s），其中 Minecraft Maven 预处理耗时 11m24s |
-| NeoForge 26.1.1 | 通过 | BUILD SUCCESSFUL（6m52s），NeoForm 重编译 6882 个 Minecraft 源文件 |
-| Fabric 1.20.2 / 1.20.3 / 1.20.4、Forge 1.20.2–1.20.4、NeoForge 1.20.2–1.20.4 | 通过 | 组 A 九个工程均已产出类文件 |
-| Forge 26.1.1 | 失败 | ForgeGradle 的 MinecraftMaven `download[26.1.1][server]` 阶段中断 |
-| Forge 1.20.3 / 1.20.4 | 早期失败，后重试通过 | ForgeGradle MCP `joined` 基座与 mapped forge artifact 未生成 |
-| Fabric 1.21.9 | 失败 | 100 个编译错误：`net.minecraft.client.renderer.rendertype` 包缺失、`Identifier` 改名、`net.minecraft.world.entity.animal.fish` 包移动 |
-| NeoForge 1.20.2 | 早期失败 | ModDevGradle 2.0.143 无法解析 `neoforge-moddev-bundle` 20.2.93 |
+| Forge 1.21.7 | 用 NeoForge 1.21.7 覆盖 + 从 Forge 1.21.6 还原 29 个 loader 文件 | 编译+测试通过，995 类 |
+| Forge 1.21.5 | 用 NeoForge 1.21.5 覆盖 + 从 Forge 1.21.4 还原 glue | 84 → 47 → 7 → 4 → 0 错 |
+| NeoForge 1.21.5 | 用 Fabric 1.21.5 覆盖 + 还原 NeoForge glue | 135 → 28 → 0 错，135 用例全绿 |
+| Forge 1.21.4 / 1.21.3 | 用 Fabric 1.21.4 覆盖 + 手写 Forge mixin，改正 `ClientInput.tick` 签名差异 | 编译+测试通过 |
+| NeoForge 1.20.5 / 1.20.6 | 反向还原到 Fabric 1.20.6 + 改 Java 21 toolchain | 编译通过，994 类 |
+| Forge 1.20.6 | 以 Forge 1.20.4 源码为底补 1.20.5/1.20.6 API delta | 编译通过 |
 
-### 已知阻塞点
+### 移植要点（踩过的坑）
 
-- **加载器可用性**：Forge 1.20.5 与 Forge 1.21.2 没有官方版本，这两个 MC 版本只建 NeoForge 与 Fabric 工程。
-- **ForgeGradle 工具链**：1.20.3 / 1.20.4 / 26.1.1 的 MCP 与 Minecraft Maven 阶段会失败或极慢，需要能访问映射与资源下载；离线构建无法完成。
-- **ModDevGradle**：早期的 NeoForge 1.20.2 缺少可用的 `neoforge-moddev-bundle`。
-- **MC API 重命名**：1.21.9 起渲染类型包重构（`renderer.rendertype`、`RenderPipelines`）、`Identifier` 更名与实体包移动，是组 D 的主要工作量。
+1. **同 MC 版本的兄弟加载器可直接互相移植。** 同一 MC 版本下 Forge/NeoForge/Fabric 的源码树差别几乎只在 loader glue 上（Forge 1.21.6 与 1.21.7 只差 `mods.toml`；Forge 与 NeoForge 1.21.7 只差 3 个文件）。把已通过的同版本兄弟工程 `src/main` 整体覆盖、再还原 loader 专属文件，比手改 API 快一个数量级。
+2. **供体必须选对"代"。** 1.21.5 的 loader glue 若从 1.21.6/1.21.7 搬，会带进该代才有的 `GuiGraphicsExtractor`、`SubmitNodeStorage` 和 Forge 56 event bus，反而从 0 错变成 42 错。"同 MC 版本的另一个加载器" > "同加载器的邻近版本"。
+3. **1.20.5 / 1.20.6 的 API 贴近 1.20.4**（`Tesselator.getBuilder()` + `begin(mode,format)`、`BufferBuilder.RenderedBuffer`、`ResourceLocation.tryParse/tryBuild`、普通 `Enchantment`）。历史上这两个树被"过度移植"成 1.21 风格，需要反向还原。
+4. **1.20.5 / 1.20.6 必须用 JDK 21**，JDK 17 会在 `neoFormRecompile` 编译 MC 自身源码时死在 `List.getFirst()` / `List.reversed()` / `MatchException`。
+5. **Forge 侧访问私有成员优先用 accessor mixin**；FG7 的 `accesstransformer.cfg` 只在 `minecraft { accessTransformer = true }` 且 AT 使用 official（mojmap）名字时生效。
+6. **`AbstractSelectionList$Entry#render` 参数顺序是 `(GuiGraphics, index, Y, X, ...)`——Y 在 X 前**。历史上有一版树写反了，因为全是 `int` 所以 javac 无法发现，列表渲染整体错位。
+7. **`gradlew clean` 会删掉 Loom/NeoGradle 放在 `build/` 的中间产物**，离线重跑必失败；NeoForge 1.20.2–1.20.6 的 MC 产物没有本地缓存，必须联网跑。
 
-### 推进步骤
+### 尚未完成的部分
 
-1. 选定目标工程，按 `scripts/common.ps1` 的 JDK 规则手工设置 `JAVA_HOME`（1.20.x → 17，1.21.x → 21，26.1 → 25）；
-2. 在该工程目录执行 `gradlew.bat compileJava --console=plain`；
-3. 按报错修 Mixin 目标、映射名、渲染与网络 API，**不从根工程拷贝 v1.6 子系统**；
-4. 组内三加载器都 `BUILD SUCCESSFUL` 后再进入下一组，最后统一走 `scripts/build-all.ps1` 出包与 `scripts/run-version-tests.ps1` 启动验证。
+- 46 个工程**都没有 `build/libs/` 发布产物**，`scripts/build-all.ps1` / `run-version-tests.ps1` 的工程表仍只覆盖已发布的 15 个工程。
+- **没有任何游戏内运行验证**：未启动客户端、未做 Mixin 应用校验、未跑 `gradlew build`。已知的运行时债务（Mixin 目标描述符不匹配、部分 1.21.6–1.21.8 姓名牌渲染调整失效、1.21.5 的 `PostEffectQueue`/`LsdHack` 降级等）逐条记在 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) 的「剩余工作」。
+- v1.6 子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透）在这 46 个工程中均未移植。
 
-> 注意：`scripts/common.ps1` 的工程表与 `scripts/build-all.ps1` / `scripts/run-version-tests.ps1` 的过滤范围目前仍只覆盖已发布的 15 个工程，新版本工程需要手工执行 Gradle 任务。
+> `scripts/common.ps1` 的工程表与 `scripts/build-all.ps1` / `scripts/run-version-tests.ps1` 的过滤范围目前仍只覆盖已发布的 15 个工程，新版本工程需要手工执行 Gradle 任务。
 
 ## 批量构建与版本启动测试
 
 ### 一键构建 15 个发布产物
 
-`scripts/build-all.ps1` 依次构建 15 个已发布版本（5 个 MC 版本 × Forge/NeoForge/Fabric），每个工程的产物输出到各自的 `build/libs/`。在研的 49 个新版本工程不在脚本的工程表内，需手工执行 Gradle 任务。
+`scripts/build-all.ps1` 依次构建 15 个已发布版本（5 个 MC 版本 × Forge/NeoForge/Fabric），每个工程的产物输出到各自的 `build/libs/`。46 个新版本工程不在脚本的工程表内，需手工执行 Gradle 任务（它们目前只验证到 `compileJava`）。
 
 ```powershell
 # 全量构建
@@ -797,11 +807,11 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 
 任一结论都不代表所有战斗、移动、GUI 和 HUD 功能均已穷举测试。
 
-**在研矩阵（49 个工程）**
+**新版本矩阵（46 个工程）**
 
-- 17 / 49 个工程至少完成过一次 `compileJava`（组 A 全部 9 个、组 C 3 个、组 E 4 个、组 B 1 个部分完成），明细见[多版本平行移植（在研）](#多版本平行移植在研)
-- 组 D（1.21.3–1.21.10）尚未产生任何编译产物
-- 全部 49 个工程**无发布产物、无启动验证**，也未移植 v1.6 子系统
+- **46 / 46 个工程 `compileJava` 通过**；其中 34 个带测试源码的工程 `compileTestJava` 也通过，`neoforge/versions/1.21.5` 另跑通 JUnit（51 测试类 / 135 用例 / 0 失败）
+- 验收为增量编译（不加 `clean`）；NeoForge 1.20.2–1.20.6 需要联网完成 MC 产物解压/反编译，其余可用 `--offline`
+- 全部 46 个工程**无发布产物、无启动验证**，也未移植 v1.6 子系统；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)
 
 发布产物清单：
 
