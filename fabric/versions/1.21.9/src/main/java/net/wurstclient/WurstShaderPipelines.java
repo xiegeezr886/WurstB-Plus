@@ -15,7 +15,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public enum WurstShaderPipelines
 {
@@ -27,8 +27,8 @@ public enum WurstShaderPipelines
 	public static final Snippet FOGLESS_LINES_SNIPPET = RenderPipeline
 		.builder(RenderPipelines.MATRICES_FOG_SNIPPET,
 			RenderPipelines.GLOBALS_SNIPPET)
-		.withVertexShader(Identifier.parse("wurst:core/fogless_lines"))
-		.withFragmentShader(Identifier.parse("wurst:core/fogless_lines"))
+		.withVertexShader(ResourceLocation.parse("wurst:core/fogless_lines"))
+		.withFragmentShader(ResourceLocation.parse("wurst:core/fogless_lines"))
 		.withBlend(BlendFunction.TRANSLUCENT)
 		.withCull(false)
 		.withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH,
@@ -38,30 +38,30 @@ public enum WurstShaderPipelines
 	public static final RenderPipeline DEPTH_TEST_LINES =
 		register(RenderPipeline.builder(FOGLESS_LINES_SNIPPET)
 			.withLocation(
-				Identifier.parse("wurst:pipeline/wurst_depth_test_lines"))
+				ResourceLocation.parse("wurst:pipeline/wurst_depth_test_lines"))
 			.withDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST).build());
 	
 	public static final RenderPipeline ESP_LINES =
 		register(RenderPipeline.builder(FOGLESS_LINES_SNIPPET)
-			.withLocation(Identifier.parse("wurst:pipeline/wurst_esp_lines"))
+			.withLocation(ResourceLocation.parse("wurst:pipeline/wurst_esp_lines"))
 			.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
 			.withDepthWrite(false).build());
 	
 	public static final RenderPipeline QUADS = register(
 		RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
-			.withLocation(Identifier.parse("wurst:pipeline/wurst_quads"))
+			.withLocation(ResourceLocation.parse("wurst:pipeline/wurst_quads"))
 			.withDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST).build());
 	
 	public static final RenderPipeline ESP_QUADS = register(
 		RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
-			.withLocation(Identifier.parse("wurst:pipeline/wurst_esp_quads"))
+			.withLocation(ResourceLocation.parse("wurst:pipeline/wurst_esp_quads"))
 			.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
 			.withDepthWrite(false).build());
 	
 	public static final RenderPipeline ESP_QUADS_NO_CULLING = register(
 		RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
 			.withLocation(
-				Identifier.parse("wurst:pipeline/wurst_esp_quads_no_culling"))
+				ResourceLocation.parse("wurst:pipeline/wurst_esp_quads_no_culling"))
 			.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
 			.withDepthWrite(false).withCull(false).build());
 	

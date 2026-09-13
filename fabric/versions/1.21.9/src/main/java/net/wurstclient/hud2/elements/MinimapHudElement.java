@@ -8,13 +8,13 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ambient.AmbientCreature;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.fish.WaterAnimal;
+import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -41,7 +41,7 @@ public final class MinimapHudElement extends HudElement
 
 	private final MinimapTerrainCache terrain = new MinimapTerrainCache();
 	private DynamicTexture texture;
-	private Identifier textureLocation;
+	private ResourceLocation textureLocation;
 	private int centerX = Integer.MIN_VALUE;
 	private int centerZ = Integer.MIN_VALUE;
 	private int tickCounter;
@@ -181,7 +181,7 @@ public final class MinimapHudElement extends HudElement
 			return;
 		texture = new DynamicTexture(() -> "wurstb_minimap",
 			MAP_SIZE, MAP_SIZE, true);
-		textureLocation = Identifier.fromNamespaceAndPath("wurst",
+		textureLocation = ResourceLocation.fromNamespaceAndPath("wurst",
 			"wurstb_minimap");
 		WurstClient.MC.getTextureManager().register(textureLocation, texture);
 	}

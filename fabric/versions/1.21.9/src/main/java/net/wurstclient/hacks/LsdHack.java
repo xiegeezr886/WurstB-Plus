@@ -7,7 +7,7 @@
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.wurstclient.Category;
 import net.wurstclient.hack.DontSaveState;
@@ -16,7 +16,7 @@ import net.wurstclient.hack.Hack;
 @DontSaveState
 public final class LsdHack extends Hack
 {
-	private static final Identifier EFFECT = Identifier.tryBuild(
+	private static final ResourceLocation EFFECT = ResourceLocation.tryBuild(
 		"wurst", "shaders/post/lsd_wobble.json");
 
 	public LsdHack()
