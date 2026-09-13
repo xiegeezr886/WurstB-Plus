@@ -80,8 +80,13 @@ SuperSoft 体系，与这里的暗色面板是两套，互不影响。
   这是从 Rise 模式**切回来的入口**。
 
 `NavigatorScreen`（Rise 6.1.30 移植）里原本自带的「Rise 模式:开/关」开关**已移除**，
-那一页现在只显示当前状态与开关去处。`PvPUtilsNavigatorScreen`（968 行）**保留文件但已无
-任何入口**，与旧的 `NeteaseMusicScreen` 处理方式一致。
+那一页现在只显示当前状态与开关去处。
+
+`PvPUtilsNavigatorScreen`（968 行）与 `PvPUtilsTheme` 已**整体删除**：前者先失去入口，
+随后连浅色主题一起清掉，`RiseColors` 的 `light()` 分支与 `RiseSidebarCategory` 的
+`riseMode` 参数也一并去掉（Rise 界面里那些浅色分支永远不会执行，是死代码）。
+`render/skia/*` 与 `clickgui2/music/*` 里提到 PVPUtils 的地方是**渲染管线与音乐 GUI 的
+移植出处注释**，与导航器布局无关，保留。
 
 ## 7. 验证状态（诚实声明）
 

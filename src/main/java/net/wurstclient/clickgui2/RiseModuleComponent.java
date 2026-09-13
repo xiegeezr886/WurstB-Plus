@@ -69,8 +69,7 @@ final class RiseModuleComponent
 			RiseColors.OVERLAY.argb());
 		if(hoverAlpha > 0)
 			FlatUiRenderer.fill(graphics, x, y, x + width, y + renderedHeight,
-				6, RiseColors.isRiseMode() ? hoverAlpha << 24
-					: hoverAlpha << 24 | PvPUtilsTheme.HOVER_PILL & 0xFFFFFF);
+				6, hoverAlpha << 24);
 
 		Font font = Minecraft.getInstance().font;
 		String category = searchResult && feature.getCategory() != null
@@ -85,14 +84,13 @@ final class RiseModuleComponent
 		if(!category.isEmpty())
 			drawText(graphics, font, category,
 				x + 10 + Math.round(RiseFont.width(font, name) * NAME_SCALE),
-				y + 10, RiseColors.isRiseMode() ? 0x40FFFFFF : 0xAA888888,
+				y + 10, 0x40FFFFFF,
 				DESCRIPTION_SCALE);
 		drawText(graphics, font, name, x + 6, y + 8,
-			feature.isEnabled() ? accent : RiseColors.isRiseMode()
-				? 0xC8FFFFFF : 0xFF9A9A9A,
+			feature.isEnabled() ? accent : 0xC8FFFFFF,
 			NAME_SCALE);
 		drawText(graphics, font, description, x + 6, y + 25,
-			RiseColors.isRiseMode() ? 0x46FFFFFF : PvPUtilsTheme.TEXT_MUTED,
+			0x46FFFFFF,
 			DESCRIPTION_SCALE);
 
 		int settingsHeight = Math.max(0, renderedHeight - HEIGHT);
