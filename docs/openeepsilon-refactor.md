@@ -42,6 +42,9 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 - ❌ **不要给 `CombatTargetUtils.Priority` 加一个「在比较器里现算 score」的分支**。该类的 `getComparator()` 是在比较器内部调用 `getScore()` 的（`CombatTargetUtils.java:179-180`），排序期间会被调用 **O(n log n)** 次；现有四个键（distance / angle / health / hurtTime）都廉价所以没问题，但 `armorF` 要做护甲结算、`holeF` 要查四个相邻方块，放进比较器会成倍放大开销。
 - ✅ 正确做法：在**取候选列表时**给每个候选算一次 `TargetScore.Inputs`，再用 `TargetScore.rank(candidates, weights)`（已提供，5 个单测覆盖排序/换位/同分稳定/空表/权重跟随）拿排好的下标。
 - 顺带一提，`armorF` 可以用第 1 轮加的 `DamageUtils.profileOf()` 缓存来算"20 点标称伤害实收多少"，**不需要**跑暴露度光线投射，所以五个因子全都可以廉价地每人算一次。
+- ✅ **入口已经实现**：`CombatTargetUtils.getListByScore(range, fov, aimPoint, filters, checkLOS, maxCount, weights)`——先按距离拿候选，再给每个候选算一次 `Inputs`，最后 `TargetScore.rank` 排序。**没有改动 `getList` 与任何默认行为**；要用打分排序的 hack 自行改调这个入口。
+- ⚠️ **一处刻意的近似**：`holeF` 的"暴露面"参考判的是邻向**抗不抗爆**，本工程用"空气或碰撞箱为空"代替（`countExposedSides`），因为 1.20.1 取爆炸抗性要构造 `Explosion` 上下文。所以洞因子在"水/树叶"这类不抗爆但有碰撞箱的方块上会算得比参考保守。
+- ⚠️ **仍未接线**：目前没有任何 hack 调用 `getListByScore`，所以**行为仍未改变**。下一步是让 KillAura / MultiAura / CrystalAura / AnchorAura / AutoTrap 改调它，那会真正改变实战选人，需要实机验证手感。
 
 | 移动数学 | 待办 | 参考 `MovementUtils.kt` 对比本工程 `MovementPlanner.java`(87)；注意 1.13+ 游泳/1.14+ 跳跃差异，参数不能照抄 |
 

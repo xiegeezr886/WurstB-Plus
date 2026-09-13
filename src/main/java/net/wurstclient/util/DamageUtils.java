@@ -109,6 +109,26 @@ public enum DamageUtils
 				entity.getMaxHealth(), entity.getAbsorptionAmount());
 	}
 	
+	/**
+	 * 对目标来一次「标称」爆炸后实际吃到的伤害：不跑暴露度光线投射，只算护甲、
+	 * 保护附魔与抗性。用来给目标打分（甲越薄数值越高）。
+	 *
+	 * <p>
+	 * 走 {@link #profileOf} 的每实体缓存，所以可以在打分时对每个候选算一次，
+	 * 而不是放进排序比较器里反复算。
+	 */
+	public static float nominalExplosionDamage(LivingEntity entity,
+		float rawDamage)
+	{
+		if(entity == null || rawDamage <= 0F)
+			return 0F;
+		
+		DamageProfile profile = profileOf(entity);
+		float afterAbsorb = CombatRules.getDamageAfterAbsorb(rawDamage,
+			profile.armorValue(), profile.toughness());
+		return Math.max(0F, profile.apply(afterAbsorb, true));
+	}
+	
 	public static float calculateDamage(Vec3 explosionPos, LivingEntity entity)
 	{
 		return calculateDamage(explosionPos, entity, 6);
