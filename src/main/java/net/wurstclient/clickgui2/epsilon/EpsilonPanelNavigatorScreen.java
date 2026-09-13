@@ -77,6 +77,12 @@ public final class EpsilonPanelNavigatorScreen extends Screen
 	/** 字号换算：参考项目的 scale 是相对值，这里按 scale*18 得到像素高。 */
 	private static final float TEXT_BASE = 18.0F;
 	
+	/**
+	 * 阴影层数。每层都是整块面板面积的重绘，所以刻意压到 6 层，
+	 * 与参考项目的高斯阴影渲染器不是一个量级。
+	 */
+	private static final int SHADOW_LAYERS = 6;
+	
 	private static final Object RAIL_KEY = new Object();
 	private static final String ROW_HOVER_PREFIX = "row:";
 	private static final String SETTING_HOVER_PREFIX = "set:";
@@ -259,7 +265,7 @@ public final class EpsilonPanelNavigatorScreen extends Screen
 		
 		Layout layout = frame;
 		drawShadow(graphics, layout.panel(),
-			EpsilonPanelTheme.PANEL_RADIUS, 24);
+			EpsilonPanelTheme.PANEL_RADIUS, SHADOW_LAYERS);
 		rrect(graphics, layout.panel(), EpsilonPanelTheme.PANEL_RADIUS,
 			EpsilonPanelTheme.SURFACE);
 		rrect(graphics, layout.rail(), EpsilonPanelTheme.SECTION_RADIUS,
@@ -906,6 +912,10 @@ public final class EpsilonPanelNavigatorScreen extends Screen
 			EpsilonPanelTheme.scrollThumb(hover));
 	}
 	
+	/**
+	 * 面板阴影。参考项目有真正的高斯阴影渲染器，这里只用几层放大的半透明
+	 * 圆角矩形近似——层数刻意压得很低，因为每层都是整块面板面积的重绘。
+	 */
 	private void drawShadow(GuiGraphics graphics, Rect rect, int radius,
 		int spread)
 	{
@@ -1312,6 +1322,8 @@ public final class EpsilonPanelNavigatorScreen extends Screen
 				if(toggle != null && toggle.contains(mouseX, mouseY))
 				{
 					checkbox.setChecked(!checkbox.isChecked());
+					// 其它设置可能用 visibleWhen 依赖这一项，重建一次列表
+					rebuildSettings();
 					return true;
 				}
 				
@@ -1322,6 +1334,7 @@ public final class EpsilonPanelNavigatorScreen extends Screen
 				if(chip != null && chip.contains(mouseX, mouseY))
 				{
 					enumSetting.selectNext();
+					rebuildSettings();
 					return true;
 				}
 			}
