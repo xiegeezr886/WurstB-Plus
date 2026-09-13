@@ -54,7 +54,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | ④ TpsCalculator + 点击计时对齐 TPS | **已有等价实现** | `hud2/ClientMetricsManager`：由 `PacketInputEvent`（服务端 tick 同步包）驱动，`SMOOTHING = 0.2` 的 EMA、`DEFAULT_TPS = 20`、夹在 `[0,20]`、换世界重置。参考是 20 槽环形缓冲 + 剔除 0 值求均值，两者目的相同，EMA 更省内存 |
 | ⑤ DamageReduction 快照 | **已完成** | 见 §0.1；「伤害图增量重算」那半条待核对（本工程可能没有 CombatManager 那种 27³ 全量扫描，若无则**不适用**） |
 | ② `PlayerPacketManager` 单槽包合并 + priority 仲裁 | **不适用（本工程已是这个设计）** | `util/RotationQueue.java`：所有队列注册进静态 `ACTIVE`(28)，`RotationDispatcher.onPreMotion()`(224) 每 tick 按 `priority.weight` 比较选**唯一**赢家(236-243)，然后**只调一次** `RotationFaker.setRotationPacket(next)`(248)。每 tick 至多一个朝向包 + 优先级仲裁，正是参考 `PlayerPacketManager` 的做法，**无需移植** |
-| ③ 背包 Task/Step/Future 队列 | **部分等价，待读 `ActionChain` 定论** | `util/inventory/InventoryActionQueue.java` 已有：`ArrayList<ActionChain>`(15) 链式动作、`submit(owner, priority, …)`(42)、`hasPending(owner)`(55)、`cancel(owner)`(60)、按 tick 推进的 `onUpdate()`(71)。**但里面 grep 不到 confirm / transaction / future / timeout 任何字样**，所以「点击之后是否等确认再走下一步」无法判定；下一轮读 `ActionChain` 才能下结论。若它已有确认机制则同属**不适用** |
+| ③ 背包 Task/Step/Future 队列 | **部分等价；真缺口 = 「执行后的确认与步进」** | 已有：优先级 + 序号仲裁（`selectNext()` 90-99，同优先级先到先服务）、**容器菜单 id 事务守卫**（提交时记 `menuId` 49，执行前比对 82）、`validator` 前置门（83）、每 tick 只跑一条链（71-88）、每个 owner 只允许一条（45）、换世界清空（101-105）。**缺**：① **执行后的确认 / 重试**——`onUpdate` 是**先移除链(78)再校验(81-84)**，所以 validator 一旦失败或菜单变了，这条链就**被静默丢弃、不会重试**，owner 也拿不到任何回调；② 链内所有动作在**同一 tick 一次性跑完**(86-87)，没有步进间隔；③ 没有 TPS 缩放。参考的「点击序列 + 事务确认 + TPS 缩放步进」补的正是这三点 |
 
 **小结：参考优先榜 5 项里，① 等价、② 不适用、④ 已有、⑤ 本工程已完成，只剩 ③ 需要再读一个类定论。**
 也就是说**共享核心层面几乎不需要再移植**，后面的工作量应该转向「逐个常用 hack 的旧实现」。
