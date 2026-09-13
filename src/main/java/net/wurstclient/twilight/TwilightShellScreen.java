@@ -200,6 +200,15 @@ public final class TwilightShellScreen extends Screen
 	private int qrCooldown;
 	private boolean qrBusy;
 	
+	/**
+	 * Playlist detail page, the view the reference opens when a card is
+	 * clicked instead of playing it straight away. Null means "no detail page",
+	 * and the track list reuses the same row renderer as the other pages.
+	 */
+	private NeteasePlaylist openedPlaylist;
+	private List<NeteaseSong> openedTracks;
+	private String openedStatus;
+	
 	public TwilightShellScreen()
 	{
 		this(null);
@@ -435,12 +444,18 @@ public final class TwilightShellScreen extends Screen
 	
 	private String pageTitle()
 	{
+		if(openedPlaylist != null)
+			return openedPlaylist.name();
+		
 		int index = Math.max(0, Math.min(NAV_LABELS.length - 1, activeNav));
 		return NAV_LABELS[index];
 	}
 	
 	private String pageSubtitle()
 	{
+		if(openedPlaylist != null)
+			return openedSubtitle();
+		
 		if(pageStatus != null)
 			return pageStatus;
 		
@@ -479,7 +494,8 @@ public final class TwilightShellScreen extends Screen
 		if(homeSongs != null && hoverChart >= homeSongs.size())
 			hoverChart = -1;
 		
-		pageRows = TwilightListLayout.listRows(frame, frame.contentBody, 12);
+		pageRows = TwilightListLayout.listRows(frame,
+			openedPlaylist == null ? frame.contentBody : detailListArea(), 12);
 		playlistCards = playlistGrid();
 		
 		List<NeteaseSong> pageList =
@@ -490,7 +506,8 @@ public final class TwilightShellScreen extends Screen
 		if(pageList != null && hoverPageRow >= pageList.size())
 			hoverPageRow = -1;
 		
-		hoverPlaylist = activeNav == 1 ? playlistAt(mouseX, mouseY) : -1;
+		hoverPlaylist = activeNav == 1 && openedPlaylist == null
+			? playlistAt(mouseX, mouseY) : -1;
 		
 		if(immersive)
 		{
@@ -972,6 +989,9 @@ public final class TwilightShellScreen extends Screen
 	/** The songs a list page shows; the queue page reads them live. */
 	private List<NeteaseSong> pageSongs()
 	{
+		if(openedPlaylist != null)
+			return openedTracks;
+		
 		if(searchMode)
 			return searchResults;
 		
@@ -1021,25 +1041,118 @@ public final class TwilightShellScreen extends Screen
 	}
 	
 	/**
-	 * Loads a playlist and starts it from the top. The reference opens a detail
-	 * page first; here the queue is the detail view, so a click plays it.
+	 * Opens the detail page for a playlist. The reference shows the tracks with
+	 * a "play all" button instead of starting playback on a card click, so this
+	 * no longer plays anything by itself.
 	 */
 	private void openPlaylist(NeteasePlaylist playlist)
 	{
-		pageStatus = "正在加载《" + playlist.name() + "》…";
+		openedPlaylist = playlist;
+		openedTracks = List.of();
+		openedStatus = "正在加载《" + playlist.name() + "》…";
+		scrollRows = 0;
+		hoverPageRow = -1;
 		
 		load(() -> service.playlistTracks(playlist.id(), 100),
 			() -> PLAYER.loadPlaylist(playlist), songs -> {
-				if(songs.isEmpty())
-				{
-					pageStatus = "歌单加载失败";
+				// 期间可能已经返回或换了别的歌单
+				if(!playlist.equals(openedPlaylist))
 					return;
-				}
 				
-				pageStatus = "正在播放《" + playlist.name() + "》"
-					+ sourceTag();
-				PLAYER.play(songs, 0);
+				openedTracks = songs;
+				openedStatus = songs.isEmpty() ? "歌单加载失败" : null;
 			});
+	}
+	
+	private void closePlaylistDetail()
+	{
+		openedPlaylist = null;
+		openedTracks = null;
+		openedStatus = null;
+		scrollRows = 0;
+		hoverPageRow = -1;
+	}
+	
+	/** "播放全部" on the detail page. */
+	private void playOpenedPlaylist()
+	{
+		if(openedPlaylist == null || openedTracks == null
+			|| openedTracks.isEmpty())
+			return;
+		
+		PLAYER.play(openedTracks, 0);
+		statusLine = "正在播放《" + openedPlaylist.name() + "》";
+	}
+	
+	private String openedSubtitle()
+	{
+		if(openedStatus != null)
+			return openedStatus;
+		
+		return "共 " + (openedTracks == null ? 0 : openedTracks.size()) + " 首"
+			+ sourceTag();
+	}
+	
+	/** The body rect below the detail header, so rows never overlap it. */
+	private Rect detailListArea()
+	{
+		Rect body = frame.contentBody;
+		int header = (int)frame.px(96);
+		return new Rect(body.x(), body.y() + header, body.width(),
+			Math.max(1, body.height() - header));
+	}
+	
+	private Rect detailBackButton()
+	{
+		Rect area = frame.contentBody;
+		return new Rect(area.right() - (int)frame.px(64),
+			area.y() + (int)frame.px(28), (int)frame.px(64),
+			(int)frame.px(34));
+	}
+	
+	private Rect detailPlayButton()
+	{
+		Rect back = detailBackButton();
+		int width = (int)frame.px(104);
+		return new Rect(back.x() - (int)frame.px(10) - width, back.y(), width,
+			back.height());
+	}
+	
+	/**
+	 * The playlist detail header: cover, name, track count and the two actions.
+	 * The tracks under it are drawn by the shared list branch of
+	 * {@link #drawPage}.
+	 */
+	private void drawPlaylistDetail(int accent, int text, int muted, Rect area)
+	{
+		NeteasePlaylist playlist = openedPlaylist;
+		float coverSize = frame.px(72);
+		float coverX = area.x();
+		float coverY = area.y() + frame.px(6);
+		float labelX = coverX + coverSize + frame.px(14);
+		
+		TwilightSkia.fillRoundRect(coverX, coverY, coverSize, coverSize,
+			frame.px(14), TwilightTheme.withAlpha(accent, 0.35F));
+		TwilightSkia.text(playlist.name(), labelX, coverY + frame.px(4),
+			frame.px(20), TwilightSkia.Weight.SEMIBOLD, text);
+		TwilightSkia.text(openedSubtitle(), labelX, coverY + frame.px(32),
+			frame.px(12), TwilightSkia.Weight.REGULAR, muted);
+		
+		Rect play = detailPlayButton();
+		TwilightSkia.fillRoundRect(play.x(), play.y(), play.width(),
+			play.height(), 999F, accent);
+		TwilightSkia.textCentered("播放全部", play.centerX(),
+			play.y() + (play.height() - TwilightSkia.textHeight(frame.px(12),
+				TwilightSkia.Weight.SEMIBOLD)) / 2F,
+			frame.px(12), TwilightSkia.Weight.SEMIBOLD, 0xFFFFFFFF);
+		
+		Rect back = detailBackButton();
+		TwilightSkia.strokeRoundRect(back.x(), back.y(), back.width(),
+			back.height(), 999F, 1F, TwilightTheme.withAlpha(text, 0.18F));
+		TwilightSkia.textCentered("返回", back.centerX(),
+			back.y() + (back.height() - TwilightSkia.textHeight(frame.px(12),
+				TwilightSkia.Weight.REGULAR)) / 2F,
+			frame.px(12), TwilightSkia.Weight.REGULAR, muted);
 	}
 	
 	/**
@@ -1054,7 +1167,9 @@ public final class TwilightShellScreen extends Screen
 		TwilightSkia.fillRect(area.x(), area.y() - frame.px(10), area.width(),
 			1F, line);
 		
-		if(activeNav == 1)
+		if(openedPlaylist != null)
+			drawPlaylistDetail(accent, text, muted, area);
+		else if(activeNav == 1)
 		{
 			drawPlaylists(accent, text, muted, area);
 			return;
@@ -1072,9 +1187,12 @@ public final class TwilightShellScreen extends Screen
 		
 		if(songs == null || songs.isEmpty())
 		{
-			TwilightSkia.text(activeNav == 3 ? "当前没有播放队列"
-				: pageStatusText("音乐库为空"), area.x(), area.y() + frame.px(8),
-				frame.px(12), TwilightSkia.Weight.REGULAR, muted);
+			TwilightSkia.text(openedPlaylist != null
+				? pageStatusText("歌单为空")
+				: activeNav == 3 ? "当前没有播放队列"
+					: pageStatusText("音乐库为空"),
+				area.x(), area.y() + frame.px(8), frame.px(12),
+				TwilightSkia.Weight.REGULAR, muted);
 			return;
 		}
 		
@@ -2133,6 +2251,10 @@ public final class TwilightShellScreen extends Screen
 		if(index >= 0)
 		{
 			activeNav = index;
+			
+			if(openedPlaylist != null)
+				closePlaylistDetail();
+			
 			ensurePage();
 			scrollRows = 0;
 			hoverChart = -1;
@@ -2161,6 +2283,21 @@ public final class TwilightShellScreen extends Screen
 		{
 			immersive = true;
 			return true;
+		}
+		
+		if(openedPlaylist != null)
+		{
+			if(detailPlayButton().contains(mouseX, mouseY))
+			{
+				playOpenedPlaylist();
+				return true;
+			}
+			
+			if(detailBackButton().contains(mouseX, mouseY))
+			{
+				closePlaylistDetail();
+				return true;
+			}
 		}
 		
 		if(activeNav == 1 && hoverPlaylist >= 0 && playlists != null
@@ -2263,6 +2400,12 @@ public final class TwilightShellScreen extends Screen
 			if(immersive)
 			{
 				immersive = false;
+				return true;
+			}
+			
+			if(openedPlaylist != null)
+			{
+				closePlaylistDetail();
 				return true;
 			}
 			
