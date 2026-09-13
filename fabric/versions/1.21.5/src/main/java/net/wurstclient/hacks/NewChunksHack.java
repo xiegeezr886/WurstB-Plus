@@ -189,7 +189,7 @@ public final class NewChunksHack extends Hack
 			return;
 		
 		int minX = chunkPos.getMinBlockX();
-		int minY = chunk.getMinBuildHeight();
+		int minY = chunk.getMinY();
 		int minZ = chunkPos.getMinBlockZ();
 		int maxX = chunkPos.getMaxBlockX();
 		int maxY = ChunkUtils.getHighestNonEmptySectionYOffset(chunk) + 16;

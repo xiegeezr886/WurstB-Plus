@@ -18,13 +18,13 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.platform.cursor.CursorType;
 import com.mojang.blaze3d.textures.GpuTextureView;
-import com.mojang.blaze3d.textures.GpuTextureView;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.gui.render.state.GuiRenderState;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
@@ -136,13 +136,23 @@ public final class GuiGraphicsExtractor
 	
 	public void outline(int x1, int y1, int x2, int y2, int color)
 	{
-		inner.renderOutline(x1, y1, x2, y2, color);
+		// 1.21.9's GuiGraphics has no renderOutline(); draw the four border
+		// strips instead.
+		inner.fill(x1, y1, x2, y1 + 1, color);
+		inner.fill(x1, y2 - 1, x2, y2, color);
+		inner.fill(x1, y1 + 1, x1 + 1, y2 - 1, color);
+		inner.fill(x2 - 1, y1 + 1, x2, y2 - 1, color);
 	}
 	
 	public void textHighlight(int x, int y, int width, int height,
 		boolean focus)
 	{
-		inner.textHighlight(x, y, width, height, focus);
+		// 1.21.9's textHighlight() has no focus flag; focus only adds the
+		// inverted underline, which we draw manually.
+		inner.textHighlight(x, y, width, height);
+		if(focus)
+			inner.fill(RenderPipelines.GUI_TEXT_HIGHLIGHT, x, y + height - 1,
+				x + width, y + height, 0xFFFF0000);
 	}
 	
 	public void text(Font font, String text, int x, int y, int color)

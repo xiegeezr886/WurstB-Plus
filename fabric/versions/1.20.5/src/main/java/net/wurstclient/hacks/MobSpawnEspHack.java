@@ -184,9 +184,9 @@ public final class MobSpawnEspHack extends Hack
 		int color = MC.level.getBrightness(LightLayer.SKY, pos) < 8
 			? cachedDayColor : cachedNightColor;
 		
-		buffer.addVertex(x1, y, z1).setColor(color).setNormal(1, 0, 1);
-		buffer.addVertex(x2, y, z2).setColor(color).setNormal(1, 0, 1);
-		buffer.addVertex(x2, y, z1).setColor(color).setNormal(-1, 0, 1);
-		buffer.addVertex(x1, y, z2).setColor(color).setNormal(-1, 0, 1);
+		buffer.vertex(x1, y, z1).color(color).normal(1, 0, 1).endVertex();
+		buffer.vertex(x2, y, z2).color(color).normal(1, 0, 1).endVertex();
+		buffer.vertex(x2, y, z1).color(color).normal(-1, 0, 1).endVertex();
+		buffer.vertex(x1, y, z2).color(color).normal(-1, 0, 1).endVertex();
 	}
 }

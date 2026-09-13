@@ -275,7 +275,7 @@ public final class TargetHudElement extends HudElement
 		FlatRenderer.fillRoundedRect(graphics, x, y, x + size, y + size, 4,
 			withOpacity(FACE_FILL, opacity));
 		ResourceLocation skin = target instanceof AbstractClientPlayer player
-			? player.getSkinTextureLocation() : null;
+			? player.getSkin().texture() : null;
 		if(skin != null)
 		{
 			RenderSystem.setShaderColor(1, 1, 1, opacity);

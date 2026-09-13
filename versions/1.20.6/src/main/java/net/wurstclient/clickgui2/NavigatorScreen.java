@@ -481,29 +481,30 @@ public final class NavigatorScreen extends Screen
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double delta)
+	public boolean mouseScrolled(double mouseX, double mouseY, double deltaX,
+		double deltaY)
 	{
 		if(WURST.getGui().isMouseOverWindow(mouseX, mouseY))
 		{
-			WURST.getGui().handleMouseScroll(mouseX, mouseY, delta);
+			WURST.getGui().handleMouseScroll(mouseX, mouseY, deltaY);
 			return true;
 		}
 		if(settingsPanel != null
-			&& settingsPanel.mouseScrolled(mouseX, mouseY, delta))
+			&& settingsPanel.mouseScrolled(mouseX, mouseY, deltaY))
 			return true;
 
 		if(mouseX < panelX + sidebarWidth)
 		{
 			int visibleRows = Math.max(1,
 				(panelHeight - 51) / CATEGORY_HEIGHT);
-			categoryScroll = Mth.clamp(categoryScroll + (delta > 0 ? -1 : 1),
+				categoryScroll = Mth.clamp(categoryScroll + (deltaY > 0 ? -1 : 1),
 				0, Math.max(0, CATEGORY_NAMES.length - visibleRows));
 			return true;
 		}
 
 		int visibleRows = Math.max(1,
 			(panelHeight - 7 + MODULE_GAP) / (MODULE_HEIGHT + MODULE_GAP));
-		moduleScroll = Mth.clamp(moduleScroll + (delta > 0 ? -1 : 1), 0,
+			moduleScroll = Mth.clamp(moduleScroll + (deltaY > 0 ? -1 : 1), 0,
 			Math.max(0, visibleFeatures.size() - visibleRows));
 		return true;
 	}

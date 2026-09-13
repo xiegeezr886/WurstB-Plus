@@ -48,8 +48,8 @@ public final class ModifyCmd extends Command
 			throw new CmdSyntaxError();
 		
 		Inventory inventory = player.getInventory();
-		int slot = inventory.selected;
-		ItemStack stack = inventory.getSelected();
+		int slot = inventory.getSelectedSlot();
+		ItemStack stack = inventory.getSelectedItem();
 		
 		if(stack == null)
 			throw new CmdError("You must hold an item in your main hand.");
@@ -83,7 +83,7 @@ public final class ModifyCmd extends Command
 		
 		try
 		{
-			CompoundTag tag = TagParser.parseTag(nbt);
+			CompoundTag tag = TagParser.parseCompoundFully(nbt);
 			CustomData.update(DataComponents.CUSTOM_DATA, stack,
 				customData -> customData.merge(tag));
 			
@@ -101,7 +101,7 @@ public final class ModifyCmd extends Command
 		
 		try
 		{
-			CompoundTag tag = TagParser.parseTag(nbt);
+			CompoundTag tag = TagParser.parseCompoundFully(nbt);
 			stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 			
 		}catch(CommandSyntaxException e)
@@ -142,7 +142,7 @@ public final class ModifyCmd extends Command
 			if(!base.contains(part) || !(base.get(part) instanceof CompoundTag))
 				return null;
 			
-			base = base.getCompound(part);
+			base = base.getCompoundOrEmpty(part);
 		}
 		
 		if(!base.contains(parts[parts.length - 1]))

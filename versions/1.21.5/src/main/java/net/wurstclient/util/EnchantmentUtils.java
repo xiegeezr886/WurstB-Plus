@@ -7,7 +7,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -25,7 +25,7 @@ public enum EnchantmentUtils
 	}
 
 	public static Optional<Holder.Reference<Enchantment>> getHolder(
-		Identifier id)
+		ResourceLocation id)
 	{
 		Registry<Enchantment> registry = getRegistry();
 		return registry == null ? Optional.empty() : registry.get(id);
@@ -34,10 +34,7 @@ public enum EnchantmentUtils
 	public static Stream<Holder.Reference<Enchantment>> stream()
 	{
 		Registry<Enchantment> registry = getRegistry();
-		if(registry == null) return Stream.empty();
-		return registry.entrySet().stream()
-			.map(e -> registry.get(e.getKey()).orElse(null))
-			.filter(java.util.Objects::nonNull);
+		return registry == null ? Stream.empty() : registry.listElements();
 	}
 
 	public static int getLevel(ResourceKey<Enchantment> key, ItemStack stack)
@@ -54,7 +51,6 @@ public enum EnchantmentUtils
 			return null;
 
 		return WurstClient.MC.level.registryAccess()
-			.lookup(Registries.ENCHANTMENT)
-			.orElse(null);
+			.lookup(Registries.ENCHANTMENT).orElse(null);
 	}
 }

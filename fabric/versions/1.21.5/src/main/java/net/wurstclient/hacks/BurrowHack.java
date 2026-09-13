@@ -106,8 +106,8 @@ public final class BurrowHack extends Hack implements UpdateListener
 
 	private void doInstantBurrow(BlockPos pos, int slot)
 	{
-		int oldSlot = MC.player.getInventory().selected;
-		MC.player.getInventory().selected = slot;
+		int oldSlot = MC.player.getInventory().getSelectedSlot();
+		MC.player.getInventory().setSelectedSlot(slot);
 
 		Vec3 posVec = Vec3.atCenterOf(pos);
 
@@ -118,7 +118,7 @@ public final class BurrowHack extends Hack implements UpdateListener
 				continue;
 
 			Vec3 hitVec = Vec3.atCenterOf(neighbor)
-				.add(Vec3.atLowerCornerOf(side.getOpposite().getNormal()).scale(0.5));
+				.add(Vec3.atLowerCornerOf(side.getOpposite().getUnitVec3i()).scale(0.5));
 
 			RotationUtils.getNeededRotations(hitVec).sendPlayerLookPacket();
 			IMC.getInteractionManager().rightClickBlock(neighbor,
@@ -127,7 +127,7 @@ public final class BurrowHack extends Hack implements UpdateListener
 			break;
 		}
 
-		MC.player.getInventory().selected = oldSlot;
+		MC.player.getInventory().setSelectedSlot(oldSlot);
 
 		if(disableAfter.isChecked())
 			setEnabled(false);
@@ -143,12 +143,12 @@ public final class BurrowHack extends Hack implements UpdateListener
 			double z = MC.player.getZ();
 			MC.player.connection.send(
 				new ServerboundMovePlayerPacket.Pos(
-					x, MC.player.getY() + 0.42, z, true));
+					x, MC.player.getY() + 0.42, z, true, false));
 		}
 		else if(stage == 2)
 		{
-			int oldSlot = MC.player.getInventory().selected;
-			MC.player.getInventory().selected = slot;
+			int oldSlot = MC.player.getInventory().getSelectedSlot();
+			MC.player.getInventory().setSelectedSlot(slot);
 
 			for(Direction side : Direction.values())
 			{
@@ -157,7 +157,7 @@ public final class BurrowHack extends Hack implements UpdateListener
 					continue;
 
 				Vec3 hitVec = Vec3.atCenterOf(neighbor)
-					.add(Vec3.atLowerCornerOf(side.getOpposite().getNormal())
+					.add(Vec3.atLowerCornerOf(side.getOpposite().getUnitVec3i())
 						.scale(0.5));
 
 				RotationUtils.getNeededRotations(hitVec)
@@ -167,7 +167,7 @@ public final class BurrowHack extends Hack implements UpdateListener
 				break;
 			}
 
-			MC.player.getInventory().selected = oldSlot;
+			MC.player.getInventory().setSelectedSlot(oldSlot);
 		}
 		else if(stage >= 3)
 		{
@@ -186,8 +186,8 @@ public final class BurrowHack extends Hack implements UpdateListener
 			return;
 		}
 
-		int oldSlot = MC.player.getInventory().selected;
-		MC.player.getInventory().selected = slot;
+		int oldSlot = MC.player.getInventory().getSelectedSlot();
+		MC.player.getInventory().setSelectedSlot(slot);
 
 		for(Direction side : Direction.values())
 		{
@@ -196,7 +196,7 @@ public final class BurrowHack extends Hack implements UpdateListener
 				continue;
 
 			Vec3 hitVec = Vec3.atCenterOf(neighbor)
-				.add(Vec3.atLowerCornerOf(side.getOpposite().getNormal())
+				.add(Vec3.atLowerCornerOf(side.getOpposite().getUnitVec3i())
 					.scale(0.5));
 
 			RotationUtils.getNeededRotations(hitVec)
@@ -206,7 +206,7 @@ public final class BurrowHack extends Hack implements UpdateListener
 			break;
 		}
 
-		MC.player.getInventory().selected = oldSlot;
+		MC.player.getInventory().setSelectedSlot(oldSlot);
 
 		if(disableAfter.isChecked())
 			setEnabled(false);

@@ -10,7 +10,9 @@ package net.wurstclient.hacks;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.Blocks;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -51,8 +53,8 @@ public final class CrashChestHack extends Hack
 		for(int i = 0; i < 40000; i++)
 			nbtList.add(new ListTag());
 		nbtCompound.put("www.wurstclient.net", nbtList);
-		stack.setTag(nbtCompound);
-		stack.setHoverName(Component.literal("复制我"));
+		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbtCompound));
+		stack.set(DataComponents.CUSTOM_NAME, Component.literal("复制我"));
 		
 		// give item
 		MC.player.getInventory().armor.set(0, stack);

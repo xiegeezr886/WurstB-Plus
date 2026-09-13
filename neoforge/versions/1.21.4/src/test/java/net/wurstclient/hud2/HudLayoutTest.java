@@ -2,7 +2,7 @@ package net.wurstclient.hud2;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ final class HudLayoutTest
 			}
 
 			@Override
-			public void render(GuiGraphicsExtractor graphics, int x, int y,
+			public void render(GuiGraphics graphics, int x, int y,
 				float partialTicks)
 			{
 			}

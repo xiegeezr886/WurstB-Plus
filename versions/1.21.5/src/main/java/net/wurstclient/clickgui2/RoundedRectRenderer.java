@@ -1,169 +1,207 @@
 package net.wurstclient.clickgui2;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.mojang.blaze3d.opengl.GlStateManager;
+import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
 
 final class RoundedRectRenderer
 {
-	private static final Map<Integer, CornerProfile> CORNER_PROFILES =
-		new ConcurrentHashMap<>();
+	private static final int MAX_SEGMENTS = 16;
+	private static final int MAX_POINTS = MAX_SEGMENTS * 4;
+	private static final float[][] POINT_X = new float[4][MAX_POINTS];
+	private static final float[][] POINT_Y = new float[4][MAX_POINTS];
 
 	private RoundedRectRenderer()
 	{
 	}
 
-	public static void fill(GuiGraphicsExtractor graphics, float x1, float y1,
+	public static void fill(GuiGraphics graphics, float x1, float y1, float x2,
+		float y2, float radius, int color)
+	{
+		if(x2 <= x1 || y2 <= y1 || color >>> 24 == 0)
+			return;
+
+		float safeRadius = clampRadius(x1, y1, x2, y2, radius);
+		if(safeRadius < 0.5F)
+		{
+			graphics.fill((int)x1, (int)y1, (int)x2, (int)y2, color);
+			return;
+		}
+
+		int segments = segmentsFor(safeRadius);
+		prepareContour(0, x1 + 0.5F, y1 + 0.5F, x2 - 0.5F,
+			y2 - 0.5F, Math.max(0, safeRadius - 0.5F), segments);
+		prepareContour(1, x1 - 0.5F, y1 - 0.5F, x2 + 0.5F,
+			y2 + 0.5F, safeRadius + 0.5F, segments);
+
+		RenderState state = begin(graphics);
+		BufferBuilder buffer = Tesselator.getInstance().begin(
+			VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
+		Matrix4f pose = graphics.pose().last().pose();
+		addSolidFan(buffer, pose, 0, segments, color);
+		addColorStrip(buffer, pose, 0, 1, segments, color,
+			color & 0xFFFFFF);
+		draw(buffer.buildOrThrow());
+		state.restore();
+	}
+
+	public static void outline(GuiGraphics graphics, float x1, float y1,
 		float x2, float y2, float radius, int color)
 	{
-		int left = Math.round(x1);
-		int top = Math.round(y1);
-		int right = Math.round(x2);
-		int bottom = Math.round(y2);
-		if(right <= left || bottom <= top || color >>> 24 == 0)
+		if(x2 <= x1 || y2 <= y1 || color >>> 24 == 0)
 			return;
 
-		int safeRadius = clampRadius(left, top, right, bottom,
-			Math.round(radius));
-		if(safeRadius == 0)
-		{
-			graphics.fill(left, top, right, bottom, color);
-			return;
-		}
+		float safeRadius = clampRadius(x1, y1, x2, y2, radius);
+		int segments = segmentsFor(safeRadius);
+		prepareContour(0, x1 - 0.5F, y1 - 0.5F, x2 + 0.5F,
+			y2 + 0.5F, safeRadius + 0.5F, segments);
+		prepareContour(1, x1 + 0.3F, y1 + 0.3F, x2 - 0.3F,
+			y2 - 0.3F, Math.max(0, safeRadius - 0.3F), segments);
+		prepareContour(2, x1 + 1.35F, y1 + 1.35F, x2 - 1.35F,
+			y2 - 1.35F, Math.max(0, safeRadius - 1.35F), segments);
 
-		graphics.fill(left, top + safeRadius, right, bottom - safeRadius, color);
-
-		CornerProfile profile = getProfile(safeRadius);
-		for(int y = 0; y < safeRadius; y++)
-		{
-			int inset = profile.insets[y];
-			int edgeColor = withCoverage(color, profile.coverages[y]);
-			fillRoundedRow(graphics, left, top + y, right, inset, color,
-				edgeColor);
-			fillRoundedRow(graphics, left, bottom - y - 1, right, inset,
-				color, edgeColor);
-		}
+		RenderState state = begin(graphics);
+		BufferBuilder buffer = Tesselator.getInstance().begin(
+			VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
+		Matrix4f pose = graphics.pose().last().pose();
+		int transparent = color & 0xFFFFFF;
+		addColorStrip(buffer, pose, 0, 1, segments, transparent, color);
+		addColorStrip(buffer, pose, 1, 2, segments, color, transparent);
+		draw(buffer.buildOrThrow());
+		state.restore();
 	}
 
-	public static void outline(GuiGraphicsExtractor graphics, float x1,
-		float y1, float x2, float y2, float radius, int color)
+	private static void draw(MeshData mesh)
 	{
-		int left = Math.round(x1);
-		int top = Math.round(y1);
-		int right = Math.round(x2);
-		int bottom = Math.round(y2);
-		if(right <= left || bottom <= top || color >>> 24 == 0)
-			return;
+		net.wurstclient.util.RenderUtils.drawGuiMesh(mesh);
+	}
+	
+	private static RenderState begin(GuiGraphics graphics)
+	{
+		graphics.flush();
+		RenderState state = new RenderState(GL11.glIsEnabled(GL11.GL_BLEND),
+			GL11.glIsEnabled(GL11.GL_DEPTH_TEST),
+			GL11.glIsEnabled(GL11.GL_CULL_FACE));
+		return state;
+	}
 
-		int outerRadius = clampRadius(left, top, right, bottom,
-			Math.round(radius));
-		if(outerRadius == 0)
+	private static void addSolidFan(BufferBuilder buffer, Matrix4f pose,
+		int contour, int segments, int color)
+	{
+		int points = segments * 4;
+		float centerX = 0;
+		float centerY = 0;
+		for(int i = 0; i < points; i++)
 		{
-			graphics.fill(left, top, right, top + 1, color);
-			graphics.fill(left, bottom - 1, right, bottom, color);
-			graphics.fill(left, top + 1, left + 1, bottom - 1, color);
-			graphics.fill(right - 1, top + 1, right, bottom - 1, color);
-			return;
+			centerX += POINT_X[contour][i];
+			centerY += POINT_Y[contour][i];
 		}
+		centerX /= points;
+		centerY /= points;
 
-		graphics.fill(left + outerRadius, top, right - outerRadius,
-			top + 1, color);
-		graphics.fill(left + outerRadius, bottom - 1,
-			right - outerRadius, bottom, color);
-		graphics.fill(left, top + outerRadius, left + 1,
-			bottom - outerRadius, color);
-		graphics.fill(right - 1, top + outerRadius, right,
-			bottom - outerRadius, color);
-
-		CornerProfile profile = getProfile(outerRadius);
-		for(int y = 0; y < outerRadius; y++)
+		for(int i = 0; i < points; i++)
 		{
-			int inset = profile.insets[y];
-			int edgeColor = withCoverage(color, profile.coverages[y]);
-			fillOutlineRow(graphics, left, top + y, right, inset,
-				profile.innerInsets[y], color, edgeColor);
-			fillOutlineRow(graphics, left, bottom - y - 1, right, inset,
-				profile.innerInsets[y], color, edgeColor);
+			int next = (i + 1) % points;
+			addColorVertex(buffer, pose, centerX, centerY, color);
+			addColorVertex(buffer, pose, POINT_X[contour][i],
+				POINT_Y[contour][i], color);
+			addColorVertex(buffer, pose, POINT_X[contour][next],
+				POINT_Y[contour][next], color);
 		}
 	}
 
-	private static CornerProfile getProfile(int radius)
+	private static void addColorStrip(BufferBuilder buffer, Matrix4f pose,
+		int inner, int outer, int segments, int innerColor, int outerColor)
 	{
-		return CORNER_PROFILES.computeIfAbsent(radius, CornerProfile::new);
+		int points = segments * 4;
+		for(int i = 0; i < points; i++)
+		{
+			int next = (i + 1) % points;
+			addColorVertex(buffer, pose, POINT_X[inner][i], POINT_Y[inner][i],
+				innerColor);
+			addColorVertex(buffer, pose, POINT_X[outer][i], POINT_Y[outer][i],
+				outerColor);
+			addColorVertex(buffer, pose, POINT_X[outer][next],
+				POINT_Y[outer][next], outerColor);
+			addColorVertex(buffer, pose, POINT_X[inner][i], POINT_Y[inner][i],
+				innerColor);
+			addColorVertex(buffer, pose, POINT_X[outer][next],
+				POINT_Y[outer][next], outerColor);
+			addColorVertex(buffer, pose, POINT_X[inner][next],
+				POINT_Y[inner][next], innerColor);
+		}
 	}
 
-	private static void fillRoundedRow(GuiGraphicsExtractor graphics, int left,
-		int y, int right, int inset, int color, int edgeColor)
+	private static void addColorVertex(BufferBuilder buffer, Matrix4f pose,
+		float x, float y, int color)
 	{
-		int start = left + inset;
-		int end = right - inset;
-		if(start + 1 < end - 1)
-			graphics.fill(start + 1, y, end - 1, y + 1, color);
-		if(edgeColor >>> 24 == 0 || start >= end)
-			return;
-		graphics.fill(start, y, start + 1, y + 1, edgeColor);
-		if(end - 1 != start)
-			graphics.fill(end - 1, y, end, y + 1, edgeColor);
+		buffer.addVertex(pose, x, y, 0).setColor(color);
 	}
 
-	private static void fillOutlineRow(GuiGraphicsExtractor graphics, int left,
-		int y, int right, int outerInset, int innerInset, int color,
-		int edgeColor)
+	private static void prepareContour(int contour, float x1, float y1,
+		float x2, float y2, float radius, int segments)
 	{
-		int leftX = left + outerInset;
-		int rightX = right - outerInset - 1;
-		int leftInner = Math.min(rightX + 1, left + innerInset);
-		int rightInner = Math.max(leftX, right - innerInset);
-		if(leftX + 1 < leftInner)
-			graphics.fill(leftX + 1, y, leftInner, y + 1, color);
-		if(rightInner < rightX)
-			graphics.fill(rightInner, y, rightX, y + 1, color);
-		if(edgeColor >>> 24 == 0)
-			return;
-		graphics.fill(leftX, y, leftX + 1, y + 1, edgeColor);
-		if(rightX != leftX)
-			graphics.fill(rightX, y, rightX + 1, y + 1, edgeColor);
+		float safeX2 = Math.max(x1, x2);
+		float safeY2 = Math.max(y1, y2);
+		float safeRadius = clampRadius(x1, y1, safeX2, safeY2, radius);
+		float[] centersX = {safeX2 - safeRadius, safeX2 - safeRadius,
+			x1 + safeRadius, x1 + safeRadius};
+		float[] centersY = {y1 + safeRadius, safeY2 - safeRadius,
+			safeY2 - safeRadius, y1 + safeRadius};
+		float[] starts = {-90, 0, 90, 180};
+		int index = 0;
+		for(int corner = 0; corner < 4; corner++)
+			for(int step = 0; step < segments; step++)
+			{
+				double angle = Math.toRadians(starts[corner]
+					+ step * 90F / segments);
+				POINT_X[contour][index] =
+					centersX[corner] + (float)Math.cos(angle) * safeRadius;
+				POINT_Y[contour][index] =
+					centersY[corner] + (float)Math.sin(angle) * safeRadius;
+				index++;
+			}
 	}
 
-	private static int withCoverage(int color, float coverage)
+	private static int segmentsFor(float radius)
 	{
-		int alpha = color >>> 24;
-		int coveredAlpha = Math.round(alpha * Math.max(0, Math.min(1, coverage)));
-		return coveredAlpha << 24 | color & 0xFFFFFF;
+		return Math.max(8,
+			Math.min(MAX_SEGMENTS, (int)Math.ceil(radius * 2)));
 	}
 
-	private static int clampRadius(int left, int top, int right, int bottom,
-		int radius)
+	private static float clampRadius(float x1, float y1, float x2, float y2,
+		float radius)
 	{
 		return Math.max(0,
-			Math.min(radius, Math.min((right - left) / 2, (bottom - top) / 2)));
+			Math.min(radius, Math.min((x2 - x1) / 2, (y2 - y1) / 2)));
 	}
 
-	private static final class CornerProfile
+	private record RenderState(boolean blend, boolean depth, boolean cull)
 	{
-		private final int[] insets;
-		private final int[] innerInsets;
-		private final float[] coverages;
-
-		private CornerProfile(int radius)
+		private void restore()
 		{
-			insets = new int[radius];
-			innerInsets = new int[radius];
-			coverages = new float[radius];
-			for(int y = 0; y < radius; y++)
-			{
-				double deltaY = radius - y - 0.5;
-				double exactInset = radius
-					- Math.sqrt(radius * radius - deltaY * deltaY);
-				int inset = Math.max(0, (int)Math.floor(exactInset));
-				insets[y] = inset;
-				coverages[y] = (float)(1 - (exactInset - inset));
-				double innerRadius = radius - 1;
-				innerInsets[y] = deltaY >= innerRadius ? radius
-					: Math.min(radius, (int)Math.ceil(radius - Math.sqrt(
-						innerRadius * innerRadius - deltaY * deltaY)));
-			}
+			if(blend)
+				GlStateManager._enableBlend();
+			else
+				GlStateManager._disableBlend();
+			if(depth)
+				GlStateManager._enableDepthTest();
+			else
+				GlStateManager._disableDepthTest();
+			if(cull)
+				GlStateManager._enableCull();
+			else
+				GlStateManager._disableCull();
 		}
 	}
 }

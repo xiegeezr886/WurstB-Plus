@@ -137,7 +137,8 @@ public final class PopChamsHack extends Hack
 		try
 		{
 			Tesselator tess = Tesselator.getInstance();
-			BufferBuilder buf = tess.begin(VertexFormat.Mode.QUADS,
+			BufferBuilder buf = tess.getBuilder();
+			buf.begin(VertexFormat.Mode.QUADS,
 				DefaultVertexFormat.POSITION_COLOR);
 
 			for(PopData pop : pops)
@@ -154,17 +155,18 @@ public final class PopChamsHack extends Hack
 				float z = (float)(pop.position.z - cam.z);
 				float s = 0.4F * (1 + alpha);
 
-				buf.addVertex(matrix, x - s, y + s, z)
-					.setColor(r, g, b, alpha);
-				buf.addVertex(matrix, x + s, y + s, z)
-					.setColor(r, g, b, alpha);
-				buf.addVertex(matrix, x + s, y - s, z)
-					.setColor(r, g, b, alpha);
-				buf.addVertex(matrix, x - s, y - s, z)
-					.setColor(r, g, b, alpha);
+				buf.vertex(matrix, x - s, y + s, z)
+					.color(r, g, b, alpha).endVertex();
+				buf.vertex(matrix, x + s, y + s, z)
+					.color(r, g, b, alpha).endVertex();
+				buf.vertex(matrix, x + s, y - s, z)
+					.color(r, g, b, alpha).endVertex();
+				buf.vertex(matrix, x - s, y - s, z)
+					.color(r, g, b, alpha).endVertex();
 			}
 
-			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
+			BufferBuilder.RenderedBuffer rendered =
+				buf.endOrDiscardIfEmpty();
 			if(rendered != null)
 				BufferUploader.drawWithShader(rendered);
 		}finally

@@ -11,10 +11,12 @@ import java.util.Arrays;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.wurstclient.command.CmdError;
 import net.wurstclient.command.CmdException;
 import net.wurstclient.command.CmdSyntaxError;
@@ -79,13 +81,11 @@ public final class ModifyCmd extends Command
 		String nbt = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 		nbt = nbt.replace("$", "\u00a7").replace("\u00a7\u00a7", "$");
 		
-		if(!stack.hasTag())
-			stack.setTag(new CompoundTag());
-		
 		try
 		{
 			CompoundTag tag = TagParser.parseTag(nbt);
-			stack.getTag().merge(tag);
+			CustomData.update(DataComponents.CUSTOM_DATA, stack,
+				customData -> customData.merge(tag));
 			
 		}catch(CommandSyntaxException e)
 		{
@@ -102,7 +102,7 @@ public final class ModifyCmd extends Command
 		try
 		{
 			CompoundTag tag = TagParser.parseTag(nbt);
-			stack.setTag(tag);
+			stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 			
 		}catch(CommandSyntaxException e)
 		{
@@ -116,12 +116,15 @@ public final class ModifyCmd extends Command
 		if(args.length > 2)
 			throw new CmdSyntaxError();
 		
-		NbtPath path = parseNbtPath(stack.getTag(), args[1]);
+		CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+		CompoundTag tag = customData == null ? null : customData.copyTag();
+		NbtPath path = parseNbtPath(tag, args[1]);
 		
 		if(path == null)
 			throw new CmdError("The path does not exist.");
 		
 		path.base.remove(path.key);
+		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 	}
 	
 	private NbtPath parseNbtPath(CompoundTag tag, String path)

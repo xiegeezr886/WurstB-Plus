@@ -154,13 +154,13 @@ public final class AutoTrapHack extends Hack implements UpdateListener
 		if(slot == -1)
 			return;
 
-		int oldSlot = MC.player.getInventory().selected;
-		MC.player.getInventory().selected = slot;
+		int oldSlot = MC.player.getInventory().getSelectedSlot();
+		MC.player.getInventory().setSelectedSlot(slot);
 
 		if(BlockPlacer.place(pos, false, false))
 			swingHand.swing(InteractionHand.MAIN_HAND);
 
-		MC.player.getInventory().selected = oldSlot;
+		MC.player.getInventory().setSelectedSlot(oldSlot);
 	}
 
 	private int findBlockSlot()

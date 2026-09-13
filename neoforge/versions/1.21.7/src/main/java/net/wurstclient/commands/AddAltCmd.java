@@ -61,7 +61,7 @@ public final class AddAltCmd extends Command
 		
 		for(PlayerInfo entry : MC.player.connection.getOnlinePlayers())
 		{
-			String name = entry.getProfile().name();
+			String name = entry.getProfile().getName();
 			name = StringUtil.stripColor(name);
 			
 			if(altManager.contains(name))

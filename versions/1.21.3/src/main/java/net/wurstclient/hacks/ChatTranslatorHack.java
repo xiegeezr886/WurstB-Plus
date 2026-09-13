@@ -12,7 +12,6 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.ChatInputListener;
 import net.wurstclient.events.ChatOutputListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.mixin.ChatComponentAccessor;
 import net.wurstclient.hacks.chattranslator.FilterOwnMessagesSetting;
 import net.wurstclient.hacks.chattranslator.GoogleTranslate;
 import net.wurstclient.hacks.chattranslator.LanguageSetting;
@@ -112,8 +111,7 @@ public final class ChatTranslatorHack extends Hack
 			fromLang.getValue(), toLang.getValue());
 		
 		if(translated != null)
-			((ChatComponentAccessor)MC.gui.getChat()).wurst$addMessage(
-				toLang.prefixText(translated), null, null);
+			MC.gui.getChat().addMessage(toLang.prefixText(translated));
 	}
 	
 	@Override

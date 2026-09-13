@@ -8,7 +8,10 @@
 package net.wurstclient.commands;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import net.minecraft.ResourceLocationException;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
@@ -16,7 +19,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.wurstclient.command.CmdError;
 import net.wurstclient.command.CmdException;
@@ -60,17 +63,19 @@ public final class PotionCmd extends Command
 		
 		// get effects to start with
 		ArrayList<MobEffectInstance> effects;
-		Potion potion;
+		PotionContents oldContents = stack
+			.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+		Optional<Holder<Potion>> potion;
 		switch(args[0].toLowerCase())
 		{
 			case "add":
-			effects = new ArrayList<>(PotionUtils.getCustomEffects(stack));
-			potion = PotionUtils.getPotion(stack);
+			effects = new ArrayList<>(oldContents.customEffects());
+			potion = oldContents.potion();
 			break;
 			
 			case "set":
 			effects = new ArrayList<>();
-			potion = Potions.EMPTY;
+			potion = Optional.empty();
 			break;
 			
 			default:
@@ -80,15 +85,14 @@ public final class PotionCmd extends Command
 		// add new effects
 		for(int i = 0; i < (args.length - 1) / 3; i++)
 		{
-			MobEffect effect = parseEffect(args[1 + i * 3]);
+			Holder<MobEffect> effect = parseEffect(args[1 + i * 3]);
 			int amplifier = parseInt(args[2 + i * 3]) - 1;
 			int duration = parseInt(args[3 + i * 3]) * 20;
 			
 			effects.add(new MobEffectInstance(effect, duration, amplifier));
 		}
 		
-		PotionUtils.setPotion(stack, potion);
-		setCustomPotionEffects(stack, effects);
+		setPotionContents(stack, potion, effects);
 		ChatUtils.message("药水已修改。");
 	}
 	
@@ -97,28 +101,28 @@ public final class PotionCmd extends Command
 		if(args.length != 2)
 			throw new CmdSyntaxError();
 		
-		MobEffect targetEffect = parseEffect(args[1]);
+		Holder<MobEffect> targetEffect = parseEffect(args[1]);
 		
-		Potion oldPotion = PotionUtils.getPotion(stack);
-		boolean mainPotionContainsTargetEffect = oldPotion.getEffects().stream()
-			.anyMatch(effect -> effect.getEffect() == targetEffect);
+		PotionContents oldContents = stack
+			.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+		boolean mainPotionContainsTargetEffect = oldContents.potion().stream()
+			.flatMap(holder -> holder.value().getEffects().stream())
+			.anyMatch(effect -> effect.getEffect().equals(targetEffect));
 		
 		ArrayList<MobEffectInstance> newEffects = new ArrayList<>();
 		if(mainPotionContainsTargetEffect)
-			PotionUtils.getMobEffects(stack).forEach(newEffects::add);
+			oldContents.getAllEffects().forEach(newEffects::add);
 		else
-			PotionUtils.getCustomEffects(stack).forEach(newEffects::add);
-		newEffects.removeIf(effect -> effect.getEffect() == targetEffect);
+			oldContents.customEffects().forEach(newEffects::add);
+		newEffects.removeIf(effect -> effect.getEffect().equals(targetEffect));
 		
-		Potion newPotion =
-			mainPotionContainsTargetEffect ? Potions.EMPTY : oldPotion;
-		
-		PotionUtils.setPotion(stack, newPotion);
-		setCustomPotionEffects(stack, newEffects);
+		Optional<Holder<Potion>> newPotion = mainPotionContainsTargetEffect
+			? Optional.empty() : oldContents.potion();
+		setPotionContents(stack, newPotion, newEffects);
 		ChatUtils.message("效果已移除。");
 	}
 	
-	private MobEffect parseEffect(String input) throws CmdSyntaxError
+	private Holder<MobEffect> parseEffect(String input) throws CmdSyntaxError
 	{
 		MobEffect effect;
 		
@@ -138,17 +142,15 @@ public final class PotionCmd extends Command
 		if(effect == null)
 			throw new CmdSyntaxError("Invalid effect: " + input);
 		
-		return BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect).value();
+		return BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
 	}
 	
-	private void setCustomPotionEffects(ItemStack stack,
+	private void setPotionContents(ItemStack stack,
+		Optional<Holder<Potion>> potion,
 		ArrayList<MobEffectInstance> effects)
 	{
-		// PotionUtil doesn't remove effects when passing an empty list to it
-		if(effects.isEmpty())
-			stack.removeTagKey("CustomPotionEffects");
-		else
-			PotionUtils.setCustomEffects(stack, effects);
+		stack.set(DataComponents.POTION_CONTENTS,
+			new PotionContents(potion, Optional.empty(), effects));
 	}
 	
 	private int parseInt(String s) throws CmdSyntaxError

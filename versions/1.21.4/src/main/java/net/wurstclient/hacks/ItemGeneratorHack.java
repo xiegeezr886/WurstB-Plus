@@ -34,7 +34,7 @@ public final class ItemGeneratorHack extends Hack implements UpdateListener
 			+ "Doesn't seem to affect performance.",
 		1, 1, 64, 1, ValueDisplay.INTEGER);
 	
-	private final RandomSource random = RandomSource.create();
+	private final RandomSource random = RandomSource.createNewThreadLocalInstance();
 	
 	public ItemGeneratorHack()
 	{

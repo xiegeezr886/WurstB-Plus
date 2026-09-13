@@ -10,7 +10,7 @@ package net.wurstclient.hacks.autofish;
 import java.awt.Color;
 import java.util.stream.Stream;
 
-import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -118,7 +118,6 @@ public final class AutoFishDebugDraw
 		
 		int color = ddColor.getColorI(0xC0);
 		
-		RenderSystem.depthFunc(GlConst.GL_ALWAYS);
 		MultiBufferSource.BufferSource vcp = RenderUtils.getVCP();
 		Vec3 camPos = RenderUtils.getCameraPos();
 		

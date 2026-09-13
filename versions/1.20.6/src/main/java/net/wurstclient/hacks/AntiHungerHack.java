@@ -47,7 +47,7 @@ public final class AntiHungerHack extends Hack implements PacketOutputListener
 		if(!MC.player.onGround() || MC.player.fallDistance > 0.5)
 			return;
 		
-		if(MC.gameMode.isDestroying())
+		if(((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying())
 			return;
 		
 		event.setPacket(PacketUtils.modifyOnGround(packet, false));

@@ -7,12 +7,14 @@
  */
 package net.wurstclient.hacks;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
@@ -118,12 +120,13 @@ public final class AutoPotionHack extends Hack implements UpdateListener
 		return -1;
 	}
 	
-	private boolean hasEffect(ItemStack stack, MobEffect effect)
+	private boolean hasEffect(ItemStack stack, Holder<MobEffect> effect)
 	{
-		for(MobEffectInstance effectInstance : PotionUtils
-			.getMobEffects(stack))
+		PotionContents contents = stack
+			.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+		for(MobEffectInstance effectInstance : contents.getAllEffects())
 		{
-			if(effectInstance.getEffect() != effect)
+			if(!effectInstance.getEffect().equals(effect))
 				continue;
 			
 			return true;

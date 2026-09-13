@@ -4,16 +4,16 @@
  */
 package net.wurstclient.clickgui2.window;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 public abstract class WindowWidget {
 
-	public void render(GuiGraphicsExtractor drawContext, int wx, int wy,
+	public void render(GuiGraphics drawContext, int wx, int wy,
 		int mouseX, int mouseY, float partialTicks) {
 		render(drawContext, wx, wy, mouseX, mouseY);
 	}
 
-	public void render(GuiGraphicsExtractor drawContext, int wx, int wy,
+	public void render(GuiGraphics drawContext, int wx, int wy,
 		int mouseX, int mouseY) {}
 
 	public void mouseClicked(int wx, int wy, int mouseX, int mouseY,

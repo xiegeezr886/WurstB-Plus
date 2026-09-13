@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import org.junit.jupiter.api.Test;
 
 final class ComponentParentTest
@@ -36,7 +36,7 @@ final class ComponentParentTest
 		}
 
 		@Override
-		public void render(GuiGraphicsExtractor context, int mouseX, int mouseY,
+		public void render(GuiGraphics context, int mouseX, int mouseY,
 			float partialTicks)
 		{
 		}

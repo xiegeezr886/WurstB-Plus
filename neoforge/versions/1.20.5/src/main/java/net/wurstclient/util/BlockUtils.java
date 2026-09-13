@@ -70,7 +70,7 @@ public enum BlockUtils
 	{
 		try
 		{
-			return BuiltInRegistries.BLOCK.get(ResourceLocation.parse(name));
+			return BuiltInRegistries.BLOCK.get(new ResourceLocation(name));
 			
 		}catch(ResourceLocationException e)
 		{
@@ -97,7 +97,7 @@ public enum BlockUtils
 		
 		try
 		{
-			ResourceLocation id = ResourceLocation.parse(nameOrId);
+			ResourceLocation id = new ResourceLocation(nameOrId);
 			if(!BuiltInRegistries.BLOCK.containsKey(id))
 				return null;
 			

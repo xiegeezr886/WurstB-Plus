@@ -144,7 +144,7 @@ public final class AutoWebHack extends Hack implements UpdateListener
 
 	private void placeWeb(BlockPos pos)
 	{
-		int oldSlot = MC.player.getInventory().getSelectedSlot();
+		int oldSlot = MC.player.getInventory().selected;
 		InventoryUtils.selectItem(Items.COBWEB);
 		if(!MC.player.isHolding(Items.COBWEB))
 			return;
@@ -152,6 +152,6 @@ public final class AutoWebHack extends Hack implements UpdateListener
 		if(BlockPlacer.place(pos, airPlace.isChecked(), false))
 			swingHand.swing(InteractionHand.MAIN_HAND);
 
-		MC.player.getInventory().setSelectedSlot(oldSlot);
+		MC.player.getInventory().selected = oldSlot;
 	}
 }

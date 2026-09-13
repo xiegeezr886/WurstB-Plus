@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import net.minecraft.network.Connection;
-import io.netty.channel.ChannelFutureListener;
+import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.Packet;
 import net.wurstclient.event.EventManager;
@@ -59,7 +59,7 @@ public abstract class ClientConnectionMixin
 	}
 	
 	@ModifyVariable(at = @At("HEAD"),
-		method = "send(Lnet/minecraft/network/protocol/Packet;Lio/netty/channel/ChannelFutureListener;)V")
+		method = "send(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V")
 	public Packet<?> modifyPacket(Packet<?> packet)
 	{
 		if(!ClientConnectionPolicy.shouldDispatch(receiving))
@@ -82,9 +82,9 @@ public abstract class ClientConnectionMixin
 	}
 	
 	@Inject(at = @At("HEAD"),
-		method = "send(Lnet/minecraft/network/protocol/Packet;Lio/netty/channel/ChannelFutureListener;)V",
+		method = "send(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V",
 		cancellable = true)
-	private void onSend(Packet<?> packet, @Nullable ChannelFutureListener callback,
+	private void onSend(Packet<?> packet, @Nullable PacketSendListener callback,
 		CallbackInfo ci)
 	{
 		ConnectionPacketOutputEvent event = getEvent(packet);

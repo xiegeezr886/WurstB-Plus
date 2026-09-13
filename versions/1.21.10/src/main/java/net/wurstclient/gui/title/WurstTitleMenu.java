@@ -12,7 +12,7 @@ import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.versions.forge.ForgeVersion;
@@ -28,13 +28,13 @@ public final class WurstTitleMenu
 	private static final int MUTED_TEXT = 0xFFA4B4B5;
 	private static final int DIM_TEXT = 0xFF738687;
 
-	private static final Identifier SINGLEPLAYER = icon("singleplayer");
-	private static final Identifier MULTIPLAYER = icon("multiplayer");
-	private static final Identifier REALMS = icon("realms");
-	private static final Identifier OPTIONS = icon("options");
-	private static final Identifier USER = icon("user");
-	private static final Identifier INFO = icon("info");
-	private static final Identifier EXIT = icon("exit");
+	private static final ResourceLocation SINGLEPLAYER = icon("singleplayer");
+	private static final ResourceLocation MULTIPLAYER = icon("multiplayer");
+	private static final ResourceLocation REALMS = icon("realms");
+	private static final ResourceLocation OPTIONS = icon("options");
+	private static final ResourceLocation USER = icon("user");
+	private static final ResourceLocation INFO = icon("info");
+	private static final ResourceLocation EXIT = icon("exit");
 
 	private final Screen parent;
 	private final List<WurstTitleButton> buttons = new ArrayList<>();
@@ -93,7 +93,7 @@ public final class WurstTitleMenu
 	}
 
 	private void addButton(Consumer<AbstractWidget> addWidget, int x, int y,
-		int width, int height, String text, Identifier icon,
+		int width, int height, String text, ResourceLocation icon,
 		Runnable action, boolean compact, boolean dangerous)
 	{
 		WurstTitleButton button = new WurstTitleButton(x, y, width, height,
@@ -163,9 +163,9 @@ public final class WurstTitleMenu
 			screenHeight - 18, DIM_TEXT, false);
 	}
 
-	private static Identifier icon(String name)
+	private static ResourceLocation icon(String name)
 	{
-		return Identifier.fromNamespaceAndPath("wurst", "textures/gui/fdp/" + name
+		return ResourceLocation.fromNamespaceAndPath("wurst", "textures/gui/fdp/" + name
 			+ ".png");
 	}
 

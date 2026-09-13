@@ -18,6 +18,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.BaseFireBlock;
@@ -559,54 +560,58 @@ public class PathFinder
 	public void renderPath(PoseStack matrixStack, boolean debugMode,
 		boolean depthTest)
 	{
-		RenderUtils.submit(matrixStack,
-			WurstRenderLayers.getLines(depthTest), buffer -> {
-				matrixStack.pushPose();
+		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
+		
+		MultiBufferSource.BufferSource vcp =
+			MC.renderBuffers().bufferSource();
+		VertexConsumer buffer =
+			vcp.getBuffer(WurstRenderLayers.getLines(depthTest));
+		
+		matrixStack.pushPose();
+		
+		RegionPos region = RenderUtils.getCameraRegion();
+		Vec3 regionOffset = region.negate().toVec3d();
+		RenderUtils.applyRegionalRenderOffset(matrixStack, region);
+		
+		if(debugMode)
+		{
+			int thingsRendered = 0;
+			
+			// queue (yellow)
+			for(PathPos element : queue.toArray())
+			{
+				if(thingsRendered >= 5000)
+					break;
 				
-				RegionPos region = RenderUtils.getCameraRegion();
-				Vec3 regionOffset = region.negate().toVec3d();
-				RenderUtils.applyRegionalRenderOffset(matrixStack, region);
+				AABB box = new AABB(element).move(regionOffset).deflate(0.4);
+				RenderUtils.drawNode(matrixStack, buffer, box, 0xC0FFFF00);
+				thingsRendered++;
+			}
+			
+			// processed (red or magenta)
+			for(Entry<PathPos, PathPos> entry : prevPosMap.entrySet())
+			{
+				if(thingsRendered >= 5000)
+					break;
 				
-				if(debugMode)
-				{
-					int thingsRendered = 0;
-					
-					// queue (yellow)
-					for(PathPos element : queue.toArray())
-					{
-						if(thingsRendered >= 5000)
-							break;
-						
-						AABB box =
-							new AABB(element).move(regionOffset).deflate(0.4);
-						RenderUtils.drawNode(matrixStack, buffer, box,
-							0xC0FFFF00);
-						thingsRendered++;
-					}
-					
-					// processed (red or magenta)
-					for(Entry<PathPos, PathPos> entry : prevPosMap.entrySet())
-					{
-						if(thingsRendered >= 5000)
-							break;
-						
-						int color = entry.getKey().isJumping() ? 0xC0FF00FF
-							: 0xC0FF0000;
-						
-						RenderUtils.drawArrow(matrixStack, buffer,
-							entry.getValue(), entry.getKey(), region, color);
-						thingsRendered++;
-					}
-				}
+				int color =
+					entry.getKey().isJumping() ? 0xC0FF00FF : 0xC0FF0000;
 				
-				// path (blue or green)
-				int pathColor = debugMode ? 0xC00000FF : 0xC000FF00;
-				for(int i = 0; i < path.size() - 1; i++)
-					RenderUtils.drawArrow(matrixStack, buffer, path.get(i),
-						path.get(i + 1), region, pathColor);
-				
-				matrixStack.popPose();
-			});
+				RenderUtils.drawArrow(matrixStack, buffer, entry.getValue(),
+					entry.getKey(), region, color);
+				thingsRendered++;
+			}
+		}
+		
+		// path (blue or green)
+		int pathColor = debugMode ? 0xC00000FF : 0xC000FF00;
+		for(int i = 0; i < path.size() - 1; i++)
+			RenderUtils.drawArrow(matrixStack, buffer, path.get(i),
+				path.get(i + 1), region, pathColor);
+		
+		matrixStack.popPose();
+		
+		vcp.endLastBatch();
 	}
 	
 	public boolean isPathStillValid(int index)

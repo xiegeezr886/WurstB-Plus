@@ -54,7 +54,7 @@ public final class SavingFileState extends TemplateToolState
 		
 		// Show success message
 		MutableComponent message = Component.literal("模板已保存为 ");
-		ClickEvent event = new ClickEvent(ClickEvent.Action.OPEN_FILE,
+		ClickEvent event = new ClickEvent.OpenFile(
 			hack.getFile().getParentFile().getAbsolutePath());
 		MutableComponent link = Component.literal(hack.getFile().getName())
 			.withStyle(s -> s.withUnderlined(true).withClickEvent(event));

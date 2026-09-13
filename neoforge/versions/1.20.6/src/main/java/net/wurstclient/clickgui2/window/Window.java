@@ -6,7 +6,6 @@ package net.wurstclient.clickgui2.window;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -133,13 +132,15 @@ public class Window {
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		BufferBuilder b = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
+		Tesselator t = Tesselator.getInstance();
+		BufferBuilder b = t.getBuilder();
+		b.begin(VertexFormat.Mode.QUADS,
 			DefaultVertexFormat.POSITION_COLOR);
-		b.addVertex(x1, y1, 0).setColor(r1, g1, b1, a1);
-		b.addVertex(x1, y2, 0).setColor(r1, g1, b1, a1);
-		b.addVertex(x2, y2, 0).setColor(r2, g2, b2, a2);
-		b.addVertex(x2, y1, 0).setColor(r2, g2, b2, a2);
-		BufferUploader.drawWithShader(b.buildOrThrow());
+		b.vertex(x1, y1, 0).color(r1, g1, b1, a1).endVertex();
+		b.vertex(x1, y2, 0).color(r1, g1, b1, a1).endVertex();
+		b.vertex(x2, y2, 0).color(r2, g2, b2, a2).endVertex();
+		b.vertex(x2, y1, 0).color(r2, g2, b2, a2).endVertex();
+		t.end();
 		RenderSystem.disableBlend();
 	}
 }

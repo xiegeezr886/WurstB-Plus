@@ -7,7 +7,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -25,7 +25,7 @@ public enum EnchantmentUtils
 	}
 
 	public static Optional<Holder.Reference<Enchantment>> getHolder(
-		Identifier id)
+		ResourceLocation id)
 	{
 		Registry<Enchantment> registry = getRegistry();
 		return registry == null ? Optional.empty() : registry.get(id);

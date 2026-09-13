@@ -120,7 +120,7 @@ public final class TreeBotHack extends Hack
 		
 		if(currentBlock != null)
 		{
-			IMC.getInteractionManager().setDestroying(true);
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			currentBlock = null;
 		}

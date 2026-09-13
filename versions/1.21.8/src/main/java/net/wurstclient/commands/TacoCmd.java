@@ -9,7 +9,7 @@ package net.wurstclient.commands;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.Category;
 import net.wurstclient.command.CmdException;
 import net.wurstclient.command.CmdSyntaxError;
@@ -21,11 +21,11 @@ import net.wurstclient.util.RenderUtils;
 public final class TacoCmd extends Command
 	implements GUIRenderListener, UpdateListener
 {
-	private final Identifier[] tacos =
-		{Identifier.fromNamespaceAndPath("wurst", "dancingtaco1.png"),
-			Identifier.fromNamespaceAndPath("wurst", "dancingtaco2.png"),
-			Identifier.fromNamespaceAndPath("wurst", "dancingtaco3.png"),
-			Identifier.fromNamespaceAndPath("wurst", "dancingtaco4.png")};
+	private final ResourceLocation[] tacos =
+		{ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco1.png"),
+			ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco2.png"),
+			ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco3.png"),
+			ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco4.png")};
 	
 	private boolean enabled;
 	private int ticks = 0;

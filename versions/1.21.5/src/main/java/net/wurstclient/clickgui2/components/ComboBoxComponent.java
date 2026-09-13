@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.clickgui2.ClickGuiIcons;
@@ -87,7 +87,7 @@ public final class ComboBoxComponent<T extends Enum<T>> extends Component
 	}
 	
 	@Override
-	public void render(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		int x1 = getX();
@@ -121,8 +121,8 @@ public final class ComboBoxComponent<T extends Enum<T>> extends Component
 		String name = setting.getName();
 		String value = "" + setting.getSelected();
 		int txtColor = GUI.getTxtColor();
-		context.text(TR, name, x1, y1 + 2, txtColor, false);
-		context.text(TR, value, x4 + 2, y1 + 2, txtColor, false);
+		context.drawString(TR, name, x1, y1 + 2, txtColor, false);
+		context.drawString(TR, value, x4 + 2, y1 + 2, txtColor, false);
 	}
 	
 	@Override

@@ -37,11 +37,11 @@ public abstract class EntityRendererMixin<T extends Entity>
 	protected EntityRenderDispatcher entityRenderDispatcher;
 	
 	@Inject(at = @At("HEAD"),
-		method = "renderNameTag(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/network/chat/Component;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IF)V",
+		method = "renderNameTag(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/network/chat/Component;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 		cancellable = true)
 	private void onRenderLabelIfPresent(T entity, Component text,
 		PoseStack matrixStack, MultiBufferSource vertexConsumerProvider,
-		int i, float partialTick, CallbackInfo ci)
+		int i, CallbackInfo ci)
 	{
 		NameTagsHack nameTags = WurstClient.INSTANCE.getHax().nameTagsHack;
 		NameTagRenderState renderState = nameTags.getRenderState(entity);

@@ -57,7 +57,7 @@ public final class InstantBunkerHack extends Hack implements UpdateListener
 			return;
 		}
 		
-		ItemStack stack = MC.player.getInventory().getSelected();
+		ItemStack stack = MC.player.getInventory().getSelectedItem();
 		
 		if(!(stack.getItem() instanceof BlockItem))
 		{

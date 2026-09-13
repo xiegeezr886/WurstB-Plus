@@ -7,7 +7,6 @@ import java.util.EnumSet;
 import java.util.List;
 
 import org.joml.Matrix4f;
-import org.joml.Matrix4fStack;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
@@ -132,7 +131,7 @@ public final class PostEffectQueue
 	private void composite(RenderTarget source, int width, int height)
 	{
 		RenderSystem.backupProjectionMatrix();
-		Matrix4fStack modelView = RenderSystem.getModelViewStack();
+		org.joml.Matrix4fStack modelView = RenderSystem.getModelViewStack();
 		modelView.pushMatrix();
 		try
 		{
@@ -152,13 +151,14 @@ public final class PostEffectQueue
 
 			float u = source.viewWidth / (float)source.width;
 			float v = source.viewHeight / (float)source.height;
-			BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
+			BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+			buffer.begin(VertexFormat.Mode.QUADS,
 				DefaultVertexFormat.POSITION_TEX);
-			buffer.addVertex(0, height, 0).setUv(0, 0);
-			buffer.addVertex(width, height, 0).setUv(u, 0);
-			buffer.addVertex(width, 0, 0).setUv(u, v);
-			buffer.addVertex(0, 0, 0).setUv(0, v);
-			BufferUploader.drawWithShader(buffer.build());
+			buffer.vertex(0, height, 0).uv(0, 0).endVertex();
+			buffer.vertex(width, height, 0).uv(u, 0).endVertex();
+			buffer.vertex(width, 0, 0).uv(u, v).endVertex();
+			buffer.vertex(0, 0, 0).uv(0, v).endVertex();
+			BufferUploader.drawWithShader(buffer.end());
 		}finally
 		{
 			modelView.popMatrix();

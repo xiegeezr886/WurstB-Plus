@@ -7,6 +7,8 @@
  */
 package net.wurstclient.util;
 
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Holder;
@@ -56,7 +58,10 @@ public enum ItemUtils
 	public static float getAttackSpeed(Item item)
 	{
 		float[] speed = {0};
-		item.getDefaultAttributeModifiers().forEach(EquipmentSlot.MAINHAND,
+		item.components()
+			.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS,
+				ItemAttributeModifiers.EMPTY)
+			.forEach(EquipmentSlot.MAINHAND,
 			(attribute, modifier) -> {
 				if(attribute.equals(Attributes.ATTACK_SPEED))
 					speed[0] += (float)modifier.amount();

@@ -89,9 +89,9 @@ public final class NoFallHack extends Hack
 
 		ServerboundMovePlayerPacket packet = switch(mode.getSelected())
 		{
-			case ON_GROUND, SMART -> new StatusOnly(true);
+			case ON_GROUND, SMART -> new StatusOnly(true, false);
 			case POSITION -> new Pos(player.getX(), player.getY(), player.getZ(),
-				true);
+				true, false);
 			case GROUND_SPOOF -> throw new IllegalStateException();
 		};
 		sendAndReset(player, packet);
@@ -150,7 +150,7 @@ public final class NoFallHack extends Hack
 	{
 		if(player == null || player.isCreative() || player.isSpectator()
 			|| player.isPassenger() || player.onClimbable()
-			|| player.isInWaterOrBubble() || player.isInLava()
+			|| player.isInWater() || player.isInLava()
 			|| player.isNoGravity())
 			return false;
 		if(player.isFallFlying() && !allowElytra.isChecked())

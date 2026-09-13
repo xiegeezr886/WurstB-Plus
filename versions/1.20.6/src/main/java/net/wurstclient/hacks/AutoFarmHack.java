@@ -32,7 +32,6 @@ import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.KelpPlantBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.SoulSandBlock;
-import net.minecraft.world.level.block.StemGrownBlock;
 import net.minecraft.world.level.block.SugarCaneBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -112,7 +111,7 @@ public final class AutoFarmHack extends Hack
 		
 		if(currentlyHarvesting != null)
 		{
-			MC.gameMode.isDestroying = true;
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			currentlyHarvesting = null;
 		}
@@ -223,7 +222,7 @@ public final class AutoFarmHack extends Hack
 		if(block instanceof CocoaBlock)
 			return state.getValue(CocoaBlock.AGE) >= 2;
 		
-		if(block instanceof StemGrownBlock)
+		if(block == Blocks.MELON || block == Blocks.PUMPKIN)
 			return true;
 		
 		if(block instanceof SugarCaneBlock)
@@ -283,7 +282,7 @@ public final class AutoFarmHack extends Hack
 	private boolean replant(List<BlockPos> blocksToReplant)
 	{
 		// check cooldown
-		if(MC.rightClickDelay > 0)
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return false;
 		
 		// check if already holding one of the seeds needed for blocksToReplant
@@ -323,7 +322,7 @@ public final class AutoFarmHack extends Hack
 					SwingHand.SERVER.swing(hand);
 				
 				// reset cooldown
-				MC.rightClickDelay = 4;
+				((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 				return true;
 			}
 		}

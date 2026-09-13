@@ -7,19 +7,16 @@
  */
 package net.wurstclient.options;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
 import net.wurstclient.keybinds.Keybind;
@@ -101,27 +98,27 @@ public final class KeybindManagerScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		switch(context.key())
+		switch(keyCode)
 		{
 			case GLFW.GLFW_KEY_ENTER:
 			if(editButton.active)
-				editButton.onPress(context);
+				editButton.onPress();
 			else
-				addButton.onPress(context);
+				addButton.onPress();
 			break;
 			case GLFW.GLFW_KEY_DELETE:
-			removeButton.onPress(context);
+			removeButton.onPress();
 			break;
 			case GLFW.GLFW_KEY_ESCAPE:
-			backButton.onPress(context);
+			backButton.onPress();
 			break;
 			default:
 			break;
 		}
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
@@ -131,25 +128,22 @@ public final class KeybindManagerScreen extends Screen
 		editButton.active = selected;
 		removeButton.active = selected;
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
+		renderBackground(context, mouseX, mouseY, partialTicks);
+		listGui.render(context, mouseX, mouseY, partialTicks);
 		
-		context.centeredText(font, "Keybind Manager",
-			width / 2, 8, 0xFFffffff);
+		context.drawCenteredString(font, "Keybind Manager",
+			width / 2, 8, 0xFFFFFF);
 		
 		int count = WurstClient.INSTANCE.getKeybinds().getAllKeybinds().size();
-		context.centeredText(font, "Keybinds: " + count,
-			width / 2, 20, 0xFFffffff);
+		context.drawCenteredString(font, "Keybinds: " + count,
+			width / 2, 20, 0xFFFFFF);
 		
-		super.render(context.getInner(), mouseX, mouseY, partialTicks);
+		super.render(context, mouseX, mouseY, partialTicks);
 	}
 	
 	@Override
@@ -179,27 +173,26 @@ public final class KeybindManagerScreen extends Screen
 		{
 			return Component.translatable("narrator.select", "Keybind " + keybind);
 		}
-@Override
-		public void renderContent(GuiGraphics graphics, int mouseX, int mouseY,
-			boolean hovered, float partialTicks)
+		
+		@Override
+		public boolean mouseClicked(double mouseX, double mouseY, int button)
 		{
-			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
-				hovered, partialTicks);
+			return button == GLFW.GLFW_MOUSE_BUTTON_LEFT;
 		}
-
-		public void extractContent(GuiGraphicsExtractor context, int mouseX,
-			int mouseY, boolean hovered, float tickDelta)
+		
+		@Override
+		public void render(GuiGraphics context, int index, int y, int x,
+			int entryWidth, int entryHeight, int mouseX, int mouseY,
+			boolean hovered, float tickDelta)
 		{
-			int x = getContentX();
-			int y = getContentY();
 			Font tr = minecraft.font;
 			
 			String keyText =
 				"Key: " + keybind.getKey().replace("key.keyboard.", "");
-			context.text(tr, keyText, x + 3, y + 3, 0xFFA0A0A0, false);
+			context.drawString(tr, keyText, x + 3, y + 3, 0xA0A0A0, false);
 			
 			String cmdText = "命令: " + keybind.getCommands();
-			context.text(tr, cmdText, x + 3, y + 15, 0xFFA0A0A0, false);
+			context.drawString(tr, cmdText, x + 3, y + 15, 0xA0A0A0, false);
 		}
 	}
 	

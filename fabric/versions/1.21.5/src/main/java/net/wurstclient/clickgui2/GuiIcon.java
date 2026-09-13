@@ -3,6 +3,7 @@ package net.wurstclient.clickgui2;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
 public enum GuiIcon
@@ -38,12 +39,9 @@ public enum GuiIcon
 
 	public void draw(GuiGraphics graphics, int x, int y, int size, int color)
 	{
-		graphics.setColor((color >> 16 & 0xFF) / 255F,
-			(color >> 8 & 0xFF) / 255F, (color & 0xFF) / 255F,
-			(color >>> 24) / 255F);
-		graphics.blit(texture, x, y, size, size, 0, 0, TEXTURE_SIZE,
-			TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
-		graphics.setColor(1, 1, 1, 1);
+		graphics.blit(RenderType::guiTextured, texture, x, y, 0, 0, size,
+			size, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE,
+			TEXTURE_SIZE, color);
 	}
 
 	public void drawRotated(GuiGraphics graphics, int x, int y, int size,

@@ -235,8 +235,7 @@ public final class EditBookOffersScreen extends Screen
 		public ListGui(Minecraft minecraft, EditBookOffersScreen screen,
 			List<BookOffer> list)
 		{
-			super(minecraft, screen.width, screen.height, 32,
-				screen.height - 64, 30);
+			super(minecraft, screen.width, screen.height - 96, 32, 30);
 			
 			list.stream().map(EditBookOffersScreen.Entry::new)
 				.forEach(this::addEntry);

@@ -8,15 +8,9 @@
 package net.wurstclient.options;
 
 import net.minecraft.client.gui.GuiGraphics;
-
-import com.mojang.blaze3d.platform.InputConstants;
-
-import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
 
@@ -87,31 +81,35 @@ public final class KeybindEditorScreen extends Screen
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton)
 	{
-		commandField.mouseClicked(context, doubleClick);
-		return super.mouseClicked(context, doubleClick);
+		commandField.mouseClicked(mouseX, mouseY, mouseButton);
+		return super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	
+	@Override
+	public void tick()
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		context.centeredText(font, oldKey != null ? "编辑键位" : "添加键位",
-			width / 2, 20, 0xFFFFFFFF);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		
-		context.text(font, "按键: " + getDisplayKey(),
-			width / 2 - 100, 47, 0xFFA0A0A0);
-		context.text(font, "命令（使用 ';' 分隔）", width / 2 - 100, 87,
-			0xFFA0A0A0);
+		context.drawCenteredString(font,
+			(oldKey != null ? "Edit" : "Add") + " Keybind", width / 2, 20,
+			0xffffff);
 		
-		commandField.render(context.getInner(), mouseX, mouseY, partialTicks);
-		for(Renderable drawable : renderables)
-			drawable.render(context.getInner(), mouseX, mouseY, partialTicks);
+		context.drawString(font,
+			"Key: " + key.replace("key.keyboard.", ""), width / 2 - 100, 47,
+			0xa0a0a0);
+		context.drawString(font, "Commands (separated by ';')",
+			width / 2 - 100, 87, 0xa0a0a0);
+		
+		commandField.render(context, mouseX, mouseY, partialTicks);
+		super.render(context, mouseX, mouseY, partialTicks);
 	}
 	
 	@Override
@@ -120,19 +118,12 @@ public final class KeybindEditorScreen extends Screen
 		minecraft.setScreen(prevScreen);
 	}
 
-	private String getDisplayKey()
+	@Override
+	public boolean isPauseScreen()
 	{
-		if("NONE".equals(key))
-			return "无";
-		try
-		{
-			return InputConstants.getKey(key).getDisplayName().getString();
-		}catch(IllegalArgumentException e)
-		{
-			return key;
-		}
+		return false;
 	}
-
+	
 	@Override
 	public void setKey(String key)
 	{

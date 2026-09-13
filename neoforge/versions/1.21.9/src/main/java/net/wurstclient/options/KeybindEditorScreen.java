@@ -95,10 +95,10 @@ public final class KeybindEditorScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		context.centeredText(font, oldKey != null ? "编辑键位" : "添加键位",

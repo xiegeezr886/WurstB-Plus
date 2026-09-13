@@ -7,6 +7,8 @@
  */
 package net.wurstclient.waypoints;
 
+import net.minecraft.client.renderer.CoreShaders;
+
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -17,17 +19,20 @@ import java.util.List;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
-import net.wurstclient.WurstRenderLayers;
 import net.wurstclient.events.RenderListener;
-import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
 import net.wurstclient.util.json.WsonArray;
@@ -53,7 +58,7 @@ public final class WaypointsManager implements RenderListener
 			{
 				WsonObject obj = wson.getObject(i);
 				String name = obj.getString("name");
-				Identifier dim = Identifier
+				ResourceLocation dim = ResourceLocation
 					.parse(obj.getString("dimension"));
 				int x = obj.getInt("x");
 				int y = obj.getInt("y");
@@ -114,53 +119,71 @@ public final class WaypointsManager implements RenderListener
 	}
 
 	@Override
-	public void onRender(PoseStack PoseStack, float partialTicks)
+	public void onRender(PoseStack poseStack, float partialTicks)
 	{
 		Minecraft mc = WurstClient.MC;
 		if(waypoints.isEmpty() || mc.level == null || mc.player == null)
 			return;
 
-		Identifier currentDim = mc.level.dimension().identifier();
+		ResourceLocation currentDim = mc.level.dimension().location();
 
-		Vec3 camPos = mc.gameRenderer.getMainCamera().position();
-		RenderUtils.submit(PoseStack, WurstRenderLayers.getQuads(true),
-			builder -> {
-				org.joml.Matrix4f matrix = PoseStack.last().pose();
-				for(Waypoint wp : waypoints)
-				{
-					if(!wp.getDimension().equals(currentDim))
-						continue;
+		Vec3 camPos = mc.gameRenderer.getMainCamera().getPosition();
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.disableDepthTest();
+		RenderSystem.depthMask(false);
+		RenderSystem.setShader(CoreShaders.POSITION_COLOR);
+		try
+		{
+			Tesselator tesselator = Tesselator.getInstance();
+			BufferBuilder builder = tesselator.begin(VertexFormat.Mode.QUADS,
+				DefaultVertexFormat.POSITION_COLOR);
 
-					Vec3 pos = Vec3.atCenterOf(wp.getPos());
-					int argb = wp.getColor();
-					float r = ((argb >> 16) & 0xFF) / 255F;
-					float g = ((argb >> 8) & 0xFF) / 255F;
-					float b = (argb & 0xFF) / 255F;
-					float a = 0.6F;
+			org.joml.Matrix4f matrix = poseStack.last().pose();
+			for(Waypoint wp : waypoints)
+			{
+				if(!wp.getDimension().equals(currentDim))
+					continue;
 
-					float x = (float)(pos.x - camPos.x);
-					float y = (float)(pos.y - camPos.y);
-					float z = (float)(pos.z - camPos.z);
-					float hs = 0.3F;
+				Vec3 pos = Vec3.atCenterOf(wp.getPos());
+				int argb = wp.getColor();
+				float r = ((argb >> 16) & 0xFF) / 255F;
+				float g = ((argb >> 8) & 0xFF) / 255F;
+				float b = (argb & 0xFF) / 255F;
+				float a = 0.6F;
 
-					builder.addVertex(matrix, x - hs, y + hs, z)
-						.setColor(r, g, b, a);
-					builder.addVertex(matrix, x + hs, y + hs, z)
-						.setColor(r, g, b, a);
-					builder.addVertex(matrix, x + hs, y - hs, z)
-						.setColor(r, g, b, a);
-					builder.addVertex(matrix, x - hs, y - hs, z)
-						.setColor(r, g, b, a);
+				float x = (float)(pos.x - camPos.x);
+				float y = (float)(pos.y - camPos.y);
+				float z = (float)(pos.z - camPos.z);
+				float hs = 0.3F;
 
-					builder.addVertex(matrix, x, y + hs, z - hs)
-						.setColor(r, g, b, a);
-					builder.addVertex(matrix, x, y + hs, z + hs)
-						.setColor(r, g, b, a);
-					builder.addVertex(matrix, x, y - hs, z + hs)
-						.setColor(r, g, b, a);
-					builder.addVertex(matrix, x, y - hs, z - hs)
-						.setColor(r, g, b, a);
-				}
-			});
+				builder.addVertex(matrix, x - hs, y + hs, z)
+					.setColor(r, g, b, a);
+				builder.addVertex(matrix, x + hs, y + hs, z)
+					.setColor(r, g, b, a);
+				builder.addVertex(matrix, x + hs, y - hs, z)
+					.setColor(r, g, b, a);
+				builder.addVertex(matrix, x - hs, y - hs, z)
+					.setColor(r, g, b, a);
+
+				builder.addVertex(matrix, x, y + hs, z - hs)
+					.setColor(r, g, b, a);
+				builder.addVertex(matrix, x, y + hs, z + hs)
+					.setColor(r, g, b, a);
+				builder.addVertex(matrix, x, y - hs, z + hs)
+					.setColor(r, g, b, a);
+				builder.addVertex(matrix, x, y - hs, z - hs)
+					.setColor(r, g, b, a);
+			}
+
+			com.mojang.blaze3d.vertex.MeshData rendered = builder.build();
+			if(rendered != null)
+				BufferUploader.drawWithShader(rendered);
+		}finally
+		{
+			RenderSystem.depthMask(true);
+			RenderSystem.enableDepthTest();
+			RenderSystem.disableBlend();
+		}
 	}
 }

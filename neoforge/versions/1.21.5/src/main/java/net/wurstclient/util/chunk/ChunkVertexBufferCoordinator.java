@@ -7,9 +7,9 @@
  */
 package net.wurstclient.util.chunk;
 
-import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

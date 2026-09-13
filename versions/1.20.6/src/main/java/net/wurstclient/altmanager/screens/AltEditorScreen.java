@@ -126,9 +126,8 @@ public abstract class AltEditorScreen extends Screen
 	@Override
 	public final void tick()
 	{
-		nameOrEmailBox.tick();
-		passwordBox.tick();
-		
+
+
 		String nameOrEmail = nameOrEmailBox.getValue().trim();
 		boolean alex = nameOrEmail.equalsIgnoreCase("Alexander01998");
 		
@@ -234,7 +233,7 @@ public abstract class AltEditorScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		
 		// skin preview
 		AltRenderer.drawAltBack(context, nameOrEmailBox.getValue(),

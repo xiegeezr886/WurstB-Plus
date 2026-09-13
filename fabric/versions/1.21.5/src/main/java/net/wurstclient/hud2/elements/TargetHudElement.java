@@ -1,5 +1,6 @@
 package net.wurstclient.hud2.elements;
 
+import net.minecraft.world.entity.EquipmentSlot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,6 +10,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -27,6 +29,10 @@ import net.wurstclient.hud2.HudManager;
 public final class TargetHudElement extends HudElement
 	implements PlayerAttacksEntityListener
 {
+	private static final EquipmentSlot[] ARMOR_SLOTS =
+		{EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST,
+			EquipmentSlot.HEAD};
+
 	static final long ATTACK_PRIORITY_NANOS = 1_250_000_000L;
 	static final long HOLD_NANOS = 550_000_000L;
 	static final long FADE_NANOS = 400_000_000L;
@@ -250,7 +256,8 @@ public final class TargetHudElement extends HudElement
 			equipment.add(mainHand);
 
 		List<ItemStack> armor = new ArrayList<>(4);
-		target.getArmorSlots().forEach(armor::add);
+		for(EquipmentSlot slot : ARMOR_SLOTS)
+			armor.add(target.getItemBySlot(slot));
 		Collections.reverse(armor);
 		armor.stream().filter(stack -> !stack.isEmpty()).forEach(equipment::add);
 		return equipment;
@@ -281,10 +288,10 @@ public final class TargetHudElement extends HudElement
 			RenderSystem.setShaderColor(1, 1, 1, opacity);
 			try
 			{
-				graphics.blit(skin, x + 2, y + 2, size - 4, size - 4,
-					8, 8, 8, 8, 64, 64);
-				graphics.blit(skin, x + 2, y + 2, size - 4, size - 4,
-					40, 8, 8, 8, 64, 64);
+				graphics.blit(RenderType::guiTextured, skin, x + 2, y + 2, 8, 8,
+					size - 4, size - 4, 8, 8, 64, 64, -1);
+				graphics.blit(RenderType::guiTextured, skin, x + 2, y + 2, 40, 8,
+					size - 4, size - 4, 8, 8, 64, 64, -1);
 			}finally
 			{
 				RenderSystem.setShaderColor(1, 1, 1, 1);

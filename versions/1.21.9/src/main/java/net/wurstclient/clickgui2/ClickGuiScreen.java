@@ -17,7 +17,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
@@ -253,10 +253,10 @@ public final class ClickGuiScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		ClickGui gui = WURST.getGui();

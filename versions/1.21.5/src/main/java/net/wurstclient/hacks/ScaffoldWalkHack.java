@@ -30,7 +30,6 @@ import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
-import net.wurstclient.mixinterface.IClientPlayerInteractionManager;
 import net.wurstclient.util.BlockUtils;
 import net.wurstclient.util.PlacementPlan;
 import net.wurstclient.util.RotationQueue;
@@ -294,15 +293,13 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		}
 
 		rotationQueue.setRotation(plan.rotation());
-		InteractionResult result = ((IClientPlayerInteractionManager)IMC
-			.getInteractionManager()).rightClickBlock(plan.neighbor(),
-				plan.side(), plan.hitVec());
+		InteractionResult result = IMC.getInteractionManager().rightClickBlock(
+			plan.neighbor(), plan.side(), plan.hitVec());
 		if(!result.consumesAction())
 			return false;
-		if(result instanceof InteractionResult.Success success
-			&& success.swingSource() != InteractionResult.SwingSource.NONE)
+		if((result instanceof InteractionResult.Success success && success.swingSource() == InteractionResult.SwingSource.CLIENT))
 			swingHand.swing(InteractionHand.MAIN_HAND);
-		// MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 		currentPlan = plan;
 		return true;
 	}
@@ -311,7 +308,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	{
 		return isEnabled() && safeWalk.isChecked()
 			&& mode.getSelected() == Mode.NORMAL && MC.player != null
-			&& MC.player.onGround() && !MC.options.keyJump.isDown();
+			&& MC.player.onGround() && !MC.player.input.keyPresses.jump();
 	}
 
 	private enum Mode

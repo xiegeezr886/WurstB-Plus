@@ -106,8 +106,7 @@ public final class TrollPotionHack extends Hack
 					effects.add(new MobEffectInstance(effect, Integer.MAX_VALUE,
 						MobEffectInstance.MAX_AMPLIFIER)));
 			stack.set(DataComponents.POTION_CONTENTS,
-				new PotionContents(Optional.empty(), Optional.empty(), effects,
-					Optional.empty()));
+				new PotionContents(Optional.empty(), Optional.empty(), effects, Optional.empty()));
 			
 			String name = "\u00a7f" + itemName + " of Trolling";
 			stack.set(DataComponents.CUSTOM_NAME, Component.literal(name));

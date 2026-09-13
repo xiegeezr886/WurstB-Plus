@@ -102,7 +102,8 @@ public enum MicrosoftLoginManager
 		
 		User session = new User(mcProfile.getName(),
 			java.util.UUID.fromString(mcProfile.getUUID()),
-			mcProfile.getAccessToken(), Optional.empty(), Optional.empty());
+			mcProfile.getAccessToken(), Optional.empty(), Optional.empty(),
+			User.Type.LEGACY);
 		
 		WurstClient.IMC.setWurstSession(session);
 	}

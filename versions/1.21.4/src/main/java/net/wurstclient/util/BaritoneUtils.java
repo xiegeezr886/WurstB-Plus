@@ -1,38 +1,28 @@
 package net.wurstclient.util;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 
+/**
+ * Baritone 集成工具（平台无关，反射调用）。
+ * 若 Baritone 未安装或 API 不兼容，自动降级为不可用。
+ */
 public final class BaritoneUtils
 {
 	public static volatile boolean IS_AVAILABLE = detectAvailability();
 
 	private static Object primaryBaritone;
+	private static Object mineProcess;
+	private static Object customGoalProcess;
+	private static Object builderProcess;
+	private static Object pathingBehavior;
 
 	private BaritoneUtils()
 	{
-	}
-
-	private static boolean detectAvailability()
-	{
-		try
-		{
-			Class<?> apiClass = Class.forName("baritone.api.BaritoneAPI", false,
-				BaritoneUtils.class.getClassLoader());
-			Object provider = invokeStatic(apiClass, "getProvider");
-			primaryBaritone = invoke(provider, "getPrimaryBaritone");
-			return primaryBaritone != null;
-		}catch(Throwable ignored)
-		{
-			primaryBaritone = null;
-			return false;
-		}
 	}
 
 	private static boolean ensureAvailable()
@@ -40,27 +30,84 @@ public final class BaritoneUtils
 		return IS_AVAILABLE || (IS_AVAILABLE = detectAvailability());
 	}
 
-	private static void markUnavailable(Throwable error)
+	private static boolean detectAvailability()
 	{
-		IS_AVAILABLE = false;
-		primaryBaritone = null;
-		System.err.println("Baritone is incompatible with this Minecraft version: "
-			+ error);
+		try
+		{
+			Class<?> apiClass = Class.forName("baritone.api.BaritoneAPI");
+			Method getProvider = apiClass.getMethod("getProvider");
+			Object provider = getProvider.invoke(null);
+			Method getPrimaryBaritone =
+				provider.getClass().getMethod("getPrimaryBaritone");
+			primaryBaritone = getPrimaryBaritone.invoke(provider);
+
+			if(primaryBaritone == null)
+				return false;
+
+			Class<?> baritoneClass = primaryBaritone.getClass();
+			mineProcess = invokeNoThrow(baritoneClass, primaryBaritone,
+				"getMineProcess");
+			customGoalProcess = invokeNoThrow(baritoneClass, primaryBaritone,
+				"getCustomGoalProcess");
+			builderProcess = invokeNoThrow(baritoneClass, primaryBaritone,
+				"getBuilderProcess");
+			pathingBehavior = invokeNoThrow(baritoneClass, primaryBaritone,
+				"getPathingBehavior");
+
+			return mineProcess != null && customGoalProcess != null;
+		}catch(Throwable e)
+		{
+			return false;
+		}
 	}
 
-	private static Object getBaritone()
+	private static Object invokeNoThrow(Class<?> clazz, Object target,
+		String methodName, Object... args)
 	{
-		if(!ensureAvailable())
-			throw new IllegalStateException("Baritone is not available");
-		return primaryBaritone;
+		try
+		{
+			Class<?>[] paramTypes = new Class<?>[args.length];
+			for(int i = 0; i < args.length; i++)
+				paramTypes[i] = args[i].getClass();
+			Method method = clazz.getMethod(methodName, paramTypes);
+			return method.invoke(target, args);
+		}catch(Throwable e)
+		{
+			return null;
+		}
+	}
+
+	private static Object invoke(String methodName, Object... args)
+	{
+		try
+		{
+			Class<?>[] paramTypes = new Class<?>[args.length];
+			for(int i = 0; i < args.length; i++)
+				paramTypes[i] = args[i].getClass();
+			Method method =
+				primaryBaritone.getClass().getMethod(methodName, paramTypes);
+			return method.invoke(primaryBaritone, args);
+		}catch(Throwable e)
+		{
+			markUnavailable(e);
+			return null;
+		}
+	}
+
+	private static void markUnavailable(Throwable error)
+	{
+		System.err.println("Baritone is incompatible: " + error);
 	}
 
 	public static boolean startMining(Block... blocks)
 	{
+		if(!ensureAvailable() || mineProcess == null)
+			return false;
 		try
 		{
-			Object mineProcess = invoke(getBaritone(), "getMineProcess");
-			invoke(mineProcess, "mine", (Object)blocks);
+			Method mine = mineProcess.getClass().getMethod("mine",
+				Block[].class);
+			mine.invoke(mineProcess, (Object)blocks);
 			return true;
 		}catch(Throwable e)
 		{
@@ -73,19 +120,16 @@ public final class BaritoneUtils
 	{
 		try
 		{
-			Class<?> goalClass = Class.forName(
-				"baritone.api.pathing.goals.GoalBlock", false,
-				BaritoneUtils.class.getClassLoader());
-			Object goal;
-			try
-			{
-				goal = construct(goalClass, pos);
-			}catch(ReflectiveOperationException ignored)
-			{
-				goal = construct(goalClass, pos.getX(), pos.getY(), pos.getZ());
-			}
-			Object process = invoke(getBaritone(), "getCustomGoalProcess");
-			invoke(process, "setGoalAndPath", goal);
+			if(!ensureAvailable() || customGoalProcess == null)
+				return;
+			Class<?> goalInterface =
+				Class.forName("baritone.api.pathing.goals.Goal");
+			Class<?> goalClass =
+				Class.forName("baritone.api.pathing.goals.GoalBlock");
+			Object goal = goalClass.getConstructor(BlockPos.class)
+				.newInstance(pos);
+			customGoalProcess.getClass().getMethod("setGoalAndPath",
+				goalInterface).invoke(customGoalProcess, goal);
 		}catch(Throwable e)
 		{
 			markUnavailable(e);
@@ -96,8 +140,10 @@ public final class BaritoneUtils
 	{
 		try
 		{
-			Object process = invoke(getBaritone(), "getBuilderProcess");
-			invoke(process, "clearArea", corner1, corner2);
+			if(!ensureAvailable() || builderProcess == null)
+				return;
+			builderProcess.getClass().getMethod("clearArea", BlockPos.class,
+				BlockPos.class).invoke(builderProcess, corner1, corner2);
 		}catch(Throwable e)
 		{
 			markUnavailable(e);
@@ -108,17 +154,20 @@ public final class BaritoneUtils
 	{
 		try
 		{
+			if(!ensureAvailable() || customGoalProcess == null)
+				return;
 			if(WurstClient.MC.player == null)
 				return;
 
 			Vec3 origin = WurstClient.MC.player.getEyePosition();
-			Class<?> goalClass = Class.forName(
-				"baritone.api.pathing.goals.GoalXZ", false,
-				BaritoneUtils.class.getClassLoader());
-			Object goal = invokeStatic(goalClass, "fromDirection", origin, yaw,
-				distance);
-			Object process = invoke(getBaritone(), "getCustomGoalProcess");
-			invoke(process, "setGoalAndPath", goal);
+			Class<?> goalXZClass =
+				Class.forName("baritone.api.pathing.goals.GoalXZ");
+			Class<?> goalInterface =
+				Class.forName("baritone.api.pathing.goals.Goal");
+			Object goal = goalXZClass.getMethod("fromDirection", Vec3.class,
+				float.class, double.class).invoke(null, origin, yaw, distance);
+			customGoalProcess.getClass().getMethod("setGoalAndPath",
+				goalInterface).invoke(customGoalProcess, goal);
 		}catch(Throwable e)
 		{
 			markUnavailable(e);
@@ -129,8 +178,10 @@ public final class BaritoneUtils
 	{
 		try
 		{
-			Object pathing = invoke(getBaritone(), "getPathingBehavior");
-			invoke(pathing, "cancelEverything");
+			if(!ensureAvailable() || pathingBehavior == null)
+				return;
+			pathingBehavior.getClass().getMethod("cancelEverything")
+				.invoke(pathingBehavior);
 		}catch(Throwable e)
 		{
 			markUnavailable(e);
@@ -141,8 +192,10 @@ public final class BaritoneUtils
 	{
 		try
 		{
-			Object pathing = invoke(getBaritone(), "getPathingBehavior");
-			return (boolean)invoke(pathing, "isPathing");
+			if(!ensureAvailable() || pathingBehavior == null)
+				return false;
+			return (boolean)pathingBehavior.getClass()
+				.getMethod("isPathing").invoke(pathingBehavior);
 		}catch(Throwable e)
 		{
 			markUnavailable(e);
@@ -157,88 +210,15 @@ public final class BaritoneUtils
 			if(WurstClient.MC.level == null)
 				return;
 
-			LevelData.RespawnData respawnData =
-				WurstClient.MC.level.getLevelData().getRespawnData();
-			BlockPos homePos = respawnData == null ? null : respawnData.pos();
-			if(homePos != null)
-				walkTo(homePos);
+			BlockPos homePos = WurstClient.MC.level.getSharedSpawnPos();
+
+			if(homePos == null)
+				return;
+
+			walkTo(homePos);
 		}catch(Throwable e)
 		{
 			markUnavailable(e);
 		}
-	}
-
-	private static Object invokeStatic(Class<?> type, String name,
-		Object... args) throws ReflectiveOperationException
-	{
-		return findMethod(type, name, args).invoke(null, args);
-	}
-
-	private static Object invoke(Object target, String name, Object... args)
-		throws ReflectiveOperationException
-	{
-		if(target == null)
-			throw new IllegalStateException(name + " target is unavailable");
-		return findMethod(target.getClass(), name, args).invoke(target, args);
-	}
-
-	private static Method findMethod(Class<?> type, String name, Object[] args)
-		throws NoSuchMethodException
-	{
-		for(Method method : type.getMethods())
-			if(method.getName().equals(name)
-				&& parametersMatch(method.getParameterTypes(), args))
-				return method;
-		throw new NoSuchMethodException(type.getName() + "." + name);
-	}
-
-	private static Object construct(Class<?> type, Object... args)
-		throws ReflectiveOperationException
-	{
-		for(Constructor<?> constructor : type.getConstructors())
-			if(parametersMatch(constructor.getParameterTypes(), args))
-				return constructor.newInstance(args);
-		throw new NoSuchMethodException(type.getName() + " constructor");
-	}
-
-	private static boolean parametersMatch(Class<?>[] parameterTypes,
-		Object[] args)
-	{
-		if(parameterTypes.length != args.length)
-			return false;
-		for(int i = 0; i < parameterTypes.length; i++)
-		{
-			if(args[i] == null)
-			{
-				if(parameterTypes[i].isPrimitive())
-					return false;
-				continue;
-			}
-			Class<?> parameterType = wrapPrimitive(parameterTypes[i]);
-			if(!parameterType.isAssignableFrom(args[i].getClass()))
-				return false;
-		}
-		return true;
-	}
-
-	private static Class<?> wrapPrimitive(Class<?> type)
-	{
-		if(type == boolean.class)
-			return Boolean.class;
-		if(type == byte.class)
-			return Byte.class;
-		if(type == short.class)
-			return Short.class;
-		if(type == int.class)
-			return Integer.class;
-		if(type == long.class)
-			return Long.class;
-		if(type == float.class)
-			return Float.class;
-		if(type == double.class)
-			return Double.class;
-		if(type == char.class)
-			return Character.class;
-		return type;
 	}
 }

@@ -7,7 +7,7 @@
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.wurstclient.Category;
 import net.wurstclient.hack.DontSaveState;
@@ -16,7 +16,7 @@ import net.wurstclient.hack.Hack;
 @DontSaveState
 public final class LsdHack extends Hack
 {
-	private static final Identifier EFFECT = Identifier.tryBuild(
+	private static final ResourceLocation EFFECT = ResourceLocation.tryBuild(
 		"wurst", "shaders/post/lsd_wobble.json");
 
 	public LsdHack()
@@ -37,7 +37,9 @@ public final class LsdHack extends Hack
 		if(MC.gameRenderer.currentPostEffect() != null)
 			MC.gameRenderer.clearPostEffect();
 		
-		// 26.1.2 removed the old loadEffect path; keep the hack disabled.
+		// 1.21.5 replaced the old PostChain loader with a frame graph
+		// based one that has no public API for loading a custom post
+		// effect, so this hack stays disabled instead of crashing.
 		setEnabled(false);
 	}
 	

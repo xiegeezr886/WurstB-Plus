@@ -131,13 +131,13 @@ public final class PostEffectQueue
 	private void composite(RenderTarget source, int width, int height)
 	{
 		RenderSystem.backupProjectionMatrix();
-		PoseStack modelView = RenderSystem.getModelViewStack();
-		modelView.pushPose();
+		org.joml.Matrix4fStack modelView = RenderSystem.getModelViewStack();
+		modelView.pushMatrix();
 		try
 		{
 			RenderSystem.setProjectionMatrix(new Matrix4f().setOrtho(0, width,
 				height, 0, 1000, 3000), VertexSorting.ORTHOGRAPHIC_Z);
-			modelView.setIdentity();
+			modelView.identity();
 			modelView.translate(0, 0, -2000);
 			RenderSystem.applyModelViewMatrix();
 			RenderSystem.viewport(0, 0, width, height);
@@ -161,7 +161,7 @@ public final class PostEffectQueue
 			BufferUploader.drawWithShader(buffer.end());
 		}finally
 		{
-			modelView.popPose();
+			modelView.popMatrix();
 			RenderSystem.applyModelViewMatrix();
 			RenderSystem.restoreProjectionMatrix();
 		}

@@ -8,8 +8,9 @@
 package net.wurstclient.commands;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.Category;
 import net.wurstclient.command.CmdException;
 import net.wurstclient.command.CmdSyntaxError;
@@ -21,11 +22,11 @@ import net.wurstclient.util.RenderUtils;
 public final class TacoCmd extends Command
 	implements GUIRenderListener, UpdateListener
 {
-	private final Identifier[] tacos =
-		{Identifier.fromNamespaceAndPath("wurst", "dancingtaco1.png"),
-			Identifier.fromNamespaceAndPath("wurst", "dancingtaco2.png"),
-			Identifier.fromNamespaceAndPath("wurst", "dancingtaco3.png"),
-			Identifier.fromNamespaceAndPath("wurst", "dancingtaco4.png")};
+	private final ResourceLocation[] tacos =
+		{ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco1.png"),
+			ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco2.png"),
+			ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco3.png"),
+			ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco4.png")};
 	
 	private boolean enabled;
 	private int ticks = 0;
@@ -79,15 +80,17 @@ public final class TacoCmd extends Command
 	}
 	
 	@Override
-	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+	public void onRenderGUI(GuiGraphics context, float partialTicks)
 	{
 		if(WURST.getHax().rainbowUiHack.isEnabled())
 			RenderUtils.setShaderColor(WURST.getGui().getAcColor(), 1);
-		// else: shader color managed by render pipeline
+		else
+			RenderSystem.setShaderColor(1, 1, 1, 1);
+		
 		int x = context.guiWidth() / 2 - 32 + 76;
 		int y = context.guiHeight() - 32 - 19;
 		int w = 64;
 		int h = 32;
-		context.blit(tacos[ticks / 8], x, y, 0, 0, w, h, w, h);
+		context.blit(RenderType::guiTextured, tacos[ticks / 8], x, y, 0, 0, w, h, w, h);
 	}
 }

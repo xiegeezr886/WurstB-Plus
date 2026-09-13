@@ -16,7 +16,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.wurstclient.WurstClient;
 
 @Mixin(ItemInHandRenderer.class)
@@ -26,11 +26,11 @@ public abstract class ItemInHandRendererMixin
 	 * Makes the "Hide hand" setting in Freecam work.
 	 */
 	@Inject(
-		method = "renderHandsWithItems(FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/player/LocalPlayer;I)V",
+		method = "renderHandsWithItems(FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/player/LocalPlayer;I)V",
 		at = @At("HEAD"),
 		cancellable = true)
 	private void onRenderHandsWithItems(float tickProgress, PoseStack matrices,
-		SubmitNodeCollector entityRenderCommandQueue, LocalPlayer player,
+		MultiBufferSource.BufferSource bufferSource, LocalPlayer player,
 		int light, CallbackInfo ci)
 	{
 		if(WurstClient.INSTANCE.getHax().freecamHack.shouldHideHand())

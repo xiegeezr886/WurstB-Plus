@@ -7,7 +7,6 @@
  */
 package net.wurstclient.serverfinder;
 
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -230,7 +229,6 @@ public class ServerFinderScreen extends Screen
 		return super.mouseClicked(mouseX, mouseY, button);
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

@@ -14,12 +14,13 @@ import java.util.Comparator;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorItem.Type;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -115,8 +116,8 @@ public final class AutoArmorHack extends Hack
 		LocalPlayer player = MC.player;
 		Inventory inventory = player.getInventory();
 		
-		if(!swapWhileMoving.isChecked() && (player.input.forwardImpulse != 0
-			|| player.input.leftImpulse != 0))
+		if(!swapWhileMoving.isChecked() && (player.input.getMoveVector().y != 0
+			|| player.input.getMoveVector().x != 0))
 			return;
 		
 		// store slots and values of best armor pieces
@@ -129,13 +130,13 @@ public final class AutoArmorHack extends Hack
 		{
 			bestArmorSlots[type] = -1;
 			
-			ItemStack stack = inventory.getArmor(type);
+			ItemStack stack = inventory.getItem(36 + type);
 			if(type == 2 && keepElytra.isChecked() && stack.is(Items.ELYTRA))
 			{
 				bestArmorValues[type] = Integer.MAX_VALUE;
 				continue;
 			}
-			if(stack.isEmpty() || !(stack.getItem() instanceof ArmorItem))
+			if(stack.isEmpty() || !isArmor(stack))
 				continue;
 			if(EnchantmentUtils.getLevel(Enchantments.BINDING_CURSE,
 				stack) > 0)
@@ -144,8 +145,7 @@ public final class AutoArmorHack extends Hack
 				continue;
 			}
 			
-			ArmorItem item = (ArmorItem)stack.getItem();
-			bestArmorValues[type] = getArmorValue(item, stack);
+			bestArmorValues[type] = getArmorValue(stack);
 			equippedArmorValues[type] = bestArmorValues[type];
 		}
 		
@@ -154,16 +154,16 @@ public final class AutoArmorHack extends Hack
 		{
 			ItemStack stack = inventory.getItem(slot);
 			
-			if(stack.isEmpty() || !(stack.getItem() instanceof ArmorItem))
+			if(stack.isEmpty() || !isArmor(stack))
 				continue;
 			if(isLowDurability(stack)
 				|| EnchantmentUtils.getLevel(Enchantments.BINDING_CURSE,
 					stack) > 0)
 				continue;
 			
-			ArmorItem item = (ArmorItem)stack.getItem();
-			int armorType = item.getEquipmentSlot().getIndex();
-			int armorValue = getArmorValue(item, stack);
+			int armorType =
+				stack.get(DataComponents.EQUIPPABLE).slot().getIndex();
+			int armorValue = getArmorValue(stack);
 			
 			if(armorValue > bestArmorValues[armorType])
 			{
@@ -185,7 +185,7 @@ public final class AutoArmorHack extends Hack
 				
 			// check if armor can be swapped
 			// needs 1 free slot where it can put the old armor
-			ItemStack oldArmor = inventory.getArmor(type);
+			ItemStack oldArmor = inventory.getItem(36 + type);
 			if(!oldArmor.isEmpty() && inventory.getFreeSlot() == -1)
 				continue;
 			
@@ -223,11 +223,25 @@ public final class AutoArmorHack extends Hack
 			timer = delay.getValueI();
 	}
 	
-	private int getArmorValue(ArmorItem item, ItemStack stack)
+	/**
+	 * 1.21.5 removed ArmorItem; armour is now the EQUIPPABLE data component.
+	 */
+	private static boolean isArmor(ItemStack stack)
 	{
-		int armorPoints = item.getDefense();
+		var equippable = stack.get(DataComponents.EQUIPPABLE);
+		return equippable != null && equippable.slot().getType()
+			.equals(EquipmentSlot.Type.HUMANOID_ARMOR);
+	}
+	
+	private int getArmorValue(ItemStack stack)
+	{
+		EquipmentSlot slot = stack.get(DataComponents.EQUIPPABLE).slot();
+		ItemAttributeModifiers mods =
+			stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS,
+				ItemAttributeModifiers.EMPTY);
+		int armorPoints = (int)mods.compute(0, slot);
 		int prtPoints = 0;
-		int armorToughness = (int)item.getToughness();
+		int armorToughness = 0;
 		int durabilityScore = stack.isDamageableItem()
 			? (stack.getMaxDamage() - stack.getDamageValue()) * 5
 				/ Math.max(1, stack.getMaxDamage())

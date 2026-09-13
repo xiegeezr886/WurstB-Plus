@@ -9,7 +9,6 @@ package net.wurstclient.hacks;
 
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -19,7 +18,6 @@ import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.util.MovementPlanner;
 
 @SearchTags({"packet fly", "packetfly"})
 public final class PacketFlyHack extends Hack
@@ -82,18 +80,17 @@ public final class PacketFlyHack extends Hack
 			.yRot(-(float)Math.toRadians(MC.player.getYRot()));
 		Vec3 move = Vec3.ZERO;
 
-		Vec2 moveVector = MovementPlanner.getMoveVector(MC.player.input);
-		if(moveVector.y > 0)
+		if(MC.player.input.getMoveVector().y > 0)
 			move = move.add(forward);
-		if(moveVector.y < 0)
+		if(MC.player.input.getMoveVector().y < 0)
 			move = move.add(forward.reverse());
 		if(MC.options.keyJump.isDown())
 			move = move.add(0, vs, 0);
 		if(MC.options.keyShift.isDown())
 			move = move.add(0, -vs, 0);
-		if(moveVector.x > 0)
+		if(MC.player.input.getMoveVector().x > 0)
 			move = move.add(forward.yRot((float)Math.toRadians(90)));
-		if(moveVector.x < 0)
+		if(MC.player.input.getMoveVector().x < 0)
 			move = move.add(forward.yRot((float)-Math.toRadians(90)));
 
 		MC.player.setDeltaMovement(Vec3.ZERO);
@@ -109,8 +106,8 @@ public final class PacketFlyHack extends Hack
 		{
 			cachedPos = cachedPos.add(move);
 			MC.player.connection.send(
-				new ServerboundMovePlayerPacket.Pos(cachedPos.x, cachedPos.y,
-					cachedPos.z, false, false));
+				new ServerboundMovePlayerPacket.Pos(cachedPos.x,
+					cachedPos.y, cachedPos.z, false, false));
 			MC.player.connection.send(
 				new ServerboundMovePlayerPacket.Pos(cachedPos.x,
 					cachedPos.y - 0.01, cachedPos.z, true, false));
@@ -118,11 +115,13 @@ public final class PacketFlyHack extends Hack
 		{
 			MC.player.connection.send(
 				new ServerboundMovePlayerPacket.Pos(
-					MC.player.getX() + move.x, MC.player.getY() + move.y,
+					MC.player.getX() + move.x,
+					MC.player.getY() + move.y,
 					MC.player.getZ() + move.z, false, false));
 			MC.player.connection.send(
 				new ServerboundMovePlayerPacket.Pos(
-					MC.player.getX() + move.x, MC.player.getY() - 420.69,
+					MC.player.getX() + move.x,
+					MC.player.getY() - 420.69,
 					MC.player.getZ() + move.z, true, false));
 		}
 	}

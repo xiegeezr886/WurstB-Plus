@@ -11,6 +11,7 @@
  */
 package net.wurstclient.hacks;
 
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.network.protocol.game.ClientboundExplodePacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
@@ -170,12 +171,11 @@ public final class NoVelocityHack extends Hack
 		double verticalMultiplier = vertical.getValue() / 100;
 		ClientboundExplodePacketMixin accessor =
 			(ClientboundExplodePacketMixin)(Object)packet;
-		accessor.wurst_setKnockbackX(
-			(float)(packet.getKnockbackX() * horizontalMultiplier));
-		accessor.wurst_setKnockbackY(
-			(float)(packet.getKnockbackY() * verticalMultiplier));
-		accessor.wurst_setKnockbackZ(
-			(float)(packet.getKnockbackZ() * horizontalMultiplier));
+		packet.playerKnockback().ifPresent(knockback -> accessor
+			.wurst_setPlayerKnockback(Optional.of(
+				new Vec3(knockback.x * horizontalMultiplier,
+					knockback.y * verticalMultiplier,
+					knockback.z * horizontalMultiplier))));
 	}
 
 	private boolean shouldApply()
@@ -184,7 +184,7 @@ public final class NoVelocityHack extends Hack
 		return VelocityPlanner.shouldApply(chance.getValueI(),
 			ThreadLocalRandom.current().nextInt(100), onlyMoving.isChecked(),
 			moving, trigger.getSelected(), MC.player.onGround(),
-			MC.player.isInWaterOrBubble() || MC.player.isInLava(),
+			MC.player.isInWater() || MC.player.isInLava(),
 			allowInFluid.isChecked(), MC.player.isFallFlying(),
 			allowWhileFlying.isChecked());
 	}

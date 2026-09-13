@@ -1,7 +1,7 @@
 package net.wurstclient.hud2.elements;
 
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hud2.HudElement;
 
@@ -27,12 +27,12 @@ public abstract class TextHudElement extends HudElement
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor graphics, int x, int y, float partialTicks)
+	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
 		Font font = WurstClient.MC.font;
 		String text = getText();
 		graphics.fill(x, y, x + font.width(text) + 4, y + font.lineHeight + 2,
 			0x80000000);
-		graphics.text(font, text, x + 2, y + 1, 0xFFFFFFFF, false);
+		graphics.drawString(font, text, x + 2, y + 1, 0xFFFFFFFF, false);
 	}
 }

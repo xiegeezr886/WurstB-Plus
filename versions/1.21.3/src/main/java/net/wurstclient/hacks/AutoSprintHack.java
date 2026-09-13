@@ -13,7 +13,6 @@ import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.util.MovementPlanner;
 
 @SearchTags({"auto sprint"})
 public final class AutoSprintHack extends Hack
@@ -86,7 +85,7 @@ public final class AutoSprintHack extends Hack
 	{
 		if(!isEnabled() || player == null || player.isPassenger()
 			|| player.isFallFlying()
-			|| player.isInWaterOrSwimmable() || player.isUnderWater())
+			|| player.isInWaterOrBubble() || player.isUnderWater())
 			return false;
 		if(!ignoreCollision.isChecked() && player.horizontalCollision
 			|| !whileSneaking.isChecked() && player.isShiftKeyDown()
@@ -97,12 +96,9 @@ public final class AutoSprintHack extends Hack
 		if(!hungry.isChecked() && !player.getAbilities().mayfly
 			&& player.getFoodData().getFoodLevel() <= 6)
 			return false;
-		boolean forward = MC.options.keyUp.isDown();
-		boolean moving = forward || MC.options.keyDown.isDown()
-			|| MC.options.keyLeft.isDown() || MC.options.keyRight.isDown();
-		if(!allDirections.isChecked() && !forward)
+		if(!allDirections.isChecked() && player.input.forwardImpulse <= 0)
 			return false;
-		return moving;
+		return player.input.getMoveVector().length() > 1.0E-5F;
 	}
 
 	private void stopOwnedSprint()

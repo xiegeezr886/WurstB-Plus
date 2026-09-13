@@ -23,16 +23,20 @@ public enum WurstShaderPipelines
 	
 	/**
 	 * Similar to the RENDERTYPE_LINES Snippet, but without fog.
+	 *
+	 * <p>
+	 * 1.21.9 has no {@code POSITION_COLOR_NORMAL_LINE_WIDTH} vertex format, so
+	 * the custom shader takes a plain {@code POSITION_COLOR_NORMAL} stream and
+	 * uses a fixed line width of 2.
 	 */
 	public static final Snippet FOGLESS_LINES_SNIPPET = RenderPipeline
-		.builder(RenderPipelines.MATRICES_FOG_SNIPPET,
+		.builder(RenderPipelines.LINES_SNIPPET,
 			RenderPipelines.GLOBALS_SNIPPET)
 		.withVertexShader(ResourceLocation.parse("wurst:core/fogless_lines"))
 		.withFragmentShader(ResourceLocation.parse("wurst:core/fogless_lines"))
 		.withBlend(BlendFunction.TRANSLUCENT)
 		.withCull(false)
-		.withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH,
-			Mode.LINES)
+		.withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL, Mode.LINES)
 		.buildSnippet();
 	
 	public static final RenderPipeline DEPTH_TEST_LINES =
@@ -67,7 +71,6 @@ public enum WurstShaderPipelines
 	
 	private static RenderPipeline register(RenderPipeline pipeline)
 	{
-		RenderPipelines.PIPELINES_BY_LOCATION.put(pipeline.getLocation(), pipeline);
-		return pipeline;
+		return RenderPipelines.register(pipeline);
 	}
 }

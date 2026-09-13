@@ -14,7 +14,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.other_feature.OtherFeature;
@@ -24,8 +24,8 @@ import net.wurstclient.settings.EnumSetting;
 @DontBlock
 public final class WurstOptionsOtf extends OtherFeature
 {
-	private static final Identifier WURST_TEXTURE =
-		Identifier.fromNamespaceAndPath("wurst", "wurst_128.png");
+	private static final ResourceLocation WURST_TEXTURE =
+		ResourceLocation.fromNamespaceAndPath("wurst", "wurst_128.png");
 	
 	private final EnumSetting<Location> location = new EnumSetting<>("Location",
 		"description.wurst.setting.wurstoptions.location", Location.values(),

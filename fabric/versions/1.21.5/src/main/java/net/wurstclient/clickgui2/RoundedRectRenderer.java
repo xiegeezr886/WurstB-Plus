@@ -1,17 +1,18 @@
 package net.wurstclient.clickgui2;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderPipelines;
 
 final class RoundedRectRenderer
 {
@@ -44,14 +45,13 @@ final class RoundedRectRenderer
 			y2 + 0.5F, safeRadius + 0.5F, segments);
 
 		RenderState state = begin(graphics);
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES,
-			DefaultVertexFormat.POSITION_COLOR);
+		BufferBuilder buffer = Tesselator.getInstance().begin(
+			VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
 		Matrix4f pose = graphics.pose().last().pose();
 		addSolidFan(buffer, pose, 0, segments, color);
 		addColorStrip(buffer, pose, 0, 1, segments, color,
 			color & 0xFFFFFF);
-		BufferUploader.drawWithShader(buffer.buildOrThrow());
+		draw(buffer.buildOrThrow());
 		state.restore();
 	}
 
@@ -71,27 +71,27 @@ final class RoundedRectRenderer
 			y2 - 1.35F, Math.max(0, safeRadius - 1.35F), segments);
 
 		RenderState state = begin(graphics);
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES,
-			DefaultVertexFormat.POSITION_COLOR);
+		BufferBuilder buffer = Tesselator.getInstance().begin(
+			VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
 		Matrix4f pose = graphics.pose().last().pose();
 		int transparent = color & 0xFFFFFF;
 		addColorStrip(buffer, pose, 0, 1, segments, transparent, color);
 		addColorStrip(buffer, pose, 1, 2, segments, color, transparent);
-		BufferUploader.drawWithShader(buffer.buildOrThrow());
+		draw(buffer.buildOrThrow());
 		state.restore();
 	}
 
+	private static void draw(MeshData mesh)
+	{
+		net.wurstclient.util.RenderUtils.drawGuiMesh(mesh);
+	}
+	
 	private static RenderState begin(GuiGraphics graphics)
 	{
 		graphics.flush();
 		RenderState state = new RenderState(GL11.glIsEnabled(GL11.GL_BLEND),
 			GL11.glIsEnabled(GL11.GL_DEPTH_TEST),
 			GL11.glIsEnabled(GL11.GL_CULL_FACE));
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableDepthTest();
-		RenderSystem.disableCull();
 		return state;
 	}
 
@@ -191,17 +191,17 @@ final class RoundedRectRenderer
 		private void restore()
 		{
 			if(blend)
-				RenderSystem.enableBlend();
+				GlStateManager._enableBlend();
 			else
-				RenderSystem.disableBlend();
+				GlStateManager._disableBlend();
 			if(depth)
-				RenderSystem.enableDepthTest();
+				GlStateManager._enableDepthTest();
 			else
-				RenderSystem.disableDepthTest();
+				GlStateManager._disableDepthTest();
 			if(cull)
-				RenderSystem.enableCull();
+				GlStateManager._enableCull();
 			else
-				RenderSystem.disableCull();
+				GlStateManager._disableCull();
 		}
 	}
 }

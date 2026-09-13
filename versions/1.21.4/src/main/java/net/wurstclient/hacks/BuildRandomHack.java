@@ -133,7 +133,7 @@ public final class BuildRandomHack extends Hack
 		if(WURST.getHax().freecamHack.isEnabled())
 			return;
 		
-		if(!fastPlace.isChecked() && IMC.getRightClickDelay() > 0)
+		if(!fastPlace.isChecked() && ((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		if(checkItem.isChecked() && !MC.player.isHolding(
@@ -176,7 +176,7 @@ public final class BuildRandomHack extends Hack
 		if(checkLOS.isChecked() && !params.lineOfSight())
 			return false;
 		
-		// MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 		facing.getSelected().face(params.hitVec());
 		lastPos = pos;
 		

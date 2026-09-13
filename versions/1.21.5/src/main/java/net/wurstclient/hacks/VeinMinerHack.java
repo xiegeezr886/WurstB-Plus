@@ -105,7 +105,7 @@ public final class VeinMinerHack extends Hack
 		currentVein.clear();
 		if(currentBlock != null)
 		{
-			IMC.getInteractionManager().setDestroying(true);
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			currentBlock = null;
 		}

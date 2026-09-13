@@ -22,7 +22,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 import net.wurstclient.WurstRenderLayers;
@@ -53,7 +53,7 @@ public final class WaypointsManager implements RenderListener
 			{
 				WsonObject obj = wson.getObject(i);
 				String name = obj.getString("name");
-				Identifier dim = Identifier
+				ResourceLocation dim = ResourceLocation
 					.parse(obj.getString("dimension"));
 				int x = obj.getInt("x");
 				int y = obj.getInt("y");
@@ -120,7 +120,7 @@ public final class WaypointsManager implements RenderListener
 		if(waypoints.isEmpty() || mc.level == null || mc.player == null)
 			return;
 
-		Identifier currentDim = mc.level.dimension().identifier();
+		ResourceLocation currentDim = mc.level.dimension().location();
 
 		Vec3 camPos = mc.gameRenderer.getMainCamera().position();
 		RenderUtils.submit(PoseStack, WurstRenderLayers.getQuads(true),

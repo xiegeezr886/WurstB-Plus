@@ -7,23 +7,19 @@
  */
 package net.wurstclient.serverfinder;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import org.lwjgl.glfw.GLFW;
-import net.minecraft.util.Util;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.Util;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.chat.Component;
@@ -213,66 +209,63 @@ public class ServerFinderScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int int_3)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ENTER)
-			searchButton.onPress(context);
+		if(keyCode == GLFW.GLFW_KEY_ENTER)
+			searchButton.onPress();
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, int_3);
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		if(context.button() == GLFW.GLFW_MOUSE_BUTTON_4)
+		if(button == GLFW.GLFW_MOUSE_BUTTON_4)
 		{
 			onClose();
 			return true;
 		}
 		
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		
-		context.centeredText(font, "服务器搜索",
+		context.drawCenteredString(font, "服务器搜索",
 			width / 2, 20, CommonColors.WHITE);
-		context.centeredText(font,
+		context.drawCenteredString(font,
 			"This will search for servers with similar IPs", width / 2, 40,
 			0xFFA0A0A0);
-		context.centeredText(font,
+		context.drawCenteredString(font,
 			"to the IP you type into the field below.", width / 2, 50,
 			0xFFA0A0A0);
-		context.centeredText(font,
+		context.drawCenteredString(font,
 			"The servers it finds will be added to your server list.",
 			width / 2, 60, 0xFFA0A0A0);
 		
-		context.text(font, "Server address:",
+		context.drawString(font, "Server address:",
 			width / 2 - 100, height / 4 + 24, 0xFFA0A0A0);
-		ipBox.render(context.getInner(), mouseX, mouseY, partialTicks);
+		ipBox.render(context, mouseX, mouseY, partialTicks);
 		
-		context.text(font, "Max. threads:",
+		context.drawString(font, "Max. threads:",
 			width / 2 - 100, height / 4 + 60, 0xFFA0A0A0);
-		maxThreadsBox.render(context.getInner(), mouseX, mouseY, partialTicks);
+		maxThreadsBox.render(context, mouseX, mouseY, partialTicks);
 		
-		context.centeredText(font, state.toString(),
+		context.drawCenteredString(font, state.toString(),
 			width / 2, height / 4 + 73, 0xFFA0A0A0);
 		
-		context.text(font,
+		context.drawString(font,
 			"Checked: " + checked + " / 1792", width / 2 - 100, height / 4 + 84,
 			0xFFA0A0A0);
-		context.text(font, "Working: " + working,
+		context.drawString(font, "Working: " + working,
 			width / 2 - 100, height / 4 + 94, 0xFFA0A0A0);
 		
 		for(Renderable drawable : renderables)
-			drawable.render(context.getInner(), mouseX, mouseY, partialTicks);
+			drawable.render(context, mouseX, mouseY, partialTicks);
 	}
 	
 	@Override

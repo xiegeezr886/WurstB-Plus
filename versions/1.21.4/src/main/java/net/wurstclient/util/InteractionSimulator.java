@@ -124,7 +124,7 @@ public enum InteractionSimulator
 			swing.swing(hand);
 			
 			if(!stack.isEmpty() && (stack.getCount() != oldCount
-				|| MC.player.hasInfiniteMaterials()))
+				|| MC.gameMode.hasInfiniteItems()))
 				MC.gameRenderer.itemInHandRenderer.itemUsed(hand);
 		}
 		

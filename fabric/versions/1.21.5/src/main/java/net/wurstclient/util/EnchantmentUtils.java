@@ -21,20 +21,20 @@ public enum EnchantmentUtils
 		ResourceKey<Enchantment> key)
 	{
 		Registry<Enchantment> registry = getRegistry();
-		return registry == null ? Optional.empty() : registry.getHolder(key);
+		return registry == null ? Optional.empty() : registry.get(key);
 	}
 
 	public static Optional<Holder.Reference<Enchantment>> getHolder(
 		ResourceLocation id)
 	{
 		Registry<Enchantment> registry = getRegistry();
-		return registry == null ? Optional.empty() : registry.getHolder(id);
+		return registry == null ? Optional.empty() : registry.get(id);
 	}
 
 	public static Stream<Holder.Reference<Enchantment>> stream()
 	{
 		Registry<Enchantment> registry = getRegistry();
-		return registry == null ? Stream.empty() : registry.holders();
+		return registry == null ? Stream.empty() : registry.listElements();
 	}
 
 	public static int getLevel(ResourceKey<Enchantment> key, ItemStack stack)
@@ -51,6 +51,6 @@ public enum EnchantmentUtils
 			return null;
 
 		return WurstClient.MC.level.registryAccess()
-			.registryOrThrow(Registries.ENCHANTMENT);
+			.lookup(Registries.ENCHANTMENT).orElse(null);
 	}
 }

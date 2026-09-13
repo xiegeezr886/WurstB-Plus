@@ -7,14 +7,9 @@
  */
 package net.wurstclient.options;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import com.mojang.blaze3d.platform.InputConstants;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.CommonColors;
 import org.lwjgl.glfw.GLFW;
@@ -34,22 +29,18 @@ public class PressAKeyScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent event)
+	public boolean keyPressed(int keyCode, int scanCode, int int_3)
 	{
-		if(event.key() != GLFW.GLFW_KEY_ESCAPE)
-			prevScreen.setKey(InputConstants.getKey(event).getName());
+		if(keyCode != GLFW.GLFW_KEY_ESCAPE)
+			prevScreen.setKey(getKeyName(keyCode, scanCode));
 		
 		minecraft.setScreen((Screen)prevScreen);
-		return true;
+		return super.keyPressed(keyCode, scanCode, int_3);
 	}
-
-	@Override
-	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick)
+	
+	private String getKeyName(int keyCode, int scanCode)
 	{
-		prevScreen.setKey(
-			InputConstants.Type.MOUSE.getOrCreate(event.button()).getName());
-		minecraft.setScreen((Screen)prevScreen);
-		return true;
+		return InputConstants.getKey(keyCode, scanCode).getName();
 	}
 	
 	@Override
@@ -63,19 +54,14 @@ public class PressAKeyScreen extends Screen
 	{
 		return false;
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		context.centeredText(font, "请按下键盘按键或鼠标按钮", width / 2,
-			height / 4 + 48, CommonColors.WHITE);
-
-		for(Renderable drawable : renderables)
-			drawable.render(context.getInner(), mouseX, mouseY, partialTicks);
+		renderBackground(context, mouseX, mouseY, partialTicks);
+		context.drawCenteredString(font, "Press a key",
+			width / 2, height / 4 + 48, CommonColors.WHITE);
+		super.render(context, mouseX, mouseY, partialTicks);
 	}
 }

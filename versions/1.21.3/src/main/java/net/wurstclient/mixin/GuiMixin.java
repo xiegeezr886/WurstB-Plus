@@ -7,7 +7,9 @@
  */
 package net.wurstclient.mixin;
 
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -15,53 +17,56 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.gui.components.DebugScreenOverlay;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.GUIRenderListener.GUIRenderEvent;
 import net.wurstclient.hack.HackList;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
 
 @Mixin(Gui.class)
 public class GuiMixin
 {
+	@Shadow
+	@Final
+	private DebugScreenOverlay debugOverlay;
+
 	@Inject(
 		method = "renderTabList(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
 		at = @At("HEAD"))
 	private void onRenderPlayerList(GuiGraphics graphics,
 		DeltaTracker tickCounter, CallbackInfo ci)
 	{
-		if(WurstClient.MC.debugEntries.isOverlayVisible())
+		if(WurstClient.MC.screen != null || debugOverlay.showDebugScreen())
 			return;
-		
+
 		float tickDelta = tickCounter.getGameTimeDeltaPartialTick(true);
-		EventManager.fire(new GUIRenderEvent(
-			new GuiGraphicsExtractor(graphics), tickDelta));
+		EventManager.fire(new GUIRenderEvent(graphics, tickDelta));
 	}
-	
+
 	@Inject(
-		method = "renderTextureOverlay(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/resources/Identifier;F)V",
+		method = "renderTextureOverlay(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/resources/ResourceLocation;F)V",
 		at = @At("HEAD"),
 		cancellable = true)
 	private void onRenderOverlay(GuiGraphics graphics,
-		Identifier texture, float opacity, CallbackInfo ci)
+		ResourceLocation texture, float opacity, CallbackInfo ci)
 	{
 		if(texture == null)
 			return;
-		
+
 		String path = texture.getPath();
 		HackList hax = WurstClient.INSTANCE.getHax();
-		
+
 		if("textures/misc/pumpkinblur.png".equals(path)
 			&& hax.noPumpkinHack.isEnabled())
 			ci.cancel();
-		
+
 		if("textures/misc/powder_snow_outline.png".equals(path)
 			&& hax.noOverlayHack.isEnabled())
 			ci.cancel();
 	}
-	
+
 	@Inject(method = "renderVignette", at = @At("HEAD"), cancellable = true)
 	private void onRenderVignetteOverlay(GuiGraphics graphics,
 		Entity entity, CallbackInfo ci)
@@ -69,7 +74,7 @@ public class GuiMixin
 		HackList hax = WurstClient.INSTANCE.getHax();
 		if(hax == null || !hax.noVignetteHack.isEnabled())
 			return;
-		
+
 		ci.cancel();
 	}
 }

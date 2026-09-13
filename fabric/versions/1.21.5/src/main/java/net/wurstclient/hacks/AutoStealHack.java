@@ -89,8 +89,9 @@ public final class AutoStealHack extends Hack
 				if(MC.screen == null)
 					break;
 				
-				screen.slotClicked(slot, slot.index, 0,
-					ClickType.QUICK_MOVE);
+				MC.gameMode.handleInventoryMouseClick(
+					screen.getMenu().containerId, slot.index, 0,
+					ClickType.QUICK_MOVE, MC.player);
 				
 			}catch(InterruptedException e)
 			{

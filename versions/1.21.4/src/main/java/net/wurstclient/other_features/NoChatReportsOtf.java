@@ -7,11 +7,10 @@
  */
 package net.wurstclient.other_features;
 
-import java.net.URI;
-
+import net.minecraft.client.GuiMessageTag;
+import net.minecraft.client.GuiMessageTag.Icon;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.GuiMessageTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -25,7 +24,6 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.ChatInputListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.events.WorldChangeListener;
-import net.wurstclient.mixin.ClientPacketListenerAccessor;
 import net.wurstclient.other_feature.OtherFeature;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.ChatUtils;
@@ -62,18 +60,24 @@ public final class NoChatReportsOtf extends OtherFeature
 		if(netHandler == null)
 			return;
 		
-		ClientPacketListenerAccessor accessor =
-			(ClientPacketListenerAccessor)(Object)netHandler;
 		if(isActive())
 		{
+			net.wurstclient.mixin.ClientPacketListenerAccessor accessor =
+				(net.wurstclient.mixin.ClientPacketListenerAccessor)(Object)netHandler;
 			accessor.setChatSession(null);
 			accessor.setSignedMessageEncoder(
 				SignedMessageChain.Encoder.UNSIGNED);
-		}else if(accessor.getChatSession() == null)
+			
+		}else if(((net.wurstclient.mixin.ClientPacketListenerAccessor)(Object)netHandler)
+			.getChatSession() == null)
 			MC.getProfileKeyPairManager().prepareKeyPair()
 				.thenAcceptAsync(optional -> optional
-					.ifPresent(profileKeys -> accessor.setChatSession(
-						LocalChatSession.create(profileKeys))),
+					.ifPresent(profileKeys ->
+					{
+						net.wurstclient.mixin.ClientPacketListenerAccessor a =
+							(net.wurstclient.mixin.ClientPacketListenerAccessor)(Object)netHandler;
+						a.setChatSession(LocalChatSession.create(profileKeys));
+					}),
 					MC);
 		
 		EVENTS.remove(UpdateListener.class, this);
@@ -95,9 +99,9 @@ public final class NoChatReportsOtf extends OtherFeature
 		
 		event.cancel();
 		
-		ClickEvent clickEvent = new ClickEvent.OpenUrl(
-			URI.create("https://www.wurstclient.net/chat-disabled-mpk/"));
-		HoverEvent hoverEvent = new HoverEvent.ShowText(
+		ClickEvent clickEvent = new ClickEvent(ClickEvent.Action.OPEN_URL,
+			"https://www.wurstclient.net/chat-disabled-mpk/");
+		HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 			Component.literal("原始消息: ").append(originalText));
 		
 		ChatUtils.component(Component.literal(
@@ -122,7 +126,7 @@ public final class NoChatReportsOtf extends OtherFeature
 		if(indicator != null || signature == null)
 			return indicator;
 		
-		return new GuiMessageTag(0xE84F58, GuiMessageTag.Icon.CHAT_MODIFIED,
+		return new GuiMessageTag(0xE84F58, Icon.CHAT_MODIFIED,
 			Component.literal(ChatUtils.WURST_PREFIX + "\u00a7cReportable\u00a7r - "
 				+ WURST.translate(
 					"description.wurst.nochatreports.message_is_reportable")),

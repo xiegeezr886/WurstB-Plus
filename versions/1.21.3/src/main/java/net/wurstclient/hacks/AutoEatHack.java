@@ -19,11 +19,10 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.food.FoodProperties;
-// FoodProperties.PossibleEffect removed in MC 26.1.2
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.Foods;
@@ -181,14 +180,14 @@ public final class AutoEatHack extends Hack implements UpdateListener
 		if(foodSlot < 9)
 		{
 			if(!isEating())
-				oldSlot = inventory.getSelectedSlot();
+				oldSlot = inventory.selected;
 			
-			inventory.setSelectedSlot(foodSlot);
+			inventory.selected = foodSlot;
 			
 		}else if(foodSlot == 40)
 		{
 			if(!isEating())
-				oldSlot = inventory.getSelectedSlot();
+				oldSlot = inventory.selected;
 			
 			// off-hand slot, no need to select anything
 			
@@ -213,7 +212,7 @@ public final class AutoEatHack extends Hack implements UpdateListener
 		
 		ArrayList<Integer> slots = new ArrayList<>();
 		if(maxInvSlot == 0)
-			slots.add(inventory.getSelectedSlot());
+			slots.add(inventory.selected);
 		if(allowOffhand.isChecked())
 			slots.add(40);
 		Stream.iterate(0, i -> i < maxInvSlot, i -> i + 1)
@@ -268,7 +267,7 @@ public final class AutoEatHack extends Hack implements UpdateListener
 	private void stopEating()
 	{
 		MC.options.keyUse.setDown(false);
-		MC.player.getInventory().setSelectedSlot(oldSlot);
+		MC.player.getInventory().selected = oldSlot;
 		oldSlot = -1;
 	}
 	
@@ -277,17 +276,27 @@ public final class AutoEatHack extends Hack implements UpdateListener
 		if(!allowChorus.isChecked() && food == Foods.CHORUS_FRUIT)
 			return false;
 		
-		// TODO: 26.1.2 - FoodProperties.effects() removed
-		// for(PossibleEffect possibleEffect : food.effects())
-		// {
-		// 	Holder<MobEffect> effect = possibleEffect.effect().getEffect();
-		// 	
-		// 	if(!allowHunger.isChecked() && effect == MobEffects.HUNGER)
-		// 		return false;
-		// 	
-		// 	if(!allowPoison.isChecked() && effect == MobEffects.POISON)
-		// 		return false;
-		// }
+		var consumable = MC.player.getUseItem()
+			.get(net.minecraft.core.component.DataComponents.CONSUMABLE);
+		if(consumable == null)
+			return true;
+		
+		for(var consumeEffect : consumable.onConsumeEffects())
+		{
+			if(!(consumeEffect instanceof net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect apply))
+				continue;
+			
+			for(MobEffectInstance instance : apply.effects())
+			{
+				Holder<MobEffect> effect = instance.getEffect();
+				
+				if(!allowHunger.isChecked() && effect == MobEffects.HUNGER)
+					return false;
+				
+				if(!allowPoison.isChecked() && effect == MobEffects.POISON)
+					return false;
+			}
+		}
 		
 		return true;
 	}

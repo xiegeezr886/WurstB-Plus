@@ -24,7 +24,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -350,7 +349,7 @@ public final class AutoLibrarianHack extends Hack
 			hand, params.toHitResult());
 		
 		// swing hand
-		if(result.consumesAction() && result.shouldSwing())
+		if(result.consumesAction() && (result instanceof InteractionResult.Success success && success.swingSource() == InteractionResult.SwingSource.CLIENT))
 			swingHand.swing(hand);
 		
 		// reset sneak
@@ -392,7 +391,7 @@ public final class AutoLibrarianHack extends Hack
 			im.interact(player, villager, hand);
 		
 		// swing hand
-		if(actionResult.consumesAction() && actionResult.shouldSwing())
+		if(actionResult.consumesAction() && (actionResult instanceof InteractionResult.Success success && success.swingSource() == InteractionResult.SwingSource.CLIENT))
 			swingHand.swing(hand);
 		
 		// set cooldown
@@ -410,7 +409,7 @@ public final class AutoLibrarianHack extends Hack
 		for(MerchantOffer tradeOffer : tradeOffers)
 		{
 			ItemStack stack = tradeOffer.getResult();
-			if(!(stack.getItem() instanceof EnchantedBookItem))
+			if(!stack.is(Items.ENCHANTED_BOOK))
 				continue;
 			
 			ItemEnchantments enchantments = stack.getOrDefault(
@@ -450,8 +449,8 @@ public final class AutoLibrarianHack extends Hack
 				.map(e -> (Villager)e).filter(e -> e.getHealth() > 0)
 				.filter(e -> player.distanceToSqr(e) <= rangeSq)
 				.filter(e -> e.getVillagerData()
-					.getProfession() == VillagerProfession.LIBRARIAN)
-				.filter(e -> e.getVillagerData().getLevel() == 1)
+					.profession().is(VillagerProfession.LIBRARIAN))
+				.filter(e -> e.getVillagerData().level() == 1)
 				.filter(e -> !experiencedVillagers.contains(e));
 		
 		villager = stream

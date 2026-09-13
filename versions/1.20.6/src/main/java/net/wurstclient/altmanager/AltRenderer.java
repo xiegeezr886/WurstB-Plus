@@ -12,6 +12,7 @@ import java.util.UUID;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.resources.ResourceLocation;
 import com.mojang.authlib.GameProfile;
@@ -33,7 +34,7 @@ public final class AltRenderer
 			UUID uuid = UUIDUtil.createOfflinePlayerUUID(name);
 			GameProfile profile = new GameProfile(uuid, name);
 			PlayerInfo entry = new PlayerInfo(profile, false);
-			texture = entry.getSkinLocation();
+				texture = entry.getSkin().texture();
 			loadedSkins.put(name, texture);
 		}
 		
@@ -83,7 +84,7 @@ public final class AltRenderer
 			RenderSystem.setShaderColor(1, 1, 1, 1);
 			
 			boolean slim = DefaultPlayerSkin
-				.getSkinModelName(UUIDUtil.createOfflinePlayerUUID(name)).equals("slim");
+				.get(UUIDUtil.createOfflinePlayerUUID(name)).model() == PlayerSkin.Model.SLIM;
 			
 			// Face
 			x = x + width / 4;
@@ -210,7 +211,7 @@ public final class AltRenderer
 			RenderSystem.setShaderColor(1, 1, 1, 1);
 			
 			boolean slim = DefaultPlayerSkin
-				.getSkinModelName(UUIDUtil.createOfflinePlayerUUID(name)).equals("slim");
+				.get(UUIDUtil.createOfflinePlayerUUID(name)).model() == PlayerSkin.Model.SLIM;
 			
 			// Face
 			x = x + width / 4;

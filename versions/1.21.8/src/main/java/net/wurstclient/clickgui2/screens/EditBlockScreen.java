@@ -18,7 +18,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.item.ItemStack;
@@ -79,9 +78,9 @@ public final class EditBlockScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		switch(context.key())
+		switch(keyCode)
 		{
 			case GLFW.GLFW_KEY_ENTER:
 			done();
@@ -92,7 +91,7 @@ public final class EditBlockScreen extends Screen
 			break;
 		}
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
@@ -102,10 +101,10 @@ public final class EditBlockScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX,
 		int mouseY, float partialTicks)
 	{
 		Matrix3x2fStack matrixStack = context.pose();

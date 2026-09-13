@@ -12,11 +12,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUseAnimation;
@@ -28,17 +29,23 @@ public abstract class ItemInHandRendererMixin
 	/**
 	 * Lowers the shield (including custom shield items from datapacks) when
 	 * blocking if NoShieldOverlay is enabled.
+	 *
+	 * <p>
+	 * MC 1.21.4 still renders the hand through
+	 * {@code MultiBufferSource} instead of the 1.21.9+
+	 * {@code SubmitNodeCollector}, so the target signature differs from the
+	 * 1.21.11 tree.
 	 */
 	@Inject(
-		method = "renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V",
+		method = "renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/item/ItemStack;getUseAnimation()Lnet/minecraft/world/item/ItemUseAnimation;",
 			shift = At.Shift.AFTER))
 	private void onRenderArmWithItemBlocking(AbstractClientPlayer player,
 		float tickProgress, float pitch, InteractionHand hand,
 		float swingProgress, ItemStack item, float equipProgress,
-		PoseStack matrices, SubmitNodeCollector entityRenderCommandQueue,
-		int light, CallbackInfo ci)
+		PoseStack matrices, MultiBufferSource bufferSource, int light,
+		CallbackInfo ci)
 	{
 		// Check if item has block animation component
 		if(item.getUseAnimation() != ItemUseAnimation.BLOCK)
@@ -54,14 +61,13 @@ public abstract class ItemInHandRendererMixin
 	 * NOT blocking if NoShieldOverlay is enabled.
 	 */
 	@Inject(
-		method = "renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/item/ItemStack;getSwingAnimation()Lnet/minecraft/world/item/component/SwingAnimation;"))
+		method = "renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+		at = @At("RETURN"))
 	private void onRenderArmWithItemNotBlocking(AbstractClientPlayer player,
 		float tickProgress, float pitch, InteractionHand hand,
 		float swingProgress, ItemStack item, float equipProgress,
-		PoseStack matrices, SubmitNodeCollector entityRenderCommandQueue,
-		int light, CallbackInfo ci)
+		PoseStack matrices, MultiBufferSource bufferSource, int light,
+		CallbackInfo ci)
 	{
 		// Check if item has block animation component
 		if(item.getUseAnimation() != ItemUseAnimation.BLOCK)

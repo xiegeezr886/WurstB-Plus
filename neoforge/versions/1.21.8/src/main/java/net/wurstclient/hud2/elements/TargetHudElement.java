@@ -8,7 +8,7 @@ import java.util.UUID;
 import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -273,8 +273,8 @@ public final class TargetHudElement extends HudElement
 	{
 		FlatRenderer.fillRoundedRect(graphics, x, y, x + size, y + size, 4,
 			withOpacity(FACE_FILL, opacity));
-		Identifier skin = target instanceof AbstractClientPlayer player
-			? player.getSkin().body().texturePath() : null;
+		ResourceLocation skin = target instanceof AbstractClientPlayer player
+			? player.getSkin().texture() : null;
 		if(skin != null)
 		{
 			try

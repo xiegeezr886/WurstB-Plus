@@ -7,13 +7,20 @@
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import java.util.List;
+import java.util.Optional;
+
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.hack.Hack;
@@ -97,21 +104,16 @@ public final class KillPotionHack extends Hack
 		{
 			ItemStack stack = new ItemStack(item);
 			
-			CompoundTag effect = new CompoundTag();
-			effect.putInt("Amplifier", 125);
-			effect.putInt("Duration", 2000);
-			effect.putInt("Id", 6);
-			
-			ListTag effects = new ListTag();
-			effects.add(effect);
-			
-			CompoundTag nbt = new CompoundTag();
-			nbt.put("CustomPotionEffects", effects);
-			stack.setTag(nbt);
+			Holder<MobEffect> instantHealth =
+				BuiltInRegistries.MOB_EFFECT.getHolder(6).orElseThrow();
+			List<MobEffectInstance> effects = List.of(
+				new MobEffectInstance(instantHealth, 2000, 125));
+			stack.set(DataComponents.POTION_CONTENTS,
+				new PotionContents(Optional.empty(), Optional.empty(), effects));
 			
 			String name =
 				"\u00a7f" + itemName + " of \u00a74\u00a7lINSTANT DEATH";
-			stack.setHoverName(Component.literal(name));
+			stack.set(DataComponents.CUSTOM_NAME, Component.literal(name));
 			
 			return stack;
 		}

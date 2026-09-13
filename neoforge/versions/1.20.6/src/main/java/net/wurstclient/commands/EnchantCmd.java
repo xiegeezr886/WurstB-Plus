@@ -7,8 +7,7 @@
  */
 package net.wurstclient.commands;
 
-import net.minecraft.core.Holder;
-import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -17,7 +16,6 @@ import net.wurstclient.command.CmdException;
 import net.wurstclient.command.CmdSyntaxError;
 import net.wurstclient.command.Command;
 import net.wurstclient.util.ChatUtils;
-import net.wurstclient.util.EnchantmentUtils;
 import net.wurstclient.util.ItemUtils;
 
 public final class EnchantCmd extends Command
@@ -56,19 +54,18 @@ public final class EnchantCmd extends Command
 	
 	private void enchant(ItemStack stack, int level)
 	{
-		for(Holder<Enchantment> enchantment :
-			EnchantmentUtils.stream().toList())
+		for(Enchantment enchantment : BuiltInRegistries.ENCHANTMENT)
 		{
 			// Skip curses
-			if(enchantment.is(EnchantmentTags.CURSE))
+			if(enchantment.isCurse())
 				continue;
 			
 			// Skip Silk Touch so it doesn't remove Fortune
-			if(enchantment.is(Enchantments.SILK_TOUCH))
+			if(enchantment == Enchantments.SILK_TOUCH)
 				continue;
 			
 			// Limit Quick Charge to level 5 so it doesn't break
-			if(enchantment.is(Enchantments.QUICK_CHARGE))
+			if(enchantment == Enchantments.QUICK_CHARGE)
 			{
 				stack.enchant(enchantment, Math.min(level, 5));
 				continue;

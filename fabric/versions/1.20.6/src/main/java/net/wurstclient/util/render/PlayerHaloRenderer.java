@@ -58,7 +58,8 @@ public final class PlayerHaloRenderer
 			RenderSystem.depthMask(false);
 			RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-			BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
+			BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+			buffer.begin(VertexFormat.Mode.QUADS,
 				DefaultVertexFormat.POSITION_COLOR);
 			for(AbstractClientPlayer player : players)
 				if(shouldRender(player, localPlayer, renderLocalPlayer))
@@ -67,7 +68,7 @@ public final class PlayerHaloRenderer
 			draw(buffer);
 
 			RenderSystem.lineWidth(1.7F);
-			buffer = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES,
+			buffer.begin(VertexFormat.Mode.DEBUG_LINES,
 				DefaultVertexFormat.POSITION_COLOR);
 			for(AbstractClientPlayer player : players)
 				if(shouldRender(player, localPlayer, renderLocalPlayer))
@@ -144,15 +145,15 @@ public final class PlayerHaloRenderer
 		Vec3 center, double radius, double angle, float red, float green,
 		float blue, float alpha)
 	{
-		buffer.addVertex(matrix,
+		buffer.vertex(matrix,
 			(float)(center.x + Math.cos(angle) * radius), (float)center.y,
 			(float)(center.z + Math.sin(angle) * radius))
-			.setColor(red, green, blue, alpha);
+			.color(red, green, blue, alpha).endVertex();
 	}
 
 	private static void draw(BufferBuilder buffer)
 	{
-		com.mojang.blaze3d.vertex.MeshData rendered = buffer.build();
+		BufferBuilder.RenderedBuffer rendered = buffer.endOrDiscardIfEmpty();
 		if(rendered != null)
 			BufferUploader.drawWithShader(rendered);
 	}

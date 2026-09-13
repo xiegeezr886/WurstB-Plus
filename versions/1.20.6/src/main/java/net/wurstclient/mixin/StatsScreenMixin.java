@@ -17,13 +17,12 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.achievement.StatsScreen;
-import net.minecraft.client.gui.screens.achievement.StatsUpdateListener;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
 
 @Mixin(StatsScreen.class)
-public abstract class StatsScreenMixin extends Screen implements StatsUpdateListener
+public abstract class StatsScreenMixin extends Screen
 {
 	private StatsScreenMixin(WurstClient wurst, Component title)
 	{

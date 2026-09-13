@@ -34,7 +34,7 @@ public final class LiquidsHack extends Hack implements HitResultRayTraceListener
 	@Override
 	public void onHitResultRayTrace(float partialTicks)
 	{
-		float reach = MC.gameMode.getPickRange();
+		float reach = (float)MC.player.blockInteractionRange();
 		MC.hitResult =
 			MC.getCameraEntity().pick(reach, partialTicks, true);
 	}

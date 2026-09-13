@@ -5,7 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hud2.HudElement;
@@ -32,7 +32,7 @@ public final class PotionHudElement extends HudElement
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor graphics, int x, int y, float partialTicks)
+	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
 		Font font = WurstClient.MC.font;
 		List<String> lines = getLines();
@@ -40,7 +40,7 @@ public final class PotionHudElement extends HudElement
 			return;
 		graphics.fill(x, y, x + getWidth(), y + getHeight(), 0x80000000);
 		for(int index = 0; index < lines.size(); index++)
-			graphics.text(font, lines.get(index), x + 2,
+			graphics.drawString(font, lines.get(index), x + 2,
 				y + 1 + index * font.lineHeight, 0xFFFFFFFF, false);
 	}
 

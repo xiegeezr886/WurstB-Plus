@@ -245,9 +245,8 @@ public final class EditBookOfferScreen extends Screen
 			offerToSave != null && offerToSave.price() < 64;
 		priceMinusButton.active =
 			offerToSave != null && offerToSave.price() > 1;
-		
-		levelField.tick();
-		priceField.tick();
+
+
 	}
 	
 	@Override
@@ -255,7 +254,7 @@ public final class EditBookOfferScreen extends Screen
 		float partialTicks)
 	{
 		PoseStack matrixStack = context.pose();
-		renderDirtBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		
 		matrixStack.pushPose();
 		matrixStack.translate(0, 0, 300);

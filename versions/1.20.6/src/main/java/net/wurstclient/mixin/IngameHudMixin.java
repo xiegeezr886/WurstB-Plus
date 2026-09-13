@@ -16,11 +16,31 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.wurstclient.WurstClient;
+import net.wurstclient.event.EventManager;
+import net.wurstclient.events.GUIRenderListener.GUIRenderEvent;
 import net.wurstclient.hack.HackList;
 
 @Mixin(Gui.class)
 public class IngameHudMixin
 {
+	/**
+	 * Forge 1.20.5+ no longer offers a RenderGuiEvent, so the GUIRenderEvent is
+	 * fired here instead.
+	 */
+	@Inject(at = @At("HEAD"),
+		method = "renderTabList(Lnet/minecraft/client/gui/GuiGraphics;F)V")
+	private void onRenderPlayerList(GuiGraphics context, float partialTicks,
+		CallbackInfo ci)
+	{
+		if(WurstClient.MC.screen != null)
+			return;
+		
+		if(WurstClient.MC.getDebugOverlay().showDebugScreen())
+			return;
+		
+		EventManager.fire(new GUIRenderEvent(context, partialTicks));
+	}
+	
 	@Inject(at = @At("HEAD"),
 		method = "renderTextureOverlay(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/resources/ResourceLocation;F)V",
 		cancellable = true)

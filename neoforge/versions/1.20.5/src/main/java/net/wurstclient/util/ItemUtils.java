@@ -9,7 +9,6 @@ package net.wurstclient.util;
 
 import net.minecraft.ResourceLocationException;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -44,7 +43,7 @@ public enum ItemUtils
 		
 		try
 		{
-			return BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(nameOrId))
+			return BuiltInRegistries.ITEM.getOptional(new ResourceLocation(nameOrId))
 				.orElse(null);
 			
 		}catch(ResourceLocationException e)
@@ -66,11 +65,10 @@ public enum ItemUtils
 	
 	/**
 	 * Adds the specified enchantment to the specified item stack. Unlike
-	 * {@link ItemStack#enchant(Holder, int)}, this method doesn't
+	 * {@link ItemStack#enchant(Enchantment, int)}, this method doesn't
 	 * limit the level to 127.
 	 */
-	public static void addEnchantment(ItemStack stack,
-		Holder<Enchantment> enchantment,
+	public static void addEnchantment(ItemStack stack, Enchantment enchantment,
 		int level)
 	{
 		EnchantmentHelper.updateEnchantments(stack,

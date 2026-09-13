@@ -73,7 +73,7 @@ public enum EntityEspRenderer
 		if(fadeDistance <= 0)
 			return 1;
 
-		double distance = WurstClient.MC.gameRenderer.getMainCamera().position()
+		double distance = WurstClient.MC.gameRenderer.getMainCamera().getPosition()
 			.distanceTo(entity.getBoundingBox().getCenter());
 		float progress = Mth.clamp((float)(distance / fadeDistance), 0, 1);
 		return progress * progress * (3 - 2 * progress);

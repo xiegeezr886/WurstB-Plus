@@ -17,7 +17,7 @@ import net.wurstclient.util.KeepSprintPolicy;
 @Mixin(Player.class)
 public abstract class PlayerMixin
 {
-	@Redirect(method = "causeExtraKnockback(Lnet/minecraft/world/entity/Entity;FLnet/minecraft/world/phys/Vec3;)V",
+	@Redirect(method = "attack(Lnet/minecraft/world/entity/Entity;)V",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/phys/Vec3;multiply(DDD)Lnet/minecraft/world/phys/Vec3;"))
 	private Vec3 keepSprintMotion(Vec3 velocity, double x, double y, double z)
@@ -28,7 +28,7 @@ public abstract class PlayerMixin
 			KeepSprintPolicy.attackMotionMultiplier(z, keepSprint));
 	}
 
-	@Redirect(method = "causeExtraKnockback(Lnet/minecraft/world/entity/Entity;FLnet/minecraft/world/phys/Vec3;)V",
+	@Redirect(method = "attack(Lnet/minecraft/world/entity/Entity;)V",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/entity/player/Player;setSprinting(Z)V"))
 	private void keepSprintState(Player instance, boolean sprinting)

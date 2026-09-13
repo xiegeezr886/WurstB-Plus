@@ -7,24 +7,33 @@
  */
 package net.wurstclient.mixin;
 
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import net.minecraft.client.DeltaTracker;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import net.minecraft.client.Timer;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hack.HackList;
 
-@Mixin(DeltaTracker.Timer.class)
+@Mixin(Timer.class)
 public abstract class RenderTickCounterMixin
 {
-	@Redirect(at = @At(value = "FIELD",
-		target = "Lnet/minecraft/client/DeltaTracker$Timer;msPerTick:F"),
-		method = "advanceGameTime(J)I")
-	private float modifyMillisPerTick(DeltaTracker.Timer timer)
+	@Shadow
+	public float tickDelta;
+	
+	@Inject(at = @At(value = "FIELD",
+		target = "Lnet/minecraft/client/Timer;lastMs:J",
+		opcode = Opcodes.PUTFIELD,
+		ordinal = 0), method = "advanceTime(J)I")
+	public void onBeginRenderTick(long timeMillis,
+		CallbackInfoReturnable<Integer> cir)
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
 		if(hax == null)
-			return 50F;
-		return 50F / hax.timerHack.getTimerSpeed();
+			return;
+		
+		tickDelta *= hax.timerHack.getTimerSpeed();
 	}
 }

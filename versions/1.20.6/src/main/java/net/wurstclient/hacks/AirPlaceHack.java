@@ -74,7 +74,7 @@ public final class AirPlaceHack extends Hack
 		if(hitResult == null)
 			return;
 		
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 		if(MC.player.isHandsBusy())
 			return;
 		

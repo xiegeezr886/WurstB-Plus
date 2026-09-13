@@ -20,7 +20,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.ClientLanguage;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.locale.Language;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -111,7 +111,7 @@ public class WurstTranslator implements ResourceManagerReloadListener
 	 */
 	public String translateMc(String key, Object... args)
 	{
-		if(Language.getInstance().has(key))
+		if(I18n.exists(key))
 			return I18n.get(key, args);
 		
 		return key;
@@ -194,7 +194,7 @@ public class WurstTranslator implements ResourceManagerReloadListener
 	private void loadTranslationFile(ResourceManager manager, String path,
 		String languageName, BiConsumer<String, String> entryConsumer)
 	{
-		Identifier langId = Identifier.tryBuild("wurst", path);
+		ResourceLocation langId = ResourceLocation.tryBuild("wurst", path);
 
 		for(Resource resource : manager.getResourceStack(langId))
 			try(InputStream stream = resource.open())

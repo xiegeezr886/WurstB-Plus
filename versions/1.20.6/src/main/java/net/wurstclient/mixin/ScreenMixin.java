@@ -22,9 +22,10 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 	implements Renderable
 {
 	@Inject(at = @At("HEAD"),
-		method = "renderBackground(Lnet/minecraft/client/gui/GuiGraphics;)V",
+		method = "renderBackground(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
 		cancellable = true)
-	public void onRenderBackground(GuiGraphics context, CallbackInfo ci)
+	public void onRenderBackground(GuiGraphics context, int mouseX, int mouseY,
+		float partialTick, CallbackInfo ci)
 	{
 		if(WurstClient.INSTANCE.getHax().noBackgroundHack
 			.shouldCancelBackground((Screen)(Object)this))

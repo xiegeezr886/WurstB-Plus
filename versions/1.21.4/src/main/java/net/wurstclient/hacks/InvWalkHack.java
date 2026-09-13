@@ -14,8 +14,6 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-// EffectRenderingInventoryScreen removed in MC 26.1.2
 import net.minecraft.world.item.CreativeModeTabs;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -98,8 +96,7 @@ public final class InvWalkHack extends Hack implements UpdateListener
 	
 	private boolean isAllowedScreen(Screen screen)
 	{
-		if((screen instanceof InventoryScreen
-			|| screen instanceof CreativeModeInventoryScreen)
+		if(screen instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen
 			&& !isCreativeSearchBarOpen(screen))
 			return true;
 		
@@ -116,7 +113,11 @@ public final class InvWalkHack extends Hack implements UpdateListener
 	
 	private boolean isCreativeSearchBarOpen(Screen screen)
 	{
-		return false;
+		if(!(screen instanceof CreativeModeInventoryScreen))
+			return false;
+		
+		return ((net.wurstclient.mixin.CreativeModeInventoryScreenAccessor)(Object)screen).getSelectedTab() == CreativeModeTabs
+			.searchTab();
 	}
 	
 	private boolean hasTextBox(Screen screen)

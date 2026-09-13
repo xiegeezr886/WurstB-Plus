@@ -17,7 +17,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.mojang.authlib.exceptions.AuthenticationException;
 import com.mojang.authlib.minecraft.UserApiService;
+import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import com.mojang.blaze3d.platform.WindowEventHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
@@ -35,9 +37,9 @@ import net.wurstclient.events.HandleInputListener.HandleInputEvent;
 import net.wurstclient.events.LeftClickListener.LeftClickEvent;
 import net.wurstclient.events.RightClickListener.RightClickEvent;
 import net.wurstclient.events.WorldChangeListener.WorldChangeEvent;
-import net.wurstclient.mixinterface.ILocalPlayer;
+import net.wurstclient.mixinterface.IClientPlayerEntity;
+import net.wurstclient.mixinterface.IClientPlayerInteractionManager;
 import net.wurstclient.mixinterface.IMinecraftClient;
-import net.wurstclient.mixinterface.IMultiPlayerGameMode;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftClientMixin
@@ -56,11 +58,9 @@ public abstract class MinecraftClientMixin
 	private User user;
 	@Shadow
 	@Final
-	private UserApiService userApiService;
+	private YggdrasilAuthenticationService authenticationService;
 	@Shadow
 	private int missTime;
-	@Shadow
-	private int rightClickDelay;
 	
 	private User wurstSession;
 	private ProfileKeyPairManager wurstProfileKeys;
@@ -157,7 +157,8 @@ public abstract class MinecraftClientMixin
 		cancellable = true)
 	private void onGetProfileKeys(CallbackInfoReturnable<ProfileKeyPairManager> cir)
 	{
-		if(WurstClient.INSTANCE.getOtfs().noChatReportsOtf.isActive())
+		if(WurstClient.INSTANCE.getOtfs() != null
+			&& WurstClient.INSTANCE.getOtfs().noChatReportsOtf.isActive())
 			cir.setReturnValue(ProfileKeyPairManager.EMPTY_KEY_MANAGER);
 		
 		if(wurstProfileKeys == null)
@@ -171,6 +172,9 @@ public abstract class MinecraftClientMixin
 		cancellable = true)
 	private void onIsTelemetryEnabledByApi(CallbackInfoReturnable<Boolean> cir)
 	{
+		if(WurstClient.INSTANCE.getOtfs() == null)
+			return;
+
 		cir.setReturnValue(
 			!WurstClient.INSTANCE.getOtfs().noTelemetryOtf.isEnabled());
 	}
@@ -181,32 +185,23 @@ public abstract class MinecraftClientMixin
 	private void onIsOptionalTelemetryEnabledByApi(
 		CallbackInfoReturnable<Boolean> cir)
 	{
+		if(WurstClient.INSTANCE.getOtfs() == null)
+			return;
+
 		cir.setReturnValue(
 			!WurstClient.INSTANCE.getOtfs().noTelemetryOtf.isEnabled());
 	}
 	
 	@Override
-	public ILocalPlayer getPlayer()
+	public IClientPlayerEntity getPlayer()
 	{
-		return (ILocalPlayer)player;
+		return (IClientPlayerEntity)player;
 	}
 	
 	@Override
-	public IMultiPlayerGameMode getInteractionManager()
+	public IClientPlayerInteractionManager getInteractionManager()
 	{
-		return (IMultiPlayerGameMode)gameMode;
-	}
-
-	@Override
-	public int getRightClickDelay()
-	{
-		return rightClickDelay;
-	}
-
-	@Override
-	public void setRightClickDelay(int delay)
-	{
-		rightClickDelay = delay;
+		return (IClientPlayerInteractionManager)gameMode;
 	}
 	
 	@Override
@@ -225,11 +220,10 @@ public abstract class MinecraftClientMixin
 			return;
 		}
 		
-		String accessToken = session.getAccessToken();
-		boolean isOffline = accessToken == null || accessToken.isBlank()
-			|| accessToken.equals("0") || accessToken.equals("null");
-		UserApiService userApiService = isOffline ? UserApiService.OFFLINE
-			: wurst_createUserApiService(accessToken);
+		UserApiService userApiService =
+			session.getType() == User.Type.MSA
+				? wurst_createUserApiService(session.getAccessToken())
+				: UserApiService.OFFLINE;
 		wurstProfileKeys =
 			ProfileKeyPairManager.create(userApiService, session,
 				gameDirectory.toPath());
@@ -244,11 +238,13 @@ public abstract class MinecraftClientMixin
 			EventManager.fire(new WorldChangeEvent(null));
 	}
 
+	@Override
 	public int getMissTime()
 	{
 		return missTime;
 	}
 
+	@Override
 	public void setMissTime(int missTime)
 	{
 		this.missTime = missTime;
@@ -262,10 +258,12 @@ public abstract class MinecraftClientMixin
 			return;
 		
 		EventManager.fire(new WorldChangeEvent(world));
+		
+		Minecraft client = (Minecraft)(Object)this;
 	}
 	
 	private UserApiService wurst_createUserApiService(String accessToken)
 	{
-		return userApiService;
+		return authenticationService.createUserApiService(accessToken);
 	}
 }

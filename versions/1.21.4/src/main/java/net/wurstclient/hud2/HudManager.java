@@ -87,7 +87,7 @@ public final class HudManager implements GUIRenderListener
 	}
 
 	@Override
-	public void onRenderGUI(net.wurstclient.util.render.GuiGraphicsExtractor graphics,
+	public void onRenderGUI(net.minecraft.client.gui.GuiGraphics graphics,
 		float partialTicks)
 	{
 		if(ScreenRegistry.HUD_EDITOR.isOpen())
@@ -215,7 +215,7 @@ public final class HudManager implements GUIRenderListener
 			}
 
 			@Override
-			public void render(net.wurstclient.util.render.GuiGraphicsExtractor graphics,
+			public void render(net.minecraft.client.gui.GuiGraphics graphics,
 				int x, int y, float partialTicks)
 			{
 				HudElementConfig config = layout.get(getId());
@@ -253,7 +253,7 @@ public final class HudManager implements GUIRenderListener
 			}
 
 			@Override
-			public void render(net.wurstclient.util.render.GuiGraphicsExtractor graphics,
+			public void render(net.minecraft.client.gui.GuiGraphics graphics,
 				int x, int y, float partialTicks)
 			{
 				WURST.getHud().getWurstLogo().renderAt(graphics, x, y);
@@ -280,7 +280,7 @@ public final class HudManager implements GUIRenderListener
 				return 38;
 			}
 			@Override
-			public void render(net.wurstclient.util.render.GuiGraphicsExtractor graphics,
+			public void render(net.minecraft.client.gui.GuiGraphics graphics,
 				int x, int y, float partialTicks)
 			{
 				if(ScreenRegistry.HUD_EDITOR.isOpen())

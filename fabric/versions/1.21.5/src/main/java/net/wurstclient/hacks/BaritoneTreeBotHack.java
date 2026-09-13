@@ -215,8 +215,8 @@ public final class BaritoneTreeBotHack extends Hack implements UpdateListener
 		if(saplingSlot == -1)
 			return;
 
-		int prevSlot = MC.player.getInventory().selected;
-		MC.player.getInventory().selected = saplingSlot;
+		int prevSlot = MC.player.getInventory().getSelectedSlot();
+		MC.player.getInventory().setSelectedSlot(saplingSlot);
 
 		net.minecraft.world.InteractionHand hand =
 			net.minecraft.world.InteractionHand.MAIN_HAND;
@@ -227,7 +227,7 @@ public final class BaritoneTreeBotHack extends Hack implements UpdateListener
 
 		MC.gameMode.useItemOn(MC.player, hand, hitResult);
 
-		MC.player.getInventory().selected = prevSlot;
+		MC.player.getInventory().setSelectedSlot(prevSlot);
 	}
 
 	private Block getSaplingForLog(Block log)
@@ -256,7 +256,7 @@ public final class BaritoneTreeBotHack extends Hack implements UpdateListener
 		for(int i = 0; i < 36; i++)
 		{
 			net.minecraft.world.item.ItemStack stack =
-				MC.player.getInventory().items.get(i);
+				MC.player.getInventory().getItem(i);
 			if(stack.getItem() == sapling.asItem())
 				return i;
 		}

@@ -84,7 +84,10 @@ dependencies {
     implementation "io.netty:netty-handler-proxy:4.2.7.Final"
     implementation "baritone:baritone-forge:1.17.0-1.21.11"
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
-    annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
+    // NOTE: eventbus-validator:7.0.5 needs the EventBus 7 API, which does not
+    // exist on the Forge 54.x (MC 1.21.4) line. It aborts the build with
+    // "unable to get the compiler type elements required for validating
+    // EventBus API usages". Do not re-add it for 1.21.4.
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.2"
     testRuntimeOnly "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"

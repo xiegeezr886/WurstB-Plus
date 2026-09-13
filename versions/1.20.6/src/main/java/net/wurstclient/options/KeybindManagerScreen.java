@@ -133,7 +133,7 @@ public final class KeybindManagerScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		listGui.render(context, mouseX, mouseY, partialTicks);
 		
 		context.drawCenteredString(font, "Keybind Manager",
@@ -201,7 +201,7 @@ public final class KeybindManagerScreen extends Screen
 	{
 		public ListGui(Minecraft mc, KeybindManagerScreen screen)
 		{
-			super(mc, screen.width, screen.height, 36, screen.height - 56, 30);
+			super(mc, screen.width, screen.height - 92, 36, 30);
 			
 			WurstClient.INSTANCE.getKeybinds().getAllKeybinds().stream()
 				.map(KeybindManagerScreen.Entry::new).forEach(this::addEntry);

@@ -14,7 +14,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import org.lwjgl.glfw.GLFW;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -22,8 +22,6 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.chat.Component;
@@ -213,32 +211,32 @@ public class ServerFinderScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ENTER)
-			searchButton.onPress(context);
+		if(keyCode == GLFW.GLFW_KEY_ENTER)
+			searchButton.onPress();
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		if(context.button() == GLFW.GLFW_MOUSE_BUTTON_4)
+		if(button == GLFW.GLFW_MOUSE_BUTTON_4)
 		{
 			onClose();
 			return true;
 		}
 		
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		

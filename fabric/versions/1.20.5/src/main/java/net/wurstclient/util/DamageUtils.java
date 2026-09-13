@@ -15,8 +15,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
@@ -52,16 +50,12 @@ public enum DamageUtils
 				* diameter + 1.0);
 			damage = applyDifficulty(damage, MC.level.getDifficulty());
 			DamageSource source = MC.level.damageSources().explosion(null, null);
-			damage = CombatRules.getDamageAfterAbsorb(entity, damage, source,
+			damage = CombatRules.getDamageAfterAbsorb(damage, source,
 				entity.getArmorValue(), (float)entity
 					.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
 
-			int protection = 0;
-			for(ItemStack armor : entity.getArmorSlots())
-				protection += EnchantmentUtils.getLevel(Enchantments.PROTECTION,
-					armor) + EnchantmentUtils
-						.getLevel(Enchantments.BLAST_PROTECTION, armor) * 2;
-			protection = Math.min(20, protection);
+			int protection = EnchantmentHelper.getDamageProtection(
+				entity.getArmorSlots(), source);
 			damage = CombatRules.getDamageAfterMagicAbsorb(damage, protection);
 
 			if(entity.hasEffect(MobEffects.DAMAGE_RESISTANCE))

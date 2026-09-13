@@ -3,6 +3,7 @@ package net.wurstclient.hacks;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.wurstclient.Category;
@@ -110,7 +111,7 @@ public final class BaritoneClearAreaHack extends Hack
 
 		if(corner1 != null && corner2 != null && !started)
 			RenderUtils.drawOutlinedBox(matrixStack,
-				new AABB(corner1, corner2).inflate(1), 0x40FFFF00, true);
+				new AABB(Vec3.atLowerCornerOf(corner1), Vec3.atLowerCornerOf(corner2)).inflate(1), 0x40FFFF00, true);
 	}
 
 	@Override

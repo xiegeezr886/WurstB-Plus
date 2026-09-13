@@ -29,6 +29,6 @@ public enum PlatformUtils
 
 	public static boolean isDevelopmentEnvironment()
 	{
-		return !FMLEnvironment.isProduction();
+		return !FMLEnvironment.production;
 	}
 }

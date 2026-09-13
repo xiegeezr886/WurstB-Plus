@@ -9,11 +9,11 @@ package net.wurstclient.commands;
 
 import java.util.ArrayList;
 import java.util.Optional;
-import net.minecraft.IdentifierException;
+import net.minecraft.ResourceLocationException;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
@@ -131,10 +131,10 @@ public final class PotionCmd extends Command
 		else
 			try
 			{
-				Identifier identifier = Identifier.parse(input);
+				ResourceLocation identifier = ResourceLocation.parse(input);
 				effect = BuiltInRegistries.MOB_EFFECT.getValue(identifier);
 				
-			}catch(IdentifierException e)
+			}catch(ResourceLocationException e)
 			{
 				throw new CmdSyntaxError("Invalid effect: " + input);
 			}
@@ -150,8 +150,7 @@ public final class PotionCmd extends Command
 		ArrayList<MobEffectInstance> effects)
 	{
 		stack.set(DataComponents.POTION_CONTENTS,
-			new PotionContents(potion, Optional.empty(), effects,
-				Optional.empty()));
+			new PotionContents(potion, Optional.empty(), effects, Optional.empty()));
 	}
 	
 	private int parseInt(String s) throws CmdSyntaxError

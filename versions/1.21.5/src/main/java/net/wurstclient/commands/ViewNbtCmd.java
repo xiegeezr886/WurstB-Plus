@@ -34,19 +34,18 @@ public final class ViewNbtCmd extends Command
 		if(stack.isEmpty())
 			throw new CmdError("You must hold an item in your main hand.");
 		
-		// TODO: 26.1.2 - stack.save() method removed
-		Tag tag = null; // stack.save(player.registryAccess());
-		String nbt = tag != null ? tag.toString() : "N/A";
+		Tag tag = stack.save(player.registryAccess());
+		String nbt = tag.toString();
 		
 		switch(String.join(" ", args).toLowerCase())
 		{
 			case "":
-			ChatUtils.message("NBT data: " + nbt);
+			ChatUtils.message("NBT数据: " + nbt);
 			break;
 			
 			case "copy":
 			MC.keyboardHandler.setClipboard(nbt);
-			ChatUtils.message("NBT data copied to clipboard.");
+			ChatUtils.message("NBT数据已复制到剪贴板。");
 			break;
 			
 			default:

@@ -1,11 +1,8 @@
 package net.wurstclient.clickgui2;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 final class ScaledEditBox extends EditBox
@@ -20,45 +17,39 @@ final class ScaledEditBox extends EditBox
 			throw new IllegalArgumentException("Scale must be in (0, 1]");
 		this.scale = scale;
 	}
-@Override
-	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		extractWidgetRenderState(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
 
-	public void extractWidgetRenderState(GuiGraphicsExtractor graphics,
-		int mouseX, int mouseY,
+	@Override
+	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		int physicalWidth = getWidth();
 		int physicalHeight = getHeight();
 		setWidth((int)Math.ceil(physicalWidth / scale));
 		setHeight((int)Math.ceil(physicalHeight / scale));
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(getX(), getY());
-		graphics.pose().scale(scale, scale);
-		graphics.pose().translate(-getX(), -getY());
+		graphics.pose().pushPose();
+		graphics.pose().translate(getX(), getY(), 0);
+		graphics.pose().scale(scale, scale, 1);
+		graphics.pose().translate(-getX(), -getY(), 0);
 		try
 		{
 			int scaledMouseX = scaleCoordinate(mouseX, getX());
 			int scaledMouseY = scaleCoordinate(mouseY, getY());
-			super.renderWidget(graphics.getInner(), scaledMouseX, scaledMouseY,
+			super.renderWidget(graphics, scaledMouseX, scaledMouseY,
 				partialTicks);
 		}finally
 		{
-			graphics.pose().popMatrix();
+			graphics.pose().popPose();
 			setWidth(physicalWidth);
 			setHeight(physicalHeight);
 		}
 	}
 
 	@Override
-	public void onClick(MouseButtonEvent event, boolean doubleClick)
+	public void onClick(double mouseX, double mouseY)
 	{
-		double scaledMouseX = getX() + (event.x() - getX()) / scale;
-		double scaledMouseY = getY() + (event.y() - getY()) / scale;
-		super.onClick(new MouseButtonEvent(scaledMouseX, scaledMouseY,
-			event.buttonInfo()), doubleClick);
+		double scaledMouseX = getX() + (mouseX - getX()) / scale;
+		double scaledMouseY = getY() + (mouseY - getY()) / scale;
+		super.onClick(scaledMouseX, scaledMouseY);
 	}
 
 	private int scaleCoordinate(int coordinate, int origin)

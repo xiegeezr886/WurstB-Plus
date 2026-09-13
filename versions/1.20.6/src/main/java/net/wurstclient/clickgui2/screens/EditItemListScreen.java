@@ -123,8 +123,7 @@ public final class EditItemListScreen extends Screen
 	@Override
 	public void tick()
 	{
-		itemNameField.tick();
-		
+
 		String nameOrId = itemNameField.getValue().toLowerCase();
 		itemToAdd = ItemUtils.getItemFromNameOrID(nameOrId);
 		addButton.active = itemToAdd != null;
@@ -257,8 +256,7 @@ public final class EditItemListScreen extends Screen
 		public ListGui(Minecraft minecraft, EditItemListScreen screen,
 			List<String> list)
 		{
-			super(minecraft, screen.width, screen.height, 32,
-				screen.height - 64, 30);
+			super(minecraft, screen.width, screen.height - 96, 32, 30);
 			
 			list.stream().map(EditItemListScreen.Entry::new)
 				.forEach(this::addEntry);

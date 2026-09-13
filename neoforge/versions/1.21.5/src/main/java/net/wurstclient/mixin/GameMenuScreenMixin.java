@@ -16,18 +16,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.wurstclient.util.ScreenUtils;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.WurstClient;
 import net.wurstclient.options.WurstOptionsScreen;
 
@@ -35,8 +36,8 @@ import net.wurstclient.options.WurstOptionsScreen;
 public abstract class GameMenuScreenMixin extends Screen
 {
 	@Unique
-	private static final Identifier WURST_TEXTURE =
-		Identifier.tryBuild("wurst", "wurst_128.png");
+	private static final ResourceLocation WURST_TEXTURE =
+		ResourceLocation.tryBuild("wurst", "wurst_128.png");
 	
 	@Unique
 	private Button wurstOptionsButton;
@@ -57,20 +58,23 @@ public abstract class GameMenuScreenMixin extends Screen
 	
 	@Inject(at = @At("TAIL"),
 		method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V")
-	private void onRender(GuiGraphics graphics, int mouseX, int mouseY,
+	private void onRender(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks, CallbackInfo ci)
 	{
 		if(!WurstClient.INSTANCE.isEnabled() || wurstOptionsButton == null)
 			return;
+		
+		RenderSystem.setShaderColor(1, 1, 1, 1);
+		
 		int x = wurstOptionsButton.getX() + 34;
 		int y = wurstOptionsButton.getY() + 2;
 		int w = 63;
 		int h = 16;
-		int tSize = 63;
-		int tHeight = 16;
-		new GuiGraphicsExtractor(graphics).blit(RenderPipelines.GUI_TEXTURED,
-			WURST_TEXTURE, x, y, 0, 0, w,
-			h, tSize, tHeight, tSize, tHeight);
+		int fw = 63;
+		int fh = 16;
+		float u = 0;
+		float v = 0;
+		context.blit(RenderType::guiTextured, WURST_TEXTURE, x, y, u, v, w, h, fw, fh);
 	}
 	
 	@Unique

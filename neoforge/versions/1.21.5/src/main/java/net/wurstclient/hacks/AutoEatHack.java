@@ -19,16 +19,19 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.food.FoodProperties;
-// FoodProperties.PossibleEffect removed in MC 26.1.2
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
+import net.minecraft.world.item.consume_effects.ConsumeEffect;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.Foods;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CraftingTableBlock;
@@ -230,7 +233,7 @@ public final class AutoEatHack extends Hack implements UpdateListener
 			FoodProperties food = stack.get(DataComponents.FOOD);
 			if(food == null)
 				continue;
-			if(!isAllowedFood(food))
+			if(!isAllowedFood(food, stack))
 				continue;
 			
 			if(maxPoints >= 0 && food.nutrition() > maxPoints)
@@ -272,22 +275,34 @@ public final class AutoEatHack extends Hack implements UpdateListener
 		oldSlot = -1;
 	}
 	
-	private boolean isAllowedFood(FoodProperties food)
+	private boolean isAllowedFood(FoodProperties food, ItemStack stack)
 	{
-		if(!allowChorus.isChecked() && food == Foods.CHORUS_FRUIT)
+		if(!allowChorus.isChecked() && stack.is(Items.CHORUS_FRUIT))
 			return false;
 		
-		// TODO: 26.1.2 - FoodProperties.effects() removed
-		// for(PossibleEffect possibleEffect : food.effects())
-		// {
-		// 	Holder<MobEffect> effect = possibleEffect.effect().getEffect();
-		// 	
-		// 	if(!allowHunger.isChecked() && effect == MobEffects.HUNGER)
-		// 		return false;
-		// 	
-		// 	if(!allowPoison.isChecked() && effect == MobEffects.POISON)
-		// 		return false;
-		// }
+		// 1.21.5 moved status effects from FoodProperties to CONSUMABLE
+		Consumable consumable = stack.get(DataComponents.CONSUMABLE);
+		if(consumable == null)
+			return true;
+		
+		for(ConsumeEffect consumeEffect : consumable.onConsumeEffects())
+		{
+			if(!(consumeEffect instanceof ApplyStatusEffectsConsumeEffect effect))
+				continue;
+			
+			for(MobEffectInstance instance : effect.effects())
+			{
+				Holder<MobEffect> effectType = instance.getEffect();
+				
+				if(!allowHunger.isChecked()
+					&& effectType == MobEffects.HUNGER)
+					return false;
+				
+				if(!allowPoison.isChecked()
+					&& effectType == MobEffects.POISON)
+					return false;
+			}
+		}
 		
 		return true;
 	}

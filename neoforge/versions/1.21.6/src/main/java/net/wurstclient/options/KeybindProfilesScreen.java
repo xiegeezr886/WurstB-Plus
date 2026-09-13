@@ -16,14 +16,13 @@ import java.util.List;
 import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
 import net.wurstclient.util.json.JsonException;
@@ -111,14 +110,14 @@ public final class KeybindProfilesScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ENTER)
+		if(keyCode == GLFW.GLFW_KEY_ENTER)
 			loadSelected();
-		else if(context.key() == GLFW.GLFW_KEY_ESCAPE)
+		else if(keyCode == GLFW.GLFW_KEY_ESCAPE)
 			minecraft.setScreen(prevScreen);
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
@@ -129,10 +128,10 @@ public final class KeybindProfilesScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
@@ -177,18 +176,17 @@ public final class KeybindProfilesScreen extends Screen
 				"Profile " + path.getFileName());
 		}
 @Override
-		public void renderContent(GuiGraphics graphics, int mouseX, int mouseY,
+		public void render(GuiGraphics graphics, int index, int y, int x,
+			int entryWidth, int entryHeight, int mouseX, int mouseY,
 			boolean hovered, float partialTicks)
 		{
-			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
-				hovered, partialTicks);
+			extractContent(new GuiGraphicsExtractor(graphics), x, y, mouseX,
+				mouseY, hovered, partialTicks);
 		}
 
-		public void extractContent(GuiGraphicsExtractor context, int mouseX,
-			int mouseY, boolean hovered, float tickDelta)
+		public void extractContent(GuiGraphicsExtractor context, int x, int y,
+			int mouseX, int mouseY, boolean hovered, float tickDelta)
 		{
-			int x = getContentX();
-			int y = getContentY();
 			Font tr = minecraft.font;
 			
 			String fileName = "" + path.getFileName();

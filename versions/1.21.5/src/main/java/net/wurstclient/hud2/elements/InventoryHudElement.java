@@ -1,12 +1,11 @@
 package net.wurstclient.hud2.elements;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
-import net.wurstclient.util.RenderUtils;
 
 public final class InventoryHudElement extends HudElement
 {
@@ -50,7 +49,7 @@ public final class InventoryHudElement extends HudElement
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor graphics, int x, int y, float partialTicks)
+	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
 		WURST.getGui().updateColors();
 		int accent = WURST.getGui().getTheme().accent(1);
@@ -60,7 +59,7 @@ public final class InventoryHudElement extends HudElement
 			4, CARD_OUTLINE);
 		FlatRenderer.fillRoundedRect(graphics, x + 1, y + 2, x + 3,
 			y + HEIGHT - 2, 1, accent);
-		graphics.text(WurstClient.MC.font, getName(), x + 7, y + 3, TEXT,
+		graphics.drawString(WurstClient.MC.font, getName(), x + 7, y + 3, TEXT,
 			false);
 
 		for(int row = 0; row < ROWS; row++)
@@ -75,7 +74,9 @@ public final class InventoryHudElement extends HudElement
 				ItemStack stack = getStack(row, column);
 				if(stack.isEmpty())
 					continue;
-				RenderUtils.drawItem(graphics, stack, slotX, slotY, false);
+				graphics.renderItem(stack, slotX, slotY);
+				graphics.renderItemDecorations(WurstClient.MC.font, stack, slotX,
+					slotY);
 			}
 	}
 

@@ -28,7 +28,6 @@ import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket.Action
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -37,9 +36,9 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-// SwordItem removed in MC 26.1.2
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.TridentItem;
-// UseAnim removed in MC 26.1.2
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -432,7 +431,8 @@ public final class KillauraHack extends Hack
 		for(int i = 0; i < clicks; i++)
 		{
 			if(attackCooldown.isChecked()
-				&& CombatActionPolicy.isAttackMissCooldownActive(0))
+				&& CombatActionPolicy.isAttackMissCooldownActive(
+					((IMinecraftClient)MC).getMissTime()))
 				continue;
 			if(!isItemCooldownPassed(0) || !canAttackNow(selected))
 				continue;
@@ -543,14 +543,14 @@ public final class KillauraHack extends Hack
 				return;
 		}
 		if(attackCooldown.isChecked()
-			&& CombatActionPolicy.isAttackMissCooldownActive(0))
+			&& CombatActionPolicy.isAttackMissCooldownActive(
+				((IMinecraftClient)MC).getMissTime()))
 			return;
 		if(!prepareForAttack(null))
 			return;
 
-		// TODO: 26.1.2 - setMissTime() removed
-		// if(attackCooldown.isChecked())
-		// 	((IMinecraftClient)MC).setMissTime(10);
+		if(attackCooldown.isChecked())
+			((IMinecraftClient)MC).setMissTime(10);
 		swingHand.swing(InteractionHand.MAIN_HAND);
 		clickScheduler.recordSuccessfulClick(now);
 		finishAttackPreparation(null, true);
@@ -894,8 +894,8 @@ public final class KillauraHack extends Hack
 	{
 		if(MC.hitResult instanceof EntityHitResult entityHit)
 		{
-			InteractionResult result = MC.gameMode.interact(MC.player,
-				entityHit.getEntity(), hand);
+			InteractionResult result = MC.gameMode.interactAt(MC.player,
+				entityHit.getEntity(), entityHit, hand);
 			if(result.consumesAction())
 				return true;
 		}
@@ -1033,9 +1033,9 @@ public final class KillauraHack extends Hack
 
 	private boolean isWeapon(ItemStack stack)
 	{
-		return stack.is(net.minecraft.tags.ItemTags.SWORDS)
-			|| stack.is(net.minecraft.tags.ItemTags.AXES)
-			|| stack.is(net.minecraft.tags.ItemTags.TRIDENT_ENCHANTABLE)
+		Item item = stack.getItem();
+		return stack.has(DataComponents.WEAPON) || item instanceof AxeItem
+			|| item instanceof TridentItem
 			|| EnchantmentUtils.getLevel(Enchantments.KNOCKBACK, stack) > 0;
 	}
 
@@ -1067,7 +1067,7 @@ public final class KillauraHack extends Hack
 			return;
 		MC.player.connection.send(new PosRot(MC.player.getX(), MC.player.getY(),
 			MC.player.getZ(), rotation.yaw(), rotation.pitch(),
-			MC.player.onGround(), MC.player.horizontalCollision));
+			MC.player.onGround(), false));
 	}
 
 	private void clearTracking()
@@ -1149,7 +1149,7 @@ public final class KillauraHack extends Hack
 			if(this != ALWAYS || target == null)
 				return true;
 			return !MC.player.onGround() && MC.player.fallDistance > 0
-				&& !MC.player.onClimbable() && !MC.player.isInWaterOrSwimmable()
+				&& !MC.player.onClimbable() && !MC.player.isInWater()
 				&& !MC.player.isInLava() && !MC.player.isPassenger()
 				&& !MC.player.isSprinting()
 				&& !MC.player.hasEffect(MobEffects.BLINDNESS);

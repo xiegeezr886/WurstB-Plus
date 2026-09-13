@@ -17,7 +17,7 @@ import net.minecraft.client.gui.screens.inventory.MerchantScreen;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.game.ServerboundSelectTradePacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -27,6 +27,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.block.Blocks;
@@ -144,7 +145,7 @@ public final class AutoLibrarianHack extends Hack
 		
 		if(breakingJobSite)
 		{
-			MC.gameMode.isDestroying = true;
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			breakingJobSite = false;
 		}
@@ -358,7 +359,7 @@ public final class AutoLibrarianHack extends Hack
 	
 	private void openTradeScreen()
 	{
-		if(MC.rightClickDelay > 0)
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		MultiPlayerGameMode im = MC.gameMode;
@@ -395,13 +396,13 @@ public final class AutoLibrarianHack extends Hack
 			swingHand.swing(hand);
 		
 		// set cooldown
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 	}
 	
 	private void closeTradeScreen()
 	{
 		MC.player.closeContainer();
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 	}
 	
 	private BookOffer findEnchantedBookOffer(MerchantOffers tradeOffers)
@@ -412,20 +413,22 @@ public final class AutoLibrarianHack extends Hack
 			if(!(stack.getItem() instanceof EnchantedBookItem))
 				continue;
 			
-			ListTag enchantmentNbt = EnchantedBookItem.getEnchantments(stack);
-			if(enchantmentNbt.isEmpty())
+			ItemEnchantments enchantments = stack.getOrDefault(
+				DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
+			if(enchantments.isEmpty())
 				continue;
 			
-			ListTag bookNbt = EnchantedBookItem.getEnchantments(stack);
-			String enchantment = bookNbt.getCompound(0).getString("id");
-			int level = bookNbt.getCompound(0).getInt("lvl");
+			var enchantmentEntry = enchantments.entrySet().iterator().next();
+			String enchantment = enchantmentEntry.getKey().unwrapKey()
+				.orElseThrow().location().toString();
+			int level = enchantmentEntry.getIntValue();
 			int price = tradeOffer.getCostA().getCount();
 			BookOffer bookOffer = new BookOffer(enchantment, level, price);
 			
 			if(!bookOffer.isValid())
 			{
 				System.out.println("Found invalid enchanted book offer.\n"
-					+ "NBT data: " + stack.getTag());
+					+ "Item components: " + stack.getComponentsPatch());
 				continue;
 			}
 			

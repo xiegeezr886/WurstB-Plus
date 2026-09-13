@@ -192,7 +192,7 @@ public class ServerFinderScreen extends Screen
 		if(serverList.get(ip) != null)
 			return;
 		
-		serverList.add(new ServerData(name, ip, false), false);
+		serverList.add(new ServerData(name, ip, ServerData.Type.OTHER), false);
 		serverList.save();
 		
 		ServerSelectionList selector =
@@ -233,7 +233,7 @@ public class ServerFinderScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		
 		context.drawCenteredString(font, "服务器搜索",
 			width / 2, 20, CommonColors.WHITE);

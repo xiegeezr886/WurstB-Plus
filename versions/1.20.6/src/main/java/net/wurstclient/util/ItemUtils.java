@@ -9,9 +9,6 @@ package net.wurstclient.util;
 
 import net.minecraft.ResourceLocationException;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -57,9 +54,13 @@ public enum ItemUtils
 	
 	public static float getAttackSpeed(Item item)
 	{
-		return (float)item.getDefaultAttributeModifiers(EquipmentSlot.MAINHAND)
-			.get(Attributes.ATTACK_SPEED).stream().findFirst()
-			.orElseThrow().getAmount();
+		float[] speed = {0};
+		item.getDefaultAttributeModifiers().forEach(EquipmentSlot.MAINHAND,
+			(attribute, modifier) -> {
+				if(attribute.equals(Attributes.ATTACK_SPEED))
+					speed[0] += (float)modifier.amount();
+			});
+		return speed[0];
 	}
 	
 	/**
@@ -70,17 +71,7 @@ public enum ItemUtils
 	public static void addEnchantment(ItemStack stack, Enchantment enchantment,
 		int level)
 	{
-		ResourceLocation id = EnchantmentHelper.getEnchantmentId(enchantment);
-		ListTag nbt = getOrCreateNbtList(stack, ItemStack.TAG_ENCH);
-		nbt.add(EnchantmentHelper.storeEnchantment(id, level));
-	}
-	
-	public static ListTag getOrCreateNbtList(ItemStack stack, String key)
-	{
-		CompoundTag nbt = stack.getOrCreateTag();
-		if(!nbt.contains(key, Tag.TAG_LIST))
-			nbt.put(key, new ListTag());
-		
-		return nbt.getList(key, Tag.TAG_COMPOUND);
+		EnchantmentHelper.updateEnchantments(stack,
+			enchantments -> enchantments.set(enchantment, level));
 	}
 }

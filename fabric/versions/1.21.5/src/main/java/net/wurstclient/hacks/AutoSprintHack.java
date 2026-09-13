@@ -85,7 +85,7 @@ public final class AutoSprintHack extends Hack
 	{
 		if(!isEnabled() || player == null || player.isPassenger()
 			|| player.isFallFlying()
-			|| player.isInWaterOrBubble() || player.isUnderWater())
+			|| player.isInWater() || player.isUnderWater())
 			return false;
 		if(!ignoreCollision.isChecked() && player.horizontalCollision
 			|| !whileSneaking.isChecked() && player.isShiftKeyDown()
@@ -96,7 +96,7 @@ public final class AutoSprintHack extends Hack
 		if(!hungry.isChecked() && !player.getAbilities().mayfly
 			&& player.getFoodData().getFoodLevel() <= 6)
 			return false;
-		if(!allDirections.isChecked() && player.input.forwardImpulse <= 0)
+		if(!allDirections.isChecked() && player.input.getMoveVector().y <= 0)
 			return false;
 		return player.input.getMoveVector().length() > 1.0E-5F;
 	}

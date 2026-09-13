@@ -30,7 +30,6 @@ import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
-import net.wurstclient.mixinterface.IClientPlayerInteractionManager;
 import net.wurstclient.util.BlockUtils;
 import net.wurstclient.util.PlacementPlan;
 import net.wurstclient.util.RotationQueue;
@@ -255,7 +254,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 
 	private void swapToSlot(int newSlot)
 	{
-		if(newSlot == MC.player.getInventory().getSelectedSlot())
+		if(newSlot == MC.player.getInventory().selected)
 		{
 			oldSlot = -1;
 			return;
@@ -263,11 +262,11 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 
 		if(silentSwap.isChecked())
 		{
-			oldSlot = MC.player.getInventory().getSelectedSlot();
-			MC.player.getInventory().setSelectedSlot(newSlot);
+			oldSlot = MC.player.getInventory().selected;
+			MC.player.getInventory().selected = newSlot;
 		}
 		else
-			MC.player.getInventory().setSelectedSlot(newSlot);
+			MC.player.getInventory().selected = newSlot;
 	}
 
 	private void resetSlot()
@@ -280,7 +279,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			return;
 		}
 
-		MC.player.getInventory().setSelectedSlot(oldSlot);
+		MC.player.getInventory().selected = oldSlot;
 		MC.player.connection.send(new ServerboundSetCarriedItemPacket(oldSlot));
 		oldSlot = -1;
 	}
@@ -294,15 +293,14 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		}
 
 		rotationQueue.setRotation(plan.rotation());
-		InteractionResult result = ((IClientPlayerInteractionManager)IMC
-			.getInteractionManager()).rightClickBlock(plan.neighbor(),
-				plan.side(), plan.hitVec());
+		InteractionResult result = IMC.getInteractionManager().rightClickBlock(
+			plan.neighbor(), plan.side(), plan.hitVec());
 		if(!result.consumesAction())
 			return false;
 		if(result instanceof InteractionResult.Success success
 			&& success.swingSource() != InteractionResult.SwingSource.NONE)
 			swingHand.swing(InteractionHand.MAIN_HAND);
-		// MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 		currentPlan = plan;
 		return true;
 	}
@@ -311,7 +309,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	{
 		return isEnabled() && safeWalk.isChecked()
 			&& mode.getSelected() == Mode.NORMAL && MC.player != null
-			&& MC.player.onGround() && !MC.options.keyJump.isDown();
+			&& MC.player.onGround() && !MC.player.input.keyPresses.jump();
 	}
 
 	private enum Mode

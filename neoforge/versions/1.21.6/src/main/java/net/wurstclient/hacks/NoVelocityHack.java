@@ -139,7 +139,7 @@ public final class NoVelocityHack extends Hack
 	private void handleEntityVelocity(PacketInputEvent event,
 		ClientboundSetEntityMotionPacket packet)
 	{
-		Vec3 incoming = packet.getMovement();
+		Vec3 incoming = new Vec3(packet.getXa(), packet.getYa(), packet.getZa());
 		if(!shouldApply())
 			return;
 

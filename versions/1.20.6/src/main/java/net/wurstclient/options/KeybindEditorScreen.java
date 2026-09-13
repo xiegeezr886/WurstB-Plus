@@ -90,14 +90,14 @@ public final class KeybindEditorScreen extends Screen
 	@Override
 	public void tick()
 	{
-		commandField.tick();
+
 	}
 	
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		
 		context.drawCenteredString(font,
 			(oldKey != null ? "Edit" : "Add") + " Keybind", width / 2, 20,

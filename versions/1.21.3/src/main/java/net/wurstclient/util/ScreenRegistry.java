@@ -12,8 +12,6 @@ import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-// EffectRenderingInventoryScreen removed in MC 26.1.2
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.wurstclient.clickgui2.ClickGuiScreen;
@@ -32,7 +30,7 @@ public enum ScreenRegistry
 	PAUSE(PauseScreen.class),
 	DISCONNECTED(DisconnectedScreen.class),
 	CONTAINER(AbstractContainerScreen.class),
-	INVENTORY(InventoryScreen.class),
+	INVENTORY(net.minecraft.client.gui.screens.inventory.InventoryScreen.class),
 	CHAT(ChatScreen.class),
 	DEATH(DeathScreen.class),
 	CLICK_GUI(ClickGuiScreen.class,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -47,21 +46,20 @@ public abstract class TitleScreenMixin extends Screen
 		wurstPenguin$titleMenu =
 			new WurstTitleMenu((TitleScreen)(Object)this);
 		wurstPenguin$titleMenu.init(minecraft, width, height,
-			this::addRenderableWidget);
+			widget -> addRenderableWidget(widget));
 	}
 
-	@Inject(
-		method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
-		at = @At("HEAD"),
+	@Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/client/gui/components/LogoRenderer;renderLogo(Lnet/minecraft/client/gui/GuiGraphics;IF)V"),
 		cancellable = true)
-	private void onRender(GuiGraphics graphics, int mouseX,
-		int mouseY, float partialTicks, CallbackInfo ci)
+	private void onRender(GuiGraphics graphics, int mouseX, int mouseY,
+		float partialTicks, CallbackInfo ci)
 	{
 		if(!wurstPenguin$customMenu || wurstPenguin$titleMenu == null)
 			return;
 
-		wurstPenguin$titleMenu.render(new GuiGraphicsExtractor(graphics),
-			mouseX, mouseY, partialTicks,
+		wurstPenguin$titleMenu.render(graphics, mouseX, mouseY, partialTicks,
 			width, height);
 		super.render(graphics, mouseX, mouseY, partialTicks);
 		ci.cancel();

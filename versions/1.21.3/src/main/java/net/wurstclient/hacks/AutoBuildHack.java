@@ -227,7 +227,7 @@ public final class AutoBuildHack extends Hack
 			return;
 		}
 		
-		if(!fastPlace.isChecked() && IMC.getRightClickDelay() > 0)
+		if(!fastPlace.isChecked() && ((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		double rangeSq = range.getValueSq();
@@ -251,7 +251,7 @@ public final class AutoBuildHack extends Hack
 				return;
 			}
 			
-			// MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+			((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 			RotationUtils.getNeededRotations(params.hitVec())
 				.sendPlayerLookPacket();
 			InteractionSimulator.rightClickBlock(params.toHitResult());
@@ -270,7 +270,7 @@ public final class AutoBuildHack extends Hack
 		Inventory inventory = MC.player.getInventory();
 		int slot = inventory.getFreeSlot();
 		if(slot < 0)
-			slot = inventory.getSelectedSlot();
+			slot = inventory.selected;
 		
 		ItemStack stack = new ItemStack(item);
 		InventoryUtils.setCreativeStack(slot, stack);

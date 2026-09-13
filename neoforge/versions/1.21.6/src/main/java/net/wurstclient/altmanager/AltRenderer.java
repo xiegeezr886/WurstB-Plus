@@ -14,29 +14,29 @@ import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 // PlayerSkin removed in MC 26.1.2
+import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.player.PlayerModelType;
+import net.minecraft.resources.ResourceLocation;
 import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 public final class AltRenderer
 {
-	private static final HashMap<String, Identifier> loadedSkins =
+	private static final HashMap<String, ResourceLocation> loadedSkins =
 		new HashMap<>();
 	
-	private static Identifier getSkinTexture(String name)
+	private static ResourceLocation getSkinTexture(String name)
 	{
 		if(name.isEmpty())
 			name = "Steve";
 		
-		Identifier texture = loadedSkins.get(name);
+		ResourceLocation texture = loadedSkins.get(name);
 		if(texture == null)
 		{
 			UUID uuid = UUIDUtil.createOfflinePlayerUUID(name);
 			GameProfile profile = new GameProfile(uuid, name);
 			PlayerInfo entry = new PlayerInfo(profile, false);
-			texture = entry.getSkin().body().texturePath();
+			texture = entry.getSkin().texture();
 			loadedSkins.put(name, texture);
 		}
 		
@@ -48,7 +48,7 @@ public final class AltRenderer
 	{
 		try
 		{
-			Identifier texture = getSkinTexture(name);
+			ResourceLocation texture = getSkinTexture(name);
 			
 			if(selected)
 			{
@@ -82,11 +82,11 @@ public final class AltRenderer
 	{
 		try
 		{
-			Identifier texture = getSkinTexture(name);
+			ResourceLocation texture = getSkinTexture(name);
 		// Shader color managed by render pipeline
 			boolean slim = DefaultPlayerSkin
 				.get(UUIDUtil.createOfflinePlayerUUID(name)).model()
-				== PlayerModelType.SLIM;
+				== PlayerSkin.Model.SLIM;
 			
 			// Face
 			x = x + width / 4;
@@ -209,11 +209,11 @@ public final class AltRenderer
 	{
 		try
 		{
-			Identifier texture = getSkinTexture(name);
+			ResourceLocation texture = getSkinTexture(name);
 		// Shader color managed by render pipeline
 			boolean slim = DefaultPlayerSkin
 				.get(UUIDUtil.createOfflinePlayerUUID(name)).model()
-				== PlayerModelType.SLIM;
+				== PlayerSkin.Model.SLIM;
 			
 			// Face
 			x = x + width / 4;

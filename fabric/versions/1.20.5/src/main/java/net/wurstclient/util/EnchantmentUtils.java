@@ -37,12 +37,9 @@ public enum EnchantmentUtils
 		return registry == null ? Stream.empty() : registry.holders();
 	}
 
-	public static int getLevel(ResourceKey<Enchantment> key, ItemStack stack)
+	public static int getLevel(Enchantment enchantment, ItemStack stack)
 	{
-		return getHolder(key)
-			.map(holder -> EnchantmentHelper.getItemEnchantmentLevel(holder,
-				stack))
-			.orElse(0);
+		return EnchantmentHelper.getItemEnchantmentLevel(enchantment, stack);
 	}
 
 	private static Registry<Enchantment> getRegistry()

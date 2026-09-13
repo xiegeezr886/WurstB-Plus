@@ -131,7 +131,7 @@ public final class CriticalsHack extends Hack
 		float attackStrength = onlyReady.isChecked()
 			? MC.player.getAttackStrengthScale(0.5F) : 1;
 		return new CriticalState(MC.player.onGround(),
-			MC.player.isInWaterOrBubble() || MC.player.isInLava(),
+			MC.player.isInWater() || MC.player.isInLava(),
 			MC.player.onClimbable(), MC.player.isPassenger(),
 			MC.player.getAbilities().flying, MC.player.isFallFlying(),
 			MC.player.isNoGravity(), MC.player.isHandsBusy(),
@@ -171,7 +171,7 @@ public final class CriticalsHack extends Hack
 	private void sendOffset(double offset, boolean onGround)
 	{
 		MC.player.connection.send(new Pos(MC.player.getX(),
-			MC.player.getY() + offset, MC.player.getZ(), onGround));
+			MC.player.getY() + offset, MC.player.getZ(), onGround, false));
 	}
 
 	private enum Mode

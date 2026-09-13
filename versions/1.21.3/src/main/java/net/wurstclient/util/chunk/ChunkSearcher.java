@@ -59,7 +59,7 @@ public final class ChunkSearcher
 		ChunkPos chunkPos = chunk.getPos();
 		
 		int minX = chunkPos.getMinBlockX();
-		int minY = chunk.getMinY() * 16;
+		int minY = chunk.getMinY();
 		int minZ = chunkPos.getMinBlockZ();
 		int maxX = chunkPos.getMaxBlockX();
 		int maxY = ChunkUtils.getHighestNonEmptySectionYOffset(chunk) + 16;

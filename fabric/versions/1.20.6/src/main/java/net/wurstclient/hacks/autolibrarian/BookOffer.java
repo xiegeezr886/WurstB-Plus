@@ -10,7 +10,6 @@ package net.wurstclient.hacks.autolibrarian;
 import java.util.Objects;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.wurstclient.WurstClient;
 import net.wurstclient.WurstTranslator;
@@ -27,7 +26,8 @@ public record BookOffer(String id, int level, int price)
 	
 	public static BookOffer createDefault(String id)
 	{
-		int maxLevel = switch(ResourceLocation.parse(id).getPath())
+		ResourceLocation location = ResourceLocation.tryParse(id);
+		int maxLevel = location == null ? 1 : switch(location.getPath())
 		{
 			case "depth_strider", "fortune", "looting", "respiration" -> 3;
 			case "feather_falling", "protection" -> 4;
@@ -40,7 +40,10 @@ public record BookOffer(String id, int level, int price)
 
 	public Holder<Enchantment> getEnchantment()
 	{
-		return EnchantmentUtils.getHolder(ResourceLocation.parse(id)).orElse(null);
+		ResourceLocation location = ResourceLocation.tryParse(id);
+		if(location == null)
+			return null;
+		return EnchantmentUtils.getHolder(location).orElse(null);
 	}
 	
 	public String getEnchantmentName()
@@ -49,7 +52,7 @@ public record BookOffer(String id, int level, int price)
 		Holder<Enchantment> enchantment = getEnchantment();
 		return enchantment == null ? id
 			: translator.translateMcEnglish(
-				enchantment.value().description().getString());
+				enchantment.value().getDescriptionId());
 	}
 	
 	public String getEnchantmentNameWithLevel()
@@ -59,7 +62,7 @@ public record BookOffer(String id, int level, int price)
 		if(enchantment == null)
 			return id;
 		String name =
-			translator.translateMcEnglish(enchantment.value().description().getString());
+			translator.translateMcEnglish(enchantment.value().getDescriptionId());
 		
 		if(enchantment.value().getMaxLevel() > 1)
 			name += " "
@@ -80,7 +83,7 @@ public record BookOffer(String id, int level, int price)
 			return ResourceLocation.tryParse(id) != null && level >= 1
 				&& level <= 255 && price >= 1 && price <= 64;
 
-		return enchantment.is(EnchantmentTags.TRADEABLE) && level >= 1
+		return enchantment.value().isTradeable() && level >= 1
 			&& level <= enchantment.value().getMaxLevel() && price >= 1
 			&& price <= 64;
 	}

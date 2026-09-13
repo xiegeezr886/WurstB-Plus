@@ -22,29 +22,12 @@ public abstract class LivingEntityMixin
 		CallbackInfoReturnable<Double> cir)
 	{
 		LivingEntity self = (LivingEntity)(Object)this;
-		if(self != WurstClient.MC.player)
+		if(self != WurstClient.MC.player
+			|| !attribute.equals(Attributes.MOVEMENT_SPEED))
 			return;
 
 		HackList hax = WurstClient.INSTANCE.getHax();
-		if(hax == null)
-			return;
-
-		if(hax.reachHack.isEnabled())
-		{
-			if(attribute.equals(Attributes.ENTITY_INTERACTION_RANGE))
-			{
-				cir.setReturnValue((double)hax.reachHack.getEntityRange());
-				return;
-			}
-			if(attribute.equals(Attributes.BLOCK_INTERACTION_RANGE))
-			{
-				cir.setReturnValue((double)hax.reachHack.getBlockRange());
-				return;
-			}
-		}
-
-		if(!attribute.equals(Attributes.MOVEMENT_SPEED)
-			|| !hax.noSlowdownHack.shouldBypassItemSlowness())
+		if(hax == null || !hax.noSlowdownHack.shouldBypassItemSlowness())
 			return;
 
 		AttributeInstance instance = self.getAttribute(attribute);

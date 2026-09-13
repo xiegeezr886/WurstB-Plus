@@ -10,7 +10,7 @@ package net.wurstclient.util;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.function.Consumer;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 
 public record BufferWithLayer(EasyVertexBuffer buffer, RenderType layer)
 	implements AutoCloseable

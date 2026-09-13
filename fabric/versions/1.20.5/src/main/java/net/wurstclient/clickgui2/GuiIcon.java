@@ -32,7 +32,7 @@ public enum GuiIcon
 
 	GuiIcon(String name)
 	{
-		texture = ResourceLocation.fromNamespaceAndPath("wurst", "textures/gui/icons/" + name
+		texture = new ResourceLocation("wurst", "textures/gui/icons/" + name
 			+ ".png");
 	}
 

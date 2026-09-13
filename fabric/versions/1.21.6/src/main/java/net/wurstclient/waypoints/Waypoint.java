@@ -8,16 +8,16 @@
 package net.wurstclient.waypoints;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public final class Waypoint
 {
 	private final String name;
-	private final Identifier dimension;
+	private final ResourceLocation dimension;
 	private final BlockPos pos;
 	private int color;
 
-	public Waypoint(String name, Identifier dimension, BlockPos pos,
+	public Waypoint(String name, ResourceLocation dimension, BlockPos pos,
 		int color)
 	{
 		this.name = name;
@@ -31,7 +31,7 @@ public final class Waypoint
 		return name;
 	}
 
-	public Identifier getDimension()
+	public ResourceLocation getDimension()
 	{
 		return dimension;
 	}

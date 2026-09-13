@@ -9,8 +9,6 @@ import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
@@ -43,10 +41,10 @@ public final class HudEditorScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 
@@ -131,11 +129,8 @@ public final class HudEditorScreen extends Screen
 	}
 
 	@Override
-	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		double mouseX = event.x();
-		double mouseY = event.y();
-		int button = event.button();
 		for(Map.Entry<String, HudLayout.HudElementConfig> entry : layout
 			.getElements().entrySet())
 		{
@@ -174,13 +169,13 @@ public final class HudEditorScreen extends Screen
 				}
 			}
 		}
-		return super.mouseClicked(event, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseReleased(MouseButtonEvent event)
+	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
-		if(draggedId != null && event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT)
+		if(draggedId != null && button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
 		{
 			HudLayout.HudElementConfig config = layout.get(draggedId);
 			if(config != null)
@@ -199,17 +194,14 @@ public final class HudEditorScreen extends Screen
 			draggedId = null;
 			return true;
 		}
-		return super.mouseReleased(event);
+		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseDragged(MouseButtonEvent event,
-		double deltaX, double deltaY)
+	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY)
 	{
-		double mouseX = event.x();
-		double mouseY = event.y();
 		if(draggedId == null)
-			return super.mouseDragged(event, deltaX, deltaY);
+			return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
 
 		HudLayout.HudElementConfig config = layout.get(draggedId);
 		if(config == null)
@@ -244,14 +236,14 @@ public final class HudEditorScreen extends Screen
 	}
 
 	@Override
-	public boolean keyPressed(KeyEvent event)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(event.key() == GLFW.GLFW_KEY_ESCAPE)
+		if(keyCode == GLFW.GLFW_KEY_ESCAPE)
 		{
 			onClose();
 			return true;
 		}
-		return super.keyPressed(event);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	@Override

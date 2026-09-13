@@ -7,7 +7,6 @@
  */
 package net.wurstclient.options;
 
-
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -98,7 +97,6 @@ public class ZoomManagerScreen extends Screen implements PressAKeyCallback
 		return false;
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

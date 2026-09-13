@@ -207,8 +207,7 @@ public enum InventoryUtils
 	public static boolean selectItem(int slot)
 	{
 		Inventory inventory = MC.player.getInventory();
-		IClientPlayerInteractionManager im =
-			(IClientPlayerInteractionManager)IMC.getInteractionManager();
+		IClientPlayerInteractionManager im = IMC.getInteractionManager();
 		
 		// if the slot is negative, abort and return false
 		if(slot < 0)

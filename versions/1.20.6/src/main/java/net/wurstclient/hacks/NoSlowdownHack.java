@@ -129,11 +129,12 @@ public final class NoSlowdownHack extends Hack
 
 		ItemStack stack = MC.player.getMainHandItem();
 		Set<UUID> excluded = new HashSet<>();
-		for(AttributeModifier modifier : stack
-			.getAttributeModifiers(EquipmentSlot.MAINHAND)
-			.get(Attributes.MOVEMENT_SPEED))
-			if(modifier.getAmount() < 0)
-				excluded.add(modifier.getId());
+		stack.forEachModifier(EquipmentSlot.MAINHAND, (attribute, modifier) ->
+		{
+			if(attribute.equals(Attributes.MOVEMENT_SPEED)
+				&& modifier.amount() < 0)
+				excluded.add(modifier.id());
+		});
 
 		return AttributeValuePlanner.calculateExcluding(instance, excluded);
 	}

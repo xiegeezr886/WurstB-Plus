@@ -81,7 +81,7 @@ public final class NukerHack extends Hack
 		
 		if(currentBlock != null)
 		{
-			MC.gameMode.isDestroying = true;
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			currentBlock = null;
 		}

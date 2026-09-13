@@ -153,7 +153,7 @@ public final class AutoFishHack extends Hack
 			if(!fishingSpots.onCast())
 				return;
 			
-			MC.startUseItem();
+			((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).invokeStartUseItem();
 			castRodTimer = retryDelay.getValueI();
 			return;
 		}
@@ -173,7 +173,7 @@ public final class AutoFishHack extends Hack
 		// otherwise, reel in when the timer runs out
 		if(reelInTimer == 0)
 		{
-			MC.startUseItem();
+			((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).invokeStartUseItem();
 			reelInTimer = retryDelay.getValueI();
 			castRodTimer = retryDelay.getValueI();
 		}

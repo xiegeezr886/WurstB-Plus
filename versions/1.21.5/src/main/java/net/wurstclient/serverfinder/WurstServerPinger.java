@@ -7,7 +7,7 @@
  */
 package net.wurstclient.serverfinder;
 
-import java.lang.reflect.Method;
+import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerStatusPinger;
@@ -39,14 +39,13 @@ public class WurstServerPinger
 		
 		try
 		{
-			Method pingServer = ServerStatusPinger.class.getDeclaredMethod(
-				"pingServer", ServerData.class, Runnable.class, Runnable.class,
-				Class.forName(
-					"net.minecraft.client.multiplayer.ServerStatusPinger$EventLoopGroupHolder"));
-			pingServer.setAccessible(true);
-			pingServer.invoke(pinger, server, (Runnable)() -> {}, (Runnable)() -> failed = true,
-				null);
+			pinger.pingServer(server, () -> {}, () -> failed = true);
 			System.out.println("Ping successful: " + ip + ":" + port);
+			
+		}catch(UnknownHostException e)
+		{
+			System.out.println("Unknown host: " + ip + ":" + port);
+			failed = true;
 			
 		}catch(Exception e2)
 		{

@@ -216,9 +216,9 @@ public enum RenderUtils
 		float x1, float y1, float z1, float x2, float y2, float z2, int color)
 	{
 		Vector3f normal = new Vector3f(x2, y2, z2).sub(x1, y1, z1).normalize();
-		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal(entry, normal.x, normal.y, normal.z)
-			;
+		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
+			.normal(entry, normal.x, normal.y, normal.z)
+			.endVertex();
 		
 		// If the line goes through the screen, add another vertex there. This
 		// works around a bug in Minecraft's line shader.
@@ -228,30 +228,30 @@ public enum RenderUtils
 		{
 			Vector3f closeToCam = new Vector3f(normal).mul(t).add(x1, y1, z1);
 			buffer
-				.addVertex(entry.pose(), closeToCam.x, closeToCam.y,
+				.vertex(entry.pose(), closeToCam.x, closeToCam.y,
 					closeToCam.z)
-				.setColor(color)
-				.setNormal(entry, normal.x, normal.y, normal.z)
-				;
+				.color(color)
+				.normal(entry, normal.x, normal.y, normal.z)
+				.endVertex();
 			buffer
-				.addVertex(entry.pose(), closeToCam.x, closeToCam.y,
+				.vertex(entry.pose(), closeToCam.x, closeToCam.y,
 					closeToCam.z)
-				.setColor(color)
-				.setNormal(entry, normal.x, normal.y, normal.z)
-				;
+				.color(color)
+				.normal(entry, normal.x, normal.y, normal.z)
+				.endVertex();
 		}
 		
-		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal(entry, normal.x, normal.y, normal.z)
-			;
+		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
+			.normal(entry, normal.x, normal.y, normal.z)
+			.endVertex();
 	}
 	
 	public static void drawLine(VertexConsumer buffer, float x1, float y1,
 		float z1, float x2, float y2, float z2, int color)
 	{
 		Vector3f n = new Vector3f(x2, y2, z2).sub(x1, y1, z1).normalize();
-		buffer.addVertex(x1, y1, z1).setColor(color).setNormal(n.x, n.y, n.z);
-		buffer.addVertex(x2, y2, z2).setColor(color).setNormal(n.x, n.y, n.z);
+		buffer.vertex(x1, y1, z1).color(color).normal(n.x, n.y, n.z).endVertex();
+		buffer.vertex(x2, y2, z2).color(color).normal(n.x, n.y, n.z).endVertex();
 	}
 	
 	public static void drawCurvedLine(PoseStack matrices, List<Vec3> points,
@@ -282,10 +282,10 @@ public enum RenderUtils
 		Vector3f first = points.get(0).toVector3f();
 		Vector3f second = points.get(1).toVector3f();
 		Vector3f normal = new Vector3f(first).sub(second).normalize();
-		buffer.addVertex(entry.pose(), first.x, first.y, first.z)
-			.setColor(color)
-			.setNormal(entry, normal.x, normal.y, normal.z)
-			;
+		buffer.vertex(entry.pose(), first.x, first.y, first.z)
+			.color(color)
+			.normal(entry, normal.x, normal.y, normal.z)
+			.endVertex();
 		
 		for(int i = 1; i < points.size(); i++)
 		{
@@ -293,11 +293,11 @@ public enum RenderUtils
 			Vector3f current = points.get(i).toVector3f();
 			normal = new Vector3f(current).sub(prev).normalize();
 			buffer
-				.addVertex(entry.pose(), current.x, current.y,
+				.vertex(entry.pose(), current.x, current.y,
 					current.z)
-				.setColor(color)
-				.setNormal(entry, normal.x, normal.y, normal.z)
-				;
+				.color(color)
+				.normal(entry, normal.x, normal.y, normal.z)
+				.endVertex();
 		}
 	}
 	
@@ -371,59 +371,59 @@ public enum RenderUtils
 		float y2 = (float)box.maxY;
 		float z2 = (float)box.maxZ;
 		
-		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			;
+		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
+			.endVertex();
 		
-		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			;
+		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
+			.endVertex();
 		
-		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			;
+		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
+			.endVertex();
 		
-		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			;
+		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
+			.endVertex();
 		
-		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			;
+		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
+			.endVertex();
 		
-		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			;
-		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			;
+		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
+			.endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
+			.endVertex();
 	}
 	
 	public static void drawOutlinedBox(PoseStack matrices, AABB box, int color,
@@ -498,58 +498,58 @@ public enum RenderUtils
 		float z2 = (float)box.maxZ;
 		
 		// bottom lines
-		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal(entry, 1, 0, 0);
-		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal(entry, 1, 0, 0);
-		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal(entry, 0, 0, 1);
-		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal(entry, 0, 0, 1);
-		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal(entry, 0, 0, 1);
-		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal(entry, 0, 0, 1);
-		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal(entry, 1, 0, 0);
-		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal(entry, 1, 0, 0);
+		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
+			.normal(entry, 1, 0, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
+			.normal(entry, 1, 0, 0).endVertex();
+		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
+			.normal(entry, 0, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
+			.normal(entry, 0, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
+			.normal(entry, 0, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
+			.normal(entry, 0, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
+			.normal(entry, 1, 0, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
+			.normal(entry, 1, 0, 0).endVertex();
 		
 		// top lines
-		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal(entry, 1, 0, 0);
-		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal(entry, 1, 0, 0);
-		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal(entry, 0, 0, 1);
-		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal(entry, 0, 0, 1);
-		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal(entry, 0, 0, 1);
-		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal(entry, 0, 0, 1);
-		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal(entry, 1, 0, 0);
-		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal(entry, 1, 0, 0);
+		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
+			.normal(entry, 1, 0, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
+			.normal(entry, 1, 0, 0).endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
+			.normal(entry, 0, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
+			.normal(entry, 0, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
+			.normal(entry, 0, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
+			.normal(entry, 0, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
+			.normal(entry, 1, 0, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
+			.normal(entry, 1, 0, 0).endVertex();
 		
 		// side lines
-		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal(entry, 0, 1, 0);
-		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal(entry, 0, 1, 0);
-		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal(entry, 0, 1, 0);
-		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal(entry, 0, 1, 0);
-		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal(entry, 0, 1, 0);
-		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal(entry, 0, 1, 0);
-		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal(entry, 0, 1, 0);
-		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal(entry, 0, 1, 0);
+		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
+			.normal(entry, 0, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
+			.normal(entry, 0, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
+			.normal(entry, 0, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
+			.normal(entry, 0, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
+			.normal(entry, 0, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
+			.normal(entry, 0, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
+			.normal(entry, 0, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
+			.normal(entry, 0, 1, 0).endVertex();
 	}
 	
 	public static void drawCrossBox(PoseStack matrices, AABB box, int color,
@@ -623,64 +623,64 @@ public enum RenderUtils
 		float z2 = (float)box.maxZ;
 		
 		// back
-		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal(entry, 1, 1, 0);
-		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal(entry, 1, 1, 0);
-		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal(entry, -1, 1, 0);
-		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal(entry, -1, 1, 0);
+		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
+			.normal(entry, 1, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
+			.normal(entry, 1, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
+			.normal(entry, -1, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
+			.normal(entry, -1, 1, 0).endVertex();
 		
 		// left
-		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal(entry, 0, 1, 1);
-		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal(entry, 0, 1, 1);
-		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal(entry, 0, 1, -1);
-		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal(entry, 0, 1, -1);
+		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
+			.normal(entry, 0, 1, 1).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
+			.normal(entry, 0, 1, 1).endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
+			.normal(entry, 0, 1, -1).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
+			.normal(entry, 0, 1, -1).endVertex();
 		
 		// front
-		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal(entry, -1, 1, 0);
-		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal(entry, -1, 1, 0);
-		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal(entry, 1, 1, 0);
-		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal(entry, 1, 1, 0);
+		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
+			.normal(entry, -1, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
+			.normal(entry, -1, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
+			.normal(entry, 1, 1, 0).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
+			.normal(entry, 1, 1, 0).endVertex();
 		
 		// right
-		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal(entry, 0, 1, -1);
-		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal(entry, 0, 1, -1);
-		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal(entry, 0, 1, 1);
-		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal(entry, 0, 1, 1);
+		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
+			.normal(entry, 0, 1, -1).endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
+			.normal(entry, 0, 1, -1).endVertex();
+		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
+			.normal(entry, 0, 1, 1).endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
+			.normal(entry, 0, 1, 1).endVertex();
 		
 		// top
-		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal(entry, 1, 0, -1);
-		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal(entry, 1, 0, -1);
-		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal(entry, 1, 0, 1);
-		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal(entry, 1, 0, 1);
+		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
+			.normal(entry, 1, 0, -1).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
+			.normal(entry, 1, 0, -1).endVertex();
+		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
+			.normal(entry, 1, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
+			.normal(entry, 1, 0, 1).endVertex();
 		
 		// bottom
-		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal(entry, -1, 0, 1);
-		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal(entry, -1, 0, 1);
-		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal(entry, 1, 0, 1);
-		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal(entry, 1, 0, 1);
+		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
+			.normal(entry, -1, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
+			.normal(entry, -1, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
+			.normal(entry, 1, 0, 1).endVertex();
+		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
+			.normal(entry, 1, 0, 1).endVertex();
 	}
 	
 	public static void drawNode(PoseStack matrices, AABB box, int color,
@@ -836,10 +836,10 @@ public enum RenderUtils
 	{
 		Matrix4f matrix = context.pose().last().pose();
 		VertexConsumer buffer = getVCP().getBuffer(RenderType.gui());
-		buffer.addVertex(matrix, x1, y1, 0).setColor(color);
-		buffer.addVertex(matrix, x1, y2, 0).setColor(color);
-		buffer.addVertex(matrix, x2, y2, 0).setColor(color);
-		buffer.addVertex(matrix, x2, y1, 0).setColor(color);
+		buffer.vertex(matrix, x1, y1, 0).color(color).endVertex();
+		buffer.vertex(matrix, x1, y2, 0).color(color).endVertex();
+		buffer.vertex(matrix, x2, y2, 0).color(color).endVertex();
+		buffer.vertex(matrix, x2, y1, 0).color(color).endVertex();
 	}
 	
 	/**
@@ -854,7 +854,7 @@ public enum RenderUtils
 		Matrix4f matrix = context.pose().last().pose();
 		VertexConsumer buffer = getVCP().getBuffer(RenderType.gui());
 		for(float[] vertex : vertices)
-			buffer.addVertex(matrix, vertex[0], vertex[1], 0).setColor(color);
+			buffer.vertex(matrix, vertex[0], vertex[1], 0).color(color).endVertex();
 	}
 	
 	/**
@@ -870,7 +870,7 @@ public enum RenderUtils
 		VertexConsumer buffer =
 			getVCP().getBuffer(RenderType.debugFilledBox());
 		for(float[] vertex : vertices)
-			buffer.addVertex(matrix, vertex[0], vertex[1], 1).setColor(color);
+			buffer.vertex(matrix, vertex[0], vertex[1], 1).color(color).endVertex();
 	}
 	
 	/**
@@ -887,8 +887,8 @@ public enum RenderUtils
 		Matrix4f matrix = context.pose().last().pose();
 		VertexConsumer buffer =
 			getVCP().getBuffer(WurstRenderLayers.ONE_PIXEL_LINES);
-		buffer.addVertex(matrix, x1, y1, 1).setColor(color);
-		buffer.addVertex(matrix, x2, y2, 1).setColor(color);
+		buffer.vertex(matrix, x1, y1, 1).color(color).endVertex();
+		buffer.vertex(matrix, x2, y2, 1).color(color).endVertex();
 	}
 	
 	/**
@@ -903,11 +903,11 @@ public enum RenderUtils
 		Matrix4f matrix = context.pose().last().pose();
 		VertexConsumer buffer =
 			getVCP().getBuffer(WurstRenderLayers.ONE_PIXEL_LINE_STRIP);
-		buffer.addVertex(matrix, x1, y1, 1).setColor(color);
-		buffer.addVertex(matrix, x2, y1, 1).setColor(color);
-		buffer.addVertex(matrix, x2, y2, 1).setColor(color);
-		buffer.addVertex(matrix, x1, y2, 1).setColor(color);
-		buffer.addVertex(matrix, x1, y1, 1).setColor(color);
+		buffer.vertex(matrix, x1, y1, 1).color(color).endVertex();
+		buffer.vertex(matrix, x2, y1, 1).color(color).endVertex();
+		buffer.vertex(matrix, x2, y2, 1).color(color).endVertex();
+		buffer.vertex(matrix, x1, y2, 1).color(color).endVertex();
+		buffer.vertex(matrix, x1, y1, 1).color(color).endVertex();
 	}
 	
 	/**
@@ -920,9 +920,9 @@ public enum RenderUtils
 		VertexConsumer buffer =
 			getVCP().getBuffer(WurstRenderLayers.ONE_PIXEL_LINE_STRIP);
 		for(float[] vertex : vertices)
-			buffer.addVertex(matrix, vertex[0], vertex[1], 1).setColor(color);
-		buffer.addVertex(matrix, vertices[0][0], vertices[0][1], 1).setColor(color)
-			;
+			buffer.vertex(matrix, vertex[0], vertex[1], 1).color(color).endVertex();
+		buffer.vertex(matrix, vertices[0][0], vertices[0][1], 1).color(color)
+			.endVertex();
 	}
 	
 	/**
@@ -957,28 +957,28 @@ public enum RenderUtils
 		VertexConsumer buffer = getVCP().getBuffer(RenderType.gui());
 		
 		// top
-		buffer.addVertex(matrix, x1, y1, 0).setColor(shadowColor1);
-		buffer.addVertex(matrix, x2, y1, 0).setColor(shadowColor1);
-		buffer.addVertex(matrix, xs2, ys1, 0).setColor(shadowColor2);
-		buffer.addVertex(matrix, xs1, ys1, 0).setColor(shadowColor2);
+		buffer.vertex(matrix, x1, y1, 0).color(shadowColor1).endVertex();
+		buffer.vertex(matrix, x2, y1, 0).color(shadowColor1).endVertex();
+		buffer.vertex(matrix, xs2, ys1, 0).color(shadowColor2).endVertex();
+		buffer.vertex(matrix, xs1, ys1, 0).color(shadowColor2).endVertex();
 		
 		// left
-		buffer.addVertex(matrix, xs1, ys1, 0).setColor(shadowColor2);
-		buffer.addVertex(matrix, xs1, ys2, 0).setColor(shadowColor2);
-		buffer.addVertex(matrix, x1, y2, 0).setColor(shadowColor1);
-		buffer.addVertex(matrix, x1, y1, 0).setColor(shadowColor1);
+		buffer.vertex(matrix, xs1, ys1, 0).color(shadowColor2).endVertex();
+		buffer.vertex(matrix, xs1, ys2, 0).color(shadowColor2).endVertex();
+		buffer.vertex(matrix, x1, y2, 0).color(shadowColor1).endVertex();
+		buffer.vertex(matrix, x1, y1, 0).color(shadowColor1).endVertex();
 		
 		// right
-		buffer.addVertex(matrix, x2, y1, 0).setColor(shadowColor1);
-		buffer.addVertex(matrix, x2, y2, 0).setColor(shadowColor1);
-		buffer.addVertex(matrix, xs2, ys2, 0).setColor(shadowColor2);
-		buffer.addVertex(matrix, xs2, ys1, 0).setColor(shadowColor2);
+		buffer.vertex(matrix, x2, y1, 0).color(shadowColor1).endVertex();
+		buffer.vertex(matrix, x2, y2, 0).color(shadowColor1).endVertex();
+		buffer.vertex(matrix, xs2, ys2, 0).color(shadowColor2).endVertex();
+		buffer.vertex(matrix, xs2, ys1, 0).color(shadowColor2).endVertex();
 		
 		// bottom
-		buffer.addVertex(matrix, x2, y2, 0).setColor(shadowColor1);
-		buffer.addVertex(matrix, x1, y2, 0).setColor(shadowColor1);
-		buffer.addVertex(matrix, xs1, ys2, 0).setColor(shadowColor2);
-		buffer.addVertex(matrix, xs2, ys2, 0).setColor(shadowColor2);
+		buffer.vertex(matrix, x2, y2, 0).color(shadowColor1).endVertex();
+		buffer.vertex(matrix, x1, y2, 0).color(shadowColor1).endVertex();
+		buffer.vertex(matrix, xs1, ys2, 0).color(shadowColor2).endVertex();
+		buffer.vertex(matrix, xs2, ys2, 0).color(shadowColor2).endVertex();
 	}
 	
 	public record ColoredPoint(Vec3 point, int color)

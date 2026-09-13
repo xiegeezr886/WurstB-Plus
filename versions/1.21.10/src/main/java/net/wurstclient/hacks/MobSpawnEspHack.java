@@ -15,7 +15,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityType;
@@ -184,9 +184,9 @@ public final class MobSpawnEspHack extends Hack
 		int color = MC.level.getBrightness(LightLayer.SKY, pos) < 8
 			? cachedDayColor : cachedNightColor;
 		
-		buffer.addVertex(x1, y, z1).setColor(color).setNormal(1, 0, 1).setLineWidth(2);
-		buffer.addVertex(x2, y, z2).setColor(color).setNormal(1, 0, 1).setLineWidth(2);
-		buffer.addVertex(x2, y, z1).setColor(color).setNormal(-1, 0, 1).setLineWidth(2);
-		buffer.addVertex(x1, y, z2).setColor(color).setNormal(-1, 0, 1).setLineWidth(2);
+		buffer.addVertex(x1, y, z1).setColor(color).setNormal(1, 0, 1);
+		buffer.addVertex(x2, y, z2).setColor(color).setNormal(1, 0, 1);
+		buffer.addVertex(x2, y, z1).setColor(color).setNormal(-1, 0, 1);
+		buffer.addVertex(x1, y, z2).setColor(color).setNormal(-1, 0, 1);
 	}
 }

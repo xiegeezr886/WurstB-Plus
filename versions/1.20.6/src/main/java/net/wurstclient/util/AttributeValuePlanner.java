@@ -17,21 +17,22 @@ public enum AttributeValuePlanner
 			return instance.getValue();
 
 		double base = instance.getBaseValue();
-		for(AttributeModifier modifier : instance.getModifiers(Operation.ADDITION))
-			if(!excludedModifiers.contains(modifier.getId()))
-				base += modifier.getAmount();
+		for(AttributeModifier modifier : instance.getModifiers())
+			if(modifier.operation() == Operation.ADD_VALUE
+				&& !excludedModifiers.contains(modifier.id()))
+				base += modifier.amount();
 
 		double value = base;
-		for(AttributeModifier modifier : instance
-			.getModifiers(Operation.MULTIPLY_BASE))
-			if(!excludedModifiers.contains(modifier.getId()))
-				value += base * modifier.getAmount();
+		for(AttributeModifier modifier : instance.getModifiers())
+			if(modifier.operation() == Operation.ADD_MULTIPLIED_BASE
+				&& !excludedModifiers.contains(modifier.id()))
+				value += base * modifier.amount();
 
-		for(AttributeModifier modifier : instance
-			.getModifiers(Operation.MULTIPLY_TOTAL))
-			if(!excludedModifiers.contains(modifier.getId()))
-				value *= 1 + modifier.getAmount();
+		for(AttributeModifier modifier : instance.getModifiers())
+			if(modifier.operation() == Operation.ADD_MULTIPLIED_TOTAL
+				&& !excludedModifiers.contains(modifier.id()))
+				value *= 1 + modifier.amount();
 
-		return instance.getAttribute().sanitizeValue(value);
+		return instance.getAttribute().value().sanitizeValue(value);
 	}
 }

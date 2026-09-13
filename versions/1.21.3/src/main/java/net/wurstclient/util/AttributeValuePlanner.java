@@ -3,7 +3,7 @@ package net.wurstclient.util;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.DoubleUnaryOperator;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
@@ -13,7 +13,7 @@ public enum AttributeValuePlanner
 	;
 
 	public static double calculateExcluding(AttributeInstance instance,
-		Set<Identifier> excludedModifiers)
+		Set<ResourceLocation> excludedModifiers)
 	{
 		if(excludedModifiers.isEmpty())
 			return instance.getValue();
@@ -25,7 +25,7 @@ public enum AttributeValuePlanner
 
 	static double calculate(double baseValue,
 		Collection<AttributeModifier> modifiers,
-		Set<Identifier> excludedModifiers,
+		Set<ResourceLocation> excludedModifiers,
 		DoubleUnaryOperator sanitizer)
 	{
 		double base = baseValue;

@@ -21,11 +21,9 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.game.ServerboundSelectTradePacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.entity.npc.villager.Villager;
-import net.minecraft.world.entity.npc.villager.VillagerProfession;
-// ClickType removed in MC 26.1.2
-// EnchantedBookItem removed in MC 26.1.2
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -34,8 +32,6 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.core.Direction;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -148,7 +144,7 @@ public final class AutoLibrarianHack extends Hack
 		
 		if(breakingJobSite)
 		{
-			IMC.getInteractionManager().setDestroying(true);
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			breakingJobSite = false;
 		}
@@ -250,8 +246,9 @@ public final class AutoLibrarianHack extends Hack
 				.send(new ServerboundSelectTradePacket(0));
 			
 			// buy whatever the villager is selling
-			tradeScreen.getMenu().clicked(2, 0, ClickType.PICKUP,
-				MC.player);
+			MC.gameMode.handleInventoryMouseClick(
+				tradeScreen.getMenu().containerId, 2, 0,
+				ClickType.PICKUP, MC.player);
 			
 			// close the trade screen
 			closeTradeScreen();
@@ -352,9 +349,7 @@ public final class AutoLibrarianHack extends Hack
 			hand, params.toHitResult());
 		
 		// swing hand
-		if(result.consumesAction()
-			&& result instanceof InteractionResult.Success success
-			&& success.swingSource() != InteractionResult.SwingSource.NONE)
+		if(result.consumesAction() && (result instanceof InteractionResult.Success success && success.swingSource() == InteractionResult.SwingSource.CLIENT))
 			swingHand.swing(hand);
 		
 		// reset sneak
@@ -363,7 +358,7 @@ public final class AutoLibrarianHack extends Hack
 	
 	private void openTradeScreen()
 	{
-		if(IMC.getRightClickDelay() > 0)
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		MultiPlayerGameMode im = MC.gameMode;
@@ -390,23 +385,23 @@ public final class AutoLibrarianHack extends Hack
 		// click on villager
 		InteractionHand hand = InteractionHand.MAIN_HAND;
 		InteractionResult actionResult =
-			im.useItemOn(player, hand, new BlockHitResult(hitVec, Direction.UP,
-				villager.blockPosition(), false));
-
+			im.interactAt(player, villager, hitResult, hand);
+		
+		if(!actionResult.consumesAction())
+			im.interact(player, villager, hand);
+		
 		// swing hand
-		if(actionResult.consumesAction()
-			&& actionResult instanceof InteractionResult.Success success
-			&& success.swingSource() != InteractionResult.SwingSource.NONE)
+		if(actionResult.consumesAction() && (actionResult instanceof InteractionResult.Success success && success.swingSource() == InteractionResult.SwingSource.CLIENT))
 			swingHand.swing(hand);
 		
 		// set cooldown
-		IMC.setRightClickDelay(4);
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 	}
 	
 	private void closeTradeScreen()
 	{
 		MC.player.closeContainer();
-		IMC.setRightClickDelay(4);
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 	}
 	
 	private BookOffer findEnchantedBookOffer(MerchantOffers tradeOffers)
@@ -424,7 +419,7 @@ public final class AutoLibrarianHack extends Hack
 			
 			var enchantmentEntry = enchantments.entrySet().iterator().next();
 			String enchantment = enchantmentEntry.getKey().unwrapKey()
-				.orElseThrow().toString();
+				.orElseThrow().location().toString();
 			int level = enchantmentEntry.getIntValue();
 			int price = tradeOffer.getCostA().getCount();
 			BookOffer bookOffer = new BookOffer(enchantment, level, price);
@@ -453,8 +448,8 @@ public final class AutoLibrarianHack extends Hack
 				.filter(Villager.class::isInstance)
 				.map(e -> (Villager)e).filter(e -> e.getHealth() > 0)
 				.filter(e -> player.distanceToSqr(e) <= rangeSq)
-				.filter(e -> e.getVillagerData().profession()
-					.is(VillagerProfession.LIBRARIAN))
+				.filter(e -> e.getVillagerData()
+					.profession().is(VillagerProfession.LIBRARIAN))
 				.filter(e -> e.getVillagerData().level() == 1)
 				.filter(e -> !experiencedVillagers.contains(e));
 		

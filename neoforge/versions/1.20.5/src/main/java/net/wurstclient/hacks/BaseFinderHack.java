@@ -184,9 +184,9 @@ public final class BaseFinderHack extends Hack
 				DefaultVertexFormat.POSITION_COLOR, buffer -> {
 					for(int[] vertex : vertices)
 						buffer
-							.addVertex(vertex[0] - region.x(), vertex[1],
+							.vertex(vertex[0] - region.x(), vertex[1],
 								vertex[2] - region.z())
-							.setColor(0xFFFFFFFF);
+							.color(0xFFFFFFFF).endVertex();
 				});
 			
 			lastRegion = region;

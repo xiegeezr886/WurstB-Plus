@@ -116,7 +116,8 @@ public final class BreadcrumbsHack extends Hack
 		try
 		{
 			Tesselator tess = Tesselator.getInstance();
-			BufferBuilder buf = tess.begin(VertexFormat.Mode.DEBUG_LINE_STRIP,
+			BufferBuilder buf = tess.getBuilder();
+			buf.begin(VertexFormat.Mode.DEBUG_LINE_STRIP,
 				DefaultVertexFormat.POSITION_COLOR);
 			RenderSystem.lineWidth(2);
 
@@ -129,11 +130,12 @@ public final class BreadcrumbsHack extends Hack
 				float x = (float)(point.x - cam.x);
 				float y = (float)(point.y - cam.y + 0.1);
 				float z = (float)(point.z - cam.z);
-				buf.addVertex(matrix, x, y, z).setColor(r, g, b, alpha)
-					;
+				buf.vertex(matrix, x, y, z).color(r, g, b, alpha)
+					.endVertex();
 			}
 
-			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
+			BufferBuilder.RenderedBuffer rendered =
+				buf.endOrDiscardIfEmpty();
 			if(rendered != null)
 				BufferUploader.drawWithShader(rendered);
 		}finally

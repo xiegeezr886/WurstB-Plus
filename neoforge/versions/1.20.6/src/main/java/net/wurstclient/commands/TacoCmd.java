@@ -22,10 +22,10 @@ public final class TacoCmd extends Command
 	implements GUIRenderListener, UpdateListener
 {
 	private final ResourceLocation[] tacos =
-		{ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco1.png"),
-			ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco2.png"),
-			ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco3.png"),
-			ResourceLocation.fromNamespaceAndPath("wurst", "dancingtaco4.png")};
+		{new ResourceLocation("wurst", "dancingtaco1.png"),
+			new ResourceLocation("wurst", "dancingtaco2.png"),
+			new ResourceLocation("wurst", "dancingtaco3.png"),
+			new ResourceLocation("wurst", "dancingtaco4.png")};
 	
 	private boolean enabled;
 	private int ticks = 0;

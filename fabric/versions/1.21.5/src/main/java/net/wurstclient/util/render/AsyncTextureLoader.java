@@ -50,7 +50,7 @@ public final class AsyncTextureLoader
 				try
 				{
 					WurstClient.MC.getTextureManager().register(location,
-						new DynamicTexture(image));
+						new DynamicTexture(() -> location.toString(), image));
 					result.complete(location);
 				}catch(Throwable uploadError)
 				{

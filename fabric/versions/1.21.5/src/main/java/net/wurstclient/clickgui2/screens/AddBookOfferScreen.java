@@ -360,7 +360,7 @@ public final class AddBookOfferScreen extends Screen
 			int entryWidth, int entryHeight, int mouseX, int mouseY,
 			boolean hovered, float tickDelta)
 		{
-			Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse("enchanted_book"));
+			Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse("enchanted_book"));
 			ItemStack stack = new ItemStack(item);
 			RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
 			

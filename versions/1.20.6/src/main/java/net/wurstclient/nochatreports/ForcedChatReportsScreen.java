@@ -15,7 +15,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineLabel;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.LiteralContents;
+import net.minecraft.network.chat.contents.PlainTextContents.LiteralContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.wurstclient.WurstClient;
 import net.wurstclient.other_features.NoChatReportsOtf;
@@ -103,7 +103,7 @@ public final class ForcedChatReportsScreen extends Screen
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY, float delta)
 	{
-		renderBackground(context);
+			renderBackground(context, mouseX, mouseY, delta);
 		
 		int centerX = width / 2;
 		int reasonY = (height - 68) / 2 - reasonHeight / 2;

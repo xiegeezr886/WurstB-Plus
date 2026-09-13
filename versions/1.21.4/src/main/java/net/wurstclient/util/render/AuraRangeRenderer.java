@@ -1,14 +1,20 @@
 package net.wurstclient.util.render;
 
+import net.minecraft.client.renderer.CoreShaders;
+
 import org.joml.Matrix4f;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.wurstclient.WurstRenderLayers;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
 
@@ -22,7 +28,7 @@ public final class AuraRangeRenderer
 	{
 	}
 
-	public static void render(PoseStack PoseStack, Entity player,
+	public static void render(PoseStack poseStack, Entity player,
 		float partialTicks, double configuredRadius, int color, boolean active)
 	{
 		double radius = sanitizeRadius(configuredRadius);
@@ -40,20 +46,24 @@ public final class AuraRangeRenderer
 			+ 0.5);
 		float edgeAlpha = (active ? 0.38F : 0.25F) + pulse * 0.05F;
 		float outlineAlpha = active ? 0.9F : 0.68F;
-		Matrix4f matrix = PoseStack.last().pose();
-		RenderType quadLayer = WurstRenderLayers.ESP_QUADS_NO_CULLING;
-		RenderUtils.submit(PoseStack, quadLayer, quadBuffer -> {
-			drawBand(quadBuffer, matrix, center, innerRadius, radius, segments,
-				red, green, blue, 0.015F, edgeAlpha);
-			drawBand(quadBuffer, matrix, center, radius, radius + GLOW_WIDTH,
-				segments, red, green, blue, edgeAlpha * 0.72F, 0);
-		});
+		Matrix4f matrix = poseStack.last().pose();
 
-		RenderType lineLayer = WurstRenderLayers.ESP_LINES;
-		RenderUtils.submit(PoseStack, lineLayer, lineBuffer -> {
-			drawOutline(lineBuffer, matrix, center.add(0, 0.006, 0), radius,
-				segments, red, green, blue, outlineAlpha);
-		});
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.disableCull();
+		RenderSystem.disableDepthTest();
+		RenderSystem.depthMask(false);
+		RenderSystem.setShader(CoreShaders.POSITION_COLOR);
+
+		drawBand(matrix, center, innerRadius, radius, segments, red, green,
+			blue, 0.015F, edgeAlpha);
+		drawBand(matrix, center, radius, radius + GLOW_WIDTH, segments,
+			red, green, blue, edgeAlpha * 0.72F, 0);
+		drawOutline(matrix, center.add(0, 0.006, 0), radius, segments,
+			red, green, blue, outlineAlpha);
+
+		RenderSystem.depthMask(true);
+		RenderSystem.enableDepthTest();
 	}
 
 	static double sanitizeRadius(double radius)
@@ -73,63 +83,61 @@ public final class AuraRangeRenderer
 		return Math.max(0, radius - width);
 	}
 
-	private static void drawBand(VertexConsumer buffer, Matrix4f matrix,
-		Vec3 center,
+	private static void drawBand(Matrix4f matrix, Vec3 center,
 		double innerRadius, double outerRadius, int segments, float red,
 		float green, float blue, float innerAlpha, float outerAlpha)
 	{
-		for(int i = 0; i < segments; i++)
-		{
-			double angle1 = Math.PI * 2 * i / segments;
-			double angle2 = Math.PI * 2 * (i + 1) / segments;
-			float cos1 = (float)Math.cos(angle1);
-			float sin1 = (float)Math.sin(angle1);
-			float cos2 = (float)Math.cos(angle2);
-			float sin2 = (float)Math.sin(angle2);
+		BufferBuilder buffer = Tesselator.getInstance()
+			.begin(VertexFormat.Mode.TRIANGLE_STRIP,
+				DefaultVertexFormat.POSITION_COLOR);
 
-			addVertex(buffer, matrix, center, cos1, sin1, innerRadius, red,
-				green, blue, innerAlpha);
-			addVertex(buffer, matrix, center, cos2, sin2, innerRadius, red,
-				green, blue, innerAlpha);
-			addVertex(buffer, matrix, center, cos2, sin2, outerRadius, red,
-				green, blue, outerAlpha);
-			addVertex(buffer, matrix, center, cos1, sin1, outerRadius, red,
-				green, blue, outerAlpha);
+		for(int i = 0; i <= segments; i++)
+		{
+			double angle = Math.PI * 2 * i / segments;
+			float cos = (float)Math.cos(angle);
+			float sin = (float)Math.sin(angle);
+
+			buffer.addVertex(matrix,
+				(float)center.x + cos * (float)outerRadius, (float)center.y,
+				(float)center.z + sin * (float)outerRadius)
+				.setColor(red, green, blue, outerAlpha);
+			buffer.addVertex(matrix,
+				(float)center.x + cos * (float)innerRadius, (float)center.y,
+				(float)center.z + sin * (float)innerRadius)
+				.setColor(red, green, blue, innerAlpha);
 		}
+
+		draw(buffer);
 	}
 
-	private static void drawOutline(VertexConsumer buffer, Matrix4f matrix,
-		Vec3 center,
+	private static void drawOutline(Matrix4f matrix, Vec3 center,
 		double radius, int segments, float red, float green, float blue,
 		float alpha)
 	{
-		for(int i = 0; i < segments; i++)
+		RenderSystem.lineWidth(2);
+		BufferBuilder buffer = Tesselator.getInstance()
+			.begin(VertexFormat.Mode.DEBUG_LINE_STRIP,
+				DefaultVertexFormat.POSITION_COLOR);
+
+		for(int i = 0; i <= segments; i++)
 		{
-			double angle1 = Math.PI * 2 * i / segments;
-			double angle2 = Math.PI * 2 * (i + 1) / segments;
-			float cos1 = (float)Math.cos(angle1);
-			float sin1 = (float)Math.sin(angle1);
-			float cos2 = (float)Math.cos(angle2);
-			float sin2 = (float)Math.sin(angle2);
+			double angle = Math.PI * 2 * i / segments;
+			float cos = (float)Math.cos(angle);
+			float sin = (float)Math.sin(angle);
+
 			buffer.addVertex(matrix,
-				(float)center.x + cos1 * (float)radius, (float)center.y,
-				(float)center.z + sin1 * (float)radius)
-				.setColor(red, green, blue, alpha)
-				.setNormal(sin1, 0, -cos1).setLineWidth(2);
-			buffer.addVertex(matrix,
-				(float)center.x + cos2 * (float)radius, (float)center.y,
-				(float)center.z + sin2 * (float)radius)
-				.setColor(red, green, blue, alpha)
-				.setNormal(sin2, 0, -cos2).setLineWidth(2);
+				(float)center.x + cos * (float)radius, (float)center.y,
+				(float)center.z + sin * (float)radius)
+				.setColor(red, green, blue, alpha);
 		}
+
+		draw(buffer);
 	}
 
-	private static void addVertex(VertexConsumer buffer, Matrix4f matrix,
-		Vec3 center, float cos, float sin, double radius, float red,
-		float green, float blue, float alpha)
+	private static void draw(BufferBuilder buffer)
 	{
-		buffer.addVertex(matrix, (float)center.x + cos * (float)radius,
-			(float)center.y, (float)center.z + sin * (float)radius)
-			.setColor(red, green, blue, alpha);
+		com.mojang.blaze3d.vertex.MeshData rendered = buffer.build();
+		if(rendered != null)
+			BufferUploader.drawWithShader(rendered);
 	}
 }

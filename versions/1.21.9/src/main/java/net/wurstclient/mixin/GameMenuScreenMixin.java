@@ -27,7 +27,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.WurstClient;
 import net.wurstclient.options.WurstOptionsScreen;
 
@@ -35,8 +35,8 @@ import net.wurstclient.options.WurstOptionsScreen;
 public abstract class GameMenuScreenMixin extends Screen
 {
 	@Unique
-	private static final Identifier WURST_TEXTURE =
-		Identifier.tryBuild("wurst", "wurst_128.png");
+	private static final ResourceLocation WURST_TEXTURE =
+		ResourceLocation.tryBuild("wurst", "wurst_128.png");
 	
 	@Unique
 	private Button wurstOptionsButton;

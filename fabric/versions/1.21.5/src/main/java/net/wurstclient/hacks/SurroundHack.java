@@ -121,8 +121,8 @@ public final class SurroundHack extends Hack implements UpdateListener
 			return;
 		}
 
-		int prevSlot = MC.player.getInventory().selected;
-		MC.player.getInventory().selected = slot;
+		int prevSlot = MC.player.getInventory().getSelectedSlot();
+		MC.player.getInventory().setSelectedSlot(slot);
 
 		BlockPos playerPos = MC.player.blockPosition();
 		List<BlockPos> toPlace = new ArrayList<>();
@@ -140,7 +140,7 @@ public final class SurroundHack extends Hack implements UpdateListener
 		{
 			if(!keepOn.isChecked())
 				setEnabled(false);
-			MC.player.getInventory().selected = prevSlot;
+			MC.player.getInventory().setSelectedSlot(prevSlot);
 			return;
 		}
 
@@ -172,7 +172,7 @@ public final class SurroundHack extends Hack implements UpdateListener
 		if(!anyPlaced && !keepOn.isChecked())
 			setEnabled(false);
 
-		MC.player.getInventory().selected = prevSlot;
+		MC.player.getInventory().setSelectedSlot(prevSlot);
 	}
 
 	private int findBlockSlot()

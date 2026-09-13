@@ -25,7 +25,6 @@ final class ScaledEditBox extends EditBox
 		int physicalWidth = getWidth();
 		int physicalHeight = getHeight();
 		setWidth((int)Math.ceil(physicalWidth / scale));
-		setHeight((int)Math.ceil(physicalHeight / scale));
 		graphics.pose().pushPose();
 		graphics.pose().translate(getX(), getY(), 0);
 		graphics.pose().scale(scale, scale, 1);
@@ -40,7 +39,6 @@ final class ScaledEditBox extends EditBox
 		{
 			graphics.pose().popPose();
 			setWidth(physicalWidth);
-			setHeight(physicalHeight);
 		}
 	}
 

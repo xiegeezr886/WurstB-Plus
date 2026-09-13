@@ -8,14 +8,13 @@ import com.mojang.realmsclient.RealmsMainScreen;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.neoforged.neoforge.client.gui.ModListScreen;
-import net.neoforged.fml.loading.FMLLoader;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
 import net.wurstclient.util.ScreenRegistry;
@@ -28,13 +27,13 @@ public final class WurstTitleMenu
 	private static final int MUTED_TEXT = 0xFFA4B4B5;
 	private static final int DIM_TEXT = 0xFF738687;
 
-	private static final Identifier SINGLEPLAYER = icon("singleplayer");
-	private static final Identifier MULTIPLAYER = icon("multiplayer");
-	private static final Identifier REALMS = icon("realms");
-	private static final Identifier OPTIONS = icon("options");
-	private static final Identifier USER = icon("user");
-	private static final Identifier INFO = icon("info");
-	private static final Identifier EXIT = icon("exit");
+	private static final ResourceLocation SINGLEPLAYER = icon("singleplayer");
+	private static final ResourceLocation MULTIPLAYER = icon("multiplayer");
+	private static final ResourceLocation REALMS = icon("realms");
+	private static final ResourceLocation OPTIONS = icon("options");
+	private static final ResourceLocation USER = icon("user");
+	private static final ResourceLocation INFO = icon("info");
+	private static final ResourceLocation EXIT = icon("exit");
 
 	private final Screen parent;
 	private final List<WurstTitleButton> buttons = new ArrayList<>();
@@ -93,7 +92,7 @@ public final class WurstTitleMenu
 	}
 
 	private void addButton(Consumer<AbstractWidget> addWidget, int x, int y,
-		int width, int height, String text, Identifier icon,
+		int width, int height, String text, ResourceLocation icon,
 		Runnable action, boolean compact, boolean dangerous)
 	{
 		WurstTitleButton button = new WurstTitleButton(x, y, width, height,
@@ -102,7 +101,7 @@ public final class WurstTitleMenu
 		addWidget.accept(button);
 	}
 
-	public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	public void render(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks, int screenWidth, int screenHeight)
 	{
 		drawBackground(graphics, screenWidth, screenHeight);
@@ -123,7 +122,7 @@ public final class WurstTitleMenu
 		utilityY = cardY + cardsHeight + (screenHeight < 280 ? 6 : 12);
 	}
 
-	private void drawBackground(GuiGraphicsExtractor graphics, int screenWidth,
+	private void drawBackground(GuiGraphics graphics, int screenWidth,
 		int screenHeight)
 	{
 		graphics.fillGradient(0, 0, screenWidth, screenHeight, 0xFF02090A,
@@ -133,43 +132,46 @@ public final class WurstTitleMenu
 		graphics.fill(0, 0, screenWidth, screenHeight, 0x18000000);
 	}
 
-	private void drawBrand(GuiGraphicsExtractor graphics, int screenWidth)
+	private void drawBrand(GuiGraphics graphics, int screenWidth)
 	{
 		Font font = minecraft.font;
 		String prefix = "WurstB+ ";
 		float scale = 1.65F;
 		int x = cardX;
 		int y = 35;
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(x, y);
-		graphics.pose().scale(scale, scale);
-		graphics.text(font, prefix, 0, 0, TEXT, false);
-		graphics.text(font, "Plus", font.width(prefix), 0, ACCENT, false);
-		graphics.pose().popMatrix();
+		graphics.pose().pushPose();
+		graphics.pose().translate(x, y, 0);
+		graphics.pose().scale(scale, scale, 1);
+		graphics.drawString(font, prefix, 0, 0, TEXT, false);
+		graphics.drawString(font, "Plus", font.width(prefix), 0, ACCENT, false);
+		graphics.pose().popPose();
 	}
 
-	private void drawFooter(GuiGraphicsExtractor graphics, int screenWidth,
+	private void drawFooter(GuiGraphics graphics, int screenWidth,
 		int screenHeight)
 	{
 		Font font = minecraft.font;
 		String runtime = "Minecraft "
-			+ SharedConstants.getCurrentVersion().name() + "  /  Forge "
-			+ FMLLoader.getCurrent().getVersionInfo().neoForgeVersion();
-		graphics.text(font, runtime, margin, screenHeight - 18,
+			+ SharedConstants.getCurrentVersion().getName() + "  /  NeoForge "
+			+ net.neoforged.fml.loading.FMLLoader.versionInfo().neoForgeVersion();
+		graphics.drawString(font, runtime, margin, screenHeight - 18,
 			MUTED_TEXT, false);
 		String brand = "WurstB+ Plus";
-		graphics.text(font, brand,
+		graphics.drawString(font, brand,
 			screenWidth - margin - font.width(brand),
 			screenHeight - 18, DIM_TEXT, false);
 	}
 
-	private static Identifier icon(String name)
+	private static ResourceLocation icon(String name)
 	{
-		return Identifier.fromNamespaceAndPath("wurst", "textures/gui/fdp/" + name
+		return ResourceLocation.fromNamespaceAndPath("wurst", "textures/gui/fdp/" + name
 			+ ".png");
 	}
 
 	private void configureIconFiltering()
 	{
+		for(ResourceLocation icon : List.of(SINGLEPLAYER, MULTIPLAYER, REALMS,
+			OPTIONS, USER, INFO, EXIT))
+			minecraft.getTextureManager().getTexture(icon).setFilter(true, false);
 	}
 }

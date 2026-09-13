@@ -78,7 +78,7 @@ public final class FastBreakHack extends Hack
 	@Override
 	public void onUpdate()
 	{
-		// MC.gameMode.destroyDelay = 0; // TODO: 26.1.2 - destroyDelay is private
+		((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setDestroyDelay(0);
 	}
 
 	@Override
@@ -87,7 +87,7 @@ public final class FastBreakHack extends Hack
 		if(legitMode.isChecked())
 			return;
 
-		if(IMC.getInteractionManager().getDestroyProgress() >= 1)
+		if(((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getDestroyProgress() >= 1)
 			return;
 
 		BlockPos blockPos = event.getBlockPos();

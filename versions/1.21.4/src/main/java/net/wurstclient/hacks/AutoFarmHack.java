@@ -29,7 +29,6 @@ import net.minecraft.world.level.block.CactusBlock;
 import net.minecraft.world.level.block.CocoaBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmBlock;
-// FarmBlock removed in MC 26.1.2
 import net.minecraft.world.level.block.KelpPlantBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.SoulSandBlock;
@@ -112,8 +111,7 @@ public final class AutoFarmHack extends Hack
 		
 		if(currentlyHarvesting != null)
 		{
-			// TODO: 26.1.2 - isDestroying is now private
-			// MC.gameMode.isDestroying = true;
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			currentlyHarvesting = null;
 		}
@@ -283,9 +281,9 @@ public final class AutoFarmHack extends Hack
 	
 	private boolean replant(List<BlockPos> blocksToReplant)
 	{
-		// TODO: 26.1.2 - rightClickDelay is private in Forge
-		// if(false) // TODO: 26.1.2 - rightClickDelay is private
-		// 	return false;
+		// check cooldown
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
+			return false;
 		
 		// check if already holding one of the seeds needed for blocksToReplant
 		Optional<Item> heldSeed = blocksToReplant.stream().map(plants::get)
@@ -320,12 +318,12 @@ public final class AutoFarmHack extends Hack
 					.useItemOn(MC.player, hand, params.toHitResult());
 				
 				// swing arm
-				if(result.consumesAction())
+				if(result instanceof InteractionResult.Success success
+				&& success.swingSource() != InteractionResult.SwingSource.NONE)
 					SwingHand.SERVER.swing(hand);
 				
 				// reset cooldown
-				// TODO: 26.1.2 - rightClickDelay is private in Forge
-				// // MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+				((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 				return true;
 			}
 		}

@@ -115,12 +115,12 @@ public final class AuraRangeRenderer
 				(float)center.x + cos1 * (float)radius, (float)center.y,
 				(float)center.z + sin1 * (float)radius)
 				.setColor(red, green, blue, alpha)
-				.setNormal(sin1, 0, -cos1).setLineWidth(2);
+				.setNormal(sin1, 0, -cos1);
 			buffer.addVertex(matrix,
 				(float)center.x + cos2 * (float)radius, (float)center.y,
 				(float)center.z + sin2 * (float)radius)
 				.setColor(red, green, blue, alpha)
-				.setNormal(sin2, 0, -cos2).setLineWidth(2);
+				.setNormal(sin2, 0, -cos2);
 		}
 	}
 

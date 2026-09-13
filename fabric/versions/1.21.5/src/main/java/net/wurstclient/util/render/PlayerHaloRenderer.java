@@ -4,17 +4,17 @@ import java.util.List;
 
 import org.joml.Matrix4f;
 
-import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
+import net.wurstclient.WurstRenderLayers;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -50,13 +50,6 @@ public final class PlayerHaloRenderer
 
 		try(RenderScope ignored = RenderScope.capture())
 		{
-			RenderSystem.enableBlend();
-			RenderSystem.defaultBlendFunc();
-			RenderSystem.disableCull();
-			RenderSystem.enableDepthTest();
-			RenderSystem.depthFunc(GlConst.GL_LEQUAL);
-			RenderSystem.depthMask(false);
-			RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
 			BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
 				DefaultVertexFormat.POSITION_COLOR);
@@ -64,7 +57,7 @@ public final class PlayerHaloRenderer
 				if(shouldRender(player, localPlayer, renderLocalPlayer))
 					addGlow(buffer, matrix, getCenter(player, partialTicks, camera),
 						radiusForWidth(player.getBbWidth()), red, green, blue);
-			draw(buffer);
+			draw(buffer, WurstRenderLayers.ESP_QUADS);
 
 			RenderSystem.lineWidth(1.7F);
 			buffer = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES,
@@ -74,7 +67,7 @@ public final class PlayerHaloRenderer
 					addOutline(buffer, matrix,
 						getCenter(player, partialTicks, camera),
 						radiusForWidth(player.getBbWidth()), red, green, blue);
-			draw(buffer);
+			draw(buffer, WurstRenderLayers.ESP_DEBUG_LINES);
 		}
 	}
 
@@ -150,10 +143,10 @@ public final class PlayerHaloRenderer
 			.setColor(red, green, blue, alpha);
 	}
 
-	private static void draw(BufferBuilder buffer)
+	private static void draw(BufferBuilder buffer, RenderType layer)
 	{
 		com.mojang.blaze3d.vertex.MeshData rendered = buffer.build();
 		if(rendered != null)
-			BufferUploader.drawWithShader(rendered);
+			layer.draw(rendered);
 	}
 }

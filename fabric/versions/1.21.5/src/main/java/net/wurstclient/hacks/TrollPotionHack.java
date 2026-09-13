@@ -102,11 +102,11 @@ public final class TrollPotionHack extends Hack
 			
 			List<MobEffectInstance> effects = new ArrayList<>();
 			for(int i = 1; i <= 23; i++)
-				BuiltInRegistries.MOB_EFFECT.getHolder(i).ifPresent(effect ->
+				BuiltInRegistries.MOB_EFFECT.get(i).ifPresent(effect ->
 					effects.add(new MobEffectInstance(effect, Integer.MAX_VALUE,
 						MobEffectInstance.MAX_AMPLIFIER)));
 			stack.set(DataComponents.POTION_CONTENTS,
-				new PotionContents(Optional.empty(), Optional.empty(), effects));
+				new PotionContents(Optional.empty(), Optional.empty(), effects, Optional.empty()));
 			
 			String name = "\u00a7f" + itemName + " of Trolling";
 			stack.set(DataComponents.CUSTOM_NAME, Component.literal(name));

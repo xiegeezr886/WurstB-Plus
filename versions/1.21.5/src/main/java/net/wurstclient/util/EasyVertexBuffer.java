@@ -12,31 +12,34 @@ import java.util.OptionalInt;
 import java.util.function.Consumer;
 
 import org.joml.Matrix4fStack;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
 
-import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.MeshData.DrawState;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 
-import net.minecraft.client.renderer.rendertype.OutputTarget;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.TextureTransform;
+import net.minecraft.client.renderer.RenderType;
 
 /**
  * An abstraction of Minecraft 1.21.5's new {@code GpuBuffer} system that makes
  * working with it as easy as {@code VertexBuffer} was.
+ *
+ * <p>
+ * 1.21.5 has no {@code RenderSystem.getDynamicUniforms()} or
+ * {@code bindDefaultUniforms()} yet: {@code GpuDevice.createRenderPass()}
+ * captures ModelViewMat, ProjMat, ColorModulator and the fog/line uniforms
+ * straight from {@code RenderSystem} state. The view transform is therefore
+ * applied by pushing the given PoseStack onto
+ * {@code RenderSystem.getModelViewStack()} for the duration of the draw.
  */
 public final class EasyVertexBuffer implements AutoCloseable
 {
@@ -51,100 +54,106 @@ public final class EasyVertexBuffer implements AutoCloseable
 		VertexFormat format, Consumer<VertexConsumer> callback)
 	{
 		BufferBuilder bufferBuilder =
-			new BufferBuilder(new ByteBufferBuilder(1024 * 1024), drawMode,
-				format);
+			Tesselator.getInstance().begin(drawMode, format);
 		callback.accept(bufferBuilder);
 		
-		try(MeshData buffer = bufferBuilder.build())
+		MeshData buffer = bufferBuilder.build();
+		if(buffer == null)
+			return new EasyVertexBuffer();
+		
+		try(buffer)
 		{
-			if(buffer == null)
-				return new EasyVertexBuffer(drawMode);
-			
-			return new EasyVertexBuffer(buffer, drawMode);
+			return new EasyVertexBuffer(buffer);
 		}
 	}
 	
-	private EasyVertexBuffer(MeshData buffer, Mode drawMode)
+	/**
+	 * Builds and draws a one-off piece of geometry into the given layer.
+	 */
+	public static void drawImmediate(PoseStack matrixStack, RenderType layer,
+		Mode drawMode, VertexFormat format,
+		Consumer<VertexConsumer> callback)
+	{
+		try(EasyVertexBuffer buffer =
+			createAndUpload(drawMode, format, callback))
+		{
+			buffer.draw(matrixStack, layer);
+		}
+	}
+	
+	private EasyVertexBuffer(MeshData buffer)
 	{
 		DrawState drawParams = buffer.drawState();
 		shapeIndexBuffer = RenderSystem.getSequentialBuffer(drawParams.mode());
 		indexCount = drawParams.indexCount();
 		
-		vertexBuffer = RenderSystem.getDevice().createBuffer(null,
-			GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,
-			buffer.vertexBuffer());
+		vertexBuffer = drawParams.format()
+			.uploadImmediateVertexBuffer(buffer.vertexBuffer());
 	}
 	
-	private EasyVertexBuffer(Mode drawMode)
+	private EasyVertexBuffer()
 	{
 		shapeIndexBuffer = null;
 		indexCount = 0;
 		vertexBuffer = null;
 	}
 	
+	/**
+	 * Similar to {@code VertexBuffer.draw(RenderLayer)}, but with a
+	 * customizable view matrix. Use this if you need to translate/scale/rotate
+	 * the buffer.
+	 */
 	public void draw(PoseStack matrixStack, RenderType layer)
 	{
-		draw(matrixStack, layer, 1, 1, 1, 1);
+		draw(matrixStack, layer, () -> {});
 	}
 	
-	public void draw(PoseStack matrixStack, RenderType layer, int argb)
-	{
-		float alpha = (argb >> 24 & 0xFF) / 255F;
-		float red = (argb >> 16 & 0xFF) / 255F;
-		float green = (argb >> 8 & 0xFF) / 255F;
-		float blue = (argb & 0xFF) / 255F;
-		draw(matrixStack, layer, red, green, blue, alpha);
-	}
-	
-	public void draw(PoseStack matrixStack, RenderType layer, float[] rgba)
-	{
-		draw(matrixStack, layer, rgba[0], rgba[1], rgba[2], rgba[3]);
-	}
-	
-	public void draw(PoseStack matrixStack, RenderType layer, float[] rgb,
-		float alpha)
-	{
-		draw(matrixStack, layer, rgb[0], rgb[1], rgb[2], alpha);
-	}
-	
-	/*
-	 * Similar to {@link RenderLayer#draw(BuiltBuffer)}.
-	 */
-	public void draw(PoseStack matrixStack, RenderType layer, float red,
-		float green, float blue, float alpha)
+	public void draw(PoseStack matrixStack, RenderType layer,
+		Runnable afterSetup)
 	{
 		if(vertexBuffer == null)
-			return;
-		
-		Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
-		modelViewStack.pushMatrix();
-		modelViewStack.mul(matrixStack.last().pose());
-		
-		GpuBufferSlice gpuBufferSlice = RenderSystem.getDynamicUniforms()
-			.writeTransform(RenderSystem.getModelViewMatrix(),
-				new Vector4f(red, green, blue, alpha), new Vector3f(),
-				TextureTransform.DEFAULT_TEXTURING.getMatrix());
-		
-		RenderTarget framebuffer =
-			OutputTarget.ITEM_ENTITY_TARGET.getRenderTarget();
-		RenderPipeline pipeline = layer.pipeline();
-		GpuBuffer indexBuffer = shapeIndexBuffer.getBuffer(indexCount);
-		
-		try(RenderPass renderPass =
-			RenderSystem.getDevice().createCommandEncoder().createRenderPass(
-				() -> "something from Wurst", framebuffer.getColorTextureView(),
-				OptionalInt.empty(), framebuffer.getDepthTextureView(),
-				OptionalDouble.empty()))
 		{
-			renderPass.setPipeline(pipeline);
-			RenderSystem.bindDefaultUniforms(renderPass);
-			renderPass.setUniform("DynamicTransforms", gpuBufferSlice);
-			renderPass.setVertexBuffer(0, vertexBuffer);
-			renderPass.setIndexBuffer(indexBuffer, shapeIndexBuffer.type());
-			renderPass.drawIndexed(0, 0, indexCount, 1);
+			afterSetup.run();
+			return;
 		}
 		
-		modelViewStack.popMatrix();
+		layer.setupRenderState();
+		try
+		{
+			Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
+			modelViewStack.pushMatrix();
+			modelViewStack.mul(matrixStack.last().pose());
+			
+			try
+			{
+				afterSetup.run();
+				
+				RenderTarget framebuffer = layer.getRenderTarget();
+				RenderPipeline pipeline = layer.getRenderPipeline();
+				GpuBuffer indexBuffer =
+					shapeIndexBuffer.getBuffer(indexCount);
+				
+				try(RenderPass renderPass = RenderSystem.getDevice()
+					.createCommandEncoder().createRenderPass(
+						framebuffer.getColorTexture(), OptionalInt.empty(),
+						framebuffer.useDepth ? framebuffer.getDepthTexture()
+							: null,
+						OptionalDouble.empty()))
+				{
+					renderPass.setPipeline(pipeline);
+					renderPass.setVertexBuffer(0, vertexBuffer);
+					renderPass.setIndexBuffer(indexBuffer,
+						shapeIndexBuffer.type());
+					renderPass.drawIndexed(0, indexCount);
+				}
+			}finally
+			{
+				modelViewStack.popMatrix();
+			}
+		}finally
+		{
+			layer.clearRenderState();
+		}
 	}
 	
 	@Override

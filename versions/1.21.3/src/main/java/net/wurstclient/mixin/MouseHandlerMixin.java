@@ -16,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 
 import net.minecraft.client.MouseHandler;
-import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.world.entity.player.Inventory;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
@@ -31,24 +30,25 @@ public abstract class MouseHandlerMixin
 	private double accumulatedDX;
 	@Shadow
 	private double accumulatedDY;
-	
-	@Inject(
-		method = "onButton(JLnet/minecraft/client/input/MouseButtonInfo;I)V",
-		at = @At("HEAD"))
-	private void onOnButton(long windowHandle, MouseButtonInfo mouseButtonInfo,
-		int action, CallbackInfo ci)
+
+	/**
+	 * MC 1.21.4 still uses the primitive callback signature
+	 * {@code onPress(JIII)V} instead of the 1.21.9+ {@code MouseButtonInfo}.
+	 */
+	@Inject(method = "onPress(JIII)V", at = @At("HEAD"))
+	private void onOnButton(long windowHandle, int button, int action,
+		int modifiers, CallbackInfo ci)
 	{
-		EventManager
-			.fire(new MouseButtonPressEvent(mouseButtonInfo.button(), action));
+		EventManager.fire(new MouseButtonPressEvent(button, action));
 	}
-	
+
 	@Inject(method = "onScroll(JDD)V", at = @At("RETURN"))
 	private void onOnScroll(long window, double horizontal, double vertical,
 		CallbackInfo ci)
 	{
 		EventManager.fire(new MouseScrollEvent(vertical));
 	}
-	
+
 	@Inject(method = "handleAccumulatedMovement()V", at = @At("HEAD"))
 	private void onHandleAccumulatedMovement(CallbackInfo ci)
 	{
@@ -58,7 +58,7 @@ public abstract class MouseHandlerMixin
 		accumulatedDX = event.getDeltaX();
 		accumulatedDY = event.getDeltaY();
 	}
-	
+
 	@WrapWithCondition(method = "onScroll(JDD)V",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/entity/player/Inventory;setSelectedSlot(I)V"))

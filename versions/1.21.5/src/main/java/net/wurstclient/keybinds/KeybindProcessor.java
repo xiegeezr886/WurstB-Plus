@@ -53,7 +53,7 @@ public final class KeybindProcessor implements KeyPressListener
 		if(event.getAction() != GLFW.GLFW_PRESS)
 			return;
 
-		if(InputConstants.isKeyDown(WurstClient.MC.getWindow(),
+		if(InputConstants.isKeyDown(WurstClient.MC.getWindow().getWindow(),
 			GLFW.GLFW_KEY_F3))
 			return;
 
@@ -163,7 +163,7 @@ public final class KeybindProcessor implements KeyPressListener
 	{
 		int keyCode = event.getKeyCode();
 		int scanCode = event.getScanCode();
-		return InputConstants.Type.KEYSYM.getOrCreate(keyCode).getName();
+		return InputConstants.getKey(keyCode, scanCode).getName();
 	}
 
 	private void processCmd(String cmd)

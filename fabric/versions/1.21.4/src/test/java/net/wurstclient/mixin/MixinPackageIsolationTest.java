@@ -21,8 +21,7 @@ final class MixinPackageIsolationTest
 	void mixinPackageContainsOnlyConfiguredMixinsAndPlugin() throws IOException
 	{
 		JsonObject config;
-		try(var stream =
-			getClass().getResourceAsStream("/wurstpenguin.mixins.json"))
+		try(var stream = getClass().getResourceAsStream("/wurst.mixins.json"))
 		{
 			config = JsonParser.parseReader(new InputStreamReader(stream,
 				StandardCharsets.UTF_8)).getAsJsonObject();

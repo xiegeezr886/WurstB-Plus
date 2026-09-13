@@ -104,7 +104,7 @@ public class ZoomManagerScreen extends Screen implements PressAKeyCallback
 		ZoomOtf zoom = WurstClient.INSTANCE.getOtfs().zoomOtf;
 		SliderSetting level = zoom.getLevelSetting();
 		
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		context.drawCenteredString(font, "Zoom Manager",
 			width / 2, 40, 0xffffff);
 		context.drawString(font,

@@ -75,7 +75,7 @@ public final class SafeWalkHack extends Hack
 		}
 		
 		AABB box = player.getBoundingBox();
-		AABB adjustedBox = box.expandTowards(0, -player.maxUpStep, 0)
+		AABB adjustedBox = box.expandTowards(0, -player.maxUpStep(), 0)
 			.inflate(-edgeDistance.getValue(), 0, -edgeDistance.getValue());
 		
 		if(MC.level.noCollision(player, adjustedBox))

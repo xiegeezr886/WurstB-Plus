@@ -8,7 +8,7 @@
 package net.wurstclient.clickgui2;
 
 import net.minecraft.client.Minecraft;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 
 public abstract class Component
@@ -29,7 +29,7 @@ public abstract class Component
 		
 	}
 	
-	public abstract void render(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	public abstract void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks);
 	
 	public abstract int getDefaultWidth();

@@ -7,7 +7,6 @@
  */
 package net.wurstclient.commands;
 
-import net.minecraft.network.chat.Component;
 import net.wurstclient.command.CmdException;
 import net.wurstclient.command.CmdSyntaxError;
 import net.wurstclient.command.Command;
@@ -28,8 +27,7 @@ public final class LeaveCmd extends Command
 		else if(args.length != 0)
 			throw new CmdSyntaxError();
 		
-		MC.getConnection().getConnection()
-			.disconnect(Component.literal("Disconnected"));
+		MC.level.disconnect();
 	}
 	
 	@Override

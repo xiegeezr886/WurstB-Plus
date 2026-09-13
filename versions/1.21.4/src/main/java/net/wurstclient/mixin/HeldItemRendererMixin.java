@@ -10,9 +10,15 @@ package net.wurstclient.mixin;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.wurstclient.WurstClient;
 
 @Mixin(ItemInHandRenderer.class)
@@ -50,5 +56,34 @@ public abstract class HeldItemRendererMixin
 			.getFakeBlockingHand();
 		return hand != null ? hand : WurstClient.INSTANCE.getHax().multiAuraHack
 			.getFakeBlockingHand();
+	}
+
+	@Inject(at = {@At(value = "INVOKE",
+		target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;applyItemArmTransform(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/entity/HumanoidArm;F)V",
+		ordinal = 4)}, method = "renderArmWithItem")
+	private void onApplyEquipOffsetBlocking(AbstractClientPlayer player,
+		float tickDelta, float pitch, InteractionHand hand, float swingProgress,
+		ItemStack item, float equipProgress, PoseStack matrices,
+		MultiBufferSource vertexConsumers, int light, CallbackInfo ci)
+	{
+		// lower shield when blocking
+		if(item.getItem() == Items.SHIELD)
+			WurstClient.INSTANCE.getHax().noShieldOverlayHack
+				.adjustShieldPosition(matrices, true);
+	}
+	
+	@Inject(at = {@At(value = "INVOKE",
+		target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;applyItemArmAttackTransform(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/entity/HumanoidArm;F)V",
+		ordinal = 1)}, method = "renderArmWithItem")
+	private void onApplySwingOffsetNotBlocking(
+		AbstractClientPlayer player, float tickDelta, float pitch,
+		InteractionHand hand, float swingProgress, ItemStack item, float equipProgress,
+		PoseStack matrices, MultiBufferSource vertexConsumers, int light,
+		CallbackInfo ci)
+	{
+		// lower shield when not blocking
+		if(item.getItem() == Items.SHIELD)
+			WurstClient.INSTANCE.getHax().noShieldOverlayHack
+				.adjustShieldPosition(matrices, false);
 	}
 }

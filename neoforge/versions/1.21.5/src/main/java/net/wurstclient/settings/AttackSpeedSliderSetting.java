@@ -12,7 +12,7 @@ import net.wurstclient.WurstClient;
 
 public final class AttackSpeedSliderSetting extends SliderSetting
 {
-	private final RandomSource random = RandomSource.create();
+	private final RandomSource random = RandomSource.createNewThreadLocalInstance();
 	private long nextAttackNanos;
 	
 	public AttackSpeedSliderSetting()

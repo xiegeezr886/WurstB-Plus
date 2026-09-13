@@ -23,7 +23,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.core.Holder;
-import net.minecraft.tags.EnchantmentTags;
 import net.wurstclient.hacks.autolibrarian.BookOffer;
 import net.wurstclient.settings.BookOffersSetting;
 import net.wurstclient.util.MathUtils;
@@ -271,7 +270,7 @@ public final class EditBookOfferScreen extends Screen
 		int x = width / 2 - 100;
 		int y = 64;
 		
-		Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse("enchanted_book"));
+		Item item = BuiltInRegistries.ITEM.get(new ResourceLocation("enchanted_book"));
 		ItemStack stack = new ItemStack(item);
 		RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
 		
@@ -279,7 +278,7 @@ public final class EditBookOfferScreen extends Screen
 		String name = bookOffer.getEnchantmentNameWithLevel();
 		
 		Holder<Enchantment> enchantment = bookOffer.getEnchantment();
-		int nameColor = enchantment.is(EnchantmentTags.CURSE)
+		int nameColor = enchantment.value().isCurse()
 			? 0xff5555 : 0xffffff;
 		context.drawString(tr, name, x + 28, y, nameColor);
 		

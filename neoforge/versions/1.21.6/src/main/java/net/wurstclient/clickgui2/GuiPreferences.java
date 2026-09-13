@@ -15,7 +15,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.wurstclient.WurstClient;
 import net.wurstclient.util.json.JsonException;
@@ -26,8 +26,8 @@ public final class GuiPreferences
 	public static final String BUILTIN_FONT = "CozyUI";
 	private static final String FONT_PACK_NAME = "WurstBPlus-Font";
 	private static final String FONT_PACK_ID = "file/" + FONT_PACK_NAME;
-	private static final Identifier CUSTOM_FONT =
-		Identifier.fromNamespaceAndPath(WurstClient.MOD_ID, "selected");
+	private static final ResourceLocation CUSTOM_FONT =
+		ResourceLocation.fromNamespaceAndPath(WurstClient.MOD_ID, "selected");
 
 	private final Path path;
 	private final Path fontsFolder;
@@ -263,7 +263,7 @@ public final class GuiPreferences
 		if(!fontEnabled || BUILTIN_FONT.equals(selectedFont))
 			return component;
 		return component.copy().withStyle(style -> style.withFont(
-			new net.minecraft.network.chat.FontDescription.Resource(CUSTOM_FONT)));
+			CUSTOM_FONT));
 	}
 
 	public enum TargetType

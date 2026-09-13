@@ -174,7 +174,8 @@ public final class CaveFinderHack extends Hack
 		vertexBuffer.draw(matrixStack, WurstRenderLayers.ESP_QUADS);
 		
 		matrixStack.popPose();
-		// Shader color managed by render pipeline
+		
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 	
 	private void stopBuildingBuffer()

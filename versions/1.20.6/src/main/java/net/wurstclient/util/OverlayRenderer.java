@@ -34,7 +34,7 @@ public final class OverlayRenderer
 	public void updateProgress()
 	{
 		prevProgress = progress;
-		progress = MC.gameMode.destroyProgress;
+		progress = ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getDestroyProgress();
 		
 		if(progress < prevProgress)
 			prevProgress = progress;

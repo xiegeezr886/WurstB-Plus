@@ -25,7 +25,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -146,10 +146,10 @@ public final class EditBookOffersScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		Matrix3x2fStack matrixStack = context.pose();
@@ -215,7 +215,7 @@ public final class EditBookOffersScreen extends Screen
 		{
 			int x = getContentX();
 			int y = getContentY();
-			Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse("enchanted_book"));
+			Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse("enchanted_book"));
 			ItemStack stack = new ItemStack(item);
 			RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
 			

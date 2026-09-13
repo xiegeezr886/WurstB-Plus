@@ -77,7 +77,7 @@ public final class KaboomHack extends Hack implements UpdateListener
 		{
 			float soundPitch =
 				(1F + (random.nextFloat() - random.nextFloat()) * 0.2F) * 0.7F;
-			MC.level.playLocalSound(x, y, z, SoundEvents.GENERIC_EXPLODE,
+			MC.level.playLocalSound(x, y, z, SoundEvents.GENERIC_EXPLODE.value(),
 				SoundSource.BLOCKS, 4, soundPitch, false);
 		}
 		if(particles.isChecked())

@@ -70,8 +70,7 @@ public final class SneakHack extends Hack
 			break;
 			
 			case PACKET:
-			// TODO: 26.1.2 - RELEASE_SHIFT_KEY removed from Action enum
-			// sendSneakPacket(Action.RELEASE_SHIFT_KEY);
+			sendSneakPacket(Action.RELEASE_SHIFT_KEY);
 			break;
 		}
 	}
@@ -92,9 +91,8 @@ public final class SneakHack extends Hack
 			
 			case PACKET:
 			sneakKey.resetPressedState();
-			// TODO: 26.1.2 - PRESS_SHIFT_KEY/RELEASE_SHIFT_KEY removed from Action enum
-			// sendSneakPacket(Action.PRESS_SHIFT_KEY);
-			// sendSneakPacket(Action.RELEASE_SHIFT_KEY);
+			sendSneakPacket(Action.PRESS_SHIFT_KEY);
+			sendSneakPacket(Action.RELEASE_SHIFT_KEY);
 			break;
 		}
 	}
@@ -105,9 +103,8 @@ public final class SneakHack extends Hack
 		if(mode.getSelected() != SneakMode.PACKET)
 			return;
 		
-		// TODO: 26.1.2 - PRESS_SHIFT_KEY/RELEASE_SHIFT_KEY removed from Action enum
-		// sendSneakPacket(Action.RELEASE_SHIFT_KEY);
-		// sendSneakPacket(Action.PRESS_SHIFT_KEY);
+		sendSneakPacket(Action.RELEASE_SHIFT_KEY);
+		sendSneakPacket(Action.PRESS_SHIFT_KEY);
 	}
 	
 	private boolean isFlying()

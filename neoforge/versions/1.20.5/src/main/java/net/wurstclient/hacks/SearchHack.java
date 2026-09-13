@@ -246,8 +246,8 @@ public final class SearchHack extends Hack
 		vertexBuffer = EasyVertexBuffer.createAndUpload(Mode.QUADS,
 			DefaultVertexFormat.POSITION_COLOR, buffer -> {
 				for(int[] vertex : vertices)
-					buffer.addVertex(vertex[0] - region.x(), vertex[1],
-						vertex[2] - region.z()).setColor(0xFFFFFFFF);
+					buffer.vertex(vertex[0] - region.x(), vertex[1],
+						vertex[2] - region.z()).color(0xFFFFFFFF).endVertex();
 			});
 		
 		bufferUpToDate = true;

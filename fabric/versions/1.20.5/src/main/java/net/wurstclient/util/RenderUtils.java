@@ -217,7 +217,7 @@ public enum RenderUtils
 	{
 		Vector3f normal = new Vector3f(x2, y2, z2).sub(x1, y1, z1).normalize();
 		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
-			.normal(entry.normal(), normal.x, normal.y, normal.z)
+			.normal(entry, normal.x, normal.y, normal.z)
 			.endVertex();
 		
 		// If the line goes through the screen, add another vertex there. This
@@ -231,18 +231,18 @@ public enum RenderUtils
 				.vertex(entry.pose(), closeToCam.x, closeToCam.y,
 					closeToCam.z)
 				.color(color)
-				.normal(entry.normal(), normal.x, normal.y, normal.z)
+				.normal(entry, normal.x, normal.y, normal.z)
 				.endVertex();
 			buffer
 				.vertex(entry.pose(), closeToCam.x, closeToCam.y,
 					closeToCam.z)
 				.color(color)
-				.normal(entry.normal(), normal.x, normal.y, normal.z)
+				.normal(entry, normal.x, normal.y, normal.z)
 				.endVertex();
 		}
 		
 		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
-			.normal(entry.normal(), normal.x, normal.y, normal.z)
+			.normal(entry, normal.x, normal.y, normal.z)
 			.endVertex();
 	}
 	
@@ -284,7 +284,7 @@ public enum RenderUtils
 		Vector3f normal = new Vector3f(first).sub(second).normalize();
 		buffer.vertex(entry.pose(), first.x, first.y, first.z)
 			.color(color)
-			.normal(entry.normal(), normal.x, normal.y, normal.z)
+			.normal(entry, normal.x, normal.y, normal.z)
 			.endVertex();
 		
 		for(int i = 1; i < points.size(); i++)
@@ -296,7 +296,7 @@ public enum RenderUtils
 				.vertex(entry.pose(), current.x, current.y,
 					current.z)
 				.color(color)
-				.normal(entry.normal(), normal.x, normal.y, normal.z)
+				.normal(entry, normal.x, normal.y, normal.z)
 				.endVertex();
 		}
 	}
@@ -499,57 +499,57 @@ public enum RenderUtils
 		
 		// bottom lines
 		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
-			.normal(entry.normal(), 1, 0, 0).endVertex();
+			.normal(entry, 1, 0, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
-			.normal(entry.normal(), 1, 0, 0).endVertex();
+			.normal(entry, 1, 0, 0).endVertex();
 		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
-			.normal(entry.normal(), 0, 0, 1).endVertex();
+			.normal(entry, 0, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
-			.normal(entry.normal(), 0, 0, 1).endVertex();
+			.normal(entry, 0, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
-			.normal(entry.normal(), 0, 0, 1).endVertex();
+			.normal(entry, 0, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
-			.normal(entry.normal(), 0, 0, 1).endVertex();
+			.normal(entry, 0, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
-			.normal(entry.normal(), 1, 0, 0).endVertex();
+			.normal(entry, 1, 0, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
-			.normal(entry.normal(), 1, 0, 0).endVertex();
+			.normal(entry, 1, 0, 0).endVertex();
 		
 		// top lines
 		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
-			.normal(entry.normal(), 1, 0, 0).endVertex();
+			.normal(entry, 1, 0, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
-			.normal(entry.normal(), 1, 0, 0).endVertex();
+			.normal(entry, 1, 0, 0).endVertex();
 		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
-			.normal(entry.normal(), 0, 0, 1).endVertex();
+			.normal(entry, 0, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
-			.normal(entry.normal(), 0, 0, 1).endVertex();
+			.normal(entry, 0, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
-			.normal(entry.normal(), 0, 0, 1).endVertex();
+			.normal(entry, 0, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
-			.normal(entry.normal(), 0, 0, 1).endVertex();
+			.normal(entry, 0, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
-			.normal(entry.normal(), 1, 0, 0).endVertex();
+			.normal(entry, 1, 0, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
-			.normal(entry.normal(), 1, 0, 0).endVertex();
+			.normal(entry, 1, 0, 0).endVertex();
 		
 		// side lines
 		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
-			.normal(entry.normal(), 0, 1, 0).endVertex();
+			.normal(entry, 0, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
-			.normal(entry.normal(), 0, 1, 0).endVertex();
+			.normal(entry, 0, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
-			.normal(entry.normal(), 0, 1, 0).endVertex();
+			.normal(entry, 0, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
-			.normal(entry.normal(), 0, 1, 0).endVertex();
+			.normal(entry, 0, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
-			.normal(entry.normal(), 0, 1, 0).endVertex();
+			.normal(entry, 0, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
-			.normal(entry.normal(), 0, 1, 0).endVertex();
+			.normal(entry, 0, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
-			.normal(entry.normal(), 0, 1, 0).endVertex();
+			.normal(entry, 0, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
-			.normal(entry.normal(), 0, 1, 0).endVertex();
+			.normal(entry, 0, 1, 0).endVertex();
 	}
 	
 	public static void drawCrossBox(PoseStack matrices, AABB box, int color,
@@ -624,63 +624,63 @@ public enum RenderUtils
 		
 		// back
 		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
-			.normal(entry.normal(), 1, 1, 0).endVertex();
+			.normal(entry, 1, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
-			.normal(entry.normal(), 1, 1, 0).endVertex();
+			.normal(entry, 1, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
-			.normal(entry.normal(), -1, 1, 0).endVertex();
+			.normal(entry, -1, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
-			.normal(entry.normal(), -1, 1, 0).endVertex();
+			.normal(entry, -1, 1, 0).endVertex();
 		
 		// left
 		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
-			.normal(entry.normal(), 0, 1, 1).endVertex();
+			.normal(entry, 0, 1, 1).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
-			.normal(entry.normal(), 0, 1, 1).endVertex();
+			.normal(entry, 0, 1, 1).endVertex();
 		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
-			.normal(entry.normal(), 0, 1, -1).endVertex();
+			.normal(entry, 0, 1, -1).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
-			.normal(entry.normal(), 0, 1, -1).endVertex();
+			.normal(entry, 0, 1, -1).endVertex();
 		
 		// front
 		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
-			.normal(entry.normal(), -1, 1, 0).endVertex();
+			.normal(entry, -1, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
-			.normal(entry.normal(), -1, 1, 0).endVertex();
+			.normal(entry, -1, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
-			.normal(entry.normal(), 1, 1, 0).endVertex();
+			.normal(entry, 1, 1, 0).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
-			.normal(entry.normal(), 1, 1, 0).endVertex();
+			.normal(entry, 1, 1, 0).endVertex();
 		
 		// right
 		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
-			.normal(entry.normal(), 0, 1, -1).endVertex();
+			.normal(entry, 0, 1, -1).endVertex();
 		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
-			.normal(entry.normal(), 0, 1, -1).endVertex();
+			.normal(entry, 0, 1, -1).endVertex();
 		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
-			.normal(entry.normal(), 0, 1, 1).endVertex();
+			.normal(entry, 0, 1, 1).endVertex();
 		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
-			.normal(entry.normal(), 0, 1, 1).endVertex();
+			.normal(entry, 0, 1, 1).endVertex();
 		
 		// top
 		buffer.vertex(entry.pose(), x1, y2, z2).color(color)
-			.normal(entry.normal(), 1, 0, -1).endVertex();
+			.normal(entry, 1, 0, -1).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z1).color(color)
-			.normal(entry.normal(), 1, 0, -1).endVertex();
+			.normal(entry, 1, 0, -1).endVertex();
 		buffer.vertex(entry.pose(), x1, y2, z1).color(color)
-			.normal(entry.normal(), 1, 0, 1).endVertex();
+			.normal(entry, 1, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x2, y2, z2).color(color)
-			.normal(entry.normal(), 1, 0, 1).endVertex();
+			.normal(entry, 1, 0, 1).endVertex();
 		
 		// bottom
 		buffer.vertex(entry.pose(), x2, y1, z1).color(color)
-			.normal(entry.normal(), -1, 0, 1).endVertex();
+			.normal(entry, -1, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x1, y1, z2).color(color)
-			.normal(entry.normal(), -1, 0, 1).endVertex();
+			.normal(entry, -1, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x1, y1, z1).color(color)
-			.normal(entry.normal(), 1, 0, 1).endVertex();
+			.normal(entry, 1, 0, 1).endVertex();
 		buffer.vertex(entry.pose(), x2, y1, z2).color(color)
-			.normal(entry.normal(), 1, 0, 1).endVertex();
+			.normal(entry, 1, 0, 1).endVertex();
 	}
 	
 	public static void drawNode(PoseStack matrices, AABB box, int color,

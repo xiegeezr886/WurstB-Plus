@@ -13,17 +13,20 @@ import java.util.List;
 import org.joml.Matrix4f;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import net.wurstclient.WurstRenderLayers;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.WurstRenderLayers;
 import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
@@ -31,7 +34,6 @@ import net.wurstclient.events.WorldChangeListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.ColorSetting;
-import net.wurstclient.util.RenderUtils;
 
 @SearchTags({"pop cham", "totem pop", "death effect"})
 public final class PopChamsHack extends Hack
@@ -114,19 +116,24 @@ public final class PopChamsHack extends Hack
 	}
 
 	@Override
-	public void onRender(PoseStack PoseStack, float partialTicks)
+	public void onRender(PoseStack poseStack, float partialTicks)
 	{
 		if(MC.level == null || MC.player == null || pops.isEmpty())
 			return;
 
-		Matrix4f matrix = PoseStack.last().pose();
-		Vec3 cam = MC.gameRenderer.getMainCamera().position();
+		Matrix4f matrix = poseStack.last().pose();
+		Vec3 cam = MC.gameRenderer.getMainCamera().getPosition();
 		int argb = color.getColorI();
 		float r = ((argb >> 16) & 0xFF) / 255F;
 		float g = ((argb >> 8) & 0xFF) / 255F;
 		float b = (argb & 0xFF) / 255F;
 
-		RenderUtils.submit(PoseStack, WurstRenderLayers.getQuads(true), buf -> {
+		try
+		{
+			Tesselator tess = Tesselator.getInstance();
+			BufferBuilder buf = tess.begin(VertexFormat.Mode.QUADS,
+				DefaultVertexFormat.POSITION_COLOR);
+
 			for(PopData pop : pops)
 			{
 				long age = System.currentTimeMillis() - pop.time;
@@ -150,7 +157,13 @@ public final class PopChamsHack extends Hack
 				buf.addVertex(matrix, x - s, y - s, z)
 					.setColor(r, g, b, alpha);
 			}
-		});
+
+			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
+			if(rendered != null)
+				WurstRenderLayers.ESP_QUADS.draw(rendered);
+		}finally
+		{
+		}
 	}
 
 	private record PopData(Vec3 position, float height, long time) {}

@@ -128,7 +128,7 @@ public final class KeybindProfilesScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		listGui.render(context, mouseX, mouseY, partialTicks);
 		
 		context.drawCenteredString(minecraft.font,
@@ -198,7 +198,7 @@ public final class KeybindProfilesScreen extends Screen
 		public ListGui(Minecraft mc, KeybindProfilesScreen screen,
 			List<Path> list)
 		{
-			super(mc, screen.width, screen.height, 36, screen.height - 64, 20);
+			super(mc, screen.width, screen.height - 100, 36, 20);
 			
 			list.stream().map(KeybindProfilesScreen.Entry::new)
 				.forEach(this::addEntry);

@@ -225,14 +225,14 @@ public final class EditColorScreen extends Screen
 	}
 	
 	@Override
-	public void resize(int width, int height)
+	public void resize(Minecraft client, int width, int height)
 	{
 		String hex = hexValueField.getValue();
 		String r = redValueField.getValue();
 		String g = greenValueField.getValue();
 		String b = blueValueField.getValue();
 		
-		init(width, height);
+		init(client, width, height);
 		
 		hexValueField.setValue(hex);
 		redValueField.setValue(r);

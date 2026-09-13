@@ -18,14 +18,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
+import net.wurstclient.WurstRenderLayers;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
@@ -126,11 +125,6 @@ public final class WaypointsManager implements RenderListener
 		ResourceLocation currentDim = mc.level.dimension().location();
 
 		Vec3 camPos = mc.gameRenderer.getMainCamera().getPosition();
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableDepthTest();
-		RenderSystem.depthMask(false);
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		try
 		{
 			Tesselator tesselator = Tesselator.getInstance();
@@ -176,12 +170,9 @@ public final class WaypointsManager implements RenderListener
 
 			com.mojang.blaze3d.vertex.MeshData rendered = builder.build();
 			if(rendered != null)
-				BufferUploader.drawWithShader(rendered);
+				WurstRenderLayers.ESP_QUADS.draw(rendered);
 		}finally
 		{
-			RenderSystem.depthMask(true);
-			RenderSystem.enableDepthTest();
-			RenderSystem.disableBlend();
 		}
 	}
 }

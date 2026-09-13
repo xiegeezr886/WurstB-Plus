@@ -14,7 +14,6 @@ import com.google.gson.JsonObject;
 import net.minecraft.client.GuiMessage;
 import net.minecraft.client.Minecraft;
 import net.wurstclient.WurstClient;
-import net.wurstclient.mixin.ChatComponentAccessor;
 import net.wurstclient.util.ChatUtils;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.WsonObject;
@@ -61,7 +60,7 @@ public abstract class MessageCompleter
 		
 		// add chat history
 		List<GuiMessage.Line> chatHistory =
-			((ChatComponentAccessor)MC.gui.getChat()).getTrimmedMessages();
+			((net.wurstclient.mixin.ChatComponentAccessor)(Object)MC.gui.getChat()).getTrimmedMessages();
 		int messages = 0;
 		for(int i = chatHistory.size() - 1; i >= 0; i--)
 		{

@@ -31,16 +31,4 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 			.shouldCancelBackground((Screen)(Object)this))
 			ci.cancel();
 	}
-	
-	@Inject(at = @At("HEAD"),
-		method = "renderBlurredBackground",
-		cancellable = true)
-	public void onRenderBlurredBackground(float partialTick, CallbackInfo ci)
-	{
-		Screen screen = (Screen)(Object)this;
-		
-		if(screen.getMinecraft().level != null
-			&& screen.getClass().getName().startsWith("net.wurstclient."))
-			ci.cancel();
-	}
 }

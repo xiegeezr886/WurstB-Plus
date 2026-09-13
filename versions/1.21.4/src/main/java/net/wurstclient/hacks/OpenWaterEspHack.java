@@ -66,6 +66,6 @@ public final class OpenWaterEspHack extends Hack implements RenderListener
 	
 	private boolean isInOpenWater(FishingHook bobber)
 	{
-		return true;
+		return ((net.wurstclient.mixin.FishingHookAccessor)(Object)bobber).invokeCalculateOpenWater(bobber.blockPosition());
 	}
 }

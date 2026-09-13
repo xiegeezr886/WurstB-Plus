@@ -142,10 +142,10 @@ public final class JesusHack extends Hack
 		Packet<?> newPacket;
 		if(packet instanceof ServerboundMovePlayerPacket.Pos)
 			newPacket =
-				new ServerboundMovePlayerPacket.Pos(x, y, z, true);
+				new ServerboundMovePlayerPacket.Pos(x, y, z, true, false);
 		else
 			newPacket = new ServerboundMovePlayerPacket.PosRot(x, y, z, packet.getYRot(0),
-				packet.getXRot(0), true);
+				packet.getXRot(0), true, false);
 		
 		// send new packet
 		MC.player.connection.getConnection().send(newPacket);

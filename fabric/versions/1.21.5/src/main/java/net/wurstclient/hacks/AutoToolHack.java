@@ -13,7 +13,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
@@ -89,7 +89,7 @@ public final class AutoToolHack extends Hack
 			return;
 		
 		if(prevSelectedSlot == -1)
-			prevSelectedSlot = MC.player.getInventory().selected;
+			prevSelectedSlot = MC.player.getInventory().getSelectedSlot();
 		
 		equipBestTool(pos, useSwords.isChecked(), useHands.isChecked(),
 			repairMode.getValueI());
@@ -106,7 +106,7 @@ public final class AutoToolHack extends Hack
 			return;
 		
 		if(switchBack.isChecked())
-			MC.player.getInventory().selected = prevSelectedSlot;
+			MC.player.getInventory().setSelectedSlot(prevSelectedSlot);
 		
 		prevSelectedSlot = -1;
 	}
@@ -142,7 +142,7 @@ public final class AutoToolHack extends Hack
 			return;
 		}
 		
-		player.getInventory().selected = bestSlot;
+		player.getInventory().setSelectedSlot(bestSlot);
 	}
 	
 	private int getBestSlot(BlockState state, boolean useSwords, int repairMode)
@@ -158,7 +158,7 @@ public final class AutoToolHack extends Hack
 		
 		for(int slot = 0; slot < 9; slot++)
 		{
-			if(slot == inventory.selected)
+			if(slot == inventory.getSelectedSlot())
 				continue;
 			
 			ItemStack stack = inventory.getItem(slot);
@@ -167,7 +167,7 @@ public final class AutoToolHack extends Hack
 			if(speed <= bestSpeed)
 				continue;
 			
-			if(!useSwords && stack.getItem() instanceof SwordItem)
+			if(!useSwords && stack.has(DataComponents.WEAPON))
 				continue;
 			
 			if(isTooDamaged(stack, repairMode))
@@ -208,7 +208,7 @@ public final class AutoToolHack extends Hack
 	private void putAwayDamagedTool(int repairMode)
 	{
 		Inventory inv = MC.player.getInventory();
-		int selectedSlot = inv.selected;
+		int selectedSlot = inv.getSelectedSlot();
 		IClientPlayerInteractionManager im = IMC.getInteractionManager();
 		
 		// If there's an empty slot in the main inventory,
@@ -258,15 +258,15 @@ public final class AutoToolHack extends Hack
 		
 		if(fallbackSlot == -1)
 		{
-			if(inventory.selected == 8)
-				inventory.selected = 0;
+			if(inventory.getSelectedSlot() == 8)
+				inventory.setSelectedSlot(0);
 			else
-				inventory.selected++;
+				inventory.setSelectedSlot(inventory.getSelectedSlot() + 1);
 			
 			return;
 		}
 		
-		inventory.selected = fallbackSlot;
+		inventory.setSelectedSlot(fallbackSlot);
 	}
 	
 	private int getFallbackSlot()
@@ -275,7 +275,7 @@ public final class AutoToolHack extends Hack
 		
 		for(int slot = 0; slot < 9; slot++)
 		{
-			if(slot == inventory.selected)
+			if(slot == inventory.getSelectedSlot())
 				continue;
 			
 			ItemStack stack = inventory.getItem(slot);

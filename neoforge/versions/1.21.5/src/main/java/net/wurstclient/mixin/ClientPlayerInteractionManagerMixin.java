@@ -38,19 +38,14 @@ import net.wurstclient.events.BlockBreakingProgressListener.BlockBreakingProgres
 import net.wurstclient.events.PlayerAttacksEntityListener.PlayerAttacksEntityEvent;
 import net.wurstclient.events.StopUsingItemListener.StopUsingItemEvent;
 import net.wurstclient.mixinterface.IClientPlayerInteractionManager;
-import net.wurstclient.mixinterface.IMultiPlayerGameMode;
 
 @Mixin(MultiPlayerGameMode.class)
 public abstract class ClientPlayerInteractionManagerMixin
-	implements IClientPlayerInteractionManager, IMultiPlayerGameMode
+	implements IClientPlayerInteractionManager
 {
 	@Shadow
 	@Final
 	private Minecraft minecraft;
-	@Shadow
-	private boolean isDestroying;
-	@Shadow
-	private float destroyProgress;
 
 	@Inject(at = @At("HEAD"),
 		method = "attack(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;)V")
@@ -80,29 +75,28 @@ public abstract class ClientPlayerInteractionManagerMixin
 	@Override
 	public void windowClick_PICKUP(int slot)
 	{
-		minecraft.player.containerMenu.clicked(slot, 0, ClickType.PICKUP,
+		handleInventoryMouseClick(0, slot, 0, ClickType.PICKUP,
 			minecraft.player);
 	}
 	
 	@Override
 	public void windowClick_QUICK_MOVE(int slot)
 	{
-		minecraft.player.containerMenu.clicked(slot, 0,
-			ClickType.QUICK_MOVE,
+		handleInventoryMouseClick(0, slot, 0, ClickType.QUICK_MOVE,
 			minecraft.player);
 	}
 	
 	@Override
 	public void windowClick_THROW(int slot)
 	{
-		minecraft.player.containerMenu.clicked(slot, 1, ClickType.THROW,
+		handleInventoryMouseClick(0, slot, 1, ClickType.THROW,
 			minecraft.player);
 	}
 	
 	@Override
 	public void windowClick_SWAP(int from, int to)
 	{
-		minecraft.player.containerMenu.clicked(from, to, ClickType.SWAP,
+		handleInventoryMouseClick(0, from, to, ClickType.SWAP,
 			minecraft.player);
 	}
 	
@@ -120,24 +114,6 @@ public abstract class ClientPlayerInteractionManagerMixin
 		InteractionHand hand = InteractionHand.MAIN_HAND;
 		InteractionResult result = useItemOn(minecraft.player, hand, hitResult);
 		return result.consumesAction() ? result : useItem(minecraft.player, hand);
-	}
-	
-	@Override
-	public float getDestroyProgress()
-	{
-		return destroyProgress;
-	}
-	
-	@Override
-	public void setDestroying(boolean destroying)
-	{
-		isDestroying = destroying;
-	}
-	
-	@Override
-	public void setDestroyProgress(float progress)
-	{
-		destroyProgress = progress;
 	}
 	
 	@Override
@@ -178,4 +154,9 @@ public abstract class ClientPlayerInteractionManagerMixin
 	@Shadow
 	public abstract InteractionResult useItem(Player player,
 		InteractionHand hand);
+	
+	@Shadow
+	public abstract void handleInventoryMouseClick(int syncId, int slotId,
+		int button,
+		ClickType actionType, Player player);
 }

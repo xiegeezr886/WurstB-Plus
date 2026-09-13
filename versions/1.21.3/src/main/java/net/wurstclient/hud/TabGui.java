@@ -7,14 +7,14 @@
  */
 package net.wurstclient.hud;
 
-import org.joml.Matrix3x2fStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.Category;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
@@ -118,14 +118,14 @@ public final class TabGui implements KeyPressListener
 			}
 	}
 	
-	public void render(GuiGraphicsExtractor context, float partialTicks)
+	public void render(GuiGraphics context, float partialTicks)
 	{
 		if(tabGuiOtf.isHidden())
 			return;
 		
-		Matrix3x2fStack matrixStack = context.pose();
-		matrixStack.pushMatrix();
-		matrixStack.translate(4, 28);
+		PoseStack matrixStack = context.pose();
+		matrixStack.pushPose();
+		matrixStack.translate(4, 28, 100);
 		
 		drawBox(context, 0, 0, width, height);
 		selectionY = animate(selectionY, selected * 10, true);
@@ -139,9 +139,9 @@ public final class TabGui implements KeyPressListener
 		for(int i = 0; i < tabs.size(); i++)
 		{
 			String tabName = tabs.get(i).name;
-			context.text(tr, tabName, 6, textY, txtColor, false);
+			context.drawString(tr, tabName, 6, textY, txtColor, false);
 			if(i == selected)
-				context.text(tr, tabOpened ? "<" : ">", width - 9,
+				context.drawString(tr, tabOpened ? "<" : ">", width - 9,
 					textY, txtColor, false);
 			textY += 10;
 		}
@@ -152,8 +152,8 @@ public final class TabGui implements KeyPressListener
 		{
 			Tab tab = tabs.get(selected);
 			
-			matrixStack.pushMatrix();
-			matrixStack.translate(width + 2, 0);
+			matrixStack.pushPose();
+			matrixStack.translate(width + 2, 0, 0);
 			
 			drawBox(context, 0, 0, tab.width, tab.height);
 			tab.selectionY = animate(tab.selectionY, tab.selected * 10, false);
@@ -171,18 +171,18 @@ public final class TabGui implements KeyPressListener
 				if(feature.isEnabled())
 					fName = "\u00a7a" + fName + "\u00a7r";
 				
-				context.text(tr, fName, 6, tabTextY, txtColor, false);
+				context.drawString(tr, fName, 6, tabTextY, txtColor, false);
 				tabTextY += 10;
 			}
 			
 			context.disableScissor();
-			matrixStack.popMatrix();
+			matrixStack.popPose();
 		}
 		
-		matrixStack.popMatrix();
+		matrixStack.popPose();
 	}
 	
-	private void drawBox(GuiGraphicsExtractor context, int x1, int y1, int x2, int y2)
+	private void drawBox(GuiGraphics context, int x1, int y1, int x2, int y2)
 	{
 		FlatRenderer.fillRoundedRect(context, x1, y1, x2, y2, 4,
 			0xB006090D);
@@ -190,7 +190,7 @@ public final class TabGui implements KeyPressListener
 			0x2FFFFFFF);
 	}
 
-	private void drawSelection(GuiGraphicsExtractor context, int x1, int y1, int x2,
+	private void drawSelection(GuiGraphics context, int x1, int y1, int x2,
 		int y2)
 	{
 		int accent = RenderUtils.toIntColor(WURST.getGui().getAcColor(), 0.85F);

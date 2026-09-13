@@ -131,7 +131,7 @@ public final class PotionCmd extends Command
 		else
 			try
 			{
-				ResourceLocation identifier = ResourceLocation.parse(input);
+				ResourceLocation identifier = new ResourceLocation(input);
 				effect = BuiltInRegistries.MOB_EFFECT.get(identifier);
 				
 			}catch(ResourceLocationException e)

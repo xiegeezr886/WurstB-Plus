@@ -7,11 +7,11 @@
  */
 package net.wurstclient.util;
 
-import net.minecraft.IdentifierException;
+import net.minecraft.ResourceLocationException;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
@@ -26,7 +26,7 @@ public enum ItemUtils
 	
 	/**
 	 * @param nameOrId
-	 *            a String containing the item's name ({@link Identifier}) or
+	 *            a String containing the item's name ({@link ResourceLocation}) or
 	 *            numeric ID.
 	 * @return the requested item, or null if the item doesn't exist.
 	 */
@@ -46,10 +46,10 @@ public enum ItemUtils
 		
 		try
 		{
-			return BuiltInRegistries.ITEM.getOptional(Identifier.parse(nameOrId))
+			return BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(nameOrId))
 				.orElse(null);
 			
-		}catch(IdentifierException e)
+		}catch(ResourceLocationException e)
 		{
 			return null;
 		}

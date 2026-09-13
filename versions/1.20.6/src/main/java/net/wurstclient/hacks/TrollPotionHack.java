@@ -7,13 +7,19 @@
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.hack.Hack;
@@ -94,22 +100,16 @@ public final class TrollPotionHack extends Hack
 		{
 			ItemStack stack = new ItemStack(item);
 			
-			ListTag effects = new ListTag();
+			List<MobEffectInstance> effects = new ArrayList<>();
 			for(int i = 1; i <= 23; i++)
-			{
-				CompoundTag effect = new CompoundTag();
-				effect.putInt("Amplifier", Integer.MAX_VALUE);
-				effect.putInt("Duration", Integer.MAX_VALUE);
-				effect.putInt("Id", i);
-				effects.add(effect);
-			}
-			
-			CompoundTag nbt = new CompoundTag();
-			nbt.put("CustomPotionEffects", effects);
-			stack.setTag(nbt);
+				BuiltInRegistries.MOB_EFFECT.getHolder(i).ifPresent(effect ->
+					effects.add(new MobEffectInstance(effect, Integer.MAX_VALUE,
+						MobEffectInstance.MAX_AMPLIFIER)));
+			stack.set(DataComponents.POTION_CONTENTS,
+				new PotionContents(Optional.empty(), Optional.empty(), effects));
 			
 			String name = "\u00a7f" + itemName + " of Trolling";
-			stack.setHoverName(Component.literal(name));
+			stack.set(DataComponents.CUSTOM_NAME, Component.literal(name));
 			
 			return stack;
 		}

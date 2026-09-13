@@ -7,46 +7,20 @@
  */
 package net.wurstclient.mixin;
 
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.wurstclient.WurstClient;
-import net.wurstclient.event.EventManager;
-import net.wurstclient.events.GUIRenderListener.GUIRenderEvent;
 import net.wurstclient.hack.HackList;
 
 @Mixin(Gui.class)
 public class IngameHudMixin
 {
-	@Shadow
-	@Final
-	private DebugScreenOverlay debugOverlay;
-
-	@Inject(at = @At("HEAD"),
-		method = "renderTabList(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V")
-	private void onRenderPlayerList(GuiGraphics context,
-		DeltaTracker deltaTracker, CallbackInfo ci)
-	{
-		if(WurstClient.MC.screen != null)
-			return;
-		
-		if(debugOverlay.showDebugScreen())
-			return;
-
-		float partialTicks =
-			deltaTracker.getGameTimeDeltaPartialTick(true);
-		EventManager.fire(new GUIRenderEvent(context, partialTicks));
-	}
-
 	@Inject(at = @At("HEAD"),
 		method = "renderTextureOverlay(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/resources/ResourceLocation;F)V",
 		cancellable = true)

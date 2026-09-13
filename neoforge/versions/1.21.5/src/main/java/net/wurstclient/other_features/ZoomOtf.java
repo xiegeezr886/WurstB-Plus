@@ -113,11 +113,6 @@ public final class ZoomOtf extends OtherFeature implements MouseScrollListener
 	{
 		return isZoomKeyPressed() && scroll.isChecked();
 	}
-
-	public boolean isControllingScrollEvents()
-	{
-		return isZoomKeyPressed() && scroll.isChecked();
-	}
 	
 	public Component getTranslatedKeybindName()
 	{
@@ -135,7 +130,7 @@ public final class ZoomOtf extends OtherFeature implements MouseScrollListener
 		if(MC.screen != null && !zoomInScreens.isChecked())
 			return false;
 		
-		return InputConstants.isKeyDown(MC.getWindow(),
+		return InputConstants.isKeyDown(MC.getWindow().getWindow(),
 			InputConstants.getKey(keybind.getValue()).getValue());
 	}
 	

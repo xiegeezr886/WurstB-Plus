@@ -145,7 +145,7 @@ public final class AutoLibrarianHack extends Hack
 		
 		if(breakingJobSite)
 		{
-			MC.gameMode.isDestroying = true;
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			breakingJobSite = false;
 		}
@@ -359,7 +359,7 @@ public final class AutoLibrarianHack extends Hack
 	
 	private void openTradeScreen()
 	{
-		if(MC.rightClickDelay > 0)
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		MultiPlayerGameMode im = MC.gameMode;
@@ -396,13 +396,13 @@ public final class AutoLibrarianHack extends Hack
 			swingHand.swing(hand);
 		
 		// set cooldown
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 	}
 	
 	private void closeTradeScreen()
 	{
 		MC.player.closeContainer();
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 	}
 	
 	private BookOffer findEnchantedBookOffer(MerchantOffers tradeOffers)

@@ -7,10 +7,11 @@
  */
 package net.wurstclient.commands;
 
-import net.minecraft.nbt.StringTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.WrittenBookContent;
 import net.wurstclient.command.CmdError;
 import net.wurstclient.command.CmdException;
 import net.wurstclient.command.CmdSyntaxError;
@@ -42,6 +43,10 @@ public final class AuthorCmd extends Command
 				"You must hold a written book in your main hand.");
 		
 		String author = String.join(" ", args);
-		heldItem.addTagElement("author", StringTag.valueOf(author));
+		WrittenBookContent content = heldItem.getOrDefault(
+			DataComponents.WRITTEN_BOOK_CONTENT, WrittenBookContent.EMPTY);
+		heldItem.set(DataComponents.WRITTEN_BOOK_CONTENT,
+			new WrittenBookContent(content.title(), author,
+				content.generation(), content.pages(), content.resolved()));
 	}
 }

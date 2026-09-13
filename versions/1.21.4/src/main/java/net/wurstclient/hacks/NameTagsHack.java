@@ -157,16 +157,9 @@ public final class NameTagsHack extends Hack
 		ArrayList<ItemStack> equipment = new ArrayList<>();
 		if(!player.getMainHandItem().isEmpty())
 			equipment.add(player.getMainHandItem());
-		for(var slot : new net.minecraft.world.entity.EquipmentSlot[]{
-			net.minecraft.world.entity.EquipmentSlot.FEET,
-			net.minecraft.world.entity.EquipmentSlot.LEGS,
-			net.minecraft.world.entity.EquipmentSlot.CHEST,
-			net.minecraft.world.entity.EquipmentSlot.HEAD})
-		{
-			ItemStack stack = player.getItemBySlot(slot);
+		for(ItemStack stack : player.getArmorSlots())
 			if(!stack.isEmpty())
 				equipment.add(stack);
-		}
 		if(!player.getOffhandItem().isEmpty())
 			equipment.add(player.getOffhandItem());
 

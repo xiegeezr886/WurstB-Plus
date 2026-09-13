@@ -49,7 +49,7 @@ public final class ThrowHack extends Hack implements RightClickListener
 	@Override
 	public void onRightClick(RightClickEvent event)
 	{
-		if(MC.rightClickDelay > 0)
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		if(!MC.options.keyUse.isDown())

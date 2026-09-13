@@ -207,7 +207,7 @@ public final class EditItemListScreen extends Screen
 		@Override
 		public Component getNarration()
 		{
-			Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemName));
+			Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse(itemName));
 			ItemStack stack = new ItemStack(item);
 			
 			return Component.translatable("narrator.select",
@@ -226,7 +226,7 @@ public final class EditItemListScreen extends Screen
 			int entryWidth, int entryHeight, int mouseX, int mouseY,
 			boolean hovered, float tickDelta)
 		{
-			Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemName));
+			Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse(itemName));
 			ItemStack stack = new ItemStack(item);
 			Font tr = minecraft.font;
 			

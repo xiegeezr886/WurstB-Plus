@@ -299,7 +299,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			return false;
 		if(result.shouldSwing())
 			swingHand.swing(InteractionHand.MAIN_HAND);
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 		currentPlan = plan;
 		return true;
 	}

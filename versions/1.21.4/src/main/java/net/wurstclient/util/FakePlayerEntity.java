@@ -9,7 +9,6 @@ package net.wurstclient.util;
 
 import java.util.UUID;
 
-import com.mojang.authlib.GameProfile;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -29,9 +28,7 @@ public class FakePlayerEntity extends RemotePlayer
 	
 	public FakePlayerEntity()
 	{
-		super(WurstClient.MC.level,
-			new GameProfile(WurstClient.MC.player.getUUID(),
-				WurstClient.MC.player.getName().getString()));
+		super(WurstClient.MC.level, WurstClient.MC.player.getGameProfile());
 		setUUID(UUID.randomUUID());
 		copyPosition(player);
 		
@@ -48,7 +45,7 @@ public class FakePlayerEntity extends RemotePlayer
 	{
 		if(playerListEntry == null)
 			playerListEntry = Minecraft.getInstance().getConnection()
-				.getPlayerInfo(getUUID());
+				.getPlayerInfo(getGameProfile().getId());
 		
 		return playerListEntry;
 	}
@@ -80,9 +77,9 @@ public class FakePlayerEntity extends RemotePlayer
 	
 	private void resetCapeMovement()
 	{
-		// xCloak removed in 26.1.2
-		// yCloak removed in 26.1.2
-		// zCloak removed in 26.1.2
+		xCloak = getX();
+		yCloak = getY();
+		zCloak = getZ();
 	}
 	
 	private void spawn()
@@ -97,8 +94,7 @@ public class FakePlayerEntity extends RemotePlayer
 	
 	public void resetPlayerPosition()
 	{
-		player.setPos(getX(), getY(), getZ());
-		player.setYRot(getYRot());
-		player.setXRot(getXRot());
+		player.moveTo(getX(), getY(), getZ(), getYRot(),
+			getXRot());
 	}
 }

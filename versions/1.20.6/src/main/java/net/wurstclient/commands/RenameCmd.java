@@ -8,6 +8,7 @@
 package net.wurstclient.commands;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.command.CmdError;
 import net.wurstclient.command.CmdException;
@@ -43,7 +44,7 @@ public final class RenameCmd extends Command
 		if(item == null)
 			throw new CmdError("There is no item in your hand.");
 		
-		item.setHoverName(Component.literal(message));
+		item.set(DataComponents.CUSTOM_NAME, Component.literal(message));
 		ChatUtils.message("Renamed item to \"" + message + "\u00a7r\".");
 	}
 }

@@ -64,7 +64,7 @@ public final class ColorSetting extends Setting
 	public void setAsShaderColor(float opacity)
 	{
 		float[] rgb = getColorF();
-		// Shader color managed by render pipeline
+		RenderSystem.setShaderColor(rgb[0], rgb[1], rgb[2], opacity);
 	}
 	
 	public int getColorI()

@@ -34,7 +34,7 @@ public final class AuthorCmd extends Command
 		if(!MC.player.getAbilities().instabuild)
 			throw new CmdError("仅限创造模式。");
 		
-		ItemStack heldItem = MC.player.getInventory().getSelected();
+		ItemStack heldItem = MC.player.getInventory().getSelectedItem();
 		int heldItemID = Item.getId(heldItem.getItem());
 		int writtenBookID = Item.getId(Items.WRITTEN_BOOK);
 		

@@ -8,7 +8,7 @@
 package net.wurstclient.hud;
 
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.other_features.WurstLogoOtf;
@@ -19,14 +19,14 @@ public final class WurstLogo
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private static final int PANEL_HEIGHT = 18;
 	
-	public void render(GuiGraphicsExtractor context)
+	public void render(GuiGraphics context)
 	{
 		if(!WURST.getOtfs().wurstLogoOtf.isVisible())
 			return;
 		renderAt(context, 4, 4);
 	}
 
-	public void renderAt(GuiGraphicsExtractor context, int x, int y)
+	public void renderAt(GuiGraphics context, int x, int y)
 	{
 		WurstLogoOtf otf = WURST.getOtfs().wurstLogoOtf;
 		String brand = WurstClient.CLIENT_NAME;
@@ -42,15 +42,15 @@ public final class WurstLogo
 		int bottom = y + PANEL_HEIGHT;
 		int textColor = ensureReadable(otf.getTextColor());
 		FlatRenderer.fillRoundedRect(context, x, y, right, bottom,
-			4, 0xA010141B);
-		FlatRenderer.drawRoundedOutline(context, x, y, right, bottom,
-			4, 0x2CFFFFFF);
+			5, 0x74070A0F);
+		FlatRenderer.drawRoundedOutline(context, x, y, right,
+			bottom, 5, 0x2CFFFFFF);
 		FlatRenderer.fillRoundedRect(context, x + 1, y + 4,
 			x + 3, bottom - 4, 1, accent);
 
 		int textY = y + (PANEL_HEIGHT - font.lineHeight) / 2 + 1;
-		context.text(font, brand, x + 8, textY, textColor, false);
-		context.text(font, version, x + 14 + font.width(brand),
+		context.drawString(font, brand, x + 8, textY, textColor, false);
+		context.drawString(font, version, x + 14 + font.width(brand),
 			textY, withAlpha(textColor, 150), false);
 	}
 

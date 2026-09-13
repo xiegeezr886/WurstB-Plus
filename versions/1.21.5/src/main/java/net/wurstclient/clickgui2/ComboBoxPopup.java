@@ -9,7 +9,7 @@ package net.wurstclient.clickgui2;
 
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.settings.EnumSetting;
 
@@ -60,7 +60,7 @@ public final class ComboBoxPopup<T extends Enum<T>> extends Popup
 	}
 	
 	@Override
-	public void render(GuiGraphicsExtractor context, int mouseX, int mouseY)
+	public void render(GuiGraphics context, int mouseX, int mouseY)
 	{
 		int x1 = getX();
 		int x2 = x1 + getWidth();
@@ -85,7 +85,7 @@ public final class ComboBoxPopup<T extends Enum<T>> extends Popup
 			FlatRenderer.drawControl(context, x1 + 1, yi1, x2 - 1, yi2,
 				2, GUI.getTheme(), hValue ? 1 : 0, false);
 			
-			context.text(TR, value.toString(), x1 + 2, yi1 + 2,
+			context.drawString(TR, value.toString(), x1 + 2, yi1 + 2,
 				GUI.getTxtColor(), false);
 		}
 	}

@@ -23,8 +23,12 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.food.FoodProperties.PossibleEffect;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.Foods;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CraftingTableBlock;
@@ -216,21 +220,20 @@ public final class AutoEatHack extends Hack implements UpdateListener
 			.forEach(i -> slots.add(i));
 		
 		Comparator<FoodProperties> comparator =
-			Comparator.comparingDouble(FoodProperties::getSaturationModifier);
+			Comparator.comparingDouble(FoodProperties::saturation);
 		
 		for(int slot : slots)
 		{
-			Item item = inventory.getItem(slot).getItem();
+			ItemStack stack = inventory.getItem(slot);
 			
 			// filter out non-food items
-			if(!item.isEdible())
+			FoodProperties food = stack.get(DataComponents.FOOD);
+			if(food == null)
 				continue;
-			
-			FoodProperties food = item.getFoodProperties();
 			if(!isAllowedFood(food))
 				continue;
 			
-			if(maxPoints >= 0 && food.getNutrition() > maxPoints)
+			if(maxPoints >= 0 && food.nutrition() > maxPoints)
 				continue;
 			
 			// compare to previously found food
@@ -274,9 +277,9 @@ public final class AutoEatHack extends Hack implements UpdateListener
 		if(!allowChorus.isChecked() && food == Foods.CHORUS_FRUIT)
 			return false;
 		
-		for(Pair<MobEffectInstance, Float> pair : food.getEffects())
+		for(PossibleEffect possibleEffect : food.effects())
 		{
-			MobEffect effect = pair.getFirst().getEffect();
+			Holder<MobEffect> effect = possibleEffect.effect().getEffect();
 			
 			if(!allowHunger.isChecked() && effect == MobEffects.HUNGER)
 				return false;

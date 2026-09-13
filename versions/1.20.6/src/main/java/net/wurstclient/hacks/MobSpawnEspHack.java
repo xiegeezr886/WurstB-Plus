@@ -19,10 +19,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.SpawnPlacements;
-import net.minecraft.world.entity.SpawnPlacements.Type;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.block.state.BlockState;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -147,8 +145,8 @@ public final class MobSpawnEspHack extends Hack
 		// Check for solid blocks, fluids, redstone, prevent_spawning tags, etc.
 		// See SpawnHelper.canSpawn(Location, WorldView, BlockPos,
 		// EntityType<?>)
-		Type location = SpawnPlacements.getPlacementType(EntityType.CREEPER);
-		if(!NaturalSpawner.isSpawnPositionOk(location, MC.level, pos, EntityType.CREEPER))
+		if(!SpawnPlacements.isSpawnPositionOk(EntityType.CREEPER, MC.level,
+			pos))
 			return false;
 		
 		// Check for hitbox collisions

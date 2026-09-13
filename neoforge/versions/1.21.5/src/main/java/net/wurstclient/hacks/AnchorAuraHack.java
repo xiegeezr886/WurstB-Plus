@@ -154,6 +154,13 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
+		if(MC.level.dimensionType().respawnAnchorWorks())
+		{
+			ChatUtils.error("重生锚在此维度不会爆炸。");
+			setEnabled(false);
+			return;
+		}
+
 		if(isSneaking())
 			return;
 

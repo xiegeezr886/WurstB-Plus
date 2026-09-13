@@ -13,7 +13,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.item.SwordItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.phys.EntityHitResult;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -156,7 +156,7 @@ public final class TriggerBotHack extends Hack
 		
 		LocalPlayer player = MC.player;
 		if(requireWeapon.isChecked()
-			&& !(player.getMainHandItem().getItem() instanceof SwordItem)
+			&& !player.getMainHandItem().has(DataComponents.WEAPON)
 			&& !(player.getMainHandItem().getItem() instanceof AxeItem))
 			return;
 		if(player.getAttackStrengthScale(0.5F) < minCooldown.getValueF())

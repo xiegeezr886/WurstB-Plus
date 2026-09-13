@@ -193,8 +193,8 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Inject(at = @At(value = "FIELD",
 		target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;",
 		opcode = Opcodes.GETFIELD,
-		ordinal = 0), method = "handleConfusionTransitionEffect(Z)V")
-	private void beforeUpdateNausea(boolean isConfusionPortal, CallbackInfo ci)
+		ordinal = 0), method = "handleNetherPortalClient()V")
+	private void beforeUpdateNausea(CallbackInfo ci)
 	{
 		if(!WurstClient.INSTANCE.getHax().portalGuiHack.isEnabled())
 			return;
@@ -210,8 +210,8 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Inject(at = @At(value = "FIELD",
 		target = "Lnet/minecraft/client/player/LocalPlayer;spinningEffectIntensity:F",
 		opcode = Opcodes.GETFIELD,
-		ordinal = 1), method = "handleConfusionTransitionEffect(Z)V")
-	private void afterUpdateNausea(boolean isConfusionPortal, CallbackInfo ci)
+		ordinal = 1), method = "handleNetherPortalClient()V")
+	private void afterUpdateNausea(CallbackInfo ci)
 	{
 		if(tempCurrentScreen == null)
 			return;
@@ -326,15 +326,15 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
 		
-		if(effect.is(MobEffects.NIGHT_VISION)
+		if(effect == MobEffects.NIGHT_VISION
 			&& hax.fullbrightHack.isNightVisionActive())
 			return true;
 		
-		if(effect.is(MobEffects.LEVITATION)
+		if(effect == MobEffects.LEVITATION
 			&& hax.noLevitationHack.isEnabled())
 			return false;
 		
-		if(effect.is(MobEffects.DARKNESS) && hax.antiBlindHack.isEnabled())
+		if(effect == MobEffects.DARKNESS && hax.antiBlindHack.isEnabled())
 			return false;
 		
 		return super.hasEffect(effect);

@@ -13,12 +13,10 @@ import java.nio.file.Path;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.CommonColors;
@@ -121,28 +119,27 @@ public final class ChooseNameState extends TemplateToolState
 		}
 		
 		@Override
-		public boolean keyPressed(KeyEvent context)
+		public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 		{
-			switch(context.key())
+			switch(keyCode)
 			{
 				case GLFW.GLFW_KEY_ESCAPE:
-					cancelButton.onPress(context);
+				cancelButton.onPress();
 				break;
 				
 				case GLFW.GLFW_KEY_ENTER:
-					doneButton.onPress(context);
+				doneButton.onPress();
 				break;
 			}
 			
-			return super.keyPressed(context);
+			return super.keyPressed(keyCode, scanCode, modifiers);
 		}
 		
 		@Override
-		public void render(GuiGraphics graphics, int mouseX, int mouseY,
+		public void render(GuiGraphics context, int mouseX, int mouseY,
 			float partialTicks)
 		{
-			super.render(graphics, mouseX, mouseY, partialTicks);
-			GuiGraphicsExtractor context = new GuiGraphicsExtractor(graphics);
+			super.render(context, mouseX, mouseY, partialTicks);
 			
 			// middle
 			int middleX = width / 2;
@@ -158,11 +155,11 @@ public final class ChooseNameState extends TemplateToolState
 			context.fill(x1, y1, x2, y2, 0x80000000);
 			
 			// name field
-			nameField.render(context.getInner(), mouseX, mouseY, partialTicks);
+			nameField.render(context, mouseX, mouseY, partialTicks);
 		}
 		
 		@Override
-		public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY,
+		public void renderBackground(GuiGraphics context, int mouseX, int mouseY,
 			float partialTicks)
 		{
 			// Don't blur

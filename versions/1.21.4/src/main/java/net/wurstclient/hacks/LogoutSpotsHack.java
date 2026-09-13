@@ -7,33 +7,37 @@
  */
 package net.wurstclient.hacks;
 
+import net.minecraft.client.renderer.CoreShaders;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.player.RemotePlayer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.WurstRenderLayers;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.events.WorldChangeListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.util.RenderUtils;
 
 @SearchTags({"logout spots", "log off", "disconnect marker"})
 public final class LogoutSpotsHack extends Hack
@@ -121,15 +125,25 @@ public final class LogoutSpotsHack extends Hack
 	}
 
 	@Override
-	public void onRender(PoseStack PoseStack, float partialTicks)
+	public void onRender(PoseStack poseStack, float partialTicks)
 	{
 		if(MC.level == null || MC.player == null || spots.isEmpty())
 			return;
 
-		Vec3 cam = MC.gameRenderer.getMainCamera().position();
-		Matrix4f matrix = PoseStack.last().pose();
+		Vec3 cam = MC.gameRenderer.getMainCamera().getPosition();
+		Matrix4f matrix = poseStack.last().pose();
 
-		RenderUtils.submit(PoseStack, WurstRenderLayers.getQuads(true), buf -> {
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.disableDepthTest();
+		RenderSystem.depthMask(false);
+		RenderSystem.setShader(CoreShaders.POSITION_COLOR);
+		try
+		{
+			Tesselator tess = Tesselator.getInstance();
+			BufferBuilder buf = tess.begin(VertexFormat.Mode.QUADS,
+				DefaultVertexFormat.POSITION_COLOR);
+
 			for(Spot spot : spots.values())
 			{
 				float x = (float)(spot.pos.x - cam.x);
@@ -146,29 +160,39 @@ public final class LogoutSpotsHack extends Hack
 				buf.addVertex(matrix, x - s, y - s, z)
 					.setColor(1, 0.3F, 0.3F, 0.7F);
 			}
-		});
+
+			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
+			if(rendered != null)
+				BufferUploader.drawWithShader(rendered);
+		}finally
+		{
+			RenderSystem.depthMask(true);
+			RenderSystem.enableDepthTest();
+			RenderSystem.disableBlend();
+		}
 
 		if(showName.isChecked())
-			renderNames(PoseStack, cam);
+			renderNames(poseStack, cam);
 	}
 
-	private void renderNames(PoseStack PoseStack, Vec3 cameraPos)
+	private void renderNames(PoseStack poseStack, Vec3 cameraPos)
 	{
 		Font font = MC.font;
+		MultiBufferSource.BufferSource buffers = MC.renderBuffers().bufferSource();
 		for(Spot spot : spots.values())
 		{
-			PoseStack.pushPose();
-			PoseStack.translate(spot.pos.x - cameraPos.x,
+			poseStack.pushPose();
+			poseStack.translate(spot.pos.x - cameraPos.x,
 				spot.pos.y + 2.2 - cameraPos.y, spot.pos.z - cameraPos.z);
-			PoseStack.mulPose(new Quaternionf(MC.gameRenderer.getMainCamera().rotation()));
-			PoseStack.scale(-0.025F, -0.025F, 0.025F);
+			poseStack.mulPose(MC.getEntityRenderDispatcher().cameraOrientation());
+			poseStack.scale(-0.025F, -0.025F, 0.025F);
 			float textX = -font.width(spot.name) / 2F;
-			RenderUtils.submitText(PoseStack, textX, 0,
-				Component.literal(spot.name).getVisualOrderText(), false,
-				Font.DisplayMode.SEE_THROUGH, 0xF000F0, 0xFFFFFFFF,
-				0x60000000, 0);
-			PoseStack.popPose();
+			font.drawInBatch(spot.name, textX, 0, 0xFFFFFFFF, false,
+				poseStack.last().pose(), buffers, Font.DisplayMode.SEE_THROUGH,
+				0x60000000, 0xF000F0);
+			poseStack.popPose();
 		}
+		buffers.endBatch();
 	}
 
 	private record Spot(UUID uuid, String name, Vec3 pos, long time) {}

@@ -26,6 +26,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.MoverType;
@@ -321,19 +322,18 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	}
 	
 	@Override
-	public boolean hasEffect(MobEffect effect)
+	public boolean hasEffect(Holder<MobEffect> effect)
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
 		
-		if(effect == MobEffects.NIGHT_VISION
+		if(effect.is(MobEffects.NIGHT_VISION)
 			&& hax.fullbrightHack.isNightVisionActive())
 			return true;
 		
-		if(effect == MobEffects.LEVITATION
-			&& hax.noLevitationHack.isEnabled())
+		if(effect.is(MobEffects.LEVITATION) && hax.noLevitationHack.isEnabled())
 			return false;
 		
-		if(effect == MobEffects.DARKNESS && hax.antiBlindHack.isEnabled())
+		if(effect.is(MobEffects.DARKNESS) && hax.antiBlindHack.isEnabled())
 			return false;
 		
 		return super.hasEffect(effect);

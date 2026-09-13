@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -15,13 +15,12 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.DisconnectedScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.DisconnectionDetails;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.DisconnectionDetails;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hacks.AutoReconnectHack;
 import net.wurstclient.nochatreports.ForcedChatReportsScreen;
@@ -49,7 +48,7 @@ public class DisconnectedScreenMixin extends Screen
 		super(title);
 	}
 	
-	@Inject(method = "init()V", at = @At("TAIL"))
+	@Inject(at = @At("TAIL"), method = "init()V")
 	private void onInit(CallbackInfo ci)
 	{
 		if(!WurstClient.INSTANCE.isEnabled())
@@ -75,16 +74,18 @@ public class DisconnectedScreenMixin extends Screen
 	
 	private void addReconnectButtons()
 	{
-		Button reconnectButton = layout.addChild(Button
-			.builder(Component.literal("Reconnect"),
-				b -> LastServerRememberer.reconnect(parent))
-			.width(200).build());
+		Button reconnectButton = layout.addChild(
+			Button.builder(Component.literal("重新连接"),
+				b -> LastServerRememberer.reconnect(parent)).build(),
+			layout.newCellSettings().padding(2));
 		
-		autoReconnectButton =
-			layout.addChild(Button.builder(Component.literal("AutoReconnect"),
-				b -> pressAutoReconnect()).width(200).build());
+		autoReconnectButton = layout.addChild(
+			Button.builder(Component.literal("自动重连"),
+				b -> pressAutoReconnect()).build(),
+			layout.newCellSettings().padding(2));
 		
 		layout.arrangeElements();
+		layout.setY((height - layout.getHeight()) / 2);
 		Stream.of(reconnectButton, autoReconnectButton)
 			.forEach(this::addRenderableWidget);
 		
@@ -117,11 +118,11 @@ public class DisconnectedScreenMixin extends Screen
 		
 		if(!autoReconnect.isEnabled())
 		{
-			autoReconnectButton.setMessage(Component.literal("AutoReconnect"));
+			autoReconnectButton.setMessage(Component.literal("自动重连"));
 			return;
 		}
 		
-		autoReconnectButton.setMessage(Component.literal("AutoReconnect ("
+		autoReconnectButton.setMessage(Component.literal("自动重连 ("
 			+ (int)Math.ceil(autoReconnectTimer / 20.0) + ")"));
 		
 		if(autoReconnectTimer > 0)

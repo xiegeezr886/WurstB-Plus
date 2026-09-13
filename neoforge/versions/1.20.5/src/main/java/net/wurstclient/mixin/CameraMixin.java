@@ -21,21 +21,21 @@ import net.wurstclient.hacks.CameraDistanceHack;
 public abstract class CameraMixin
 {
 	@ModifyVariable(at = @At("HEAD"),
-		method = "getMaxZoom(F)F",
+		method = "getMaxZoom(D)D",
 		argsOnly = true)
-	private float changeClipToSpaceDistance(float desiredCameraDistance)
+	private double changeClipToSpaceDistance(double desiredCameraDistance)
 	{
 		CameraDistanceHack cameraDistance =
 			WurstClient.INSTANCE.getHax().cameraDistanceHack;
 		if(cameraDistance.isEnabled())
-			return (float)cameraDistance.getDistance();
+			return cameraDistance.getDistance();
 		
 		return desiredCameraDistance;
 	}
 	
-	@Inject(at = @At("HEAD"), method = "getMaxZoom(F)F", cancellable = true)
-	private void onClipToSpace(float desiredCameraDistance,
-		CallbackInfoReturnable<Float> cir)
+	@Inject(at = @At("HEAD"), method = "getMaxZoom(D)D", cancellable = true)
+	private void onClipToSpace(double desiredCameraDistance,
+		CallbackInfoReturnable<Double> cir)
 	{
 		if(WurstClient.INSTANCE.getHax().cameraNoClipHack.isEnabled())
 			cir.setReturnValue(desiredCameraDistance);

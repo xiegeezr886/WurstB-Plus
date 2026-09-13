@@ -10,10 +10,12 @@ package net.wurstclient.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
-import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.RenderBlockEntityListener.RenderBlockEntityEvent;
@@ -22,16 +24,16 @@ import net.wurstclient.events.RenderBlockEntityListener.RenderBlockEntityEvent;
 public class BlockEntityRenderDispatcherMixin
 {
 	@Inject(at = @At("HEAD"),
-		method = "tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState;",
+		method = "render(Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V",
 		cancellable = true)
-	private <E extends BlockEntity, S extends BlockEntityRenderState> void onRender(
-		E blockEntity, float tickDelta, CrumblingOverlay crumblingOverlay,
-		CallbackInfoReturnable<S> cir)
+	private <E extends BlockEntity> void onRender(E blockEntity,
+		float tickDelta, PoseStack matrices,
+		MultiBufferSource vertexConsumers, CallbackInfo ci)
 	{
 		RenderBlockEntityEvent event = new RenderBlockEntityEvent(blockEntity);
 		EventManager.fire(event);
 		
 		if(event.isCancelled())
-			cir.setReturnValue(null);
+			ci.cancel();
 	}
 }

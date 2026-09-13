@@ -1,10 +1,13 @@
 package net.wurstclient.clickgui2;
 
+import net.minecraft.client.renderer.RenderType;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 
 public enum GuiIcon
 {
@@ -29,32 +32,39 @@ public enum GuiIcon
 
 	private static final int TEXTURE_SIZE = 64;
 
-	private final Identifier texture;
+	private final ResourceLocation texture;
 
 	GuiIcon(String name)
 	{
-		texture = Identifier.fromNamespaceAndPath("wurst", "textures/gui/icons/" + name
+		texture = ResourceLocation.fromNamespaceAndPath("wurst", "textures/gui/icons/" + name
 			+ ".png");
 	}
 
-	public void draw(GuiGraphicsExtractor graphics, int x, int y, int size, int color)
+	public void draw(GuiGraphics graphics, int x, int y, int size, int color)
 	{
-		graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, 0, 0, size,
-			size, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, color);
+		RenderSystem.setShaderColor((color >> 16 & 0xFF) / 255F,
+			(color >> 8 & 0xFF) / 255F, (color & 0xFF) / 255F,
+			(color >>> 24) / 255F);
+		graphics.blit(RenderType::guiTextured, texture, x, y, size, size, 0, 0, TEXTURE_SIZE,
+			TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 
-	public void drawRotated(GuiGraphicsExtractor graphics, int x, int y, int size,
+	public void drawRotated(GuiGraphics graphics, int x, int y, int size,
 		int color, float degrees)
 	{
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(x + size / 2F, y + size / 2F);
-		graphics.pose().rotate((float)Math.toRadians(degrees));
-		graphics.pose().translate(-x - size / 2F, -y - size / 2F);
+		graphics.pose().pushPose();
+		graphics.pose().translate(x + size / 2F, y + size / 2F, 0);
+		graphics.pose().mulPose(Axis.ZP.rotationDegrees(degrees));
+		graphics.pose().translate(-x - size / 2F, -y - size / 2F, 0);
 		draw(graphics, x, y, size, color);
-		graphics.pose().popMatrix();
+		graphics.pose().popPose();
 	}
 
 	public static void configureFiltering(Minecraft minecraft)
 	{
+		for(GuiIcon icon : values())
+			minecraft.getTextureManager().getTexture(icon.texture)
+				.setFilter(true, false);
 	}
 }

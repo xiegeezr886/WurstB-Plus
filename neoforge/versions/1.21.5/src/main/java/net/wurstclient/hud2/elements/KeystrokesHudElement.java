@@ -10,7 +10,7 @@ import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.events.MouseButtonListener;
@@ -93,7 +93,7 @@ public final class KeystrokesHudElement extends HudElement
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor graphics, int x, int y, float partialTicks)
+	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
 		float delta = getFrameDelta();
 		var options = WurstClient.MC.options;
@@ -129,20 +129,20 @@ public final class KeystrokesHudElement extends HudElement
 			x + halfWidth + GAP, rowMouse, WIDTH - halfWidth - GAP, delta);
 	}
 
-	private void drawKey(GuiGraphicsExtractor graphics, KeyMapping mapping, int x,
+	private void drawKey(GuiGraphics graphics, KeyMapping mapping, int x,
 		int y, int width, int height, float delta)
 	{
 		drawKey(graphics, shortLabel(mapping, width), mapping, x, y, width,
 			height, delta);
 	}
 
-	private void drawMouseKey(GuiGraphicsExtractor graphics, String label,
+	private void drawMouseKey(GuiGraphics graphics, String label,
 		KeyMapping mapping, int x, int y, int width, float delta)
 	{
 		drawKey(graphics, label, mapping, x, y, width, HALF_HEIGHT, delta);
 	}
 
-	private void drawKey(GuiGraphicsExtractor graphics, String label,
+	private void drawKey(GuiGraphics graphics, String label,
 		KeyMapping mapping, int x, int y, int width, int height, float delta)
 	{
 		float progress = updateAnimation(mapping, mapping.isDown(), delta);
@@ -159,7 +159,7 @@ public final class KeystrokesHudElement extends HudElement
 		Font font = WurstClient.MC.font;
 		int textX = x + (width - font.width(label)) / 2;
 		int textY = y + (height - font.lineHeight) / 2 + 1;
-		graphics.text(font, label, textX, textY, textColor, false);
+		graphics.drawString(font, label, textX, textY, textColor, false);
 	}
 
 	private String shortLabel(KeyMapping mapping, int width)

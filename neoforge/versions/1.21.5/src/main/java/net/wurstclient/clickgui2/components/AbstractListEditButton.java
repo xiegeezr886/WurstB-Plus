@@ -9,7 +9,7 @@ package net.wurstclient.clickgui2.components;
 
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
 import net.wurstclient.clickgui2.ClickGui;
@@ -44,7 +44,7 @@ public abstract class AbstractListEditButton extends Component
 	}
 	
 	@Override
-	public void render(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		int x1 = getX();
@@ -68,8 +68,8 @@ public abstract class AbstractListEditButton extends Component
 		
 		// text
 		int txtColor = GUI.getTxtColor();
-		context.text(TR, getText(), x1, y1 + 2, txtColor, false);
-		context.text(TR, buttonText, x3 + 2, y1 + 2, txtColor, false);
+		context.drawString(TR, getText(), x1, y1 + 2, txtColor, false);
+		context.drawString(TR, buttonText, x3 + 2, y1 + 2, txtColor, false);
 	}
 	
 	@Override

@@ -36,9 +36,9 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.TridentItem;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -714,7 +714,7 @@ public final class KillauraHack extends Hack
 	private boolean targetWouldBlock(Entity entity)
 	{
 		return entity instanceof Player player && player.isUsingItem()
-			&& player.getUseItem().getUseAnimation() == UseAnim.BLOCK;
+			&& player.getUseItem().getUseAnimation() == ItemUseAnimation.BLOCK;
 	}
 
 	private double getInteractionRange()
@@ -928,7 +928,7 @@ public final class KillauraHack extends Hack
 				yield true;
 			}
 			case CHANGE_SLOT -> {
-				int current = MC.player.getInventory().selected;
+				int current = MC.player.getInventory().getSelectedSlot();
 				MC.player.connection.send(
 					new ServerboundSetCarriedItemPacket((current + 1) % 9));
 				MC.player.connection.send(new ServerboundSetCarriedItemPacket(current));
@@ -958,7 +958,7 @@ public final class KillauraHack extends Hack
 	private boolean isBlocking()
 	{
 		return MC.player != null && MC.player.isUsingItem()
-			&& MC.player.getUseItem().getUseAnimation() == UseAnim.BLOCK;
+			&& MC.player.getUseItem().getUseAnimation() == ItemUseAnimation.BLOCK;
 	}
 
 	private InteractionHand findBlockableHand()
@@ -966,8 +966,8 @@ public final class KillauraHack extends Hack
 		for(InteractionHand hand : InteractionHand.values())
 		{
 			ItemStack stack = MC.player.getItemInHand(hand);
-			if(stack.getUseAnimation() == UseAnim.BLOCK
-				&& !MC.player.getCooldowns().isOnCooldown(stack.getItem()))
+			if(stack.getUseAnimation() == ItemUseAnimation.BLOCK
+				&& !MC.player.getCooldowns().isOnCooldown(stack))
 				return hand;
 		}
 		return null;
@@ -1034,7 +1034,7 @@ public final class KillauraHack extends Hack
 	private boolean isWeapon(ItemStack stack)
 	{
 		Item item = stack.getItem();
-		return item instanceof SwordItem || item instanceof AxeItem
+		return stack.has(DataComponents.WEAPON) || item instanceof AxeItem
 			|| item instanceof TridentItem
 			|| EnchantmentUtils.getLevel(Enchantments.KNOCKBACK, stack) > 0;
 	}
@@ -1067,7 +1067,7 @@ public final class KillauraHack extends Hack
 			return;
 		MC.player.connection.send(new PosRot(MC.player.getX(), MC.player.getY(),
 			MC.player.getZ(), rotation.yaw(), rotation.pitch(),
-			MC.player.onGround()));
+			MC.player.onGround(), false));
 	}
 
 	private void clearTracking()
@@ -1149,7 +1149,7 @@ public final class KillauraHack extends Hack
 			if(this != ALWAYS || target == null)
 				return true;
 			return !MC.player.onGround() && MC.player.fallDistance > 0
-				&& !MC.player.onClimbable() && !MC.player.isInWaterOrBubble()
+				&& !MC.player.onClimbable() && !MC.player.isInWater()
 				&& !MC.player.isInLava() && !MC.player.isPassenger()
 				&& !MC.player.isSprinting()
 				&& !MC.player.hasEffect(MobEffects.BLINDNESS);

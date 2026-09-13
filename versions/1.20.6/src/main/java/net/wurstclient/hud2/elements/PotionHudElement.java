@@ -51,7 +51,7 @@ public final class PotionHudElement extends HudElement
 		List<MobEffectInstance> effects = new ArrayList<>(
 			WurstClient.MC.player.getActiveEffects());
 		effects.sort(Comparator.comparing(
-			effect -> effect.getEffect().getDisplayName().getString()));
+			effect -> effect.getEffect().value().getDisplayName().getString()));
 		return effects.stream().map(this::format).toList();
 	}
 
@@ -61,8 +61,8 @@ public final class PotionHudElement extends HudElement
 			? " " + (effect.getAmplifier() + 1) : "";
 		int seconds = Math.max(0, effect.getDuration() / 20);
 		String duration = String.format("%d:%02d", seconds / 60, seconds % 60);
-		return effect.getEffect().getDisplayName().getString() + amplifier + " "
-			+ duration;
+		return effect.getEffect().value().getDisplayName().getString()
+			+ amplifier + " " + duration;
 	}
 
 	@Override

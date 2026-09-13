@@ -5,7 +5,6 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -45,13 +44,14 @@ final class RoundedRectRenderer
 
 		RenderState state = begin(graphics);
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES,
+		BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+		buffer.begin(VertexFormat.Mode.TRIANGLES,
 			DefaultVertexFormat.POSITION_COLOR);
 		Matrix4f pose = graphics.pose().last().pose();
 		addSolidFan(buffer, pose, 0, segments, color);
 		addColorStrip(buffer, pose, 0, 1, segments, color,
 			color & 0xFFFFFF);
-		BufferUploader.drawWithShader(buffer.buildOrThrow());
+		Tesselator.getInstance().end();
 		state.restore();
 	}
 
@@ -72,13 +72,14 @@ final class RoundedRectRenderer
 
 		RenderState state = begin(graphics);
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES,
+		BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+		buffer.begin(VertexFormat.Mode.TRIANGLES,
 			DefaultVertexFormat.POSITION_COLOR);
 		Matrix4f pose = graphics.pose().last().pose();
 		int transparent = color & 0xFFFFFF;
 		addColorStrip(buffer, pose, 0, 1, segments, transparent, color);
 		addColorStrip(buffer, pose, 1, 2, segments, color, transparent);
-		BufferUploader.drawWithShader(buffer.buildOrThrow());
+		Tesselator.getInstance().end();
 		state.restore();
 	}
 
@@ -145,7 +146,7 @@ final class RoundedRectRenderer
 	private static void addColorVertex(BufferBuilder buffer, Matrix4f pose,
 		float x, float y, int color)
 	{
-		buffer.addVertex(pose, x, y, 0).setColor(color);
+		buffer.vertex(pose, x, y, 0).color(color).endVertex();
 	}
 
 	private static void prepareContour(int contour, float x1, float y1,

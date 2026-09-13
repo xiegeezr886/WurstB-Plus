@@ -39,9 +39,9 @@ public final class AutoSwitchHack extends Hack implements UpdateListener
 	{
 		Inventory inventory = MC.player.getInventory();
 		
-		if(inventory.selected == 8)
-			inventory.selected = 0;
+		if(inventory.getSelectedSlot() == 8)
+			inventory.setSelectedSlot(0);
 		else
-			inventory.selected++;
+			inventory.setSelectedSlot(inventory.getSelectedSlot() + 1);
 	}
 }

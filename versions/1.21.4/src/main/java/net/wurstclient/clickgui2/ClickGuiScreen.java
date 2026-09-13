@@ -4,8 +4,6 @@
  */
 package net.wurstclient.clickgui2;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -17,14 +15,12 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -250,13 +246,9 @@ public final class ClickGuiScreen extends Screen
 		features.add(WURST.getOtfs().vanillaSpoofOtf);
 		return features;
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
 
-	private void renderContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	@Override
+	public void render(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		ClickGui gui = WURST.getGui();
@@ -269,7 +261,7 @@ public final class ClickGuiScreen extends Screen
 				searchBox.getY() + searchBox.getHeight() + 2, 2, gui.getTheme(),
 				searchBox.isFocused() ? 1 : 0, false);
 			searchBox.setTextColor(gui.getTheme().text());
-			searchBox.render(graphics.getInner(), mouseX, mouseY, partialTicks);
+			searchBox.render(graphics, mouseX, mouseY, partialTicks);
 		}
 
 		for(TemplateWindow window : windows)
@@ -278,11 +270,8 @@ public final class ClickGuiScreen extends Screen
 	}
 
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
-		int button = context.button();
 		ClickGui gui = WURST.getGui();
 		boolean overSettings = gui.isMouseOverWindow(mouseX, mouseY);
 		gui.handleMouseClick((int)mouseX, (int)mouseY, button);
@@ -313,18 +302,15 @@ public final class ClickGuiScreen extends Screen
 			}
 			return true;
 		}
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseDragged(MouseButtonEvent context, double dragX,
-		double dragY)
+	public boolean mouseDragged(double mouseX, double mouseY, int button,
+		double dragX, double dragY)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
-		int button = context.button();
 		if(button != GLFW.GLFW_MOUSE_BUTTON_LEFT || draggedWindow == null)
-			return super.mouseDragged(context, dragX, dragY);
+			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 		dragMoved |= Math.abs(mouseX - pressX) > 2
 			|| Math.abs(mouseY - pressY) > 2;
 		draggedWindow.moveTo((int)mouseX - dragOffsetX,
@@ -333,11 +319,8 @@ public final class ClickGuiScreen extends Screen
 	}
 
 	@Override
-	public boolean mouseReleased(MouseButtonEvent context)
+	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
-		int button = context.button();
 		WURST.getGui().handleMouseRelease(mouseX, mouseY, button);
 		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT && draggedWindow != null)
 		{
@@ -346,7 +329,7 @@ public final class ClickGuiScreen extends Screen
 			draggedWindow = null;
 			return true;
 		}
-		return super.mouseReleased(context);
+		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
 	@Override
@@ -366,10 +349,8 @@ public final class ClickGuiScreen extends Screen
 	}
 
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		int keyCode = context.key();
-		int modifiers = context.modifiers();
 		if(bindingFeature != null)
 		{
 			Feature feature = bindingFeature;
@@ -385,7 +366,7 @@ public final class ClickGuiScreen extends Screen
 				WURST.getKeybinds().unbindCommand(command);
 			else
 				WURST.getKeybinds().bindCommand(
-					InputConstants.getKey(context).getName(), command);
+					InputConstants.getKey(keyCode, scanCode).getName(), command);
 			return true;
 		}
 		if(keyCode == GLFW.GLFW_KEY_F
@@ -414,7 +395,7 @@ public final class ClickGuiScreen extends Screen
 			onClose();
 			return true;
 		}
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	private String getKeyLabel(Feature feature)
@@ -514,7 +495,7 @@ public final class ClickGuiScreen extends Screen
 
 		protected abstract int rowCount();
 
-		protected abstract void renderRow(GuiGraphicsExtractor graphics, int rowIndex,
+		protected abstract void renderRow(GuiGraphics graphics, int rowIndex,
 			int rowY, boolean hovering);
 
 		protected abstract boolean clickRow(int rowIndex, int visualRow,
@@ -605,7 +586,7 @@ public final class ClickGuiScreen extends Screen
 			return true;
 		}
 
-		protected void fillRow(GuiGraphicsExtractor graphics, int index, int rowY,
+		protected void fillRow(GuiGraphics graphics, int index, int rowY,
 			int color)
 		{
 			int rowBottom = rowY + ROW_HEIGHT - 1;
@@ -614,7 +595,7 @@ public final class ClickGuiScreen extends Screen
 		}
 
 		@Override
-		public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+		public void render(GuiGraphics graphics, int mouseX, int mouseY,
 			float partialTicks)
 		{
 			if(!visible)
@@ -622,17 +603,17 @@ public final class ClickGuiScreen extends Screen
 			updateHeight();
 			selected = isTopVisibleWindow(this);
 			boolean headerHover = isHeaderOver(mouseX, mouseY);
-			FlatRenderer.fillRoundedRect(graphics, x1, y1, x2, y2, 5,
+			FlatRenderer.fillRoundedRect(graphics, x1, y1, x2, y2, 3,
 				headerHover ? BORDER_HOVER : BORDER);
 			FlatRenderer.fillRoundedRect(graphics, x1 + 1, y1 + 1, x2 - 1,
-				y2 - 1, 4, WINDOW_FILL);
+				y2 - 1, 2, WINDOW_FILL);
 			FlatRenderer.fillRoundedRect(graphics, x1 + 1, y1 + 1, x2 - 1,
-				y1 + HEADER_HEIGHT - 1, 4, HEADER_FILL);
+				y1 + HEADER_HEIGHT - 1, 2, HEADER_FILL);
 			if(open)
 				graphics.fill(x1 + 1, y1 + HEADER_HEIGHT / 2, x2 - 1,
 					y1 + HEADER_HEIGHT - 1, HEADER_FILL);
 			graphics.fill(x1 + 1, y1 + HEADER_HEIGHT - 1, x2 - 1,
-				y1 + HEADER_HEIGHT, ROW_FILL);
+				y1 + HEADER_HEIGHT, BORDER);
 			Font font = MC.font;
 			int titleY = y1 + 3;
 			icon.draw(graphics, x1 + 4, y1 + 3, 8, accentColor());
@@ -677,7 +658,7 @@ public final class ClickGuiScreen extends Screen
 		}
 
 		@Override
-		public void renderRow(GuiGraphicsExtractor graphics, int index, int rowY,
+		protected void renderRow(GuiGraphics graphics, int index, int rowY,
 			boolean hovering)
 		{
 			Feature feature = features.get(index);
@@ -764,7 +745,7 @@ public final class ClickGuiScreen extends Screen
 		}
 
 		@Override
-		public void renderRow(GuiGraphicsExtractor graphics, int index, int rowY,
+		protected void renderRow(GuiGraphics graphics, int index, int rowY,
 			boolean hovering)
 		{
 			PanelRow row = rows().get(index);
@@ -1090,15 +1071,15 @@ public final class ClickGuiScreen extends Screen
 			? name.substring(0, name.length() - 5) : name;
 	}
 
-	private static void drawText(GuiGraphicsExtractor graphics, Font font, String text,
+	private static void drawText(GuiGraphics graphics, Font font, String text,
 		int x, int y, int color)
 	{
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(x, y);
-		graphics.pose().scale(TEXT_SCALE, TEXT_SCALE);
-		graphics.text(font,
+		graphics.pose().pushPose();
+		graphics.pose().translate(x, y, 0);
+		graphics.pose().scale(TEXT_SCALE, TEXT_SCALE, 1);
+		graphics.drawString(font,
 			WURST.getGuiPreferences().styleText(text), 0, 0, color, false);
-		graphics.pose().popMatrix();
+		graphics.pose().popPose();
 	}
 
 	private int accentColor()

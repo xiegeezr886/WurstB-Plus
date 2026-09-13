@@ -74,13 +74,15 @@ public final class FastUseHack extends Hack implements UpdateListener
 						.getItem() == Items.EXPERIENCE_BOTTLE)))
 			return;
 
-		MC.rightClickDelay = 0;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC)
+			.setRightClickDelay(0);
 
 		if(mode.getSelected() == Mode.MULTI
 			&& MC.options.keyUse.isDown())
 		{
 			for(int i = 0; i < multiCount.getValueI(); i++)
-				MC.startUseItem();
+				((net.wurstclient.mixin.MinecraftAccessor)(Object)MC)
+					.invokeStartUseItem();
 		}
 	}
 

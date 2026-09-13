@@ -12,8 +12,8 @@ import java.awt.Color;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Options;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
@@ -118,7 +118,7 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		LocalPlayer player = MC.player;
 		if(player == null)
 			return;
-
+		
 		player.setDeltaMovement(Vec3.ZERO);
 		player.getAbilities().flying = false;
 		
@@ -127,8 +127,8 @@ public final class FreecamHack extends Hack implements UpdateListener,
 			prevCamPos = camPos;
 			return;
 		}
-
-		Vec2 moveVector = MovementPlanner.getMoveVector(player.input);
+		
+		Vec2 moveVector = player.input.getMoveVector();
 		double yawRad = Math.toRadians(camYaw);
 		double sinYaw = Math.sin(yawRad);
 		double cosYaw = Math.cos(yawRad);
@@ -139,7 +139,7 @@ public final class FreecamHack extends Hack implements UpdateListener,
 			offsetY += 1;
 		if(MC.options.keyShift.isDown())
 			offsetY -= 1;
-
+		
 		prevCamPos = camPos;
 		camPos = camPos.add(new Vec3(offsetX, offsetY, offsetZ)
 			.scale(speed.getValue()));
@@ -157,27 +157,27 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		if(event.getPacket() instanceof ServerboundMovePlayerPacket)
 			event.cancel();
 	}
-
+	
 	public boolean isControllingScrollEvents()
 	{
 		return false;
 	}
-
+	
 	public boolean isMovingCamera()
 	{
 		return isEnabled();
 	}
-
+	
 	public boolean isClickingFromCamera()
 	{
 		return isEnabled();
 	}
-
+	
 	public boolean shouldHideHand()
 	{
 		return isEnabled();
 	}
-
+	
 	public Vec3 getCamPos(float partialTicks)
 	{
 		if(prevCamPos == null || camPos == null)
@@ -185,24 +185,24 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		
 		return Mth.lerp(partialTicks, prevCamPos, camPos);
 	}
-
+	
 	public void turn(double deltaYaw, double deltaPitch)
 	{
 		camYaw += (float)(deltaYaw * 0.15);
 		camPitch += (float)(deltaPitch * 0.15);
 		camPitch = Mth.clamp(camPitch, -90, 90);
 	}
-
+	
 	public float getCamYaw()
 	{
 		return camYaw;
 	}
-
+	
 	public float getCamPitch()
 	{
 		return camPitch;
 	}
-
+	
 	public Vec3 getScaledCamDir(double scale)
 	{
 		return Vec3.directionFromRotation(camPitch, camYaw).scale(scale);

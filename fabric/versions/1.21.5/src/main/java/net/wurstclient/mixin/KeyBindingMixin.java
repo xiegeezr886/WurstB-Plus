@@ -58,7 +58,9 @@ public abstract class KeyBindingMixin implements IKeyBinding
 			break;
 			
 			case MOUSE:
-			mc.mouseHandler.onPress(window, key.getValue(), action, 0);
+			// MouseHandler.onPress() is private in 1.21.5; fall back to
+			// flipping the key state directly.
+			setDown(pressed);
 			break;
 			
 			default:

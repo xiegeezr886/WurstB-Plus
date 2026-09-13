@@ -14,14 +14,13 @@ import org.joml.Matrix4f;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
+import net.wurstclient.WurstRenderLayers;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -108,11 +107,6 @@ public final class BreadcrumbsHack extends Hack
 		float g = ((argb >> 8) & 0xFF) / 255F;
 		float b = (argb & 0xFF) / 255F;
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableDepthTest();
-		RenderSystem.depthMask(false);
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		try
 		{
 			Tesselator tess = Tesselator.getInstance();
@@ -135,13 +129,10 @@ public final class BreadcrumbsHack extends Hack
 
 			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
 			if(rendered != null)
-				BufferUploader.drawWithShader(rendered);
+				WurstRenderLayers.ESP_DEBUG_LINE_STRIP.draw(rendered);
 		}finally
 		{
-			RenderSystem.depthMask(true);
-			RenderSystem.enableDepthTest();
 			RenderSystem.lineWidth(1);
-			RenderSystem.disableBlend();
 		}
 	}
 }

@@ -15,9 +15,8 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.SpawnPlacementType;
 import net.minecraft.world.entity.SpawnPlacements;
@@ -125,7 +124,7 @@ public final class MobSpawnEspHack extends Hack
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
-		RenderUtils.setShaderColor(new float[]{1, 1, 1}, opacity.getValueF());
+		RenderSystem.setShaderColor(1, 1, 1, opacity.getValueF());
 		RenderType layer = WurstRenderLayers.getLines(depthTest.isChecked());
 		
 		for(Entry<ChunkPos, EasyVertexBuffer> entry : coordinator.getBuffers())
@@ -139,7 +138,8 @@ public final class MobSpawnEspHack extends Hack
 			
 			matrixStack.popPose();
 		}
-		// Shader color managed by render pipeline
+		
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 	
 	private boolean isSpawnable(BlockPos pos, BlockState state)
@@ -184,9 +184,9 @@ public final class MobSpawnEspHack extends Hack
 		int color = MC.level.getBrightness(LightLayer.SKY, pos) < 8
 			? cachedDayColor : cachedNightColor;
 		
-		buffer.addVertex(x1, y, z1).setColor(color).setNormal(1, 0, 1).setLineWidth(2);
-		buffer.addVertex(x2, y, z2).setColor(color).setNormal(1, 0, 1).setLineWidth(2);
-		buffer.addVertex(x2, y, z1).setColor(color).setNormal(-1, 0, 1).setLineWidth(2);
-		buffer.addVertex(x1, y, z2).setColor(color).setNormal(-1, 0, 1).setLineWidth(2);
+		buffer.addVertex(x1, y, z1).setColor(color).setNormal(1, 0, 1);
+		buffer.addVertex(x2, y, z2).setColor(color).setNormal(1, 0, 1);
+		buffer.addVertex(x2, y, z1).setColor(color).setNormal(-1, 0, 1);
+		buffer.addVertex(x1, y, z2).setColor(color).setNormal(-1, 0, 1);
 	}
 }

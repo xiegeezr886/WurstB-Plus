@@ -127,9 +127,10 @@ public final class AutoFishRodSelector
 		if(stack.isEmpty() || !(stack.getItem() instanceof FishingRodItem))
 			return -1;
 		
-		int luckOTSLvl =
-			EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FISHING_LUCK, stack);
-		int lureLvl = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FISHING_SPEED, stack);
+		int luckOTSLvl = EnchantmentHelper
+			.getItemEnchantmentLevel(Enchantments.LUCK_OF_THE_SEA, stack);
+		int lureLvl = EnchantmentHelper
+			.getItemEnchantmentLevel(Enchantments.LURE, stack);
 		int unbreakingLvl =
 			EnchantmentHelper.getItemEnchantmentLevel(Enchantments.UNBREAKING, stack);
 		int mendingBonus =

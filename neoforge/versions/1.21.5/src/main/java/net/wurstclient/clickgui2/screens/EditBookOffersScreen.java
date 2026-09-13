@@ -7,25 +7,21 @@
  */
 package net.wurstclient.clickgui2.screens;
 
-import net.minecraft.client.gui.GuiGraphics;
-
-import org.joml.Matrix3x2fStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.List;
 import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -100,40 +96,40 @@ public final class EditBookOffersScreen extends Screen
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton)
 	{
-		boolean childClicked = super.mouseClicked(context, doubleClick);
+		boolean childClicked = super.mouseClicked(mouseX, mouseY, mouseButton);
 		
-		if(context.button() == GLFW.GLFW_MOUSE_BUTTON_4)
-			doneButton.onPress(context);
+		if(mouseButton == GLFW.GLFW_MOUSE_BUTTON_4)
+			doneButton.onPress();
 		
 		return childClicked;
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int int_3)
 	{
-		switch(context.key())
+		switch(keyCode)
 		{
 			case GLFW.GLFW_KEY_ENTER:
 			if(editButton.active)
-				editButton.onPress(context);
+				editButton.onPress();
 			break;
 			
 			case GLFW.GLFW_KEY_DELETE:
-			removeButton.onPress(context);
+			removeButton.onPress();
 			break;
 			
 			case GLFW.GLFW_KEY_ESCAPE:
 			case GLFW.GLFW_KEY_BACKSPACE:
-			doneButton.onPress(context);
+			doneButton.onPress();
 			break;
 			
 			default:
 			break;
 		}
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, int_3);
 	}
 	
 	@Override
@@ -143,28 +139,24 @@ public final class EditBookOffersScreen extends Screen
 		editButton.active = selected;
 		removeButton.active = selected;
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		Matrix3x2fStack matrixStack = context.pose();
-		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
+		PoseStack matrixStack = context.pose();
+		listGui.render(context, mouseX, mouseY, partialTicks);
 		
-		matrixStack.pushMatrix();
-		matrixStack.translate(0, 0);
+		matrixStack.pushPose();
+		matrixStack.translate(0, 0, 300);
 		
-		context.centeredText(minecraft.font,
+		context.drawCenteredString(minecraft.font,
 			bookOffers.getName() + " (" + bookOffers.getOffers().size() + ")",
-			width / 2, 12, 0xFFFFFFFF);
+			width / 2, 12, 0xFFFFFF);
 		
-		super.render(context.getInner(), mouseX, mouseY, partialTicks);
+		super.render(context, mouseX, mouseY, partialTicks);
 		
-		matrixStack.popMatrix();
+		matrixStack.popPose();
 	}
 	
 	@Override
@@ -198,24 +190,17 @@ public final class EditBookOffersScreen extends Screen
 		}
 		
 		@Override
-		public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+		public boolean mouseClicked(double mouseX, double mouseY, int button)
 		{
-			return context.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT;
+			return button == GLFW.GLFW_MOUSE_BUTTON_LEFT;
 		}
-@Override
-		public void renderContent(GuiGraphics graphics, int mouseX, int mouseY,
-			boolean hovered, float partialTicks)
+		
+		@Override
+		public void render(GuiGraphics context, int index, int y, int x,
+			int entryWidth, int entryHeight, int mouseX, int mouseY,
+			boolean hovered, float tickDelta)
 		{
-			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
-				hovered, partialTicks);
-		}
-
-		public void extractContent(GuiGraphicsExtractor context, int mouseX,
-			int mouseY, boolean hovered, float tickDelta)
-		{
-			int x = getContentX();
-			int y = getContentY();
-			Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse("enchanted_book"));
+			Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse("enchanted_book"));
 			ItemStack stack = new ItemStack(item);
 			RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
 			
@@ -224,14 +209,14 @@ public final class EditBookOffersScreen extends Screen
 			
 			Holder<Enchantment> enchantment = bookOffer.getEnchantment();
 			int nameColor = enchantment.is(EnchantmentTags.CURSE)
-				? 0xFFFF5555 : 0xFFF0F0F0;
-			context.text(tr, name, x + 28, y, nameColor, false);
+				? 0xFF5555 : 0xF0F0F0;
+			context.drawString(tr, name, x + 28, y, nameColor, false);
 			
-			context.text(tr, bookOffer.id(), x + 28, y + 9, 0xFFA0A0A0,
+			context.drawString(tr, bookOffer.id(), x + 28, y + 9, 0xA0A0A0,
 				false);
 			
 			String price = getPriceText();
-			context.text(tr, price, x + 28, y + 18, 0xFFA0A0A0, false);
+			context.drawString(tr, price, x + 28, y + 18, 0xA0A0A0, false);
 			
 			if(bookOffer.price() < 64)
 				RenderUtils.drawItem(context, new ItemStack(Items.EMERALD),

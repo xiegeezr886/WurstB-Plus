@@ -10,7 +10,7 @@ package net.wurstclient.hacks;
 import java.util.Map;
 import java.util.UUID;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.BossEvent;
 import net.wurstclient.Category;
@@ -41,7 +41,7 @@ public final class BossStackHack extends Hack implements GUIRenderListener
 	}
 
 	@Override
-	public void onRenderGUI(GuiGraphicsExtractor graphics, float partialTicks)
+	public void onRenderGUI(GuiGraphics graphics, float partialTicks)
 	{
 		Map<UUID, ? extends BossEvent> events = ((IBossHealthOverlay)MC.gui
 			.getBossOverlay()).wurst_getEvents();
@@ -64,7 +64,7 @@ public final class BossStackHack extends Hack implements GUIRenderListener
 				x + 1 + (int)(180 * progress), y + barHeight - 1,
 				0xFF006366);
 
-			graphics.centeredText(MC.font, name.getString(),
+			graphics.drawCenteredString(MC.font, name.getString(),
 				screenWidth / 2, y + 2, 0xFFFFFFFF);
 
 			y += barHeight + 2;

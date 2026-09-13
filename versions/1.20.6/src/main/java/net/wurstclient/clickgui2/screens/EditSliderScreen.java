@@ -87,14 +87,14 @@ public final class EditSliderScreen extends Screen
 	@Override
 	public void tick()
 	{
-		valueField.tick();
+
 	}
 	
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		context.drawCenteredString(minecraft.font,
 			slider.getName(), width / 2, 20, 0xFFFFFF);
 		

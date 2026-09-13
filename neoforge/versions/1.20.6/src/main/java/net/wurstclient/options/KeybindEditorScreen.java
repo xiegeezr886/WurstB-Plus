@@ -7,7 +7,6 @@
  */
 package net.wurstclient.options;
 
-
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -93,7 +92,6 @@ public final class KeybindEditorScreen extends Screen
 	{
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

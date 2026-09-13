@@ -98,10 +98,10 @@ public final class AutoSoupHack extends Hack implements UpdateListener
 			
 			// save old slot
 			if(oldSlot == -1)
-				oldSlot = MC.player.getInventory().selected;
+				oldSlot = MC.player.getInventory().getSelectedSlot();
 			
 			// set slot
-			MC.player.getInventory().selected = soupInHotbar;
+			MC.player.getInventory().setSelectedSlot(soupInHotbar);
 			
 			// eat soup
 			MC.options.keyUse.setDown(true);
@@ -184,7 +184,7 @@ public final class AutoSoupHack extends Hack implements UpdateListener
 		MC.options.keyUse.setDown(false);
 		
 		// reset slot
-		MC.player.getInventory().selected = oldSlot;
+		MC.player.getInventory().setSelectedSlot(oldSlot);
 		oldSlot = -1;
 	}
 }

@@ -2,7 +2,7 @@ package net.wurstclient.clickgui2;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
@@ -57,7 +57,7 @@ final class NavigatorSettingsPanel extends Window
 		validate();
 	}
 
-	void renderContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	void renderContent(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks, FlatTheme theme)
 	{
 		prepareForRender();
@@ -68,12 +68,12 @@ final class NavigatorSettingsPanel extends Window
 
 		graphics.enableScissor(bodyX, bodyY, bodyX + bodyWidth,
 			bodyY + bodyHeight);
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(bodyX, bodyY + scroll);
+		graphics.pose().pushPose();
+		graphics.pose().translate(bodyX, bodyY + scroll, 0);
 		for(int index = 0; index < countChildren(); index++)
 			getChild(index).render(graphics, localMouseX, localMouseY,
 				partialTicks);
-		graphics.pose().popMatrix();
+		graphics.pose().popPose();
 		graphics.disableScissor();
 
 		renderScrollbar(graphics, theme);
@@ -147,7 +147,7 @@ final class NavigatorSettingsPanel extends Window
 		add(component);
 	}
 
-	private void renderScrollbar(GuiGraphicsExtractor graphics, FlatTheme theme)
+	private void renderScrollbar(GuiGraphics graphics, FlatTheme theme)
 	{
 		if(!isScrollingEnabled())
 			return;

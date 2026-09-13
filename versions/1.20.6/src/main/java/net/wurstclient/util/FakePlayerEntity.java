@@ -84,7 +84,7 @@ public class FakePlayerEntity extends RemotePlayer
 	
 	private void spawn()
 	{
-		world.putNonPlayerEntity(getId(), this);
+		world.addEntity(this);
 	}
 	
 	public void despawn()

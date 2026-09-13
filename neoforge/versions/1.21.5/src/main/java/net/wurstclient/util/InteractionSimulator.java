@@ -118,8 +118,7 @@ public enum InteractionSimulator
 			MC.gameMode.useItemOn(MC.player, hand, hitResult);
 		
 		// swing hand and reset equip animation
-		if(result instanceof InteractionResult.Success success
-			&& success.swingSource() != InteractionResult.SwingSource.NONE)
+		if((result instanceof InteractionResult.Success success && success.swingSource() == InteractionResult.SwingSource.CLIENT))
 		{
 			swing.swing(hand);
 			
@@ -150,8 +149,7 @@ public enum InteractionSimulator
 			MC.gameMode.useItem(MC.player, hand);
 		
 		// swing hand
-		if(result instanceof InteractionResult.Success success
-			&& success.swingSource() != InteractionResult.SwingSource.NONE)
+		if((result instanceof InteractionResult.Success success && success.swingSource() == InteractionResult.SwingSource.CLIENT))
 			swing.swing(hand);
 		
 		// reset equip animation

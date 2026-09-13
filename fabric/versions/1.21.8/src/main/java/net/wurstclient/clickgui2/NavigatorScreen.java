@@ -13,8 +13,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.wurstclient.Category;
@@ -153,10 +151,10 @@ public final class NavigatorScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		updateDimensions();
@@ -341,11 +339,8 @@ public final class NavigatorScreen extends Screen
 	}
 
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
-		int button = context.button();
 		ClickGui gui = WURST.getGui();
 		boolean overPopup = gui.isMouseOverWindow(mouseX, mouseY);
 		gui.handleMouseClick((int)mouseX, (int)mouseY, button);
@@ -355,7 +350,7 @@ public final class NavigatorScreen extends Screen
 		if(searchBox.visible && inside(mouseX, mouseY, searchBox.getX() - 12,
 			searchBox.getY() - 3, searchBox.getX() + searchBox.getWidth() + 3,
 			searchBox.getY() + searchBox.getHeight() + 3))
-			return super.mouseClicked(context, doubleClick);
+			return super.mouseClicked(mouseX, mouseY, button);
 
 		int category = categoryAt(mouseX, mouseY);
 		if(category >= 0)
@@ -440,18 +435,14 @@ public final class NavigatorScreen extends Screen
 			dragOffsetY = (int)mouseY - panelY;
 			return true;
 		}
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseDragged(MouseButtonEvent context, double dragX,
-		double dragY)
+	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
-		int button = context.button();
 		if(button != GLFW.GLFW_MOUSE_BUTTON_LEFT)
-			return super.mouseDragged(context, dragX, dragY);
+			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 
 		if(scrollbarDragging)
 		{
@@ -474,7 +465,7 @@ public final class NavigatorScreen extends Screen
 		}
 
 		if(!dragging)
-			return super.mouseDragged(context, dragX, dragY);
+			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 		panelX = Mth.clamp((int)mouseX - dragOffsetX, 0,
 			Math.max(0, width - panelWidth));
 		panelY = Mth.clamp((int)mouseY - dragOffsetY, 0,
@@ -483,18 +474,15 @@ public final class NavigatorScreen extends Screen
 	}
 
 	@Override
-	public boolean mouseReleased(MouseButtonEvent context)
+	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
-		int button = context.button();
 		WURST.getGui().handleMouseRelease(mouseX, mouseY, button);
 		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
 		{
 			dragging = false;
 			scrollbarDragging = false;
 		}
-		return super.mouseReleased(context);
+		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
 	@Override
@@ -527,14 +515,14 @@ public final class NavigatorScreen extends Screen
 	}
 
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ESCAPE)
+		if(keyCode == GLFW.GLFW_KEY_ESCAPE)
 		{
 			onClose();
 			return true;
 		}
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	@Override

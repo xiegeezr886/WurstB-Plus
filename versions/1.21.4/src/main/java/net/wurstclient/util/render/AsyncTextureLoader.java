@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 import com.mojang.blaze3d.platform.NativeImage;
 
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.WurstClient;
 
 public final class AsyncTextureLoader
@@ -27,8 +27,8 @@ public final class AsyncTextureLoader
 
 	private AsyncTextureLoader() {}
 
-	public static CompletableFuture<Identifier> load(Path file,
-		Identifier location)
+	public static CompletableFuture<ResourceLocation> load(Path file,
+		ResourceLocation location)
 	{
 		CompletableFuture<NativeImage> decoded = CompletableFuture.supplyAsync(() -> {
 			try
@@ -39,7 +39,7 @@ public final class AsyncTextureLoader
 				throw new RuntimeException(e);
 			}
 		}, DECODER);
-		CompletableFuture<Identifier> result = new CompletableFuture<>();
+		CompletableFuture<ResourceLocation> result = new CompletableFuture<>();
 		decoded.whenComplete((image, error) -> {
 			if(error != null)
 			{
@@ -50,7 +50,7 @@ public final class AsyncTextureLoader
 				try
 				{
 					WurstClient.MC.getTextureManager().register(location,
-						new DynamicTexture(() -> location.toString(), image));
+						new DynamicTexture(image));
 					result.complete(location);
 				}catch(Throwable uploadError)
 				{

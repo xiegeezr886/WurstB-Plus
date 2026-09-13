@@ -73,7 +73,7 @@ public final class GiveCmd extends Command
 		if(nbt != null)
 			try
 			{
-				CompoundTag tag = TagParser.parseCompoundFully(nbt);
+				CompoundTag tag = TagParser.parseTag(nbt);
 				stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 				
 			}catch(CommandSyntaxException e)

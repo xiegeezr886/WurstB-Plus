@@ -10,7 +10,7 @@ package net.wurstclient.clickgui2.components;
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.clickgui2.ClickGuiIcons;
@@ -65,7 +65,7 @@ public final class CheckboxComponent extends Component
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		int x1 = getX();
@@ -96,12 +96,12 @@ public final class CheckboxComponent extends Component
 		float scale = 0.75F;
 		String trimmedName = TR.plainSubstrByWidth(name,
 			Math.round((textRight - x3 - 4) / scale));
-		context.pose().pushMatrix();
-		context.pose().scale(scale, scale);
-		context.text(TR, trimmedName,
+		context.pose().pushPose();
+		context.pose().scale(scale, scale, 1);
+		context.drawString(TR, trimmedName,
 			Math.round((x3 + 2) / scale),
 			Math.round((y1 + 2) / scale), GUI.getTxtColor(), false);
-		context.pose().popMatrix();
+		context.pose().popPose();
 
 		if(hasChildren)
 		{
@@ -109,7 +109,7 @@ public final class CheckboxComponent extends Component
 			int arrowColor = mouseX >= arrowX && hovering
 				? 0xFFFFFFFF : 0xFF888888;
 			String arrow = setting.isExpanded() ? "\u25BC" : "\u25B6";
-			context.centeredText(TR, arrow, arrowX + 3, y1 + 2, arrowColor);
+			context.drawCenteredString(TR, arrow, arrowX + 3, y1 + 2, arrowColor);
 		}
 	}
 

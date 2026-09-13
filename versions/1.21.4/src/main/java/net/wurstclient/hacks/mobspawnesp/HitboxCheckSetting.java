@@ -11,7 +11,6 @@ import java.util.function.Function;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntityType;
 import net.wurstclient.WurstClient;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.util.text.WText;

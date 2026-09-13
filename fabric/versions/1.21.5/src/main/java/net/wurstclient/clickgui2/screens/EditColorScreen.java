@@ -19,6 +19,7 @@ import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -180,7 +181,7 @@ public final class EditColorScreen extends Screen
 		int fh = paletteHeight;
 		float u = 0;
 		float v = 0;
-		context.blit(paletteIdentifier, x, y, u, v, w, h, fw, fh);
+		context.blit(RenderType::guiTextured, paletteIdentifier, x, y, u, v, w, h, fw, fh);
 		
 		// RGB letters
 		context.drawString(tr, "#", fieldsX - 3 - tr.width("#"), fieldsY + 6,

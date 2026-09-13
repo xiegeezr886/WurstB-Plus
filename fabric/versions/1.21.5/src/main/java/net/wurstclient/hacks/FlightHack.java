@@ -115,8 +115,8 @@ public final class FlightHack extends Hack implements UpdateListener
 		trackPlayer(player);
 
 		player.getAbilities().flying = false;
-		float forward = player.input.forwardImpulse;
-		float sideways = player.input.leftImpulse;
+		float forward = player.input.getMoveVector().y;
+		float sideways = player.input.getMoveVector().x;
 		double horizontal = horizontalSpeed.getValue();
 		if(slowSneaking.isChecked() && MC.options.keyShift.isDown())
 			horizontal *= 0.3;

@@ -3,7 +3,7 @@ package net.wurstclient.util;
 import java.util.List;
 
 import net.neoforged.fml.ModList;
-import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLLoader;
 
 public enum PlatformUtils
 {
@@ -29,6 +29,6 @@ public enum PlatformUtils
 
 	public static boolean isDevelopmentEnvironment()
 	{
-		return !FMLEnvironment.isProduction();
+		return !FMLLoader.isProduction();
 	}
 }

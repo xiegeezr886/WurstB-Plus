@@ -7,10 +7,17 @@
  */
 package net.wurstclient.hacks;
 
+import net.minecraft.client.renderer.CoreShaders;
+
 import org.joml.Matrix4f;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.client.renderer.GameRenderer;
@@ -18,11 +25,9 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.WurstRenderLayers;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.SliderSetting;
-import net.wurstclient.util.RenderUtils;
 
 @SearchTags({"light overlay", "spawn", "safe"})
 public final class LightOverlayHack extends Hack implements RenderListener
@@ -50,22 +55,31 @@ public final class LightOverlayHack extends Hack implements RenderListener
 	}
 
 	@Override
-	public void onRender(PoseStack PoseStack, float partialTicks)
+	public void onRender(PoseStack poseStack, float partialTicks)
 	{
 		if(MC.level == null || MC.player == null)
 			return;
 
-		Vec3 cam = MC.gameRenderer.getMainCamera().position();
-		Matrix4f matrix = PoseStack.last().pose();
+		Vec3 cam = MC.gameRenderer.getMainCamera().getPosition();
+		Matrix4f matrix = poseStack.last().pose();
 		int r = (int)range.getValueI();
 
-		RenderUtils.submit(PoseStack, WurstRenderLayers.getQuads(true), buf -> {
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.disableDepthTest();
+		RenderSystem.depthMask(false);
+		RenderSystem.setShader(CoreShaders.POSITION_COLOR);
+		try
+		{
+			Tesselator tess = Tesselator.getInstance();
+			BufferBuilder buf = tess.begin(VertexFormat.Mode.QUADS,
+				DefaultVertexFormat.POSITION_COLOR);
+
 			for(int x = -r; x <= r; x++)
 				for(int z = -r; z <= r; z++)
 				{
-					BlockPos pos =
-						MC.player.blockPosition().offset(x, -1, z);
-					while(pos.getY() > MC.level.getMinY() * 16
+					BlockPos pos = MC.player.blockPosition().offset(x, -1, z);
+					while(pos.getY() > MC.level.getMinY()
 						&& !MC.level.getBlockState(pos).isSolid())
 						pos = pos.below();
 
@@ -76,8 +90,7 @@ public final class LightOverlayHack extends Hack implements RenderListener
 
 					float alpha = (8 - light) / 16F;
 					float px = (float)(pos.getX() - cam.x);
-					float py =
-						(float)(pos.above().getY() - cam.y + 0.01);
+					float py = (float)(pos.above().getY() - cam.y + 0.01);
 					float pz = (float)(pos.getZ() - cam.z);
 					float s = 0.5F;
 
@@ -90,6 +103,15 @@ public final class LightOverlayHack extends Hack implements RenderListener
 					buf.addVertex(matrix, px + s, py, pz - s)
 						.setColor(1, 1, 0, alpha);
 				}
-		});
+
+			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
+			if(rendered != null)
+				BufferUploader.drawWithShader(rendered);
+		}finally
+		{
+			RenderSystem.depthMask(true);
+			RenderSystem.enableDepthTest();
+			RenderSystem.disableBlend();
+		}
 	}
 }

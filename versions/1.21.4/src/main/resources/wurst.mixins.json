@@ -9,7 +9,6 @@
   "client": [
     "AbstractSignEditScreenMixin",
     "AllowedAddressResolverMixin",
-    "AtmosphericFogEnvironmentMixin",
     "BlockEntityRenderDispatcherMixin",
     "BlockMixin",
     "BossHealthOverlayMixin",
@@ -39,7 +38,6 @@
     "GameRendererMixin",
     "GenericContainerScreenMixin",
     "HeldItemRendererMixin",
-    "FogRendererMixin",
     "noshieldoverlay.ItemInHandRendererMixin",
     "GuiMixin",
     "ScreenEffectRendererMixin",
@@ -68,12 +66,20 @@
     "SodiumBlockOcclusionCacheMixin",
     "SodiumFluidRendererMixin",
     "StatsScreenMixin",
-    "SubmitNodeCollectionMixin",
     "TelemetryManagerMixin",
     "TextVisitFactoryMixin",
     "TitleScreenMixin",
     "WorldMixin",
-    "LevelRendererMixin"
+    "LevelRendererMixin",
+    "MinecraftAccessor",
+    "MultiPlayerGameModeAccessor",
+    "EntityAccessor",
+    "LocalPlayerAccessor",
+    "FishingHookAccessor",
+    "CreativeModeInventoryScreenAccessor",
+    "ClientboundSectionBlocksUpdatePacketAccessor",
+    "MouseHandlerAccessor",
+    "AbstractContainerScreenAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

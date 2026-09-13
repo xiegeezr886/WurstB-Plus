@@ -1,20 +1,23 @@
 package net.wurstclient.hud2.elements;
 
+import net.minecraft.client.renderer.RenderType;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.events.PlayerAttacksEntityListener;
@@ -22,7 +25,6 @@ import net.wurstclient.hack.HackList;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.hud2.HudManager;
-import net.wurstclient.util.RenderUtils;
 
 public final class TargetHudElement extends HudElement
 	implements PlayerAttacksEntityListener
@@ -93,7 +95,7 @@ public final class TargetHudElement extends HudElement
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor graphics, int x, int y, float partialTicks)
+	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
 		long now = System.nanoTime();
 		if(WurstClient.MC.player == null || WurstClient.MC.level == null)
@@ -171,7 +173,7 @@ public final class TargetHudElement extends HudElement
 			&& player.isAlive();
 	}
 
-	private void drawPanel(GuiGraphicsExtractor graphics, int x, int y, Player target,
+	private void drawPanel(GuiGraphics graphics, int x, int y, Player target,
 		float opacity)
 	{
 		Font font = WurstClient.MC.font;
@@ -189,11 +191,11 @@ public final class TargetHudElement extends HudElement
 			withOpacity(themeColor, opacity * 0.94F));
 		drawFace(graphics, target, x + 7, y + 5, 28, opacity);
 
-		String name = font.plainSubstrByWidth(target.getName().getString(),
+		String name = font.plainSubstrByWidth(target.getGameProfile().getName(),
 			WIDTH - 49);
-		graphics.text(font, name, x + 42, y + 7,
+		graphics.drawString(font, name, x + 42, y + 7,
 			withOpacity(TEXT_SHADOW, opacity), false);
-		graphics.text(font, name, x + 41, y + 6,
+		graphics.drawString(font, name, x + 41, y + 6,
 			withOpacity(TEXT_PRIMARY, opacity), false);
 
 		float maxHealth = Math.max(1, target.getMaxHealth());
@@ -214,7 +216,7 @@ public final class TargetHudElement extends HudElement
 			drawEquipment(graphics, equipment, x, y, opacity);
 	}
 
-	private void drawEquipment(GuiGraphicsExtractor graphics, List<ItemStack> equipment,
+	private void drawEquipment(GuiGraphics graphics, List<ItemStack> equipment,
 		int x, int y, float opacity)
 	{
 		graphics.fill(x + 7, y + BASE_HEIGHT - 1, x + WIDTH - 7,
@@ -222,10 +224,20 @@ public final class TargetHudElement extends HudElement
 		int rowWidth = equipmentRowWidth(equipment.size());
 		int itemX = x + (WIDTH - rowWidth) / 2;
 		int itemY = y + BASE_HEIGHT + 1;
-		for(ItemStack stack : equipment)
+
+		RenderSystem.setShaderColor(1, 1, 1, opacity);
+		try
 		{
-			RenderUtils.drawItem(graphics, stack, itemX, itemY, false);
-			itemX += EQUIPMENT_ITEM_STEP;
+			for(ItemStack stack : equipment)
+			{
+				graphics.renderItem(stack, itemX, itemY);
+				graphics.renderItemDecorations(WurstClient.MC.font, stack, itemX,
+					itemY);
+				itemX += EQUIPMENT_ITEM_STEP;
+			}
+		}finally
+		{
+			RenderSystem.setShaderColor(1, 1, 1, 1);
 		}
 	}
 
@@ -240,16 +252,7 @@ public final class TargetHudElement extends HudElement
 			equipment.add(mainHand);
 
 		List<ItemStack> armor = new ArrayList<>(4);
-		for(var slot : new net.minecraft.world.entity.EquipmentSlot[]{
-			net.minecraft.world.entity.EquipmentSlot.FEET,
-			net.minecraft.world.entity.EquipmentSlot.LEGS,
-			net.minecraft.world.entity.EquipmentSlot.CHEST,
-			net.minecraft.world.entity.EquipmentSlot.HEAD})
-		{
-			ItemStack stack = target.getItemBySlot(slot);
-			if(!stack.isEmpty())
-				armor.add(stack);
-		}
+		target.getArmorSlots().forEach(armor::add);
 		Collections.reverse(armor);
 		armor.stream().filter(stack -> !stack.isEmpty()).forEach(equipment::add);
 		return equipment;
@@ -268,26 +271,28 @@ public final class TargetHudElement extends HudElement
 			+ (equipmentCount - 1) * EQUIPMENT_ITEM_STEP;
 	}
 
-	private void drawFace(GuiGraphicsExtractor graphics, Player target, int x, int y,
+	private void drawFace(GuiGraphics graphics, Player target, int x, int y,
 		int size, float opacity)
 	{
 		FlatRenderer.fillRoundedRect(graphics, x, y, x + size, y + size, 4,
 			withOpacity(FACE_FILL, opacity));
-		Identifier skin = target instanceof AbstractClientPlayer player
-			? player.getSkin().body().texturePath() : null;
+		ResourceLocation skin = target instanceof AbstractClientPlayer player
+			? player.getSkin().texture() : null;
 		if(skin != null)
 		{
+			RenderSystem.setShaderColor(1, 1, 1, opacity);
 			try
 			{
-				graphics.blit(RenderPipelines.GUI_TEXTURED, skin, x + 2, y + 2,
-					8, 8, size - 4, size - 4, 8, 8, 64, 64);
-				graphics.blit(RenderPipelines.GUI_TEXTURED, skin, x + 2, y + 2,
-					40, 8, size - 4, size - 4, 8, 8, 64, 64);
+				graphics.blit(RenderType::guiTextured, skin, x + 2, y + 2, size - 4, size - 4,
+					8, 8, 8, 8, 64, 64);
+				graphics.blit(RenderType::guiTextured, skin, x + 2, y + 2, size - 4, size - 4,
+					40, 8, 8, 8, 64, 64);
 			}finally
 			{
+				RenderSystem.setShaderColor(1, 1, 1, 1);
 			}
 		}else
-			graphics.centeredText(WurstClient.MC.font, "?", x + size / 2,
+			graphics.drawCenteredString(WurstClient.MC.font, "?", x + size / 2,
 				y + size / 2 - 4, withOpacity(TEXT_PRIMARY, opacity));
 		FlatRenderer.drawRoundedOutline(graphics, x, y, x + size, y + size,
 			4, withOpacity(FACE_OUTLINE, opacity));

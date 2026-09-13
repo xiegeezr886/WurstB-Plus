@@ -85,12 +85,11 @@ public final class RestockHack extends Hack implements UpdateListener
 			return;
 		
 		Inventory inv = MC.player.getInventory();
-		IClientPlayerInteractionManager im =
-			(IClientPlayerInteractionManager)IMC.getInteractionManager();
+		IClientPlayerInteractionManager im = IMC.getInteractionManager();
 		
 		int hotbarSlot = restockSlot.getValueI();
 		if(hotbarSlot == -1)
-			hotbarSlot = inv.getSelectedSlot();
+			hotbarSlot = inv.selected;
 		else if(hotbarSlot == 9)
 			hotbarSlot = OFFHAND_ID;
 		
@@ -136,8 +135,8 @@ public final class RestockHack extends Hack implements UpdateListener
 				ItemStack stack = inv.getItem(i);
 				if(stack.isEmpty() || !stack.isDamageableItem())
 				{
-				((IClientPlayerInteractionManager)IMC.getInteractionManager())
-					.windowClick_SWAP(i, InventoryUtils.toNetworkSlot(hotbarSlot));
+					IMC.getInteractionManager().windowClick_SWAP(i,
+						InventoryUtils.toNetworkSlot(hotbarSlot));
 					break;
 				}
 			}

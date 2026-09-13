@@ -13,7 +13,6 @@ import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec2;
 import net.wurstclient.Category;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
@@ -21,7 +20,6 @@ import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.MovementPlanner;
 
 public final class StepHack extends Hack implements UpdateListener
 {
@@ -87,11 +85,11 @@ public final class StepHack extends Hack implements UpdateListener
 			|| player.isInWater() || player.isInLava())
 			return;
 		
-		Vec2 moveVector = MovementPlanner.getMoveVector(player.input);
-		if(moveVector.y == 0 && moveVector.x == 0)
+		if(player.input.forwardImpulse == 0
+			&& player.input.leftImpulse == 0)
 			return;
 		
-		if(MC.options.keyJump.isDown())
+		if(player.input.keyPresses.jump())
 			return;
 		
 		AABB box = player.getBoundingBox().move(0, 0.05, 0).inflate(0.05);
@@ -146,18 +144,15 @@ public final class StepHack extends Hack implements UpdateListener
 		if(attribute != null)
 			attribute.setBaseValue(value);
 	}
-
-	public float adjustStepHeight(float stepHeight)
-	{
-		if(isEnabled() && mode.getSelected() == Mode.SIMPLE)
-			return height.getValueF();
-		
-		return stepHeight;
-	}
 	
 	public boolean isAutoJumpAllowed()
 	{
 		return !isEnabled() && !WURST.getCmds().goToCmd.isActive();
+	}
+	
+	public boolean isControllingScrollEvents()
+	{
+		return false;
 	}
 	
 	private enum Mode

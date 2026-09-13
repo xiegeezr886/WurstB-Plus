@@ -134,14 +134,14 @@ public final class SelfTrapHack extends Hack implements UpdateListener
 		if(slot == -1)
 			return false;
 
-		int oldSlot = MC.player.getInventory().getSelectedSlot();
-		MC.player.getInventory().setSelectedSlot(slot);
+		int oldSlot = MC.player.getInventory().selected;
+		MC.player.getInventory().selected = slot;
 
 		boolean placed = BlockPlacer.place(pos, false, false);
 		if(placed)
 			swingHand.swing(InteractionHand.MAIN_HAND);
 
-		MC.player.getInventory().setSelectedSlot(oldSlot);
+		MC.player.getInventory().selected = oldSlot;
 		return placed;
 	}
 

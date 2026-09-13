@@ -7,13 +7,14 @@
  */
 package net.wurstclient.hacks;
 
+import net.minecraft.world.entity.EquipmentSlot;
 import com.mojang.blaze3d.vertex.PoseStack;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import org.joml.Matrix4f;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -48,6 +49,10 @@ import net.wurstclient.util.WorldToScreen.ScreenBounds;
 public final class PlayerEspHack extends Hack implements UpdateListener,
 	CameraTransformViewBobbingListener, RenderListener, GUIRenderListener
 {
+	private static final EquipmentSlot[] ARMOR_SLOTS =
+		{EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST,
+			EquipmentSlot.HEAD};
+
 	private final EnumSetting<RenderMode> renderMode = new EnumSetting<>(
 		"Render mode", "Switches between world-space and screen-space ESP.",
 		RenderMode.values(), RenderMode.THREE_D);
@@ -201,9 +206,8 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 
 	private void updateScreenBoxes(PoseStack matrixStack, float partialTicks)
 	{
-		// TODO: 26.1.2 - RenderSystem.getProjectionMatrix() removed
 		Matrix4f view = new Matrix4f(matrixStack.last().pose());
-		Matrix4f projection = new Matrix4f(); // Placeholder
+		Matrix4f projection = new Matrix4f(RenderSystem.getProjectionMatrix());
 		ArrayList<ScreenBox> boxes = new ArrayList<>(players.size());
 		double expansion = boxSize.getExtraSize() / 2;
 		for(Player player : players)
@@ -231,16 +235,13 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	{
 		int remaining = 0;
 		int maximum = 0;
-		for(var slot : new net.minecraft.world.entity.EquipmentSlot[]{
-			net.minecraft.world.entity.EquipmentSlot.FEET,
-			net.minecraft.world.entity.EquipmentSlot.LEGS,
-			net.minecraft.world.entity.EquipmentSlot.CHEST,
-			net.minecraft.world.entity.EquipmentSlot.HEAD})
+		for(EquipmentSlot slot : ARMOR_SLOTS)
 		{
 			ItemStack stack = player.getItemBySlot(slot);
 			if(!stack.isEmpty() && stack.isDamageableItem())
 			{
-				remaining += stack.getMaxDamage() - stack.getDamageValue();
+				remaining +=
+					stack.getMaxDamage() - stack.getDamageValue();
 				maximum += stack.getMaxDamage();
 			}
 		}
@@ -248,7 +249,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	}
 
 	@Override
-	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+	public void onRenderGUI(GuiGraphics context, float partialTicks)
 	{
 		if(renderMode.getSelected() != RenderMode.TWO_D
 			|| screenBoxes.isEmpty())
@@ -285,6 +286,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 					bounds.minX() + width, bounds.maxY() + 4, 0xFF55AAFF);
 			}
 		}
+		RenderUtils.getVCP().endBatch();
 	}
 	
 	private int getColor(Player e)

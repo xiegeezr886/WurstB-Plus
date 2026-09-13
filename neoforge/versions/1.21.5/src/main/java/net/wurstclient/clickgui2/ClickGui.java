@@ -12,10 +12,10 @@ import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
 
-import org.joml.Matrix3x2fStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.theme.FlatTheme;
 import net.wurstclient.hacks.ClickGuiHack;
@@ -291,11 +291,11 @@ public final class ClickGui
 		}
 	}
 	
-	public void render(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		Matrix3x2fStack matrixStack = context.pose();
-		matrixStack.pushMatrix();
+		PoseStack matrixStack = context.pose();
+		matrixStack.pushPose();
 		
 		tooltip = "";
 		for(Window window : windows)
@@ -319,26 +319,26 @@ public final class ClickGui
 				else
 					window.stopDraggingScrollbar();
 				
-			matrixStack.translate(0, 0);
+			matrixStack.translate(0, 0, 300);
 			renderWindow(context, window, mouseX, mouseY, partialTicks);
 		}
 		
 		renderPopups(context, mouseX, mouseY);
 		renderTooltip(context, mouseX, mouseY);
 		
-		matrixStack.popMatrix();
+		matrixStack.popPose();
 	}
 	
-	public void renderBackdrop(GuiGraphicsExtractor context)
+	public void renderBackdrop(GuiGraphics context)
 	{
 		updateColors();
 		FlatRenderer.drawBackdrop(context, MC.getWindow().getGuiScaledWidth(),
 			MC.getWindow().getGuiScaledHeight(), theme);
 	}
 	
-	public void renderPopups(GuiGraphicsExtractor context, int mouseX, int mouseY)
+	public void renderPopups(GuiGraphics context, int mouseX, int mouseY)
 	{
-		Matrix3x2fStack matrixStack = context.pose();
+		PoseStack matrixStack = context.pose();
 		for(Popup popup : popups)
 		{
 			Component owner = popup.getOwner();
@@ -348,8 +348,8 @@ public final class ClickGui
 			int y1 =
 				parent.getY() + 13 + parent.getScrollOffset() + owner.getY();
 			
-			matrixStack.pushMatrix();
-			matrixStack.translate((float)x1, (float)y1);
+			matrixStack.pushPose();
+			matrixStack.translate(x1, y1, 300);
 			
 			int cMouseX = mouseX - x1;
 			int cMouseY = mouseY - y1;
@@ -358,13 +358,13 @@ public final class ClickGui
 				4, theme);
 			popup.render(context, cMouseX, cMouseY);
 			
-			matrixStack.popMatrix();
+			matrixStack.popPose();
 		}
 	}
 	
-	public void renderTooltip(GuiGraphicsExtractor context, int mouseX, int mouseY)
+	public void renderTooltip(GuiGraphics context, int mouseX, int mouseY)
 	{
-		Matrix3x2fStack matrixStack = context.pose();
+		PoseStack matrixStack = context.pose();
 		
 		if(tooltip.isEmpty())
 			return;
@@ -388,8 +388,8 @@ public final class ClickGui
 		int yt1 = mouseY + th - 2 <= sh ? mouseY - 4 : mouseY - th - 4;
 		int yt2 = yt1 + th + 2;
 		
-		matrixStack.pushMatrix();
-		matrixStack.translate(0, 0);
+		matrixStack.pushPose();
+		matrixStack.translate(0, 0, 300);
 		
 		int tooltipColor = theme.tooltipFill();
 		int outlineColor = theme.border(true);
@@ -398,30 +398,30 @@ public final class ClickGui
 		
 		// text
 		for(int i = 0; i < lines.length; i++)
-			context.text(tr, lines[i], xt1 + 2, yt1 + 2 + i * tr.lineHeight,
+			context.drawString(tr, lines[i], xt1 + 2, yt1 + 2 + i * tr.lineHeight,
 				theme.text(), false);
 		
-		matrixStack.popMatrix();
+		matrixStack.popPose();
 	}
 
-	public void renderPinnedWindows(GuiGraphicsExtractor context, float partialTicks)
+	public void renderPinnedWindows(GuiGraphics context, float partialTicks)
 	{
-		Matrix3x2fStack matrixStack = context.pose();
-		matrixStack.pushMatrix();
+		PoseStack matrixStack = context.pose();
+		matrixStack.pushPose();
 
 		for(Window window : windows)
 		{
 			if(!window.isPinned() || window.isInvisible())
 				continue;
 
-			matrixStack.pushMatrix();
-			matrixStack.translate(0, 0);
+			matrixStack.pushPose();
+			matrixStack.translate(0, 0, 300);
 			renderWindow(context, window, Integer.MIN_VALUE,
 				Integer.MIN_VALUE, partialTicks);
-			matrixStack.popMatrix();
+			matrixStack.popPose();
 		}
 
-		matrixStack.popMatrix();
+		matrixStack.popPose();
 	}
 	
 	public void updateColors()
@@ -436,7 +436,7 @@ public final class ClickGui
 			clickGui.getTooltipOpacity());
 	}
 	
-	private void renderWindow(GuiGraphicsExtractor context, Window window, int mouseX,
+	private void renderWindow(GuiGraphics context, Window window, int mouseX,
 		int mouseY, float partialTicks)
 	{
 		window.prepareForRender();
@@ -451,12 +451,12 @@ public final class ClickGui
 		int windowBgColor = theme.windowBody();
 		int outlineColor = theme.border(focused);
 		
-		Matrix3x2fStack matrixStack = context.pose();
+		PoseStack matrixStack = context.pose();
 		
 		if(window.isMinimized())
 			y2 = y3;
 		
-		FlatRenderer.drawWindowPanel(context, x1, y1, x2, y2, 5, theme,
+		FlatRenderer.drawWindowPanel(context, x1, y1, x2, y2, 2, theme,
 			focused);
 		
 		if(mouseX >= x1 && mouseY >= y1 && mouseX < x2 && mouseY < y2)
@@ -517,8 +517,8 @@ public final class ClickGui
 			
 			context.enableScissor(x1, y3, x2, y2);
 			
-			matrixStack.pushMatrix();
-			matrixStack.translate((float)x1, (float)y4);
+			matrixStack.pushPose();
+			matrixStack.translate(x1, y4, 0);
 			
 			// window background
 			// between children
@@ -552,7 +552,7 @@ public final class ClickGui
 				window.getChild(i).render(context, cMouseX, cMouseY,
 					partialTicks);
 			
-			matrixStack.popMatrix();
+			matrixStack.popPose();
 			context.disableScissor();
 		}
 		
@@ -619,10 +619,10 @@ public final class ClickGui
 			net.minecraft.network.chat.Component.literal(window.getTitle()),
 			x3 - x1 - 6)
 			.getString();
-		context.text(tr, title, x1 + 4, y1 + 3, theme.text(), false);
+		context.drawString(tr, title, x1 + 4, y1 + 3, theme.text(), false);
 	}
 	
-	private void renderTitleBarButton(GuiGraphicsExtractor context, int x1, int y1,
+	private void renderTitleBarButton(GuiGraphics context, int x1, int y1,
 		int x2, int y2, boolean hovering)
 	{
 		int x3 = x2 + 2;

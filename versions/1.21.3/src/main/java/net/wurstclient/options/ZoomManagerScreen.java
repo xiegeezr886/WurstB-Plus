@@ -8,8 +8,6 @@
 package net.wurstclient.options;
 
 import net.minecraft.client.gui.GuiGraphics;
-
-import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -98,25 +96,22 @@ public class ZoomManagerScreen extends Screen implements PressAKeyCallback
 	{
 		return false;
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		ZoomOtf zoom = WurstClient.INSTANCE.getOtfs().zoomOtf;
 		SliderSetting level = zoom.getLevelSetting();
 		
-		context.centeredText(font, "Zoom Manager",
-			width / 2, 40, 0xFFffffff);
-		context.text(font,
+		renderBackground(context, mouseX, mouseY, partialTicks);
+		context.drawCenteredString(font, "Zoom Manager",
+			width / 2, 40, 0xffffff);
+		context.drawString(font,
 			"Zoom Level: " + level.getValueString(), width / 2 - 75,
-			height / 4 + 44, 0xFFcccccc);
+			height / 4 + 44, 0xcccccc);
 		
-		super.render(context.getInner(), mouseX, mouseY, partialTicks);
+		super.render(context, mouseX, mouseY, partialTicks);
 	}
 	
 	@Override

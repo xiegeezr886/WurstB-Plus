@@ -41,7 +41,7 @@ public final class HudEditorScreen extends Screen
 	public void render(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(graphics);
+		renderBackground(graphics, mouseX, mouseY, partialTicks);
 
 		renderGrid(graphics);
 		renderElements(graphics, mouseX, mouseY);

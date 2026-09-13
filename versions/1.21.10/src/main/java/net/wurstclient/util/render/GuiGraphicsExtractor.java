@@ -17,7 +17,6 @@ import org.joml.Vector3fc;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.platform.cursor.CursorType;
-import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 
 import net.minecraft.client.Minecraft;
@@ -25,12 +24,14 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.gui.render.state.GuiRenderState;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.wurstclient.mixin.GuiGraphicsAccessor;
 
 /**
  * Drop-in replacement for the 26.x {@code GuiGraphicsExtractor} that wraps a
@@ -136,13 +137,23 @@ public final class GuiGraphicsExtractor
 	
 	public void outline(int x1, int y1, int x2, int y2, int color)
 	{
-		inner.renderOutline(x1, y1, x2, y2, color);
+		// 1.21.9's GuiGraphics has no renderOutline(); draw the four border
+		// strips instead.
+		inner.fill(x1, y1, x2, y1 + 1, color);
+		inner.fill(x1, y2 - 1, x2, y2, color);
+		inner.fill(x1, y1 + 1, x1 + 1, y2 - 1, color);
+		inner.fill(x2 - 1, y1 + 1, x2, y2 - 1, color);
 	}
 	
 	public void textHighlight(int x, int y, int width, int height,
 		boolean focus)
 	{
-		inner.textHighlight(x, y, width, height, focus);
+		// 1.21.9's textHighlight() has no focus flag; focus only adds the
+		// inverted underline, which we draw manually.
+		inner.textHighlight(x, y, width, height);
+		if(focus)
+			inner.fill(RenderPipelines.GUI_TEXT_HIGHLIGHT, x, y + height - 1,
+				x + width, y + height, 0xFFFF0000);
 	}
 	
 	public void text(Font font, String text, int x, int y, int color)
@@ -215,7 +226,7 @@ public final class GuiGraphicsExtractor
 		inner.drawStringWithBackdrop(font, text, x, y, width, color);
 	}
 	
-	public void blit(RenderPipeline pipeline, Identifier texture, int x,
+	public void blit(RenderPipeline pipeline, ResourceLocation texture, int x,
 		int y, float u, float v, int width, int height, int textureWidth,
 		int textureHeight)
 	{
@@ -223,7 +234,7 @@ public final class GuiGraphicsExtractor
 			textureWidth, textureHeight);
 	}
 	
-	public void blit(RenderPipeline pipeline, Identifier texture, int x,
+	public void blit(RenderPipeline pipeline, ResourceLocation texture, int x,
 		int y, float u, float v, int width, int height, int textureWidth,
 		int textureHeight, int color)
 	{
@@ -231,7 +242,7 @@ public final class GuiGraphicsExtractor
 			textureWidth, textureHeight, color);
 	}
 	
-	public void blit(RenderPipeline pipeline, Identifier texture, int x,
+	public void blit(RenderPipeline pipeline, ResourceLocation texture, int x,
 		int y, float u, float v, int width, int height, int textureWidth,
 		int textureHeight, int color, int color2)
 	{
@@ -239,7 +250,7 @@ public final class GuiGraphicsExtractor
 			textureWidth, textureHeight, color, color2);
 	}
 	
-	public void blit(RenderPipeline pipeline, Identifier texture, int x,
+	public void blit(RenderPipeline pipeline, ResourceLocation texture, int x,
 		int y, float u, float v, int width, int height, int textureWidth,
 		int textureHeight, int color, int color2, int color3)
 	{
@@ -247,38 +258,38 @@ public final class GuiGraphicsExtractor
 			textureWidth, textureHeight, color, color2, color3);
 	}
 	
-	public void blit(Identifier texture, int x, int y, int width,
+	public void blit(ResourceLocation texture, int x, int y, int width,
 		int height, float u, float v, float uWidth, float vHeight)
 	{
 		inner.blit(texture, x, y, width, height, u, v, uWidth, vHeight);
 	}
 	
-	public void blit(GpuTextureView texture, GpuSampler sampler, int x,
+	public void blit(GpuTextureView texture, GpuTextureView sampler, int x,
 		int y, int width, int height, float u, float v, float uWidth,
 		float vHeight)
 	{
 		// not available in 1.21.11, no-op
 	}
 	
-	public void blitSprite(RenderPipeline pipeline, Identifier texture,
+	public void blitSprite(RenderPipeline pipeline, ResourceLocation texture,
 		int x, int y, int width, int height)
 	{
 		inner.blitSprite(pipeline, texture, x, y, width, height);
 	}
 	
-	public void blitSprite(RenderPipeline pipeline, Identifier texture,
+	public void blitSprite(RenderPipeline pipeline, ResourceLocation texture,
 		int x, int y, int width, int height, float color)
 	{
 		inner.blitSprite(pipeline, texture, x, y, width, height, color);
 	}
 	
-	public void blitSprite(RenderPipeline pipeline, Identifier texture,
+	public void blitSprite(RenderPipeline pipeline, ResourceLocation texture,
 		int x, int y, int width, int height, int color)
 	{
 		inner.blitSprite(pipeline, texture, x, y, width, height, color);
 	}
 	
-	public void blitSprite(RenderPipeline pipeline, Identifier texture,
+	public void blitSprite(RenderPipeline pipeline, ResourceLocation texture,
 		int x, int y, int width, int height, int uOffset, int vOffset,
 		int uWidth, int vHeight)
 	{
@@ -286,7 +297,7 @@ public final class GuiGraphicsExtractor
 			vOffset, uWidth, vHeight);
 	}
 	
-	public void blitSprite(RenderPipeline pipeline, Identifier texture,
+	public void blitSprite(RenderPipeline pipeline, ResourceLocation texture,
 		int x, int y, int width, int height, int uOffset, int vOffset,
 		int uWidth, int vHeight, int color)
 	{
@@ -294,7 +305,7 @@ public final class GuiGraphicsExtractor
 			Math.round(uOffset), Math.round(vOffset), uWidth, vHeight, color);
 	}
 	
-	public void blitSprite(RenderPipeline pipeline, Identifier texture,
+	public void blitSprite(RenderPipeline pipeline, ResourceLocation texture,
 		int x, int y, int width, int height, float uOffset, float vOffset,
 		int uWidth, int vHeight, int color)
 	{
@@ -363,7 +374,7 @@ public final class GuiGraphicsExtractor
 		// requires BookModel in 1.21.11, no-op
 	}
 	
-	public void bannerPattern(Identifier bannerTexture, int color,
+	public void bannerPattern(ResourceLocation bannerTexture, int color,
 		boolean transparent, int x, int y, int width, int height)
 	{
 		// requires BannerFlagModel in 1.21.11, no-op
@@ -394,7 +405,7 @@ public final class GuiGraphicsExtractor
 	
 	public GuiRenderState getRenderState()
 	{
-		return inner.getRenderState();
+		return ((GuiGraphicsAccessor)(Object)inner).getGuiRenderState();
 	}
 	
 	public void nextStratumBlur()

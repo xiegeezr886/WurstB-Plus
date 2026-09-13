@@ -15,12 +15,12 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.wurstclient.WurstClient;
+import net.wurstclient.mixin.ClientboundSectionBlocksUpdatePacketAccessor;
 
 public enum ChunkUtils
 {
@@ -53,7 +53,12 @@ public enum ChunkUtils
 		if(packet instanceof ClientboundBlockUpdatePacket p)
 			return new ChunkPos(p.getPos());
 		if(packet instanceof ClientboundSectionBlocksUpdatePacket p)
-			return null;
+		{
+			SectionPos sectionPos =
+				((ClientboundSectionBlocksUpdatePacketAccessor)p)
+					.getSectionPos();
+			return new ChunkPos(sectionPos.x(), sectionPos.z());
+		}
 		if(packet instanceof ClientboundLevelChunkWithLightPacket p)
 			return new ChunkPos(p.getX(), p.getZ());
 		
@@ -107,7 +112,7 @@ public enum ChunkUtils
 	{
 		int i = chunk.getHighestFilledSectionIndex();
 		if(i == -1)
-			return chunk.getMinY() * 16;
+			return chunk.getMinY();
 		
 		return SectionPos.sectionToBlockCoord(chunk.getSectionYFromSectionIndex(i));
 	}

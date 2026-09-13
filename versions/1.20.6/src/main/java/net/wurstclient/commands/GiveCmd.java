@@ -12,8 +12,10 @@ import java.util.Arrays;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.wurstclient.command.CmdError;
 import net.wurstclient.command.CmdException;
 import net.wurstclient.command.CmdSyntaxError;
@@ -72,7 +74,7 @@ public final class GiveCmd extends Command
 			try
 			{
 				CompoundTag tag = TagParser.parseTag(nbt);
-				stack.setTag(tag);
+				stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 				
 			}catch(CommandSyntaxException e)
 			{

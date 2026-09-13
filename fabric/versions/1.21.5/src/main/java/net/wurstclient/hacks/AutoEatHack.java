@@ -23,12 +23,15 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.food.FoodProperties.PossibleEffect;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
+import net.minecraft.world.item.consume_effects.ConsumeEffect;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.Foods;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CraftingTableBlock;
@@ -181,14 +184,14 @@ public final class AutoEatHack extends Hack implements UpdateListener
 		if(foodSlot < 9)
 		{
 			if(!isEating())
-				oldSlot = inventory.selected;
+				oldSlot = inventory.getSelectedSlot();
 			
-			inventory.selected = foodSlot;
+			inventory.setSelectedSlot(foodSlot);
 			
 		}else if(foodSlot == 40)
 		{
 			if(!isEating())
-				oldSlot = inventory.selected;
+				oldSlot = inventory.getSelectedSlot();
 			
 			// off-hand slot, no need to select anything
 			
@@ -213,7 +216,7 @@ public final class AutoEatHack extends Hack implements UpdateListener
 		
 		ArrayList<Integer> slots = new ArrayList<>();
 		if(maxInvSlot == 0)
-			slots.add(inventory.selected);
+			slots.add(inventory.getSelectedSlot());
 		if(allowOffhand.isChecked())
 			slots.add(40);
 		Stream.iterate(0, i -> i < maxInvSlot, i -> i + 1)
@@ -230,7 +233,7 @@ public final class AutoEatHack extends Hack implements UpdateListener
 			FoodProperties food = stack.get(DataComponents.FOOD);
 			if(food == null)
 				continue;
-			if(!isAllowedFood(food))
+			if(!isAllowedFood(food, stack))
 				continue;
 			
 			if(maxPoints >= 0 && food.nutrition() > maxPoints)
@@ -268,24 +271,37 @@ public final class AutoEatHack extends Hack implements UpdateListener
 	private void stopEating()
 	{
 		MC.options.keyUse.setDown(false);
-		MC.player.getInventory().selected = oldSlot;
+		MC.player.getInventory().setSelectedSlot(oldSlot);
 		oldSlot = -1;
 	}
 	
-	private boolean isAllowedFood(FoodProperties food)
+	private boolean isAllowedFood(FoodProperties food, ItemStack stack)
 	{
-		if(!allowChorus.isChecked() && food == Foods.CHORUS_FRUIT)
+		if(!allowChorus.isChecked() && stack.is(Items.CHORUS_FRUIT))
 			return false;
 		
-		for(PossibleEffect possibleEffect : food.effects())
+		// 1.21.5 moved status effects from FoodProperties to CONSUMABLE
+		Consumable consumable = stack.get(DataComponents.CONSUMABLE);
+		if(consumable == null)
+			return true;
+		
+		for(ConsumeEffect consumeEffect : consumable.onConsumeEffects())
 		{
-			Holder<MobEffect> effect = possibleEffect.effect().getEffect();
+			if(!(consumeEffect instanceof ApplyStatusEffectsConsumeEffect effect))
+				continue;
 			
-			if(!allowHunger.isChecked() && effect == MobEffects.HUNGER)
-				return false;
-			
-			if(!allowPoison.isChecked() && effect == MobEffects.POISON)
-				return false;
+			for(MobEffectInstance instance : effect.effects())
+			{
+				Holder<MobEffect> effectType = instance.getEffect();
+				
+				if(!allowHunger.isChecked()
+					&& effectType == MobEffects.HUNGER)
+					return false;
+				
+				if(!allowPoison.isChecked()
+					&& effectType == MobEffects.POISON)
+					return false;
+			}
 		}
 		
 		return true;

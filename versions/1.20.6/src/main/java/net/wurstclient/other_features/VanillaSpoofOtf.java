@@ -7,9 +7,8 @@
  */
 package net.wurstclient.other_features;
 
-import io.netty.buffer.Unpooled;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.custom.BrandPayload;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.ConnectionPacketOutputListener;
@@ -45,18 +44,17 @@ public final class VanillaSpoofOtf extends OtherFeature
 		
 		ServerboundCustomPayloadPacket packet =
 			(ServerboundCustomPayloadPacket)event.getPacket();
+		var payloadId = packet.payload().type().id();
 		
-		if(packet.getIdentifier().getNamespace().equals("minecraft")
-			&& packet.getIdentifier().getPath().equals("register"))
+		if(payloadId.getNamespace().equals("minecraft")
+			&& payloadId.getPath().equals("register"))
 			event.cancel();
 		
-		if(packet.getIdentifier().getNamespace().equals("minecraft")
-			&& packet.getIdentifier().getPath().equals("brand"))
+		if(packet.payload() instanceof BrandPayload)
 			event.setPacket(new ServerboundCustomPayloadPacket(
-				ServerboundCustomPayloadPacket.BRAND,
-				new FriendlyByteBuf(Unpooled.buffer()).writeUtf("vanilla")));
+				new BrandPayload("vanilla")));
 		
-		if(packet.getIdentifier().getNamespace().equals("fabric"))
+		if(payloadId.getNamespace().equals("fabric"))
 			event.cancel();
 	}
 	

@@ -12,7 +12,6 @@ import java.util.StringJoiner;
 import net.minecraft.client.GuiMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
-import net.wurstclient.mixin.ChatComponentAccessor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
@@ -49,8 +48,7 @@ public enum ChatUtils
 		
 		ChatComponent chatHud = MC.gui.getChat();
 		MutableComponent prefix = Component.literal(WURST_PREFIX);
-		((ChatComponentAccessor)chatHud).wurst$addMessage(prefix.append(component),
-			null, null);
+		chatHud.addMessage(prefix.append(component));
 	}
 	
 	public static void message(String message)

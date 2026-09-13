@@ -16,7 +16,7 @@ public final class WurstForgeInitializer
 
 	public WurstForgeInitializer(IEventBus modBus)
 	{
-		if(FMLEnvironment.getDist() != Dist.CLIENT)
+		if(FMLEnvironment.dist != Dist.CLIENT)
 			return;
 
 		modBus.addListener(this::onClientSetup);

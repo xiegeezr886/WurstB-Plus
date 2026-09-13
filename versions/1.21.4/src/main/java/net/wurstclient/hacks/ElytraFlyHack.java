@@ -10,7 +10,6 @@ package net.wurstclient.hacks;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
-// ElytraItem removed in MC 26.1.2
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
@@ -89,7 +88,7 @@ public final class ElytraFlyHack extends Hack implements UpdateListener
 			return;
 		}
 
-		if(chest.getItem() == Items.ELYTRA && MC.options.keyJump.isDown())
+		if(chest.getDamageValue() < chest.getMaxDamage() - 1 && MC.options.keyJump.isDown())
 			doInstantFly();
 	}
 

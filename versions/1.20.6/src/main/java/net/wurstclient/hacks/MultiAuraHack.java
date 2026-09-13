@@ -647,7 +647,7 @@ public final class MultiAuraHack extends Hack
 		if(WURST.getHax().scaffoldWalkHack.isEnabled()
 			&& (!onScaffold.isChecked() || noScaffold.isChecked()))
 			return true;
-		if(!onDestroyBlock.isChecked() && MC.gameMode.isDestroying())
+		if(!onDestroyBlock.isChecked() && ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying())
 			return true;
 		if(noFly.isChecked() && WURST.getHax().flightHack.isEnabled())
 			return true;
@@ -669,7 +669,8 @@ public final class MultiAuraHack extends Hack
 		if(!MC.player.isUsingItem())
 			return false;
 		ItemStack stack = MC.player.getUseItem();
-		return stack.isEdible() || stack.getItem() instanceof MilkBucketItem
+		return stack.has(net.minecraft.core.component.DataComponents.FOOD)
+			|| stack.getItem() instanceof MilkBucketItem
 			|| stack.getItem() instanceof PotionItem;
 	}
 

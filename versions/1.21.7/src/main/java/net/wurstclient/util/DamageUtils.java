@@ -19,6 +19,10 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 
@@ -27,6 +31,28 @@ public enum DamageUtils
 	;
 	
 	private static final Minecraft MC = WurstClient.MC;
+
+	private static double getSeenPercent(Vec3 explosionPos,
+		LivingEntity entity)
+	{
+		AABB box = entity.getBoundingBox();
+		int hits = 0;
+		int samples = 0;
+		for(int x = 0; x <= 1; x++)
+		for(int y = 0; y <= 1; y++)
+		for(int z = 0; z <= 1; z++)
+		{
+			Vec3 target = new Vec3(x == 0 ? box.minX : box.maxX,
+				y == 0 ? box.minY : box.maxY, z == 0 ? box.minZ : box.maxZ);
+			ClipContext context = new ClipContext(explosionPos, target,
+				ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, entity);
+			BlockHitResult hit = MC.level.clip(context);
+			samples++;
+			if(hit.getType() != HitResult.Type.BLOCK)
+				hits++;
+		}
+		return samples == 0 ? 1 : hits / (double)samples;
+	}
 	
 	public static float calculateDamage(Vec3 explosionPos, LivingEntity entity)
 	{
@@ -41,9 +67,10 @@ public enum DamageUtils
 		
 		try
 		{
-			// TODO: 26.1.2 - Explosion.getSeenPercent() removed
-			// Need to find alternative method
-			double exposure = 1.0; // Placeholder
+			// Explosion.getSeenPercent() was removed in 26.1.2; sample
+			// the entity bounding box corners with block-collision raycasts
+			// to approximate the original exposure calculation.
+			double exposure = getSeenPercent(explosionPos, entity);
 			double diameter = explosionPower * 2;
 			double dist =
 				Math.sqrt(entity.distanceToSqr(explosionPos)) / diameter;

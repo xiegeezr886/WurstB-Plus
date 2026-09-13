@@ -92,7 +92,7 @@ public final class SafeWalkHack extends Hack
 		return isEnabled() && player != null && !player.isSpectator()
 			&& !player.getAbilities().flying && !player.isFallFlying()
 			&& (!onlyGround.isChecked() || player.onGround())
-			&& (whileJumping.isChecked() || !player.input.jumping);
+			&& (whileJumping.isChecked() || !player.input.keyPresses.jump());
 	}
 	
 	private void setSneaking(boolean sneaking)

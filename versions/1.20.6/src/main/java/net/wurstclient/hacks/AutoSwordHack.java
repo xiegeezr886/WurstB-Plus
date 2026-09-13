@@ -8,15 +8,15 @@
 package net.wurstclient.hacks;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.item.TridentItem;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.wurstclient.Category;
@@ -156,19 +156,20 @@ public final class AutoSwordHack extends Hack implements UpdateListener
 			return ItemUtils.getAttackSpeed(item);
 			
 			case DAMAGE:
-			MobType group = entity instanceof LivingEntity le
-				? le.getMobType() : MobType.UNDEFINED;
-			float dmg = EnchantmentHelper.getDamageBonus(stack, group);
-			if(item instanceof SwordItem sword)
-				dmg += sword.getDamage();
-			if(item instanceof DiggerItem tool)
-				dmg += tool.getAttackDamage();
-			if(item instanceof TridentItem)
-				dmg += TridentItem.BASE_DAMAGE;
-			return dmg;
+			return getAttackDamage(stack);
 		}
 		
 		return Integer.MIN_VALUE;
+	}
+
+	private float getAttackDamage(ItemStack stack)
+	{
+		float[] damage = {1F};
+		stack.forEachModifier(EquipmentSlot.MAINHAND, (attribute, modifier) -> {
+			if(attribute.equals(Attributes.ATTACK_DAMAGE))
+				damage[0] += (float)modifier.amount();
+		});
+		return damage[0];
 	}
 	
 	private void resetSlot()

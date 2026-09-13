@@ -27,7 +27,7 @@ public final class GuiPreferences
 	private static final String FONT_PACK_NAME = "WurstBPlus-Font";
 	private static final String FONT_PACK_ID = "file/" + FONT_PACK_NAME;
 	private static final ResourceLocation CUSTOM_FONT =
-		ResourceLocation.fromNamespaceAndPath(WurstClient.MOD_ID, "selected");
+		new ResourceLocation(WurstClient.MOD_ID, "selected");
 
 	private final Path path;
 	private final Path fontsFolder;

@@ -13,8 +13,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.CommonColors;
 import org.lwjgl.glfw.GLFW;
@@ -34,20 +32,20 @@ public class PressAKeyScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent event)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(event.key() != GLFW.GLFW_KEY_ESCAPE)
-			prevScreen.setKey(InputConstants.getKey(event).getName());
+		if(keyCode != GLFW.GLFW_KEY_ESCAPE)
+			prevScreen.setKey(InputConstants.getKey(keyCode, scanCode).getName());
 		
 		minecraft.setScreen((Screen)prevScreen);
 		return true;
 	}
 
 	@Override
-	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
 		prevScreen.setKey(
-			InputConstants.Type.MOUSE.getOrCreate(event.button()).getName());
+			InputConstants.Type.MOUSE.getOrCreate(button).getName());
 		minecraft.setScreen((Screen)prevScreen);
 		return true;
 	}
@@ -66,10 +64,10 @@ public class PressAKeyScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		context.centeredText(font, "请按下键盘按键或鼠标按钮", width / 2,

@@ -22,11 +22,9 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.settings.ItemListSetting;
@@ -92,36 +90,36 @@ public final class EditItemListScreen extends Screen
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		itemNameField.mouseClicked(context, doubleClick);
-		return super.mouseClicked(context, doubleClick);
+		itemNameField.mouseClicked(mouseX, mouseY, button);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		switch(context.key())
+		switch(keyCode)
 		{
 			case GLFW.GLFW_KEY_ENTER:
 			if(addButton.active)
-				addButton.onPress(context);
+				addButton.onPress();
 			break;
 			
 			case GLFW.GLFW_KEY_DELETE:
 			if(!itemNameField.isFocused())
-				removeButton.onPress(context);
+				removeButton.onPress();
 			break;
 			
 			case GLFW.GLFW_KEY_ESCAPE:
-			doneButton.onPress(context);
+			doneButton.onPress();
 			break;
 			
 			default:
 			break;
 		}
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
@@ -137,10 +135,10 @@ public final class EditItemListScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		Matrix3x2fStack matrixStack = context.pose();
@@ -215,7 +213,7 @@ public final class EditItemListScreen extends Screen
 		@Override
 		public Component getNarration()
 		{
-			Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(itemName));
+			Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse(itemName));
 			ItemStack stack = new ItemStack(item);
 			
 			return Component.translatable("narrator.select",
@@ -224,24 +222,25 @@ public final class EditItemListScreen extends Screen
 		}
 		
 		@Override
-		public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+		public boolean mouseClicked(double mouseX, double mouseY, int button)
 		{
-			return context.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT;
+			return button == GLFW.GLFW_MOUSE_BUTTON_LEFT;
 		}
 @Override
-		public void renderContent(GuiGraphics graphics, int mouseX, int mouseY,
+		public void render(GuiGraphics graphics, int index, int y, int x,
+			int entryWidth, int entryHeight, int mouseX, int mouseY,
 			boolean hovered, float partialTicks)
 		{
-			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
+			extractContent(new GuiGraphicsExtractor(graphics), x, y, mouseX,
+				mouseY,
 				hovered, partialTicks);
 		}
 
-		public void extractContent(GuiGraphicsExtractor context, int mouseX,
-			int mouseY, boolean hovered, float tickDelta)
+		public void extractContent(GuiGraphicsExtractor context, int x,
+			int y, int mouseX, int mouseY, boolean hovered,
+			float tickDelta)
 		{
-			int x = getContentX();
-			int y = getContentY();
-			Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(itemName));
+			Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse(itemName));
 			ItemStack stack = new ItemStack(item);
 			Font tr = minecraft.font;
 			

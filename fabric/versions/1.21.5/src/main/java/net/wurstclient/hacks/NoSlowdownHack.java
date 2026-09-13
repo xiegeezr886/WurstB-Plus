@@ -16,7 +16,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -79,8 +79,8 @@ public final class NoSlowdownHack extends Hack
 		if(MC.player == null || !MC.player.isUsingItem())
 			return false;
 
-		UseAnim animation = MC.player.getUseItem().getUseAnimation();
-		return animation == UseAnim.BLOCK ? blocking.isChecked()
+		ItemUseAnimation animation = MC.player.getUseItem().getUseAnimation();
+		return animation == ItemUseAnimation.BLOCK ? blocking.isChecked()
 			: usingItems.isChecked();
 	}
 

@@ -37,6 +37,8 @@ import net.wurstclient.event.EventManager;
 import net.wurstclient.events.BlockBreakingProgressListener.BlockBreakingProgressEvent;
 import net.wurstclient.events.PlayerAttacksEntityListener.PlayerAttacksEntityEvent;
 import net.wurstclient.events.StopUsingItemListener.StopUsingItemEvent;
+import net.wurstclient.hack.HackList;
+import net.wurstclient.hacks.ReachHack;
 import net.wurstclient.mixinterface.IClientPlayerInteractionManager;
 
 @Mixin(MultiPlayerGameMode.class)
@@ -63,6 +65,32 @@ public abstract class ClientPlayerInteractionManagerMixin
 		CallbackInfoReturnable<Boolean> cir)
 	{
 		EventManager.fire(new BlockBreakingProgressEvent(pos, direction));
+	}
+	
+	@Inject(at = @At("HEAD"),
+		method = "getPickRange()F",
+		cancellable = true)
+	private void onGetReachDistance(CallbackInfoReturnable<Float> ci)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax == null)
+			return;
+		
+		ReachHack reach = hax.reachHack;
+		if(reach.isEnabled())
+			ci.setReturnValue(reach.getReachDistance());
+	}
+	
+	@Inject(at = @At("HEAD"),
+		method = "hasFarPickRange()Z",
+		cancellable = true)
+	private void hasExtendedReach(CallbackInfoReturnable<Boolean> cir)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax == null || !hax.reachHack.isEnabled())
+			return;
+		
+		cir.setReturnValue(true);
 	}
 	
 	@Inject(at = @At("HEAD"),
@@ -136,8 +164,7 @@ public abstract class ClientPlayerInteractionManagerMixin
 	public void sendPlayerUseItemPacket(InteractionHand hand)
 	{
 		startPrediction(minecraft.level,
-			i -> new ServerboundUseItemPacket(hand, i,
-				minecraft.player.getYRot(), minecraft.player.getXRot()));
+			i -> new ServerboundUseItemPacket(hand, i));
 	}
 	
 	@Shadow

@@ -215,7 +215,7 @@ public class CleanUpScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		context.drawCenteredString(font, "清理", width / 2,
 			20, CommonColors.WHITE);
 		context.drawCenteredString(font,

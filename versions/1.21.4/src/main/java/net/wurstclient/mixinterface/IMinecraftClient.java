@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -11,15 +11,15 @@ import net.minecraft.client.User;
 
 public interface IMinecraftClient
 {
-	public IMultiPlayerGameMode getInteractionManager();
-
-	public int getRightClickDelay();
-
-	public void setRightClickDelay(int delay);
+	public IClientPlayerInteractionManager getInteractionManager();
 	
-	public ILocalPlayer getPlayer();
+	public IClientPlayerEntity getPlayer();
 	
 	public User getWurstSession();
 	
 	public void setWurstSession(User session);
+
+	public int getMissTime();
+
+	public void setMissTime(int missTime);
 }

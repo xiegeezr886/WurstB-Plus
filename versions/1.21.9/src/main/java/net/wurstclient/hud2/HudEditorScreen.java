@@ -43,10 +43,10 @@ public final class HudEditorScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 

@@ -7,8 +7,6 @@
  */
 package net.wurstclient.altmanager.screens;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -31,10 +29,10 @@ import com.google.gson.JsonObject;
 
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.wurstclient.util.ScreenUtils;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
@@ -43,8 +41,6 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.AlertScreen;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
@@ -182,24 +178,24 @@ public final class AltManagerScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ENTER)
-			useButton.onPress(context);
+		if(keyCode == GLFW.GLFW_KEY_ENTER)
+			useButton.onPress();
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		if(context.button() == GLFW.GLFW_MOUSE_BUTTON_4)
+		if(button == GLFW.GLFW_MOUSE_BUTTON_4)
 		{
 			onClose();
 			return true;
 		}
 		
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 	
 	private void pressLogin()
@@ -404,16 +400,13 @@ public final class AltManagerScreen extends Screen
 		
 		minecraft.setScreen(this);
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
+		renderBackground(context, mouseX, mouseY, partialTicks);
+		listGui.render(context, mouseX, mouseY, partialTicks);
 		
 		// skin preview
 		Alt alt = listGui.getSelectedAlt();
@@ -427,14 +420,14 @@ public final class AltManagerScreen extends Screen
 		}
 		
 		// title text
-		context.centeredText(font, "账号管理",
-			width / 2, 4, 0xFFffffff);
-		context.centeredText(font,
-			"Alts: " + altManager.getList().size(), width / 2, 14, 0xFFA0A0A0);
-		context.centeredText(
+		context.drawCenteredString(font, "账号管理",
+			width / 2, 4, 16777215);
+		context.drawCenteredString(font,
+			"Alts: " + altManager.getList().size(), width / 2, 14, 10526880);
+		context.drawCenteredString(
 			font, "premium: " + altManager.getNumPremium()
 				+ ", cracked: " + altManager.getNumCracked(),
-			width / 2, 24, 0xFFA0A0A0);
+			width / 2, 24, 10526880);
 		
 		// red flash for errors
 		if(errorTimer > 0)
@@ -446,13 +439,13 @@ public final class AltManagerScreen extends Screen
 		}
 		
 		for(Renderable drawable : renderables)
-			drawable.render(context.getInner(), mouseX, mouseY, partialTicks);
+			drawable.render(context, mouseX, mouseY, partialTicks);
 		
 		renderButtonTooltip(context, mouseX, mouseY);
 		renderAltTooltip(context, mouseX, mouseY);
 	}
 	
-	private void renderAltTooltip(GuiGraphicsExtractor context, int mouseX, int mouseY)
+	private void renderAltTooltip(GuiGraphics context, int mouseX, int mouseY)
 	{
 		if(!listGui.isMouseOver(mouseX, mouseY))
 			return;
@@ -492,10 +485,10 @@ public final class AltManagerScreen extends Screen
 		if(alt.isFavorite())
 			addTooltip(tooltip, "favorite");
 		
-		context.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
+		context.renderComponentTooltip(font, tooltip, mouseX, mouseY);
 	}
 	
-	private void renderButtonTooltip(GuiGraphicsExtractor context, int mouseX,
+	private void renderButtonTooltip(GuiGraphics context, int mouseX,
 		int mouseY)
 	{
 		for(AbstractWidget button : ScreenUtils.getButtons(this))
@@ -514,8 +507,7 @@ public final class AltManagerScreen extends Screen
 			else
 				addTooltip(tooltip, "window_freeze");
 			
-			context.setComponentTooltipForNextFrame(font, tooltip, mouseX,
-				mouseY);
+			context.renderComponentTooltip(font, tooltip, mouseX, mouseY);
 			break;
 		}
 	}
@@ -563,10 +555,10 @@ public final class AltManagerScreen extends Screen
 		}
 		
 		@Override
-		public boolean mouseClicked(MouseButtonEvent context,
-			boolean doubleClick)
+		public boolean mouseClicked(double mouseX, double mouseY,
+			int mouseButton)
 		{
-			if(context.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT)
+			if(mouseButton != GLFW.GLFW_MOUSE_BUTTON_LEFT)
 				return false;
 			
 			long timeSinceLastClick = Util.getMillis() - lastClickTime;
@@ -577,19 +569,12 @@ public final class AltManagerScreen extends Screen
 			
 			return true;
 		}
-@Override
-		public void renderContent(GuiGraphics graphics, int mouseX, int mouseY,
-			boolean hovered, float partialTicks)
+		
+		@Override
+		public void render(GuiGraphics context, int index, int y, int x,
+			int entryWidth, int entryHeight, int mouseX, int mouseY,
+			boolean hovered, float tickDelta)
 		{
-			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
-				hovered, partialTicks);
-		}
-
-		public void extractContent(GuiGraphicsExtractor context, int mouseX,
-			int mouseY, boolean hovered, float tickDelta)
-		{
-			int x = getContentX();
-			int y = getContentY();
 			// green glow when logged in
 			if(minecraft.getUser().getName().equals(alt.getName()))
 			{
@@ -608,11 +593,11 @@ public final class AltManagerScreen extends Screen
 			Font tr = minecraft.font;
 			
 			// name / email
-			context.text(tr, "Name: " + alt.getDisplayName(), x + 31, y + 3,
-				0xFFA0A0A0, false);
+			context.drawString(tr, "Name: " + alt.getDisplayName(), x + 31, y + 3,
+				0xA0A0A0, false);
 			
 			// status
-			context.text(tr, getBottomText(), x + 31, y + 15, 0xFFA0A0A0,
+			context.drawString(tr, getBottomText(), x + 31, y + 15, 10526880,
 				false);
 		}
 		

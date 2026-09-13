@@ -12,6 +12,7 @@
 package net.wurstclient.hacks;
 
 import java.util.concurrent.ThreadLocalRandom;
+import net.minecraft.network.protocol.game.ClientboundExplodePacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
@@ -19,13 +20,13 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.mixin.ClientboundExplodePacketMixin;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.VelocityPlanner;
 import net.wurstclient.util.VelocityPlanner.Trigger;
-import net.wurstclient.util.MovementPlanner;
 
 @SearchTags({"no velocity", "novelocity", "antivelocity", "velocity",
 	"jump reset", "AntiKnockback", "anti knockback", "no knockback"})
@@ -134,12 +135,17 @@ public final class NoVelocityHack extends Hack
 		if(event.getPacket() instanceof ClientboundSetEntityMotionPacket packet
 			&& packet.getId() == MC.player.getId())
 			handleEntityVelocity(event, packet);
+		else if(event.getPacket() instanceof ClientboundExplodePacket packet
+			&& explosions.isChecked() && mode.getSelected() == Mode.MODIFY
+			&& shouldApply())
+			handleExplosionVelocity(packet);
 	}
 
 	private void handleEntityVelocity(PacketInputEvent event,
 		ClientboundSetEntityMotionPacket packet)
 	{
-		Vec3 incoming = packet.getMovement();
+		Vec3 incoming = new Vec3(packet.getXa() / 8000.0,
+			packet.getYa() / 8000.0, packet.getZa() / 8000.0);
 		if(!shouldApply())
 			return;
 
@@ -158,28 +164,26 @@ public final class NoVelocityHack extends Hack
 		event.cancel();
 	}
 
-	public java.util.Optional<Vec3> modifyExplosionKnockback(
-		java.util.Optional<Vec3> knockback)
+	private void handleExplosionVelocity(ClientboundExplodePacket packet)
 	{
-		if(!isEnabled() || !explosions.isChecked()
-			|| mode.getSelected() != Mode.MODIFY || !shouldApply())
-			return knockback;
-
 		double horizontalMultiplier = horizontal.getValue() / 100;
 		double verticalMultiplier = vertical.getValue() / 100;
-		return knockback.map(velocity -> new Vec3(
-			velocity.x * horizontalMultiplier,
-			velocity.y * verticalMultiplier,
-			velocity.z * horizontalMultiplier));
+		Vec3 oldKnockback = packet.playerKnockback().orElse(Vec3.ZERO);
+		Vec3 newKnockback = new Vec3(oldKnockback.x * horizontalMultiplier,
+			oldKnockback.y * verticalMultiplier,
+			oldKnockback.z * horizontalMultiplier);
+		ClientboundExplodePacketMixin accessor =
+			(ClientboundExplodePacketMixin)(Object)packet;
+		accessor.wurst_setPlayerKnockback(java.util.Optional.of(newKnockback));
 	}
 
 	private boolean shouldApply()
 	{
-		boolean moving = MovementPlanner.isMoving(MC.player.input);
+		boolean moving = MC.player.input.getMoveVector().length() > 1.0E-5F;
 		return VelocityPlanner.shouldApply(chance.getValueI(),
 			ThreadLocalRandom.current().nextInt(100), onlyMoving.isChecked(),
 			moving, trigger.getSelected(), MC.player.onGround(),
-			MC.player.isInWaterOrSwimmable() || MC.player.isInLava(),
+			MC.player.isInWaterOrBubble() || MC.player.isInLava(),
 			allowInFluid.isChecked(), MC.player.isFallFlying(),
 			allowWhileFlying.isChecked());
 	}

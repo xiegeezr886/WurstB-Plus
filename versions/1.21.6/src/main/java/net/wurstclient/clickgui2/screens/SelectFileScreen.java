@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
@@ -23,7 +23,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.settings.FileSetting;
 
@@ -109,14 +108,14 @@ public final class SelectFileScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ENTER)
+		if(keyCode == GLFW.GLFW_KEY_ENTER)
 			done();
-		else if(context.key() == GLFW.GLFW_KEY_ESCAPE)
+		else if(keyCode == GLFW.GLFW_KEY_ESCAPE)
 			openPrevScreen();
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
@@ -127,10 +126,10 @@ public final class SelectFileScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
@@ -175,11 +174,27 @@ public final class SelectFileScreen extends Screen
 				"文件 " + path.getFileName());
 		}
 @Override
-		public void renderContent(GuiGraphics graphics, int mouseX, int mouseY,
-			boolean hovered, float partialTicks)
+		public void render(GuiGraphics graphics, int index, int y, int x,
+			int width, int height, int mouseX, int mouseY, boolean hovered,
+			float partialTicks)
 		{
+			contentX = x;
+			contentY = y;
 			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
 				hovered, partialTicks);
+		}
+
+		private int contentX;
+		private int contentY;
+
+		private int getContentX()
+		{
+			return contentX;
+		}
+
+		private int getContentY()
+		{
+			return contentY;
 		}
 
 		public void extractContent(GuiGraphicsExtractor context, int mouseX,

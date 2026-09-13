@@ -162,7 +162,7 @@ public final class AntiBotHack extends Hack
 
 	private String normalizeName(Player player)
 	{
-		return player.getName().getString().toLowerCase(Locale.ROOT);
+		return player.getGameProfile().getName().toLowerCase(Locale.ROOT);
 	}
 
 	public boolean isBot(Player player)

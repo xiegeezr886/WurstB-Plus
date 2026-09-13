@@ -112,7 +112,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		Operation<Boolean> original)
 	{
 		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldOmniSprint())
-			return MovementPlanner.isMoving(input);
+			return input.getMoveVector().length() > 1e-5F;
 		
 		return original.call(input);
 	}
@@ -264,11 +264,11 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	}
 	
 	@Override
-	public void lerpMotion(Vec3 vec)
+	public void lerpMotion(double x, double y, double z)
 	{
-		KnockbackEvent event = new KnockbackEvent(vec.x, vec.y, vec.z);
+		KnockbackEvent event = new KnockbackEvent(x, y, z);
 		EventManager.fire(event);
-		super.lerpMotion(new Vec3(event.getX(), event.getY(), event.getZ()));
+		super.lerpMotion(event.getX(), event.getY(), event.getZ());
 	}
 	
 	@Override
@@ -350,13 +350,6 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 			return null;
 		
 		return super.getEffect(effect);
-	}
-	
-	@Override
-	public float maxUpStep()
-	{
-		return WurstClient.INSTANCE.getHax().stepHack
-			.adjustStepHeight(super.maxUpStep());
 	}
 	
 	@Override

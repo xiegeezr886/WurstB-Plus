@@ -40,8 +40,8 @@ public class MouseMixin
 		EventManager.fire(new MouseScrollEvent(vertical));
 	}
 	
-	@Inject(at = @At("HEAD"), method = "turnPlayer(D)V")
-	private void onUpdateMouse(double timeDelta, CallbackInfo ci)
+	@Inject(at = @At("HEAD"), method = "turnPlayer()V")
+	private void onUpdateMouse(CallbackInfo ci)
 	{
 		MouseUpdateEvent event =
 			new MouseUpdateEvent(accumulatedDX, accumulatedDY);

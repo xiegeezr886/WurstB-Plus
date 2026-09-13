@@ -7,7 +7,6 @@
  */
 package net.wurstclient.altmanager.screens;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -229,7 +228,6 @@ public abstract class AltEditorScreen extends Screen
 		return super.mouseClicked(x, y, button);
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

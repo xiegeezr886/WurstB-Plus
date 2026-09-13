@@ -218,10 +218,10 @@ public class CleanUpScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		context.centeredText(font, "清理", width / 2,
@@ -293,10 +293,9 @@ public class CleanUpScreen extends Screen
 		}
 
 		@Override
-		protected void renderContents(GuiGraphics graphics, int mouseX,
+		protected void renderWidget(GuiGraphics graphics, int mouseX,
 			int mouseY, float partialTicks)
 		{
-			renderDefaultSprite(graphics);
 			graphics.drawCenteredString(font, getMessage(),
 				getX() + getWidth() / 2,
 				getY() + (getHeight() - font.lineHeight) / 2, getFGColor());

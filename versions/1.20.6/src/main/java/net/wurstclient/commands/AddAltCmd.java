@@ -57,7 +57,7 @@ public final class AddAltCmd extends Command
 	{
 		int alts = 0;
 		AltManager altManager = WURST.getAltManager();
-		String playerName = MC.getUser().getGameProfile().getName();
+		String playerName = MC.getUser().getName();
 		
 		for(PlayerInfo entry : MC.player.connection.getOnlinePlayers())
 		{

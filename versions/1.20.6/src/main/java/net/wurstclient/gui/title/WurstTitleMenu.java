@@ -14,7 +14,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.versions.forge.ForgeVersion;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
@@ -86,7 +85,9 @@ public final class WurstTitleMenu
 				WurstClient.INSTANCE.getAltManager())), true, false);
 		addButton(addWidget, cardX + compactWidth + compactGap, utilityY,
 			compactWidth, compactHeight, "模组", INFO,
-			() -> minecraft.setScreen(new ModListScreen(parent)), true, false);
+			() -> minecraft.setScreen(new Screen(Component.literal("模组"))
+			{
+			}), true, false);
 		addButton(addWidget, cardX + (compactWidth + compactGap) * 2, utilityY,
 			cardWidth - (compactWidth + compactGap) * 2, compactHeight,
 			"退出", EXIT, minecraft::stop, true, true);
@@ -153,9 +154,9 @@ public final class WurstTitleMenu
 	{
 		Font font = minecraft.font;
 		String runtime = "Minecraft "
-			+ SharedConstants.getCurrentVersion().getName() + "  /  NeoForge "
-			+ ForgeVersion.getVersion();
-		graphics.drawString(font, runtime, margin, screenHeight - 18,
+				+ SharedConstants.getCurrentVersion().getName() + "  /  Forge "
+				+ ForgeVersion.getVersion();
+			graphics.drawString(font, runtime, margin, screenHeight - 18,
 			MUTED_TEXT, false);
 		String brand = "WurstB+ Plus";
 		graphics.drawString(font, brand,

@@ -89,8 +89,8 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 			return;
 		}
 
-		float forward = player.input.forwardImpulse;
-		float sideways = player.input.leftImpulse;
+		float forward = player.input.getMoveVector().y;
+		float sideways = player.input.getMoveVector().x;
 		if(!MovementPlanner.isMoving(forward, sideways))
 		{
 			lowHopActive = false;
@@ -121,7 +121,7 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 	{
 		return player != null && !player.isShiftKeyDown() && !player.isPassenger()
 			&& !player.onClimbable() && !player.isFallFlying()
-			&& !player.isInWaterOrBubble() && !player.isInLava();
+			&& !player.isInWater() && !player.isInLava();
 	}
 
 	private void applyHop(LocalPlayer player, float forward, float sideways,

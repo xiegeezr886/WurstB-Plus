@@ -12,10 +12,8 @@ import java.awt.Color;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Options;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -28,7 +26,6 @@ import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.FakePlayerEntity;
-import net.wurstclient.util.MovementPlanner;
 import net.wurstclient.util.RenderUtils;
 
 @DontSaveState
@@ -48,10 +45,6 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		new ColorSetting("Tracer color", Color.WHITE);
 	
 	private FakePlayerEntity fakePlayer;
-	private Vec3 camPos;
-	private Vec3 prevCamPos;
-	private float camYaw;
-	private float camPitch;
 	
 	public FreecamHack()
 	{
@@ -76,11 +69,6 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		EVENTS.add(RenderListener.class, this);
 		
 		fakePlayer = new FakePlayerEntity();
-		LocalPlayer player = MC.player;
-		camPos = player.getEyePosition();
-		prevCamPos = camPos;
-		camYaw = player.getYRot();
-		camPitch = player.getXRot();
 		
 		Options opt = MC.options;
 		KeyMapping[] bindings = {opt.keyUp, opt.keyDown, opt.keyLeft,
@@ -116,33 +104,17 @@ public final class FreecamHack extends Hack implements UpdateListener,
 	public void onUpdate()
 	{
 		LocalPlayer player = MC.player;
-		if(player == null)
-			return;
-
 		player.setDeltaMovement(Vec3.ZERO);
 		player.getAbilities().flying = false;
 		
-		if(!isMovingCamera() || MC.screen != null)
-		{
-			prevCamPos = camPos;
-			return;
-		}
-
-		Vec2 moveVector = MovementPlanner.getMoveVector(player.input);
-		double yawRad = Math.toRadians(camYaw);
-		double sinYaw = Math.sin(yawRad);
-		double cosYaw = Math.cos(yawRad);
-		double offsetX = moveVector.x * cosYaw - moveVector.y * sinYaw;
-		double offsetZ = moveVector.x * sinYaw + moveVector.y * cosYaw;
-		double offsetY = 0;
+		player.setOnGround(false);
+		Vec3 velocity = player.getDeltaMovement();
+		
 		if(MC.options.keyJump.isDown())
-			offsetY += 1;
+			player.setDeltaMovement(velocity.add(0, speed.getValue(), 0));
+		
 		if(MC.options.keyShift.isDown())
-			offsetY -= 1;
-
-		prevCamPos = camPos;
-		camPos = camPos.add(new Vec3(offsetX, offsetY, offsetZ)
-			.scale(speed.getValue()));
+			player.setDeltaMovement(velocity.subtract(0, speed.getValue(), 0));
 	}
 	
 	@Override
@@ -156,56 +128,6 @@ public final class FreecamHack extends Hack implements UpdateListener,
 	{
 		if(event.getPacket() instanceof ServerboundMovePlayerPacket)
 			event.cancel();
-	}
-
-	public boolean isControllingScrollEvents()
-	{
-		return false;
-	}
-
-	public boolean isMovingCamera()
-	{
-		return isEnabled();
-	}
-
-	public boolean isClickingFromCamera()
-	{
-		return isEnabled();
-	}
-
-	public boolean shouldHideHand()
-	{
-		return isEnabled();
-	}
-
-	public Vec3 getCamPos(float partialTicks)
-	{
-		if(prevCamPos == null || camPos == null)
-			return MC.player.getEyePosition(partialTicks);
-		
-		return Mth.lerp(partialTicks, prevCamPos, camPos);
-	}
-
-	public void turn(double deltaYaw, double deltaPitch)
-	{
-		camYaw += (float)(deltaYaw * 0.15);
-		camPitch += (float)(deltaPitch * 0.15);
-		camPitch = Mth.clamp(camPitch, -90, 90);
-	}
-
-	public float getCamYaw()
-	{
-		return camYaw;
-	}
-
-	public float getCamPitch()
-	{
-		return camPitch;
-	}
-
-	public Vec3 getScaledCamDir(double scale)
-	{
-		return Vec3.directionFromRotation(camPitch, camYaw).scale(scale);
 	}
 	
 	@Override

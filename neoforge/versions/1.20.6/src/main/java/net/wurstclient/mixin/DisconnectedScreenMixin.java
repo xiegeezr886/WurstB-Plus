@@ -20,7 +20,6 @@ import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.DisconnectedScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.DisconnectionDetails;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hacks.AutoReconnectHack;
 import net.wurstclient.nochatreports.ForcedChatReportsScreen;
@@ -35,7 +34,7 @@ public class DisconnectedScreenMixin extends Screen
 	
 	@Shadow
 	@Final
-	private DisconnectionDetails details;
+	private Component reason;
 	@Shadow
 	@Final
 	private Screen parent;
@@ -54,7 +53,6 @@ public class DisconnectedScreenMixin extends Screen
 		if(!WurstClient.INSTANCE.isEnabled())
 			return;
 		
-		Component reason = details.reason();
 		System.out.println("Disconnected: " + reason);
 		
 		if(ForcedChatReportsScreen.isCausedByNoChatReports(reason))

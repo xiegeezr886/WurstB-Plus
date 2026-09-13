@@ -4,7 +4,7 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public enum GuiIcon
 {
@@ -29,11 +29,11 @@ public enum GuiIcon
 
 	private static final int TEXTURE_SIZE = 64;
 
-	private final Identifier texture;
+	private final ResourceLocation texture;
 
 	GuiIcon(String name)
 	{
-		texture = Identifier.fromNamespaceAndPath("wurst", "textures/gui/icons/" + name
+		texture = ResourceLocation.fromNamespaceAndPath("wurst", "textures/gui/icons/" + name
 			+ ".png");
 	}
 

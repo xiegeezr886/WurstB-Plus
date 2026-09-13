@@ -23,11 +23,9 @@ import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.util.ColorUtils;
 
@@ -44,8 +42,8 @@ public final class EditColorScreen extends Screen
 	
 	private Button doneButton;
 	
-	private final Identifier paletteIdentifier =
-		Identifier.fromNamespaceAndPath("wurst", "colorpalette.png");
+	private final ResourceLocation paletteIdentifier =
+		ResourceLocation.fromNamespaceAndPath("wurst", "colorpalette.png");
 	private BufferedImage paletteAsBufferedImage;
 	
 	private int paletteX = 0;
@@ -166,10 +164,10 @@ public final class EditColorScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		Font tr = minecraft.font;
@@ -225,14 +223,14 @@ public final class EditColorScreen extends Screen
 	}
 	
 	@Override
-	public void resize(int width, int height)
+	public void resize(Minecraft client, int width, int height)
 	{
 		String hex = hexValueField.getValue();
 		String r = redValueField.getValue();
 		String g = greenValueField.getValue();
 		String b = blueValueField.getValue();
 		
-		init(width, height);
+		init(client, width, height);
 		
 		hexValueField.setValue(hex);
 		redValueField.setValue(r);
@@ -241,9 +239,9 @@ public final class EditColorScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		switch(context.key())
+		switch(keyCode)
 		{
 			case GLFW.GLFW_KEY_ENTER:
 			done();
@@ -254,19 +252,17 @@ public final class EditColorScreen extends Screen
 			break;
 		}
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
 		if(mouseX >= paletteX && mouseX <= paletteX + paletteWidth
 			&& mouseY >= paletteY && mouseY <= paletteY + paletteHeight)
 		{
 			if(paletteAsBufferedImage == null)
-				return super.mouseClicked(context, doubleClick);
+				return super.mouseClicked(mouseX, mouseY, button);
 			
 			int x = (int)Math.round((mouseX - paletteX) / paletteWidth
 				* paletteAsBufferedImage.getWidth());
@@ -285,7 +281,7 @@ public final class EditColorScreen extends Screen
 			}
 		}
 		
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 	
 	private void setColor(Color color)

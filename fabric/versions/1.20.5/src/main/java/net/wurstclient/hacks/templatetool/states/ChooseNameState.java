@@ -82,7 +82,7 @@ public final class ChooseNameState extends TemplateToolState
 			
 			includeTypesBox = Checkbox
 				.builder(Component.literal("包含方块类型"), tr)
-				.pos(middleX - 99, middleY + 32).maxWidth(150)
+				.pos(middleX - 99, middleY + 32)
 				.selected(true).build();
 			addRenderableWidget(includeTypesBox);
 			

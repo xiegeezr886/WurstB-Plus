@@ -9,7 +9,6 @@
 package net.wurstclient.hacks;
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-// EffectRenderingInventoryScreen removed in MC 26.1.2
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.wurstclient.Category;
@@ -114,7 +113,8 @@ public final class AutoTotemHack extends Hack implements UpdateListener
 			return;
 		
 		// don't move items while a container is open
-		if(MC.screen instanceof AbstractContainerScreen)
+		if(MC.screen instanceof AbstractContainerScreen
+			&& !(MC.screen instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen))
 			return;
 		
 		if(timer > 0)

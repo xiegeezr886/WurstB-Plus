@@ -7,7 +7,7 @@
  */
 package net.wurstclient.hud;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.events.GUIRenderListener;
@@ -20,7 +20,7 @@ public final class IngameHUD implements GUIRenderListener
 	private TabGui tabGui;
 	
 	@Override
-	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+	public void onRenderGUI(GuiGraphics context, float partialTicks)
 	{
 		if(!WurstClient.INSTANCE.isEnabled())
 			return;

@@ -10,6 +10,16 @@ import org.lwjgl.system.MemoryStack;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+/**
+ * Captures and restores the raw OpenGL state around a block of custom
+ * rendering.
+ *
+ * <p>
+ * 1.21.5 removed the global render state methods from {@code RenderSystem}
+ * (blend, depth test, cull, viewport) because pipelines now own that state, and
+ * it removed {@code ShaderInstance} entirely. The raw {@link GlStateManager}
+ * level still exists, so that is what gets saved here.
+ */
 public final class RenderScope implements AutoCloseable
 {
 	private final boolean blend;
@@ -22,6 +32,7 @@ public final class RenderScope implements AutoCloseable
 	private final int blendSrcAlpha;
 	private final int blendDstAlpha;
 	private final float lineWidth;
+	private final float[] shaderColor;
 	private final int drawFramebuffer;
 	private final int readFramebuffer;
 	private final int viewportX;
@@ -43,6 +54,7 @@ public final class RenderScope implements AutoCloseable
 		blendSrcAlpha = GL11.glGetInteger(GL14.GL_BLEND_SRC_ALPHA);
 		blendDstAlpha = GL11.glGetInteger(GL14.GL_BLEND_DST_ALPHA);
 		lineWidth = GL11.glGetFloat(GL11.GL_LINE_WIDTH);
+		shaderColor = RenderSystem.getShaderColor().clone();
 		drawFramebuffer = GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
 		readFramebuffer = GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
 
@@ -55,6 +67,7 @@ public final class RenderScope implements AutoCloseable
 			viewportWidth = viewport.get(2);
 			viewportHeight = viewport.get(3);
 		}
+
 	}
 
 	public static RenderScope capture()
@@ -73,18 +86,29 @@ public final class RenderScope implements AutoCloseable
 			drawFramebuffer);
 		GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER,
 			readFramebuffer);
-		// RenderSystem.viewport removed in 26.1.2
+		GlStateManager._viewport(viewportX, viewportY, viewportWidth,
+			viewportHeight);
+
+		if(blend)
+			GlStateManager._enableBlend();
+		else
+			GlStateManager._disableBlend();
 		GlStateManager._blendFuncSeparate(blendSrcRgb, blendDstRgb,
 			blendSrcAlpha, blendDstAlpha);
-		// Depth state managed by render pipeline
+
+		if(depthTest)
+			GlStateManager._enableDepthTest();
+		else
+			GlStateManager._disableDepthTest();
+		GlStateManager._depthMask(depthMask);
+		GlStateManager._depthFunc(depthFunc);
+
 		if(cull)
-		{
-			// Cull state managed by render pipeline
-		}else
-		{
-			// Cull state managed by render pipeline
-		}
-		// Line width managed by render pipeline
-		// Shader color managed by render pipeline
+			GlStateManager._enableCull();
+		else
+			GlStateManager._disableCull();
+		GL11.glLineWidth(lineWidth);
+		RenderSystem.setShaderColor(shaderColor[0], shaderColor[1],
+			shaderColor[2], shaderColor[3]);
 	}
 }

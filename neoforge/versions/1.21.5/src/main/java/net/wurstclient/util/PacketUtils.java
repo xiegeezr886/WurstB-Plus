@@ -30,15 +30,13 @@ public enum PacketUtils
 				packet.isOnGround(), packet.horizontalCollision());
 		
 		if(packet instanceof StatusOnly)
-			return new Pos(x, y, z, packet.isOnGround(),
-				packet.horizontalCollision());
+			return new Pos(x, y, z, packet.isOnGround(), packet.horizontalCollision());
 		
 		if(packet instanceof PosRot)
 			return new PosRot(x, y, z, packet.getYRot(0), packet.getXRot(0),
 				packet.isOnGround(), packet.horizontalCollision());
 		
-		return new Pos(x, y, z, packet.isOnGround(),
-			packet.horizontalCollision());
+		return new Pos(x, y, z, packet.isOnGround(), packet.horizontalCollision());
 	}
 	
 	/**
@@ -54,15 +52,13 @@ public enum PacketUtils
 				pitch, packet.isOnGround(), packet.horizontalCollision());
 		
 		if(packet instanceof StatusOnly)
-			return new Rot(yaw, pitch, packet.isOnGround(),
-				packet.horizontalCollision());
+			return new Rot(yaw, pitch, packet.isOnGround(), packet.horizontalCollision());
 		
 		if(packet instanceof PosRot)
 			return new PosRot(packet.getX(0), packet.getY(0), packet.getZ(0), yaw,
 				pitch, packet.isOnGround(), packet.horizontalCollision());
 		
-		return new Rot(yaw, pitch, packet.isOnGround(),
-			packet.horizontalCollision());
+		return new Rot(yaw, pitch, packet.isOnGround(), packet.horizontalCollision());
 	}
 	
 	/**
@@ -73,8 +69,7 @@ public enum PacketUtils
 	{
 		if(packet instanceof PosRot)
 			return new PosRot(packet.getX(0), packet.getY(0), packet.getZ(0),
-				packet.getYRot(0), packet.getXRot(0), onGround,
-				packet.horizontalCollision());
+				packet.getYRot(0), packet.getXRot(0), onGround, packet.horizontalCollision());
 		
 		if(packet instanceof Pos)
 			return new Pos(packet.getX(0), packet.getY(0),

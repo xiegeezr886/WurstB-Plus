@@ -35,7 +35,7 @@ public final class RepairCmd extends Command
 		if(!player.getAbilities().instabuild)
 			throw new CmdError("仅限创造模式。");
 		
-		int slot = player.getInventory().selected;
+		int slot = player.getInventory().getSelectedSlot();
 		ItemStack stack = getHeldStack(player);
 		stack.setDamageValue(0);
 		InventoryUtils.setCreativeStack(slot, stack);
@@ -45,7 +45,7 @@ public final class RepairCmd extends Command
 	
 	private ItemStack getHeldStack(LocalPlayer player) throws CmdError
 	{
-		ItemStack stack = player.getInventory().getSelected();
+		ItemStack stack = player.getInventory().getSelectedItem();
 		
 		if(stack.isEmpty())
 			throw new CmdError("You need an item in your hand.");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -8,27 +8,24 @@
 package net.wurstclient.events;
 
 import java.util.ArrayList;
-
 import net.minecraft.client.MouseHandler;
 import net.wurstclient.event.Event;
 import net.wurstclient.event.Listener;
 
 /**
- * Fired at the beginning of {@link MouseHandler#handleAccumulatedMovement()}.
+ * Fired at the beginning of {@link MouseHandler#tick()}.
  * This is the ideal time to simulate mouse input.
  */
 public interface MouseUpdateListener extends Listener
 {
 	/**
-	 * Fired at the beginning of
-	 * {@link MouseHandler#handleAccumulatedMovement()}.
+	 * Fired at the beginning of {@link MouseHandler#tick()}.
 	 * This is the ideal time to simulate mouse input.
 	 */
 	public void onMouseUpdate(MouseUpdateEvent event);
 	
 	/**
-	 * Fired at the beginning of
-	 * {@link MouseHandler#handleAccumulatedMovement()}.
+	 * Fired at the beginning of {@link MouseHandler#tick()}.
 	 * This is the ideal time to simulate mouse input.
 	 */
 	public static class MouseUpdateEvent extends Event<MouseUpdateListener>

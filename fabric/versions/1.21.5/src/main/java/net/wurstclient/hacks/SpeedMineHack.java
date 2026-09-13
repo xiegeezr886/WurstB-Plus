@@ -52,7 +52,7 @@ public final class SpeedMineHack extends Hack implements UpdateListener
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
-		MC.player.removeEffect(MobEffects.DIG_SPEED);
+		MC.player.removeEffect(MobEffects.HASTE);
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public final class SpeedMineHack extends Hack implements UpdateListener
 	{
 		if(mode.getSelected() == Mode.HASTE)
 			MC.player.addEffect(new MobEffectInstance(
-				MobEffects.DIG_SPEED, 5, hasteLevel.getValueI(), false,
+				MobEffects.HASTE, 5, hasteLevel.getValueI(), false,
 				false, false));
 	}
 

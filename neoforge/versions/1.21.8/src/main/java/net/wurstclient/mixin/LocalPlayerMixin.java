@@ -264,11 +264,11 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	}
 	
 	@Override
-	public void lerpMotion(Vec3 vec)
+	public void lerpMotion(double x, double y, double z)
 	{
-		KnockbackEvent event = new KnockbackEvent(vec.x, vec.y, vec.z);
+		KnockbackEvent event = new KnockbackEvent(x, y, z);
 		EventManager.fire(event);
-		super.lerpMotion(new Vec3(event.getX(), event.getY(), event.getZ()));
+		super.lerpMotion(event.getX(), event.getY(), event.getZ());
 	}
 	
 	@Override

@@ -4,17 +4,13 @@
  */
 package net.wurstclient.clickgui2;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.wurstclient.Category;
@@ -150,13 +146,9 @@ public final class NavigatorScreen extends Screen
 			WURST.getOtfs().hackListOtf, WURST.getOtfs().keybindManagerOtf,
 			WURST.getOtfs().translationsOtf);
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
 
-	private void renderContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	@Override
+	public void render(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		updateDimensions();
@@ -180,7 +172,7 @@ public final class NavigatorScreen extends Screen
 		WURST.getGui().render(graphics, mouseX, mouseY, partialTicks);
 	}
 
-	private void renderSidebar(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	private void renderSidebar(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		Font font = MC.font;
@@ -189,13 +181,13 @@ public final class NavigatorScreen extends Screen
 		String brandAccent = "Plus";
 		float brandScale = Math.min(1,
 			(sidebarWidth - 16F) / Math.max(1, font.width(brand)));
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(panelX + 8, panelY + 9);
-		graphics.pose().scale(brandScale, 1);
-		graphics.text(font, brandPrefix, 0, 0, TEXT, false);
-		graphics.text(font, brandAccent, font.width(brandPrefix), 0,
+		graphics.pose().pushPose();
+		graphics.pose().translate(panelX + 8, panelY + 9, 0);
+		graphics.pose().scale(brandScale, 1, 1);
+		graphics.drawString(font, brandPrefix, 0, 0, TEXT, false);
+		graphics.drawString(font, brandAccent, font.width(brandPrefix), 0,
 			ACCENT, false);
-		graphics.pose().popMatrix();
+		graphics.pose().popPose();
 
 		int searchX = panelX + 12;
 		int searchY = panelY + 27;
@@ -205,7 +197,7 @@ public final class NavigatorScreen extends Screen
 		searchBox.setWidth(Math.max(12, sidebarWidth - 40));
 		searchBox.visible = settingsPanel == null;
 		if(searchBox.visible)
-			searchBox.render(graphics.getInner(), mouseX, mouseY, partialTicks);
+			searchBox.render(graphics, mouseX, mouseY, partialTicks);
 
 		int top = panelY + 43;
 		int bottom = panelY + panelHeight - 8;
@@ -242,7 +234,7 @@ public final class NavigatorScreen extends Screen
 		graphics.disableScissor();
 	}
 
-	private void renderModules(GuiGraphicsExtractor graphics, int mouseX, int mouseY)
+	private void renderModules(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 		int left = panelX + sidebarWidth + 6;
 		int right = panelX + panelWidth - 5;
@@ -278,11 +270,11 @@ public final class NavigatorScreen extends Screen
 		}
 
 		if(visibleFeatures.isEmpty())
-			graphics.centeredText(MC.font, "\u6ca1\u6709\u5339\u914d\u7684\u529f\u80fd",
+			graphics.drawCenteredString(MC.font, "\u6ca1\u6709\u5339\u914d\u7684\u529f\u80fd",
 				(left + right) / 2, listTop + 28, MUTED);
 	}
 
-	private void renderModule(GuiGraphicsExtractor graphics, Feature feature, int left,
+	private void renderModule(GuiGraphics graphics, Feature feature, int left,
 		int y, int right, int mouseX, int mouseY)
 	{
 		boolean hovering = inside(mouseX, mouseY, left, y, right,
@@ -306,7 +298,7 @@ public final class NavigatorScreen extends Screen
 
 	}
 
-	private void renderSettings(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	private void renderSettings(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		Feature feature = settingsPanel.getFeature();
@@ -318,9 +310,9 @@ public final class NavigatorScreen extends Screen
 		FlatUiRenderer.fill(graphics, left, top - 3, left + 20, top + 17, 3,
 			backHover ? ROW_HOVER : ROW);
 		GuiIcon.CHEVRON.drawRotated(graphics, left + 6, top + 3, 8, TEXT, 90);
-		graphics.text(MC.font, feature.getDisplayName(), left + 29, top,
+		graphics.drawString(MC.font, feature.getDisplayName(), left + 29, top,
 			feature.isEnabled() ? accentColor() : TEXT, false);
-		graphics.text(MC.font,
+		graphics.drawString(MC.font,
 			settingsPanel.getVisibleSettingCount() + " settings", left + 29,
 			top + 14, MUTED, false);
 
@@ -341,11 +333,8 @@ public final class NavigatorScreen extends Screen
 	}
 
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
-		int button = context.button();
 		ClickGui gui = WURST.getGui();
 		boolean overPopup = gui.isMouseOverWindow(mouseX, mouseY);
 		gui.handleMouseClick((int)mouseX, (int)mouseY, button);
@@ -355,7 +344,7 @@ public final class NavigatorScreen extends Screen
 		if(searchBox.visible && inside(mouseX, mouseY, searchBox.getX() - 12,
 			searchBox.getY() - 3, searchBox.getX() + searchBox.getWidth() + 3,
 			searchBox.getY() + searchBox.getHeight() + 3))
-			return super.mouseClicked(context, doubleClick);
+			return super.mouseClicked(mouseX, mouseY, button);
 
 		int category = categoryAt(mouseX, mouseY);
 		if(category >= 0)
@@ -440,18 +429,15 @@ public final class NavigatorScreen extends Screen
 			dragOffsetY = (int)mouseY - panelY;
 			return true;
 		}
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseDragged(MouseButtonEvent context, double dragX,
-		double dragY)
+	public boolean mouseDragged(double mouseX, double mouseY, int button,
+		double dragX, double dragY)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
-		int button = context.button();
 		if(button != GLFW.GLFW_MOUSE_BUTTON_LEFT)
-			return super.mouseDragged(context, dragX, dragY);
+			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 
 		if(scrollbarDragging)
 		{
@@ -474,7 +460,7 @@ public final class NavigatorScreen extends Screen
 		}
 
 		if(!dragging)
-			return super.mouseDragged(context, dragX, dragY);
+			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 		panelX = Mth.clamp((int)mouseX - dragOffsetX, 0,
 			Math.max(0, width - panelWidth));
 		panelY = Mth.clamp((int)mouseY - dragOffsetY, 0,
@@ -483,18 +469,15 @@ public final class NavigatorScreen extends Screen
 	}
 
 	@Override
-	public boolean mouseReleased(MouseButtonEvent context)
+	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
-		int button = context.button();
 		WURST.getGui().handleMouseRelease(mouseX, mouseY, button);
 		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
 		{
 			dragging = false;
 			scrollbarDragging = false;
 		}
-		return super.mouseReleased(context);
+		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
 	@Override
@@ -527,14 +510,14 @@ public final class NavigatorScreen extends Screen
 	}
 
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ESCAPE)
+		if(keyCode == GLFW.GLFW_KEY_ESCAPE)
 		{
 			onClose();
 			return true;
 		}
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	@Override
@@ -601,14 +584,14 @@ public final class NavigatorScreen extends Screen
 		return x >= left && x < right && y >= top && y < bottom;
 	}
 
-	private static void drawText(GuiGraphicsExtractor graphics, Font font, String text,
+	private static void drawText(GuiGraphics graphics, Font font, String text,
 		int x, int y, int color)
 	{
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(x, y);
-		graphics.pose().scale(TEXT_SCALE, TEXT_SCALE);
-		graphics.text(font, text, 0, 0, color, false);
-		graphics.pose().popMatrix();
+		graphics.pose().pushPose();
+		graphics.pose().translate(x, y, 0);
+		graphics.pose().scale(TEXT_SCALE, TEXT_SCALE, 1);
+		graphics.drawString(font, text, 0, 0, color, false);
+		graphics.pose().popPose();
 	}
 
 	private int accentColor()

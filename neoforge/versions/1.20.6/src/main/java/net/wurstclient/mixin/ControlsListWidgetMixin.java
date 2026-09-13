@@ -15,7 +15,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractSelectionList;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
-import net.minecraft.client.gui.screens.options.controls.KeyBindsList;
+import net.minecraft.client.gui.screens.controls.KeyBindsList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.wurstclient.WurstClient;
@@ -34,16 +34,17 @@ public abstract class ControlsListWidgetMixin
 	 * Prevents Wurst's zoom keybind from being added to the controls list.
 	 */
 	@WrapOperation(at = @At(value = "INVOKE",
-		target = "Lnet/minecraft/client/gui/screens/options/controls/KeyBindsList;addEntry(Lnet/minecraft/client/gui/components/AbstractSelectionList$Entry;)I",
+		target = "Lnet/minecraft/client/gui/screens/controls/KeyBindsList;addEntry(Lnet/minecraft/client/gui/components/AbstractSelectionList$Entry;)I",
 		ordinal = 1),
-		method = "<init>(Lnet/minecraft/client/gui/screens/options/controls/KeyBindsScreen;Lnet/minecraft/client/Minecraft;)V")
+		method = "<init>(Lnet/minecraft/client/gui/screens/controls/KeyBindsScreen;Lnet/minecraft/client/Minecraft;)V")
 	private int dontAddZoomEntry(KeyBindsList instance,
 		AbstractSelectionList.Entry<?> entry, Operation<Integer> original)
 	{
 		if(!(entry instanceof KeyBindsList.KeyEntry kbEntry))
 			return original.call(instance, entry);
 		
-		Component name = ((KeyEntryAccessor)kbEntry).getName();
+		Component name = ((net.wurstclient.mixin.KeyEntryAccessor)(Object)kbEntry)
+			.getName();
 		if(name == null || !(name
 			.getContents() instanceof TranslatableContents trContent))
 			return original.call(instance, entry);

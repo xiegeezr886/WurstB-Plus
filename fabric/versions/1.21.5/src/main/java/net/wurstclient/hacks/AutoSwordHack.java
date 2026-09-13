@@ -11,11 +11,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.DiggerItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.item.TridentItem;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -135,10 +133,10 @@ public final class AutoSwordHack extends Hack implements UpdateListener
 		
 		// save old slot
 		if(oldSlot == -1)
-			oldSlot = MC.player.getInventory().selected;
+			oldSlot = MC.player.getInventory().getSelectedSlot();
 		
 		// set slot
-		MC.player.getInventory().selected = bestSlot;
+		MC.player.getInventory().setSelectedSlot(bestSlot);
 		
 		// start timer
 		timer = releaseTime.getValueI();
@@ -147,7 +145,7 @@ public final class AutoSwordHack extends Hack implements UpdateListener
 	private float getValue(ItemStack stack, Entity entity)
 	{
 		Item item = stack.getItem();
-		if(!(item instanceof TieredItem || item instanceof TridentItem))
+		if(!(stack.has(DataComponents.TOOL) || item instanceof TridentItem))
 			return Integer.MIN_VALUE;
 		
 		switch(priority.getSelected())
@@ -182,7 +180,7 @@ public final class AutoSwordHack extends Hack implements UpdateListener
 		
 		if(oldSlot != -1)
 		{
-			MC.player.getInventory().selected = oldSlot;
+			MC.player.getInventory().setSelectedSlot(oldSlot);
 			oldSlot = -1;
 		}
 	}

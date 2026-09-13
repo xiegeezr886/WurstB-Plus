@@ -165,7 +165,8 @@ public final class BaseFinderHack extends Hack
 		vertexBuffer.draw(matrixStack, WurstRenderLayers.ESP_QUADS);
 		
 		matrixStack.popPose();
-		// Shader color managed by render pipeline
+		
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 	
 	@Override
@@ -196,7 +197,7 @@ public final class BaseFinderHack extends Hack
 			matchingBlocks.clear();
 		
 		int stepSize = MC.level.getHeight() / 64;
-		int startY = MC.level.getMaxY() * 16 - 1 - modulo * stepSize;
+		int startY = MC.level.getMaxY() - 1 - modulo * stepSize;
 		int endY = startY - stepSize;
 		
 		BlockPos playerPos =

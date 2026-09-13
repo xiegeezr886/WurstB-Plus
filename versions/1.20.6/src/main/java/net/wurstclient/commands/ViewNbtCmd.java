@@ -8,7 +8,7 @@
 package net.wurstclient.commands;
 
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.SearchTags;
 import net.wurstclient.command.CmdError;
@@ -34,8 +34,8 @@ public final class ViewNbtCmd extends Command
 		if(stack.isEmpty())
 			throw new CmdError("You must hold an item in your main hand.");
 		
-		CompoundTag tag = stack.getTag();
-		String nbt = tag == null ? "" : tag.getAsString();
+		Tag tag = stack.save(player.registryAccess());
+		String nbt = tag.getAsString();
 		
 		switch(String.join(" ", args).toLowerCase())
 		{

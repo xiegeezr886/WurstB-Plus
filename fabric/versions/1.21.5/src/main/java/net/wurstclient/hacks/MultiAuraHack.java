@@ -39,10 +39,8 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.MilkBucketItem;
 import net.minecraft.world.item.PotionItem;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -638,12 +636,12 @@ public final class MultiAuraHack extends Hack
 			|| MC.player.isDeadOrDying() || MC.player.isSpectator())
 			return true;
 		if(activationSlot.isChecked()
-			&& MC.player.getInventory().selected != preferredSlot.getValueI() - 1)
+			&& MC.player.getInventory().getSelectedSlot() != preferredSlot.getValueI() - 1)
 			return true;
 		if(clickOnly.isChecked() && !MC.options.keyAttack.isDown())
 			return true;
 		if(onSwording.isChecked()
-			&& !(MC.player.getMainHandItem().getItem() instanceof SwordItem))
+			&& !MC.player.getMainHandItem().has(DataComponents.WEAPON))
 			return true;
 		if(WURST.getHax().scaffoldWalkHack.isEnabled()
 			&& (!onScaffold.isChecked() || noScaffold.isChecked()))
@@ -671,7 +669,7 @@ public final class MultiAuraHack extends Hack
 			return false;
 		ItemStack stack = MC.player.getUseItem();
 		return stack.has(DataComponents.FOOD)
-			|| stack.getItem() instanceof MilkBucketItem
+			|| stack.is(net.minecraft.world.item.Items.MILK_BUCKET)
 			|| stack.getItem() instanceof PotionItem;
 	}
 
@@ -856,7 +854,7 @@ public final class MultiAuraHack extends Hack
 		if(checkEnemyWeapon.isChecked() && target instanceof LivingEntity living)
 		{
 			ItemStack held = living.getMainHandItem();
-			if(!(held.getItem() instanceof SwordItem)
+			if(!held.has(DataComponents.WEAPON)
 				&& !(held.getItem() instanceof AxeItem))
 				return false;
 		}
@@ -885,7 +883,7 @@ public final class MultiAuraHack extends Hack
 		{
 			case STOP -> sendReleaseUsingItemPacket();
 			case SWITCH -> {
-				int selected = MC.player.getInventory().selected;
+				int selected = MC.player.getInventory().getSelectedSlot();
 				MC.player.connection.send(
 					new ServerboundSetCarriedItemPacket((selected + 1) % 9));
 				MC.player.connection.send(
@@ -897,7 +895,7 @@ public final class MultiAuraHack extends Hack
 					sendReleaseUsingItemPacket();
 				else
 				{
-					int selected = MC.player.getInventory().selected;
+					int selected = MC.player.getInventory().getSelectedSlot();
 					MC.player.connection.send(
 						new ServerboundSetCarriedItemPacket(empty));
 					MC.player.connection.send(
@@ -930,8 +928,8 @@ public final class MultiAuraHack extends Hack
 		for(InteractionHand hand : InteractionHand.values())
 		{
 			ItemStack stack = MC.player.getItemInHand(hand);
-			if(stack.getUseAnimation() == UseAnim.BLOCK
-				&& !MC.player.getCooldowns().isOnCooldown(stack.getItem()))
+			if(stack.getUseAnimation() == ItemUseAnimation.BLOCK
+				&& !MC.player.getCooldowns().isOnCooldown(stack))
 				return hand;
 		}
 		return null;
@@ -940,7 +938,7 @@ public final class MultiAuraHack extends Hack
 	private boolean isBlocking()
 	{
 		return blockingHand != null || MC.player.isUsingItem()
-			&& MC.player.getUseItem().getUseAnimation() == UseAnim.BLOCK;
+			&& MC.player.getUseItem().getUseAnimation() == ItemUseAnimation.BLOCK;
 	}
 
 	public boolean shouldRenderFakeBlock()
@@ -979,7 +977,7 @@ public final class MultiAuraHack extends Hack
 	{
 		MC.player.connection.send(new PosRot(MC.player.getX(), MC.player.getY(),
 			MC.player.getZ(), rotation.yaw(), rotation.pitch(),
-			MC.player.onGround()));
+			MC.player.onGround(), false));
 	}
 
 	private void clearTargets()
@@ -1151,7 +1149,7 @@ public final class MultiAuraHack extends Hack
 					entity instanceof LivingEntity living && living.onClimbable() ? 0 : 1);
 				case IN_LIQUID -> Comparator.comparingInt(entity ->
 					entity instanceof LivingEntity living
-						&& (living.isInWaterOrBubble() || living.isInLava()) ? 0 : 1);
+						&& (living.isInWater() || living.isInLava()) ? 0 : 1);
 				case IN_WEB -> Comparator.comparingInt(entity ->
 					aura.MC.level.getBlockState(entity.blockPosition())
 						.is(Blocks.COBWEB) ? 0 : 1);

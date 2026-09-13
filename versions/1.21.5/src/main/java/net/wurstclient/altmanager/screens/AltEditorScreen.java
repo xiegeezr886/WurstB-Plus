@@ -7,8 +7,6 @@
  */
 package net.wurstclient.altmanager.screens;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -17,14 +15,12 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 import org.lwjgl.glfw.GLFW;
-import net.minecraft.util.Util;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.Util;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
@@ -68,8 +64,12 @@ public abstract class AltEditorScreen extends Screen
 		passwordBox = new EditBox(font, width / 2 - 100, 100,
 			200, 20, Component.literal(""));
 		passwordBox.setValue(getDefaultPassword());
-		passwordBox.addFormatter((text, startIndex) -> FormattedCharSequence
-			.forward("*".repeat(text.length()), Style.EMPTY));
+		passwordBox.setFormatter((text, int_1) -> {
+			String stars = "";
+			for(int i = 0; i < text.length(); i++)
+				stars += "*";
+			return FormattedCharSequence.forward(stars, Style.EMPTY);
+		});
 		passwordBox.setMaxLength(256);
 		addWidget(passwordBox);
 		
@@ -202,40 +202,37 @@ public abstract class AltEditorScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int int_3)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ENTER)
-			doneButton.onPress(context);
+		if(keyCode == GLFW.GLFW_KEY_ENTER)
+			doneButton.onPress();
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, int_3);
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double x, double y, int button)
 	{
-		nameOrEmailBox.mouseClicked(context, doubleClick);
-		passwordBox.mouseClicked(context, doubleClick);
+		nameOrEmailBox.mouseClicked(x, y, button);
+		passwordBox.mouseClicked(x, y, button);
 		
 		if(nameOrEmailBox.isFocused() || passwordBox.isFocused())
 			message = "";
 		
-		if(context.button() == GLFW.GLFW_MOUSE_BUTTON_4)
+		if(button == GLFW.GLFW_MOUSE_BUTTON_4)
 		{
 			onClose();
 			return true;
 		}
 		
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(x, y, button);
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		
 		// skin preview
 		AltRenderer.drawAltBack(context, nameOrEmailBox.getValue(),
@@ -246,23 +243,23 @@ public abstract class AltEditorScreen extends Screen
 		String accountType = getPassword().isEmpty() ? "cracked" : "premium";
 		
 		// text
-		context.text(font, "Name (for cracked alts), or",
-			width / 2 - 100, 37, 0xFFA0A0A0);
-		context.text(font, "E-Mail (for premium alts)",
-			width / 2 - 100, 47, 0xFFA0A0A0);
-		context.text(font, "Password (for premium alts)",
-			width / 2 - 100, 87, 0xFFA0A0A0);
-		context.text(font, "Account type: " + accountType,
-			width / 2 - 100, 127, 0xFFA0A0A0);
+		context.drawString(font, "Name (for cracked alts), or",
+			width / 2 - 100, 37, 10526880);
+		context.drawString(font, "E-Mail (for premium alts)",
+			width / 2 - 100, 47, 10526880);
+		context.drawString(font, "Password (for premium alts)",
+			width / 2 - 100, 87, 10526880);
+		context.drawString(font, "Account type: " + accountType,
+			width / 2 - 100, 127, 10526880);
 		
 		String[] lines = message.split("\n");
 		for(int i = 0; i < lines.length; i++)
-			context.centeredText(font, lines[i],
-				width / 2, 142 + 10 * i, 0xFFffffff);
+			context.drawCenteredString(font, lines[i],
+				width / 2, 142 + 10 * i, 16777215);
 		
 		// text boxes
-		nameOrEmailBox.render(context.getInner(), mouseX, mouseY, partialTicks);
-		passwordBox.render(context.getInner(), mouseX, mouseY, partialTicks);
+		nameOrEmailBox.render(context, mouseX, mouseY, partialTicks);
+		passwordBox.render(context, mouseX, mouseY, partialTicks);
 		
 		// red flash for errors
 		if(errorTimer > 0)
@@ -274,7 +271,7 @@ public abstract class AltEditorScreen extends Screen
 		}
 		
 		for(Renderable drawable : renderables)
-			drawable.render(context.getInner(), mouseX, mouseY, partialTicks);
+			drawable.render(context, mouseX, mouseY, partialTicks);
 	}
 	
 	@Override

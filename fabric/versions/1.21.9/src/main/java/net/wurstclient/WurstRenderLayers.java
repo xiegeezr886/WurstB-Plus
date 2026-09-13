@@ -7,57 +7,80 @@
  */
 package net.wurstclient;
 
-import net.minecraft.client.renderer.LayeringTransform;
-import net.minecraft.client.renderer.OutputTarget;
-import net.minecraft.client.renderer.RenderSetup;
+import java.util.OptionalDouble;
+
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 
-public enum WurstRenderLayers
+/**
+ * Custom render layers for the Wurst shader pipelines.
+ *
+ * <p>
+ * 1.21.9 still builds render layers out of {@code RenderType.CompositeState}
+ * and {@code RenderStateShard} constants ({@code RenderSetup} and the
+ * {@code rendertype} package only arrive in 1.21.11), so the depth test, cull
+ * and blend behaviour lives in the pipeline while layering, line width and
+ * output target stay in the composite state.
+ */
+public final class WurstRenderLayers extends RenderStateShard
 {
-	;
+	private WurstRenderLayers()
+	{
+		super("wurst", () -> {}, () -> {});
+	}
 	
 	/**
-	 * Similar to {@link RenderType#getLines()}, but with line width 2.
+	 * Similar to {@link RenderType#lines()}, but with line width 2.
 	 */
-	public static final RenderType LINES = RenderType.create("wurst:lines",
-		RenderSetup.builder(WurstShaderPipelines.DEPTH_TEST_LINES)
-			.setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
-			.setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
-			.createRenderSetup());
+	public static final RenderType.CompositeRenderType LINES =
+		createLines("wurst:lines", WurstShaderPipelines.DEPTH_TEST_LINES);
 	
 	/**
-	 * Similar to {@link RenderType#getLines()}, but with line width 2 and no
+	 * Similar to {@link RenderType#lines()}, but with line width 2 and no
 	 * depth test.
 	 */
-	public static final RenderType ESP_LINES =
-		RenderType.create("wurst:esp_lines",
-			RenderSetup.builder(WurstShaderPipelines.ESP_LINES)
-				.setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
-				.setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
-				.createRenderSetup());
+	public static final RenderType.CompositeRenderType ESP_LINES =
+		createLines("wurst:esp_lines", WurstShaderPipelines.ESP_LINES);
 	
 	/**
-	 * Similar to {@link RenderType#getDebugQuads()}, but with culling enabled.
+	 * Similar to {@link RenderType#debugQuads()}, but with culling enabled.
 	 */
-	public static final RenderType QUADS = RenderType.create("wurst:quads",
-		RenderSetup.builder(WurstShaderPipelines.QUADS).sortOnUpload()
-			.createRenderSetup());
+	public static final RenderType.CompositeRenderType QUADS = RenderType
+		.create("wurst:quads", 1536, false, true, WurstShaderPipelines.QUADS,
+			RenderType.CompositeState.builder()
+				.createCompositeState(false));
 	
 	/**
-	 * Similar to {@link RenderType#getDebugQuads()}, but with culling enabled
+	 * Similar to {@link RenderType#debugQuads()}, but with culling enabled
 	 * and no depth test.
 	 */
-	public static final RenderType ESP_QUADS = RenderType.create(
-		"wurst:esp_quads", RenderSetup.builder(WurstShaderPipelines.ESP_QUADS)
-			.sortOnUpload().createRenderSetup());
+	public static final RenderType.CompositeRenderType ESP_QUADS =
+		RenderType.create("wurst:esp_quads", 1536, false, true,
+			WurstShaderPipelines.ESP_QUADS,
+			RenderType.CompositeState.builder()
+				.createCompositeState(false));
 	
 	/**
-	 * Similar to {@link RenderType#getDebugQuads()}, but with no depth test.
+	 * Similar to {@link RenderType#debugQuads()}, but with no depth test.
 	 */
-	public static final RenderType ESP_QUADS_NO_CULLING =
-		RenderType.create("wurst:esp_quads_no_culling",
-			RenderSetup.builder(WurstShaderPipelines.ESP_QUADS_NO_CULLING)
-				.sortOnUpload().useLightmap().createRenderSetup());
+	public static final RenderType.CompositeRenderType ESP_QUADS_NO_CULLING =
+		RenderType.create("wurst:esp_quads_no_culling", 1536, false, true,
+			WurstShaderPipelines.ESP_QUADS_NO_CULLING,
+			RenderType.CompositeState.builder()
+				.setLightmapState(LIGHTMAP).createCompositeState(false));
+	
+	private static RenderType.CompositeRenderType createLines(String name,
+		RenderPipeline pipeline)
+	{
+		return RenderType.create(name, 1536, false, true, pipeline,
+			RenderType.CompositeState.builder()
+				.setLineState(new LineStateShard(OptionalDouble.of(2)))
+				.setLayeringState(VIEW_OFFSET_Z_LAYERING)
+				.setOutputState(ITEM_ENTITY_TARGET)
+				.createCompositeState(false));
+	}
 	
 	/**
 	 * Returns either {@link #QUADS} or {@link #ESP_QUADS} depending on the

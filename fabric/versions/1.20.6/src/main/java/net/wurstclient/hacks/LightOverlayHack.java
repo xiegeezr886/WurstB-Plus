@@ -70,7 +70,8 @@ public final class LightOverlayHack extends Hack implements RenderListener
 		try
 		{
 			Tesselator tess = Tesselator.getInstance();
-			BufferBuilder buf = tess.begin(VertexFormat.Mode.QUADS,
+			BufferBuilder buf = tess.getBuilder();
+			buf.begin(VertexFormat.Mode.QUADS,
 				DefaultVertexFormat.POSITION_COLOR);
 
 			for(int x = -r; x <= r; x++)
@@ -92,17 +93,18 @@ public final class LightOverlayHack extends Hack implements RenderListener
 					float pz = (float)(pos.getZ() - cam.z);
 					float s = 0.5F;
 
-					buf.addVertex(matrix, px - s, py, pz - s)
-						.setColor(1, 1, 0, alpha);
-					buf.addVertex(matrix, px - s, py, pz + s)
-						.setColor(1, 1, 0, alpha);
-					buf.addVertex(matrix, px + s, py, pz + s)
-						.setColor(1, 1, 0, alpha);
-					buf.addVertex(matrix, px + s, py, pz - s)
-						.setColor(1, 1, 0, alpha);
+					buf.vertex(matrix, px - s, py, pz - s)
+						.color(1, 1, 0, alpha).endVertex();
+					buf.vertex(matrix, px - s, py, pz + s)
+						.color(1, 1, 0, alpha).endVertex();
+					buf.vertex(matrix, px + s, py, pz + s)
+						.color(1, 1, 0, alpha).endVertex();
+					buf.vertex(matrix, px + s, py, pz - s)
+						.color(1, 1, 0, alpha).endVertex();
 				}
 
-			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
+			BufferBuilder.RenderedBuffer rendered =
+				buf.endOrDiscardIfEmpty();
 			if(rendered != null)
 				BufferUploader.drawWithShader(rendered);
 		}finally

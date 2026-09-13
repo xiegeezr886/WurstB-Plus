@@ -101,10 +101,10 @@ public final class BonemealAuraHack extends Hack implements HandleInputListener
 	public void onHandleInput()
 	{
 		// wait for right click timer
-		if(MC.rightClickDelay > 0)
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
-		if(MC.gameMode.isDestroying() || MC.player.isHandsBusy())
+		if(((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying() || MC.player.isHandsBusy())
 			return;
 		
 		// get valid blocks
@@ -185,19 +185,19 @@ public final class BonemealAuraHack extends Hack implements HandleInputListener
 			return false;
 		
 		if(block instanceof SaplingBlock sapling
-			&& sapling.isValidBonemealTarget(world, pos, state, true))
+			&& sapling.isValidBonemealTarget(world, pos, state))
 			return saplings.isChecked();
 		
 		if(block instanceof CropBlock crop
-			&& crop.isValidBonemealTarget(world, pos, state, true))
+			&& crop.isValidBonemealTarget(world, pos, state))
 			return crops.isChecked();
 		
 		if(block instanceof StemBlock stem
-			&& stem.isValidBonemealTarget(world, pos, state, true))
+			&& stem.isValidBonemealTarget(world, pos, state))
 			return stems.isChecked();
 		
 		if(block instanceof CocoaBlock cocoaBlock
-			&& cocoaBlock.isValidBonemealTarget(world, pos, state, true))
+			&& cocoaBlock.isValidBonemealTarget(world, pos, state))
 			return cocoa.isChecked();
 		
 		return other.isChecked();
@@ -206,7 +206,7 @@ public final class BonemealAuraHack extends Hack implements HandleInputListener
 	private boolean rightClickBlockLegit(BlockPos pos)
 	{
 		// if breaking or riding, stop and don't try other blocks
-		if(MC.gameMode.isDestroying() || MC.player.isHandsBusy())
+		if(((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying() || MC.player.isHandsBusy())
 			return true;
 		
 		// if this block is unreachable, try the next one
@@ -216,7 +216,7 @@ public final class BonemealAuraHack extends Hack implements HandleInputListener
 			return false;
 		
 		// face and right click the block
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 		WURST.getRotationFaker().faceVectorPacket(params.hitVec());
 		InteractionSimulator.rightClickBlock(params.toHitResult());
 		return true;

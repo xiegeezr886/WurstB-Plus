@@ -18,7 +18,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.equine.AbstractHorse;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -107,7 +107,7 @@ public final class FeedAuraHack extends Hack
 	public void onUpdate()
 	{
 		LocalPlayer player = MC.player;
-		ItemStack heldStack = player.getInventory().getSelectedItem();
+		ItemStack heldStack = player.getInventory().getSelected();
 		
 		double rangeSq = range.getValueSq();
 		Stream<Animal> stream = EntityUtils.getValidAnimals()
@@ -160,12 +160,14 @@ public final class FeedAuraHack extends Hack
 		Vec3 hitVec = box.clip(start, end).orElse(start);
 		EntityHitResult hitResult = new EntityHitResult(target, hitVec);
 		
-		InteractionResult actionResult = im.interact(player, target, hand);
+		InteractionResult actionResult =
+			im.interactAt(player, target, hitResult, hand);
 		
 		if(!actionResult.consumesAction())
 			actionResult = im.interact(player, target, hand);
 		
-		if(actionResult.consumesAction())
+		if(actionResult instanceof InteractionResult.Success success
+				&& success.swingSource() != InteractionResult.SwingSource.NONE)
 			player.swing(hand);
 		
 		target = null;

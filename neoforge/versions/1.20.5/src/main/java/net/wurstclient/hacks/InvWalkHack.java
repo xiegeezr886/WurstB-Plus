@@ -117,7 +117,7 @@ public final class InvWalkHack extends Hack implements UpdateListener
 		if(!(screen instanceof CreativeModeInventoryScreen))
 			return false;
 		
-		return CreativeModeInventoryScreen.selectedTab == CreativeModeTabs
+		return ((net.wurstclient.mixin.CreativeModeInventoryScreenAccessor)(Object)screen).getSelectedTab() == CreativeModeTabs
 			.searchTab();
 	}
 	

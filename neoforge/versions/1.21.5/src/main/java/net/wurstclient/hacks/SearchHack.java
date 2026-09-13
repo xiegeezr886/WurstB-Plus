@@ -176,8 +176,7 @@ public final class SearchHack extends Hack
 		if(vertexBuffer == null || bufferRegion == null)
 			return;
 		
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
+		
 		float[] rainbow = RenderUtils.getRainbowColor();
 		RenderUtils.setShaderColor(rainbow, 0.5F);
 		
@@ -187,7 +186,8 @@ public final class SearchHack extends Hack
 		vertexBuffer.draw(matrixStack, WurstRenderLayers.ESP_QUADS);
 		
 		matrixStack.popPose();
-		// Shader color managed by render pipeline
+		
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 	
 	private void stopBuildingBuffer()

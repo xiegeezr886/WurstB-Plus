@@ -243,7 +243,7 @@ public final class ExcavatorHack extends Hack
 	{
 		// continue with next step
 		if(step.pos != null && InputConstants
-			.isKeyDown(MC.getWindow(), GLFW.GLFW_KEY_ENTER))
+			.isKeyDown(MC.getWindow().getWindow(), GLFW.GLFW_KEY_ENTER))
 		{
 			step = Step.values()[step.ordinal() + 1];
 			

@@ -142,9 +142,7 @@ public final class ModifyCmd extends Command
 			if(!base.contains(part) || !(base.get(part) instanceof CompoundTag))
 				return null;
 			
-			base = base.getCompound(part).orElse(null);
-			if(base == null)
-				return null;
+			base = base.getCompoundOrEmpty(part);
 		}
 		
 		if(!base.contains(parts[parts.length - 1]))

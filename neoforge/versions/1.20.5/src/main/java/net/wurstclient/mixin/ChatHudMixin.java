@@ -25,7 +25,6 @@ import net.minecraft.network.chat.MessageSignature;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.ChatInputListener.ChatInputEvent;
-import net.wurstclient.other_feature.OtfList;
 
 @Mixin(ChatComponent.class)
 public class ChatHudMixin
@@ -44,10 +43,6 @@ public class ChatHudMixin
 		@Nullable MessageSignature signature,
 		@Nullable GuiMessageTag indicator, CallbackInfo ci)
 	{
-		OtfList otfs = WurstClient.INSTANCE.getOtfs();
-		if(otfs == null)
-			return;
-
 		ChatInputEvent event = new ChatInputEvent(message, trimmedMessages);
 		
 		EventManager.fire(event);
@@ -58,32 +53,27 @@ public class ChatHudMixin
 		}
 		
 		message = event.getComponent();
-		indicator = otfs.noChatReportsOtf
+		indicator = WurstClient.INSTANCE.getOtfs().noChatReportsOtf
 			.modifyIndicator(message, signature, indicator);
 		
-		GuiMessage guiMessage = new GuiMessage(minecraft.gui.getGuiTicks(),
-			message, signature, indicator);
-		shadow$logChatMessage(guiMessage);
-		shadow$addMessageToDisplayQueue(guiMessage);
-		shadow$addMessageToQueue(guiMessage);
+		shadow$logChatMessage(message, indicator);
+		shadow$addMessage(message, signature, minecraft.gui.getGuiTicks(),
+			indicator, false);
 		
 		ci.cancel();
 	}
 	
 	@Shadow
-	private void shadow$logChatMessage(GuiMessage message)
+	private void shadow$logChatMessage(Component message,
+		@Nullable GuiMessageTag indicator)
 	{
 		
 	}
 	
 	@Shadow
-	private void shadow$addMessageToDisplayQueue(GuiMessage message)
-	{
-		
-	}
-
-	@Shadow
-	private void shadow$addMessageToQueue(GuiMessage message)
+	private void shadow$addMessage(Component message,
+		@Nullable MessageSignature signature, int ticks,
+		@Nullable GuiMessageTag indicator, boolean refresh)
 	{
 		
 	}

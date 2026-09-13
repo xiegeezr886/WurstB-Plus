@@ -43,7 +43,7 @@ public final class RotationFaker
 		if(!(event.getPacket() instanceof ServerboundMovePlayerPacket))
 			return;
 
-		// runAfterSend removed in MC 26.1.2
+		event.runAfterSend(() -> trackSentRotation(event.getPacket()));
 	}
 	
 	public void faceVectorPacket(Vec3 vec)

@@ -34,7 +34,7 @@ public record Rotation(float yaw, float pitch)
 	public void sendPlayerLookPacket(boolean onGround)
 	{
 		MC.player.connection.send(
-			new ServerboundMovePlayerPacket.Rot(yaw, pitch, onGround));
+			new ServerboundMovePlayerPacket.Rot(yaw, pitch, onGround, false));
 	}
 	
 	public double getAngleTo(Rotation other)

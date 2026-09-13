@@ -7,7 +7,8 @@
  */
 package net.wurstclient.clickgui2.screens;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
+
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -19,15 +20,12 @@ import javax.imageio.ImageIO;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.util.ColorUtils;
 
@@ -44,8 +42,8 @@ public final class EditColorScreen extends Screen
 	
 	private Button doneButton;
 	
-	private final Identifier paletteIdentifier =
-		Identifier.fromNamespaceAndPath("wurst", "colorpalette.png");
+	private final ResourceLocation paletteIdentifier =
+		ResourceLocation.fromNamespaceAndPath("wurst", "colorpalette.png");
 	private BufferedImage paletteAsBufferedImage;
 	
 	private int paletteX = 0;
@@ -163,19 +161,17 @@ public final class EditColorScreen extends Screen
 	public void tick()
 	{
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
+	
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		Font tr = minecraft.font;
 		
-		context.centeredText(minecraft.font,
-			colorSetting.getName(), width / 2, 16, 0xFFF0F0F0);
+		renderBackground(context, mouseX, mouseY, partialTicks);
+		context.drawCenteredString(minecraft.font,
+			colorSetting.getName(), width / 2, 16, 0xF0F0F0);
 		
 		// Draw palette
 		int x = paletteX;
@@ -186,23 +182,22 @@ public final class EditColorScreen extends Screen
 		int fh = paletteHeight;
 		float u = 0;
 		float v = 0;
-		context.blit(RenderPipelines.GUI_TEXTURED, paletteIdentifier, x, y, u, v,
-			w, h, fw, fh);
+		context.blit(RenderType::guiTextured, paletteIdentifier, x, y, u, v, w, h, fw, fh);
 		
 		// RGB letters
-		context.text(tr, "#", fieldsX - 3 - tr.width("#"), fieldsY + 6,
-			0xFFF0F0F0, false);
-		context.text(tr, "\u7EA2:", fieldsX - 3 - tr.width("\u7EA2:"),
-			fieldsY + 6 + 35, 0xFFFF0000, false);
-		context.text(tr, "\u7EFF:", fieldsX + 75 - 3 - tr.width("\u7EFF:"),
-			fieldsY + 6 + 35, 0xFF00FF00, false);
-		context.text(tr, "\u84DD:", fieldsX + 150 - 3 - tr.width("\u84DD:"),
-			fieldsY + 6 + 35, 0xFF0000FF, false);
+		context.drawString(tr, "#", fieldsX - 3 - tr.width("#"), fieldsY + 6,
+			0xF0F0F0, false);
+		context.drawString(tr, "\u7EA2:", fieldsX - 3 - tr.width("\u7EA2:"),
+			fieldsY + 6 + 35, 0xFF0000, false);
+		context.drawString(tr, "\u7EFF:", fieldsX + 75 - 3 - tr.width("\u7EFF:"),
+			fieldsY + 6 + 35, 0x00FF00, false);
+		context.drawString(tr, "\u84DD:", fieldsX + 150 - 3 - tr.width("\u84DD:"),
+			fieldsY + 6 + 35, 0x0000FF, false);
 		
-		hexValueField.render(context.getInner(), mouseX, mouseY, partialTicks);
-		redValueField.render(context.getInner(), mouseX, mouseY, partialTicks);
-		greenValueField.render(context.getInner(), mouseX, mouseY, partialTicks);
-		blueValueField.render(context.getInner(), mouseX, mouseY, partialTicks);
+		hexValueField.render(context, mouseX, mouseY, partialTicks);
+		redValueField.render(context, mouseX, mouseY, partialTicks);
+		greenValueField.render(context, mouseX, mouseY, partialTicks);
+		blueValueField.render(context, mouseX, mouseY, partialTicks);
 		
 		// Color preview
 		
@@ -221,18 +216,18 @@ public final class EditColorScreen extends Screen
 		context.fill(boxX, boxY, boxX + boxWidth, boxY + boxHeight,
 			color.getRGB());
 		
-		super.render(context.getInner(), mouseX, mouseY, partialTicks);
+		super.render(context, mouseX, mouseY, partialTicks);
 	}
 	
 	@Override
-	public void resize(int width, int height)
+	public void resize(Minecraft client, int width, int height)
 	{
 		String hex = hexValueField.getValue();
 		String r = redValueField.getValue();
 		String g = greenValueField.getValue();
 		String b = blueValueField.getValue();
 		
-		init(width, height);
+		init(client, width, height);
 		
 		hexValueField.setValue(hex);
 		redValueField.setValue(r);
@@ -241,9 +236,9 @@ public final class EditColorScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int int_3)
 	{
-		switch(context.key())
+		switch(keyCode)
 		{
 			case GLFW.GLFW_KEY_ENTER:
 			done();
@@ -254,19 +249,17 @@ public final class EditColorScreen extends Screen
 			break;
 		}
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, int_3);
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		double mouseX = context.x();
-		double mouseY = context.y();
 		if(mouseX >= paletteX && mouseX <= paletteX + paletteWidth
 			&& mouseY >= paletteY && mouseY <= paletteY + paletteHeight)
 		{
 			if(paletteAsBufferedImage == null)
-				return super.mouseClicked(context, doubleClick);
+				return super.mouseClicked(mouseX, mouseY, button);
 			
 			int x = (int)Math.round((mouseX - paletteX) / paletteWidth
 				* paletteAsBufferedImage.getWidth());
@@ -285,7 +278,7 @@ public final class EditColorScreen extends Screen
 			}
 		}
 		
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 	
 	private void setColor(Color color)

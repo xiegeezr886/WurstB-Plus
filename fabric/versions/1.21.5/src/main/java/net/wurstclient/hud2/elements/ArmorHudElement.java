@@ -1,5 +1,6 @@
 package net.wurstclient.hud2.elements;
 
+import net.minecraft.world.entity.EquipmentSlot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,6 +13,10 @@ import net.wurstclient.hud2.HudLayout.HudElementConfig;
 
 public final class ArmorHudElement extends HudElement
 {
+	private static final EquipmentSlot[] ARMOR_SLOTS =
+		{EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST,
+			EquipmentSlot.HEAD};
+
 	public ArmorHudElement()
 	{
 		super("armor", "Armor");
@@ -35,7 +40,8 @@ public final class ArmorHudElement extends HudElement
 		if(WurstClient.MC.player == null)
 			return;
 		List<ItemStack> armor = new ArrayList<>();
-		WurstClient.MC.player.getArmorSlots().forEach(armor::add);
+		for(EquipmentSlot slot : ARMOR_SLOTS)
+			armor.add(WurstClient.MC.player.getItemBySlot(slot));
 		Collections.reverse(armor);
 		for(int index = 0; index < armor.size(); index++)
 		{

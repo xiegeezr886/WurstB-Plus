@@ -56,8 +56,8 @@ public final class WaypointsManager implements RenderListener
 			{
 				WsonObject obj = wson.getObject(i);
 				String name = obj.getString("name");
-				ResourceLocation dim = ResourceLocation
-					.parse(obj.getString("dimension"));
+				ResourceLocation dim = new ResourceLocation(
+					obj.getString("dimension"));
 				int x = obj.getInt("x");
 				int y = obj.getInt("y");
 				int z = obj.getInt("z");
@@ -134,7 +134,8 @@ public final class WaypointsManager implements RenderListener
 		try
 		{
 			Tesselator tesselator = Tesselator.getInstance();
-			BufferBuilder builder = tesselator.begin(VertexFormat.Mode.QUADS,
+			BufferBuilder builder = tesselator.getBuilder();
+			builder.begin(VertexFormat.Mode.QUADS,
 				DefaultVertexFormat.POSITION_COLOR);
 
 			org.joml.Matrix4f matrix = poseStack.last().pose();
@@ -155,26 +156,27 @@ public final class WaypointsManager implements RenderListener
 				float z = (float)(pos.z - camPos.z);
 				float hs = 0.3F;
 
-				builder.addVertex(matrix, x - hs, y + hs, z)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x + hs, y + hs, z)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x + hs, y - hs, z)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x - hs, y - hs, z)
-					.setColor(r, g, b, a);
+				builder.vertex(matrix, x - hs, y + hs, z)
+					.color(r, g, b, a).endVertex();
+				builder.vertex(matrix, x + hs, y + hs, z)
+					.color(r, g, b, a).endVertex();
+				builder.vertex(matrix, x + hs, y - hs, z)
+					.color(r, g, b, a).endVertex();
+				builder.vertex(matrix, x - hs, y - hs, z)
+					.color(r, g, b, a).endVertex();
 
-				builder.addVertex(matrix, x, y + hs, z - hs)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x, y + hs, z + hs)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x, y - hs, z + hs)
-					.setColor(r, g, b, a);
-				builder.addVertex(matrix, x, y - hs, z - hs)
-					.setColor(r, g, b, a);
+				builder.vertex(matrix, x, y + hs, z - hs)
+					.color(r, g, b, a).endVertex();
+				builder.vertex(matrix, x, y + hs, z + hs)
+					.color(r, g, b, a).endVertex();
+				builder.vertex(matrix, x, y - hs, z + hs)
+					.color(r, g, b, a).endVertex();
+				builder.vertex(matrix, x, y - hs, z - hs)
+					.color(r, g, b, a).endVertex();
 			}
 
-			com.mojang.blaze3d.vertex.MeshData rendered = builder.build();
+			BufferBuilder.RenderedBuffer rendered =
+				builder.endOrDiscardIfEmpty();
 			if(rendered != null)
 				BufferUploader.drawWithShader(rendered);
 		}finally

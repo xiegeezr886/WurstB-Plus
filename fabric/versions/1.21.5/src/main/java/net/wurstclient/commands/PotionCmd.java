@@ -47,7 +47,7 @@ public final class PotionCmd extends Command
 		if(!MC.player.getAbilities().instabuild)
 			throw new CmdError("仅限创造模式。");
 		
-		ItemStack stack = MC.player.getInventory().getSelected();
+		ItemStack stack = MC.player.getInventory().getSelectedItem();
 		if(!(stack.getItem() instanceof PotionItem))
 			throw new CmdError("You must hold a potion in your main hand.");
 		
@@ -132,7 +132,7 @@ public final class PotionCmd extends Command
 			try
 			{
 				ResourceLocation identifier = ResourceLocation.parse(input);
-				effect = BuiltInRegistries.MOB_EFFECT.get(identifier);
+				effect = BuiltInRegistries.MOB_EFFECT.getValue(identifier);
 				
 			}catch(ResourceLocationException e)
 			{
@@ -150,7 +150,7 @@ public final class PotionCmd extends Command
 		ArrayList<MobEffectInstance> effects)
 	{
 		stack.set(DataComponents.POTION_CONTENTS,
-			new PotionContents(potion, Optional.empty(), effects));
+			new PotionContents(potion, Optional.empty(), effects, Optional.empty()));
 	}
 	
 	private int parseInt(String s) throws CmdSyntaxError

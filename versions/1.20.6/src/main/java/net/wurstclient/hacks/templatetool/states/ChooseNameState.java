@@ -80,8 +80,7 @@ public final class ChooseNameState extends TemplateToolState
 			addWidget(nameField);
 			setFocused(nameField);
 			
-			includeTypesBox = new Checkbox(middleX - 99, middleY + 32,
-				150, 20, Component.literal("包含方块类型"), true);
+			includeTypesBox = Checkbox.builder(Component.literal("包含方块类型"), tr).pos(middleX - 99, middleY + 32).selected(true).build();
 			addRenderableWidget(includeTypesBox);
 			
 			doneButton = Button.builder(Component.literal("完成"), b -> done())
@@ -157,10 +156,11 @@ public final class ChooseNameState extends TemplateToolState
 		}
 		
 		@Override
-		public void renderBackground(GuiGraphics context)
-		{
-			// Don't blur
-		}
+			public void renderBackground(GuiGraphics context, int mouseX,
+				int mouseY, float partialTicks)
+			{
+				// Don't blur
+			}
 		
 		@Override
 		public boolean isPauseScreen()

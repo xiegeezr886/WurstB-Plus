@@ -3,6 +3,7 @@ package net.wurstclient.gui.title;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -61,8 +62,9 @@ final class WurstTitleButton extends AbstractButton
 		int iconSize = ICON_SIZE;
 		int iconX = x1 + (compact ? 9 : 12);
 		int iconY = y1 + (getHeight() - iconSize) / 2;
-		graphics.blit(icon, iconX, iconY, iconSize, iconSize, 0, 0,
-			TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
+		graphics.blit(RenderType::guiTextured, icon, iconX, iconY, 0, 0, iconSize,
+			iconSize, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE,
+			-1);
 
 		int color = active ? TEXT_COLOR : 0xFF707A7B;
 		int textX = iconX + iconSize + (compact ? 7 : 11);

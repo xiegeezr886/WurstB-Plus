@@ -183,7 +183,7 @@ public final class NukerLegitHack extends Hack
 		
 		if(im.continueDestroyBlock(pos, side))
 		{
-			MC.level.addDestroyBlockEffect(pos, MC.level.getBlockState(pos));
+			MC.particleEngine.crack(pos, side);
 			swingHand.swing(InteractionHand.MAIN_HAND);
 			MC.options.keyAttack.setDown(true);
 		}

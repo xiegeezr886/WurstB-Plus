@@ -121,8 +121,7 @@ public final class EditBlockListScreen extends Screen
 	@Override
 	public void tick()
 	{
-		blockNameField.tick();
-		
+
 		String nameOrId = blockNameField.getValue();
 		blockToAdd = BlockUtils.getBlockFromNameOrID(nameOrId);
 		addButton.active = blockToAdd != null;
@@ -250,8 +249,7 @@ public final class EditBlockListScreen extends Screen
 		public ListGui(Minecraft minecraft, EditBlockListScreen screen,
 			List<String> list)
 		{
-			super(minecraft, screen.width, screen.height, 32,
-				screen.height - 64, 30);
+			super(minecraft, screen.width, screen.height - 96, 32, 30);
 			
 			list.stream().map(EditBlockListScreen.Entry::new)
 				.forEach(this::addEntry);

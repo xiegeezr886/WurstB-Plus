@@ -157,9 +157,8 @@ public final class BaritoneUtils
 			if(WurstClient.MC.level == null)
 				return;
 
-			LevelData.RespawnData respawnData =
-				WurstClient.MC.level.getLevelData().getRespawnData();
-			BlockPos homePos = respawnData == null ? null : respawnData.pos();
+			BlockPos homePos =
+				WurstClient.MC.level.getLevelData().getSpawnPos();
 			if(homePos != null)
 				walkTo(homePos);
 		}catch(Throwable e)

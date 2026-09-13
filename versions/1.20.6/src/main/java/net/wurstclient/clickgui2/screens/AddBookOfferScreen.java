@@ -258,9 +258,8 @@ public final class AddBookOfferScreen extends Screen
 		
 		pricePlusButton.active = offerToAdd != null && offerToAdd.price() < 64;
 		priceMinusButton.active = offerToAdd != null && offerToAdd.price() > 1;
-		
-		levelField.tick();
-		priceField.tick();
+
+
 	}
 	
 	@Override
@@ -383,8 +382,7 @@ public final class AddBookOfferScreen extends Screen
 	{
 		public ListGui(Minecraft minecraft, AddBookOfferScreen screen)
 		{
-			super(minecraft, screen.width, screen.height, 32,
-				screen.height - 80, 30);
+			super(minecraft, screen.width, screen.height - 112, 32, 30);
 			
 			BuiltInRegistries.ENCHANTMENT.stream().map(BookOffer::create)
 				.filter(BookOffer::isValid).sorted()

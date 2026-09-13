@@ -45,9 +45,9 @@ public final class SliderComponent extends Component
 		switch(mouseButton)
 		{
 			case GLFW.GLFW_MOUSE_BUTTON_LEFT:
-			if(InputConstants.isKeyDown(MC.getWindow(),
+			if(InputConstants.isKeyDown(MC.getWindow().getWindow(),
 				GLFW.GLFW_KEY_LEFT_CONTROL)
-				|| InputConstants.isKeyDown(MC.getWindow(),
+				|| InputConstants.isKeyDown(MC.getWindow().getWindow(),
 					GLFW.GLFW_KEY_RIGHT_CONTROL))
 				MC.setScreen(new EditSliderScreen(MC.screen, setting));
 			else

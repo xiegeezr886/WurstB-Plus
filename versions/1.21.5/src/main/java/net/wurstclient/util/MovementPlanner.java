@@ -8,9 +8,7 @@
  */
 package net.wurstclient.util;
 
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import java.lang.reflect.Method;
 
 public enum MovementPlanner
 {
@@ -19,47 +17,6 @@ public enum MovementPlanner
 	public static boolean isMoving(float forward, float sideways)
 	{
 		return Math.abs(forward) > 1.0E-5F || Math.abs(sideways) > 1.0E-5F;
-	}
-
-	public static Vec2 getMoveVector(Object input)
-	{
-		if(input == null)
-			return Vec2.ZERO;
-
-		float sideways = (isPressed(input, "left") ? 1F : 0F)
-			- (isPressed(input, "right") ? 1F : 0F);
-		float forward = (isPressed(input, "forward") ? 1F : 0F)
-			- (isPressed(input, "backward") ? 1F : 0F);
-		return new Vec2(sideways, forward);
-	}
-
-	public static boolean isMoving(Object input)
-	{
-		return getMoveVector(input).length() > 1.0E-5F;
-	}
-
-	private static boolean isPressed(Object input, String name)
-	{
-		try
-		{
-			Method method = null;
-			try
-			{
-				method = input.getClass().getMethod(name);
-			}catch(NoSuchMethodException e)
-			{
-				if("forward".equals(name))
-					method = input.getClass()
-						.getMethod("forwardImpulse");
-			}
-			if(method == null)
-				return false;
-			Object value = method.invoke(input);
-			return value instanceof Boolean b && b;
-		}catch(ReflectiveOperationException e)
-		{
-			return false;
-		}
 	}
 
 	public static Vec3 horizontalMotion(float forward, float sideways,

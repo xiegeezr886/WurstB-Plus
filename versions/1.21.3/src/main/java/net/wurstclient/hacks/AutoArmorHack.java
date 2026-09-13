@@ -16,8 +16,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.world.entity.player.Inventory;
-// ArmorItem removed in MC 26.1.2
-// ArmorItem.Type removed in MC 26.1.2
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -27,7 +26,6 @@ import net.wurstclient.events.PacketOutputListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.util.EnchantmentUtils;
-import net.wurstclient.util.MovementPlanner;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
@@ -116,13 +114,103 @@ public final class AutoArmorHack extends Hack
 		LocalPlayer player = MC.player;
 		Inventory inventory = player.getInventory();
 		
-		if(!swapWhileMoving.isChecked()
-			&& MovementPlanner.isMoving(player.input))
+		if(!swapWhileMoving.isChecked() && (player.input.forwardImpulse != 0
+			|| player.input.leftImpulse != 0))
 			return;
 		
-		// TODO: 26.1.2 - getArmor() removed, need to refactor to use EquipmentSlot
-		// For now, skip armor swapping
-		return;
+		// store slots and values of best armor pieces
+		int[] bestArmorSlots = new int[4];
+		int[] bestArmorValues = new int[4];
+		int[] equippedArmorValues = new int[4];
+		
+		// initialize with currently equipped armor
+		for(int type = 0; type < 4; type++)
+		{
+			bestArmorSlots[type] = -1;
+			
+			ItemStack stack = inventory.getArmor(type);
+			if(type == 2 && keepElytra.isChecked() && stack.is(Items.ELYTRA))
+			{
+				bestArmorValues[type] = Integer.MAX_VALUE;
+				continue;
+			}
+			if(stack.isEmpty() || !(stack.getItem() instanceof ArmorItem))
+				continue;
+			if(EnchantmentUtils.getLevel(Enchantments.BINDING_CURSE,
+				stack) > 0)
+			{
+				bestArmorValues[type] = Integer.MAX_VALUE;
+				continue;
+			}
+			
+			bestArmorValues[type] = getArmorValue(stack);
+			equippedArmorValues[type] = bestArmorValues[type];
+		}
+		
+		// search inventory for better armor
+		for(int slot = 0; slot < 36; slot++)
+		{
+			ItemStack stack = inventory.getItem(slot);
+			
+			if(stack.isEmpty() || !(stack.getItem() instanceof ArmorItem))
+				continue;
+			if(isLowDurability(stack)
+				|| EnchantmentUtils.getLevel(Enchantments.BINDING_CURSE,
+					stack) > 0)
+				continue;
+			
+			int armorType = MC.player.getEquipmentSlotForItem(stack).getIndex();
+			int armorValue = getArmorValue(stack);
+			
+			if(armorValue > bestArmorValues[armorType])
+			{
+				bestArmorSlots[armorType] = slot;
+				bestArmorValues[armorType] = armorValue;
+			}
+		}
+		
+		// Equip the largest deterministic upgrade first.
+		ArrayList<Integer> types = new ArrayList<>(Arrays.asList(0, 1, 2, 3));
+		types.sort(Comparator.<Integer>comparingInt(type ->
+			bestArmorValues[type] - equippedArmorValues[type]).reversed());
+		for(int type : types)
+		{
+			// check if better armor was found
+			int slot = bestArmorSlots[type];
+			if(slot == -1)
+				continue;
+				
+			// check if armor can be swapped
+			// needs 1 free slot where it can put the old armor
+			ItemStack oldArmor = inventory.getArmor(type);
+			if(!oldArmor.isEmpty() && inventory.getFreeSlot() == -1)
+				continue;
+			
+			int inventorySlot = slot;
+			ItemStack expectedArmor = inventory.getItem(inventorySlot).copy();
+
+			// hotbar fix
+			if(slot < 9)
+				slot += 36;
+
+			int sourceSlot = slot;
+			int armorSlot = 8 - type;
+			boolean hasOldArmor = !oldArmor.isEmpty();
+			WURST.getInventoryActionQueue().submit(this, 50,
+				() -> MC.player != null
+					&& MC.player.containerMenu.containerId == 0
+					&& ItemStack.isSameItemSameComponents(expectedArmor,
+						MC.player.getInventory().getItem(inventorySlot)),
+				hasOldArmor
+					? new Runnable[]{() -> IMC.getInteractionManager()
+						.windowClick_QUICK_MOVE(armorSlot),
+						() -> IMC.getInteractionManager()
+							.windowClick_QUICK_MOVE(sourceSlot)}
+					: new Runnable[]{() -> IMC.getInteractionManager()
+						.windowClick_QUICK_MOVE(sourceSlot)});
+			
+			break;
+		}
 	}
 	
 	@Override
@@ -134,8 +222,34 @@ public final class AutoArmorHack extends Hack
 	
 	private int getArmorValue(ItemStack stack)
 	{
-		// ArmorItem removed in MC 26.1.2
-		return 0;
+		// 1.21.2: 防御/韧性移入 ATTRIBUTE_MODIFIERS 组件
+		java.util.concurrent.atomic.AtomicInteger armorPoints =
+			new java.util.concurrent.atomic.AtomicInteger();
+		java.util.concurrent.atomic.AtomicInteger armorToughness =
+			new java.util.concurrent.atomic.AtomicInteger();
+		stack.forEachModifier(
+			net.minecraft.world.entity.EquipmentSlotGroup.ARMOR,
+			(holder, modifier) -> {
+				if(holder.is(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR))
+					armorPoints.addAndGet((int)modifier.amount());
+				if(holder.is(
+					net.minecraft.world.entity.ai.attributes.Attributes.ARMOR_TOUGHNESS))
+					armorToughness.addAndGet((int)modifier.amount());
+			});
+		int prtPoints = 0;
+		int durabilityScore = stack.isDamageableItem()
+			? (stack.getMaxDamage() - stack.getDamageValue()) * 5
+				/ Math.max(1, stack.getMaxDamage())
+			: 5;
+		
+		if(useEnchantments.isChecked())
+		{
+			prtPoints = EnchantmentUtils.getLevel(Enchantments.PROTECTION,
+				stack);
+		}
+		
+		return armorPoints.get() * 5 + prtPoints * 3 + armorToughness.get()
+			+ durabilityScore;
 	}
 
 	private boolean isLowDurability(ItemStack stack)

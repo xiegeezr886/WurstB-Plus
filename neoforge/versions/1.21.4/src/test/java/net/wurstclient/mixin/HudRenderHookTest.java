@@ -14,14 +14,15 @@ final class HudRenderHookTest
 	@Test
 	void guiRenderEventUsesTheVanillaHudLayer() throws IOException
 	{
+		// 1.21.5 has no GuiMixin/GuiGraphicsExtractor yet (those arrive in
+		// 1.21.6), so the hook lives in the vanilla HUD mixin instead.
 		String mixin = Files.readString(Path.of("src", "main", "java", "net",
-			"wurstclient", "mixin", "GuiMixin.java"));
+			"wurstclient", "mixin", "IngameHudMixin.java"));
 		String initializer = Files.readString(Path.of("src", "main", "java",
 			"net", "wurstclient", "WurstForgeInitializer.java"));
 
 		assertTrue(mixin.contains("method = \"renderTabList("));
 		assertTrue(mixin.contains("new GUIRenderEvent("));
-		assertTrue(mixin.contains("new GuiGraphicsExtractor(graphics)"));
 		assertFalse(initializer.contains("AddGuiOverlayLayersEvent"));
 		assertFalse(initializer.contains("new GUIRenderEvent"));
 	}

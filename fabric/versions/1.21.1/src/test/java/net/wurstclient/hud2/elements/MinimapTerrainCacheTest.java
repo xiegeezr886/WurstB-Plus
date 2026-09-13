@@ -30,7 +30,10 @@ final class MinimapTerrainCacheTest
 	@Test
 	void expiresTilesAtConfiguredLifetime()
 	{
-		assertFalse(MinimapTerrainCache.isExpired(100, 199));
-		assertTrue(MinimapTerrainCache.isExpired(100, 200));
+		long refreshedTick = 100;
+		assertFalse(MinimapTerrainCache.isExpired(refreshedTick,
+			refreshedTick + MinimapTerrainCache.TILE_TTL - 1));
+		assertTrue(MinimapTerrainCache.isExpired(refreshedTick,
+			refreshedTick + MinimapTerrainCache.TILE_TTL));
 	}
 }

@@ -92,7 +92,7 @@ public final class EditBlockScreen extends Screen
 	@Override
 	public void tick()
 	{
-		blockField.tick();
+
 	}
 	
 	@Override
@@ -102,7 +102,7 @@ public final class EditBlockScreen extends Screen
 		PoseStack matrixStack = context.pose();
 		Font tr = minecraft.font;
 		
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		context.drawCenteredString(tr, setting.getName(), width / 2, 20,
 			0xFFFFFF);
 		

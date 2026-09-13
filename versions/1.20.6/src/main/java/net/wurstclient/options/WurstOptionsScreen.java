@@ -118,7 +118,7 @@ public class WurstOptionsScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		renderTitles(context);
 		super.render(context, mouseX, mouseY, partialTicks);
 		renderButtonTooltip(context, mouseX, mouseY);

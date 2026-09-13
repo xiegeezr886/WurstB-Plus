@@ -120,7 +120,9 @@ public final class NukerLegitHack extends Hack
 		
 		Vec3 eyesVec = RotationUtils.getEyesPos();
 		BlockPos eyesBlock = BlockPos.containing(eyesVec);
-		double maxRange = MC.gameMode.getPickRange() + 1;
+		double maxRange = MC.player.getAttributeValue(
+			net.minecraft.world.entity.ai.attributes.Attributes.BLOCK_INTERACTION_RANGE)
+			+ 1;
 		double rangeSq = commonSettings.isSphereShape() ? range.getValueSq()
 			: maxRange * maxRange;
 		int blockRange = range.getValueCeil();

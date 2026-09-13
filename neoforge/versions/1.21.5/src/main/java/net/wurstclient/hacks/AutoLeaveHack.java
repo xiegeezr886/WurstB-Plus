@@ -7,7 +7,6 @@
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.world.item.Items;
 import net.wurstclient.Category;
@@ -112,13 +111,14 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 	
 	public static enum Mode
 	{
-		QUIT("Quit", () -> MC.getConnection().getConnection()
-			.disconnect(Component.literal("Disconnected"))),
+		QUIT("Quit", () -> MC.level.disconnect()),
 		
 		CHARS("Chars", () -> MC.getConnection().sendChat("\u00a7")),
 		
 		SELFHURT("SelfHurt",
-			() -> MC.gameMode.attack(MC.player, MC.player));
+			() -> MC.getConnection()
+				.send(ServerboundInteractPacket.createAttackPacket(MC.player,
+					MC.player.isShiftKeyDown())));
 		
 		private final String name;
 		private final Runnable leave;

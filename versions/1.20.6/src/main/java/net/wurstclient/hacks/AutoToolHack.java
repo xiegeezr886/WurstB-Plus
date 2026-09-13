@@ -98,7 +98,7 @@ public final class AutoToolHack extends Hack
 	@Override
 	public void onUpdate()
 	{
-		if(prevSelectedSlot == -1 || MC.gameMode.isDestroying())
+		if(prevSelectedSlot == -1 || ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying())
 			return;
 		
 		HitResult hitResult = MC.hitResult;
@@ -186,8 +186,8 @@ public final class AutoToolHack extends Hack
 		
 		if(speed > 1)
 		{
-			int efficiency =
-				EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_EFFICIENCY, stack);
+			int efficiency = EnchantmentHelper
+				.getItemEnchantmentLevel(Enchantments.EFFICIENCY, stack);
 			if(efficiency > 0 && !stack.isEmpty())
 				speed += efficiency * efficiency + 1;
 		}
@@ -197,7 +197,7 @@ public final class AutoToolHack extends Hack
 	
 	private boolean isDamageable(ItemStack stack)
 	{
-		return !stack.isEmpty() && stack.getItem().canBeDepleted();
+		return !stack.isEmpty() && stack.isDamageableItem();
 	}
 	
 	private boolean isTooDamaged(ItemStack stack, int repairMode)

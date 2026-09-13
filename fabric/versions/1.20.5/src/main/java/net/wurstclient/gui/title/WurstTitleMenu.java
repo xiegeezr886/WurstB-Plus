@@ -169,7 +169,7 @@ public final class WurstTitleMenu
 
 	private static ResourceLocation icon(String name)
 	{
-		return ResourceLocation.fromNamespaceAndPath("wurst", "textures/gui/fdp/" + name
+		return new ResourceLocation("wurst", "textures/gui/fdp/" + name
 			+ ".png");
 	}
 

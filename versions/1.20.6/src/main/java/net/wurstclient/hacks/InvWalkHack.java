@@ -114,11 +114,11 @@ public final class InvWalkHack extends Hack implements UpdateListener
 	
 	private boolean isCreativeSearchBarOpen(Screen screen)
 	{
-		if(!(screen instanceof CreativeModeInventoryScreen))
+		if(!(screen instanceof CreativeModeInventoryScreen creativeScreen))
 			return false;
 		
-		return CreativeModeInventoryScreen.selectedTab == CreativeModeTabs
-			.searchTab();
+		return ((net.wurstclient.mixin.CreativeModeInventoryScreenAccessor)(Object)creativeScreen)
+			.getSelectedTab() == CreativeModeTabs.searchTab();
 	}
 	
 	private boolean hasTextBox(Screen screen)

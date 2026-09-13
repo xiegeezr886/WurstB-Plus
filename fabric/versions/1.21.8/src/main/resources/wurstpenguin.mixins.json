@@ -60,6 +60,7 @@
     "PlayerSkinProviderMixin",
     "PowderSnowBlockMixin",
     "RenderTickCounterMixin",
+    "RenderTypeAccessor",
     "ScreenMixin",
     "ServerResourcePackProviderMixin",
     "ServerboundMovePlayerPacketMixin",

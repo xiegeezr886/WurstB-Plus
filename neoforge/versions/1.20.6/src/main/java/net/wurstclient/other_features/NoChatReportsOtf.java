@@ -62,14 +62,22 @@ public final class NoChatReportsOtf extends OtherFeature
 		
 		if(isActive())
 		{
-			netHandler.chatSession = null;
-			netHandler.signedMessageEncoder = SignedMessageChain.Encoder.UNSIGNED;
+			net.wurstclient.mixin.ClientPacketListenerAccessor accessor =
+				(net.wurstclient.mixin.ClientPacketListenerAccessor)(Object)netHandler;
+			accessor.setChatSession(null);
+			accessor.setSignedMessageEncoder(
+				SignedMessageChain.Encoder.UNSIGNED);
 			
-		}else if(netHandler.chatSession == null)
+		}else if(((net.wurstclient.mixin.ClientPacketListenerAccessor)(Object)netHandler)
+			.getChatSession() == null)
 			MC.getProfileKeyPairManager().prepareKeyPair()
 				.thenAcceptAsync(optional -> optional
-					.ifPresent(profileKeys -> netHandler.chatSession =
-						LocalChatSession.create(profileKeys)),
+					.ifPresent(profileKeys ->
+					{
+						net.wurstclient.mixin.ClientPacketListenerAccessor a =
+							(net.wurstclient.mixin.ClientPacketListenerAccessor)(Object)netHandler;
+						a.setChatSession(LocalChatSession.create(profileKeys));
+					}),
 					MC);
 		
 		EVENTS.remove(UpdateListener.class, this);

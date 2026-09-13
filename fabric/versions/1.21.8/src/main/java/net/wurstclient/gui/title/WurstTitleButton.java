@@ -7,10 +7,9 @@ import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
 
@@ -22,14 +21,14 @@ final class WurstTitleButton extends AbstractButton
 	private static final int ICON_SIZE = 22;
 	private static final int TEXTURE_SIZE = 88;
 
-	private final Identifier icon;
+	private final ResourceLocation icon;
 	private final Runnable action;
 	private final boolean compact;
 	private final boolean dangerous;
 	private final HoverAnimation hoverAnimation = new HoverAnimation(20);
 
 	WurstTitleButton(int x, int y, int width, int height, Component message,
-		Identifier icon, Runnable action, boolean compact,
+		ResourceLocation icon, Runnable action, boolean compact,
 		boolean dangerous)
 	{
 		super(x, y, width, height, message);
@@ -40,12 +39,12 @@ final class WurstTitleButton extends AbstractButton
 	}
 
 	@Override
-	public void onPress(InputWithModifiers context)
+	public void onPress()
 	{
 		action.run();
 	}
 @Override
-	protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY,
+	protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);

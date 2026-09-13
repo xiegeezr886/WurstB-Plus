@@ -1,6 +1,6 @@
 package net.wurstclient.hud2;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 
 public abstract class HudElement
@@ -42,7 +42,7 @@ public abstract class HudElement
 
 	public abstract int getHeight();
 
-	public abstract void render(GuiGraphicsExtractor graphics, int x, int y,
+	public abstract void render(GuiGraphics graphics, int x, int y,
 		float partialTicks);
 
 	public HudElementConfig getDefaultLayout()

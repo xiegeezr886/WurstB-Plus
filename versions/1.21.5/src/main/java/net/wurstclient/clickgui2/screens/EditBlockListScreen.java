@@ -7,23 +7,19 @@
  */
 package net.wurstclient.clickgui2.screens;
 
-import net.minecraft.client.gui.GuiGraphics;
-
-import org.joml.Matrix3x2fStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.List;
 import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -90,36 +86,36 @@ public final class EditBlockListScreen extends Screen
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton)
 	{
-		blockNameField.mouseClicked(context, doubleClick);
-		return super.mouseClicked(context, doubleClick);
+		blockNameField.mouseClicked(mouseX, mouseY, mouseButton);
+		return super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int int_3)
 	{
-		switch(context.key())
+		switch(keyCode)
 		{
 			case GLFW.GLFW_KEY_ENTER:
 			if(addButton.active)
-				addButton.onPress(context);
+				addButton.onPress();
 			break;
 			
 			case GLFW.GLFW_KEY_DELETE:
 			if(!blockNameField.isFocused())
-				removeButton.onPress(context);
+				removeButton.onPress();
 			break;
 			
 			case GLFW.GLFW_KEY_ESCAPE:
-			doneButton.onPress(context);
+			doneButton.onPress();
 			break;
 			
 			default:
 			break;
 		}
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, int_3);
 	}
 	
 	@Override
@@ -132,34 +128,30 @@ public final class EditBlockListScreen extends Screen
 		
 		removeButton.active = listGui.getSelected() != null;
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		Matrix3x2fStack matrixStack = context.pose();
-		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
+		PoseStack matrixStack = context.pose();
+		listGui.render(context, mouseX, mouseY, partialTicks);
 		
-		context.centeredText(minecraft.font,
+		context.drawCenteredString(minecraft.font,
 			blockList.getName() + " (" + blockList.size() + ")", width / 2, 12,
-			0xFFffffff);
+			0xFFFFFF);
 		
-		matrixStack.pushMatrix();
-		matrixStack.translate(0, 0);
+		matrixStack.pushPose();
+		matrixStack.translate(0, 0, 300);
 		
-		blockNameField.render(context.getInner(), mouseX, mouseY, partialTicks);
-		super.render(context.getInner(), mouseX, mouseY, partialTicks);
+		blockNameField.render(context, mouseX, mouseY, partialTicks);
+		super.render(context, mouseX, mouseY, partialTicks);
 		
-		matrixStack.pushMatrix();
-		matrixStack.translate(-64 + width / 2 - 152, 0);
+		matrixStack.pushPose();
+		matrixStack.translate(-64 + width / 2 - 152, 0, 0);
 		
 		if(blockNameField.getValue().isEmpty() && !blockNameField.isFocused())
-			context.text(minecraft.font, "方块名称或ID",
-				68, height - 50, 0xFF808080);
+			context.drawString(minecraft.font, "方块名称或ID",
+				68, height - 50, 0x808080);
 		
 		int border = blockNameField.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0;
 		int black = 0xFF000000;
@@ -174,13 +166,13 @@ public final class EditBlockListScreen extends Screen
 		context.fill(214, height - 55, 216, height - 37, black);
 		context.fill(242, height - 55, 245, height - 37, black);
 		
-		matrixStack.popMatrix();
+		matrixStack.popPose();
 		
 		RenderUtils.drawItem(context,
 			blockToAdd == null ? ItemStack.EMPTY : new ItemStack(blockToAdd),
 			width / 2 - 164, height - 52, false);
 		
-		matrixStack.popMatrix();
+		matrixStack.popPose();
 	}
 	
 	@Override
@@ -217,32 +209,25 @@ public final class EditBlockListScreen extends Screen
 		}
 		
 		@Override
-		public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+		public boolean mouseClicked(double mouseX, double mouseY, int button)
 		{
-			return context.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT;
+			return button == GLFW.GLFW_MOUSE_BUTTON_LEFT;
 		}
-@Override
-		public void renderContent(GuiGraphics graphics, int mouseX, int mouseY,
-			boolean hovered, float partialTicks)
+		
+		@Override
+		public void render(GuiGraphics context, int index, int y, int x,
+			int entryWidth, int entryHeight, int mouseX, int mouseY,
+			boolean hovered, float tickDelta)
 		{
-			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
-				hovered, partialTicks);
-		}
-
-		public void extractContent(GuiGraphicsExtractor context, int mouseX,
-			int mouseY, boolean hovered, float tickDelta)
-		{
-			int x = getContentX();
-			int y = getContentY();
 			Block block = BlockUtils.getBlockFromName(blockName);
 			ItemStack stack = new ItemStack(block);
 			Font tr = minecraft.font;
 			
 			RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
-			context.text(tr, getDisplayName(stack), x + 28, y, 0xFFF0F0F0,
+			context.drawString(tr, getDisplayName(stack), x + 28, y, 0xF0F0F0,
 				false);
-			context.text(tr, blockName, x + 28, y + 9, 0xFFA0A0A0, false);
-			context.text(tr, getIdText(block), x + 28, y + 18, 0xFFA0A0A0,
+			context.drawString(tr, blockName, x + 28, y + 9, 0xA0A0A0, false);
+			context.drawString(tr, getIdText(block), x + 28, y + 18, 0xA0A0A0,
 				false);
 		}
 		

@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -39,10 +40,10 @@ public abstract class ChatScreenMixin extends Screen
 	}
 	
 	@Inject(at = @At("HEAD"),
-		method = "handleChatInput(Ljava/lang/String;Z)V",
+		method = "handleChatInput(Ljava/lang/String;Z)Z",
 		cancellable = true)
 	public void onSendMessage(String message, boolean addToHistory,
-		CallbackInfo ci)
+		CallbackInfoReturnable<Boolean> cir)
 	{
 		// Ignore empty messages just like vanilla
 		if((message = normalizeChatMessage(message)).isEmpty())
@@ -59,7 +60,7 @@ public abstract class ChatScreenMixin extends Screen
 			return;
 		
 		// Otherwise, cancel the vanilla method and handle the message here
-		ci.cancel();
+		cir.setReturnValue(true);
 		
 		// Add the message to history, even if it was cancelled
 		// Otherwise the up/down arrows won't work correctly

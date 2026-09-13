@@ -10,7 +10,6 @@
 package net.wurstclient.hacks;
 
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -90,9 +89,8 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 			return;
 		}
 
-		Vec2 moveVector = MovementPlanner.getMoveVector(player.input);
-		float forward = moveVector.y;
-		float sideways = moveVector.x;
+		float forward = player.input.getMoveVector().y;
+		float sideways = player.input.getMoveVector().x;
 		if(!MovementPlanner.isMoving(forward, sideways))
 		{
 			lowHopActive = false;
@@ -123,8 +121,7 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 	{
 		return player != null && !player.isShiftKeyDown() && !player.isPassenger()
 			&& !player.onClimbable() && !player.isFallFlying()
-			&& !player.isInWater() && !player.isInFluidType()
-			&& !player.isInLava();
+			&& !player.isInWater() && !player.isInLava();
 	}
 
 	private void applyHop(LocalPlayer player, float forward, float sideways,

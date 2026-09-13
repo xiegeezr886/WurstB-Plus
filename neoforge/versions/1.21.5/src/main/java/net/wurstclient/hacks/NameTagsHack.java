@@ -7,6 +7,7 @@
  */
 package net.wurstclient.hacks;
 
+import net.minecraft.world.entity.EquipmentSlot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,10 @@ import net.wurstclient.util.NameTagRenderState;
 public final class NameTagsHack extends Hack
 	implements UpdateListener, WorldChangeListener
 {
+	private static final EquipmentSlot[] ARMOR_SLOTS =
+		{EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST,
+			EquipmentSlot.HEAD};
+
 	private final SliderSetting scale =
 		new SliderSetting("Scale", "How large the nametags should be.", 1, 0.05,
 			5, 0.05, SliderSetting.ValueDisplay.PERCENTAGE);
@@ -157,11 +162,7 @@ public final class NameTagsHack extends Hack
 		ArrayList<ItemStack> equipment = new ArrayList<>();
 		if(!player.getMainHandItem().isEmpty())
 			equipment.add(player.getMainHandItem());
-		for(var slot : new net.minecraft.world.entity.EquipmentSlot[]{
-			net.minecraft.world.entity.EquipmentSlot.FEET,
-			net.minecraft.world.entity.EquipmentSlot.LEGS,
-			net.minecraft.world.entity.EquipmentSlot.CHEST,
-			net.minecraft.world.entity.EquipmentSlot.HEAD})
+		for(EquipmentSlot slot : ARMOR_SLOTS)
 		{
 			ItemStack stack = player.getItemBySlot(slot);
 			if(!stack.isEmpty())

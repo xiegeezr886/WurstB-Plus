@@ -254,7 +254,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 
 	private void swapToSlot(int newSlot)
 	{
-		if(newSlot == MC.player.getInventory().selected)
+		if(newSlot == MC.player.getInventory().getSelectedSlot())
 		{
 			oldSlot = -1;
 			return;
@@ -262,11 +262,11 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 
 		if(silentSwap.isChecked())
 		{
-			oldSlot = MC.player.getInventory().selected;
-			MC.player.getInventory().selected = newSlot;
+			oldSlot = MC.player.getInventory().getSelectedSlot();
+			MC.player.getInventory().setSelectedSlot(newSlot);
 		}
 		else
-			MC.player.getInventory().selected = newSlot;
+			MC.player.getInventory().setSelectedSlot(newSlot);
 	}
 
 	private void resetSlot()
@@ -279,7 +279,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			return;
 		}
 
-		MC.player.getInventory().selected = oldSlot;
+		MC.player.getInventory().setSelectedSlot(oldSlot);
 		MC.player.connection.send(new ServerboundSetCarriedItemPacket(oldSlot));
 		oldSlot = -1;
 	}
@@ -297,7 +297,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			plan.neighbor(), plan.side(), plan.hitVec());
 		if(!result.consumesAction())
 			return false;
-		if(result.shouldSwing())
+		if((result instanceof InteractionResult.Success success && success.swingSource() == InteractionResult.SwingSource.CLIENT))
 			swingHand.swing(InteractionHand.MAIN_HAND);
 		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 		currentPlan = plan;
@@ -308,7 +308,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	{
 		return isEnabled() && safeWalk.isChecked()
 			&& mode.getSelected() == Mode.NORMAL && MC.player != null
-			&& MC.player.onGround() && !MC.player.input.jumping;
+			&& MC.player.onGround() && !MC.player.input.keyPresses.jump();
 	}
 
 	private enum Mode

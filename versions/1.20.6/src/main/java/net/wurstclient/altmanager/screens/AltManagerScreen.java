@@ -405,7 +405,7 @@ public final class AltManagerScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		listGui.render(context, mouseX, mouseY, partialTicks);
 		
 		// skin preview
@@ -623,8 +623,7 @@ public final class AltManagerScreen extends Screen
 		public ListGui(Minecraft minecraft, AltManagerScreen screen,
 			List<Alt> list)
 		{
-			super(minecraft, screen.width, screen.height, 36,
-				screen.height - 56, 30);
+			super(minecraft, screen.width, screen.height - 92, 36, 30);
 			
 			list.stream().map(AltManagerScreen.Entry::new)
 				.forEach(this::addEntry);

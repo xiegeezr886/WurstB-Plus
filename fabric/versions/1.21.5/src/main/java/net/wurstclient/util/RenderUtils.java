@@ -8,13 +8,20 @@
 package net.wurstclient.util;
 
 import java.util.List;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.opengl.GlConst;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.MeshData.DrawState;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -23,6 +30,7 @@ import net.minecraft.client.CameraType;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -37,6 +45,47 @@ import net.wurstclient.WurstRenderLayers;
 public enum RenderUtils
 {
 	;
+	
+	/**
+	 * Draws a one-off, already-transformed GUI-space mesh straight into
+	 * the main render target. Replaces the 1.21.4
+	 * {@code BufferUploader.drawWithShader(MeshData)} call, which no
+	 * longer exists in 1.21.5.
+	 */
+	public static void drawGuiMesh(MeshData mesh)
+	{
+		if(mesh == null)
+			return;
+		
+		DrawState drawParams = mesh.drawState();
+		RenderSystem.AutoStorageIndexBuffer shapeIndexBuffer =
+			RenderSystem.getSequentialBuffer(drawParams.mode());
+		GpuBuffer vertexBuffer = drawParams.format()
+			.uploadImmediateVertexBuffer(mesh.vertexBuffer());
+		
+		try(mesh)
+		{
+			GpuBuffer indexBuffer =
+				shapeIndexBuffer.getBuffer(drawParams.indexCount());
+			RenderTarget target = WurstClient.MC.getMainRenderTarget();
+			
+			try(RenderPass renderPass = RenderSystem.getDevice()
+				.createCommandEncoder().createRenderPass(
+					target.getColorTexture(), OptionalInt.empty(),
+					target.useDepth ? target.getDepthTexture() : null,
+					OptionalDouble.empty()))
+			{
+				renderPass.setPipeline(RenderPipelines.GUI);
+				renderPass.setVertexBuffer(0, vertexBuffer);
+				renderPass.setIndexBuffer(indexBuffer,
+					shapeIndexBuffer.type());
+				renderPass.drawIndexed(0, drawParams.indexCount());
+			}
+		}finally
+		{
+			vertexBuffer.close();
+		}
+	}
 	
 	public static void applyRegionalRenderOffset(PoseStack matrixStack)
 	{
@@ -119,8 +168,6 @@ public enum RenderUtils
 		int color, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
@@ -146,8 +193,6 @@ public enum RenderUtils
 		Vec3 end, int color, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
@@ -164,8 +209,6 @@ public enum RenderUtils
 		List<Vec3> ends, int color, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
@@ -183,8 +226,6 @@ public enum RenderUtils
 		List<ColoredPoint> ends, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
@@ -258,8 +299,6 @@ public enum RenderUtils
 		int color, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLineStrip(depthTest);
@@ -305,8 +344,6 @@ public enum RenderUtils
 		boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getQuads(depthTest);
@@ -322,8 +359,6 @@ public enum RenderUtils
 		int color, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getQuads(depthTest);
@@ -340,8 +375,6 @@ public enum RenderUtils
 		List<ColoredBox> boxes, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getQuads(depthTest);
@@ -430,8 +463,6 @@ public enum RenderUtils
 		boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
@@ -447,8 +478,6 @@ public enum RenderUtils
 		int color, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
@@ -465,8 +494,6 @@ public enum RenderUtils
 		List<ColoredBox> boxes, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
@@ -556,8 +583,6 @@ public enum RenderUtils
 		boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
@@ -573,8 +598,6 @@ public enum RenderUtils
 		int color, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
@@ -591,8 +614,6 @@ public enum RenderUtils
 		List<ColoredBox> boxes, boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);
@@ -687,8 +708,6 @@ public enum RenderUtils
 		boolean depthTest)
 	{
 		int depthFunc = depthTest ? GlConst.GL_LEQUAL : GlConst.GL_ALWAYS;
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(depthFunc);
 		
 		MultiBufferSource.BufferSource vcp = getVCP();
 		RenderType layer = WurstRenderLayers.getLines(depthTest);

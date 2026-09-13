@@ -15,6 +15,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.RenderListener;
@@ -153,7 +154,7 @@ public final class HoleEspHack extends Hack
 			else
 				color = obsidianColor.getColorI();
 
-			AABB box = new AABB(hole.pos, hole.pos.offset(1, 1, 1));
+			AABB box = new AABB(Vec3.atLowerCornerOf(hole.pos), Vec3.atLowerCornerOf(hole.pos.offset(1, 1, 1)));
 			float[] rgb = {((color >> 16) & 0xFF) / 255F,
 				((color >> 8) & 0xFF) / 255F, (color & 0xFF) / 255F};
 			int quadColor = RenderUtils.toIntColor(rgb, 0.25F);

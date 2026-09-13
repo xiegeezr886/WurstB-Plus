@@ -102,8 +102,8 @@ public final class AntiAimHack extends Hack implements UpdateListener
 			break;
 
 			case BACKWARDS:
-			// TODO: 26.1.2 - ClientInput fields are private
-			// Cannot set forwardImpulse/leftImpulse directly
+			MC.player.input.moveVector =
+				MC.player.input.getMoveVector().negated();
 			break;
 		}
 	}

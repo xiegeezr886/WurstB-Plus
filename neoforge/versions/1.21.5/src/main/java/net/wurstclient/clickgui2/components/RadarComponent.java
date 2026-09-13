@@ -7,14 +7,15 @@
  */
 package net.wurstclient.clickgui2.components;
 
-import org.joml.Matrix3x2fStack;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import org.joml.Quaternionf;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ambient.AmbientCreature;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.fish.WaterAnimal;
+import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -41,7 +42,7 @@ public final class RadarComponent extends Component
 	}
 	
 	@Override
-	public void render(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		// Can't make this a field because RadarComponent is initialized earlier
@@ -79,12 +80,13 @@ public final class RadarComponent extends Component
 			return;
 		}
 
-		Matrix3x2fStack matrixStack = context.pose();
-		matrixStack.pushMatrix();
-		matrixStack.translate(middleX, middleY);
+		PoseStack matrixStack = context.pose();
+		matrixStack.pushPose();
+		matrixStack.translate(middleX, middleY, 0);
 		
 		if(!hack.isRotateEnabled())
-			matrixStack.rotate((180 + player.getYRot()) * Mth.DEG_TO_RAD);
+			matrixStack.mulPose(new Quaternionf().rotationZ(
+				(180 + player.getYRot()) * Mth.DEG_TO_RAD));
 		
 		FlatRenderer.fillRoundedRect(context, -5, -5, 5, 5, 5,
 			theme.background(0.92F));
@@ -92,7 +94,7 @@ public final class RadarComponent extends Component
 			theme.accent(0.42F));
 		ClickGuiIcons.drawRadarArrow(context, -3, -4, 3, 4);
 		
-		matrixStack.popMatrix();
+		matrixStack.popPose();
 		Vec3 lerpedPlayerPos = EntityUtils.getLerpedPos(player, partialTicks);
 		
 		int entityCount = 0;
@@ -108,7 +110,7 @@ public final class RadarComponent extends Component
 			if(!isInsideRadar(point, radarRadius - 2))
 				continue;
 			
-			int pointX = Math.round(middleX + (float)point.x);
+			int pointX = Math.round(middleX + (float)point.x());
 			int pointY = Math.round(middleY + (float)point.y());
 			int color = getEntityColor(e);
 			if(Math.abs(e.getY() - player.getY()) > 16)
@@ -121,7 +123,7 @@ public final class RadarComponent extends Component
 		drawFooter(context, theme, x1, x2, y2, entityCount);
 	}
 
-	private void drawRadarField(GuiGraphicsExtractor context, FlatTheme theme,
+	private void drawRadarField(GuiGraphics context, FlatTheme theme,
 		float middleX, float middleY, int radius)
 	{
 		int centerX = Math.round(middleX);
@@ -150,7 +152,7 @@ public final class RadarComponent extends Component
 			theme.accent(0.9F));
 	}
 
-	private void drawEntityPoint(GuiGraphicsExtractor context, FlatTheme theme, int x,
+	private void drawEntityPoint(GuiGraphics context, FlatTheme theme, int x,
 		int y, int color, boolean player)
 	{
 		int outerRadius = player ? 3 : 2;
@@ -163,7 +165,7 @@ public final class RadarComponent extends Component
 			innerRadius, color);
 	}
 
-	private void drawFooter(GuiGraphicsExtractor context, FlatTheme theme, int x1,
+	private void drawFooter(GuiGraphics context, FlatTheme theme, int x1,
 		int x2, int y2, int entityCount)
 	{
 		int dividerY = y2 - FOOTER_HEIGHT;
@@ -172,10 +174,10 @@ public final class RadarComponent extends Component
 		FlatRenderer.fillRoundedRect(context, x1 + 6, dividerY + 5,
 			x1 + 9, dividerY + 8, 1, theme.accent(1));
 		String radiusText = (int)Math.round(hack.getRadius()) + "m";
-		context.text(MC.font, radiusText, x1 + 12, dividerY + 2,
+		context.drawString(MC.font, radiusText, x1 + 12, dividerY + 2,
 			theme.text(0.62F), false);
 		String countText = Integer.toString(entityCount);
-		context.text(MC.font, countText,
+		context.drawString(MC.font, countText,
 			x2 - 6 - MC.font.width(countText), dividerY + 2,
 			theme.text(0.82F), false);
 	}
@@ -208,7 +210,7 @@ public final class RadarComponent extends Component
 
 	static boolean isInsideRadar(RadarPoint point, double radius)
 	{
-		return point.x * point.x + point.y() * point.y()
+		return point.x() * point.x() + point.y() * point.y()
 			<= radius * radius;
 	}
 

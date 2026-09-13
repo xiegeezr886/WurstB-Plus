@@ -36,6 +36,6 @@ public final class FastPlaceHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
-		MC.rightClickDelay = 0;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(0);
 	}
 }

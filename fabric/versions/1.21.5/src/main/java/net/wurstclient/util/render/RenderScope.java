@@ -7,10 +7,8 @@ import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryStack;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-
-import net.minecraft.client.renderer.ShaderInstance;
 
 public final class RenderScope implements AutoCloseable
 {
@@ -25,7 +23,6 @@ public final class RenderScope implements AutoCloseable
 	private final int blendDstAlpha;
 	private final float lineWidth;
 	private final float[] shaderColor;
-	private final ShaderInstance shader;
 	private final int drawFramebuffer;
 	private final int readFramebuffer;
 	private final int viewportX;
@@ -48,7 +45,6 @@ public final class RenderScope implements AutoCloseable
 		blendDstAlpha = GL11.glGetInteger(GL14.GL_BLEND_DST_ALPHA);
 		lineWidth = GL11.glGetFloat(GL11.GL_LINE_WIDTH);
 		shaderColor = RenderSystem.getShaderColor().clone();
-		shader = RenderSystem.getShader();
 		drawFramebuffer = GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
 		readFramebuffer = GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
 
@@ -80,31 +76,29 @@ public final class RenderScope implements AutoCloseable
 			drawFramebuffer);
 		GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER,
 			readFramebuffer);
-		RenderSystem.viewport(viewportX, viewportY, viewportWidth,
+		GlStateManager._viewport(viewportX, viewportY, viewportWidth,
 			viewportHeight);
 
 		if(blend)
-			RenderSystem.enableBlend();
+			GlStateManager._enableBlend();
 		else
-			RenderSystem.disableBlend();
+			GlStateManager._disableBlend();
 		GlStateManager._blendFuncSeparate(blendSrcRgb, blendDstRgb,
 			blendSrcAlpha, blendDstAlpha);
 
 		if(depthTest)
-			RenderSystem.enableDepthTest();
+			GlStateManager._enableDepthTest();
 		else
-			RenderSystem.disableDepthTest();
-		RenderSystem.depthMask(depthMask);
-		RenderSystem.depthFunc(depthFunc);
+			GlStateManager._disableDepthTest();
+		GlStateManager._depthMask(depthMask);
+		GlStateManager._depthFunc(depthFunc);
 
 		if(cull)
-			RenderSystem.enableCull();
+			GlStateManager._enableCull();
 		else
-			RenderSystem.disableCull();
+			GlStateManager._disableCull();
 		RenderSystem.lineWidth(lineWidth);
 		RenderSystem.setShaderColor(shaderColor[0], shaderColor[1],
 			shaderColor[2], shaderColor[3]);
-		if(shader != null)
-			RenderSystem.setShader(() -> shader);
 	}
 }

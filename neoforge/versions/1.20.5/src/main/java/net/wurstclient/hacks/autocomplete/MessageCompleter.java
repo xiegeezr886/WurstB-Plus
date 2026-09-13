@@ -60,7 +60,7 @@ public abstract class MessageCompleter
 		
 		// add chat history
 		List<GuiMessage.Line> chatHistory =
-			MC.gui.getChat().trimmedMessages;
+			((net.wurstclient.mixin.ChatComponentAccessor)(Object)MC.gui.getChat()).getTrimmedMessages();
 		int messages = 0;
 		for(int i = chatHistory.size() - 1; i >= 0; i--)
 		{

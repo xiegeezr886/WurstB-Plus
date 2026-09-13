@@ -318,7 +318,7 @@ public final class AutoFarmHack extends Hack
 					.useItemOn(MC.player, hand, params.toHitResult());
 				
 				// swing arm
-				if(result.consumesAction() && result.shouldSwing())
+				if(result.consumesAction() && (result instanceof InteractionResult.Success success && success.swingSource() == InteractionResult.SwingSource.CLIENT))
 					SwingHand.SERVER.swing(hand);
 				
 				// reset cooldown

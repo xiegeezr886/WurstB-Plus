@@ -157,10 +157,10 @@ public final class EditColorScreen extends Screen
 	@Override
 	public void tick()
 	{
-		hexValueField.tick();
-		redValueField.tick();
-		greenValueField.tick();
-		blueValueField.tick();
+
+
+
+
 	}
 	
 	@Override
@@ -169,7 +169,7 @@ public final class EditColorScreen extends Screen
 	{
 		Font tr = minecraft.font;
 		
-		renderBackground(context);
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		context.drawCenteredString(minecraft.font,
 			colorSetting.getName(), width / 2, 16, 0xF0F0F0);
 		

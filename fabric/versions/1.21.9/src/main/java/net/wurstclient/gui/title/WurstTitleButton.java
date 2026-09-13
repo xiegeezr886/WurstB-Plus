@@ -45,7 +45,7 @@ final class WurstTitleButton extends AbstractButton
 		action.run();
 	}
 @Override
-	protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY,
+	protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);

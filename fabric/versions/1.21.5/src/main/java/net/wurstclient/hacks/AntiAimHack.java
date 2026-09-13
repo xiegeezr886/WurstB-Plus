@@ -102,10 +102,8 @@ public final class AntiAimHack extends Hack implements UpdateListener
 			break;
 
 			case BACKWARDS:
-			MC.player.input.forwardImpulse =
-				-MC.player.input.forwardImpulse;
-			MC.player.input.leftImpulse =
-				-MC.player.input.leftImpulse;
+			MC.player.input.moveVector =
+				MC.player.input.getMoveVector().negated();
 			break;
 		}
 	}

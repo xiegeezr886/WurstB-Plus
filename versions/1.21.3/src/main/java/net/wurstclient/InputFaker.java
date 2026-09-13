@@ -43,7 +43,9 @@ public enum InputFaker
 		
 		LocalPlayer player = MC.player;
 		realInput = player.input;
-		player.input.tick();
+		// MC 1.21.3's ClientInput.tick() still takes (isMovingSlowly, movement
+		// multiplier); 1.21.4 changed it to a no-argument method.
+		player.input.tick(false, 1.0F);
 		player.input = new ClientInput();
 	}
 	

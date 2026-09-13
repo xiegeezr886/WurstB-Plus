@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Penguin
+ * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -7,24 +7,15 @@
  */
 package net.wurstclient.mixin;
 
-import java.util.List;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
-import org.spongepowered.asm.mixin.gen.Invoker;
-import net.minecraft.client.gui.components.ChatComponent;
+
 import net.minecraft.client.GuiMessage;
-import net.minecraft.client.GuiMessageTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MessageSignature;
+import net.minecraft.client.gui.components.ChatComponent;
 
 @Mixin(ChatComponent.class)
 public interface ChatComponentAccessor
 {
 	@Accessor("trimmedMessages")
-	List<GuiMessage.Line> getTrimmedMessages();
-
-	@Invoker("addMessage")
-	void wurst$addMessage(Component message, @Nullable MessageSignature signature,
-		@Nullable GuiMessageTag indicator);
+	java.util.List<GuiMessage.Line> getTrimmedMessages();
 }

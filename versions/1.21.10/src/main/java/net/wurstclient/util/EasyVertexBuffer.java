@@ -30,13 +30,18 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
-import net.minecraft.client.renderer.rendertype.OutputTarget;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.TextureTransform;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderType;
 
 /**
  * An abstraction of Minecraft 1.21.5's new {@code GpuBuffer} system that makes
  * working with it as easy as {@code VertexBuffer} was.
+ *
+ * <p>
+ * Backported to 1.21.9, which still calls the texture transform a plain
+ * matrix ({@code RenderSystem.getTextureMatrix()}) instead of the
+ * {@code TextureTransform} enum used by 1.21.11, and which takes the render
+ * target from {@code RenderStateShard.ITEM_ENTITY_TARGET}.
  */
 public final class EasyVertexBuffer implements AutoCloseable
 {
@@ -123,10 +128,10 @@ public final class EasyVertexBuffer implements AutoCloseable
 		GpuBufferSlice gpuBufferSlice = RenderSystem.getDynamicUniforms()
 			.writeTransform(RenderSystem.getModelViewMatrix(),
 				new Vector4f(red, green, blue, alpha), new Vector3f(),
-				TextureTransform.DEFAULT_TEXTURING.getMatrix());
+				RenderSystem.getTextureMatrix(), 1);
 		
 		RenderTarget framebuffer =
-			OutputTarget.ITEM_ENTITY_TARGET.getRenderTarget();
+			RenderStateShard.ITEM_ENTITY_TARGET.getRenderTarget();
 		RenderPipeline pipeline = layer.pipeline();
 		GpuBuffer indexBuffer = shapeIndexBuffer.getBuffer(indexCount);
 		

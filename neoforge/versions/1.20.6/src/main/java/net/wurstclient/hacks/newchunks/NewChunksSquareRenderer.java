@@ -38,10 +38,10 @@ public final class NewChunksSquareRenderer implements NewChunksChunkRenderer
 			float z2 = z1 + 15;
 			int color = 0xFFFFFFFF;
 			
-			buffer.addVertex(x1, 0, z1).setColor(color);
-			buffer.addVertex(x2, 0, z1).setColor(color);
-			buffer.addVertex(x2, 0, z2).setColor(color);
-			buffer.addVertex(x1, 0, z2).setColor(color);
+			buffer.vertex(x1, 0, z1).color(color).endVertex();
+			buffer.vertex(x2, 0, z1).color(color).endVertex();
+			buffer.vertex(x2, 0, z2).color(color).endVertex();
+			buffer.vertex(x1, 0, z2).color(color).endVertex();
 		}
 	}
 	

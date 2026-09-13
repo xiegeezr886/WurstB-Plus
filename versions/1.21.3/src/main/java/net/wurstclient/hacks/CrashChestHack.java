@@ -39,7 +39,7 @@ public final class CrashChestHack extends Hack
 			return;
 		}
 		
-		if(!MC.player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).isEmpty())
+		if(!MC.player.getInventory().getArmor(0).isEmpty())
 		{
 			ChatUtils.error("请清空你的鞋子栏。");
 			setEnabled(false);
@@ -57,7 +57,7 @@ public final class CrashChestHack extends Hack
 		stack.set(DataComponents.CUSTOM_NAME, Component.literal("复制我"));
 		
 		// give item
-		MC.player.getInventory().setItem(38, stack);
+		MC.player.getInventory().armor.set(0, stack);
 		ChatUtils.message("物品已放入你的鞋子栏。");
 		setEnabled(false);
 	}

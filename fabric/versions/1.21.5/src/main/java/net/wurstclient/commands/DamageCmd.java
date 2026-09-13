@@ -70,6 +70,6 @@ public final class DamageCmd extends Command
 	private void sendPosition(double x, double y, double z, boolean onGround)
 	{
 		MC.player.connection.send(
-			new ServerboundMovePlayerPacket.Pos(x, y, z, onGround));
+			new ServerboundMovePlayerPacket.Pos(x, y, z, onGround, false));
 	}
 }

@@ -7,22 +7,22 @@
  */
 package net.wurstclient.util;
 
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 
@@ -30,8 +30,20 @@ public enum DamageUtils
 {
 	;
 	
-	private static final Minecraft MC = WurstClient.MC;
+	private static final EquipmentSlot[] ARMOR_SLOTS =
+		{EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST,
+			EquipmentSlot.HEAD};
 
+	private static final Minecraft MC = WurstClient.MC;
+	
+	public static float calculateDamage(Vec3 explosionPos, LivingEntity entity)
+	{
+		return calculateDamage(explosionPos, entity, 6);
+	}
+
+	// Explosion.getSeenPercent() was removed in 1.21.5; sample the
+	// entity bounding box corners with block-collision raycasts to
+	// approximate the original exposure calculation.
 	private static double getSeenPercent(Vec3 explosionPos,
 		LivingEntity entity)
 	{
@@ -43,20 +55,17 @@ public enum DamageUtils
 		for(int z = 0; z <= 1; z++)
 		{
 			Vec3 target = new Vec3(x == 0 ? box.minX : box.maxX,
-				y == 0 ? box.minY : box.maxY, z == 0 ? box.minZ : box.maxZ);
+				y == 0 ? box.minY : box.maxY,
+				z == 0 ? box.minZ : box.maxZ);
 			ClipContext context = new ClipContext(explosionPos, target,
-				ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, entity);
+				ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE,
+				entity);
 			BlockHitResult hit = MC.level.clip(context);
 			samples++;
 			if(hit.getType() != HitResult.Type.BLOCK)
 				hits++;
 		}
 		return samples == 0 ? 1 : hits / (double)samples;
-	}
-	
-	public static float calculateDamage(Vec3 explosionPos, LivingEntity entity)
-	{
-		return calculateDamage(explosionPos, entity, 6);
 	}
 
 	public static float calculateDamage(Vec3 explosionPos, LivingEntity entity,
@@ -67,9 +76,6 @@ public enum DamageUtils
 		
 		try
 		{
-			// Explosion.getSeenPercent() was removed in 26.1.2; sample
-			// the entity bounding box corners with block-collision raycasts
-			// to approximate the original exposure calculation.
 			double exposure = getSeenPercent(explosionPos, entity);
 			double diameter = explosionPower * 2;
 			double dist =
@@ -87,10 +93,8 @@ public enum DamageUtils
 					.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
 
 			int protection = 0;
-			for(EquipmentSlot slot : EquipmentSlot.values())
+			for(EquipmentSlot slot : ARMOR_SLOTS)
 			{
-				if(!slot.isArmor())
-					continue;
 				ItemStack armor = entity.getItemBySlot(slot);
 				protection += EnchantmentUtils.getLevel(Enchantments.PROTECTION,
 					armor) + EnchantmentUtils

@@ -8,9 +8,10 @@
 package net.wurstclient.clickgui2.components;
 
 import org.lwjgl.glfw.GLFW;
-import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.clickgui2.Component;
@@ -45,10 +46,7 @@ public final class SliderComponent extends Component
 		switch(mouseButton)
 		{
 			case GLFW.GLFW_MOUSE_BUTTON_LEFT:
-			if(InputConstants.isKeyDown(MC.getWindow(),
-				GLFW.GLFW_KEY_LEFT_CONTROL)
-				|| InputConstants.isKeyDown(MC.getWindow(),
-					GLFW.GLFW_KEY_RIGHT_CONTROL))
+			if(Screen.hasControlDown())
 				MC.setScreen(new EditSliderScreen(MC.screen, setting));
 			else
 				dragging = true;
@@ -83,7 +81,7 @@ public final class SliderComponent extends Component
 	}
 	
 	@Override
-	public void render(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		int x1 = getX();
@@ -138,6 +136,10 @@ public final class SliderComponent extends Component
 		FlatRenderer.drawSliderTrack(context, (int)xl1, y4, (int)xl2, y5,
 			(float)setting.getPercentage(), GUI.getTheme(), hover);
 		
+		PoseStack matrices = context.pose();
+		matrices.pushPose();
+		matrices.translate(0, 0, 2);
+		
 		// knob
 		float xk1 = x1 + (x2 - x1 - 8) * (float)setting.getPercentage();
 		float xk2 = xk1 + 8;
@@ -150,13 +152,15 @@ public final class SliderComponent extends Component
 		FlatRenderer.drawRoundedOutline(context, (int)xk1, (int)yk1,
 			(int)xk2, (int)yk2, 3, GUI.getTheme().highlight(0.48F));
 		
+		matrices.popPose();
+		
 		// text
 		String name = setting.getName();
 		String value = setting.getValueString();
 		int valueWidth = TR.width(value);
 		int txtColor = GUI.getTxtColor();
-		context.text(TR, name, x1, y1 + 2, txtColor, false);
-		context.text(TR, value, x2 - valueWidth, y1 + 2, txtColor, false);
+		context.drawString(TR, name, x1, y1 + 2, txtColor, false);
+		context.drawString(TR, value, x2 - valueWidth, y1 + 2, txtColor, false);
 	}
 	
 	private String getTextTooltip()

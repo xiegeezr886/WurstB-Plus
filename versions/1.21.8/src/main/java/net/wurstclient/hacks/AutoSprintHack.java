@@ -86,7 +86,8 @@ public final class AutoSprintHack extends Hack
 	{
 		if(!isEnabled() || player == null || player.isPassenger()
 			|| player.isFallFlying()
-			|| player.isInWaterOrSwimmable() || player.isUnderWater())
+			|| player.isInWater() || player.isInFluidType()
+			|| player.isUnderWater())
 			return false;
 		if(!ignoreCollision.isChecked() && player.horizontalCollision
 			|| !whileSneaking.isChecked() && player.isShiftKeyDown()

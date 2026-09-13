@@ -9,6 +9,7 @@ package net.wurstclient.commands;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.Category;
 import net.wurstclient.command.CmdException;
@@ -90,6 +91,6 @@ public final class TacoCmd extends Command
 		int y = context.guiHeight() - 32 - 19;
 		int w = 64;
 		int h = 32;
-		context.blit(tacos[ticks / 8], x, y, 0, 0, w, h, w, h);
+		context.blit(RenderType::guiTextured, tacos[ticks / 8], x, y, 0, 0, w, h, w, h);
 	}
 }

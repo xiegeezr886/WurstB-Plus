@@ -7,7 +7,6 @@
  */
 package net.wurstclient.options;
 
-
 import java.util.function.Consumer;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -85,7 +84,6 @@ public final class EnterProfileNameScreen extends Screen
 	{
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

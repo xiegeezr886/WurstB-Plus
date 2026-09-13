@@ -96,7 +96,7 @@ public final class WaypointsCmd extends Command
 			}
 		}
 
-		ResourceLocation dim = MC.level.dimension().identifier();
+		ResourceLocation dim = MC.level.dimension().location();
 		try
 		{
 			WURST.getWaypointsManager()

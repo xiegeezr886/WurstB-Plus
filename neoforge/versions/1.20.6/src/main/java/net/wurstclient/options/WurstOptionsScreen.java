@@ -114,7 +114,6 @@ public class WurstOptionsScreen extends Screen
 		return false;
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

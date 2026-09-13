@@ -12,7 +12,7 @@ import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.wurstclient.clickgui2.ClickGuiScreen;
@@ -31,7 +31,7 @@ public enum ScreenRegistry
 	PAUSE(PauseScreen.class),
 	DISCONNECTED(DisconnectedScreen.class),
 	CONTAINER(AbstractContainerScreen.class),
-	INVENTORY(EffectRenderingInventoryScreen.class),
+	INVENTORY(InventoryScreen.class),
 	CHAT(ChatScreen.class),
 	DEATH(DeathScreen.class),
 	CLICK_GUI(ClickGuiScreen.class,

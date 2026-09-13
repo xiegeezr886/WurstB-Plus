@@ -143,7 +143,7 @@ public final class BaritoneMineHack extends Hack implements UpdateListener
 
 		for(int i = 0; i < 36; i++)
 		{
-			ItemStack stack = MC.player.getInventory().getItem(i);
+			ItemStack stack = MC.player.getInventory().items.get(i);
 			if(stack.isEmpty())
 				return false;
 		}

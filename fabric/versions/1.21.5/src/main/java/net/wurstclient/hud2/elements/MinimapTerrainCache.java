@@ -116,7 +116,7 @@ final class MinimapTerrainCache
 		int[] colors = new int[CHUNK_SIZE * CHUNK_SIZE];
 		int[] heights = new int[colors.length];
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-		int minHeight = level.getMinBuildHeight();
+		int minHeight = level.getMinY();
 		int worldStartX = chunkX * CHUNK_SIZE;
 		int worldStartZ = chunkZ * CHUNK_SIZE;
 
@@ -182,7 +182,7 @@ final class MinimapTerrainCache
 		int chunkZ)
 	{
 		return level.hasChunkAt(new BlockPos(chunkX * CHUNK_SIZE,
-			level.getMinBuildHeight(), chunkZ * CHUNK_SIZE));
+			level.getMinY(), chunkZ * CHUNK_SIZE));
 	}
 
 	static int chunkCoordinate(int blockCoordinate)

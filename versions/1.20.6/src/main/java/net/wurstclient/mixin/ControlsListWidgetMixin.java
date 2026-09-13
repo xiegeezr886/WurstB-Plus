@@ -27,7 +27,7 @@ public abstract class ControlsListWidgetMixin
 	public ControlsListWidgetMixin(WurstClient wurst, Minecraft client,
 		int width, int height, int top, int bottom, int itemHeight)
 	{
-		super(client, width, height, top, bottom, itemHeight);
+		super(client, width, bottom - top, top, itemHeight);
 	}
 	
 	/**
@@ -43,7 +43,8 @@ public abstract class ControlsListWidgetMixin
 		if(!(entry instanceof KeyBindsList.KeyEntry kbEntry))
 			return original.call(instance, entry);
 		
-		Component name = kbEntry.name;
+		Component name = ((net.wurstclient.mixin.KeyEntryAccessor)(Object)kbEntry)
+			.getName();
 		if(name == null || !(name
 			.getContents() instanceof TranslatableContents trContent))
 			return original.call(instance, entry);

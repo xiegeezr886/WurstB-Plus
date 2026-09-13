@@ -11,7 +11,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -111,7 +111,7 @@ public final class TemplateToolHack extends Hack
 	}
 	
 	@Override
-	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+	public void onRenderGUI(GuiGraphics context, float partialTicks)
 	{
 		if(state != null)
 			state.onRenderGUI(this, context, partialTicks);

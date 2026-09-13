@@ -35,7 +35,7 @@ public abstract class EntityMixin
 	 * AntiWaterPush.
 	 */
 	@WrapOperation(
-		method = "updateFluidHeightAndDoFluidPushing(Ljava/util/function/Predicate;)V",
+		method = "updateFluidHeightAndDoFluidPushing(Lnet/minecraft/tags/TagKey;D)Z",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/entity/Entity;isPushedByFluid()Z",
 			ordinal = 0),

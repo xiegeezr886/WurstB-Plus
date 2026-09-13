@@ -15,7 +15,7 @@ final class MinimapTerrainCache
 {
 	static final int CHUNK_SIZE = 16;
 	static final int UNKNOWN_COLOR = 0xFF181B20;
-	static final long TILE_TTL = 72000;
+	static final long TILE_TTL = 100;
 	private static final int MAX_TILES = 256;
 
 	private final LinkedHashMap<Long, TerrainTile> tiles =
@@ -182,7 +182,7 @@ final class MinimapTerrainCache
 		int chunkZ)
 	{
 		return level.hasChunkAt(new BlockPos(chunkX * CHUNK_SIZE,
-			level.getMinY() * 16, chunkZ * CHUNK_SIZE));
+			level.getMinY(), chunkZ * CHUNK_SIZE));
 	}
 
 	static int chunkCoordinate(int blockCoordinate)

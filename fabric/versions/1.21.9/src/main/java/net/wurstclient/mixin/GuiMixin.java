@@ -32,7 +32,7 @@ public class GuiMixin
 	private void onRenderPlayerList(GuiGraphics graphics,
 		DeltaTracker tickCounter, CallbackInfo ci)
 	{
-		if(WurstClient.MC.debugEntries.isOverlayVisible())
+		if(WurstClient.MC.debugEntries.isF3Visible())
 			return;
 		
 		float tickDelta = tickCounter.getGameTimeDeltaPartialTick(true);

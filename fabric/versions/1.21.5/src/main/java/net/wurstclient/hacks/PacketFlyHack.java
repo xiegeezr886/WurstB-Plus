@@ -80,17 +80,17 @@ public final class PacketFlyHack extends Hack
 			.yRot(-(float)Math.toRadians(MC.player.getYRot()));
 		Vec3 move = Vec3.ZERO;
 
-		if(MC.player.input.forwardImpulse > 0)
+		if(MC.player.input.getMoveVector().y > 0)
 			move = move.add(forward);
-		if(MC.player.input.forwardImpulse < 0)
+		if(MC.player.input.getMoveVector().y < 0)
 			move = move.add(forward.reverse());
 		if(MC.options.keyJump.isDown())
 			move = move.add(0, vs, 0);
 		if(MC.options.keyShift.isDown())
 			move = move.add(0, -vs, 0);
-		if(MC.player.input.leftImpulse > 0)
+		if(MC.player.input.getMoveVector().x > 0)
 			move = move.add(forward.yRot((float)Math.toRadians(90)));
-		if(MC.player.input.leftImpulse < 0)
+		if(MC.player.input.getMoveVector().x < 0)
 			move = move.add(forward.yRot((float)-Math.toRadians(90)));
 
 		MC.player.setDeltaMovement(Vec3.ZERO);
@@ -107,22 +107,22 @@ public final class PacketFlyHack extends Hack
 			cachedPos = cachedPos.add(move);
 			MC.player.connection.send(
 				new ServerboundMovePlayerPacket.Pos(cachedPos.x,
-					cachedPos.y, cachedPos.z, false));
+					cachedPos.y, cachedPos.z, false, false));
 			MC.player.connection.send(
 				new ServerboundMovePlayerPacket.Pos(cachedPos.x,
-					cachedPos.y - 0.01, cachedPos.z, true));
+					cachedPos.y - 0.01, cachedPos.z, true, false));
 		}else
 		{
 			MC.player.connection.send(
 				new ServerboundMovePlayerPacket.Pos(
 					MC.player.getX() + move.x,
 					MC.player.getY() + move.y,
-					MC.player.getZ() + move.z, false));
+					MC.player.getZ() + move.z, false, false));
 			MC.player.connection.send(
 				new ServerboundMovePlayerPacket.Pos(
 					MC.player.getX() + move.x,
 					MC.player.getY() - 420.69,
-					MC.player.getZ() + move.z, true));
+					MC.player.getZ() + move.z, true, false));
 		}
 	}
 

@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.util.BufferWithLayer;
@@ -83,6 +83,7 @@ public final class NewChunksRenderer
 		}
 		
 		matrixStack.popPose();
-		// Shader color managed by render pipeline
+		
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 }

@@ -13,7 +13,7 @@ public enum WorldToScreen
 	public static ScreenBounds project(AABB box, Matrix4f view,
 		Matrix4f projection)
 	{
-		Vec3 camera = WurstClient.MC.gameRenderer.getMainCamera().position();
+		Vec3 camera = WurstClient.MC.gameRenderer.getMainCamera().getPosition();
 		float minX = Float.POSITIVE_INFINITY;
 		float minY = Float.POSITIVE_INFINITY;
 		float maxX = Float.NEGATIVE_INFINITY;

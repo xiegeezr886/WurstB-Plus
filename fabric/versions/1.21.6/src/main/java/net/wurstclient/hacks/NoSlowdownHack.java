@@ -10,7 +10,7 @@ package net.wurstclient.hacks;
 
 import java.util.HashSet;
 import java.util.Set;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -129,7 +129,7 @@ public final class NoSlowdownHack extends Hack
 			return instance.getValue();
 
 		ItemStack stack = MC.player.getMainHandItem();
-		Set<Identifier> excluded = new HashSet<>();
+		Set<ResourceLocation> excluded = new HashSet<>();
 		stack.forEachModifier(EquipmentSlot.MAINHAND, (attribute, modifier) -> {
 			if(attribute.equals(Attributes.MOVEMENT_SPEED)
 				&& modifier.amount() < 0)

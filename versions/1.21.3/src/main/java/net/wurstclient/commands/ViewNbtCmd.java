@@ -30,23 +30,22 @@ public final class ViewNbtCmd extends Command
 	public void call(String[] args) throws CmdException
 	{
 		LocalPlayer player = MC.player;
-		ItemStack stack = player.getInventory().getSelectedItem();
+		ItemStack stack = player.getInventory().getSelected();
 		if(stack.isEmpty())
 			throw new CmdError("You must hold an item in your main hand.");
 		
-		// TODO: 26.1.2 - stack.save() method removed
-		Tag tag = null; // stack.save(player.registryAccess());
-		String nbt = tag != null ? tag.toString() : "N/A";
+		Tag tag = stack.save(player.registryAccess());
+		String nbt = tag.getAsString();
 		
 		switch(String.join(" ", args).toLowerCase())
 		{
 			case "":
-			ChatUtils.message("NBT data: " + nbt);
+			ChatUtils.message("NBT数据: " + nbt);
 			break;
 			
 			case "copy":
 			MC.keyboardHandler.setClipboard(nbt);
-			ChatUtils.message("NBT data copied to clipboard.");
+			ChatUtils.message("NBT数据已复制到剪贴板。");
 			break;
 			
 			default:

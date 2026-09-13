@@ -211,7 +211,6 @@ public class CleanUpScreen extends Screen
 		return super.mouseClicked(mouseX, mouseY, button);
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

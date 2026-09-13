@@ -7,7 +7,6 @@
  */
 package net.wurstclient.options;
 
-
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -56,7 +55,6 @@ public class PressAKeyScreen extends Screen
 		return false;
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

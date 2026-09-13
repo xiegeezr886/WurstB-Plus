@@ -7,34 +7,39 @@
  */
 package net.wurstclient.mixin;
 
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hacks.NameTagsHack;
 
-@Mixin(NameTagFeatureRenderer.Storage.class)
+/**
+ * 1.21.8 port of the NameTags scale adjustment.
+ *
+ * <p>
+ * On 1.21.9+ the label is built by {@code NameTagFeatureRenderer.Storage}, so
+ * the scale could be wrapped there. 1.21.8 still renders the label directly
+ * from {@link EntityRenderer#renderNameTag}, so the same adjustment is applied
+ * to the {@code PoseStack.scale} call inside that method instead.
+ */
+@Mixin(EntityRenderer.class)
 public class SubmitNodeCollectionMixin
 {
 	@WrapOperation(
-		method = "add",
+		method = "renderNameTag(Lnet/minecraft/client/renderer/entity/state/EntityRenderState;Lnet/minecraft/network/chat/Component;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 		at = @At(value = "INVOKE",
 			target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V"))
 	private void wrapLabelScale(PoseStack matrices, float x, float y, float z,
-		Operation<Void> original, PoseStack matrices2,
-		@Nullable Vec3 nameTagAttachment, int offset, Component name,
-		boolean seeThrough, int lightCoords, double distance,
-		CameraRenderState camera)
+		Operation<Void> original, EntityRenderState state, Component name,
+		PoseStack matrices2, MultiBufferSource vertexConsumers, int light)
 	{
 		NameTagsHack nameTagsHack = WurstClient.INSTANCE.getHax().nameTagsHack;
 		if(!nameTagsHack.isEnabled())
@@ -44,23 +49,10 @@ public class SubmitNodeCollectionMixin
 		}
 		
 		float scale = 0.025F * nameTagsHack.getScale();
+		double distance = Math.sqrt(state.distanceToCameraSq);
 		if(distance > 10)
 			scale *= distance / 10;
 		
 		original.call(matrices, scale, -scale, scale);
-	}
-	
-	/**
-	 * Enables the see-through render pass when requested by NameTags.
-	 */
-	@ModifyVariable(
-		method = "add",
-		at = @At("HEAD"),
-		argsOnly = true)
-	private boolean forceSeeThrough(boolean seeThrough)
-	{
-		NameTagsHack nameTagsHack = WurstClient.INSTANCE.getHax().nameTagsHack;
-		return seeThrough
-			|| nameTagsHack.isEnabled() && nameTagsHack.isSeeThrough();
 	}
 }

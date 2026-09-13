@@ -109,8 +109,7 @@ public final class KillPotionHack extends Hack
 			List<MobEffectInstance> effects = List.of(
 				new MobEffectInstance(instantHealth, 2000, 125));
 			stack.set(DataComponents.POTION_CONTENTS,
-				new PotionContents(Optional.empty(), Optional.empty(), effects,
-					Optional.empty()));
+				new PotionContents(Optional.empty(), Optional.empty(), effects, Optional.empty()));
 			
 			String name =
 				"\u00a7f" + itemName + " of \u00a74\u00a7lINSTANT DEATH";

@@ -85,7 +85,7 @@ public final class MassTpaHack extends Hack
 		command = commandSetting.getValue().substring(1);
 		
 		// collect player names
-		String playerName = MC.getUser().getGameProfile().getName();
+		String playerName = MC.getUser().getName();
 		for(PlayerInfo info : MC.player.connection.getOnlinePlayers())
 		{
 			String name = info.getProfile().getName();

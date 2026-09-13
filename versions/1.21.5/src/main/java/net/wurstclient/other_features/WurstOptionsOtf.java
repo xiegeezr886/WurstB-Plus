@@ -7,14 +7,14 @@
  */
 package net.wurstclient.other_features;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Button.OnPress;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.other_feature.OtherFeature;
@@ -24,8 +24,8 @@ import net.wurstclient.settings.EnumSetting;
 @DontBlock
 public final class WurstOptionsOtf extends OtherFeature
 {
-	private static final Identifier WURST_TEXTURE =
-		Identifier.fromNamespaceAndPath("wurst", "wurst_128.png");
+	private static final ResourceLocation WURST_TEXTURE =
+		ResourceLocation.fromNamespaceAndPath("wurst", "wurst_128.png");
 	
 	private final EnumSetting<Location> location = new EnumSetting<>("Location",
 		"description.wurst.setting.wurstoptions.location", Location.values(),
@@ -62,7 +62,7 @@ public final class WurstOptionsOtf extends OtherFeature
 			.createNarration(sup -> narration).tooltip(tooltip);
 	}
 	
-	public void drawWurstLogoOnButton(GuiGraphicsExtractor context,
+	public void drawWurstLogoOnButton(GuiGraphics context,
 		Button wurstOptionsButton)
 	{
 		if(wurstOptionsButton == null)
@@ -76,7 +76,7 @@ public final class WurstOptionsOtf extends OtherFeature
 		int fh = 16;
 		float u = 0;
 		float v = 0;
-		context.blit(RenderPipelines.GUI_TEXTURED, WURST_TEXTURE, x, y, u, v, w,
+		context.blit(RenderType::guiTextured, WURST_TEXTURE, x, y, u, v, w,
 			h, fw, fh);
 	}
 	

@@ -19,7 +19,6 @@ import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
 import net.wurstclient.commands.FriendsCmd;
@@ -119,10 +118,10 @@ public class WurstOptionsScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		renderTitles(context);
@@ -200,17 +199,16 @@ public class WurstOptionsScreen extends Screen
 		}
 		
 		@Override
-		public void onPress(InputWithModifiers context)
+		public void onPress()
 		{
-			super.onPress(context);
+			super.onPress();
 			setMessage(Component.literal(messageSupplier.get()));
 		}
 
 		@Override
-		protected void renderContents(GuiGraphics graphics, int mouseX,
+		protected void renderWidget(GuiGraphics graphics, int mouseX,
 			int mouseY, float partialTicks)
 		{
-			renderDefaultSprite(graphics);
 			graphics.drawCenteredString(font, getMessage(),
 				getX() + getWidth() / 2,
 				getY() + (getHeight() - font.lineHeight) / 2,

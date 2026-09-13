@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[55,)"
+loaderVersion="[56,)"
 license="GPL-3.0-or-later"
 clientSideOnly=true
 
@@ -11,19 +11,19 @@ logoFile="assets/wurst/icon.png"
 authors="Penguin"
 displayTest="IGNORE_ALL_VERSION"
 description='''
-WurstB+ Plus for Minecraft 1.21.5.
+WurstB+ Plus for Minecraft 1.21.6.
 '''
 
 [[dependencies.wurstpenguin]]
 modId="forge"
 mandatory=true
-versionRange="[55.1.0,56)"
+versionRange="[56.0.9,57)"
 ordering="NONE"
 side="CLIENT"
 
 [[dependencies.wurstpenguin]]
 modId="minecraft"
 mandatory=true
-versionRange="[1.21.5,1.21.6)"
+versionRange="[1.21.6,1.21.7)"
 ordering="NONE"
 side="CLIENT"

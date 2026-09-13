@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.events.GUIRenderListener;
@@ -42,7 +42,7 @@ public final class HudNotificationRenderer implements GUIRenderListener
 		}
 	}
 
-	void renderPreview(GuiGraphicsExtractor graphics, int x, int y)
+	void renderPreview(GuiGraphics graphics, int x, int y)
 	{
 		NotificationEntry preview = new NotificationEntry("Notifications",
 			"HUD notification preview", NotificationSeverity.INFO);
@@ -51,7 +51,7 @@ public final class HudNotificationRenderer implements GUIRenderListener
 	}
 
 	@Override
-	public void onRenderGUI(GuiGraphicsExtractor graphics, float partialTicks)
+	public void onRenderGUI(GuiGraphics graphics, float partialTicks)
 	{
 		if(!WurstClient.INSTANCE.isEnabled())
 			return;
@@ -131,7 +131,7 @@ public final class HudNotificationRenderer implements GUIRenderListener
 		}
 	}
 
-	private void drawCard(GuiGraphicsExtractor graphics, NotificationEntry entry,
+	private void drawCard(GuiGraphics graphics, NotificationEntry entry,
 		int left, int top, int right, int bottom, float visibility,
 		float lifetimeProgress)
 	{
@@ -153,14 +153,14 @@ public final class HudNotificationRenderer implements GUIRenderListener
 		int textX = left + PADDING;
 		int titleY = top + (bottom - top - font.lineHeight * 2 + 2) / 2;
 
-		graphics.text(font, title, textX + 1, titleY + 1,
+		graphics.drawString(font, title, textX + 1, titleY + 1,
 			withAlpha(0, Math.round(145 * visibility)), false);
-		graphics.text(font, title, textX, titleY,
+		graphics.drawString(font, title, textX, titleY,
 			withAlpha(0xFFF2F4F7, Math.round(255 * visibility)), false);
 
-		graphics.text(font, message, textX + 1, titleY + font.lineHeight + 1,
+		graphics.drawString(font, message, textX + 1, titleY + font.lineHeight + 1,
 			withAlpha(0, Math.round(145 * visibility)), false);
-		graphics.text(font, message, textX, titleY + font.lineHeight,
+		graphics.drawString(font, message, textX, titleY + font.lineHeight,
 			withAlpha(0xFF727B88, Math.round(255 * visibility)), false);
 
 		int barLeft = left + PADDING;

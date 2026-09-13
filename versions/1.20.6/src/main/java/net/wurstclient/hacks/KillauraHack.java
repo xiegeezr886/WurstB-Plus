@@ -576,9 +576,10 @@ public final class KillauraHack extends Hack
 			return false;
 		if(requireEmptyHand.isChecked() && !stack.isEmpty())
 			return false;
-		if(requireVanillaName.isChecked() && stack.hasCustomHoverName())
+		if(requireVanillaName.isChecked() && stack
+			.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME))
 			return false;
-		return !pauseWhileMining.isChecked() || !MC.gameMode.isDestroying();
+		return !pauseWhileMining.isChecked() || !((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying();
 	}
 
 	private boolean canAttackNow(Entity target)

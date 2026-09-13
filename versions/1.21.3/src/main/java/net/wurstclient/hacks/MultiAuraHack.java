@@ -21,7 +21,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
@@ -40,10 +39,9 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-// MilkBucketItem removed in MC 26.1.2
 import net.minecraft.world.item.PotionItem;
-// SwordItem removed in MC 26.1.2
-// UseAnim removed in MC 26.1.2
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -426,7 +424,8 @@ public final class MultiAuraHack extends Hack
 		for(int click = 0; click < clicks; click++)
 		{
 			if(attackCooldown.isChecked()
-				&& CombatActionPolicy.isAttackMissCooldownActive(0))
+				&& CombatActionPolicy.isAttackMissCooldownActive(
+					((IMinecraftClient)MC).getMissTime()))
 				continue;
 			if(!isItemCooldownPassed(0))
 				continue;
@@ -510,11 +509,11 @@ public final class MultiAuraHack extends Hack
 				|| MC.hitResult.getType() != HitResult.Type.MISS)
 				continue;
 			if(attackCooldown.isChecked()
-				&& CombatActionPolicy.isAttackMissCooldownActive(0))
+				&& CombatActionPolicy.isAttackMissCooldownActive(
+					((IMinecraftClient)MC).getMissTime()))
 				continue;
-			// TODO: 26.1.2 - setMissTime() removed
-			// if(attackCooldown.isChecked())
-			// 	((IMinecraftClient)MC).setMissTime(10);
+			if(attackCooldown.isChecked())
+				((IMinecraftClient)MC).setMissTime(10);
 			swingHand.swing(InteractionHand.MAIN_HAND);
 			clickScheduler.recordSuccessfulClick(now);
 		}
@@ -638,12 +637,12 @@ public final class MultiAuraHack extends Hack
 			|| MC.player.isDeadOrDying() || MC.player.isSpectator())
 			return true;
 		if(activationSlot.isChecked()
-			&& MC.player.getInventory().getSelectedSlot() != preferredSlot.getValueI() - 1)
+			&& MC.player.getInventory().selected != preferredSlot.getValueI() - 1)
 			return true;
 		if(clickOnly.isChecked() && !MC.options.keyAttack.isDown())
 			return true;
 		if(onSwording.isChecked()
-			&& !MC.player.getMainHandItem().is(net.minecraft.tags.ItemTags.SWORDS))
+			&& !(MC.player.getMainHandItem().getItem() instanceof SwordItem))
 			return true;
 		if(WURST.getHax().scaffoldWalkHack.isEnabled()
 			&& (!onScaffold.isChecked() || noScaffold.isChecked()))
@@ -834,7 +833,7 @@ public final class MultiAuraHack extends Hack
 		{
 			EntityHitResult hit = new EntityHitResult(target,
 				target.getBoundingBox().getCenter());
-			MC.gameMode.interact(MC.player, target, hand);
+			MC.gameMode.interactAt(MC.player, target, hit, hand);
 		}
 		((IClientPlayerInteractionManager)MC.gameMode)
 			.sendPlayerUseItemPacket(hand);
@@ -856,8 +855,8 @@ public final class MultiAuraHack extends Hack
 		if(checkEnemyWeapon.isChecked() && target instanceof LivingEntity living)
 		{
 			ItemStack held = living.getMainHandItem();
-			if(!held.is(net.minecraft.tags.ItemTags.SWORDS)
-				&& !held.is(net.minecraft.tags.ItemTags.AXES))
+			if(!(held.getItem() instanceof SwordItem)
+				&& !(held.getItem() instanceof AxeItem))
 				return false;
 		}
 		if(MC.player.hurtTime > maxOwnHurtTime.getValueI()
@@ -885,7 +884,7 @@ public final class MultiAuraHack extends Hack
 		{
 			case STOP -> sendReleaseUsingItemPacket();
 			case SWITCH -> {
-				int selected = MC.player.getInventory().getSelectedSlot();
+				int selected = MC.player.getInventory().selected;
 				MC.player.connection.send(
 					new ServerboundSetCarriedItemPacket((selected + 1) % 9));
 				MC.player.connection.send(
@@ -897,7 +896,7 @@ public final class MultiAuraHack extends Hack
 					sendReleaseUsingItemPacket();
 				else
 				{
-					int selected = MC.player.getInventory().getSelectedSlot();
+					int selected = MC.player.getInventory().selected;
 					MC.player.connection.send(
 						new ServerboundSetCarriedItemPacket(empty));
 					MC.player.connection.send(
@@ -979,7 +978,7 @@ public final class MultiAuraHack extends Hack
 	{
 		MC.player.connection.send(new PosRot(MC.player.getX(), MC.player.getY(),
 			MC.player.getZ(), rotation.yaw(), rotation.pitch(),
-			MC.player.onGround(), MC.player.horizontalCollision));
+			MC.player.onGround(), false));
 	}
 
 	private void clearTargets()
@@ -1002,11 +1001,11 @@ public final class MultiAuraHack extends Hack
 	}
 
 	@Override
-	public void onRender(PoseStack PoseStack, float partialTicks)
+	public void onRender(PoseStack poseStack, float partialTicks)
 	{
 		if(MC.player == null || !rangeAura.isChecked())
 			return;
-		AuraRangeRenderer.render(PoseStack, MC.player, partialTicks,
+		AuraRangeRenderer.render(poseStack, MC.player, partialTicks,
 			getMaximumRange(), WURST.getGui().getTheme().accent(1),
 			currentTarget != null);
 	}
@@ -1151,7 +1150,7 @@ public final class MultiAuraHack extends Hack
 					entity instanceof LivingEntity living && living.onClimbable() ? 0 : 1);
 				case IN_LIQUID -> Comparator.comparingInt(entity ->
 					entity instanceof LivingEntity living
-						&& (living.isInWaterOrSwimmable() || living.isInLava()) ? 0 : 1);
+						&& (living.isInWaterOrBubble() || living.isInLava()) ? 0 : 1);
 				case IN_WEB -> Comparator.comparingInt(entity ->
 					aura.MC.level.getBlockState(entity.blockPosition())
 						.is(Blocks.COBWEB) ? 0 : 1);

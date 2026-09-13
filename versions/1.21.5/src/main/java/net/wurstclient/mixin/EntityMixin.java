@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -7,56 +7,67 @@
  */
 package net.wurstclient.mixin;
 
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.entity.EntityAccess;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.VelocityFromEntityCollisionListener.VelocityFromEntityCollisionEvent;
 import net.wurstclient.events.VelocityFromFluidListener.VelocityFromFluidEvent;
+import net.wurstclient.util.HitboxExpansionPolicy;
 
 @Mixin(Entity.class)
-public abstract class EntityMixin
-	implements Nameable, EntityAccess, CommandSource
+public abstract class EntityMixin implements Nameable, EntityAccess, CommandSource
 {
+	@Inject(at = @At("HEAD"),
+		method = "makeStuckInBlock(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/phys/Vec3;)V",
+		cancellable = true)
+	private void onMakeStuckInBlock(BlockState state, Vec3 multiplier,
+		CallbackInfo ci)
+	{
+		Entity self = (Entity)(Object)this;
+		if(self != WurstClient.MC.player || WurstClient.INSTANCE.getHax() == null)
+			return;
+		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
+			&& WurstClient.INSTANCE.getHax().noSlowdownHack
+				.shouldBypassStuckBlock(state))
+			ci.cancel();
+	}
+
 	/**
 	 * This mixin makes the VelocityFromFluidEvent work, which is used by
-	 * AntiWaterPush.
+	 * AntiWaterPush. Forge can alter this invocation, so the injection remains
+	 * optional.
 	 */
-	@WrapOperation(
-		method = "updateFluidHeightAndDoFluidPushing(Ljava/util/function/Predicate;)V",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/entity/Entity;isPushedByFluid()Z",
-			ordinal = 0),
-		// require=0: NeoForge/Forge patched clients may rework fluid
-		// interaction, making this injection target absent there. Without
-		// require=0 the client fails to start. Vanilla/Fabric still call it.
+	@WrapWithCondition(at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/world/entity/Entity;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
+		opcode = Opcodes.INVOKEVIRTUAL,
+		ordinal = 0),
+		method = "updateFluidHeightAndDoFluidPushing(Lnet/minecraft/tags/TagKey;D)Z",
 		require = 0)
-	private boolean wrapUpdateFluidInteractionIsPushedByFluid(Entity instance,
-		Operation<Boolean> original)
+	private boolean shouldSetVelocity(Entity instance, Vec3 velocity)
 	{
 		VelocityFromFluidEvent event = new VelocityFromFluidEvent(instance);
 		EventManager.fire(event);
-		
-		if(event.isCancelled())
-			return false;
-		
-		return original.call(instance);
+		return !event.isCancelled();
 	}
 	
-	@Inject(method = "push(Lnet/minecraft/world/entity/Entity;)V",
-		at = @At("HEAD"),
+	@Inject(at = @At("HEAD"),
+		method = "Lnet/minecraft/world/entity/Entity;push(Lnet/minecraft/world/entity/Entity;)V",
 		cancellable = true)
 	private void onPushAwayFrom(Entity entity, CallbackInfo ci)
 	{
@@ -71,9 +82,8 @@ public abstract class EntityMixin
 	/**
 	 * Makes invisible entities render as ghosts if TrueSight is enabled.
 	 */
-	@Inject(
-		method = "isInvisibleTo(Lnet/minecraft/world/entity/player/Player;)Z",
-		at = @At("RETURN"),
+	@Inject(at = @At("RETURN"),
+		method = "Lnet/minecraft/world/entity/Entity;isInvisibleTo(Lnet/minecraft/world/entity/player/Player;)Z",
 		cancellable = true)
 	private void onIsInvisibleTo(Player player,
 		CallbackInfoReturnable<Boolean> cir)
@@ -85,5 +95,19 @@ public abstract class EntityMixin
 		if(WurstClient.INSTANCE.getHax().trueSightHack
 			.shouldBeVisible((Entity)(Object)this))
 			cir.setReturnValue(false);
+	}
+
+	@Inject(at = @At("RETURN"),
+		method = "getBoundingBox()Lnet/minecraft/world/phys/AABB;",
+		cancellable = true)
+	private void onGetBoundingBox(CallbackInfoReturnable<AABB> cir)
+	{
+		float extra = WurstClient.INSTANCE.getHax().hitboxesHack.getExtraSize();
+		Entity self = (Entity)(Object)this;
+		if(!HitboxExpansionPolicy.shouldExpand(self.level().isClientSide,
+			self instanceof LivingEntity, self == WurstClient.MC.player, extra))
+			return;
+
+		cir.setReturnValue(cir.getReturnValue().inflate(extra));
 	}
 }

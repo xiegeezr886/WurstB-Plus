@@ -100,7 +100,7 @@ public enum MicrosoftLoginManager
 	{
 		MinecraftProfile mcProfile = getAccount(email, password);
 		
-		User session = new User(mcProfile.getName(), mcProfile.getUUID(),
+		User session = new User(mcProfile.getName(), java.util.UUID.fromString(mcProfile.getUUID()),
 			mcProfile.getAccessToken(), Optional.empty(), Optional.empty(),
 			User.Type.MSA);
 		

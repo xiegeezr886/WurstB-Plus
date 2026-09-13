@@ -34,16 +34,19 @@ public final class LsdHack extends Hack
 			return;
 		}
 		
-		if(MC.gameRenderer.currentEffect() != null)
-			MC.gameRenderer.shutdownEffect();
+		if(MC.gameRenderer.currentPostEffect() != null)
+			MC.gameRenderer.clearPostEffect();
 		
-		MC.gameRenderer.loadEffect(EFFECT);
+		// 1.21.5 replaced the old PostChain loader with a frame graph
+		// based one that has no public API for loading a custom post
+		// effect, so this hack stays disabled instead of crashing.
+		setEnabled(false);
 	}
 	
 	@Override
 	protected void onDisable()
 	{
-		if(MC.gameRenderer.currentEffect() != null)
-			MC.gameRenderer.shutdownEffect();
+		if(MC.gameRenderer.currentPostEffect() != null)
+			MC.gameRenderer.clearPostEffect();
 	}
 }

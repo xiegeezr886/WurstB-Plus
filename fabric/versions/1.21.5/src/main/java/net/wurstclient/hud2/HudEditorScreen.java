@@ -82,7 +82,7 @@ public final class HudEditorScreen extends Screen
 			if(config.isEnabled() && element.renderEditorPreview())
 			{
 				element.render(graphics, elX, elY,
-					minecraft.getTimer().getGameTimeDeltaPartialTick(false));
+					minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false));
 				FlatRenderer.drawRoundedOutline(graphics, elX, elY,
 					elX + editorWidth, elY + editorHeight, 8, border);
 				continue;

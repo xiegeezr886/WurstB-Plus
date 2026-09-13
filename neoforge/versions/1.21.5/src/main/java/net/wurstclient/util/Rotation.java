@@ -82,10 +82,10 @@ public record Rotation(float yaw, float pitch)
 		float yawRad = -Mth.wrapDegrees(yaw) * radPerDeg;
 		float pitchRad = Mth.wrapDegrees(pitch) * radPerDeg;
 		
-		float sinYaw = (float)Math.sin(yawRad / 2);
-		float cosYaw = (float)Math.cos(yawRad / 2);
-		float sinPitch = (float)Math.sin(pitchRad / 2);
-		float cosPitch = (float)Math.cos(pitchRad / 2);
+		float sinYaw = Mth.sin(yawRad / 2);
+		float cosYaw = Mth.cos(yawRad / 2);
+		float sinPitch = Mth.sin(pitchRad / 2);
+		float cosPitch = Mth.cos(pitchRad / 2);
 		
 		float x = sinPitch * cosYaw;
 		float y = cosPitch * sinYaw;

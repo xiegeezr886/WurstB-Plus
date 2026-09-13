@@ -102,14 +102,14 @@ public final class HoleFillerHack extends Hack implements UpdateListener
 			return;
 		}
 
-		int oldSlot = MC.player.getInventory().selected;
-		MC.player.getInventory().selected = slot;
+		int oldSlot = MC.player.getInventory().getSelectedSlot();
+		MC.player.getInventory().setSelectedSlot(slot);
 
 		boolean placed = BlockPlacer.place(closest, false, false);
 		if(placed)
 			swingHand.swing(InteractionHand.MAIN_HAND);
 
-		MC.player.getInventory().selected = oldSlot;
+		MC.player.getInventory().setSelectedSlot(oldSlot);
 	}
 
 	private void scanHoles()

@@ -1,20 +1,21 @@
 package net.wurstclient.hud2.elements;
 
+import net.minecraft.client.renderer.RenderType;
+
 import com.mojang.blaze3d.platform.NativeImage;
 
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ambient.AmbientCreature;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.fish.WaterAnimal;
+import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -41,10 +42,9 @@ public final class MinimapHudElement extends HudElement
 
 	private final MinimapTerrainCache terrain = new MinimapTerrainCache();
 	private DynamicTexture texture;
-	private Identifier textureLocation;
+	private ResourceLocation textureLocation;
 	private int centerX = Integer.MIN_VALUE;
 	private int centerZ = Integer.MIN_VALUE;
-	private int tickCounter;
 
 	public MinimapHudElement()
 	{
@@ -83,13 +83,12 @@ public final class MinimapHudElement extends HudElement
 			return;
 		}
 
-		tickCounter++;
 		int playerX = Mth.floor(player.getX());
 		int playerZ = Mth.floor(player.getZ());
 		boolean tilesChanged = terrain.refreshVisible(level, playerX, playerZ,
 			MAP_RADIUS, level.getGameTime(), TILE_REFRESH_BUDGET);
 		if(texture == null || playerX != centerX || playerZ != centerZ
-			|| tilesChanged && tickCounter % 2 == 0)
+			|| tilesChanged)
 			composeTerrain(playerX, playerZ);
 	}
 
@@ -106,12 +105,12 @@ public final class MinimapHudElement extends HudElement
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor graphics, int x, int y, float partialTicks)
+	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
 		LocalPlayer player = WurstClient.MC.player;
-		ClientLevel level = WurstClient.MC.level;
-		if(player != null && level != null && texture == null)
+		if(player != null && texture == null)
 		{
+			ClientLevel level = player.clientLevel;
 			int playerX = Mth.floor(player.getX());
 			int playerZ = Mth.floor(player.getZ());
 			terrain.refreshVisible(level, playerX, playerZ, MAP_RADIUS,
@@ -121,8 +120,7 @@ public final class MinimapHudElement extends HudElement
 
 		drawFrame(graphics, x, y);
 		if(textureLocation != null)
-			graphics.blit(RenderPipelines.GUI_TEXTURED, textureLocation,
-				x + PADDING, y + PADDING, 0, 0,
+			graphics.blit(RenderType::guiTextured, textureLocation, x + PADDING, y + PADDING, 0, 0,
 				MAP_SIZE, MAP_SIZE, MAP_SIZE, MAP_SIZE);
 
 		if(player != null)
@@ -138,7 +136,7 @@ public final class MinimapHudElement extends HudElement
 			y + PADDING + MAP_SIZE + 1, MAP_RADIUS + 1, 0x72006366);
 	}
 
-	private void drawFrame(GuiGraphicsExtractor graphics, int x, int y)
+	private void drawFrame(GuiGraphics graphics, int x, int y)
 	{
 		FlatRenderer.fillRoundedRect(graphics, x + 1, y + 3, x + WIDTH - 1,
 			y + HEIGHT, WIDTH / 2, 0x68000000);
@@ -167,7 +165,7 @@ public final class MinimapHudElement extends HudElement
 				int worldX = playerX + pixelX - MAP_RADIUS;
 				int worldZ = playerZ + pixelZ - MAP_RADIUS;
 				image.setPixel(pixelX, pixelZ,
-					terrain.colorAt(worldX, worldZ));
+					toNativeColor(terrain.colorAt(worldX, worldZ)));
 			}
 
 		texture.upload();
@@ -179,11 +177,11 @@ public final class MinimapHudElement extends HudElement
 	{
 		if(texture != null)
 			return;
-		texture = new DynamicTexture(() -> "wurstb_minimap",
-			MAP_SIZE, MAP_SIZE, true);
-		textureLocation = Identifier.fromNamespaceAndPath("wurst",
-			"wurstb_minimap");
-		WurstClient.MC.getTextureManager().register(textureLocation, texture);
+		texture = new DynamicTexture(MAP_SIZE, MAP_SIZE, true);
+		textureLocation = net.minecraft.resources.ResourceLocation
+			.fromNamespaceAndPath("wurst", "wurstb_minimap");
+		WurstClient.MC.getTextureManager()
+			.register(textureLocation, texture);
 	}
 
 	private void releaseTexture()
@@ -201,7 +199,7 @@ public final class MinimapHudElement extends HudElement
 		centerZ = Integer.MIN_VALUE;
 	}
 
-	private void drawChunkGrid(GuiGraphicsExtractor graphics, LocalPlayer player, int x,
+	private void drawChunkGrid(GuiGraphics graphics, LocalPlayer player, int x,
 		int y)
 	{
 		int playerX = Mth.floor(player.getX());
@@ -238,7 +236,7 @@ public final class MinimapHudElement extends HudElement
 		}
 	}
 
-	private void drawEntities(GuiGraphicsExtractor graphics, LocalPlayer player, int x,
+	private void drawEntities(GuiGraphics graphics, LocalPlayer player, int x,
 		int y, float partialTicks)
 	{
 		Snapshot snapshot = WURST.getEntitySnapshotManager().getCurrent();
@@ -293,7 +291,7 @@ public final class MinimapHudElement extends HudElement
 		return 0;
 	}
 
-	private void drawPlayerArrow(GuiGraphicsExtractor graphics, LocalPlayer player,
+	private void drawPlayerArrow(GuiGraphics graphics, LocalPlayer player,
 		int x, int y)
 	{
 		float centerX = x + PADDING + MAP_RADIUS;
@@ -311,56 +309,22 @@ public final class MinimapHudElement extends HudElement
 			{centerX - forwardX, centerY - forwardY},
 			{backX + rightX * 3, backY + rightY * 3}};
 		WURST.getGui().updateColors();
-		drawArrowPolygon(graphics, arrow,
-			WURST.getGui().getTheme().accent(1) | 0xFF000000);
+		RenderUtils.fillQuads2D(graphics, arrow,
+			WURST.getGui().getTheme().accent(1));
+		RenderUtils.drawLineStrip2D(graphics, arrow, 0xD0000000);
 	}
 
-	private void drawArrowPolygon(GuiGraphicsExtractor graphics, float[][] vertices,
-		int color)
-	{
-		float minY = vertices[0][1];
-		float maxY = minY;
-		for(int i = 1; i < vertices.length; i++)
-		{
-			minY = Math.min(minY, vertices[i][1]);
-			maxY = Math.max(maxY, vertices[i][1]);
-		}
-
-		for(int pixelY = Mth.floor(minY); pixelY <= Mth.ceil(maxY); pixelY++)
-		{
-			float sampleY = pixelY + 0.5F;
-			float minX = Float.POSITIVE_INFINITY;
-			float maxX = Float.NEGATIVE_INFINITY;
-			for(int i = 0; i < vertices.length; i++)
-			{
-				float[] a = vertices[i];
-				float[] b = vertices[(i + 1) % vertices.length];
-				if((a[1] <= sampleY && b[1] > sampleY)
-					|| (b[1] <= sampleY && a[1] > sampleY))
-				{
-					float x = a[0] + (sampleY - a[1])
-						* (b[0] - a[0]) / (b[1] - a[1]);
-					minX = Math.min(minX, x);
-					maxX = Math.max(maxX, x);
-				}
-			}
-			if(minX <= maxX)
-				graphics.fill(Mth.floor(minX), pixelY, Mth.ceil(maxX) + 1,
-					pixelY + 1, color);
-		}
-	}
-
-	private void drawCompass(GuiGraphicsExtractor graphics, int x, int y)
+	private void drawCompass(GuiGraphics graphics, int x, int y)
 	{
 		Font font = WurstClient.MC.font;
 		int accent = WURST.getGui().getTheme().accent(1);
-		graphics.centeredText(font, "N", x + WIDTH / 2, y + 6,
+		graphics.drawCenteredString(font, "N", x + WIDTH / 2, y + 6,
 			accent);
-		graphics.centeredText(font, "S", x + WIDTH / 2,
+		graphics.drawCenteredString(font, "S", x + WIDTH / 2,
 			y + WIDTH - 15, 0xD8E8EDF2);
-		graphics.text(font, "W", x + 6, y + WIDTH / 2 - 4,
+		graphics.drawString(font, "W", x + 6, y + WIDTH / 2 - 4,
 			0xD8E8EDF2, false);
-		graphics.text(font, "E", x + WIDTH - 12,
+		graphics.drawString(font, "E", x + WIDTH - 12,
 			y + WIDTH / 2 - 4, 0xD8E8EDF2, false);
 	}
 

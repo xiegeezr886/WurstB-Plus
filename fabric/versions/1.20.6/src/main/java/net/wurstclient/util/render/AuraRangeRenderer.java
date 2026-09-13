@@ -85,9 +85,9 @@ public final class AuraRangeRenderer
 		double innerRadius, double outerRadius, int segments, float red,
 		float green, float blue, float innerAlpha, float outerAlpha)
 	{
-		BufferBuilder buffer = Tesselator.getInstance()
-			.begin(VertexFormat.Mode.TRIANGLE_STRIP,
-				DefaultVertexFormat.POSITION_COLOR);
+		BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+		buffer.begin(VertexFormat.Mode.TRIANGLE_STRIP,
+			DefaultVertexFormat.POSITION_COLOR);
 
 		for(int i = 0; i <= segments; i++)
 		{
@@ -95,14 +95,14 @@ public final class AuraRangeRenderer
 			float cos = (float)Math.cos(angle);
 			float sin = (float)Math.sin(angle);
 
-			buffer.addVertex(matrix,
+			buffer.vertex(matrix,
 				(float)center.x + cos * (float)outerRadius, (float)center.y,
 				(float)center.z + sin * (float)outerRadius)
-				.setColor(red, green, blue, outerAlpha);
-			buffer.addVertex(matrix,
+				.color(red, green, blue, outerAlpha).endVertex();
+			buffer.vertex(matrix,
 				(float)center.x + cos * (float)innerRadius, (float)center.y,
 				(float)center.z + sin * (float)innerRadius)
-				.setColor(red, green, blue, innerAlpha);
+				.color(red, green, blue, innerAlpha).endVertex();
 		}
 
 		draw(buffer);
@@ -113,9 +113,9 @@ public final class AuraRangeRenderer
 		float alpha)
 	{
 		RenderSystem.lineWidth(2);
-		BufferBuilder buffer = Tesselator.getInstance()
-			.begin(VertexFormat.Mode.DEBUG_LINE_STRIP,
-				DefaultVertexFormat.POSITION_COLOR);
+		BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+		buffer.begin(VertexFormat.Mode.DEBUG_LINE_STRIP,
+			DefaultVertexFormat.POSITION_COLOR);
 
 		for(int i = 0; i <= segments; i++)
 		{
@@ -123,10 +123,10 @@ public final class AuraRangeRenderer
 			float cos = (float)Math.cos(angle);
 			float sin = (float)Math.sin(angle);
 
-			buffer.addVertex(matrix,
+			buffer.vertex(matrix,
 				(float)center.x + cos * (float)radius, (float)center.y,
 				(float)center.z + sin * (float)radius)
-				.setColor(red, green, blue, alpha);
+				.color(red, green, blue, alpha).endVertex();
 		}
 
 		draw(buffer);
@@ -134,7 +134,7 @@ public final class AuraRangeRenderer
 
 	private static void draw(BufferBuilder buffer)
 	{
-		com.mojang.blaze3d.vertex.MeshData rendered = buffer.build();
+		BufferBuilder.RenderedBuffer rendered = buffer.endOrDiscardIfEmpty();
 		if(rendered != null)
 			BufferUploader.drawWithShader(rendered);
 	}

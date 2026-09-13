@@ -338,7 +338,7 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 		
 		for(Direction side : Direction.values())
 		{
-			Vec3 hitVec = posVec.add(Vec3.atLowerCornerOf(side.getNormal()).scale(0.5));
+			Vec3 hitVec = posVec.add(Vec3.atLowerCornerOf(side.getUnitVec3i()).scale(0.5));
 			double distanceSqHitVec = eyesPos.distanceToSqr(hitVec);
 			
 			if(distanceSqHitVec > rangeSq)
@@ -378,7 +378,7 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 			if(!isClickableNeighbor(neighbor))
 				continue;
 			
-			Vec3 dirVec = Vec3.atLowerCornerOf(side.getNormal());
+			Vec3 dirVec = Vec3.atLowerCornerOf(side.getUnitVec3i());
 			Vec3 hitVec = posVec.add(dirVec.scale(0.5));
 			
 			// check if hitVec is within range

@@ -10,7 +10,7 @@ package net.wurstclient.commands;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.DontBlock;
 import net.wurstclient.command.CmdError;
 import net.wurstclient.command.CmdException;
@@ -96,7 +96,7 @@ public final class WaypointsCmd extends Command
 			}
 		}
 
-		Identifier dim = MC.level.dimension().identifier();
+		ResourceLocation dim = MC.level.dimension().location();
 		try
 		{
 			WURST.getWaypointsManager()

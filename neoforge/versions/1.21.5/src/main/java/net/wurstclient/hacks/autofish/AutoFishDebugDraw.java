@@ -13,7 +13,9 @@ import java.util.stream.Stream;
 import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.phys.AABB;
@@ -115,6 +117,8 @@ public final class AutoFishDebugDraw
 			headBox.move(0.125, 0.125, 0.5).contract(0.25, 0.35, 0.45);
 		
 		int color = ddColor.getColorI(0xC0);
+		
+		MultiBufferSource.BufferSource vcp = RenderUtils.getVCP();
 		Vec3 camPos = RenderUtils.getCameraPos();
 		
 		for(FishingSpot spot : fishingSpots.getFishingSpots())
@@ -127,23 +131,21 @@ public final class AutoFishDebugDraw
 				playerPos.z - camPos.z);
 			matrices.mulPose(spot.input().rotation().toQuaternion());
 			
-			RenderUtils.submit(matrices, WurstRenderLayers.ESP_LINES,
-				lineBuffer -> {
-					RenderUtils.drawOutlinedBox(matrices, lineBuffer, headBox,
-						color);
-					RenderUtils.drawOutlinedBox(matrices, lineBuffer, noseBox,
-						color);
-					if(!spot.openWater())
-						RenderUtils.drawCrossBox(matrices, lineBuffer, headBox,
-							color);
-				});
+			VertexConsumer lineBuffer =
+				vcp.getBuffer(WurstRenderLayers.ESP_LINES);
+			
+			RenderUtils.drawOutlinedBox(matrices, lineBuffer, headBox, color);
+			RenderUtils.drawOutlinedBox(matrices, lineBuffer, noseBox, color);
+			if(!spot.openWater())
+				RenderUtils.drawCrossBox(matrices, lineBuffer, headBox, color);
 			
 			matrices.popPose();
 			
-			RenderUtils.submit(matrices, WurstRenderLayers.ESP_LINES,
-				lineBuffer -> RenderUtils.drawArrow(matrices, lineBuffer,
-					playerPos.subtract(camPos), bobberPos.subtract(camPos),
-					color, 0.1F));
+			RenderUtils.drawArrow(matrices, lineBuffer,
+				playerPos.subtract(camPos), bobberPos.subtract(camPos), color,
+				0.1F);
+			
+			vcp.endBatch(WurstRenderLayers.ESP_LINES);
 		}
 	}
 	

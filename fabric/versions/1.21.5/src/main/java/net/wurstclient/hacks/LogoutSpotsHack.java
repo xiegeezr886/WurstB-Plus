@@ -15,7 +15,7 @@ import org.joml.Matrix4f;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
+import net.wurstclient.WurstRenderLayers;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
@@ -23,7 +23,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.world.entity.player.Player;
@@ -131,11 +130,6 @@ public final class LogoutSpotsHack extends Hack
 		Vec3 cam = MC.gameRenderer.getMainCamera().getPosition();
 		Matrix4f matrix = poseStack.last().pose();
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableDepthTest();
-		RenderSystem.depthMask(false);
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		try
 		{
 			Tesselator tess = Tesselator.getInstance();
@@ -161,12 +155,9 @@ public final class LogoutSpotsHack extends Hack
 
 			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
 			if(rendered != null)
-				BufferUploader.drawWithShader(rendered);
+				WurstRenderLayers.ESP_QUADS.draw(rendered);
 		}finally
 		{
-			RenderSystem.depthMask(true);
-			RenderSystem.enableDepthTest();
-			RenderSystem.disableBlend();
 		}
 
 		if(showName.isChecked())

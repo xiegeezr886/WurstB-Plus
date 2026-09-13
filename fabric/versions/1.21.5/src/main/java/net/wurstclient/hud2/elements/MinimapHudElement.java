@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -118,7 +119,7 @@ public final class MinimapHudElement extends HudElement
 
 		drawFrame(graphics, x, y);
 		if(textureLocation != null)
-			graphics.blit(textureLocation, x + PADDING, y + PADDING, 0, 0,
+			graphics.blit(RenderType::guiTextured, textureLocation, x + PADDING, y + PADDING, 0, 0,
 				MAP_SIZE, MAP_SIZE, MAP_SIZE, MAP_SIZE);
 
 		if(player != null)
@@ -157,12 +158,12 @@ public final class MinimapHudElement extends HudElement
 			{
 				if(!isInsideMap(pixelX, pixelZ))
 				{
-					image.setPixelRGBA(pixelX, pixelZ, 0);
+					image.setPixel(pixelX, pixelZ, 0);
 					continue;
 				}
 				int worldX = playerX + pixelX - MAP_RADIUS;
 				int worldZ = playerZ + pixelZ - MAP_RADIUS;
-				image.setPixelRGBA(pixelX, pixelZ,
+				image.setPixel(pixelX, pixelZ,
 					toNativeColor(terrain.colorAt(worldX, worldZ)));
 			}
 
@@ -175,7 +176,8 @@ public final class MinimapHudElement extends HudElement
 	{
 		if(texture != null)
 			return;
-		texture = new DynamicTexture(MAP_SIZE, MAP_SIZE, true);
+		texture = new DynamicTexture("wurstb_minimap", MAP_SIZE, MAP_SIZE,
+				true);
 		textureLocation = net.minecraft.resources.ResourceLocation
 			.fromNamespaceAndPath("wurst", "wurstb_minimap");
 		WurstClient.MC.getTextureManager()

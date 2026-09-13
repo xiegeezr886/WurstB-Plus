@@ -74,15 +74,14 @@ public final class FastUseHack extends Hack implements UpdateListener
 						.getItem() == Items.EXPERIENCE_BOTTLE)))
 			return;
 
-		// TODO: 26.1.2 - rightClickDelay and startUseItem() are private
-		// // MC.rightClickDelay = 0; // TODO: 26.1.2 - rightClickDelay is private
-		//
-		// if(mode.getSelected() == Mode.MULTI
-		// 	&& MC.options.keyUse.isDown())
-		// {
-		// 	for(int i = 0; i < multiCount.getValueI(); i++)
-		// 		MC.startUseItem();
-		// }
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(0);
+
+		if(mode.getSelected() == Mode.MULTI
+			&& MC.options.keyUse.isDown())
+		{
+			for(int i = 0; i < multiCount.getValueI(); i++)
+				((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).invokeStartUseItem();
+		}
 	}
 
 	private enum Mode

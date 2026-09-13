@@ -13,7 +13,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.AxeItem;
-// SwordItem removed in MC 26.1.2
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.phys.EntityHitResult;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -156,8 +156,8 @@ public final class TriggerBotHack extends Hack
 		
 		LocalPlayer player = MC.player;
 		if(requireWeapon.isChecked()
-			&& !player.getMainHandItem().is(net.minecraft.tags.ItemTags.SWORDS)
-			&& !player.getMainHandItem().is(net.minecraft.tags.ItemTags.AXES))
+			&& !player.getMainHandItem().has(DataComponents.WEAPON)
+			&& !(player.getMainHandItem().getItem() instanceof AxeItem))
 			return;
 		if(player.getAttackStrengthScale(0.5F) < minCooldown.getValueF())
 			return;

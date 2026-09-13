@@ -7,15 +7,13 @@
  */
 package net.wurstclient.nochatreports;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.MultiLineLabel;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.PlainTextContents.LiteralContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -39,7 +37,7 @@ public final class ForcedChatReportsScreen extends Screen
 	
 	private final Screen prevScreen;
 	private final Component reason;
-	private List<FormattedCharSequence> reasonLines = List.of();
+	private MultiLineLabel reasonFormatted = MultiLineLabel.EMPTY;
 	private int reasonHeight;
 	
 	private Button signatureButton;
@@ -70,8 +68,9 @@ public final class ForcedChatReportsScreen extends Screen
 	@Override
 	protected void init()
 	{
-		reasonLines = font.split(reason, width - 50);
-		reasonHeight = reasonLines.size() * font.lineHeight;
+		reasonFormatted =
+			MultiLineLabel.create(font, reason, width - 50);
+		reasonHeight = reasonFormatted.getLineCount() * font.lineHeight;
 		
 		int buttonX = width / 2 - 100;
 		int belowReasonY =
@@ -100,27 +99,21 @@ public final class ForcedChatReportsScreen extends Screen
 		WurstClient.INSTANCE.getOtfs().noChatReportsOtf.doPrimaryAction();
 		signatureButton.setMessage(Component.literal(sigButtonMsg.get()));
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY, float delta)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX,
-		int mouseY, float delta)
-	{
+		renderBackground(context, mouseX, mouseY, delta);
 		
 		int centerX = width / 2;
 		int reasonY = (height - 68) / 2 - reasonHeight / 2;
 		int titleY = reasonY - font.lineHeight * 2;
 		
-		context.centeredText(font, title, centerX, titleY,
-			0xFFAAAAAA);
-		for(int i = 0; i < reasonLines.size(); i++)
-			context.centeredText(font, reasonLines.get(i), centerX,
-				reasonY + i * font.lineHeight, 0xFFFFFFFF);
+		context.drawCenteredString(font, title, centerX, titleY,
+			0xAAAAAA);
+		reasonFormatted.renderCentered(context, centerX, reasonY);
 		
-		super.render(context.getInner(), mouseX, mouseY, delta);
+		super.render(context, mouseX, mouseY, delta);
 	}
 	
 	@Override

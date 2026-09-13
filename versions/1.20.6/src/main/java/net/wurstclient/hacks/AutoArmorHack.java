@@ -204,7 +204,7 @@ public final class AutoArmorHack extends Hack
 			WURST.getInventoryActionQueue().submit(this, 50,
 				() -> MC.player != null
 					&& MC.player.containerMenu.containerId == 0
-					&& ItemStack.isSameItemSameTags(expectedArmor,
+					&& ItemStack.isSameItemSameComponents(expectedArmor,
 						MC.player.getInventory().getItem(inventorySlot)),
 				hasOldArmor
 					? new Runnable[]{() -> IMC.getInteractionManager()
@@ -229,7 +229,7 @@ public final class AutoArmorHack extends Hack
 	{
 		int armorPoints = item.getDefense();
 		int prtPoints = 0;
-		int armorToughness = (int)item.toughness;
+		int armorToughness = (int)item.getToughness();
 		int durabilityScore = stack.isDamageableItem()
 			? (stack.getMaxDamage() - stack.getDamageValue()) * 5
 				/ Math.max(1, stack.getMaxDamage())
@@ -237,13 +237,11 @@ public final class AutoArmorHack extends Hack
 		
 		if(useEnchantments.isChecked())
 		{
-			Enchantment protection = Enchantments.ALL_DAMAGE_PROTECTION;
-			int prtLvl = EnchantmentHelper.getItemEnchantmentLevel(protection, stack);
-			
 			LocalPlayer player = MC.player;
 			DamageSource dmgSource =
 				player.damageSources().playerAttack(player);
-			prtPoints = protection.getDamageProtection(prtLvl, dmgSource);
+			prtPoints = (int)EnchantmentHelper
+				.getDamageProtection(java.util.List.of(stack), dmgSource);
 		}
 		
 		return armorPoints * 5 + prtPoints * 3 + armorToughness

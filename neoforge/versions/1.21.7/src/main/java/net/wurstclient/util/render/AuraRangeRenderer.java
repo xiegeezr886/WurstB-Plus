@@ -5,7 +5,7 @@ import org.joml.Matrix4f;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstRenderLayers;
@@ -115,12 +115,12 @@ public final class AuraRangeRenderer
 				(float)center.x + cos1 * (float)radius, (float)center.y,
 				(float)center.z + sin1 * (float)radius)
 				.setColor(red, green, blue, alpha)
-				.setNormal(sin1, 0, -cos1).setLineWidth(2);
+				.setNormal(sin1, 0, -cos1);
 			buffer.addVertex(matrix,
 				(float)center.x + cos2 * (float)radius, (float)center.y,
 				(float)center.z + sin2 * (float)radius)
 				.setColor(red, green, blue, alpha)
-				.setNormal(sin2, 0, -cos2).setLineWidth(2);
+				.setNormal(sin2, 0, -cos2);
 		}
 	}
 

@@ -1,16 +1,12 @@
 package net.wurstclient.hud2;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import java.util.Map;
 
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
@@ -40,22 +36,19 @@ public final class HudEditorScreen extends Screen
 		layout = hudManager.getLayout();
 		elements = hudManager.getElements();
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
 
-	private void renderContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+	@Override
+	public void render(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
+		renderBackground(graphics, mouseX, mouseY, partialTicks);
 
 		renderGrid(graphics);
 		renderElements(graphics, mouseX, mouseY);
 		renderToolbar(graphics, mouseX, mouseY);
 	}
 
-	private void renderGrid(GuiGraphicsExtractor graphics)
+	private void renderGrid(GuiGraphics graphics)
 	{
 		for(int x = 0; x < width; x += GRID_SIZE)
 			graphics.fill(x, 0, x + 1, height, 0x08FFFFFF);
@@ -63,7 +56,7 @@ public final class HudEditorScreen extends Screen
 			graphics.fill(0, y, width, y + 1, 0x08FFFFFF);
 	}
 
-	private void renderElements(GuiGraphicsExtractor graphics, int mouseX, int mouseY)
+	private void renderElements(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 		Font font = minecraft.font;
 		for(Map.Entry<String, HudLayout.HudElementConfig> entry : layout
@@ -103,22 +96,22 @@ public final class HudEditorScreen extends Screen
 
 			String name = font.plainSubstrByWidth(element.getName(),
 				CARD_WIDTH - 12);
-			graphics.text(font, name, elX + 6, elY + 5,
+			graphics.drawString(font, name, elX + 6, elY + 5,
 				config.isEnabled() ? 0xFFF2F4F7 : 0xFF727B88, false);
 
 			String status = config.isEnabled() ? "ON" : "OFF";
 			int statusColor = config.isEnabled() ? 0xFF006366 : 0xFF4C5562;
-			graphics.text(font, status, elX + 6, elY + 18,
+			graphics.drawString(font, status, elX + 6, elY + 18,
 				statusColor, false);
 
 			String align = config.getHorizontalAlignment().charAt(0) + "/"
 				+ config.getVerticalAlignment().charAt(0);
-			graphics.text(font, align, elX + 6, elY + 31, 0xFF4C5562,
+			graphics.drawString(font, align, elX + 6, elY + 31, 0xFF4C5562,
 				false);
 		}
 	}
 
-	private void renderToolbar(GuiGraphicsExtractor graphics, int mouseX, int mouseY)
+	private void renderToolbar(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 		Font font = minecraft.font;
 		int barH = 32;
@@ -126,16 +119,13 @@ public final class HudEditorScreen extends Screen
 
 		String hint = "\u5355\u51fb\u5f00\u5173  |  \u62d6\u52a8\u79fb\u52a8  |  "
 			+ "\u53f3\u952e\u5207\u6362\u951a\u70b9  |  ESC \u5173\u95ed";
-		graphics.centeredText(font, hint, width / 2, height - barH + 10,
+		graphics.drawCenteredString(font, hint, width / 2, height - barH + 10,
 			0xFF727B88);
 	}
 
 	@Override
-	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		double mouseX = event.x();
-		double mouseY = event.y();
-		int button = event.button();
 		for(Map.Entry<String, HudLayout.HudElementConfig> entry : layout
 			.getElements().entrySet())
 		{
@@ -174,13 +164,13 @@ public final class HudEditorScreen extends Screen
 				}
 			}
 		}
-		return super.mouseClicked(event, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseReleased(MouseButtonEvent event)
+	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
-		if(draggedId != null && event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT)
+		if(draggedId != null && button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
 		{
 			HudLayout.HudElementConfig config = layout.get(draggedId);
 			if(config != null)
@@ -199,17 +189,15 @@ public final class HudEditorScreen extends Screen
 			draggedId = null;
 			return true;
 		}
-		return super.mouseReleased(event);
+		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseDragged(MouseButtonEvent event,
+	public boolean mouseDragged(double mouseX, double mouseY, int button,
 		double deltaX, double deltaY)
 	{
-		double mouseX = event.x();
-		double mouseY = event.y();
 		if(draggedId == null)
-			return super.mouseDragged(event, deltaX, deltaY);
+			return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
 
 		HudLayout.HudElementConfig config = layout.get(draggedId);
 		if(config == null)
@@ -244,14 +232,14 @@ public final class HudEditorScreen extends Screen
 	}
 
 	@Override
-	public boolean keyPressed(KeyEvent event)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(event.key() == GLFW.GLFW_KEY_ESCAPE)
+		if(keyCode == GLFW.GLFW_KEY_ESCAPE)
 		{
 			onClose();
 			return true;
 		}
-		return super.keyPressed(event);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	@Override

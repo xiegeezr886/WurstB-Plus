@@ -11,14 +11,13 @@ import org.joml.Matrix4f;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
+import net.wurstclient.WurstRenderLayers;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
@@ -62,11 +61,6 @@ public final class LightOverlayHack extends Hack implements RenderListener
 		Matrix4f matrix = poseStack.last().pose();
 		int r = (int)range.getValueI();
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableDepthTest();
-		RenderSystem.depthMask(false);
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		try
 		{
 			Tesselator tess = Tesselator.getInstance();
@@ -77,7 +71,7 @@ public final class LightOverlayHack extends Hack implements RenderListener
 				for(int z = -r; z <= r; z++)
 				{
 					BlockPos pos = MC.player.blockPosition().offset(x, -1, z);
-					while(pos.getY() > MC.level.getMinBuildHeight()
+					while(pos.getY() > MC.level.getMinY()
 						&& !MC.level.getBlockState(pos).isSolid())
 						pos = pos.below();
 
@@ -104,12 +98,9 @@ public final class LightOverlayHack extends Hack implements RenderListener
 
 			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
 			if(rendered != null)
-				BufferUploader.drawWithShader(rendered);
+				WurstRenderLayers.ESP_QUADS.draw(rendered);
 		}finally
 		{
-			RenderSystem.depthMask(true);
-			RenderSystem.enableDepthTest();
-			RenderSystem.disableBlend();
 		}
 	}
 }

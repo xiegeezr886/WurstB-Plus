@@ -28,13 +28,13 @@ public abstract class KeyBindingMixin implements IKeyBinding
 	@Deprecated // use IKeyBinding.resetPressedState() instead
 	public void wurst_resetPressedState()
 	{
-		long handle = WurstClient.MC.getWindow().handle();
+		long handle = WurstClient.MC.getWindow().getWindow();
 		int code = key.getValue();
 		
 		if(key.getType() == InputConstants.Type.MOUSE)
 			setDown(GLFW.glfwGetMouseButton(handle, code) == 1);
 		else
-			setDown(InputConstants.isKeyDown(WurstClient.MC.getWindow(), code));
+			setDown(InputConstants.isKeyDown(handle, code));
 	}
 	
 	@Override
@@ -42,9 +42,32 @@ public abstract class KeyBindingMixin implements IKeyBinding
 	@Deprecated // use IKeyBinding.simulatePress() instead
 	public void wurst_simulatePress(boolean pressed)
 	{
-		// TODO: 26.1.2 - keyPress is now private in Forge
-		// Need to find alternative approach
-		setDown(pressed);
+		Minecraft mc = WurstClient.MC;
+		long window = mc.getWindow().getWindow();
+		int action = pressed ? 1 : 0;
+		
+		switch(key.getType())
+		{
+			case KEYSYM:
+			mc.keyboardHandler.keyPress(window, key.getValue(), 0, action, 0);
+			break;
+			
+			case SCANCODE:
+			mc.keyboardHandler.keyPress(window, GLFW.GLFW_KEY_UNKNOWN, key.getValue(),
+				action, 0);
+			break;
+			
+			case MOUSE:
+			// MouseHandler.onPress() is private in 1.21.5; fall back to
+			// flipping the key state directly.
+			setDown(pressed);
+			break;
+			
+			default:
+			System.out
+				.println("Unknown keybinding type: " + key.getType());
+			break;
+		}
 	}
 	
 	@Shadow

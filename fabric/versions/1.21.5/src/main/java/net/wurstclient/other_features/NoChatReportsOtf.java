@@ -99,9 +99,9 @@ public final class NoChatReportsOtf extends OtherFeature
 		
 		event.cancel();
 		
-		ClickEvent clickEvent = new ClickEvent(ClickEvent.Action.OPEN_URL,
-			"https://www.wurstclient.net/chat-disabled-mpk/");
-		HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+		ClickEvent clickEvent = new ClickEvent.OpenUrl(
+			java.net.URI.create("https://www.wurstclient.net/chat-disabled-mpk/"));
+		HoverEvent hoverEvent = new HoverEvent.ShowText(
 			Component.literal("原始消息: ").append(originalText));
 		
 		ChatUtils.component(Component.literal(

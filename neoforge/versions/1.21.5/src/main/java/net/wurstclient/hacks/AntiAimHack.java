@@ -9,9 +9,6 @@ package net.wurstclient.hacks;
 
 import java.util.Random;
 
-import net.minecraft.client.player.ClientInput;
-import net.minecraft.world.phys.Vec2;
-
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
@@ -105,12 +102,9 @@ public final class AntiAimHack extends Hack implements UpdateListener
 			break;
 
 			case BACKWARDS:
-			{
-				ClientInput input = MC.player.input;
-				Vec2 move = input.getMoveVector();
-				input.moveVector = new Vec2(-move.x, -move.y);
-				break;
-			}
+			MC.player.input.moveVector =
+				MC.player.input.getMoveVector().negated();
+			break;
 		}
 	}
 

@@ -7,7 +7,6 @@
  */
 package net.wurstclient.options;
 
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -125,7 +124,6 @@ public final class KeybindProfilesScreen extends Screen
 		loadButton.active = listGui.getSelected() != null;
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

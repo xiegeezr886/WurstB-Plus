@@ -10,7 +10,6 @@ package net.wurstclient.hacks;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.ElytraItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
@@ -88,7 +87,8 @@ public final class ExtraElytraHack extends Hack implements UpdateListener
 			return;
 		}
 		
-		if(ElytraItem.isFlyEnabled(chest) && MC.options.keyJump.isDown())
+		if((chest.is(Items.ELYTRA)
+			&& chest.getDamageValue() < chest.getMaxDamage() - 1) && MC.options.keyJump.isDown())
 			doInstantFly();
 	}
 	

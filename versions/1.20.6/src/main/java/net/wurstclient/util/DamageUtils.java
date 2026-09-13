@@ -49,11 +49,12 @@ public enum DamageUtils
 			float damage = (float)((impact * impact + impact) * 0.5 * 7.0
 				* diameter + 1.0);
 			damage = applyDifficulty(damage, MC.level.getDifficulty());
-			damage = CombatRules.getDamageAfterAbsorb(damage,
+			DamageSource source =
+				MC.level.damageSources().explosion(null, null);
+			damage = CombatRules.getDamageAfterAbsorb(damage, source,
 				entity.getArmorValue(), (float)entity
 					.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
 
-			DamageSource source = MC.level.damageSources().explosion(null, null);
 			int protection = EnchantmentHelper.getDamageProtection(
 				entity.getArmorSlots(), source);
 			damage = CombatRules.getDamageAfterMagicAbsorb(damage, protection);

@@ -4,14 +4,22 @@
  */
 package net.wurstclient.clickgui2.window;
 
+import net.minecraft.client.renderer.CoreShaders;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.theme.FlatTheme;
-import net.wurstclient.util.RenderUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +55,7 @@ public class Window {
 		widgets.add(widget);
 	}
 
-	public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY,
+	public void render(GuiGraphics drawContext, int mouseX, int mouseY,
 		float partialTicks) {
 		if(dragging) {
 			x2 = (x2 - x1) + mouseX - dragOffX
@@ -65,21 +73,21 @@ public class Window {
 				w.render(drawContext, x1, y1, mouseX, mouseY);
 
 		if(icon != null) {
-			drawContext.pose().pushMatrix();
-			drawContext.pose().translate(x1 + 2, y1 + 2);
-			drawContext.pose().scale(0.6f, 0.6f);
-			RenderUtils.drawItem(drawContext, icon, 0, 0, false);
-			drawContext.pose().popMatrix();
+			drawContext.pose().pushPose();
+			drawContext.pose().translate(x1 + 2, y1 + 2, 0);
+			drawContext.pose().scale(0.6f, 0.6f, 1f);
+			drawContext.renderItem(icon, 0, 0);
+			drawContext.pose().popPose();
 		}
 
-		drawContext.text(MC.font, title, x1 + 14, y1 + 3, -1);
+		drawContext.drawString(MC.font, title, x1 + 14, y1 + 3, -1);
 	}
 
-	protected void drawBackground(GuiGraphicsExtractor drawContext, int mouseX,
+	protected void drawBackground(GuiGraphics drawContext, int mouseX,
 		int mouseY) {
 		FlatTheme theme = WurstClient.INSTANCE.getGui().getTheme();
 		boolean focused = selected || isOver(mouseX, mouseY);
-		FlatRenderer.drawWindowPanel(drawContext, x1, y1, x2, y2, 5,
+		FlatRenderer.drawWindowPanel(drawContext, x1, y1, x2, y2, 2,
 			theme, focused);
 		drawContext.fill(x1 + 4, y1 + 13, x2 - 4, y1 + 14,
 			theme.accent(focused ? 0.5F : 0.28F));
@@ -114,28 +122,26 @@ public class Window {
 						button);
 	}
 
-	public static void horizontalGradient(GuiGraphicsExtractor g, int x1, int y1,
+	public static void horizontalGradient(GuiGraphics g, int x1, int y1,
 		int x2, int y2, int color1, int color2) {
-		int width = Math.max(1, x2 - x1);
-		for(int x = x1; x < x2; x++)
-		{
-			float progress = (x - x1) / (float)width;
-			g.fill(x, y1, x + 1, y2, mixColor(color1, color2, progress));
-		}
-	}
-
-	private static int mixColor(int first, int second, float amount)
-	{
-		float weight = Math.max(0, Math.min(1, amount));
-		float inverse = 1 - weight;
-		int alpha = Math.round((first >>> 24) * inverse
-			+ (second >>> 24) * weight);
-		int red = Math.round((first >> 16 & 0xFF) * inverse
-			+ (second >> 16 & 0xFF) * weight);
-		int green = Math.round((first >> 8 & 0xFF) * inverse
-			+ (second >> 8 & 0xFF) * weight);
-		int blue = Math.round((first & 0xFF) * inverse
-			+ (second & 0xFF) * weight);
-		return alpha << 24 | red << 16 | green << 8 | blue;
+		float a1 = (color1 >> 24 & 255) / 255F;
+		float r1 = (color1 >> 16 & 255) / 255F;
+		float g1 = (color1 >> 8 & 255) / 255F;
+		float b1 = (color1 & 255) / 255F;
+		float a2 = (color2 >> 24 & 255) / 255F;
+		float r2 = (color2 >> 16 & 255) / 255F;
+		float g2 = (color2 >> 8 & 255) / 255F;
+		float b2 = (color2 & 255) / 255F;
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.setShader(CoreShaders.POSITION_COLOR);
+		BufferBuilder b = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
+			DefaultVertexFormat.POSITION_COLOR);
+		b.addVertex(x1, y1, 0).setColor(r1, g1, b1, a1);
+		b.addVertex(x1, y2, 0).setColor(r1, g1, b1, a1);
+		b.addVertex(x2, y2, 0).setColor(r2, g2, b2, a2);
+		b.addVertex(x2, y1, 0).setColor(r2, g2, b2, a2);
+		BufferUploader.drawWithShader(b.buildOrThrow());
+		RenderSystem.disableBlend();
 	}
 }

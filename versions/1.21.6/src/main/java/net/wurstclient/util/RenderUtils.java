@@ -17,7 +17,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix3x2f;
-import org.joml.Matrix3x2fc;
+import org.joml.Matrix3x2f;
 import org.joml.Matrix3x2fStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
@@ -27,8 +27,8 @@ import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.SubmitNodeStorage;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.FormattedCharSequence;
@@ -45,39 +45,38 @@ public enum RenderUtils
 {
 	;
 	
-	private static SubmitNodeStorage submitNodeStorage;
-	
-	public static void setSubmitNodeStorage(SubmitNodeStorage storage)
+	private static MultiBufferSource.BufferSource getVCP()
 	{
-		submitNodeStorage = storage;
+		return WurstClient.MC.renderBuffers().bufferSource();
 	}
 	
 	/**
-	 * Submits custom geometry to the current render frame. The renderer
-	 * callback receives a VertexConsumer that writes into the given RenderType.
+	 * Draws custom geometry immediately into the given RenderType. 1.21.6 has
+	 * no SubmitNodeStorage/SubmitNodeCollector yet, so the buffer is fetched
+	 * from the vanilla RenderBuffers and flushed right away.
 	 */
 	public static void submit(PoseStack matrices, RenderType layer,
 		java.util.function.Consumer<VertexConsumer> renderer)
 	{
-		if(submitNodeStorage == null)
-			return;
-		submitNodeStorage.submitCustomGeometry(matrices, layer,
-			(pose, buffer) -> renderer.accept(buffer));
+		MultiBufferSource.BufferSource vcp = getVCP();
+		VertexConsumer buffer = vcp.getBuffer(layer);
+		renderer.accept(buffer);
+		vcp.endBatch(layer);
 	}
 	
 	/**
-	 * Submits text to the current render frame, transformed by the given
-	 * PoseStack (world-space text).
+	 * Draws text transformed by the given PoseStack (world-space text).
 	 */
 	public static void submitText(PoseStack matrices, float x, float y,
 		FormattedCharSequence text, boolean dropShadow,
 		Font.DisplayMode displayMode, int lightCoords, int color,
 		int backgroundColor, int outlineColor)
 	{
-		if(submitNodeStorage == null)
-			return;
-		submitNodeStorage.submitText(matrices, x, y, text, dropShadow,
-			displayMode, lightCoords, color, backgroundColor, outlineColor);
+		MultiBufferSource.BufferSource vcp = getVCP();
+		WurstClient.MC.font.drawInBatch(text, x, y, color, dropShadow,
+			matrices.last().pose(), vcp, displayMode, backgroundColor,
+			lightCoords);
+		vcp.endBatch();
 	}
 	
 	public static void applyRegionalRenderOffset(PoseStack matrixStack)
@@ -216,7 +215,7 @@ public enum RenderUtils
 	{
 		Vector3f normal = new Vector3f(x2, y2, z2).sub(x1, y1, z1).normalize();
 		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal( normal.x, normal.y, normal.z).setLineWidth(2)
+			.setNormal( normal.x, normal.y, normal.z)
 			;
 		
 		// If the line goes through the screen, add another vertex there. This
@@ -230,18 +229,18 @@ public enum RenderUtils
 				.addVertex(entry.pose(), closeToCam.x, closeToCam.y,
 					closeToCam.z)
 				.setColor(color)
-				.setNormal( normal.x, normal.y, normal.z).setLineWidth(2)
+				.setNormal( normal.x, normal.y, normal.z)
 				;
 			buffer
 				.addVertex(entry.pose(), closeToCam.x, closeToCam.y,
 					closeToCam.z)
 				.setColor(color)
-				.setNormal( normal.x, normal.y, normal.z).setLineWidth(2)
+				.setNormal( normal.x, normal.y, normal.z)
 				;
 		}
 		
 		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal( normal.x, normal.y, normal.z).setLineWidth(2)
+			.setNormal( normal.x, normal.y, normal.z)
 			;
 	}
 	
@@ -249,8 +248,8 @@ public enum RenderUtils
 		float z1, float x2, float y2, float z2, int color)
 	{
 		Vector3f n = new Vector3f(x2, y2, z2).sub(x1, y1, z1).normalize();
-		buffer.addVertex(x1, y1, z1).setColor(color).setNormal(n.x, n.y, n.z).setLineWidth(2);
-		buffer.addVertex(x2, y2, z2).setColor(color).setNormal(n.x, n.y, n.z).setLineWidth(2);
+		buffer.addVertex(x1, y1, z1).setColor(color).setNormal(n.x, n.y, n.z);
+		buffer.addVertex(x2, y2, z2).setColor(color).setNormal(n.x, n.y, n.z);
 	}
 	
 	public static void drawCurvedLine(PoseStack matrices, List<Vec3> points,
@@ -275,7 +274,7 @@ public enum RenderUtils
 		Vector3f normal = new Vector3f(first).sub(second).normalize();
 		buffer.addVertex(entry.pose(), first.x, first.y, first.z)
 			.setColor(color)
-			.setNormal( normal.x, normal.y, normal.z).setLineWidth(2)
+			.setNormal( normal.x, normal.y, normal.z)
 			;
 		
 		for(int i = 1; i < points.size(); i++)
@@ -287,7 +286,7 @@ public enum RenderUtils
 				.addVertex(entry.pose(), current.x, current.y,
 					current.z)
 				.setColor(color)
-				.setNormal( normal.x, normal.y, normal.z).setLineWidth(2)
+				.setNormal( normal.x, normal.y, normal.z)
 				;
 		}
 	}
@@ -444,57 +443,57 @@ public enum RenderUtils
 		
 		// bottom lines
 		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal( 1, 0, 0).setLineWidth(2);
+			.setNormal( 1, 0, 0);
 		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal( 1, 0, 0).setLineWidth(2);
+			.setNormal( 1, 0, 0);
 		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal( 0, 0, 1).setLineWidth(2);
+			.setNormal( 0, 0, 1);
 		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal( 0, 0, 1).setLineWidth(2);
+			.setNormal( 0, 0, 1);
 		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal( 0, 0, 1).setLineWidth(2);
+			.setNormal( 0, 0, 1);
 		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal( 0, 0, 1).setLineWidth(2);
+			.setNormal( 0, 0, 1);
 		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal( 1, 0, 0).setLineWidth(2);
+			.setNormal( 1, 0, 0);
 		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal( 1, 0, 0).setLineWidth(2);
+			.setNormal( 1, 0, 0);
 		
 		// top lines
 		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal( 1, 0, 0).setLineWidth(2);
+			.setNormal( 1, 0, 0);
 		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal( 1, 0, 0).setLineWidth(2);
+			.setNormal( 1, 0, 0);
 		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal( 0, 0, 1).setLineWidth(2);
+			.setNormal( 0, 0, 1);
 		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal( 0, 0, 1).setLineWidth(2);
+			.setNormal( 0, 0, 1);
 		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal( 0, 0, 1).setLineWidth(2);
+			.setNormal( 0, 0, 1);
 		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal( 0, 0, 1).setLineWidth(2);
+			.setNormal( 0, 0, 1);
 		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal( 1, 0, 0).setLineWidth(2);
+			.setNormal( 1, 0, 0);
 		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal( 1, 0, 0).setLineWidth(2);
+			.setNormal( 1, 0, 0);
 		
 		// side lines
 		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal( 0, 1, 0).setLineWidth(2);
+			.setNormal( 0, 1, 0);
 		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal( 0, 1, 0).setLineWidth(2);
+			.setNormal( 0, 1, 0);
 		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal( 0, 1, 0).setLineWidth(2);
+			.setNormal( 0, 1, 0);
 		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal( 0, 1, 0).setLineWidth(2);
+			.setNormal( 0, 1, 0);
 		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal( 0, 1, 0).setLineWidth(2);
+			.setNormal( 0, 1, 0);
 		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal( 0, 1, 0).setLineWidth(2);
+			.setNormal( 0, 1, 0);
 		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal( 0, 1, 0).setLineWidth(2);
+			.setNormal( 0, 1, 0);
 		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal( 0, 1, 0).setLineWidth(2);
+			.setNormal( 0, 1, 0);
 	}
 	
 	public static void drawCrossBox(PoseStack matrices, AABB box, int color,
@@ -546,63 +545,63 @@ public enum RenderUtils
 		
 		// back
 		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal( 1, 1, 0).setLineWidth(2);
+			.setNormal( 1, 1, 0);
 		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal( 1, 1, 0).setLineWidth(2);
+			.setNormal( 1, 1, 0);
 		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal( -1, 1, 0).setLineWidth(2);
+			.setNormal( -1, 1, 0);
 		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal( -1, 1, 0).setLineWidth(2);
+			.setNormal( -1, 1, 0);
 		
 		// left
 		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal( 0, 1, 1).setLineWidth(2);
+			.setNormal( 0, 1, 1);
 		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal( 0, 1, 1).setLineWidth(2);
+			.setNormal( 0, 1, 1);
 		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal( 0, 1, -1).setLineWidth(2);
+			.setNormal( 0, 1, -1);
 		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal( 0, 1, -1).setLineWidth(2);
+			.setNormal( 0, 1, -1);
 		
 		// front
 		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal( -1, 1, 0).setLineWidth(2);
+			.setNormal( -1, 1, 0);
 		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal( -1, 1, 0).setLineWidth(2);
+			.setNormal( -1, 1, 0);
 		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal( 1, 1, 0).setLineWidth(2);
+			.setNormal( 1, 1, 0);
 		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal( 1, 1, 0).setLineWidth(2);
+			.setNormal( 1, 1, 0);
 		
 		// right
 		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal( 0, 1, -1).setLineWidth(2);
+			.setNormal( 0, 1, -1);
 		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal( 0, 1, -1).setLineWidth(2);
+			.setNormal( 0, 1, -1);
 		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal( 0, 1, 1).setLineWidth(2);
+			.setNormal( 0, 1, 1);
 		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal( 0, 1, 1).setLineWidth(2);
+			.setNormal( 0, 1, 1);
 		
 		// top
 		buffer.addVertex(entry.pose(), x1, y2, z2).setColor(color)
-			.setNormal( 1, 0, -1).setLineWidth(2);
+			.setNormal( 1, 0, -1);
 		buffer.addVertex(entry.pose(), x2, y2, z1).setColor(color)
-			.setNormal( 1, 0, -1).setLineWidth(2);
+			.setNormal( 1, 0, -1);
 		buffer.addVertex(entry.pose(), x1, y2, z1).setColor(color)
-			.setNormal( 1, 0, 1).setLineWidth(2);
+			.setNormal( 1, 0, 1);
 		buffer.addVertex(entry.pose(), x2, y2, z2).setColor(color)
-			.setNormal( 1, 0, 1).setLineWidth(2);
+			.setNormal( 1, 0, 1);
 		
 		// bottom
 		buffer.addVertex(entry.pose(), x2, y1, z1).setColor(color)
-			.setNormal( -1, 0, 1).setLineWidth(2);
+			.setNormal( -1, 0, 1);
 		buffer.addVertex(entry.pose(), x1, y1, z2).setColor(color)
-			.setNormal( -1, 0, 1).setLineWidth(2);
+			.setNormal( -1, 0, 1);
 		buffer.addVertex(entry.pose(), x1, y1, z1).setColor(color)
-			.setNormal( 1, 0, 1).setLineWidth(2);
+			.setNormal( 1, 0, 1);
 		buffer.addVertex(entry.pose(), x2, y1, z2).setColor(color)
-			.setNormal( 1, 0, 1).setLineWidth(2);
+			.setNormal( 1, 0, 1);
 	}
 	
 	public static void drawNode(PoseStack matrices, AABB box, int color,
@@ -745,18 +744,9 @@ public enum RenderUtils
 	public static void fill2D(GuiGraphicsExtractor context, float x1, float y1, float x2,
 		float y2, int color)
 	{
-		// TODO: 26.1.2 - new GUI rendering pipeline
-		// Scale to pixel coordinates and use context.fill()
-		int scale = WurstClient.MC.getWindow().getGuiScale();
-		int xs1 = (int)(x1 * scale);
-		int ys1 = (int)(y1 * scale);
-		int xs2 = (int)(x2 * scale);
-		int ys2 = (int)(y2 * scale);
-		
-		context.pose().pushMatrix();
-		context.pose().scale(1F / scale);
-		context.fill(xs1, ys1, xs2, ys2, color);
-		context.pose().popMatrix();
+		// Coordinates are already in GUI space (the caller projects with
+		// gui-scaled dimensions), so no manual rescaling is needed.
+		context.fill((int)x1, (int)y1, (int)x2, (int)y2, color);
 	}
 	
 	/**
@@ -773,6 +763,23 @@ public enum RenderUtils
 		context.getRenderState().submitGuiElement(new PolygonRenderState(
 			context.pose(), vertices, color));
 	}
+	/**
+	 * Submits a batch of quads (4 vertices per quad, QUADS draw mode) as a
+	 * single GUI element. Quads whose color alpha is 0 are skipped. Collapsing
+	 * many small fills into one element avoids the per-element intersection
+	 * checks that the vanilla GUI render state performs.
+	 */
+	public static void submitQuadMesh2D(GuiGraphicsExtractor context,
+		float[][] vertices, int[] quadColors)
+	{
+		if(vertices == null || quadColors == null
+			|| vertices.length < 4
+			|| quadColors.length * 4 != vertices.length)
+			return;
+		context.getRenderState().submitGuiElement(new QuadMeshRenderState(
+			context.pose(), vertices, quadColors));
+	}
+
 	
 	/**
 	 * Renders the given vertices in TRIANGLE_STRIP draw mode.
@@ -800,7 +807,24 @@ public enum RenderUtils
 	public static void drawLine2D(GuiGraphicsExtractor context, float x1, float y1,
 		float x2, float y2, int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(color >>> 24 == 0)
+			return;
+		
+		// Simulate a 1px line with a quad, like vanilla hLine/vLine do
+		// (the 26.x GUI pipeline only supports QUADS topology).
+		float dx = x2 - x1;
+		float dy = y2 - y1;
+		float length = (float)Math.sqrt(dx * dx + dy * dy);
+		if(length < 0.0001F)
+			return;
+		
+		float nx = -dy / length * 0.5F;
+		float ny = dx / length * 0.5F;
+		
+		// CCW order: left-top, left-bottom, right-bottom, right-top
+		float[][] quad = {{x1 - nx, y1 - ny}, {x1 + nx, y1 + ny},
+			{x2 + nx, y2 + ny}, {x2 - nx, y2 - ny}};
+		fillQuads2D(context, quad, color);
 	}
 	
 	/**
@@ -812,7 +836,13 @@ public enum RenderUtils
 	public static void drawBorder2D(GuiGraphicsExtractor context, float x1, float y1,
 		float x2, float y2, int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(color >>> 24 == 0)
+			return;
+		
+		drawLine2D(context, x1, y1, x2, y1, color);
+		drawLine2D(context, x2, y1, x2, y2, color);
+		drawLine2D(context, x2, y2, x1, y2, color);
+		drawLine2D(context, x1, y2, x1, y1, color);
 	}
 	
 	/**
@@ -821,7 +851,12 @@ public enum RenderUtils
 	public static void drawLineStrip2D(GuiGraphicsExtractor context, float[][] vertices,
 		int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(vertices == null || vertices.length < 2 || color >>> 24 == 0)
+			return;
+		
+		for(int i = 0; i < vertices.length - 1; i++)
+			drawLine2D(context, vertices[i][0], vertices[i][1],
+				vertices[i + 1][0], vertices[i + 1][1], color);
 	}
 	
 	/**
@@ -843,14 +878,92 @@ public enum RenderUtils
 		drawBorder2D(context, xo1, yo1, xo2, yo2, outlineColor);
 	}
 
-	private static final class PolygonRenderState implements GuiElementRenderState
+	
+	private static final class QuadMeshRenderState
+		implements GuiElementRenderState
 	{
-		private final Matrix3x2fc pose;
+		private final Matrix3x2f pose;
+		private final float[][] vertices;
+		private final int[] quadColors;
+		private final ScreenRectangle bounds;
+
+		private QuadMeshRenderState(Matrix3x2f pose, float[][] vertices,
+			int[] quadColors)
+		{
+			this.pose = pose;
+			this.vertices = vertices;
+			this.quadColors = quadColors;
+			int minX = Integer.MAX_VALUE;
+			int minY = Integer.MAX_VALUE;
+			int maxX = Integer.MIN_VALUE;
+			int maxY = Integer.MIN_VALUE;
+			Matrix3x2f poseCopy = new Matrix3x2f(pose);
+			for(int i = 0; i < vertices.length; i++)
+			{
+				if(quadColors[i / 4] >>> 24 == 0)
+					continue;
+				float px = poseCopy.m00 * vertices[i][0]
+					+ poseCopy.m01 * vertices[i][1] + poseCopy.m20;
+				float py = poseCopy.m10 * vertices[i][0]
+					+ poseCopy.m11 * vertices[i][1] + poseCopy.m21;
+				minX = Math.min(minX, (int)Math.floor(px));
+				minY = Math.min(minY, (int)Math.floor(py));
+				maxX = Math.max(maxX, (int)Math.ceil(px + 1));
+				maxY = Math.max(maxY, (int)Math.ceil(py + 1));
+			}
+			if(minX > maxX)
+			{
+				minX = minY = 0;
+				maxX = maxY = 1;
+			}
+			bounds = new ScreenRectangle(minX, minY, maxX - minX,
+				maxY - minY);
+		}
+
+		@Override
+		public void buildVertices(VertexConsumer consumer, float z)
+		{
+			for(int i = 0; i < vertices.length; i++)
+			{
+				if(quadColors[i / 4] >>> 24 == 0)
+					continue;
+				consumer.addVertexWith2DPose(pose, vertices[i][0],
+					vertices[i][1], z).setColor(quadColors[i / 4]);
+			}
+		}
+
+		@Override
+		public com.mojang.blaze3d.pipeline.RenderPipeline pipeline()
+		{
+			return RenderPipelines.GUI;
+		}
+
+		@Override
+		public TextureSetup textureSetup()
+		{
+			return TextureSetup.noTexture();
+		}
+
+		@Override
+		public ScreenRectangle scissorArea()
+		{
+			return null;
+		}
+
+		@Override
+		public ScreenRectangle bounds()
+		{
+			return bounds;
+		}
+	}
+private static final class PolygonRenderState implements GuiElementRenderState
+	{
+		private final Matrix3x2f pose;
 		private final float[][] vertices;
 		private final int color;
 		private final ScreenRectangle bounds;
 
-		private PolygonRenderState(Matrix3x2fc pose, float[][] vertices,
+		private PolygonRenderState(Matrix3x2f pose, float[][] vertices,
 			int color)
 		{
 			this.pose = pose;
@@ -883,10 +996,10 @@ public enum RenderUtils
 		}
 
 		@Override
-		public void buildVertices(VertexConsumer consumer)
+		public void buildVertices(VertexConsumer consumer, float z)
 		{
 			for(float[] vertex : vertices)
-				consumer.addVertexWith2DPose(pose, vertex[0], vertex[1])
+				consumer.addVertexWith2DPose(pose, vertex[0], vertex[1], z)
 					.setColor(color);
 		}
 

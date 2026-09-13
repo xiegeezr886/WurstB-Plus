@@ -28,6 +28,14 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+sourceSets {
+    main {
+        java {
+            exclude "net/wurstclient/clickgui2/component.disabled/**"
+        }
+    }
+}
+
 minecraft {
     mappings channel: "official", version: project.minecraft_version
     accessTransformer = file(

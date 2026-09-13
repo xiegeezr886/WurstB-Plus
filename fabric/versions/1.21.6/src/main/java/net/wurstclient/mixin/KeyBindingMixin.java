@@ -28,13 +28,13 @@ public abstract class KeyBindingMixin implements IKeyBinding
 	@Deprecated // use IKeyBinding.resetPressedState() instead
 	public void wurst_resetPressedState()
 	{
-		long handle = WurstClient.MC.getWindow().handle();
+		long handle = WurstClient.MC.getWindow().getWindow();
 		int code = key.getValue();
 		
 		if(key.getType() == InputConstants.Type.MOUSE)
 			setDown(GLFW.glfwGetMouseButton(handle, code) == 1);
 		else
-			setDown(InputConstants.isKeyDown(WurstClient.MC.getWindow(), code));
+			setDown(InputConstants.isKeyDown(WurstClient.MC.getWindow().getWindow(), code));
 	}
 	
 	@Override

@@ -401,7 +401,6 @@ public final class AltManagerScreen extends Screen
 		minecraft.setScreen(this);
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

@@ -27,16 +27,16 @@ public enum PacketUtils
 	{
 		if(packet instanceof Rot)
 			return new PosRot(x, y, z, packet.getYRot(0), packet.getXRot(0),
-				packet.isOnGround());
+				packet.isOnGround(), packet.horizontalCollision());
 		
 		if(packet instanceof StatusOnly)
-			return new Pos(x, y, z, packet.isOnGround());
+			return new Pos(x, y, z, packet.isOnGround(), packet.horizontalCollision());
 		
 		if(packet instanceof PosRot)
 			return new PosRot(x, y, z, packet.getYRot(0), packet.getXRot(0),
-				packet.isOnGround());
+				packet.isOnGround(), packet.horizontalCollision());
 		
-		return new Pos(x, y, z, packet.isOnGround());
+		return new Pos(x, y, z, packet.isOnGround(), packet.horizontalCollision());
 	}
 	
 	/**
@@ -49,16 +49,16 @@ public enum PacketUtils
 	{
 		if(packet instanceof Pos)
 			return new PosRot(packet.getX(0), packet.getY(0), packet.getZ(0), yaw,
-				pitch, packet.isOnGround());
+				pitch, packet.isOnGround(), packet.horizontalCollision());
 		
 		if(packet instanceof StatusOnly)
-			return new Rot(yaw, pitch, packet.isOnGround());
+			return new Rot(yaw, pitch, packet.isOnGround(), packet.horizontalCollision());
 		
 		if(packet instanceof PosRot)
 			return new PosRot(packet.getX(0), packet.getY(0), packet.getZ(0), yaw,
-				pitch, packet.isOnGround());
+				pitch, packet.isOnGround(), packet.horizontalCollision());
 		
-		return new Rot(yaw, pitch, packet.isOnGround());
+		return new Rot(yaw, pitch, packet.isOnGround(), packet.horizontalCollision());
 	}
 	
 	/**
@@ -69,16 +69,16 @@ public enum PacketUtils
 	{
 		if(packet instanceof PosRot)
 			return new PosRot(packet.getX(0), packet.getY(0), packet.getZ(0),
-				packet.getYRot(0), packet.getXRot(0), onGround);
+				packet.getYRot(0), packet.getXRot(0), onGround, packet.horizontalCollision());
 		
 		if(packet instanceof Pos)
 			return new Pos(packet.getX(0), packet.getY(0),
-				packet.getZ(0), onGround);
+				packet.getZ(0), onGround, packet.horizontalCollision());
 		
 		if(packet instanceof Rot)
 			return new Rot(packet.getYRot(0), packet.getXRot(0),
-				onGround);
+				onGround, packet.horizontalCollision());
 		
-		return new StatusOnly(onGround);
+		return new StatusOnly(onGround, packet.horizontalCollision());
 	}
 }

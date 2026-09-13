@@ -42,8 +42,9 @@ public final class HitboxCheckSetting
 	// "unstable" because isSpaceEmpty() is not thread-safe
 	private static boolean unstableHitboxCheck(BlockPos pos)
 	{
-		return MC.level.noCollision(EntityType.CREEPER.getAABB(
-			pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5));
+		return MC.level.noCollision(EntityType.CREEPER.getDimensions()
+			.makeBoundingBox(
+				pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5));
 	}
 	
 	private static WText buildDescriptionSuffix()

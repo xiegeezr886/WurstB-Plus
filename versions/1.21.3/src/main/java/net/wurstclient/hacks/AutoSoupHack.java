@@ -10,7 +10,7 @@ package net.wurstclient.hacks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -98,10 +98,10 @@ public final class AutoSoupHack extends Hack implements UpdateListener
 			
 			// save old slot
 			if(oldSlot == -1)
-				oldSlot = MC.player.getInventory().getSelectedSlot();
+				oldSlot = MC.player.getInventory().selected;
 			
 			// set slot
-			MC.player.getInventory().setSelectedSlot(soupInHotbar);
+			MC.player.getInventory().selected = soupInHotbar;
 			
 			// eat soup
 			MC.options.keyUse.setDown(true);
@@ -184,7 +184,7 @@ public final class AutoSoupHack extends Hack implements UpdateListener
 		MC.options.keyUse.setDown(false);
 		
 		// reset slot
-		MC.player.getInventory().setSelectedSlot(oldSlot);
+		MC.player.getInventory().selected = oldSlot;
 		oldSlot = -1;
 	}
 }

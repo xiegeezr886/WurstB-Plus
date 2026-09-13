@@ -20,6 +20,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.wurstclient.util.ScreenUtils;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.PauseScreen;
@@ -73,8 +74,7 @@ public abstract class GameMenuScreenMixin extends Screen
 		int fh = 16;
 		float u = 0;
 		float v = 0;
-		RenderSystem.enableBlend();
-		context.blit(WURST_TEXTURE, x, y, u, v, w, h, fw, fh);
+		context.blit(RenderType::guiTextured, WURST_TEXTURE, x, y, u, v, w, h, fw, fh);
 	}
 	
 	@Unique

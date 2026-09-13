@@ -101,7 +101,7 @@ public final class BonemealAuraHack extends Hack implements HandleInputListener
 	public void onHandleInput()
 	{
 		// wait for right click timer
-		if(MC.rightClickDelay > 0)
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		if(MC.gameMode.isDestroying() || MC.player.isHandsBusy())
@@ -216,7 +216,7 @@ public final class BonemealAuraHack extends Hack implements HandleInputListener
 			return false;
 		
 		// face and right click the block
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 		WURST.getRotationFaker().faceVectorPacket(params.hitVec());
 		InteractionSimulator.rightClickBlock(params.toHitResult());
 		return true;

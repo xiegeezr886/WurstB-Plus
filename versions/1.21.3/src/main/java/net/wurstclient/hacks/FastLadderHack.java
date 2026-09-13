@@ -8,13 +8,11 @@
 package net.wurstclient.hacks;
 
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.util.MovementPlanner;
 
 @SearchTags({"FastClimb", "fast ladder", "fast climb"})
 public final class FastLadderHack extends Hack implements UpdateListener
@@ -45,8 +43,8 @@ public final class FastLadderHack extends Hack implements UpdateListener
 		if(!player.onClimbable() || !player.horizontalCollision)
 			return;
 		
-		Vec2 moveVector = MovementPlanner.getMoveVector(player.input);
-		if(moveVector.y == 0 && moveVector.x == 0)
+		if(player.input.forwardImpulse == 0
+			&& player.input.leftImpulse == 0)
 			return;
 		
 		Vec3 velocity = player.getDeltaMovement();

@@ -26,6 +26,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.MoverType;
@@ -321,7 +322,7 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	}
 	
 	@Override
-	public boolean hasEffect(MobEffect effect)
+	public boolean hasEffect(Holder<MobEffect> effect)
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
 		

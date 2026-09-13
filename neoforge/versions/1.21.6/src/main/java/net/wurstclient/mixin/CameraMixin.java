@@ -51,4 +51,5 @@ public abstract class CameraMixin
 		if(WurstClient.INSTANCE.getHax().noOverlayHack.isEnabled())
 			cir.setReturnValue(FogType.NONE);
 	}
+	
 }

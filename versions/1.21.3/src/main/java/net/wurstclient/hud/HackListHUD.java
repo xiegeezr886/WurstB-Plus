@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.Category;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
@@ -38,7 +38,7 @@ public final class HackListHUD implements UpdateListener
 		WurstClient.INSTANCE.getEventManager().add(UpdateListener.class, this);
 	}
 	
-	public void render(GuiGraphicsExtractor context, float partialTicks)
+	public void render(GuiGraphics context, float partialTicks)
 	{
 		int y;
 		if(otf.getPosition() == Position.LEFT
@@ -54,7 +54,7 @@ public final class HackListHUD implements UpdateListener
 		renderAt(context, partialTicks, x, y, right);
 	}
 
-	public void renderAt(GuiGraphicsExtractor context, float partialTicks, int x, int y,
+	public void renderAt(GuiGraphics context, float partialTicks, int x, int y,
 		boolean rightAligned)
 	{
 		if(otf.getMode() == Mode.HIDDEN)
@@ -83,7 +83,7 @@ public final class HackListHUD implements UpdateListener
 			drawHackList(context, partialTicks);
 	}
 
-	public void renderPreview(GuiGraphicsExtractor context, int x, int y,
+	public void renderPreview(GuiGraphics context, int x, int y,
 		boolean rightAligned)
 	{
 		baseX = x;
@@ -112,13 +112,13 @@ public final class HackListHUD implements UpdateListener
 		return Math.max(ENTRY_HEIGHT, activeHax.size() * ENTRY_HEIGHT);
 	}
 	
-	private void drawCounter(GuiGraphicsExtractor context)
+	private void drawCounter(GuiGraphics context)
 	{
 		long size = activeHax.stream().filter(e -> e.hack.isEnabled()).count();
 		drawEntry(context, size + " 项功能已启用", 1);
 	}
 	
-	private void drawHackList(GuiGraphicsExtractor context, float partialTicks)
+	private void drawHackList(GuiGraphics context, float partialTicks)
 	{
 		for(Iterator<HackListEntry> iterator = activeHax.iterator();
 			iterator.hasNext();)
@@ -171,7 +171,7 @@ public final class HackListHUD implements UpdateListener
 		}
 	}
 	
-	private void drawEntry(GuiGraphicsExtractor context, String text, float progress)
+	private void drawEntry(GuiGraphics context, String text, float progress)
 	{
 		if(progress <= 0)
 			return;
@@ -205,9 +205,9 @@ public final class HackListHUD implements UpdateListener
 			bottom - 2, 1, withAlpha(textColor, Math.round(220 * progress)));
 		int textX = alignRight ? left + 4 : left + 6;
 		int textY = top + 2;
-		context.text(font, text, textX + 1, textY + 1,
+		context.drawString(font, text, textX + 1, textY + 1,
 			withAlpha(0, Math.round(145 * progress)), false);
-		context.text(font, text, textX, textY,
+		context.drawString(font, text, textX, textY,
 			withAlpha(textColor, Math.round(255 * progress)), false);
 		posY += ENTRY_HEIGHT * progress;
 	}

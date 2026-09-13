@@ -96,10 +96,10 @@ public final class EditSliderScreen extends Screen
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX,
 		int mouseY, float partialTicks)
 	{
 		context.centeredText(minecraft.font, slider.getName(), width / 2, 20,

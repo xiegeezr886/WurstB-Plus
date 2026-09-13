@@ -21,9 +21,6 @@ import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.InputWithModifiers;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
 import net.minecraft.client.multiplayer.ServerData;
@@ -196,32 +193,32 @@ public class CleanUpScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ENTER)
-			cleanUpButton.onPress(context);
+		if(keyCode == GLFW.GLFW_KEY_ENTER)
+			cleanUpButton.onPress();
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		if(context.button() == GLFW.GLFW_MOUSE_BUTTON_4)
+		if(button == GLFW.GLFW_MOUSE_BUTTON_4)
 		{
 			onClose();
 			return true;
 		}
 		
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		context.centeredText(font, "清理", width / 2,
@@ -286,20 +283,20 @@ public class CleanUpScreen extends Screen
 		}
 		
 		@Override
-		public void onPress(InputWithModifiers context)
+		public void onPress()
 		{
-			super.onPress(context);
+			super.onPress();
 			setMessage(Component.literal(messageSupplier.get()));
 		}
 
 		@Override
-		protected void renderContents(GuiGraphics graphics, int mouseX,
+		protected void renderWidget(GuiGraphics graphics, int mouseX,
 			int mouseY, float partialTicks)
 		{
-			renderDefaultSprite(graphics);
 			graphics.drawCenteredString(font, getMessage(),
 				getX() + getWidth() / 2,
-				getY() + (getHeight() - font.lineHeight) / 2, getFGColor());
+				getY() + (getHeight() - font.lineHeight) / 2,
+				active ? 0xFFFFFF : 0xA0A0A0);
 		}
 	}
 }

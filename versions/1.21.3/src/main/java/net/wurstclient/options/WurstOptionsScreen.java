@@ -7,19 +7,16 @@
  */
 package net.wurstclient.options;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
 import net.wurstclient.util.ScreenUtils;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
 import net.wurstclient.commands.FriendsCmd;
@@ -116,39 +113,36 @@ public class WurstOptionsScreen extends Screen
 	{
 		return false;
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
-
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
+		renderBackground(context, mouseX, mouseY, partialTicks);
 		renderTitles(context);
-		super.render(context.getInner(), mouseX, mouseY, partialTicks);
+		super.render(context, mouseX, mouseY, partialTicks);
 		renderButtonTooltip(context, mouseX, mouseY);
 	}
 	
-	private void renderTitles(GuiGraphicsExtractor context)
+	private void renderTitles(GuiGraphics context)
 	{
 		Font tr = minecraft.font;
 		int middleX = width / 2;
 		int y1 = 40;
 		int y2 = height / 4 + 24 - 28;
 		
-		context.centeredText(tr, WurstClient.CLIENT_NAME + " 设置", middleX, y1,
-			0xFFffffff);
+		context.drawCenteredString(tr, WurstClient.CLIENT_NAME + " 设置", middleX, y1,
+			0xffffff);
 		
-		context.centeredText(tr, "Settings", middleX - 104, y2,
-			0xFFcccccc);
-		context.centeredText(tr, "Managers", middleX, y2,
-			0xFFcccccc);
-		context.centeredText(tr, "Links", middleX + 104, y2,
-			0xFFcccccc);
+		context.drawCenteredString(tr, "Settings", middleX - 104, y2,
+			0xcccccc);
+		context.drawCenteredString(tr, "Managers", middleX, y2,
+			0xcccccc);
+		context.drawCenteredString(tr, "Links", middleX + 104, y2,
+			0xcccccc);
 	}
 	
-	private void renderButtonTooltip(GuiGraphicsExtractor context, int mouseX,
+	private void renderButtonTooltip(GuiGraphics context, int mouseX,
 		int mouseY)
 	{
 		for(AbstractWidget button : ScreenUtils.getButtons(this))
@@ -161,8 +155,7 @@ public class WurstOptionsScreen extends Screen
 			if(woButton.tooltip.isEmpty())
 				continue;
 			
-			context.setComponentTooltipForNextFrame(font, woButton.tooltip, mouseX,
-				mouseY);
+			context.renderComponentTooltip(font, woButton.tooltip, mouseX, mouseY);
 			break;
 		}
 	}
@@ -200,20 +193,10 @@ public class WurstOptionsScreen extends Screen
 		}
 		
 		@Override
-		public void onPress(InputWithModifiers context)
+		public void onPress()
 		{
-			super.onPress(context);
+			super.onPress();
 			setMessage(Component.literal(messageSupplier.get()));
-		}
-
-		@Override
-		protected void renderContents(GuiGraphics graphics, int mouseX,
-			int mouseY, float partialTicks)
-		{
-			renderDefaultSprite(graphics);
-			graphics.drawCenteredString(font, getMessage(),
-				getX() + getWidth() / 2,
-				getY() + (getHeight() - font.lineHeight) / 2, getFGColor());
 		}
 	}
 }

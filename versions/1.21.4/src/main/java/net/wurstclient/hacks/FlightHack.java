@@ -10,7 +10,6 @@
 package net.wurstclient.hacks;
 
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -48,10 +47,6 @@ public final class FlightHack extends Hack implements UpdateListener
 	private final CheckboxSetting antiKick = new CheckboxSetting("Anti-Kick",
 		"Periodically applies a small downward movement.", false);
 
-	private final CheckboxSetting scrollToChangeSpeed = new CheckboxSetting(
-		"Scroll to change speed",
-		"Allows changing flight speed with the mouse wheel.", false);
-
 	private final SliderSetting antiKickInterval = new SliderSetting(
 		"Anti-Kick Interval", "Ticks between anti-kick pulses.", 40, 5, 80,
 		1, ValueDisplay.INTEGER.withSuffix(" ticks"));
@@ -77,7 +72,6 @@ public final class FlightHack extends Hack implements UpdateListener
 		addSetting(antiKick);
 		addSetting(antiKickInterval);
 		addSetting(antiKickDistance);
-		addSetting(scrollToChangeSpeed);
 	}
 
 	@Override
@@ -121,9 +115,8 @@ public final class FlightHack extends Hack implements UpdateListener
 		trackPlayer(player);
 
 		player.getAbilities().flying = false;
-		Vec2 moveVector = MovementPlanner.getMoveVector(player.input);
-		float forward = (float)moveVector.y;
-		float sideways = (float)moveVector.x;
+		float forward = player.input.forwardImpulse;
+		float sideways = player.input.leftImpulse;
 		double horizontal = horizontalSpeed.getValue();
 		if(slowSneaking.isChecked() && MC.options.keyShift.isDown())
 			horizontal *= 0.3;
@@ -167,6 +160,11 @@ public final class FlightHack extends Hack implements UpdateListener
 		previousFlying = player.getAbilities().flying;
 	}
 
+	public boolean isControllingScrollEvents()
+	{
+		return false;
+	}
+
 	private void restoreTrackedPlayer()
 	{
 		if(trackedPlayer != null)
@@ -192,13 +190,5 @@ public final class FlightHack extends Hack implements UpdateListener
 		{
 			return name;
 		}
-	}
-
-	public boolean isControllingScrollEvents()
-	{
-		return isEnabled() && scrollToChangeSpeed.isChecked()
-			&& MC.screen == null
-			&& !WURST.getOtfs().zoomOtf.isControllingScrollEvents()
-			&& !WURST.getHax().freecamHack.isMovingCamera();
 	}
 }

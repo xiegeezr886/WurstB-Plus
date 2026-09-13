@@ -120,7 +120,7 @@ public final class WaypointsManager implements RenderListener
 		if(waypoints.isEmpty() || mc.level == null || mc.player == null)
 			return;
 
-		ResourceLocation currentDim = mc.level.dimension().identifier();
+		ResourceLocation currentDim = mc.level.dimension().location();
 
 		Vec3 camPos = mc.gameRenderer.getMainCamera().position();
 		RenderUtils.submit(PoseStack, WurstRenderLayers.getQuads(true),

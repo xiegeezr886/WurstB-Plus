@@ -7,6 +7,7 @@
  */
 package net.wurstclient.hacks;
 
+import net.minecraft.world.entity.EquipmentSlot;
 import com.mojang.blaze3d.vertex.PoseStack;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -48,6 +49,10 @@ import net.wurstclient.util.WorldToScreen.ScreenBounds;
 public final class PlayerEspHack extends Hack implements UpdateListener,
 	CameraTransformViewBobbingListener, RenderListener, GUIRenderListener
 {
+	private static final EquipmentSlot[] ARMOR_SLOTS =
+		{EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST,
+			EquipmentSlot.HEAD};
+
 	private final EnumSetting<RenderMode> renderMode = new EnumSetting<>(
 		"Render mode", "Switches between world-space and screen-space ESP.",
 		RenderMode.values(), RenderMode.THREE_D);
@@ -230,12 +235,16 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	{
 		int remaining = 0;
 		int maximum = 0;
-		for(ItemStack stack : player.getArmorSlots())
+		for(EquipmentSlot slot : ARMOR_SLOTS)
+		{
+			ItemStack stack = player.getItemBySlot(slot);
 			if(!stack.isEmpty() && stack.isDamageableItem())
 			{
-				remaining += stack.getMaxDamage() - stack.getDamageValue();
+				remaining +=
+					stack.getMaxDamage() - stack.getDamageValue();
 				maximum += stack.getMaxDamage();
 			}
+		}
 		return maximum == 0 ? 0 : remaining / (float)maximum;
 	}
 

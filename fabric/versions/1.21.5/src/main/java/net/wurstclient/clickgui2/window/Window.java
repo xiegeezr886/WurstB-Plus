@@ -6,14 +6,13 @@ package net.wurstclient.clickgui2.window;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
+import net.wurstclient.util.RenderUtils;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
@@ -130,16 +129,12 @@ public class Window {
 		float r2 = (color2 >> 16 & 255) / 255F;
 		float g2 = (color2 >> 8 & 255) / 255F;
 		float b2 = (color2 & 255) / 255F;
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		BufferBuilder b = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
 			DefaultVertexFormat.POSITION_COLOR);
 		b.addVertex(x1, y1, 0).setColor(r1, g1, b1, a1);
 		b.addVertex(x1, y2, 0).setColor(r1, g1, b1, a1);
 		b.addVertex(x2, y2, 0).setColor(r2, g2, b2, a2);
 		b.addVertex(x2, y1, 0).setColor(r2, g2, b2, a2);
-		BufferUploader.drawWithShader(b.buildOrThrow());
-		RenderSystem.disableBlend();
+		RenderUtils.drawGuiMesh(b.buildOrThrow());
 	}
 }

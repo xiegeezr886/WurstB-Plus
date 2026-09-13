@@ -124,7 +124,7 @@ public final class MacroManager implements KeyPressListener, UpdateListener
 	{
 		if(event.getAction() != GLFW.GLFW_PRESS)
 			return;
-		if(InputConstants.isKeyDown(WurstClient.MC.getWindow(),
+		if(InputConstants.isKeyDown(WurstClient.MC.getWindow().getWindow(),
 			GLFW.GLFW_KEY_F3))
 			return;
 
@@ -214,9 +214,7 @@ public final class MacroManager implements KeyPressListener, UpdateListener
 	private String getKeyName(KeyPressEvent event)
 	{
 		return com.mojang.blaze3d.platform.InputConstants
-			.getKey(new net.minecraft.client.input.KeyEvent(
-				event.getKeyCode(), event.getScanCode(), event.getModifiers()))
-			.getName();
+			.getKey(event.getKeyCode(), event.getScanCode()).getName();
 	}
 
 	private static class PendingExecution

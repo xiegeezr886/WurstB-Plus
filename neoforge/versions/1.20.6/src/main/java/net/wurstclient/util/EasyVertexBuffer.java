@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import net.minecraft.client.renderer.RenderType;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.BufferBuilder.RenderedBuffer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -38,17 +38,18 @@ public final class EasyVertexBuffer implements AutoCloseable
 	public static EasyVertexBuffer createAndUpload(Mode drawMode,
 		VertexFormat format, Consumer<VertexConsumer> callback)
 	{
-		BufferBuilder bufferBuilder = Tesselator.getInstance().begin(drawMode, format);
+		BufferBuilder bufferBuilder = Tesselator.getInstance().getBuilder();
+		bufferBuilder.begin(drawMode, format);
 		callback.accept(bufferBuilder);
 		
-		MeshData buffer = bufferBuilder.build();
+		RenderedBuffer buffer = bufferBuilder.endOrDiscardIfEmpty();
 		if(buffer == null)
 			return new EasyVertexBuffer();
 		
 		return new EasyVertexBuffer(buffer);
 	}
 	
-	private EasyVertexBuffer(MeshData buffer)
+	private EasyVertexBuffer(RenderedBuffer buffer)
 	{
 		vertexBuffer = new VertexBuffer(Usage.STATIC);
 		vertexBuffer.bind();

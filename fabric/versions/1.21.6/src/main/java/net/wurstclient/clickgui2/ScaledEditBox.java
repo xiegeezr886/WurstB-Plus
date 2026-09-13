@@ -5,7 +5,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 final class ScaledEditBox extends EditBox
@@ -53,12 +52,11 @@ final class ScaledEditBox extends EditBox
 	}
 
 	@Override
-	public void onClick(MouseButtonEvent event, boolean doubleClick)
+	public void onClick(double mouseX, double mouseY)
 	{
-		double scaledMouseX = getX() + (event.x() - getX()) / scale;
-		double scaledMouseY = getY() + (event.y() - getY()) / scale;
-		super.onClick(new MouseButtonEvent(scaledMouseX, scaledMouseY,
-			event.buttonInfo()), doubleClick);
+		double scaledMouseX = getX() + (mouseX - getX()) / scale;
+		double scaledMouseY = getY() + (mouseY - getY()) / scale;
+		super.onClick(scaledMouseX, scaledMouseY);
 	}
 
 	private int scaleCoordinate(int coordinate, int origin)

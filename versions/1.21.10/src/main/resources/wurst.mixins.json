@@ -41,6 +41,7 @@
     "HeldItemRendererMixin",
     "FogRendererMixin",
     "noshieldoverlay.ItemInHandRendererMixin",
+    "GuiGraphicsAccessor",
     "GuiMixin",
     "ScreenEffectRendererMixin",
     "KeyBindingMixin",

@@ -139,7 +139,8 @@ public final class LogoutSpotsHack extends Hack
 		try
 		{
 			Tesselator tess = Tesselator.getInstance();
-			BufferBuilder buf = tess.begin(VertexFormat.Mode.QUADS,
+			BufferBuilder buf = tess.getBuilder();
+			buf.begin(VertexFormat.Mode.QUADS,
 				DefaultVertexFormat.POSITION_COLOR);
 
 			for(Spot spot : spots.values())
@@ -149,17 +150,18 @@ public final class LogoutSpotsHack extends Hack
 				float z = (float)(spot.pos.z - cam.z);
 				float s = 0.4F;
 
-				buf.addVertex(matrix, x - s, y + s, z)
-					.setColor(1, 0.3F, 0.3F, 0.7F);
-				buf.addVertex(matrix, x + s, y + s, z)
-					.setColor(1, 0.3F, 0.3F, 0.7F);
-				buf.addVertex(matrix, x + s, y - s, z)
-					.setColor(1, 0.3F, 0.3F, 0.7F);
-				buf.addVertex(matrix, x - s, y - s, z)
-					.setColor(1, 0.3F, 0.3F, 0.7F);
+				buf.vertex(matrix, x - s, y + s, z)
+					.color(1, 0.3F, 0.3F, 0.7F).endVertex();
+				buf.vertex(matrix, x + s, y + s, z)
+					.color(1, 0.3F, 0.3F, 0.7F).endVertex();
+				buf.vertex(matrix, x + s, y - s, z)
+					.color(1, 0.3F, 0.3F, 0.7F).endVertex();
+				buf.vertex(matrix, x - s, y - s, z)
+					.color(1, 0.3F, 0.3F, 0.7F).endVertex();
 			}
 
-			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
+			BufferBuilder.RenderedBuffer rendered =
+				buf.endOrDiscardIfEmpty();
 			if(rendered != null)
 				BufferUploader.drawWithShader(rendered);
 		}finally

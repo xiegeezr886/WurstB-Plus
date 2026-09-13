@@ -9,7 +9,7 @@ package net.wurstclient.hacks.autolibrarian;
 
 import java.util.Objects;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.wurstclient.WurstClient;
@@ -21,14 +21,14 @@ public record BookOffer(String id, int level, int price)
 {
 	public static BookOffer create(Holder<Enchantment> enchantment)
 	{
-		Identifier id = Identifier.parse(enchantment.unwrapKey().orElseThrow()
+		ResourceLocation id = ResourceLocation.parse(enchantment.unwrapKey().orElseThrow()
 			.toString());
 		return new BookOffer("" + id, enchantment.value().getMaxLevel(), 64);
 	}
 	
 	public static BookOffer createDefault(String id)
 	{
-		int maxLevel = switch(Identifier.parse(id).getPath())
+		int maxLevel = switch(ResourceLocation.parse(id).getPath())
 		{
 			case "depth_strider", "fortune", "looting", "respiration" -> 3;
 			case "feather_falling", "protection" -> 4;
@@ -41,7 +41,7 @@ public record BookOffer(String id, int level, int price)
 
 	public Holder<Enchantment> getEnchantment()
 	{
-		return EnchantmentUtils.getHolder(Identifier.parse(id)).orElse(null);
+		return EnchantmentUtils.getHolder(ResourceLocation.parse(id)).orElse(null);
 	}
 	
 	public String getEnchantmentName()
@@ -78,7 +78,7 @@ public record BookOffer(String id, int level, int price)
 	{
 		Holder<Enchantment> enchantment = getEnchantment();
 		if(enchantment == null)
-			return Identifier.tryParse(id) != null && level >= 1
+			return ResourceLocation.tryParse(id) != null && level >= 1
 				&& level <= 255 && price >= 1 && price <= 64;
 
 		return enchantment.is(EnchantmentTags.TRADEABLE) && level >= 1

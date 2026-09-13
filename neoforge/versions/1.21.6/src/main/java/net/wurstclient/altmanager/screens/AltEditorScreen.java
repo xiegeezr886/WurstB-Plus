@@ -17,14 +17,12 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 import org.lwjgl.glfw.GLFW;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
@@ -68,7 +66,7 @@ public abstract class AltEditorScreen extends Screen
 		passwordBox = new EditBox(font, width / 2 - 100, 100,
 			200, 20, Component.literal(""));
 		passwordBox.setValue(getDefaultPassword());
-		passwordBox.addFormatter((text, startIndex) -> FormattedCharSequence
+		passwordBox.setFormatter((text, startIndex) -> FormattedCharSequence
 			.forward("*".repeat(text.length()), Style.EMPTY));
 		passwordBox.setMaxLength(256);
 		addWidget(passwordBox);
@@ -202,38 +200,38 @@ public abstract class AltEditorScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ENTER)
-			doneButton.onPress(context);
+		if(keyCode == GLFW.GLFW_KEY_ENTER)
+			doneButton.onPress();
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		nameOrEmailBox.mouseClicked(context, doubleClick);
-		passwordBox.mouseClicked(context, doubleClick);
+		nameOrEmailBox.mouseClicked(mouseX, mouseY, button);
+		passwordBox.mouseClicked(mouseX, mouseY, button);
 		
 		if(nameOrEmailBox.isFocused() || passwordBox.isFocused())
 			message = "";
 		
-		if(context.button() == GLFW.GLFW_MOUSE_BUTTON_4)
+		if(button == GLFW.GLFW_MOUSE_BUTTON_4)
 		{
 			onClose();
 			return true;
 		}
 		
-		return super.mouseClicked(context, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 @Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		

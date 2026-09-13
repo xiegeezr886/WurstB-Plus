@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -8,21 +8,21 @@
 package net.wurstclient.events;
 
 import java.util.ArrayList;
-
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.event.Event;
 import net.wurstclient.event.Listener;
+import net.wurstclient.util.render.RenderScope;
 
 public interface GUIRenderListener extends Listener
 {
-	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks);
+	public void onRenderGUI(GuiGraphics context, float partialTicks);
 	
 	public static class GUIRenderEvent extends Event<GUIRenderListener>
 	{
 		private final float partialTicks;
-		private final GuiGraphicsExtractor context;
+		private final GuiGraphics context;
 		
-		public GUIRenderEvent(GuiGraphicsExtractor context, float partialTicks)
+		public GUIRenderEvent(GuiGraphics context, float partialTicks)
 		{
 			this.context = context;
 			this.partialTicks = partialTicks;
@@ -32,7 +32,10 @@ public interface GUIRenderListener extends Listener
 		public void fire(ArrayList<GUIRenderListener> listeners)
 		{
 			for(GUIRenderListener listener : listeners)
-				listener.onRenderGUI(context, partialTicks);
+				try(RenderScope ignored = RenderScope.capture())
+				{
+					listener.onRenderGUI(context, partialTicks);
+				}
 		}
 		
 		@Override

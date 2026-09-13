@@ -13,7 +13,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-// SwordItem removed in MC 26.1.2
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
@@ -167,7 +167,7 @@ public final class AutoToolHack extends Hack
 			if(speed <= bestSpeed)
 				continue;
 			
-			if(!useSwords && stack.is(net.minecraft.tags.ItemTags.SWORDS))
+			if(!useSwords && stack.has(DataComponents.WEAPON))
 				continue;
 			
 			if(isTooDamaged(stack, repairMode))
@@ -209,8 +209,7 @@ public final class AutoToolHack extends Hack
 	{
 		Inventory inv = MC.player.getInventory();
 		int selectedSlot = inv.getSelectedSlot();
-		IClientPlayerInteractionManager im =
-			(IClientPlayerInteractionManager)IMC.getInteractionManager();
+		IClientPlayerInteractionManager im = IMC.getInteractionManager();
 		
 		// If there's an empty slot in the main inventory,
 		// shift-click the damaged item out of the hotbar

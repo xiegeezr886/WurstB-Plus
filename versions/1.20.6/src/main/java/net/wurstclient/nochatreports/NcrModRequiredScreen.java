@@ -118,7 +118,7 @@ public final class NcrModRequiredScreen extends Screen
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY, float delta)
 	{
-		renderBackground(context);
+			renderBackground(context, mouseX, mouseY, delta);
 		
 		int centerX = width / 2;
 		int reasonY = (height - 68) / 2 - reasonHeight / 2;

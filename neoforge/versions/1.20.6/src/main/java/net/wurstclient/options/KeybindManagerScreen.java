@@ -7,7 +7,6 @@
  */
 package net.wurstclient.options;
 
-
 import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
@@ -130,7 +129,6 @@ public final class KeybindManagerScreen extends Screen
 		removeButton.active = selected;
 	}
 	
-
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)

@@ -4,13 +4,13 @@ import org.joml.Matrix4f;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
+import net.wurstclient.WurstRenderLayers;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.util.EntityUtils;
@@ -46,12 +46,6 @@ public final class AuraRangeRenderer
 		float outlineAlpha = active ? 0.9F : 0.68F;
 		Matrix4f matrix = poseStack.last().pose();
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableCull();
-		RenderSystem.disableDepthTest();
-		RenderSystem.depthMask(false);
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
 		drawBand(matrix, center, innerRadius, radius, segments, red, green,
 			blue, 0.015F, edgeAlpha);
@@ -60,8 +54,6 @@ public final class AuraRangeRenderer
 		drawOutline(matrix, center.add(0, 0.006, 0), radius, segments,
 			red, green, blue, outlineAlpha);
 
-		RenderSystem.depthMask(true);
-		RenderSystem.enableDepthTest();
 	}
 
 	static double sanitizeRadius(double radius)
@@ -105,7 +97,7 @@ public final class AuraRangeRenderer
 				.setColor(red, green, blue, innerAlpha);
 		}
 
-		draw(buffer);
+		draw(buffer, WurstRenderLayers.ESP_TRIANGLE_STRIP);
 	}
 
 	private static void drawOutline(Matrix4f matrix, Vec3 center,
@@ -129,13 +121,13 @@ public final class AuraRangeRenderer
 				.setColor(red, green, blue, alpha);
 		}
 
-		draw(buffer);
+		draw(buffer, WurstRenderLayers.ESP_DEBUG_LINE_STRIP);
 	}
 
-	private static void draw(BufferBuilder buffer)
+	private static void draw(BufferBuilder buffer, RenderType layer)
 	{
 		com.mojang.blaze3d.vertex.MeshData rendered = buffer.build();
 		if(rendered != null)
-			BufferUploader.drawWithShader(rendered);
+			layer.draw(rendered);
 	}
 }

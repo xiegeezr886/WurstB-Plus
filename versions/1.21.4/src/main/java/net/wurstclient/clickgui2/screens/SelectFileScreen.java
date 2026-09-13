@@ -7,7 +7,6 @@
  */
 package net.wurstclient.clickgui2.screens;
 
-import net.minecraft.client.gui.GuiGraphics;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -15,15 +14,14 @@ import java.util.List;
 import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.settings.FileSetting;
 
@@ -109,14 +107,14 @@ public final class SelectFileScreen extends Screen
 	}
 	
 	@Override
-	public boolean keyPressed(KeyEvent context)
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ENTER)
+		if(keyCode == GLFW.GLFW_KEY_ENTER)
 			done();
-		else if(context.key() == GLFW.GLFW_KEY_ESCAPE)
+		else if(keyCode == GLFW.GLFW_KEY_ESCAPE)
 			openPrevScreen();
 		
-		return super.keyPressed(context);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
@@ -124,24 +122,22 @@ public final class SelectFileScreen extends Screen
 	{
 		doneButton.active = listGui.getSelected() != null;
 	}
-@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
-	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
-	}
+	
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
+	@Override
+	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
+		renderBackground(context, mouseX, mouseY, partialTicks);
+		listGui.render(context, mouseX, mouseY, partialTicks);
 		
-		context.centeredText(minecraft.font,
-			setting.getName(), width / 2, 12, 0xFFffffff);
+		context.drawCenteredString(minecraft.font,
+			setting.getName(), width / 2, 12, 0xffffff);
 		
-		super.render(context.getInner(), mouseX, mouseY, partialTicks);
+		super.render(context, mouseX, mouseY, partialTicks);
 		
 		if(doneButton.isHoveredOrFocused() && !doneButton.active)
-			context.setComponentTooltipForNextFrame(font,
+			context.renderComponentTooltip(font,
 				Arrays.asList(Component.literal("请先选择一个文件。")),
 				mouseX, mouseY);
 	}
@@ -174,26 +170,25 @@ public final class SelectFileScreen extends Screen
 			return Component.translatable("narrator.select",
 				"文件 " + path.getFileName());
 		}
-@Override
-		public void renderContent(GuiGraphics graphics, int mouseX, int mouseY,
-			boolean hovered, float partialTicks)
+		
+		@Override
+		public boolean mouseClicked(double mouseX, double mouseY, int button)
 		{
-			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
-				hovered, partialTicks);
+			return button == GLFW.GLFW_MOUSE_BUTTON_LEFT;
 		}
-
-		public void extractContent(GuiGraphicsExtractor context, int mouseX,
-			int mouseY, boolean hovered, float tickDelta)
+		
+		@Override
+		public void render(GuiGraphics context, int index, int y, int x,
+			int entryWidth, int entryHeight, int mouseX, int mouseY,
+			boolean hovered, float tickDelta)
 		{
-			int x = getContentX();
-			int y = getContentY();
 			Font tr = minecraft.font;
 			
 			String fileName = "" + path.getFileName();
-			context.text(tr, fileName, x + 28, y, 0xFFF0F0F0);
+			context.drawString(tr, fileName, x + 28, y, 0xF0F0F0);
 			
 			String relPath = "" + minecraft.gameDirectory.toPath().relativize(path);
-			context.text(tr, relPath, x + 28, y + 9, 0xFFA0A0A0);
+			context.drawString(tr, relPath, x + 28, y + 9, 0xA0A0A0);
 		}
 	}
 	

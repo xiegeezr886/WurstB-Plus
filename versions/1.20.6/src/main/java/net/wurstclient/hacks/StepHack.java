@@ -10,6 +10,8 @@ package net.wurstclient.hacks;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.AABB;
 import net.wurstclient.Category;
 import net.wurstclient.events.UpdateListener;
@@ -70,11 +72,11 @@ public final class StepHack extends Hack implements UpdateListener
 
 		if(mode.getSelected() == Mode.SIMPLE)
 		{
-			player.maxUpStep = height.getValueF();
+			setStepHeight(player, height.getValueF());
 			return;
 		}
 		
-		player.maxUpStep = previousStepHeight;
+		setStepHeight(player, previousStepHeight);
 		
 		if(stepCooldown > 0 || !player.horizontalCollision)
 			return;
@@ -125,13 +127,22 @@ public final class StepHack extends Hack implements UpdateListener
 
 		restoreTrackedPlayer();
 		trackedPlayer = player;
-		previousStepHeight = player.maxUpStep;
+		previousStepHeight =
+			(float)player.getAttributeValue(Attributes.STEP_HEIGHT);
+	}
+
+	private void setStepHeight(LocalPlayer player, float value)
+	{
+		AttributeInstance attribute =
+			player.getAttribute(Attributes.STEP_HEIGHT);
+		if(attribute != null)
+			attribute.setBaseValue(value);
 	}
 
 	private void restoreTrackedPlayer()
 	{
 		if(trackedPlayer != null)
-			trackedPlayer.maxUpStep = previousStepHeight;
+			setStepHeight(trackedPlayer, previousStepHeight);
 		trackedPlayer = null;
 	}
 	
