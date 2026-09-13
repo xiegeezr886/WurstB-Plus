@@ -151,6 +151,9 @@ public final class TwilightShellScreen extends Screen
 	private final AppleLyricPlayer appleLyrics = new AppleLyricPlayer();
 	private boolean immersive;
 	private long displayedSongId = -1L;
+	
+	/** Sub-row scroll offset in pixels; {@link #scrollRows} carries the rows. */
+	private float scrollSub;
 	private int displayedLyricCount = -1;
 	
 	/**
@@ -495,8 +498,12 @@ public final class TwilightShellScreen extends Screen
 		refreshAccent();
 		
 		chartRows = TwilightListLayout.chartRows(frame, chartArea());
-		hoverChart = homeSongs == null ? -1
-			: TwilightListLayout.rowAt(frame, chartRows, mouseX, mouseY);
+		/*
+		 * 行是按原矩形上移 scrollOffset() 画出来的，所以判断悬停时要把鼠标
+		 * 坐标加回去，否则高亮会比内容慢半行。
+		 */
+		hoverChart = homeSongs == null ? -1 : TwilightListLayout.rowAt(frame,
+			chartRows, mouseX, mouseY + scrollOffset());
 		
 		if(homeSongs != null && hoverChart >= homeSongs.size())
 			hoverChart = -1;
@@ -507,8 +514,8 @@ public final class TwilightShellScreen extends Screen
 		
 		List<NeteaseSong> pageList =
 			activeNav == 0 && !searchMode ? null : pageSongs();
-		hoverPageRow = pageList == null ? -1
-			: TwilightListLayout.rowAt(frame, pageRows, mouseX, mouseY);
+		hoverPageRow = pageList == null ? -1 : TwilightListLayout.rowAt(frame,
+			pageRows, mouseX, mouseY + scrollOffset());
 		
 		if(pageList != null && hoverPageRow >= pageList.size())
 			hoverPageRow = -1;
@@ -901,11 +908,21 @@ public final class TwilightShellScreen extends Screen
 		}
 		
 		int first = firstChartSong();
-		int limit = Math.min(homeSongs.size() - first, chartRows.length);
+		Rect[] rows = shifted(chartRows);
+		int limit = Math.min(homeSongs.size() - first, rows.length);
+		
+		/*
+		 * 亚行偏移会把第一行推到区域外，所以在 Skia region 内裁剪一次，别让
+		 * 它压到上面的 hero 上。
+		 */
+		Rect area = chartArea();
+		TwilightSkia.save();
+		TwilightSkia.clipRoundRect(area.x(), area.y(), area.width(),
+			area.height(), 0F);
 		
 		for(int i = 0; i < limit; i++)
 		{
-			Rect row = chartRows[i];
+			Rect row = rows[i];
 			
 			if(row.y() + row.height() > frame.contentBody.bottom())
 				continue;
@@ -931,6 +948,8 @@ public final class TwilightShellScreen extends Screen
 				title.y() + frame.px(22), frame.px(11),
 				TwilightSkia.Weight.REGULAR, muted);
 		}
+		
+		TwilightSkia.restore();
 	}
 	
 	/** Loads whatever the newly selected page needs, at most once per page. */
@@ -1058,6 +1077,7 @@ public final class TwilightShellScreen extends Screen
 		openedTracks = List.of();
 		openedStatus = "正在加载《" + playlist.name() + "》…";
 		scrollRows = 0;
+		scrollSub = 0;
 		hoverPageRow = -1;
 		
 		load(() -> service.playlistTracks(playlist.id(), 100),
@@ -1077,6 +1097,7 @@ public final class TwilightShellScreen extends Screen
 		openedTracks = null;
 		openedStatus = null;
 		scrollRows = 0;
+		scrollSub = 0;
 		hoverPageRow = -1;
 	}
 	
@@ -1204,11 +1225,16 @@ public final class TwilightShellScreen extends Screen
 		}
 		
 		int first = firstListSong(songs);
-		int limit = Math.min(songs.size() - first, pageRows.length);
+		Rect[] rows = shifted(pageRows);
+		int limit = Math.min(songs.size() - first, rows.length);
+		
+		TwilightSkia.save();
+		TwilightSkia.clipRoundRect(area.x(), area.y(), area.width(),
+			area.height(), 0F);
 		
 		for(int i = 0; i < limit; i++)
 		{
-			Rect row = pageRows[i];
+			Rect row = rows[i];
 			
 			if(row.y() + row.height() > area.bottom())
 				continue;
@@ -1238,6 +1264,8 @@ public final class TwilightShellScreen extends Screen
 				title.x(), title.y() + frame.px(24), frame.px(11),
 				TwilightSkia.Weight.REGULAR, muted);
 		}
+		
+		TwilightSkia.restore();
 	}
 	
 	private void drawPlaylists(int accent, int text, int muted, Rect area)
@@ -1318,10 +1346,16 @@ public final class TwilightShellScreen extends Screen
 			int limit = Math.min(homeSongs.size() - firstChartSong(),
 				chartRows.length);
 			int first = firstChartSong();
+			Rect[] rows = shifted(chartRows);
+			Rect clip = frame.contentBody;
+			
+			// 封面是原版 blit，Skia 的裁剪够不到，这里用矩形裁剪兜住
+			graphics.enableScissor(clip.x(), clip.y(), clip.right(),
+				clip.bottom());
 			
 			for(int i = 0; i < limit; i++)
 			{
-				Rect row = chartRows[i];
+				Rect row = rows[i];
 				
 				if(row.y() + row.height() > frame.contentBody.bottom())
 					continue;
@@ -1331,6 +1365,8 @@ public final class TwilightShellScreen extends Screen
 					cover.y(), cover.width(), cover.height(),
 					(int)frame.px(TwilightListLayout.COVER_RADIUS));
 			}
+			
+			graphics.disableScissor();
 			return;
 		}
 		
@@ -1364,11 +1400,16 @@ public final class TwilightShellScreen extends Screen
 			return;
 		
 		int first = firstListSong(songs);
-		int limit = Math.min(songs.size() - first, pageRows.length);
+		Rect[] rows = shifted(pageRows);
+		int limit = Math.min(songs.size() - first, rows.length);
+		Rect clip = frame.contentBody;
+		
+		graphics.enableScissor(clip.x(), clip.y(), clip.right(),
+			clip.bottom());
 		
 		for(int i = 0; i < limit; i++)
 		{
-			Rect row = pageRows[i];
+			Rect row = rows[i];
 			
 			if(row.y() + row.height() > frame.contentBody.bottom())
 				continue;
@@ -1378,6 +1419,8 @@ public final class TwilightShellScreen extends Screen
 				cover.width(), cover.height(),
 				(int)frame.px(TwilightListLayout.COVER_RADIUS));
 		}
+		
+		graphics.disableScissor();
 	}
 	
 	private void drawCover(GuiGraphics graphics, NeteaseSong song, int x, int y,
@@ -1650,6 +1693,38 @@ public final class TwilightShellScreen extends Screen
 		return Math.min(scrollRows, Math.max(0, songs.size() - pageRows.length));
 	}
 	
+	/**
+	 * Sub-row scroll offset in pixels. {@link #scrollRows} already accounts for
+	 * the whole rows, so only the remainder is returned; drawing shifts by this
+	 * so the wheel slides the list instead of jumping a whole row.
+	 */
+	private int scrollOffset()
+	{
+		if(frame == null || scrollSub <= 0)
+			return 0;
+		
+		int rowHeight = Math.max(1,
+			(int)frame.px(TwilightListLayout.ROW_HEIGHT));
+		return (int)Math.min(rowHeight - 1, scrollSub);
+	}
+	
+	/** The row rects moved up by the sub-row offset, or the originals. */
+	private Rect[] shifted(Rect[] rows)
+	{
+		int offset = scrollOffset();
+		
+		if(rows == null || offset == 0)
+			return rows;
+		
+		Rect[] result = new Rect[rows.length];
+		
+		for(int i = 0; i < rows.length; i++)
+			result[i] = new Rect(rows[i].x(), rows[i].y() - offset,
+				rows[i].width(), rows[i].height());
+		
+		return result;
+	}
+	
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta)
 	{
@@ -1681,8 +1756,26 @@ public final class TwilightShellScreen extends Screen
 		if(maxRows <= 0)
 			return super.mouseScrolled(mouseX, mouseY, delta);
 		
-		scrollRows = Math.max(0, Math.min(maxRows,
-			scrollRows - (int)Math.signum(delta)));
+		// 半行一步：整行进位到 scrollRows，不足一行的留在 scrollSub
+		float next = scrollSub - (float)Math.signum(delta) * rowHeight / 2F;
+		int rows = scrollRows;
+		
+		while(next >= rowHeight)
+		{
+			next -= rowHeight;
+			rows++;
+		}
+		
+		while(next < 0)
+		{
+			next += rowHeight;
+			rows--;
+		}
+		
+		int clamped = Math.max(0, Math.min(maxRows, rows));
+		scrollRows = clamped;
+		// 到顶或到底时清掉不足一行的余量，否则末尾会一直露着一段空白
+		scrollSub = clamped == rows ? next : 0;
 		return true;
 	}
 	
@@ -1978,6 +2071,7 @@ public final class TwilightShellScreen extends Screen
 		searchMode = true;
 		searchFocused = false;
 		scrollRows = 0;
+		scrollSub = 0;
 		pageStatus = "正在搜索「" + query + "」…";
 		
 		load(() -> service.search(query, 30), () -> PLAYER.search(query),
@@ -2273,6 +2367,7 @@ public final class TwilightShellScreen extends Screen
 			
 			ensurePage();
 			scrollRows = 0;
+			scrollSub = 0;
 			hoverChart = -1;
 			hoverPageRow = -1;
 			hoverPlaylist = -1;
@@ -2396,6 +2491,7 @@ public final class TwilightShellScreen extends Screen
 			activeNav = 1;
 			ensurePage();
 			scrollRows = 0;
+			scrollSub = 0;
 			return true;
 		}
 		

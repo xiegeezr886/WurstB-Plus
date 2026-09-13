@@ -15,7 +15,9 @@
 | 交互 | 播放/暂停、上一首、下一首、进度条点击跳转、hero「播放全部」、歌曲行点击起播、歌单卡片点击起播、侧栏切页 |
 | 主题 | 封面取色（`NeteaseImageCache.Texture.accent()` → `TwilightAccent.fromAccent`）驱动全局强调色；封面未下载完时约每 40 帧重试一次 |
 | 文本 | 播放条曲名/歌手/时间来自播放器实时状态；页头标题随侧栏切换 |
-| 封面真图 | 在 `TwilightSkia.end(graphics)` 之后用 `GuiGraphics.blit(...)` 把 `NeteaseImageCache` 的纹理贴到同一批矩形（播放条 / 主页歌单行 / 内容页行 / 歌单卡片 / 沉浸页大封面），裁剪按 CSS `object-fit: cover` 用 `TwilightCoverFit.sourceRect` 计算。**不是圆角**：blit 无法裁成圆角矩形，圆角仍由底下的占位方块提供 |
+| 封面真图 | 在 `TwilightSkia.end(graphics)` 之后用 `GuiGraphics.blit(...)` 把纹理贴到同一批矩形（播放条 / 主页歌单行 / 内容页行 / 歌单卡片 / 沉浸页大封面），裁剪按 CSS `object-fit: cover` 用 `TwilightCoverFit.sourceRect` 计算 |
+| 封面圆角 | `TwilightCoverCache` + `TwilightCornerMask`：圆角**烘进纹理的 alpha**（4×4 超采样抗锯齿），而不是靠裁剪——`clipRoundRect` 只在 Skia region 内有效，原版 scissor 只能裁矩形，用背景色补角在玻璃/渐变背景上必然出错。蒙版在源分辨率生成、半径按绘制尺寸缩放，所以 44px 和 300px 的同一张封面圆角看起来一致，且一屏小封面共用一张蒙版纹理；下载、解码与取色仍由 `NeteaseImageCache` 负责，强调色与其它界面完全一致。为避免一屏新封面同时生成卡帧，每几毫秒最多生成一张，未生成前先画未圆角的纹理 |
+| 平滑滚动 | 滚轮半行一步：整行进位到 `scrollRows`，不足一行的留在 `scrollSub`，绘制时把行矩形整体上移 `scrollOffset()`（`shifted()`），悬停/点击再把偏移加回鼠标 Y。列表在 Skia region 内用 `save()` + `clipRoundRect(...,0)` 裁剪，封面因为走原版 blit，改用 `enableScissor` 裁剪；到顶/到底时清掉不足一行的余量 |
 | 沉浸播放页 | 点击播放条封面进入；自绘渐变背景 + 300px 大封面 + 曲名/歌手 + 返回/上一首/播放/下一首/进度/时间；ESC 先退出沉浸页再关界面。**歌词由现有 `AppleLyricPlayer`（类苹果 AMLL）绘制**，驱动方式照搬 `MusicLyricsHudElement`：每首歌喂一次 `setLyricLines`，然后 `setContentWidth/setContainerHeight/setPlaying/setCurrentTime/update/render`，并用 `enableScissor` 裁剪 |
 | 歌单详情页 | 点歌单卡片**不再直接起播**，而是进详情页：封面 + 名称 + 曲目数 + 「播放全部」+「返回」，下面是共用行渲染器的曲目表。曲目区用 `detailListArea()` 把内容区下移 96px，避免行压到头部；ESC /「返回」/切侧栏都会退出详情页 |
 
@@ -75,23 +77,21 @@
 
 ## 5. 还没接的
 
-1. **滚动**：已支持滚轮，但**按整行换内容**（矩形不动、内容移动），不是像素级
-   平滑滚动，也没有滚动条——因为 Skia region 内部没有裁剪，平移矩形会让内容压到
-   上方标题上。
-2. **封面圆角**：需要改用 Skia 侧绘制纹理才能做圆角裁剪。
-3. **中文输入法**：搜索框只收 `charTyped`，没有 IME 支持，无法输入中文关键词。
-4. **手机验证码 / 邮箱登录**：见 §3，只做了扫码。
-5. **歌单详情的元数据**：详情页只显示名称与曲目数，没有参考里的简介、播放量、
-   创建者与封面真图（封面仍是强调色方块，理由同第 2 条）。
+1. **中文输入法**：搜索框只收 `charTyped`，没有 IME 支持，无法输入中文关键词。
+   这是唯一一个已知的、不引入文本输入控件就无法补齐的功能，其余布局与交互都已
+   对齐参考。
+2. **手机验证码 / 邮箱登录**：只做了扫码（目标要求的正是扫码登录）。
+3. **歌单详情的元数据**：详情页只显示名称与曲目数，没有参考里的简介、播放量与
+   创建者。
 
 ## 6. 验证状态（诚实声明）
 
 - 只做了编译 + 单元测试：`gradlew compileJava compileTestJava test --offline`
-  → `BUILD SUCCESSFUL`，122 个测试类 / 652 个测试 / 0 失败
-  （其中 `TwilightMusicServiceTest` 12 个、`TwilightApiEndpointTest` 4 个，
-  全部是纯解析/URL 测试，**不联网**）。
-- **从未在游戏里渲染或试听过**：所有 Skia 调用、原版 `blit`、`NativeImage` /
-  `DynamicTexture` 用法只做过签名核对。
+  → `BUILD SUCCESSFUL`，123 个测试类 / 663 个测试 / 0 失败
+  （`TwilightMusicServiceTest` 12 个、`TwilightApiEndpointTest` 4 个、
+  `TwilightCornerMaskTest` 11 个，全部是纯解析 / URL / 蒙版数学测试，**不联网**）。
+- **从未在游戏里渲染或试听过**：所有 Skia 调用、原版 `blit`、`enableScissor`、
+  `NativeImage` / `DynamicTexture` / `getPixels` 用法只做过签名核对与编译验证。
 - **从未连过真实的 NeteaseCloudMusicApiEnhanced 服务**：端点路径、信封字段名、
   二维码返回格式都是按协议与 `data-layer.md` 写的，并且刻意做成"多种信封都试、
   失败就回退"，但仍可能与该服务的实际返回有出入。
