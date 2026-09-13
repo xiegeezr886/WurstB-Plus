@@ -1739,6 +1739,16 @@ public final class TwilightShellScreen extends Screen
 		qrTextureSize = 0;
 	}
 	
+	/** The logout button inside the account panel. */
+	private Rect logoutButton()
+	{
+		Rect panel = loginPanel();
+		int width = (int)frame.px(132);
+		int height = (int)frame.px(32);
+		return new Rect(panel.x() + (panel.width() - width) / 2,
+			panel.y() + (int)frame.px(124), width, height);
+	}
+	
 	/** The overlay panel, so the click handler and the painter agree on it. */
 	private Rect loginPanel()
 	{
@@ -1781,6 +1791,17 @@ public final class TwilightShellScreen extends Screen
 				top + (int)frame.px(54), 0xFF2563EB);
 			graphics.drawCenteredString(font, "已登录，按 ESC 返回", width / 2,
 				top + (int)frame.px(82), 0xFF6B6B75);
+			
+			Rect logout = logoutButton();
+			graphics.fill(logout.x(), logout.y(), logout.right(),
+				logout.bottom(), 0xFFF2F2F7);
+			graphics.fill(logout.x(), logout.y(), logout.right(),
+				logout.y() + 1, 0xFFDCDCE6);
+			graphics.fill(logout.x(), logout.bottom() - 1, logout.right(),
+				logout.bottom(), 0xFFDCDCE6);
+			graphics.drawCenteredString(font, "退出登录",
+				logout.x() + logout.width() / 2,
+				logout.y() + (logout.height() - 8) / 2, 0xFFB3261E);
 			return;
 		}
 		
@@ -2071,6 +2092,18 @@ public final class TwilightShellScreen extends Screen
 		
 		if(loginOverlay)
 		{
+			if(PLAYER.isLoggedIn() && logoutButton().contains(mouseX, mouseY))
+			{
+				PLAYER.logout();
+				statusLine = "已退出网易云账号";
+				// 面板留在原地，立刻换成一张新二维码
+				qrSession = null;
+				clearQrTexture();
+				qrStatus = "正在获取二维码…";
+				qrCooldown = 0;
+				return true;
+			}
+			
 			// 弹层是模态的：点面板外任意处关闭，点面板内不做任何事
 			if(!loginPanel().contains(mouseX, mouseY))
 				closeLogin();
