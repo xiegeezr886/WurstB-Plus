@@ -37,7 +37,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | 背包操作 | 待办 | 参考 `util/inventory/`（`Task`/`Step`/`operation/*`）对比本工程 `InventoryActionQueue.java`(111) / `InventoryUtils.java`(261) |
 | 时序 / 暂停 | 待办 | 参考 `util/pause/*`（`HandPause`/`PriorityTimeoutPause`）对比本工程 `HackConflictManager.java`(39) |
 | 缓存原语 | 待办 | 参考 `util/delegate/*`（`CachedValue`/`FrameValue`/`ComputeFlag`/`AsyncCachedValue`） |
-| 目标选择 | 待办 | 参考 `CombatManager.kt`(475) 对比本工程 `CombatTargetUtils.java`(193) / `TargetTracker.java`(85) |
+| 目标选择 | **共享核心已加，尚未接入（行为未变）** | 新增 `util/TargetScore.java`（纯类，13 个单测）：按参考 §7 实现五因子加权打分——`distF`(8 格饱和) + `healthF`(20 血饱和) + `armorF`(20 点爆炸实收伤害) + `holeF`(四水平邻向不抗爆占比) + `crosshairF`(`|相对偏航|` 30° 饱和)，默认权重各 0.5，总分降序。**注意：目前没有任何 hack 调用它**，所以还没有换来行为改善；下一步是把它接进 `CombatTargetUtils` / `TargetTracker`，再让 KillAura / MultiAura / CrystalAura / AnchorAura / AutoTrap 用上 |
 | 移动数学 | 待办 | 参考 `MovementUtils.kt` 对比本工程 `MovementPlanner.java`(87)；注意 1.13+ 游泳/1.14+ 跳跃差异，参数不能照抄 |
 
 **受益的常用 hack**（都走 `DamageUtils`，因此共享这一优化）：`CrystalAura`、`AnchorAura`、
