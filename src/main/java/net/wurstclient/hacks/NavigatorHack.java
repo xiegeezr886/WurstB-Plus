@@ -7,11 +7,11 @@
  */
 package net.wurstclient.hacks;
 
+import net.minecraft.client.gui.screens.Screen;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.WurstClient;
-import net.wurstclient.clickgui2.NavigatorScreen;
-import net.wurstclient.clickgui2.PvPUtilsNavigatorScreen;
+import net.wurstclient.clickgui2.NavigatorScreens;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.NotificationSeverity;
@@ -29,12 +29,15 @@ public final class NavigatorHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		if(WURST.getGuiPreferences().isRiseMode())
-		{
-			if(!(MC.screen instanceof NavigatorScreen))
-				MC.setScreen(new NavigatorScreen());
-		}else if(!(MC.screen instanceof PvPUtilsNavigatorScreen))
-			MC.setScreen(new PvPUtilsNavigatorScreen());
+		Screen target = NavigatorScreens.create(MC.screen);
+		
+		/*
+		 * 模式可能在别处被切过（导航器的客户端设置页、ClickGUI 的设置列表），
+		 * 所以按目标类型判断，而不是写死某一个界面。
+		 */
+		if(MC.screen == null || MC.screen.getClass() != target.getClass())
+			MC.setScreen(target);
+		
 		if(WURST.getHudManager() != null)
 			WURST.getHudManager().addNotification("Info", getDisplayName(),
 				NotificationSeverity.INFO);

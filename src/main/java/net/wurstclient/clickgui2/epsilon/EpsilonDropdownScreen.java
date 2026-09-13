@@ -20,6 +20,7 @@ import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.GuiIcon;
 import net.wurstclient.clickgui2.GuiPreferences;
 import net.wurstclient.clickgui2.GuiPreferences.TargetType;
+import net.wurstclient.clickgui2.NavigatorScreens;
 import net.wurstclient.clickgui2.component.ClickGuiKeyLatch;
 import net.wurstclient.clickgui2.component.GuiTextInput;
 import net.wurstclient.clickgui2.component.VapeGuiContext;
@@ -241,6 +242,8 @@ public final class EpsilonDropdownScreen extends Screen
 			{"Chinese", String.valueOf(!WURST.getOtfs().translationsOtf
 				.getForceEnglish().isChecked())},
 			{"GUI style", preferences.getClickGuiStyle().displayName()},
+			// 与 vapeMode 对称的独立开关：打开后导航器改用原有的 Rise 界面
+			{"Rise mode", String.valueOf(preferences.isRiseMode())},
 			{"Commands", String.valueOf(preferences.isCommandsEnabled())},
 			{"Font", String.valueOf(preferences.isFontEnabled())},
 			{"Music", ""}};
@@ -473,6 +476,10 @@ public final class EpsilonDropdownScreen extends Screen
 						setting.setChecked(!setting.isChecked());
 					}
 					case "GUI style" -> ClickGuiScreens.cycleStyle();
+					case "Rise mode" ->
+						// 只改偏好、不换界面：这是从 Rise 模式切回来的入口
+						NavigatorScreens.setRiseMode(
+							!WURST.getGuiPreferences().isRiseMode(), false);
 					case "Commands" -> {
 						GuiPreferences preferences =
 							WURST.getGuiPreferences();
