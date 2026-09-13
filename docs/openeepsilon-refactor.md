@@ -43,6 +43,25 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 **受益的常用 hack**（都走 `DamageUtils`，因此共享这一优化）：`CrystalAura`、`AnchorAura`、
 `AutoTotem`、`Protect`、`AutoTrap`、`Surround`、`AutoCity`、`HoleFiller`、`SelfTrap`、`AutoCev`。
 
+## 0.2 对参考「优先移植前 5 名」的核对结果
+
+参考规格（`_oe_ref/core-spec.md`）给出了一份优先榜。**动手前逐条核对，结果有一半本工程已经有了**，
+记在这里避免重复劳动：
+
+| 参考优先项 | 核对结论 | 依据 |
+| --- | --- | --- |
+| ① 爆炸伤害链 + 暴露度采样 | **已等价**，不需移植 | 本工程 `DamageUtils` 的 `(impact²+impact) * 0.5 * 7.0 * diameter + 1.0`，其中 `diameter = power * 2`；power=6 时 `0.5*7*12 = 42`，与参考的 `floor((f²+f)*42+1)` **完全一致**。暴露度用原版 `Explosion.getSeenPercent`（自带采样与面判定），不比参考的 40 点采样差 |
+| ④ TpsCalculator + 点击计时对齐 TPS | **已有等价实现** | `hud2/ClientMetricsManager`：由 `PacketInputEvent`（服务端 tick 同步包）驱动，`SMOOTHING = 0.2` 的 EMA、`DEFAULT_TPS = 20`、夹在 `[0,20]`、换世界重置。参考是 20 槽环形缓冲 + 剔除 0 值求均值，两者目的相同，EMA 更省内存 |
+| ⑤ DamageReduction 快照 | **已完成** | 见 §0.1；「伤害图增量重算」那半条待核对（本工程可能没有 CombatManager 那种 27³ 全量扫描，若无则**不适用**） |
+| ② `PlayerPacketManager` 单槽包合并 + priority 仲裁 | **待核对** | 需要读 `util/RotationQueue.java`(280) 判断它到底是「队列」还是「单槽最新优先」。若它每 tick 会发多个朝向包，这才是真缺口；若已是单槽合并，则**不适用** |
+| ③ 背包 Task/Step/Future 队列 | **待核对** | 需要读 `util/InventoryActionQueue.java`(111) + `util/InventoryUtils.java`(261) 判断是否已有「点击序列 + 事务确认 + TPS 缩放步进」 |
+
+**另外一条被规格点名的「最大差距」经核对并不成立**：规格推荐的 `util/pause/*`（优先级抢占 +
+超时暂停令牌）对应本工程 `hack/HackConflictManager.java`(39)，但**两者不是一回事**——
+`HackConflictManager` 管的是「互斥 hack 互相关闭」，而参考的 pause 是「作用域内的临时抑制、
+带优先级与 50ms 超时」。所以差距是真的，但**不能直接替换**；而且在没有明确消费方（例如
+「放方块的瞬间抑制攻击」）之前先加一个没人用的令牌原语，属于凭空造抽象，**暂不做**。
+
 
 状态含义：`待办` 未动 / `已优化` 改了实现细节 / `已重构` 换了算法或架构 / `不适用` OpenEpsilon 无对应模块或差异无意义 / `共享核心` 主要逻辑已移入共享层。
 
