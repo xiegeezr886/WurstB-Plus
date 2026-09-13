@@ -2,6 +2,7 @@ package net.wurstclient.util.inventory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -48,7 +49,8 @@ public final class InventoryActionQueue
 
 		int menuId = WurstClient.MC.player.containerMenu.containerId;
 		pending.add(new ActionChain(owner, priority, sequence++, menuId,
-			validator, List.copyOf(Arrays.asList(actions))));
+			System.currentTimeMillis(), validator,
+			List.copyOf(Arrays.asList(actions))));
 		return true;
 	}
 
@@ -73,29 +75,66 @@ public final class InventoryActionQueue
 		ActionChain chain;
 		synchronized(this)
 		{
-			chain = selectNext();
+			chain = selectNext(System.currentTimeMillis());
+			
 			if(chain != null)
 				pending.remove(chain);
 		}
-
-		if(chain == null || WurstClient.MC.player == null
-			|| WurstClient.MC.player.containerMenu.containerId != chain.menuId
-			|| !chain.validator.getAsBoolean())
+		
+		if(chain == null)
 			return;
-
+		
 		for(Runnable action : chain.actions)
 			action.run();
 	}
-
-	private ActionChain selectNext()
+	
+	/**
+	 * 选出这一 tick 要跑的链，并顺手丢掉没救的。
+	 *
+	 * <p>
+	 * 与原来不同：条件没通过的链**留在队列里**等下一 tick（受
+	 * {@link ActionRetryPolicy#DEFAULT_RETRY_WINDOW_MS} 限制），而不是"先移除再
+	 * 校验"导致它被静默丢弃、owner 永远等不到。为了不让一条在等的链挡住后面的
+	 * 链，RETRY 只是跳过、不参与本次选择。
+	 */
+	private ActionChain selectNext(long nowMs)
 	{
 		ActionChain best = null;
-		for(ActionChain chain : pending)
+		Iterator<ActionChain> iterator = pending.iterator();
+		
+		while(iterator.hasNext())
+		{
+			ActionChain chain = iterator.next();
+			ActionRetryPolicy.Decision decision = decide(chain, nowMs);
+			
+			if(decision == ActionRetryPolicy.Decision.ABORT)
+			{
+				iterator.remove();
+				continue;
+			}
+			
+			if(decision == ActionRetryPolicy.Decision.RETRY)
+				continue;
+			
 			if(best == null || chain.priority > best.priority
 				|| chain.priority == best.priority
 					&& chain.sequence < best.sequence)
 				best = chain;
+		}
+		
 		return best;
+	}
+	
+	private ActionRetryPolicy.Decision decide(ActionChain chain, long nowMs)
+	{
+		boolean menuMatches = WurstClient.MC.player != null
+			&& WurstClient.MC.player.containerMenu.containerId == chain.menuId;
+		boolean validatorPassed =
+			menuMatches && chain.validator.getAsBoolean();
+		
+		return ActionRetryPolicy.decide(menuMatches, validatorPassed,
+			nowMs - chain.submittedAtMs,
+			ActionRetryPolicy.DEFAULT_RETRY_WINDOW_MS);
 	}
 
 	@Override
@@ -105,7 +144,8 @@ public final class InventoryActionQueue
 	}
 
 	private record ActionChain(Object owner, int priority, long sequence,
-		int menuId, BooleanSupplier validator, List<Runnable> actions)
+		int menuId, long submittedAtMs, BooleanSupplier validator,
+		List<Runnable> actions)
 	{
 	}
 }
