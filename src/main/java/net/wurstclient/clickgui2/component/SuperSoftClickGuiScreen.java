@@ -25,7 +25,7 @@ import net.wurstclient.clickgui2.GuiIcon;
 import net.wurstclient.clickgui2.ClickGuiScreens;
 import net.wurstclient.clickgui2.GuiPreferences;
 import net.wurstclient.clickgui2.GuiPreferences.TargetType;
-import net.wurstclient.clickgui2.screens.NeteaseMusicScreen;
+import net.wurstclient.twilight.TwilightShellScreen;
 import net.wurstclient.clickgui2.supersoft.SuperSoftRenderer;
 import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.SuperSoftTheme;
@@ -715,7 +715,7 @@ public final class SuperSoftClickGuiScreen extends Screen
 				() -> isWindowVisible(id), () -> toggleWindowVisibility(id)));
 		}
 		rows.add(SuperSoftRowsWindow.action("Netease Music", () -> false,
-			() -> minecraft.setScreen(new NeteaseMusicScreen(this))));
+			() -> minecraft.setScreen(new TwilightShellScreen(this))));
 		return rows;
 	}
 

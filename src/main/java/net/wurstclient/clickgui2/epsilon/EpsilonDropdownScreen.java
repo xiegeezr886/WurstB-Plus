@@ -23,7 +23,7 @@ import net.wurstclient.clickgui2.GuiPreferences.TargetType;
 import net.wurstclient.clickgui2.component.ClickGuiKeyLatch;
 import net.wurstclient.clickgui2.component.GuiTextInput;
 import net.wurstclient.clickgui2.component.VapeGuiContext;
-import net.wurstclient.clickgui2.screens.NeteaseMusicScreen;
+import net.wurstclient.twilight.TwilightShellScreen;
 import net.wurstclient.clickgui2.supersoft.EpsilonMd3Theme;
 import net.wurstclient.clickgui2.supersoft.UiTween;
 import net.wurstclient.hud2.HudEditorScreen;
@@ -485,7 +485,7 @@ public final class EpsilonDropdownScreen extends Screen
 						preferences.setFontEnabled(!preferences.isFontEnabled());
 					}
 					case "Music" -> minecraft.setScreen(
-						new NeteaseMusicScreen(this));
+						new TwilightShellScreen(this));
 					default -> {}
 				}
 				return true;

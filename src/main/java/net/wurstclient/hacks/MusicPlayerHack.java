@@ -3,7 +3,7 @@ package net.wurstclient.hacks;
 import net.wurstclient.Category;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
-import net.wurstclient.clickgui2.screens.NeteaseMusicScreen;
+import net.wurstclient.twilight.TwilightShellScreen;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 
@@ -21,7 +21,7 @@ public final class MusicPlayerHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		MC.setScreen(new NeteaseMusicScreen(MC.screen));
+		MC.setScreen(new TwilightShellScreen(MC.screen));
 		setEnabled(false);
 	}
 }
