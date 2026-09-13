@@ -46,7 +46,15 @@ public enum CombatTargetUtils
 			|| aimPoint == null || filters == null || priority == null
 			|| MC.player == null || MC.level == null)
 			return List.of();
-
+		
+		/*
+		 * SCORE 走独立路径：它的键（护甲结算、邻向遮挡）比距离贵得多，必须每个候选
+		 * 只算一次，不能交给比较器反复算。
+		 */
+		if(priority == Priority.SCORE)
+			return getListByScore(range, fov, aimPoint, filters, checkLOS,
+				maxCount, TargetScore.Weights.DEFAULT);
+		
 		return EntityUtils.getAttackableEntities().sequential()
 			.filter(entity -> isValid(entity, range, fov, aimPoint, filters,
 				checkLOS))
@@ -184,6 +192,11 @@ public enum CombatTargetUtils
 				: Double.MAX_VALUE;
 			case HURT_TIME -> entity instanceof LivingEntity living
 				? Math.max(0, living.hurtTime) : Integer.MAX_VALUE;
+			/*
+			 * SCORE 正常情况下不会走到这里（getList 已经把它分流到打分路径）。
+			 * 真被直接调用时退化为距离，避免有人在比较器里拿到昂贵的综合打分。
+			 */
+			case SCORE -> Math.sqrt(distanceToBoxSqr(entity));
 		};
 		return Double.isFinite(score) ? score : Double.MAX_VALUE;
 	}
@@ -257,7 +270,17 @@ public enum CombatTargetUtils
 		DISTANCE("Distance"),
 		ANGLE("Angle"),
 		HEALTH("Health"),
-		HURT_TIME("Hurt time");
+		HURT_TIME("Hurt time"),
+		/**
+		 * 参考项目 CakeSlayers/OpenEpsilon 的加权综合打分。**默认不选它**，
+		 * 所以升级不会改变任何人现有的选人行为。
+		 *
+		 * <p>
+		 * 它的排序由 {@link CombatTargetUtils#getList} 分流到
+		 * {@link CombatTargetUtils#getListByScore}，**不经过**
+		 * {@link #getComparator}——因为打分的键比距离贵得多。
+		 */
+		SCORE("Score");
 
 		private final String name;
 

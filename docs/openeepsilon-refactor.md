@@ -44,7 +44,8 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 - 顺带一提，`armorF` 可以用第 1 轮加的 `DamageUtils.profileOf()` 缓存来算"20 点标称伤害实收多少"，**不需要**跑暴露度光线投射，所以五个因子全都可以廉价地每人算一次。
 - ✅ **入口已经实现**：`CombatTargetUtils.getListByScore(range, fov, aimPoint, filters, checkLOS, maxCount, weights)`——先按距离拿候选，再给每个候选算一次 `Inputs`，最后 `TargetScore.rank` 排序。**没有改动 `getList` 与任何默认行为**；要用打分排序的 hack 自行改调这个入口。
 - ⚠️ **一处刻意的近似**：`holeF` 的"暴露面"参考判的是邻向**抗不抗爆**，本工程用"空气或碰撞箱为空"代替（`countExposedSides`），因为 1.20.1 取爆炸抗性要构造 `Explosion` 上下文。所以洞因子在"水/树叶"这类不抗爆但有碰撞箱的方块上会算得比参考保守。
-- ⚠️ **仍未接线**：目前没有任何 hack 调用 `getListByScore`，所以**行为仍未改变**。下一步是让 KillAura / MultiAura / CrystalAura / AnchorAura / AutoTrap 改调它，那会真正改变实战选人，需要实机验证手感。
+- ✅ **已经接线（opt-in，默认关闭）**：`CombatTargetUtils.Priority` 新增 `SCORE("Score")`，`getList` 见到它就分流到 `getListByScore`；`getScore`/`getComparator` 里为它留了一个**退化为距离**的分支并注明"正常不会走到这里"，免得有人误在比较器里用打分。所以凡是暴露了 `Priority` 设置的 combat hack（如 ClickAura）现在都能选 Score——**但默认值仍是各自原来的（ClickAura 是 ANGLE），升级不会改变任何人的选人行为**，用户主动在设置里选 Score 才生效。
+- ⚠️ **仍需实机调手感**：打分排序的实际观感（是否真的比按角度/距离更"聪明"）我无法验证；权重是参考的 0.5 全等值，未必适合本工程的 hack 组合。
 
 | 移动数学 | 待办 | 参考 `MovementUtils.kt` 对比本工程 `MovementPlanner.java`(87)；注意 1.13+ 游泳/1.14+ 跳跃差异，参数不能照抄 |
 
