@@ -3,6 +3,47 @@
 参考：`CakeSlayers/OpenEpsilon`（Kotlin，已 clone 到 `D:\WurstB\_oe_ref`，只读）。
 本文件是**进度账本**：每个 hack 一行，状态在重构过程中更新。
 
+## 0. 先说一个决定性事实：参考项目是 1.12.2 的
+
+`_oe_ref/build.gradle.kts:61` 是 `minecraft("net.minecraftforge:forge:1.12.2-14.23.5.2860")`，
+Java 8、MCP `39-1.12` 映射、Kotlin 1.6。它是一个 **1.12.2 客户端**（Epsilon 泄露码的重制版），
+不是新版本客户端。这决定了「参考」的边界：
+
+| 类别 | 能借鉴吗 | 原因 |
+| --- | --- | --- |
+| 包级 exploit / 时序绕过 | **不能** | `Critical.kt:44-110` 的 `Packet/NCP/AAC/Hypixel` 四种模式全是 1.8~1.12 的「向上位移包骗暴击」。1.20.1 的暴击判定（`fallDistance>0 && !onGround && !onClimbable && !isInWater && !isPassenger && !isSprinting`）不同，这些包序列在新版本要么无效要么踢人 |
+| 渲染实现 | **不能** | 1.12.2 用 GL11 立即模式 + 自写 shader/font atlas；1.20.1 是 `GuiGraphics`/`RenderSystem`/`VertexConsumer`，API 完全不同 |
+| MCP 名称 | 需翻译 | `CPacketPlayer`→`ServerboundMovePlayerPacket`、`EntityLivingBase`→`LivingEntity`、`ItemSword`→`SwordItem`、`posX`→`getX()`、`ridingEntity`→`getVehicle()`、`motionY`→`setDeltaMovement`、`windowClick`→`handleInventoryMouseClick` |
+| 背包操作流程 | **能** | `util/inventory/`（`Task`/`Step`/`operation/*`）是抽象设计，与版本无关 |
+| 战斗目标选择 / 伤害与减伤模型 | **能** | `CombatManager`、`util/combat/*`（`CombatUtils`/`DamageReduction`/`HoleUtils`/`SurroundUtils`/`MotionTracker`/`ExposureSample`）是数学与排序逻辑 |
+| 时序 / 暂停 / 缓存抽象 | **能** | `util/pause/*`、`util/delegate/*`、`util/threads/*`、`TimerManager` 是架构 |
+| 移动数学 | 部分能 | `MovementUtils`/`Speed`/`Strafe`/`LongJump` 的数学可以，但 1.13+ 游泳、1.14+ 跳跃、鞘翅差异大，参数不能照抄 |
+
+**结论**：只能借**设计与算法**，不能借**包序列与渲染代码**；与协议时序强相关的旧技巧一律标
+「不适用」，不硬搬。
+
+另：本工程核心已比预期成熟，所以不做"为改而改"的重写——`util/CombatClickScheduler.java` 已是
+LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtils.java` 的爆炸伤害已带暴露采样、
+护甲/韧性吸收、保护附魔与抗性。值得动的是它们**周边**缺失的抽象与缓存。
+
+## 0.1 共享核心进度
+
+| 共享核心 | 状态 | 说明 |
+| --- | --- | --- |
+| 伤害减伤画像 | **已优化** | 新增 `util/DamageProfile.java`（纯类，11 个单测）+ `DamageUtils.profileOf()`：护甲/韧性/保护 EPF/抗性每实体每 250ms 只扫一次，替代原来的「每次调用扫 4 个护甲槽」。换世界自动失效，无需重置钩子。**数值不变**——EPF 仍由原版 `EnchantmentHelper.getDamageProtection` 产出（1.20.1 附魔是数据驱动的，照抄参考的 `2*level` 会算错），护甲吸收仍走原版 `CombatRules`，画像只负责组合系数 |
+| 吸收意识 | **已补齐** | 新增 `DamageUtils.totalHealth/scaledHealth/isLethal`。参考有而本工程原来没有；`scaledHealth = health + absorption * (health / maxHealth)` 是判断「能不能打死 / 会不会掉图腾」的基础 |
+| 点击调度 | 不适用 | `CombatClickScheduler` 已是 LiquidBounce 系实现，不逊于参考的 `TimerManager`；其 `tick * 50L` 对**客户端** tick 是正确的（客户端恒 20 TPS），不是 bug |
+| 旋转 | 待办 | 参考 `util/math/RotationUtils.kt` + `RotationUtil.kt` 对比本工程 `util/RotationQueue.java`(280) / `RotationSmoothing.java`(161) |
+| 背包操作 | 待办 | 参考 `util/inventory/`（`Task`/`Step`/`operation/*`）对比本工程 `InventoryActionQueue.java`(111) / `InventoryUtils.java`(261) |
+| 时序 / 暂停 | 待办 | 参考 `util/pause/*`（`HandPause`/`PriorityTimeoutPause`）对比本工程 `HackConflictManager.java`(39) |
+| 缓存原语 | 待办 | 参考 `util/delegate/*`（`CachedValue`/`FrameValue`/`ComputeFlag`/`AsyncCachedValue`） |
+| 目标选择 | 待办 | 参考 `CombatManager.kt`(475) 对比本工程 `CombatTargetUtils.java`(193) / `TargetTracker.java`(85) |
+| 移动数学 | 待办 | 参考 `MovementUtils.kt` 对比本工程 `MovementPlanner.java`(87)；注意 1.13+ 游泳/1.14+ 跳跃差异，参数不能照抄 |
+
+**受益的常用 hack**（都走 `DamageUtils`，因此共享这一优化）：`CrystalAura`、`AnchorAura`、
+`AutoTotem`、`Protect`、`AutoTrap`、`Surround`、`AutoCity`、`HoleFiller`、`SelfTrap`、`AutoCev`。
+
+
 状态含义：`待办` 未动 / `已优化` 改了实现细节 / `已重构` 换了算法或架构 / `不适用` OpenEpsilon 无对应模块或差异无意义 / `共享核心` 主要逻辑已移入共享层。
 
 ## 覆盖统计
