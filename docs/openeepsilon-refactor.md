@@ -53,8 +53,12 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | ① 爆炸伤害链 + 暴露度采样 | **已等价**，不需移植 | 本工程 `DamageUtils` 的 `(impact²+impact) * 0.5 * 7.0 * diameter + 1.0`，其中 `diameter = power * 2`；power=6 时 `0.5*7*12 = 42`，与参考的 `floor((f²+f)*42+1)` **完全一致**。暴露度用原版 `Explosion.getSeenPercent`（自带采样与面判定），不比参考的 40 点采样差 |
 | ④ TpsCalculator + 点击计时对齐 TPS | **已有等价实现** | `hud2/ClientMetricsManager`：由 `PacketInputEvent`（服务端 tick 同步包）驱动，`SMOOTHING = 0.2` 的 EMA、`DEFAULT_TPS = 20`、夹在 `[0,20]`、换世界重置。参考是 20 槽环形缓冲 + 剔除 0 值求均值，两者目的相同，EMA 更省内存 |
 | ⑤ DamageReduction 快照 | **已完成** | 见 §0.1；「伤害图增量重算」那半条待核对（本工程可能没有 CombatManager 那种 27³ 全量扫描，若无则**不适用**） |
-| ② `PlayerPacketManager` 单槽包合并 + priority 仲裁 | **待核对** | 需要读 `util/RotationQueue.java`(280) 判断它到底是「队列」还是「单槽最新优先」。若它每 tick 会发多个朝向包，这才是真缺口；若已是单槽合并，则**不适用** |
-| ③ 背包 Task/Step/Future 队列 | **待核对** | 需要读 `util/InventoryActionQueue.java`(111) + `util/InventoryUtils.java`(261) 判断是否已有「点击序列 + 事务确认 + TPS 缩放步进」 |
+| ② `PlayerPacketManager` 单槽包合并 + priority 仲裁 | **不适用（本工程已是这个设计）** | `util/RotationQueue.java`：所有队列注册进静态 `ACTIVE`(28)，`RotationDispatcher.onPreMotion()`(224) 每 tick 按 `priority.weight` 比较选**唯一**赢家(236-243)，然后**只调一次** `RotationFaker.setRotationPacket(next)`(248)。每 tick 至多一个朝向包 + 优先级仲裁，正是参考 `PlayerPacketManager` 的做法，**无需移植** |
+| ③ 背包 Task/Step/Future 队列 | **部分等价，待读 `ActionChain` 定论** | `util/inventory/InventoryActionQueue.java` 已有：`ArrayList<ActionChain>`(15) 链式动作、`submit(owner, priority, …)`(42)、`hasPending(owner)`(55)、`cancel(owner)`(60)、按 tick 推进的 `onUpdate()`(71)。**但里面 grep 不到 confirm / transaction / future / timeout 任何字样**，所以「点击之后是否等确认再走下一步」无法判定；下一轮读 `ActionChain` 才能下结论。若它已有确认机制则同属**不适用** |
+
+**小结：参考优先榜 5 项里，① 等价、② 不适用、④ 已有、⑤ 本工程已完成，只剩 ③ 需要再读一个类定论。**
+也就是说**共享核心层面几乎不需要再移植**，后面的工作量应该转向「逐个常用 hack 的旧实现」。
+
 
 **另外一条被规格点名的「最大差距」经核对并不成立**：规格推荐的 `util/pause/*`（优先级抢占 +
 超时暂停令牌）对应本工程 `hack/HackConflictManager.java`(39)，但**两者不是一回事**——
