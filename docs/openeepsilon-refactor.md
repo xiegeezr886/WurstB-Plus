@@ -36,7 +36,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | 旋转 | 待办 | 参考 `util/math/RotationUtils.kt` + `RotationUtil.kt` 对比本工程 `util/RotationQueue.java`(280) / `RotationSmoothing.java`(161) |
 | 背包操作 | 待办 | 参考 `util/inventory/`（`Task`/`Step`/`operation/*`）对比本工程 `InventoryActionQueue.java`(111) / `InventoryUtils.java`(261) |
 | 时序 / 暂停 | 待办 | 参考 `util/pause/*`（`HandPause`/`PriorityTimeoutPause`）对比本工程 `HackConflictManager.java`(39) |
-| 缓存原语 | 待办 | 参考 `util/delegate/*`（`CachedValue`/`FrameValue`/`ComputeFlag`/`AsyncCachedValue`） |
+| 缓存原语 | **不适用（已有针对性缓存，不需要通用原语）** | 参考的 `util/delegate/*` 是一组通用小工具（`CachedValue` 35 / `FrameValue` 67 / `ComputeFlag` 12 / `AsyncCachedValue` 42 / `CachedValueN` 63，合计约 219 行）。本工程走的是**按需专用缓存**：`EntitySnapshotManager`(94)、`BlockBreakingCache`(46)、`MinimapTerrainCache`(221)、`TwilightCoverCache`(216)、以及第 1 轮加的每实体 `DamageProfile` 缓存。既然每个真实需求都已有对应实现，再加一个通用原语就是**没有消费方的抽象**——参考那几个类本身也只有 12~67 行，收益很小 |
 | 目标选择 | **共享核心已加，尚未接入（行为未变）** | 新增 `util/TargetScore.java`（纯类，13 个单测）：按参考 §7 实现五因子加权打分——`distF`(8 格饱和) + `healthF`(20 血饱和) + `armorF`(20 点爆炸实收伤害) + `holeF`(四水平邻向不抗爆占比) + `crosshairF`(`|相对偏航|` 30° 饱和)，默认权重各 0.5，总分降序。**注意：目前没有任何 hack 调用它**，所以还没有换来行为改善。**接入点已经定好，而且有一个坑必须避开**：
 
 - ❌ **不要给 `CombatTargetUtils.Priority` 加一个「在比较器里现算 score」的分支**。该类的 `getComparator()` 是在比较器内部调用 `getScore()` 的（`CombatTargetUtils.java:179-180`），排序期间会被调用 **O(n log n)** 次；现有四个键（distance / angle / health / hurtTime）都廉价所以没问题，但 `armorF` 要做护甲结算、`holeF` 要查四个相邻方块，放进比较器会成倍放大开销。
@@ -47,7 +47,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 - ✅ **已经接线（opt-in，默认关闭）**：`CombatTargetUtils.Priority` 新增 `SCORE("Score")`，`getList` 见到它就分流到 `getListByScore`；`getScore`/`getComparator` 里为它留了一个**退化为距离**的分支并注明"正常不会走到这里"，免得有人误在比较器里用打分。所以凡是暴露了 `Priority` 设置的 combat hack（如 ClickAura）现在都能选 Score——**但默认值仍是各自原来的（ClickAura 是 ANGLE），升级不会改变任何人的选人行为**，用户主动在设置里选 Score 才生效。
 - ⚠️ **仍需实机调手感**：打分排序的实际观感（是否真的比按角度/距离更"聪明"）我无法验证；权重是参考的 0.5 全等值，未必适合本工程的 hack 组合。
 
-| 移动数学 | 待办 | 参考 `MovementUtils.kt` 对比本工程 `MovementPlanner.java`(87)；注意 1.13+ 游泳/1.14+ 跳跃差异，参数不能照抄 |
+| 移动数学 | **不适用（本工程更完善，无可移植项）** | 参考只有单个 `MovementUtils.kt`；本工程是按用途拆开的一套：`MovementPlanner`(87)、`VelocityPlanner`(91)、`AirJumpPolicy`(30)、`SpiderPathPlanner`(29)，外加三个路径处理器（`PathProcessor` 81 / `WalkPathProcessor` 157 / `FlyPathProcessor` 159）与 pre/post-motion 监听器。粒度比参考细，**没有发现需要借鉴的算法**；参考里那几处已知 bug（见 §17，例如纯 X/Z 移动时 `isMoving` 返回 false）更不该抄 |
 
 **受益的常用 hack**（都走 `DamageUtils`，因此共享这一优化）：`CrystalAura`、`AnchorAura`、
 `AutoTotem`、`Protect`、`AutoTrap`、`Surround`、`AutoCity`、`HoleFiller`、`SelfTrap`、`AutoCev`。
@@ -67,6 +67,14 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 
 **小结：参考优先榜 5 项里，① 等价、② 不适用、④ 已有、⑤ 本工程已完成。**
 ③ 的「缺」里第 ① 点（执行后没有确认/重试、失败即静默丢弃）**已修**：
+
+## 0.3 逐模块进度（目标第 3 条，76 个常用 hack）
+
+| hack | 状态 | 说明 |
+| --- | --- | --- |
+| `WTap` | **已优化（只借 1 个前置判断，刻意不换实现）** | 参考拦下 ATTACK 包并补发 `START_SPRINTING → STOP_SPRINTING → START_SPRINTING` 三个动作包，属**包级**手法；本工程是**模拟按键**（松开前进键再重按），更接近真人输入，而且 `chance` / `releaseDelay` / `rePressDelay` / `selectHits` 四个可调项参考都没有。**所以没有换实现**——换成连发疾跑包会在反作弊里明显得多，这是产品取舍不是技术优劣。只借用了参考的一条前置判断：**饥饿值 < 6 时原版根本不会疾跑**，这时松/按前进键只会白白停一下移动（新增 `canSprint()`）。 |
+| 其余 75 个常用 hack | 待办 | 见上面的常用清单 |
+
 
 | 修复 | 内容 |
 | --- | --- |
