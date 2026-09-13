@@ -9,7 +9,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 ## v1.6.0 - 根目录 Forge 1.20.1（仅此工程）
 
-### 新增子系统（134 个 Java 文件，14 个平台工程中不存在）
+### 新增子系统（152 个 Java 文件，14 个平台工程中不存在）
 
 | 包 | 文件数 | 说明 |
 | --- | ---: | --- |
@@ -25,27 +25,70 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 | `perimeter` | 35 | 周界挖掘全套：区域模型与游标、液体策略与边界封闭、方块限制与批次、导航 / 交互 / 装备 / 补给策略、28 状态自动化编排、双语文本 |
 | `perimeter.config` | 11 | 按服务器 / 存档分存的配置模型、迁移与原子写盘（`PerimeterConfigStore`） |
 | `perimeter.detect` | 2 | 不规则区域边界检测（`BoundaryDetector` / `PerimeterGrid`） |
+| `seed` | 8 | 种子矿透核心：种子存储、纯 Java 矿物预测（含字节码对齐的抽样数学）、Baritone 目标挖掘作业 |
+| `seed.structure` | 3 | 结构定位：调用原版公开放置方法、频率削减、群系校验 |
+| `seed.search` | 4 | 种子反解：结构观测、零分配 LCG 候选搜索、后台任务与自检 |
+| `seed.crack` | 2 | 无范围反解：位块分解 + 陪集求交的精确求解器 |
+| `seed.scan` | 1 | 自动观测：方块特征识别 6 类结构 |
 
-### 新增 Hack（12 个）
+### 新增 Hack（14 个）
 
-`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SuperKnockback`、`VehicleBoost`、`WTap`。
+`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SeedOreESP`、`SeedStructureESP`、`SuperKnockback`、`VehicleBoost`、`WTap`。
 
 `MusicPlayer`（OTHER 分类）打开 `NeteaseMusicScreen`，自身带 `@DontSaveState` / `@DontBlock`。
 
-### 新增依赖与打包
+### 种子矿透（SeedOreESP，新增 10 个文件）
+
+`net.wurstclient.seed`（8 个文件）+ `hacks/SeedOreEspHack` + `commands/SeedCmd`，**零新增依赖、不注入 Baritone 内部类**。
+
+- **种子存储**（`SeedStore` / `SeedEntry`）：按 `server:<ip>` / `singleplayer:<path>` / `local:<dim>` 身份分存；单人模式直接读取集成服务器种子；`parseSeed` 支持纯数字，其他文本取 `hashCode`。
+- **矿物预测**（`OrePredictor` / `OreRules` / `OreRule` / `OreCount` / `OreHeight`）：纯 Java 复刻原版矿物生成数学——`WorldgenRandom`（**Xoroshiro**，与原版 `applyBiomeDecoration` 一致）→ `setDecorationSeed` → 逐条 `setFeatureSeed(populationSeed, index, step)` → `count.sample` / rarity / `height_range` / 矿脉椭圆与 `discardOnAirChance`。规则表覆盖主世界 20 条、下界 10 条 placed_feature。
+- **抽样数学逐条对齐字节码**：`UniformInt` / `ConstantInt` / `UniformHeight` / `TrapezoidHeight`（含「先 `nextInt(0, large)`、再 `nextInt(0, small)`」的顺序）/ `VerticalAnchor`（absolute / above_bottom / below_top）与 `Mth.nextInt` 均按 1.20.1 字节码核对后重写为纯值类型，`OreSamplingTest` 用记录型随机源把边界与顺序钉死。之所以不直接用原版 provider：`IntProvider` / `ChunkGenerator` 的静态 codec 会拉起原版 bootstrap，而 Forge 的 `Bootstrap.bootStrap()` 在单元测试环境会卡在 `NetworkHooks.init`。
+- **ESP 与自动挖掘**（`SeedOreEspHack` / `SeedMineJob`）：按区块半径预测并缓存（每 tick 限量），`RenderListener` + `ESP_QUADS` 渲染；`Auto Mine` 通过官方 Baritone 公开 API（`ICustomGoalProcess#setGoalAndPath(new GoalComposite(GoalBlock...))`）按距离分批下发目标，把「目标方块变成空气」视为已挖到，支持暂停 / 恢复 / 取消。
+- **命令**：`.seed` / `.seed get|set|clear|list|mine`。
+
+**与参考实现的偏差（如实说明）**：① 不按生物群系过滤规则（`OreContext` 拿不到 biome 源），预测结果是原版超集，非该矿生物群系可能出现假阳性；② 高度图以「自上而下第一个非空气方块」近似原版 `OCEAN_FLOOR_WG`，只影响「矿脉是否位于地表之上」的判定，不消耗随机数；③ 方块判定用 `isAir` 而非 `canOcclude`，玻璃等非遮挡方块略有差异；④ 未实现种子反推（需 seedfinding/latticg，探测到的坐标 404）与结构 / Cubiomes 定位；⑤ **未在真实世界生成中逐格校验预测坐标**，单测只能验证确定性、区间与抽样契约。
+
 
 - `org.jetbrains.skiko:skiko-awt:0.8.19`（jarJar）+ `kotlin-stdlib` + `kotlinx-coroutines-core-jvm`
 - 音乐播放链：`java-stream-player`、`mp3spi`、`jlayer`、`jflac-codec`、`vorbis-support`、`tritonus-all`、`jorbis`、`jaudiotagger`
 - Skiko 原生库（`skiko-windows-x64.dll` 16.5 MB、`icudtl.dat` 10.0 MB）**不 jarJar**——jarJar 会重定位资源路径导致 Skiko 无法在 jar 内定位原生库。改为随 mod 资源打包到 `assets/wurst/skiko/`，运行时由 `SkikoNatives` 解压到 gameDir，并通过 `skiko.library.path` / `skiko.data.path` 系统属性显式加载。
 - 根工程 jarJar 共内嵌 19 个依赖 jar；产物体积由 v1.5 的约 29 MB 增至 **68.1 MB**（主要来自 Skiko 原生库）。
 
-### 验证状态
+### 结构定位与结构 ESP（SeedStructureESP，新增 4 个文件）
 
-- 根工程 `test` 通过：103 个测试类、436 项、0 失败（含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析、周界挖掘的区域几何与进度/ETA）。
+`net.wurstclient.seed.structure`（3 个文件）+ `hacks/SeedStructureEspHack`，**零新增依赖**，与矿透共用同一份种子存储。
+
+- **放置数学不重写**：1.20.1 的 `RandomSpreadStructurePlacement#getPotentialStructureChunk(long,int,int)` 是 public，因此直接调用原版方法（`StructureFinder`）——预测与原版**构造上一致**，数据包 / 模组新增的结构集自动生效。1.20.1 原版共 **19 个结构集：18 个 `random_spread` + 1 个 `concentric_rings`（要塞）**，后者是另一套算法，已明确跳过。
+- **频率削减已实现**（`PlacementFrequency`）：`buried_treasures`（spacing=1, frequency=0.01）、`mineshafts`（0.004）、`pillager_outposts`（0.2）靠 `frequency`/`frequency_reducer` 控稀有度，不实现会让它们在每个区块命中。这两个字段是 protected 且无公开读取口，故通过**放置编解码器导出为 JSON**（即数据包 schema）读取，再按 1.20.1 字节码复刻四种削减器的判定——含 `legacy_type_1` 的 `regionX ^ regionZ << 4` 分组，以及 DEFAULT 变体把 salt 传在 chunkX 位置这一原版细节；随机数仍由原版 `WorldgenRandom` 产生。
+- **群系校验（仅已加载区块）**：候选区块若已被客户端加载，则用 `Structure#biomes()` 与 `Level#getBiome` 核对；未加载区块无法校验，如实标注 `biome unknown`。
+- **命令**：`.seed structures [半径]` 输出候选列表（结构集、区块、方块坐标、距离、群系状态）；`.seed structesp` 开关结构 ESP（已加载区块地表三点标记，青色）。
+- **未实现 / 已知局限**：① `exclusion_zone` 被忽略（原版仅 `pillager_outposts` 用它排除村庄），结果为超集；② 要塞（同心环）跳过；③ 未实现种子反推——依赖 `maven.seedfinding.com` / `maven.latticg.com` 的 `mc_*` 与 `latticg`，实测这些地址 301 到 `nexus.seedfinding.com` 后制品 **404**，Maven Central 亦无，只能自研格基归约，本轮未做；④ **未在真实世界生成中逐格校验**，只验证了编译与单测（区域扫描、频率削减速率与分组性质）。
+
+### 种子反解（结构观测 → 种子，新增 4 个文件）
+
+`net.wurstclient.seed.search`（4 个文件），**零新增依赖**，把「正向结构定位」变成可用的**反解工具**。
+
+- **能力边界（如实说明）**：这不是 Seedcracker 那种「从零反推」，而是**候选确认式搜索**——玩家提供一个结构集 + 坐标作为观测，工具在给定种子范围内找出所有能复现该观测的种子。每个观测把种子约束到约 `2 * log2(spacing - separation)` 比特；同集合的多个观测**并不独立**（同一水平种子加已知偏移派生），实测候选密度高于理论值，因此工具会返回多个候选，玩家用更多结构逐步收敛，而不是声称唯一解。
+- **热循环零分配**：搜索每秒要评估上亿候选，若每候选构造一个 `WorldgenRandom` 太慢，故用 thread-local 的纯 LCG（`PlacementFrequency.Rng`：倍乘 25214903917、加数 11、48 位掩码、`nextInt` 的 2 的幂快速路径、`nextFloat`/`nextDouble` 的 2^-24 / 2^-53 定标）——`RngEquivalenceTest` 把这些与原版 `WorldgenRandom` **逐位对照**（含 `next(31)`/`nextInt(bound)`/`nextLong`/`nextFloat`/`nextDouble`、两种播种方法，以及 5000+ 组频率削减判定）全部一致。
+- **运行时自检**：搜索开始前，`StructureFinder` 会用原版 `getPotentialStructureChunk` 对 32 个采样区块逐一比对快路径；一旦不一致就报告 `MISMATCH`，命令层**拒绝启动搜索**。
+- **命令**：`.seed observe <结构集> <x> <z>`（记录观测，`observe list` / `observe clear`）、`.seed search <from> <to>`（后台线程搜索，每 20 tick 报进度）、`.seed search status` / `search cancel`；命中后直接给出 `.seed set <seed>` 命令与候选列表。
+- **可自证的闭环**：`SeedSearchTest` 的观测值由**原版** `WorldgenRandom` + 原版偏移公式生成，再要求搜索找出来源种子——含 2/8 观测收敛性对比、多线程与单线程结果一致、进度计数、取消、不可用结构集（`buried_treasures` 间距 1）被排除、跨结构集组合等 12 例。
+- **未实现 / 已知局限**：① 不做格基归约（LLL），因此**不能**在 2^48 全域内无范围反解，只能确认候选或搜索给定范围；② 观测需玩家手动提供（客户端拿不到服务端结构数据）；③ 未在真实存档中验证反解结果；④ `exclusion_zone` 与要塞（同心环）仍不参与。
+
+
+- 根工程 `test` 通过：112 个测试类、545 项、0 失败（含种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、格基替代解法的闭环还原、结构扫描器 28 例；含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析、周界挖掘的区域几何与进度/ETA）。
 - 产物：`build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（约 68 MB）。
-- 仅验证构建与单元测试；v1.6 新子系统（GUI / 音乐 / Skia / 周界挖掘）**未经游戏内运行验证**。
+- 仅验证构建与单元测试；v1.6 新子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透 / 结构定位）**未经游戏内运行验证**。
 - 开发工具：`scripts/doctor.ps1`、`scripts/run-unit-tests.ps1`、`scripts/seed-gradle-wrapper.ps1`；`build-all.ps1` 根工程产物已对齐 v1.6.0。
 
+### 无范围反解、热循环优化与自动观测（新增 3 个文件）
+
+- **无范围反解（`seed.crack`，2 个文件）**：不做格基归约，而是**精确的位块分解 + 陪集求交**——把 LCG 状态拆成 `2^17·b + e` 与 `2^18·u + v`，使每条约束变成 13 位高位上的短等差数列（range 奇部）或区间（2 的幂 range 走原版 `nextInt` 快速路径），多约束求交即 `Z/2^13` 上的小 CRT；低 17 位用 `gcd(a·r1, r2, 2^31)` 的必要条件一次 bitmap 扫描压缩；每个候选**必须经原版 LCG 回放全部约束**才返回。`.seed crack [超时秒]` 在后台线程调用，客户端不卡。
+  **实测边界（如实标注）**：支持 range 2..64；1~8 个观测（2~16 条约束）耗时 30 ms ~ 1.5 s；8 个偶部 range 观测（约 66 bit）**精确还原原种子**（约 0.2 s）；**只有奇数 range 的强约束集**（例如 7 个 ruined portal）没有可用 pin，会在超时后返回 `success=false` 并写明 "timed out … no seed found so far"，**不假装成功**；**弱约束集（≤4 观测）在数学上不唯一**（1 观测 2 约束约 4×10¹¹ 个解），此时契约是「返回的种子确实复现全部观测」，不保证等于原始种子。
+- **热循环优化（`seed.search`）**：候选无关量全部预计算——`regionX/regionZ`、`wantX/wantZ`，以及 LCG 种子偏移 `base = regionX·341873128712 + regionZ·132897987541 + salt`（于是每个候选只需**一次加法**），`Target` 数组化去掉 `List.get`。**实测约 3800~4800 万候选/秒/线程**（2000 万候选约 0.4~0.5 s）：2³² 约 90 s 单线程 / 约 12 s（8 线程），2⁴⁰ 约 6.4 h / 约 48 min，**2⁴⁵ 以上不实用**。另修正报告口径：结果被 `maxResults` 截断时会明说「已达结果上限，范围未搜完」。
+- **自动观测（`seed.scan`，1 个文件）**：`.seed observe scan [半径 1..8]` 扫描已加载区块的方块特征，认出 6 类结构并直接登记为观测（同结构集同区块自动去重）。判据均为「唯一来源/组合证据」：海底神殿（`sea_lantern≥2` 且棱镜石族 `≥16`）、远古城市（`reinforced_deepslate≥1` 或 `deepslate_bricks≥24` 且 `deepslate_tiles≥8`，强制 y<0）、古迹废墟（`mud_bricks≥8`）、沙漠神殿（`chiseled_sandstone≥2` 且 `chiseled+cut≥8` 且 `orange_terracotta≥4`）、冰屋（`snow_block≥16` 且内部方块≥2）、埋藏宝藏（沙滩/积雪沙滩/石岸群系中箱子**恰为 1**，群系未知则不报）。
+  **已知风险（如实标注）**：阈值**未在真实存档标定**（漏报多时优先下调古城/古迹废墟阈值）；玩家自建（棱镜农场、深板岩砖房）会误报；跨区块切割与部分加载会漏报；沙滩区块里的地牢/搁浅沉船/海底废墟也含箱子，埋藏宝藏仍有残余误报。**冰屋判据修正**：1.20.1 冰屋模板实测为 94×`snow_block` + 白/浅灰地毯 + 红床 + 活板门等，**没有 `white_wool`**，故不以白羊毛为必要条件。
 ### 已知问题（本轮已修复）
 
 - `VisualThemeTest` 的两个断言仍指向 v1.5 时期的强调色 `#4677FF`，与统一后的 `#007CFF` 不符，导致 `test` 任务失败。已对齐断言与 `VisualTheme.ACCENT` / `EpsilonMd3Theme.PRIMARY`。

@@ -185,6 +185,9 @@ public final class HackList implements UpdateListener
 	public final ParkourHack parkourHack = new ParkourHack();
 	public final PerimeterDiggerHack perimeterDiggerHack =
 		new PerimeterDiggerHack();
+	public final SeedOreEspHack seedOreEspHack = new SeedOreEspHack();
+	public final SeedStructureEspHack seedStructureEspHack =
+		new SeedStructureEspHack();
 	public final PlayerEspHack playerEspHack = new PlayerEspHack();
 	public final PlayerHaloHack playerHaloHack = new PlayerHaloHack();
 	public final PortalEspHack portalEspHack = new PortalEspHack();

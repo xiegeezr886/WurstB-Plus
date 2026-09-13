@@ -67,12 +67,12 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
 | 构建状态 | 15 个工程各自输出 `build/libs/` 产物；根目录 **v1.6.0** 已通过 `compileJava` + `test` 验证，其余 14 个工程为 **v1.5.0** 既有产物；另有 49 个在研移植工程（详见 [PORTING_TASK.md](PORTING_TASK.md) 与 [PROJECT_INDEX.md](PROJECT_INDEX.md)） |
-| 注册 Hack | 209 个（根工程 v1.6.0；`hacks/` 目录含内部辅助类共 252 个 Java 文件） |
+| 注册 Hack | 210 个（根工程 v1.6.0；`hacks/` 目录含内部辅助类共 252 个 Java 文件） |
 | 注册命令 | 56 |
 | Other Feature | 17 |
 | Forge Mixin | 74 (1.20.1 根工程，见 `wurst.mixins.json`) |
-| 活跃 Java 文件 | 941 (根 1.20.1 `src/main/java`) / 741 (1.21.1) / 791 (26.2) |
-| 单元测试 | 103 个测试类 / 436 项 / 0 失败（根工程 1.20.1 最近一次 `test`），覆盖 v1.6 音乐解析、AMLL 歌词流水线与布局、Compose 动画、MD3 主题与周界挖掘全套（区域几何、边界检测、液体策略、配置迁移、双语文本） |
+| 活跃 Java 文件 | 952 (根 1.20.1 `src/main/java`) / 741 (1.21.1) / 791 (26.2) |
+| 单元测试 | 112 个测试类 / 545 项 / 0 失败（根工程 1.20.1 最近一次 `test`），覆盖 v1.6 音乐解析、AMLL 歌词流水线与布局、Compose 动画、MD3 主题、周界挖掘全套（区域几何、边界检测、液体策略、配置迁移、双语文本）、种子矿透（抽样契约、预测确定性、种子存储）、结构定位（区域扫描、频率削减速率）、种子反解（LCG 逐位一致性、搜索闭环、无范围反解还原）与结构扫描器 |
 
 > 根目录是 Forge 1.20.1-47.4.10 工程；`neoforge/`、`versions/` 和 `fabric/` 是独立版本工程，不共享加载器运行时。Forge/NeoForge 使用 Mojang 官方映射，Fabric 使用 Fabric Loom + 官方映射；Fabric 版本通过 Access Widener 和 Fabric API 适配，不代表根工程是 Fabric 项目。
 
@@ -90,7 +90,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 
 以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 63 个工程（已发布的 14 个平台工程 + 在研的 49 个新版本工程）均未移植。
 
-### 源码包（142 个 Java 文件）
+### 源码包（152 个 Java 文件）
 
 | 包 | 文件数 | 说明 |
 | --- | ---: | --- |
@@ -107,12 +107,20 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 | `perimeter.config` | 11 | 按服务器 / 存档分存的配置模型、迁移与原子写盘（`PerimeterConfigStore`） |
 | `perimeter.detect` | 2 | 不规则区域边界检测（`BoundaryDetector` / `PerimeterGrid`） |
 | `seed` | 8 | 种子矿透核心：种子存储、纯 Java 矿物预测（含逐条 placed_feature 规则表）、Baritone 目标挖掘作业 |
+| `seed.structure` | 3 | 结构定位：直接调用原版公开放置方法（构造上与原版一致）、频率削减、已加载区块群系校验 |
+| `seed.search` | 4 | 种子反解：结构观测 + 零分配 LCG 候选搜索（快路径先与原版自检） |
+| `seed.crack` | 2 | 无范围反解：位块分解 + 陪集求交（弱约束集不保证唯一） |
+| `seed.scan` | 1 | 自动观测：方块特征识别 6 类结构（阈值未在存档标定） |
 
-新增 Hack（13 个）：`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SeedOreESP`、`SuperKnockback`、`VehicleBoost`、`WTap`。
+新增 Hack（14 个）：`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SeedOreESP`、`SeedStructureESP`、`SuperKnockback`、`VehicleBoost`、`WTap`。
 
 其中 `PerimeterDigger`（Blocks 分类）配合 `.perimeter` 与 Brigadier `/perimeterdig`（含 Tab 补全）在 v1.6 **原生等价移植**了社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 的全部功能：闭区间矩形规划与**不规则区域边界检测**、**液体 avoid / replace / seal_boundary** 策略与边界封堵、批次上限与背包满自动暂停、**自动拾取与多卸货点卸货**、**工具/鞘翅耐久替换**、**自动进食、补给、睡觉**、**跨维度熔炉修复**、**行走与鞘翅寻路**、**按服务器/存档分存配置**、**中英双语文本与命令**。原模组为 Fabric / MC 26.1.1 / Java 25 且依赖修改版 Baritone，无法直接内置，故本实现把区域挖掘语义落在本项目自己的 `PerimeterMiningSchematic` 上、交给官方 Baritone 的 `BuilderProcess` 执行，并按同样判定复刻液体与边界语义（具体偏差见 `CHANGELOG.md`）。
 
 其中 `SeedOreESP`（Render 分类）配合 `.seed` 实现**种子矿透**：按服务器 / 存档分存已知种子（单人模式直接读取集成服务器种子），用纯 Java 复刻原版矿物生成数学（Xoroshiro 随机源 + `setDecorationSeed` / `setFeatureSeed` + 逐条 placed_feature 规则表，含 count / rarity / height_range / 矿脉椭圆与 `discardOnAirChance`）预测区块内矿物坐标，在客户端渲染 ESP，并可选把预测目标批量交给官方 Baritone 的 `GoalComposite` 自动挖掘（`.seed mine` 切换）。该路线**零新增依赖**：不内置 Meteor Client（Fabric 专用）、不引入 Cubiomes 与 seedfinding/latticg，也不注入 Baritone 内部类（只用公开 API）。已知局限：不按生物群系过滤规则（结果是超集）、不反推种子、未在真实世界生成中逐格校验坐标。
+
+同一份种子还被 `SeedStructureESP`（Render 分类）用于**结构定位**：`.seed structures [半径]` 列出候选结构，`.seed structesp` 在已加载区块渲染标记。放置数学**不重写**——直接调用原版 public 的 `RandomSpreadStructurePlacement#getPotentialStructureChunk(long,int,int)`，因此与原版构造上一致，数据包 / 模组新增结构同样生效；原版 19 个结构集中 18 个 `random_spread` 全部支持，`concentric_rings`（要塞）使用另一套算法故跳过。稀有度所依赖的 `frequency` / `frequency_reducer`（埋藏的宝藏 0.01、废弃矿井 0.004、掠夺者前哨站 0.2）通过放置编解码器导出 JSON 读取，并按字节码复刻四种削减器。
+
+结构观测还能反过来**反解种子**（`seed.search`）：`.seed observe <结构集> <x> <z>` 记录你实际看到的结构，`.seed search <from> <to>` 在后台线程用零分配 LCG 遍历该范围，找出所有能复现全部观测的种子，并给出 `.seed set` 命令。热循环的 LCG 与频率削减通过单测与原版 `WorldgenRandom` **逐位对照**，搜索前还会用原版放置方法对 32 个采样区块做一次运行时自检，不一致就拒绝搜索。**能力边界**：这不是「从零反推」——不做格基归约，无法在 2^48 全域内无范围求解；同集合的多个观测并不独立，因此通常返回多个候选，需要玩家用更多结构逐步收敛（诚实说明见 `CHANGELOG.md`）。已知局限：忽略 `exclusion_zone`、要塞不参与、未在真实存档中验证反解结果。
 
 ### GUI 入口切换
 
@@ -778,7 +786,7 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 根目录 v1.6.0（本轮实际验证）：
 
 - `gradlew.bat compileJava`：通过
-- `gradlew.bat test`：通过，103 个测试类 / 436 项测试 / 0 失败
+- `gradlew.bat test`：通过，112 个测试类 / 545 项测试 / 0 失败
 - 产物 `build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB）：含全部 v1.6 子系统、`assets/wurst/skiko/` 原生库（`skiko-windows-x64.dll` 16.51 MB + `icudtl.dat` 9.98 MB）、`META-INF/jarjar/metadata.json` 记录的 17 个内嵌 jarJar 依赖
 - **未做游戏内运行验证**：v1.6 的 GUI / 音乐 / Skia 子系统与 12 个新 Hack 只经过编译与单元测试，尚未进入世界实测
 

@@ -2,8 +2,11 @@ package net.wurstclient.util;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
+import baritone.api.pathing.goals.Goal;
 import baritone.api.pathing.goals.GoalBlock;
+import baritone.api.pathing.goals.GoalComposite;
 import baritone.api.pathing.goals.GoalXZ;
+import baritone.api.process.ICustomGoalProcess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
@@ -79,6 +82,85 @@ public final class BaritoneUtils
 		{
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Sends a list of goals to Baritone, e.g. all predicted ore positions of the
+	 * current batch. An empty list clears the goal instead, so callers do not
+	 * have to special-case it.
+	 *
+	 * @return whether a goal was actually set.
+	 */
+	public static boolean setGoals(Goal... goals)
+	{
+		try
+		{
+			ICustomGoalProcess process = getBaritone().getCustomGoalProcess();
+
+			if(goals == null || goals.length == 0)
+			{
+				clearGoal();
+				return false;
+			}
+
+			Goal goal =
+				goals.length == 1 ? goals[0] : new GoalComposite(goals);
+			process.setGoalAndPath(goal);
+			return true;
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	/**
+	 * @return the goal Baritone is currently working on, or null.
+	 */
+	public static Goal getGoal()
+	{
+		try
+		{
+			return getBaritone().getCustomGoalProcess().getGoal();
+		}catch(Exception e)
+		{
+			return null;
+		}
+	}
+
+	public static void clearGoal()
+	{
+		try
+		{
+			ICustomGoalProcess process = getBaritone().getCustomGoalProcess();
+			process.setGoal(null);
+			getBaritone().getPathingBehavior().cancelEverything();
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * @return whether Baritone is currently mining.
+	 */
+	public static boolean isMining()
+	{
+		try
+		{
+			return getBaritone().getMineProcess().isActive();
+		}catch(Exception e)
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * @return whether Baritone is walking or mining right now.
+	 */
+	public static boolean isBusy()
+	{
+		return isPathing() || isMining();
 	}
 
 	public static boolean isPathing()
