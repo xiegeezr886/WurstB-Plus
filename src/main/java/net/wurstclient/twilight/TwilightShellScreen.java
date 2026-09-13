@@ -24,7 +24,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.wurstclient.clickgui2.music.NeteaseImageCache;
 import net.wurstclient.music.LyricLine;
 import net.wurstclient.music.NeteaseMusicPlayer;
 import net.wurstclient.music.NeteasePlaylist;
@@ -60,6 +59,14 @@ public final class TwilightShellScreen extends Screen
 	
 	private static final String PAGE_SUBTITLE = "下午好，继续享受音乐";
 	private static final String SEARCH_HINT = "搜索歌曲、歌手、歌单";
+	
+	/**
+	 * Cover rounding, in the reference's CSS pixels. Small covers keep the list
+	 * radius so they match their placeholders; the immersive cover is the one
+	 * large surface and gets the larger radius the reference uses there.
+	 */
+	private static final int BAR_COVER_RADIUS = 10;
+	private static final int IMMERSIVE_COVER_RADIUS = 24;
 	
 	private static final String HERO_DAY = "31";
 	private static final String HERO_DATE = "7月31日 · 周五";
@@ -108,7 +115,7 @@ public final class TwilightShellScreen extends Screen
 	private int activeNav;
 	private int hoverNav = -1;
 	
-	private NeteaseImageCache covers;
+	private TwilightCoverCache covers;
 	private List<NeteaseSong> homeSongs;
 	private boolean homeLoading;
 	private String statusLine;
@@ -253,7 +260,7 @@ public final class TwilightShellScreen extends Screen
 			service = null;
 		}
 		
-		covers = new NeteaseImageCache();
+		covers = new TwilightCoverCache();
 		service = new TwilightMusicService();
 		PLAYER.addListener(listener);
 		accentPending = true;
@@ -416,7 +423,7 @@ public final class TwilightShellScreen extends Screen
 		}
 		
 		coverCooldown = 40;
-		NeteaseImageCache.Texture texture = covers.get(song.coverUrl());
+		TwilightCoverCache.Texture texture = covers.get(song.coverUrl());
 		
 		if(texture == null)
 			return;
@@ -1291,8 +1298,8 @@ public final class TwilightShellScreen extends Screen
 		if(immersive)
 		{
 			Rect big = immersiveCover();
-			drawCover(graphics, coverTexture(PLAYER.getCurrentSong()), big.x(),
-				big.y(), big.width(), big.height());
+			drawCover(graphics, PLAYER.getCurrentSong(), big.x(), big.y(),
+				big.width(), big.height(), (int)frame.px(IMMERSIVE_COVER_RADIUS));
 			return;
 		}
 		
@@ -1300,8 +1307,8 @@ public final class TwilightShellScreen extends Screen
 		float size = frame.px(44);
 		float coverX = bar.x() + frame.px(13);
 		float coverY = bar.centerY() - size / 2F;
-		drawCover(graphics, coverTexture(PLAYER.getCurrentSong()),
-			(int)coverX, (int)coverY, (int)size, (int)size);
+		drawCover(graphics, PLAYER.getCurrentSong(), (int)coverX, (int)coverY,
+			(int)size, (int)size, (int)frame.px(BAR_COVER_RADIUS));
 		
 		if(activeNav == 0)
 		{
@@ -1320,8 +1327,9 @@ public final class TwilightShellScreen extends Screen
 					continue;
 				
 				Rect cover = TwilightListLayout.rowCover(frame, row, true);
-				drawCover(graphics, coverTexture(homeSongs.get(first + i)),
-					cover.x(), cover.y(), cover.width(), cover.height());
+				drawCover(graphics, homeSongs.get(first + i), cover.x(),
+					cover.y(), cover.width(), cover.height(),
+					(int)frame.px(TwilightListLayout.COVER_RADIUS));
 			}
 			return;
 		}
@@ -1341,10 +1349,11 @@ public final class TwilightShellScreen extends Screen
 				if(card.y() + card.height() > frame.contentBody.bottom())
 					continue;
 				
-				drawCover(graphics, coverTexture(playlists.get(i).coverUrl()),
+				drawCover(graphics, playlists.get(i).coverUrl(),
 					card.x() + inset, card.y() + inset,
 					card.width() - inset * 2,
-					card.height() - (int)frame.px(56));
+					card.height() - (int)frame.px(56),
+					(int)frame.px(TwilightListLayout.COVER_RADIUS));
 			}
 			return;
 		}
@@ -1365,29 +1374,36 @@ public final class TwilightShellScreen extends Screen
 				continue;
 			
 			Rect cover = TwilightListLayout.rowCover(frame, row, false);
-			drawCover(graphics, coverTexture(songs.get(first + i)), cover.x(),
-				cover.y(), cover.width(), cover.height());
+			drawCover(graphics, songs.get(first + i), cover.x(), cover.y(),
+				cover.width(), cover.height(),
+				(int)frame.px(TwilightListLayout.COVER_RADIUS));
 		}
 	}
 	
-	private NeteaseImageCache.Texture coverTexture(NeteaseSong song)
+	private void drawCover(GuiGraphics graphics, NeteaseSong song, int x, int y,
+		int coverWidth, int coverHeight, int radius)
 	{
-		return song == null ? null : coverTexture(song.coverUrl());
+		if(song != null)
+			drawCover(graphics, song.coverUrl(), x, y, coverWidth, coverHeight,
+				radius);
 	}
 	
-	private NeteaseImageCache.Texture coverTexture(String url)
+	/**
+	 * Draws a cover from the masked cache, so the corners come out rounded like
+	 * the reference's {@code border-radius}. The mask lives in the texture
+	 * because a clip cannot reach a vanilla blit and the covers sit on glass.
+	 */
+	private void drawCover(GuiGraphics graphics, String url, int x, int y,
+		int coverWidth, int coverHeight, int radius)
 	{
-		if(covers == null || url == null || url.isBlank())
-			return null;
+		if(covers == null || url == null || url.isBlank() || coverWidth <= 0
+			|| coverHeight <= 0)
+			return;
 		
-		return covers.get(url);
-	}
-	
-	private void drawCover(GuiGraphics graphics,
-		NeteaseImageCache.Texture texture, int x, int y, int coverWidth,
-		int coverHeight)
-	{
-		if(texture == null || coverWidth <= 0 || coverHeight <= 0)
+		TwilightCoverCache.Texture texture =
+			covers.get(url, Math.min(coverWidth, coverHeight), radius);
+		
+		if(texture == null)
 			return;
 		
 		int[] crop = TwilightCoverFit.sourceRect(texture.width(),
