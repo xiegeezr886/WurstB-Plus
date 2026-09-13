@@ -7,8 +7,11 @@
  */
 package net.wurstclient.util;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -176,5 +179,63 @@ public final class TargetScoreTest
 		assertEquals(2.5F, Weights.DEFAULT.total(), DELTA);
 		assertEquals(1.7F, new Weights(1F, 0.3F, 0.2F, 0.1F, 0.1F).total(),
 			DELTA);
+	}
+	
+	@Test
+	public void rankOrdersCandidatesBestFirst()
+	{
+		// 0 最优（近、残血），2 最差
+		List<Inputs> candidates = List.of(new Inputs(1F, 4F, 18F, 3, 2F),
+			new Inputs(5F, 12F, 10F, 2, 12F), new Inputs(8F, 20F, 2F, 0, 30F));
+		
+		assertArrayEquals(new int[]{0, 1, 2},
+			TargetScore.rank(candidates, Weights.DEFAULT));
+	}
+	
+	@Test
+	public void rankDetectsAReorder()
+	{
+		// 把最优放在末尾，确认排的是下标而不是原样返回
+		List<Inputs> candidates = List.of(new Inputs(8F, 20F, 2F, 0, 30F),
+			new Inputs(5F, 12F, 10F, 2, 12F), new Inputs(1F, 4F, 18F, 3, 2F));
+		
+		assertArrayEquals(new int[]{2, 1, 0},
+			TargetScore.rank(candidates, Weights.DEFAULT));
+	}
+	
+	@Test
+	public void rankIsStableOnTies()
+	{
+		Inputs same = new Inputs(3F, 10F, 10F, 2, 10F);
+		List<Inputs> candidates = List.of(same, same, same);
+		
+		// 同分必须保持传入顺序，否则打分会随排序实现抖动
+		assertArrayEquals(new int[]{0, 1, 2},
+			TargetScore.rank(candidates, Weights.DEFAULT));
+	}
+	
+	@Test
+	public void rankHandlesEmptyAndSingle()
+	{
+		assertEquals(0, TargetScore.rank(List.of(), Weights.DEFAULT).length);
+		assertEquals(0, TargetScore.rank(null, Weights.DEFAULT).length);
+		assertArrayEquals(new int[]{0},
+			TargetScore.rank(List.of(new Inputs(1F, 1F, 1F, 1, 1F)),
+				Weights.DEFAULT));
+	}
+	
+	@Test
+	public void rankFollowsTheWeights()
+	{
+		List<Inputs> candidates = List.of(new Inputs(0F, 20F, 0F, 0, 90F),
+			new Inputs(8F, 0F, 0F, 0, 90F));
+		
+		// 只看血量权重：第 1 个（0 血）应该赢
+		assertArrayEquals(new int[]{1, 0}, TargetScore.rank(candidates,
+			new Weights(0F, 1F, 0F, 0F, 0F)));
+		
+		// 只看距离权重：第 0 个（0 格）应该赢
+		assertArrayEquals(new int[]{0, 1}, TargetScore.rank(candidates,
+			new Weights(1F, 0F, 0F, 0F, 0F)));
 	}
 }

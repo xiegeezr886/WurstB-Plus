@@ -7,6 +7,9 @@
  */
 package net.wurstclient.util;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 战斗目标加权打分，移植自 CakeSlayers/OpenEpsilon 的目标选择（其
  * {@code management/CombatManager.kt}，见 {@code _oe_ref/core-spec.md} §7）。
@@ -140,6 +143,48 @@ public final class TargetScore
 	public static float maxScore(Weights weights)
 	{
 		return weights.total();
+	}
+	
+	/**
+	 * 按总分从优到劣排出候选下标；同分时保持传入顺序（稳定）。
+	 *
+	 * <p>
+	 * 为什么要单独提供这个方法：本工程现有的目标排序是在**比较器内部**现算键
+	 * （见 {@code CombatTargetUtils.Priority#getComparator}），对
+	 * distance/angle/health 这类廉价键没问题；但 {@code armorF} 要做护甲结算、
+	 * {@code holeF} 要查四个相邻方块，把它们放进比较器会在一次排序里被调用
+	 * O(n log n) 次。正确用法是**每个候选只算一次分**，再用本方法排序。
+	 *
+	 * <p>
+	 * 因此接入时不要给 {@code Priority} 加一个"在比较器里调 score"的分支，
+	 * 而应该在取候选列表时先把 {@link Inputs} 算好。
+	 */
+	public static int[] rank(List<Inputs> candidates, Weights weights)
+	{
+		if(candidates == null || candidates.isEmpty())
+			return new int[0];
+		
+		int count = candidates.size();
+		float[] scores = new float[count];
+		
+		for(int i = 0; i < count; i++)
+			scores[i] = score(candidates.get(i), weights);
+		
+		Integer[] order = new Integer[count];
+		for(int i = 0; i < count; i++)
+			order[i] = i;
+		
+		// 稳定排序：同分时下标小的排前面
+		Arrays.sort(order, (left, right) -> {
+			int byScore = Float.compare(scores[right], scores[left]);
+			return byScore != 0 ? byScore : Integer.compare(left, right);
+		});
+		
+		int[] result = new int[count];
+		for(int i = 0; i < count; i++)
+			result[i] = order[i];
+		
+		return result;
 	}
 	
 	private static float clamp01(float value)
