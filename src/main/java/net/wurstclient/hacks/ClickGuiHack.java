@@ -10,12 +10,14 @@ package net.wurstclient.hacks;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.clickgui2.ClickGuiScreens;
+import net.wurstclient.clickgui2.ClickGuiStyle;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.NotificationSeverity;
-import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.util.ScreenRegistry;
 
 @DontSaveState
 @DontBlock
@@ -34,8 +36,10 @@ public final class ClickGuiHack extends Hack
 			"Maximum height for settings windows\n" + "0 = no limit", 200, 0,
 			1000, 50, ValueDisplay.INTEGER);
 	
-	private final CheckboxSetting vapeMode = new CheckboxSetting("Vape mode",
-		"Switches the ClickGUI to the Vape-style interface.", false);
+	private final EnumSetting<ClickGuiStyle> style = new EnumSetting<>(
+		"GUI style",
+		"Epsilon: dropdown panels.\nSuperSoft: card windows.\nVape: sidebar frames.",
+		ClickGuiStyle.values(), ClickGuiStyle.EPSILON);
 	
 	public ClickGuiHack()
 	{
@@ -43,9 +47,26 @@ public final class ClickGuiHack extends Hack
 		addSetting(ttOpacity);
 		addSetting(maxHeight);
 		addSetting(maxSettingsHeight);
-		addSetting(vapeMode);
-		vapeMode.addChangeListener(() -> ClickGuiScreens.setVapeMode(
-			vapeMode.isChecked()));
+		addSetting(style);
+		style.addChangeListener(() -> {
+			if(WURST.getGuiPreferences() == null
+				|| WURST.getGuiPreferences().getClickGuiStyle() == style
+					.getSelected())
+				return;
+			boolean reopen = MC != null
+				&& ScreenRegistry.CLICK_GUI.matches(MC.screen);
+			ClickGuiScreens.setStyle(style.getSelected(), reopen);
+		});
+	}
+
+	public ClickGuiStyle getStyle()
+	{
+		return style.getSelected();
+	}
+
+	public void applyStyle(ClickGuiStyle value)
+	{
+		style.setSelected(value);
 	}
 	
 	@Override

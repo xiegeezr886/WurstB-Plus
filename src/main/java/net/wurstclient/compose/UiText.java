@@ -98,12 +98,10 @@ public final class UiText extends UiNode
 		Font font = font();
 		int textX = Math.round(x + paddingH);
 		int textY = Math.round(y + paddingV);
-		if(shadow)
-			graphics.drawString(font, net.wurstclient.clickgui2.PingFangFont.text(text),
-				textX + 1, textY + 1, withAlpha(0, 145), false);
-		graphics.drawString(font,
-			net.wurstclient.clickgui2.PingFangFont.text(text), textX, textY,
-			color, false);
+			if(shadow)
+				graphics.drawString(font, text, textX + 1, textY + 1,
+					withAlpha(0, 145), false);
+			graphics.drawString(font, text, textX, textY, color, false);
 	}
 
 	private static Font font()

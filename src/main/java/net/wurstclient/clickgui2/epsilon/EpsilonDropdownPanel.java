@@ -349,12 +349,14 @@ public abstract class EpsilonDropdownPanel
 			scroll = Mth.lerp(SCROLL_SMOOTHING, scroll, targetScroll);
 	}
 
-	protected void drawScaled(GuiGraphics graphics, String text, int x, int y,
-		int color, float scale)
-	{
-		// 使用默认 CozyUI 位图字体（9px 整数渲染，不缩放避免像素感）
-		graphics.drawString(Minecraft.getInstance().font,
-			net.wurstclient.clickgui2.PingFangFont.text(text), x, y, color,
-			false);
-	}
+		protected void drawScaled(GuiGraphics graphics, String text, int x, int y,
+			int color, float scale)
+		{
+			graphics.pose().pushPose();
+			graphics.pose().translate(x, y, 0);
+			graphics.pose().scale(scale, scale, 1);
+			graphics.drawString(Minecraft.getInstance().font, text, 0, 0, color,
+				false);
+			graphics.pose().popPose();
+		}
 }

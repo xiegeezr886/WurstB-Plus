@@ -2,7 +2,7 @@ package net.wurstclient.hud2;
 
 public enum NotificationSeverity
 {
-	INFO("#4677ff"),
+	INFO("#007cff"),
 	SUCCESS("#4dac68"),
 	ERROR("#fc4130"),
 	ENABLED("#4dac68"),

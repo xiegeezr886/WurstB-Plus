@@ -53,6 +53,7 @@ public final class CmdList
 	public final MacrosCmd macrosCmd = new MacrosCmd();
 	public final ModifyCmd modifyCmd = new ModifyCmd();
 	public final PathCmd pathCmd = new PathCmd();
+	public final PerimeterCmd perimeterCmd = new PerimeterCmd();
 	public final PotionCmd potionCmd = new PotionCmd();
 	public final ProtectCmd protectCmd = new ProtectCmd();
 	public final ProxyCmd proxyCmd = new ProxyCmd();
@@ -92,6 +93,9 @@ public final class CmdList
 				Command cmd = (Command)field.get(this);
 				cmds.put(cmd.getName(), cmd);
 			}
+			
+			registerBrigadierCommand(
+				new net.wurstclient.commands.PerimeterDigCommand());
 			
 		}catch(Exception e)
 		{

@@ -38,7 +38,7 @@ public final class GuiPreferences
 	private final Path fontsFolder;
 	private boolean commandsEnabled = true;
 	private boolean fontEnabled = true;
-	private boolean vapeMode;
+	private ClickGuiStyle clickGuiStyle = ClickGuiStyle.EPSILON;
 	private boolean riseMode;
 	private int vapeLayoutVersion;
 	private String selectedFont = BUILTIN_FONT;
@@ -67,8 +67,11 @@ public final class GuiPreferences
 				commandsEnabled = json.get("commandsEnabled").getAsBoolean();
 			if(json.has("fontEnabled"))
 				fontEnabled = json.get("fontEnabled").getAsBoolean();
-			if(json.has("vapeMode"))
-				vapeMode = json.get("vapeMode").getAsBoolean();
+			if(json.has("clickGuiStyle"))
+				clickGuiStyle = ClickGuiStyle.fromString(
+					json.get("clickGuiStyle").getAsString());
+			else if(json.has("vapeMode") && json.get("vapeMode").getAsBoolean())
+				clickGuiStyle = ClickGuiStyle.VAPE;
 			if(json.has("riseMode"))
 				riseMode = json.get("riseMode").getAsBoolean();
 			if(json.has("vapeLayoutVersion"))
@@ -117,7 +120,8 @@ public final class GuiPreferences
 		JsonObject json = new JsonObject();
 		json.addProperty("commandsEnabled", commandsEnabled);
 		json.addProperty("fontEnabled", fontEnabled);
-		json.addProperty("vapeMode", vapeMode);
+		json.addProperty("clickGuiStyle", clickGuiStyle.name());
+		json.addProperty("vapeMode", clickGuiStyle == ClickGuiStyle.VAPE);
 		json.addProperty("riseMode", riseMode);
 		json.addProperty("vapeLayoutVersion", vapeLayoutVersion);
 		json.addProperty("selectedFont", selectedFont);
@@ -172,12 +176,26 @@ public final class GuiPreferences
 
 	public boolean isVapeMode()
 	{
-		return vapeMode;
+		return clickGuiStyle == ClickGuiStyle.VAPE;
 	}
 
 	public void setVapeMode(boolean vapeMode)
 	{
-		this.vapeMode = vapeMode;
+		setClickGuiStyle(vapeMode ? ClickGuiStyle.VAPE : ClickGuiStyle.EPSILON);
+	}
+
+	public ClickGuiStyle getClickGuiStyle()
+	{
+		return clickGuiStyle;
+	}
+
+	public void setClickGuiStyle(ClickGuiStyle clickGuiStyle)
+	{
+		ClickGuiStyle next = clickGuiStyle == null ? ClickGuiStyle.EPSILON
+			: clickGuiStyle;
+		if(this.clickGuiStyle == next)
+			return;
+		this.clickGuiStyle = next;
 		save();
 	}
 

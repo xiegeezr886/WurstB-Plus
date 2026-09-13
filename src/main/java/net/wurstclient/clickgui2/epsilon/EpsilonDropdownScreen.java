@@ -240,7 +240,7 @@ public final class EpsilonDropdownScreen extends Screen
 		String[][] rows = {
 			{"Chinese", String.valueOf(!WURST.getOtfs().translationsOtf
 				.getForceEnglish().isChecked())},
-			{"Vape mode", String.valueOf(preferences.isVapeMode())},
+			{"GUI style", preferences.getClickGuiStyle().displayName()},
 			{"Commands", String.valueOf(preferences.isCommandsEnabled())},
 			{"Font", String.valueOf(preferences.isFontEnabled())},
 			{"Music", ""}};
@@ -458,7 +458,7 @@ public final class EpsilonDropdownScreen extends Screen
 		float settingsY = mainY + EpsilonDropdownTheme.PANEL_HEADER_HEIGHT
 			+ CONTENT_PADDING + rows * ICON_SIZE + Math.max(0, rows - 1)
 				* ICON_GAP + 8 + CONTENT_PADDING;
-		String[] ids = {"Chinese", "Vape mode", "Commands", "Font", "Music"};
+		String[] ids = {"Chinese", "GUI style", "Commands", "Font", "Music"};
 		float rowTop = settingsY;
 		for(String id : ids)
 		{
@@ -472,11 +472,7 @@ public final class EpsilonDropdownScreen extends Screen
 							.getForceEnglish();
 						setting.setChecked(!setting.isChecked());
 					}
-					case "Vape mode" -> {
-						GuiPreferences preferences =
-							WURST.getGuiPreferences();
-						ClickGuiScreens.setVapeMode(!preferences.isVapeMode());
-					}
+					case "GUI style" -> ClickGuiScreens.cycleStyle();
 					case "Commands" -> {
 						GuiPreferences preferences =
 							WURST.getGuiPreferences();
@@ -673,6 +669,11 @@ public final class EpsilonDropdownScreen extends Screen
 		return false;
 	}
 
+	public boolean isWaitingForKeybind()
+	{
+		return bindingFeature != null || activeTextInput != null;
+	}
+
 	// ---------- VapeGuiContext ----------
 
 	@Override
@@ -781,13 +782,13 @@ public final class EpsilonDropdownScreen extends Screen
 			InputConstants.getKey(keyCode, scanCode).getName());
 	}
 
-	private void drawScaled(GuiGraphics graphics, String text, int x, int y,
-		int color, float scale)
-	{
-// 默认 CozyUI 位图字体，9px 整数渲染
-		Minecraft.getInstance().font.drawInBatch(
-			net.wurstclient.clickgui2.PingFangFont.text(text), x, y, color, false,
-			graphics.pose().last().pose(), graphics.bufferSource(),
-			Font.DisplayMode.NORMAL, 0, 0);
-	}
+		private void drawScaled(GuiGraphics graphics, String text, int x, int y,
+			int color, float scale)
+		{
+			graphics.pose().pushPose();
+			graphics.pose().translate(x, y, 0);
+			graphics.pose().scale(scale, scale, 1);
+			graphics.drawString(font, text, 0, 0, color, false);
+			graphics.pose().popPose();
+		}
 }

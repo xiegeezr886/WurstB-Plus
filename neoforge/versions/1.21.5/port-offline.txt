@@ -1,0 +1,77 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Task :createMinecraftArtifacts
+Loaded 141 artifacts from C:\Users\ui863\Documents\trae_projects\VAP\neoforge\versions\1.21.11\build\tmp\createMinecraftArtifacts\nfrt_artifact_manifest.properties
+[1m*** Started working on [4mdownloadJson[0m[0m
+ [1m[92mDONE [0m Completed [4mdownloadJson[0m in 0.03s
+[1m*** Started working on [4mdownloadServer[0m[0m
+[1m*** Started working on [4mdownloadClient[0m[0m
+[1m*** Started working on [4mdownloadClientMappings[0m[0m
+ [1m[92mDONE [0m Completed [4mdownloadClientMappings[0m in 0.05s
+ [1m[92mDONE [0m Completed [4mdownloadServer[0m in 0.05s
+ [1m[92mDONE [0m Completed [4mdownloadClient[0m in 0.05s
+[1m*** Started working on [4mmergeMappings[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mmergeMappings[0m in 0.00s
+[1m*** Started working on [4mextractServer[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mextractServer[0m in 0.00s
+[1m*** Started working on [4mstripServer[0m[0m
+[1m*** Started working on [4mstripClient[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mstripClient[0m in 0.00s
+ [1m[92mREUSE[0m Used cache of [4mstripServer[0m in 0.00s
+[1m*** Started working on [4mmerge[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mmerge[0m in 0.00s
+[1m*** Started working on [4mrename[0m[0m
+ RUN   Running external tool net.neoforged:AutoRenamingTool:2.0.17:all
+ [1m[92mDONE [0m Completed [4mrename[0m in 9.47s
+[1m*** Started working on [4mdecompile[0m[0m
+ RUN   Running external tool org.vineflower:vineflower:1.11.2
+ [1m[92mDONE [0m Completed [4mdecompile[0m in 48.03s
+[1m*** Started working on [4minject[0m[0m
+ [1m[92mDONE [0m Completed [4minject[0m in 5.34s
+[1m*** Started working on [4mpatch[0m[0m
+ RUN   Running external tool io.codechicken:DiffPatch:2.0.0.36:all
+ [1m[92mDONE [0m Completed [4mpatch[0m in 42.64s
+[1m*** Started working on [4mapplyNeoforgePatches[0m[0m
+ RUN   Running external tool io.codechicken:DiffPatch:2.0.0.36:all
+ [1m[92mDONE [0m Completed [4mapplyNeoforgePatches[0m in 6.15s
+[1m*** Started working on [4mtransformSources[0m[0m
+ RUN   Running external tool net.neoforged.jst:jst-cli-bundle:2.0.10
+ [1m[92mDONE [0m Completed [4mtransformSources[0m in 19.37s
+[1m*** Started working on [4mrecompile[0m[0m
+ 106 items on the compile classpath
+ 0 items on the sourcepath
+[1m*** Started working on [4msourcesWithNeoForge[0m[0m
+ Compiling 6623 source files
+ [1m[92mDONE [0m Completed [4msourcesWithNeoForge[0m in 8.42s
+ ERROR Line: 122, net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen..slotClicked(net.minecraft.world.inventory.Slot,int,int,net.minecraft.world.inventory.ClickType)....net.minecraft.client.gui.screens.inventory.AbstractContainerScreen..slotClicked(net.minecraft.world.inventory.Slot,int,int,net.minecraft.world.inventory.ClickType)
+  .............; ...public in /net/minecraft/client/gui/screens/inventory/AbstractRecipeBookScreen.java
+Total runtime: 191.47s
+
+net.neoforged.neoform.runtime.graph.NodeExecutionException: Node action for recompile failed
+	at net.neoforged.neoform.runtime.engine.NeoFormEngine.runNode(NeoFormEngine.java:613)
+	at net.neoforged.neoform.runtime.engine.NeoFormEngine.lambda$getWaitCondition$5(NeoFormEngine.java:559)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncRun.run(CompletableFuture.java:1804)
+	at java.base/java.util.concurrent.ThreadPerTaskExecutor$TaskRunner.run(ThreadPerTaskExecutor.java:314)
+	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329)
+Caused by: java.io.IOException: Compilation failed
+	at net.neoforged.neoform.runtime.actions.RecompileSourcesActionWithJDK.run(RecompileSourcesActionWithJDK.java:77)
+	at net.neoforged.neoform.runtime.engine.NeoFormEngine.runNode(NeoFormEngine.java:602)
+	... 4 more
+
+> Task :createMinecraftArtifacts FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':createMinecraftArtifacts'.
+> Process 'command 'C:\Program Files\Java\jdk-21\bin\java.exe'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 3m 39s
+1 actionable task: 1 executed

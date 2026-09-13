@@ -1,0 +1,60 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :createMinecraftArtifacts
+Loaded 141 artifacts from C:\Users\ui863\Documents\trae_projects\VAP\neoforge\versions\1.21.11\build\tmp\createMinecraftArtifacts\nfrt_artifact_manifest.properties
+[1m*** Started working on [4mdownloadJson[0m[0m
+  DL    https://launchermeta.mojang.com/mc/game/version_manifest_v2.json
+  DL    https://piston-meta.mojang.com/v1/packages/53338515d3ee0af37b9ba26553c0d5464bc51082/1.21.11.json
+ [1m[92mDONE [0m Completed [4mdownloadJson[0m in 3.90s
+[1m*** Started working on [4mdownloadClientMappings[0m[0m
+[1m*** Started working on [4mdownloadServer[0m[0m
+[1m*** Started working on [4mdownloadClient[0m[0m
+  DL    https://piston-data.mojang.com/v1/objects/031a68bebf55d824f66d6573d8c752f0e1bf232a/client.txt
+  DL    https://piston-data.mojang.com/v1/objects/ba2df812c2d12e0219c489c4cd9a5e1f0760f5bd/client.jar
+  DL    https://piston-data.mojang.com/v1/objects/64bb6d763bed0a9f1d632ec347938594144943ed/server.jar
+ [1m[92mDONE [0m Completed [4mdownloadClientMappings[0m in 30.48s
+[1m*** Started working on [4mmergeMappings[0m[0m
+ RUN   Running external tool net.neoforged.installertools:installertools:4.0.7:fatjar
+ [1m[92mDONE [0m Completed [4mmergeMappings[0m in 6.49s
+ [1m[92mDONE [0m Completed [4mdownloadClient[0m in 62.09s
+ [1m[92mDONE [0m Completed [4mdownloadServer[0m in 371.26s
+[1m*** Started working on [4mextractServer[0m[0m
+ RUN   Running external tool net.neoforged.installertools:installertools:4.0.7:fatjar
+ [1m[92mDONE [0m Completed [4mextractServer[0m in 2.63s
+[1m*** Started working on [4mstripClient[0m[0m
+[1m*** Started working on [4mstripServer[0m[0m
+ [1m[92mDONE [0m Completed [4mstripServer[0m in 4.03s
+ [1m[92mDONE [0m Completed [4mstripClient[0m in 5.33s
+[1m*** Started working on [4mmerge[0m[0m
+ RUN   Running external tool net.neoforged:mergetool:2.0.7:fatjar
+ [1m[92mDONE [0m Completed [4mmerge[0m in 10.27s
+[1m*** Started working on [4mrename[0m[0m
+ RUN   Running external tool net.neoforged:AutoRenamingTool:2.0.17:all
+
+The message received from the daemon indicates that the daemon has disappeared.
+Build request sent: Build{id=1cd57dcb-fb91-4592-8675-1b6998127913, currentDir=C:\Users\ui863\Documents\trae_projects\VAP\neoforge\versions\1.21.11}
+Attempting to read last messages from the daemon log...
+Daemon pid: 71944
+  log file: C:\Users\ui863\.gradle\daemon\9.4.1\daemon-71944.out.log
+----- Last 20 lines from daemon log file - daemon-71944.out.log -----
+  DL    https://piston-data.mojang.com/v1/objects/ba2df812c2d12e0219c489c4cd9a5e1f0760f5bd/client.jar
+  DL    https://piston-data.mojang.com/v1/objects/64bb6d763bed0a9f1d632ec347938594144943ed/server.jar
+ [1m[92mDONE [0m Completed [4mdownloadClientMappings[0m in 30.48s
+[1m*** Started working on [4mmergeMappings[0m[0m
+ RUN   Running external tool net.neoforged.installertools:installertools:4.0.7:fatjar
+ [1m[92mDONE [0m Completed [4mmergeMappings[0m in 6.49s
+ [1m[92mDONE [0m Completed [4mdownloadClient[0m in 62.09s
+ [1m[92mDONE [0m Completed [4mdownloadServer[0m in 371.26s
+[1m*** Started working on [4mextractServer[0m[0m
+ RUN   Running external tool net.neoforged.installertools:installertools:4.0.7:fatjar
+ [1m[92mDONE [0m Completed [4mextractServer[0m in 2.63s
+[1m*** Started working on [4mstripClient[0m[0m
+[1m*** Started working on [4mstripServer[0m[0m
+ [1m[92mDONE [0m Completed [4mstripServer[0m in 4.03s
+ [1m[92mDONE [0m Completed [4mstripClient[0m in 5.33s
+[1m*** Started working on [4mmerge[0m[0m
+ RUN   Running external tool net.neoforged:mergetool:2.0.7:fatjar
+ [1m[92mDONE [0m Completed [4mmerge[0m in 10.27s
+[1m*** Started working on [4mrename[0m[0m
+ RUN   Running external tool net.neoforged:AutoRenamingTool:2.0.17:all----- End of the daemon log -----
+

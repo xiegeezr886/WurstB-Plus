@@ -67,12 +67,12 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
 | 构建状态 | 15 个工程各自输出 `build/libs/` 产物；根目录 **v1.6.0** 已通过 `compileJava` + `test` 验证，其余 14 个工程为 **v1.5.0** 既有产物；另有 49 个在研移植工程（详见 [PORTING_TASK.md](PORTING_TASK.md) 与 [PROJECT_INDEX.md](PROJECT_INDEX.md)） |
-| 注册 Hack | 207 个（根工程 v1.6.0；`hacks/` 目录含内部辅助类共 251 个 Java 文件） |
-| 注册命令 | 54 |
+| 注册 Hack | 208 个（根工程 v1.6.0；`hacks/` 目录含内部辅助类共 252 个 Java 文件） |
+| 注册命令 | 55 |
 | Other Feature | 17 |
 | Forge Mixin | 74 (1.20.1 根工程，见 `wurst.mixins.json`) |
-| 活跃 Java 文件 | 893 (根 1.20.1 `src/main/java`) / 741 (1.21.1) / 791 (26.2) |
-| 单元测试 | 94 个测试类 / 352 项 / 0 失败（根工程 1.20.1 最近一次 `test`），覆盖 v1.6 音乐解析、AMLL 歌词流水线与布局、Compose 动画和 MD3 主题 |
+| 活跃 Java 文件 | 931 (根 1.20.1 `src/main/java`) / 741 (1.21.1) / 791 (26.2) |
+| 单元测试 | 103 个测试类 / 436 项 / 0 失败（根工程 1.20.1 最近一次 `test`），覆盖 v1.6 音乐解析、AMLL 歌词流水线与布局、Compose 动画、MD3 主题与周界挖掘全套（区域几何、边界检测、液体策略、配置迁移、双语文本） |
 
 > 根目录是 Forge 1.20.1-47.4.10 工程；`neoforge/`、`versions/` 和 `fabric/` 是独立版本工程，不共享加载器运行时。Forge/NeoForge 使用 Mojang 官方映射，Fabric 使用 Fabric Loom + 官方映射；Fabric 版本通过 Access Widener 和 Fabric API 适配，不代表根工程是 Fabric 项目。
 
@@ -90,7 +90,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 
 以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 63 个工程（已发布的 14 个平台工程 + 在研的 49 个新版本工程）均未移植。
 
-### 源码包（98 个 Java 文件）
+### 源码包（134 个 Java 文件）
 
 | 包 | 文件数 | 说明 |
 | --- | ---: | --- |
@@ -103,8 +103,13 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 | `render/skia` | 4 | Skiko 矢量渲染（`SkikoNatives` / `SkiaGlBackend` / `SkiaFontManager` / `SkiaRegionRenderer`） |
 | `gui/visual` | 3 | `VisualTheme` 语义色 token、`VisualRenderer`、`VisualScreenMotion` |
 | `hud2/render` | 2 | `RiseFrostedGlass` 磨砂玻璃、`RiseHudFont` |
+| `perimeter` | 35 | 周界挖掘全套：区域模型与游标、液体策略与边界封闭、方块限制与批次、导航 / 交互 / 装备 / 补给策略、28 状态自动化编排、双语文本 |
+| `perimeter.config` | 11 | 按服务器 / 存档分存的配置模型、迁移与原子写盘（`PerimeterConfigStore`） |
+| `perimeter.detect` | 2 | 不规则区域边界检测（`BoundaryDetector` / `PerimeterGrid`） |
 
-新增 Hack（11 个）：`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SuperKnockback`、`VehicleBoost`、`WTap`。
+新增 Hack（12 个）：`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SuperKnockback`、`VehicleBoost`、`WTap`。
+
+其中 `PerimeterDigger`（Blocks 分类）配合 `.perimeter` 与 Brigadier `/perimeterdig`（含 Tab 补全）在 v1.6 **原生等价移植**了社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 的全部功能：闭区间矩形规划与**不规则区域边界检测**、**液体 avoid / replace / seal_boundary** 策略与边界封堵、批次上限与背包满自动暂停、**自动拾取与多卸货点卸货**、**工具/鞘翅耐久替换**、**自动进食、补给、睡觉**、**跨维度熔炉修复**、**行走与鞘翅寻路**、**按服务器/存档分存配置**、**中英双语文本与命令**。原模组为 Fabric / MC 26.1.1 / Java 25 且依赖修改版 Baritone，无法直接内置，故本实现把区域挖掘语义落在本项目自己的 `PerimeterMiningSchematic` 上、交给官方 Baritone 的 `BuilderProcess` 执行，并按同样判定复刻液体与边界语义（具体偏差见 `CHANGELOG.md`）。
 
 ### GUI 入口切换
 
@@ -770,9 +775,9 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 根目录 v1.6.0（本轮实际验证）：
 
 - `gradlew.bat compileJava`：通过
-- `gradlew.bat test`：通过，94 个测试类 / 352 项测试 / 0 失败
+- `gradlew.bat test`：通过，103 个测试类 / 436 项测试 / 0 失败
 - 产物 `build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB）：含全部 v1.6 子系统、`assets/wurst/skiko/` 原生库（`skiko-windows-x64.dll` 16.51 MB + `icudtl.dat` 9.98 MB）、`META-INF/jarjar/metadata.json` 记录的 17 个内嵌 jarJar 依赖
-- **未做游戏内运行验证**：v1.6 的 GUI / 音乐 / Skia 子系统与 11 个新 Hack 只经过编译与单元测试，尚未进入世界实测
+- **未做游戏内运行验证**：v1.6 的 GUI / 音乐 / Skia 子系统与 12 个新 Hack 只经过编译与单元测试，尚未进入世界实测
 
 其余 14 个 v1.5.0 工程（既有结论）：
 

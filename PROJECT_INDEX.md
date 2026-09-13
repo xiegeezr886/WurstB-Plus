@@ -3,7 +3,7 @@
 本文档记录当前工作区的实际结构。统计基于各工程自身的 `src/main`，不包含根目录参考压缩包中的源码文件。
 
 > **当前状态（重要）**：根目录工程已推进到 **v1.6.0**，其余 14 个平台工程仍停留在 **v1.5.0**。
-> v1.6 新增的 10 个源码包（98 个 Java 文件）**只存在于根目录 Forge 1.20.1 工程**，尚未移植。
+> v1.6 新增的 13 个源码包（134 个 Java 文件）**只存在于根目录 Forge 1.20.1 工程**，尚未移植。
 > 详见「v1.6 新增子系统」与 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 版本与源码路径索引
@@ -12,7 +12,7 @@
 
 | 工程（构建目录） | 平台 / 游戏版本 | 工具链 | 源码文件数 | 版本 | 入口类 | 发布产物（build/libs/） |
 | --- | --- | --- | ---: | --- | --- | --- |
-| `.`（根） | Forge 47.4.10 / 1.20.1 | JDK 17 · Gradle 8.11 · ForgeGradle 6.0 | **881** | **v1.6.0** | `WurstForgeInitializer` | `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB） |
+| `.`（根） | Forge 47.4.10 / 1.20.1 | JDK 17 · Gradle 8.11 · ForgeGradle 6.0 | **931** | **v1.6.0** | `WurstForgeInitializer` | `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB） |
 | `versions/1.21.1/` | Forge 52.1.16 / 1.21.1 | JDK 21 · Gradle 8.11 · ForgeGradle 6.0 | 741 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-1.21.1.jar` |
 | `versions/1.21.11/` | Forge 61.2.0 / 1.21.11 | JDK 21 · Gradle 9.4.1 · ForgeGradle 7.x | 748 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-1.21.11.jar` |
 | `versions/26.1.2/` | Forge 64.1.0 / 26.1.2 | JDK 25 · Gradle 9.4.1 · ForgeGradle 7.x | 790 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-26.1.2.jar` |
@@ -28,7 +28,7 @@
 | `fabric/versions/26.1.2/` | Fabric Loader 0.19.3 / 26.1.2 | JDK 25 · Gradle 9.6.0 · Loom | 791 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-26.1.2.jar` |
 | `fabric/versions/26.2/` | Fabric Loader 0.19.3 / 26.2 | JDK 25 · Gradle 9.6.0 · Loom | 792 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-26.2.jar` |
 
-合计 **11,635 个 Java 源文件**。全部 15 个工程的 `build/libs/` 均存在已构建产物（除根目录为本轮实际重建外，其余为工作区导入时的既有产物，未在本轮重新验证）。
+合计 **11,685 个 Java 源文件**。全部 15 个工程的 `build/libs/` 均存在已构建产物（除根目录为本轮实际重建外，其余为工作区导入时的既有产物，未在本轮重新验证）。
 
 配套目录：
 
@@ -43,7 +43,7 @@
 
 ## v1.6 新增子系统（仅根目录 Forge 1.20.1）
 
-以下 10 个源码包在 14 个平台工程中**完全不存在**，合计 98 个 Java 文件：
+以下 13 个源码包在 14 个平台工程中**完全不存在**，合计 134 个 Java 文件：
 
 | 包 | 文件数 | 职责 |
 | --- | ---: | --- |
@@ -56,10 +56,13 @@
 | `render/skia` | 4 | Skiko 矢量渲染：`SkikoNatives`（解压并加载原生库）、`SkiaGlBackend`、`SkiaFontManager`、`SkiaRegionRenderer` |
 | `gui/visual` | 3 | `VisualTheme`（语义色 token）、`VisualRenderer`、`VisualScreenMotion` |
 | `hud2/render` | 2 | `RiseFrostedGlass`（磨砂玻璃）、`RiseHudFont` |
+| `perimeter` | 35 | 周界挖掘全套：区域模型与游标、液体策略与边界封闭、方块限制与批次、导航 / 交互 / 装备 / 补给策略、28 状态自动化编排、双语文本 |
+| `perimeter.config` | 11 | 按服务器 / 存档分存的配置模型、迁移与原子写盘（`PerimeterConfigStore`） |
+| `perimeter.detect` | 2 | 不规则区域边界检测（`BoundaryDetector` / `PerimeterGrid`） |
 
 对应资源：`assets/wurst/skiko/`（`skiko-windows-x64.dll` 16.5 MB + `icudtl.dat` 10.0 MB，随 mod 资源打包而非 jarJar）、`assets/wurst/textures/gui/netease/`（音乐 UI 图标）。
 
-**v1.6 新增 Hack（11 个，不存在于平台工程）**：`AirJumpHack`、`EntityCullingHack`、`MusicPlayerHack`、`NoMissCooldownHack`、`NoRotateHack`、`ProjectilePuncherHack`、`ReverseStepHack`、`RightClickerHack`、`SuperKnockbackHack`、`VehicleBoostHack`、`WTapHack`。
+**v1.6 新增 Hack（12 个，不存在于平台工程）**：`AirJumpHack`、`EntityCullingHack`、`MusicPlayerHack`、`NoMissCooldownHack`、`NoRotateHack`、`PerimeterDiggerHack`、`ProjectilePuncherHack`、`ReverseStepHack`、`RightClickerHack`、`SuperKnockbackHack`、`VehicleBoostHack`、`WTapHack`。
 
 根目录 `build.gradle` 相应新增：`org.jetbrains.skiko:skiko-awt:0.8.19`、`kotlin-stdlib`、`kotlinx-coroutines-core-jvm`，以及音乐播放依赖链（`java-stream-player`、`mp3spi`、`jlayer`、`jflac-codec`、`vorbis-support`、`tritonus-all`、`jorbis`、`jaudiotagger`）。根工程 jarJar 共内嵌 19 个依赖 jar。
 
@@ -71,7 +74,7 @@
 | `gradle.properties` | Minecraft、Forge、MixinExtras 与项目版本（`mod_version=v1.6.0-Forge-1.20.1`） |
 | `settings.gradle` | ForgeGradle 插件仓库配置 |
 | `gradle/` | Gradle 8.11 wrapper |
-| `src/main/java/` | 纯 Forge/Mojmap Java 源码，共 881 个文件 |
+| `src/main/java/` | 纯 Forge/Mojmap Java 源码，共 931 个文件 |
 | `src/main/resources/` | Mixin、Access Transformer、Forge 元数据、字体、shader、Skiko 原生库与翻译资源 |
 | `src/test/java/` | 根工程单元测试（含 v1.6 音乐解析、歌词时间轴、Compose 动画与 MD3 主题） |
 | `LICENSE.txt` | GPL-3.0 许可证 |
@@ -89,14 +92,14 @@
 | `net.wurstclient.altmanager` | 25 | 账号、登录、系统原生凭据主密钥和账号管理界面 |
 | `net.wurstclient.clickgui2` | 107 | 双 GUI、VAPE/SuperSoft/Epsilon 组件层、音乐界面、实心主题、字体偏好、窗口与控件 |
 | `net.wurstclient.command` | 7 | 命令基础设施、BrigadierCommand 和处理器 |
-| `net.wurstclient.commands` | 54 | 具体命令实现（含 `.macros` `.waypoints` `.proxy`） |
+| `net.wurstclient.commands` | 56 | 具体命令实现（含 `.macros` `.waypoints` `.proxy` `.perimeter`、Brigadier `/perimeterdig`） |
 | `net.wurstclient.compose` | 11 | 声明式 UI 布局树（v1.6 新增） |
 | `net.wurstclient.discord` | 2 | Discord RPC IPC 客户端和管理器 |
 | `net.wurstclient.event` | 6 | EventManager、WurstSubscriber（LambdaMetafactory）、注解 |
 | `net.wurstclient.events` | 38 | 输入、移动、网络、渲染等事件接口 |
 | `net.wurstclient.gui` | 5 | 标题界面（`title/`）与视觉 token/渲染（`visual/`，v1.6 新增） |
 | `net.wurstclient.hack` | 7 | Hack 基类、注册表、冲突和生命周期 |
-| `net.wurstclient.hacks` | 207 | Hack 实现及其内部辅助类 |
+| `net.wurstclient.hacks` | 208 | Hack 实现及其内部辅助类 |
 | `net.wurstclient.hud` | 4 | HUD 和 TabGUI 渲染 |
 | `net.wurstclient.hud2` | 43 | HUD2 系统（统一渲染、磨砂玻璃、指标采样、卡片编辑器及独立元素） |
 | `net.wurstclient.keybinds` | 6 | 按键绑定、智能绑定（TOGGLE/HOLD/SMART）、配置和执行 |
@@ -108,6 +111,9 @@
 | `net.wurstclient.options` | 8 | 客户端选项与配置管理界面 |
 | `net.wurstclient.other_feature` | 2 | Other Feature 基础设施 |
 | `net.wurstclient.other_features` | 17 | 非 Hack 功能入口 |
+| `net.wurstclient.perimeter` | 22 | 周界挖掘核心：区域/游标/进度、液体策略、方块限制、导航、交互、装备、补给、自动化编排与双语文本（v1.6 新增） |
+| `net.wurstclient.perimeter.config` | 11 | 分存配置模型、迁移与存储（v1.6 新增） |
+| `net.wurstclient.perimeter.detect` | 2 | 不规则区域边界检测（v1.6 新增） |
 | `net.wurstclient.proxy` | 2 | ProxyConfig 和 ProxyManager |
 | `net.wurstclient.render.skia` | 4 | Skiko 矢量渲染管线（v1.6 新增） |
 | `net.wurstclient.serverfinder` | 3 | 服务器扫描和清理界面 |
@@ -120,7 +126,7 @@
 
 ### Hack
 
-注册入口：`src/main/java/net/wurstclient/hack/HackList.java`，共 207 个 Hack 源文件。
+注册入口：`src/main/java/net/wurstclient/hack/HackList.java`，共 208 个 Hack 源文件。
 
 | 分类 | 说明 |
 | --- | --- |
@@ -128,11 +134,11 @@
 | `ClickGuiHack`、`NavigatorHack` | 两个 GUI 入口，不设常规分类，也不发送普通模块的 Enabled/Disabled 通知 |
 
 v1.5 新增 14 个 Hack：AntiBot (Combat)，EntityCulling/BossStack/PopChams/Breadcrumbs/LightOverlay/LogoutSpots/PlayerHalo (Render)，DankBobbing/Notebot/Twerk/Vomit (Fun)，PacketCanceller/PacketLogger (Other)。
-v1.6 新增 11 个 Hack：见「v1.6 新增子系统」。
+v1.6 新增 12 个 Hack：见「v1.6 新增子系统」。其中 `PerimeterDigger`（Blocks）配合 `.perimeter` 与 Brigadier `/perimeterdig` 提供原生周界挖掘：闭区间矩形规划、不规则区域边界检测、液体 avoid/replace/seal_boundary、批次与背包管理、多卸货点卸货、工具/鞘翅耐久替换、自动进食/补给/睡觉、跨维度熔炉修复、行走与鞘翅寻路、按服务器/存档分存配置、中英双语文本。
 
 ### 命令
 
-注册入口：`src/main/java/net/wurstclient/command/CmdList.java`，共 54 个命令，覆盖按键、设置、好友、路径、物品、传送、NBT、XRay、宏、路径点、代理和功能管理。v1.5 新增 `.macros` `.waypoints` `.proxy`。
+注册入口：`src/main/java/net/wurstclient/command/CmdList.java`，共 55 个命令，覆盖按键、设置、好友、路径、物品、传送、NBT、XRay、宏、路径点、代理、周界挖掘和功能管理。v1.5 新增 `.macros` `.waypoints` `.proxy`，v1.6 新增 `.perimeter`。
 
 ### Other Feature
 
@@ -312,7 +318,7 @@ v1.6 新增 11 个 Hack：见「v1.6 新增子系统」。
 项目版本为 `1.6.0`，Minecraft 1.20.1，Forge 47.4.10，Java 17，Gradle 8.11。
 
 - `gradlew.bat compileJava` 通过。
-- `gradlew.bat test` 通过：**94 个测试类、352 项测试、0 失败**。
+- `gradlew.bat test` 通过：**103 个测试类、436 项测试、0 失败**（含周界挖掘的区域几何、游标遍历顺序、进度/ETA、列式区域、边界检测、液体策略、批次/背包策略、状态机、中英文本一致性，以及直接扫描源码的「文案必须双语」检查）。
 - 发布产物 `build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB）含全部 v1.6 子系统、`assets/wurst/skiko/` 原生库及 19 个内嵌 jarJar 依赖。
 
 其余 14 个平台工程在 v1.5.0 状态下各自包含 `build/libs/` 产物；其构建与启动验证结果见 [PORTING_TASK.md](PORTING_TASK.md) 与 `docs/PORTING-1.21.11-26.2.md`（记录 1.21.11 / 26.2 六工程的构建、进世界与 Baritone `#goto` 冒烟结果）。

@@ -683,10 +683,9 @@ public final class SuperSoftClickGuiScreen extends Screen
 					var setting = WURST.getOtfs().translationsOtf.getForceEnglish();
 					setting.setChecked(!setting.isChecked());
 				}),
-			SuperSoftRowsWindow.switchRow("Vape mode",
-				preferences::isVapeMode,
-				() -> ClickGuiScreens.setVapeMode(
-					!preferences.isVapeMode())),
+			SuperSoftRowsWindow.action("GUI style: "
+					+ preferences.getClickGuiStyle().displayName(),
+				() -> false, ClickGuiScreens::cycleStyle),
 			SuperSoftRowsWindow.switchRow("Commands",
 				preferences::isCommandsEnabled,
 				() -> preferences.setCommandsEnabled(

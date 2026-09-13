@@ -189,6 +189,7 @@
   "description.wurst.hack.overlay": "Renders the Nuker animation whenever you mine a block.",
   "description.wurst.hack.panic": "Instantly turns off all enabled hacks.\nBe careful with this one!",
   "description.wurst.hack.parkour": "Makes you jump automatically when reaching the edge of a block.\nUseful for parkours and jump'n'runs.",
+  "description.wurst.hack.perimeterdigger": "Automates large-scale perimeter excavation.\nPlan an inclusive rectangular region with .perimeter plan rectangle, then start, pause, resume or stop the dig.\nPauses automatically when the inventory is full.",
   "description.wurst.hack.playeresp": "Highlights nearby players.\nESP boxes of friends will appear in blue.",
   "description.wurst.hack.portalesp": "Highlights nearby portals.",
   "description.wurst.hack.portalgui": "Allows you to open GUIs in portals.",

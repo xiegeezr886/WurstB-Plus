@@ -20,6 +20,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen;
 import net.wurstclient.clickgui2.component.VapeClickGuiScreen;
+import net.wurstclient.clickgui2.epsilon.EpsilonDropdownScreen;
 import net.wurstclient.command.CmdProcessor;
 import net.wurstclient.events.KeyPressListener;
 import net.wurstclient.hack.Hack;
@@ -68,6 +69,9 @@ public final class KeybindProcessor implements KeyPressListener
 		if(screen instanceof VapeClickGuiScreen vapeGui
 			&& vapeGui.isWaitingForKeybind())
 			return;
+		if(screen instanceof EpsilonDropdownScreen epsilonGui
+			&& epsilonGui.isWaitingForKeybind())
+			return;
 
 		String cmds = keybinds.getCommands(keyName);
 		if(cmds == null)
@@ -85,6 +89,8 @@ public final class KeybindProcessor implements KeyPressListener
 		{
 			if(screen instanceof SuperSoftClickGuiScreen clickGui)
 				clickGui.onClose();
+			else if(screen instanceof EpsilonDropdownScreen epsilonGui)
+				epsilonGui.onClose();
 			else
 				WurstClient.MC.setScreen(null);
 			return;

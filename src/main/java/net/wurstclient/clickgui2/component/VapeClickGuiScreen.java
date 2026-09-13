@@ -351,7 +351,7 @@ public final class VapeClickGuiScreen extends Screen implements VapeGuiContext
 	{
 		int x = (int)frame.x();
 		int bodyY = (int)frame.y() + HEADER_HEIGHT;
-		String[] labels = {"VapeMode", "Search modules",
+		String[] labels = {"GUI style", "Search modules",
 			editingHiddenModules ? "Done editing" : "Edit modules", "Favorites",
 			"Reset GUI positions", "Sort GUI"};
 		for(int row = 0; row < labels.length; row++)
@@ -518,7 +518,7 @@ public final class VapeClickGuiScreen extends Screen implements VapeGuiContext
 		int row = (int)((mouseY - frame.y() - HEADER_HEIGHT) / ROW_HEIGHT);
 		switch(row)
 		{
-			case 0 -> ClickGuiScreens.setVapeMode(false);
+			case 0 -> ClickGuiScreens.cycleStyle();
 			case 1 -> searchFocused = true;
 			case 2 ->
 			{

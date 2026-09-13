@@ -1,0 +1,17 @@
+accessWidener	v1	named
+
+accessible	class	net/minecraft/client/renderer/FogRenderer$MobEffectFogFunction
+accessible	class	net/minecraft/client/renderer/RenderType$CompositeRenderType
+accessible	class	net/minecraft/client/renderer/RenderType$CompositeState
+accessible	class	net/minecraft/client/renderer/RenderStateShard$LineStateShard
+accessible	method	net/minecraft/client/Minecraft	startAttack	()Z
+accessible	method	net/minecraft/client/MouseHandler	onPress	(JIII)V
+accessible	method	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	slotClicked	(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ClickType;)V
+accessible	method	net/minecraft/client/gui/components/AbstractSelectionList	getRowTop	(I)I
+accessible	method	net/minecraft/client/renderer/FogRenderer	getPriorityFogFunction	(Lnet/minecraft/world/entity/Entity;F)Lnet/minecraft/client/renderer/FogRenderer$MobEffectFogFunction;
+accessible	method	net/minecraft/client/renderer/GameRenderer	loadEffect	(Lnet/minecraft/resources/ResourceLocation;)V
+accessible	field	net/minecraft/client/gui/screens/Screen	renderables	Ljava/util/List;
+accessible	field	net/minecraft/world/entity/Entity	maxUpStep	F
+accessible	field	net/minecraft/client/multiplayer/MultiPlayerGameMode	destroyDelay	I
+accessible	field	net/minecraft/client/multiplayer/MultiPlayerGameMode	destroyProgress	F
+accessible	field	net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket	sectionPos	Lnet/minecraft/core/SectionPos;

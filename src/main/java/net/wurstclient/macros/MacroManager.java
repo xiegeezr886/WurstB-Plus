@@ -26,6 +26,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen;
+import net.wurstclient.clickgui2.epsilon.EpsilonDropdownScreen;
 import net.wurstclient.clickgui2.component.VapeClickGuiScreen;
 import net.wurstclient.command.CmdProcessor;
 import net.wurstclient.events.KeyPressListener;
@@ -138,6 +139,9 @@ public final class MacroManager implements KeyPressListener, UpdateListener
 			return;
 		if(screen instanceof VapeClickGuiScreen vapeGui
 			&& vapeGui.isWaitingForKeybind())
+			return;
+		if(screen instanceof EpsilonDropdownScreen epsilonGui
+			&& epsilonGui.isWaitingForKeybind())
 			return;
 
 		String keyName = getKeyName(event);

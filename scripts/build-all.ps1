@@ -6,6 +6,7 @@
     powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 -Version 1.21.11
     powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 -Loader NeoForge
     powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 -Skip 26.2
+    powershell -ExecutionPolicy Bypass -File scripts\build-all.ps1 -Offline
 #>
 
 [CmdletBinding()]
@@ -15,6 +16,7 @@ param(
     [string]$Loader = "",
     [string[]]$Skip = @(),
     [switch]$Clean,
+    [switch]$Offline,
     [switch]$PublishToDownload,
     [switch]$Quiet
 )
@@ -22,40 +24,18 @@ param(
 $ErrorActionPreference = "Stop"
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+. (Join-Path $scriptRoot "common.ps1")
 if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
-    $ProjectRoot = (Resolve-Path (Join-Path $scriptRoot "..")).Path
+    $ProjectRoot = Get-WurstbProjectRoot
 } else {
-    $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
+    $ProjectRoot = Get-WurstbProjectRoot $ProjectRoot
 }
 
 function Write-Info($msg) { if (-not $Quiet) { Write-Host $msg } }
 
-# ---------- JDK locations (overridable via env) ----------
-function Get-JdkHome($mcVersion) {
-    $envVar = ""
-    $default = ""
-    if ($mcVersion -eq "1.20.1") {
-        $envVar = "WURSTBPLUS_JAVA17"
-        $default = "C:\Program Files\Java\jdk-17"
-    } elseif ($mcVersion -eq "1.21.1" -or $mcVersion -eq "1.21.11") {
-        $envVar = "WURSTBPLUS_JAVA21"
-        $default = "C:\Program Files\Java\jdk-21"
-    } elseif ($mcVersion -eq "26.1.2" -or $mcVersion -eq "26.2") {
-        $envVar = "WURSTBPLUS_JAVA25"
-        $default = "C:\Program Files\Java\jdk-25.0.4"
-    }
-    $override = [Environment]::GetEnvironmentVariable($envVar)
-    if ($override) { return $override }
-    return $default
-}
-
-function Test-Jdk($jdkHome) {
-    return (Test-Path -LiteralPath (Join-Path $jdkHome "bin\java.exe"))
-}
-
 # ---------- project table ----------
 $projects = @(
-    @{ Name = "Forge 1.20.1";    Dir = "";                          MC = "1.20.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.20.1.jar") },
+    @{ Name = "Forge 1.20.1";    Dir = "";                          MC = "1.20.1"; Tasks = @("jarJar", "test");                     Out = @("build\libs\WurstB+ Plus-v1.6.0-Forge-1.20.1.jar"); V16 = $true },
     @{ Name = "Forge 1.21.1";    Dir = "versions\1.21.1";          MC = "1.21.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.21.1.jar") },
     @{ Name = "Forge 1.21.11";   Dir = "versions\1.21.11";         MC = "1.21.11"; Tasks = @("allJar", "test");                     Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.21.11.jar"); Baritone = "META-INF/jarjar/baritone-forge-1.17.0-1.21.11.jar" },
     @{ Name = "Forge 26.1.2";    Dir = "versions\26.1.2";          MC = "26.1.2"; Tasks = @("allJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-26.1.2.jar") },
@@ -154,7 +134,7 @@ function Test-EmbeddedBaritone($artifact, $entryName, $mcVersion) {
     }
 }
 
-function Test-CoreClasses($artifact, $mcVersion, $loader) {
+function Test-CoreClasses($artifact, $mcVersion, $loader, $isV16) {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $archive = $null
     try {
@@ -164,6 +144,16 @@ function Test-CoreClasses($artifact, $mcVersion, $loader) {
             $required += @(
                 "net/wurstclient/mixin/WurstMixinConfigPlugin.class",
                 "net/wurstclient/mixin/AbstractSignEditScreenMixin.class"
+            )
+        }
+        if ($isV16) {
+            $required += @(
+                "net/wurstclient/music/NeteaseCloudApi.class",
+                "net/wurstclient/music/apple/AppleTimeline.class",
+                "net/wurstclient/compose/AnimFloat.class",
+                "net/wurstclient/render/skia/SkikoNatives.class",
+                "net/wurstclient/gui/visual/VisualTheme.class",
+                "assets/wurst/skiko/skiko-windows-x64.dll"
             )
         }
         $missing = @($required | Where-Object { -not $archive.GetEntry($_) })
@@ -193,10 +183,10 @@ foreach ($p in $projects) {
         continue
     }
 
-    $jdkHome = Get-JdkHome $p.MC
-    if (-not (Test-Jdk $jdkHome)) {
-        Write-Host "[$($p.Name)] ERROR: JDK not found: $jdkHome" -ForegroundColor Red
-        $report += @{ Name = $p.Name; Status = "ERROR"; Note = "missing JDK $jdkHome"; Elapsed = "-" }
+    $jdkHome = Get-WurstbJdkHome $p.MC
+    if (-not $jdkHome) {
+        Write-Host "[$($p.Name)] ERROR: JDK not found for MC $($p.MC)" -ForegroundColor Red
+        $report += @{ Name = $p.Name; Status = "ERROR"; Note = "missing JDK for MC $($p.MC)"; Elapsed = "-" }
         $failed = $true
         continue
     }
@@ -207,6 +197,7 @@ foreach ($p in $projects) {
     $env:_JAVA_OPTIONS = "-Djavax.net.ssl.trustStoreType=Windows-ROOT"
 
     $taskArgs = @("--no-daemon", "--console=plain")
+    if ($Offline) { $taskArgs += "--offline" }
     if ($Clean) { $taskArgs = @("clean") + $taskArgs }
     $taskArgs += $p.Tasks
     if ($p.Args) { $taskArgs += $p.Args }
@@ -241,7 +232,7 @@ foreach ($p in $projects) {
 
     $artifact = Join-Path $projDir $p.Out[0]
     $projectLoader = ($p.Name -split " ", 2)[0]
-    $coreCheck = Test-CoreClasses $artifact $p.MC $projectLoader
+    $coreCheck = Test-CoreClasses $artifact $p.MC $projectLoader $p.V16
     if (-not $coreCheck.Passed) {
         Write-Host "[$($p.Name)] FAIL: $($coreCheck.Note)" -ForegroundColor Red
         $report += @{ Name = $p.Name; Status = "FAIL"; Note = $coreCheck.Note; Elapsed = $elapsed }

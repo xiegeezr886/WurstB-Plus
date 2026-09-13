@@ -9,7 +9,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 ## v1.6.0 - 根目录 Forge 1.20.1（仅此工程）
 
-### 新增子系统（87 个 Java 文件，14 个平台工程中不存在）
+### 新增子系统（134 个 Java 文件，14 个平台工程中不存在）
 
 | 包 | 文件数 | 说明 |
 | --- | ---: | --- |
@@ -22,10 +22,13 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 | `render/skia` | 4 | Skiko 矢量渲染：`SkikoNatives`（解压并加载原生库）、`SkiaGlBackend`、`SkiaFontManager`、`SkiaRegionRenderer` |
 | `gui/visual` | 3 | `VisualTheme`（语义色 token）、`VisualRenderer`、`VisualScreenMotion` |
 | `hud2/render` | 2 | `RiseFrostedGlass`（磨砂玻璃）、`RiseHudFont` |
+| `perimeter` | 35 | 周界挖掘全套：区域模型与游标、液体策略与边界封闭、方块限制与批次、导航 / 交互 / 装备 / 补给策略、28 状态自动化编排、双语文本 |
+| `perimeter.config` | 11 | 按服务器 / 存档分存的配置模型、迁移与原子写盘（`PerimeterConfigStore`） |
+| `perimeter.detect` | 2 | 不规则区域边界检测（`BoundaryDetector` / `PerimeterGrid`） |
 
-### 新增 Hack（11 个）
+### 新增 Hack（12 个）
 
-`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SuperKnockback`、`VehicleBoost`、`WTap`。
+`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SuperKnockback`、`VehicleBoost`、`WTap`。
 
 `MusicPlayer`（OTHER 分类）打开 `NeteaseMusicScreen`，自身带 `@DontSaveState` / `@DontBlock`。
 
@@ -38,9 +41,9 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 ### 验证状态
 
-- 根工程 `test` 通过：94 个测试类、352 项、0 失败（含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析）。
+- 根工程 `test` 通过：103 个测试类、436 项、0 失败（含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析、周界挖掘的区域几何与进度/ETA）。
 - 产物：`build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（约 68 MB）。
-- 仅验证构建与单元测试；v1.6 新子系统（GUI / 音乐 / Skia）**未经游戏内运行验证**。
+- 仅验证构建与单元测试；v1.6 新子系统（GUI / 音乐 / Skia / 周界挖掘）**未经游戏内运行验证**。
 - 开发工具：`scripts/doctor.ps1`、`scripts/run-unit-tests.ps1`、`scripts/seed-gradle-wrapper.ps1`；`build-all.ps1` 根工程产物已对齐 v1.6.0。
 
 ### 已知问题（本轮已修复）
@@ -76,9 +79,31 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 - 新增 `AmlEasing`、`AmlVisual`、`AmlEmphasize`、`AmlOptimize`、`AmlLayoutReason`、`AmlTween`、`AmlLineBalancer`、`AmlMask` 八个可独立测试的类，视觉常量不再散落在渲染代码里。
 - 源码包总数 94 → **98** 个 Java 文件，其中 `music` + `music/apple` 由 24 → **28**。
 
+### 周界挖掘（v1.6 原生实现）
+
+社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 是 **Fabric / MC 26.1.1 / Java 25** 工程，且强依赖 HackerRouter 的**修改版 Baritone**（自定义 XZ 区域挖掘 + 扩展 Elytra/寻路 API），因此无法以「内置第三方模组」的方式进入 Forge 1.20.1 的 v1.6 工程。本轮按同等用途**原生实现**了第一里程碑：
+
+- **区域规划**：`.perimeter plan rectangle <x0> <z0> <x1> <z1> <minY> <maxY>`，XZ 两角与 Y 上下限**均为闭区间**，坐标支持 `~` 与 `~<偏移>`；两角顺序任意，内部归一化。
+- **启停控制**：`.perimeter start | pause | resume | stop | clear | status`，可反复暂停/继续；`status` 输出状态、区域、已挖/总数、百分比、已用时间与 ETA。
+- **矩形挖掘**：复用已验证过的 `ExcavatorHack`（`Area` 扫描 + `ExcavatorPathFinder` + `BlockBreaker`）按 Y 范围自顶向下开挖；计划区超过 800 万格时给出提示。
+- **进度统计**：`PerimeterCursor` 按「顶层优先（Y 递减）→ Z 递增 → X 递增」零分配遍历，`PerimeterProgress` 负责总数/剩余/百分比/耗时/ETA；计数按每 tick 8192 格预算分摊，超大周界不会卡住客户端。
+- **安全暂停**：背包无空位时自动暂停（自动卸货尚未实现）；挖掘器自行停止时最多自动重启 3 次，之后进入 `STALLED` 等待 `resume`。
+- **液体**：沿用 `BlockUtils.canBeClicked`（按方块轮廓形状判定），流体没有可点击轮廓，所以**默认不会被挖掘**；封闭与替换液体尚未实现。
+- **未实现（后续里程碑）**：不规则区域检测（`detect`）、液体封闭/替换、卸货点与背包管理、工具耐久与补给点、跨维度修复、鞘翅寻路与自动睡觉。
+- 新增 `PerimeterDigger` Hack（Blocks 分类，`@DontSaveState`）与 `.perimeter` 命令；v1.6 源码包 98 → **134**，测试类 94 → **103**、用例 352 → **436**。
+
 ### 待办
 
 - 将 v1.6 子系统移植到其余 14 个平台工程（1.21.1 / 1.21.11 / 26.1.2 / 26.2 × Forge/NeoForge/Fabric）。
+- **完整移植（里程碑 2，等价全部移植）**：不规则区域检测、液体 avoid/replace/seal_boundary、自动拾取与卸货点、工具/鞘翅耐久替换、自动进食/补给/睡觉、跨维度 XP 炉修复、行走与鞘翅寻路、按服务器·存档分存配置、中英双语文本与 `/perimeterdig`（含 Tab 补全）。
+  - **区域**：`/perimeterdig area detect <block> <y>` 用与原模组同源的扫描算法（8 邻接连通分量 + 奇偶遍历 + 外边界判定）识别任意形状边界，输出逐 Z 扫描线；`PerimeterRegion` / `PerimeterColumnArea` 支持游程合并与二分查找。
+  - **液体**：`PerimeterMiningSchematic` 逐格复刻原模组 `AreaMiningSchematic` 的判定（区域内 / 边界外沿 / `touchesSideOrTopBoundary`），`AVOID` 额外跳过与流体相邻的方块；封堵方块取配置列表中第一个可放置者。
+  - **背包与批次**：`PerimeterMiningJob` 统计区域内「实心变空气」的方块、按空槽位计算批次上限、达上限自动暂停并记录原因；`PerimeterInventoryPolicy` 决定何时卸货、哪些槽位可丢。
+  - **卸货 / 补给 / 维修 / 睡觉**：命名卸货点，靠近后潜行、俯视竖井中心、逐槽 `THROW` 丢出可丢物品；补给点、床、周界传送门、维修传送门与熔炉行坐标均可配置，跨维度经传送门取熔炉产物。
+  - **导航**：`PerimeterNavigation` 统一行走与鞘翅飞行，切换时保存/恢复 Baritone 的 `allowPlace`、`allowPlaceInFluidsSource/Flow`、`elytraTermsAccepted` 等开关。
+  - **配置**：`PerimeterConfigStore` 按「服务器地址 / 单人存档路径 / 本地维度」生成稳定 UUID 文件名，写盘用临时文件 + `ATOMIC_MOVE`；`PerimeterConfigMigration` 负责 schema 版本迁移。
+  - **文本与命令**：`PerimeterText` 内置英文与简体中文两套文案（跟随游戏语言），`PerimeterTextTest` 校验两套键集完全一致，`PerimeterSourceTextCoverageTest` 直接扫描自动化 / 命令 / Hack 源码，任何未配中文的新文案都会让测试失败；`/perimeterdig` 为 Brigadier 命令树，子命令/键名/取值全部有 Tab 补全。
+- **与参考实现的偏差（如实说明）**：原模组依赖 HackerRouter 的修改版 Baritone（`IAreaMineProcess`、`MovementHelper.avoidBreakingDueToLiquid`、边界封堵优先放置通道、`sourceLiquids`/`areaInteriorNeighbors` 目标等）。本移植改为：(1) 把区域挖掘语义放进本项目自己的 `PerimeterMiningSchematic`（`AbstractSchematic` 子类）交给**官方 Baritone** 的 `BuilderProcess.build(...)`；(2) 用 `inSchematic` 内的「流体相邻即跳过」守卫代替 `avoidBreakingDueToLiquid`；(3) 批次上限、已挖计数与暂停原因在本项目内实现；(4) 补给/维修/睡觉为同状态、同导航、同容器点击方式的功能等价实现，而非逐行移植；(5) 文本使用本项目自带中英对照表而非 Minecraft 语言文件。
 
 ---
 

@@ -14,11 +14,12 @@ final class VisualThemeTest
 	@Test
 	void matchesLiquidBounceNextgenFoundationTokens()
 	{
-		assertEquals(0xFF4677FF, VisualTheme.ACCENT);
+		// 统一强调色为水影 NextGen 蓝 #007CFF（见 EpsilonMd3Theme.PRIMARY）。
+		assertEquals(0xFF007CFF, VisualTheme.ACCENT);
 		assertEquals(0xFF4DAC68, VisualTheme.SUCCESS);
 		assertEquals(0xFFFC4130, VisualTheme.ERROR);
 		assertEquals(0xFFefbf04, VisualTheme.WARNING);
-		assertEquals("#4677ff", NotificationSeverity.INFO.getColorHex());
+		assertEquals("#007cff", NotificationSeverity.INFO.getColorHex());
 	}
 
 	@Test
@@ -37,11 +38,11 @@ final class VisualThemeTest
 	@Test
 	void colorUtilitiesClampAndPreserveRgb()
 	{
-		assertEquals(0x004677FF,
+		assertEquals(0x00007CFF,
 			VisualTheme.withAlpha(VisualTheme.ACCENT, -1));
-		assertEquals(0x804677FF,
+		assertEquals(0x80007CFF,
 			VisualTheme.withAlpha(VisualTheme.ACCENT, 128));
-		assertEquals(0xFF4677FF,
+		assertEquals(0xFF007CFF,
 			VisualTheme.withAlpha(VisualTheme.ACCENT, 300));
 		assertEquals(VisualTheme.ACCENT,
 			VisualTheme.mix(VisualTheme.ERROR, VisualTheme.ACCENT, 1));

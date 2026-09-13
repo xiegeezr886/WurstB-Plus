@@ -19,6 +19,7 @@ import net.wurstclient.clickgui2.ClickGuiScreens;
 import net.wurstclient.clickgui2.NavigatorScreen;
 import net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen;
 import net.wurstclient.clickgui2.component.VapeClickGuiScreen;
+import net.wurstclient.clickgui2.epsilon.EpsilonDropdownScreen;
 import net.wurstclient.hud2.HudEditorScreen;
 
 public enum ScreenRegistry
@@ -62,7 +63,8 @@ public enum ScreenRegistry
 	{
 		if(this == CLICK_GUI)
 			return screen instanceof SuperSoftClickGuiScreen
-				|| screen instanceof VapeClickGuiScreen;
+				|| screen instanceof VapeClickGuiScreen
+				|| screen instanceof EpsilonDropdownScreen;
 		return screen != null && screenType.isInstance(screen);
 	}
 
@@ -70,7 +72,8 @@ public enum ScreenRegistry
 	{
 		if(this == CLICK_GUI)
 			return SuperSoftClickGuiScreen.class.isAssignableFrom(type)
-				|| VapeClickGuiScreen.class.isAssignableFrom(type);
+				|| VapeClickGuiScreen.class.isAssignableFrom(type)
+				|| EpsilonDropdownScreen.class.isAssignableFrom(type);
 		return screenType.isAssignableFrom(Objects.requireNonNull(type));
 	}
 

@@ -10,10 +10,10 @@ if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
 	$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 }
 
-$jdk = if ($env:WURSTBPLUS_JAVA25) {
-	$env:WURSTBPLUS_JAVA25
-} else {
-	"C:\Program Files\Java\jdk-25.0.4"
+. (Join-Path $scriptRoot "common.ps1")
+$jdk = Get-WurstbJdkHome "26.2"
+if (-not $jdk) {
+	throw "JDK 25 is missing. Set WURSTBPLUS_JAVA25 or install Microsoft/Temurin JDK 25."
 }
 $javac = Join-Path $jdk "bin\javac.exe"
 $java = Join-Path $jdk "bin\java.exe"

@@ -1,0 +1,20 @@
+{
+  "blend": {
+    "func": "add",
+    "srcrgb": "one",
+    "dstrgb": "zero"
+  },
+  "vertex": "wurst:target_effect",
+  "fragment": "wurst:target_effect",
+  "attributes": [ "Position" ],
+  "samplers": [
+    { "name": "DiffuseSampler" }
+  ],
+  "uniforms": [
+    { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "InSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] },
+    { "name": "OutSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] },
+    { "name": "Time", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Mode", "type": "int", "count": 1, "values": [ 0 ] }
+  ]
+}

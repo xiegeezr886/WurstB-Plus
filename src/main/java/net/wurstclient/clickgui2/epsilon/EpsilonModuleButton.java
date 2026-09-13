@@ -15,7 +15,6 @@ import net.wurstclient.clickgui2.component.GuiComponent;
 import net.wurstclient.clickgui2.component.VapeGuiContext;
 import net.wurstclient.clickgui2.component.ValueComponentFactory;
 import net.wurstclient.clickgui2.supersoft.UiTween;
-import net.wurstclient.clickgui2.PingFangFont;
 import net.wurstclient.clickgui2.SettingTreeLayout;
 import net.wurstclient.keybinds.PossibleKeybind;
 import net.wurstclient.settings.Setting;
@@ -127,12 +126,14 @@ public final class EpsilonModuleButton
 		int textColor = EpsilonMd3.mix(
 			EpsilonDropdownTheme.moduleTextDisabled(hover),
 			EpsilonDropdownTheme.moduleTextEnabled(), toggle);
-		Font font = Minecraft.getInstance().font;
-		String title = PingFangFont.trim(font, feature.getDisplayName(),
-			Math.round((float)(width - EpsilonDropdownTheme.KEYBIND_WIDTH
-				- 24)));
-		drawScaled(graphics, title, Math.round((float)x
-			+ EpsilonDropdownTheme.MODULE_PADDING_X),
+			Font font = Minecraft.getInstance().font;
+			float maxTitleWidth = (float)(width
+				- EpsilonDropdownTheme.KEYBIND_WIDTH - 24);
+			String title = font.plainSubstrByWidth(feature.getDisplayName(),
+				Math.max(1, Math.round(maxTitleWidth
+					/ EpsilonDropdownTheme.MODULE_TEXT_SCALE)));
+			drawScaled(graphics, title, Math.round((float)x
+				+ EpsilonDropdownTheme.MODULE_PADDING_X),
 			Math.round((float)y + (EpsilonDropdownTheme.MODULE_HEIGHT
 				- font.lineHeight) / 2F),
 			textColor, EpsilonDropdownTheme.MODULE_TEXT_SCALE);
@@ -386,14 +387,16 @@ public final class EpsilonModuleButton
 		return label.length() > 3 ? label.substring(0, 3) : label;
 	}
 
-	private void drawScaled(GuiGraphics graphics, String text, int x, int y,
-		int color, float scale)
-	{
-		// 默认 CozyUI 位图字体，9px 整数渲染
-		graphics.drawString(Minecraft.getInstance().font,
-			net.wurstclient.clickgui2.PingFangFont.text(text), x, y, color,
-			false);
-	}
+		private void drawScaled(GuiGraphics graphics, String text, int x, int y,
+			int color, float scale)
+		{
+			graphics.pose().pushPose();
+			graphics.pose().translate(x, y, 0);
+			graphics.pose().scale(scale, scale, 1);
+			graphics.drawString(Minecraft.getInstance().font, text, 0, 0, color,
+				false);
+			graphics.pose().popPose();
+		}
 
 	private String trimToWidth(String text, float scale, float maxWidth)
 	{

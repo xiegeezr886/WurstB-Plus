@@ -17,6 +17,7 @@ import net.minecraft.client.Minecraft;
 import net.wurstclient.altmanager.AltManager;
 import net.wurstclient.altmanager.Encryption;
 import net.wurstclient.clickgui2.ClickGui;
+import net.wurstclient.clickgui2.ClickGuiStyle;
 import net.wurstclient.clickgui2.GuiPreferences;
 import net.wurstclient.command.CmdList;
 import net.wurstclient.command.CmdProcessor;
@@ -141,7 +142,9 @@ public enum WurstClient
 		Path settingsFile = wurstFolder.resolve("settings.json");
 		settingsProfileFolder = wurstFolder.resolve("settings");
 		this.settingsFile = new SettingsFile(settingsFile, hax, cmds, otfs);
+		ClickGuiStyle persistedClickGuiStyle = guiPreferences.getClickGuiStyle();
 		this.settingsFile.load();
+		hax.clickGuiHack.applyStyle(persistedClickGuiStyle);
 		hax.tooManyHaxHack.loadBlockedHacksFile();
 
 		Path keybindsFile = wurstFolder.resolve("keybinds.json");
