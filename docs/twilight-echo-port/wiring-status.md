@@ -96,6 +96,8 @@
 - **从未连过真实的 NeteaseCloudMusicApiEnhanced 服务**：端点路径、信封字段名、
   二维码返回格式都是按协议与 `data-layer.md` 写的，并且刻意做成"多种信封都试、
   失败就回退"，但仍可能与该服务的实际返回有出入。
-- 无法移植的桌面能力（液态玻璃折射、大面积 backdrop 模糊、任意字重中文、
-  WASAPI 独占 / DSD / ASIO / VST3 / 托盘 / 全局媒体键 / 桌面歌词 / 投屏 / DLNA 等）
-  见 `fidelity-map.md` §0 与 §4。
+- 无法移植的桌面能力（液态玻璃折射、大面积 backdrop 模糊、任意字重中文）
+  见 `fidelity-map.md` §0 与 §10.3；**桌面原生音频与系统集成能力
+  （WASAPI 独占 / DSD / ASIO / VST3 / 托盘 / 全局媒体键 / 桌面歌词 / 投屏 /
+  DLNA / SMB）逐项列在 `fidelity-map.md` §10.3b，并给出了游戏内替代或明确写了
+  "不做"**。
