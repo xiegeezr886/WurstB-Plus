@@ -165,13 +165,13 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 
 | hack | 分类 | 行数 | 状态 |
 | --- | --- | --- | --- |
-| `AutoFarm` | BLOCKS | 379 | 待办 |
-| `AutoTool` | BLOCKS | 289 | 待办 |
-| `Excavator` | BLOCKS | 549 | 待办 |
-| `FastBreak` | BLOCKS | 109 | 待办 |
-| `Nuker` | BLOCKS | 165 | 待办 |
-| `ScaffoldWalk` | BLOCKS | 332 | 待办 |
-| `VeinMiner` | BLOCKS | 246 | 待办 |
+| `AutoFarm` | BLOCKS | 379 | 不适用（§0.3） |
+| `AutoTool` | BLOCKS | 289 | 不适用（§0.3） |
+| `Excavator` | BLOCKS | 549 | 不适用（§0.3） |
+| `FastBreak` | BLOCKS | 109 | 不适用（§0.3） |
+| `Nuker` | BLOCKS | 165 | 不适用（§0.3） |
+| `ScaffoldWalk` | BLOCKS | 332 | 不适用（§0.3） |
+| `VeinMiner` | BLOCKS | 246 | 不适用（§0.3） |
 | `AimAssist` | COMBAT | 275 | 不适用（§0.3） |
 | `AnchorAura` | COMBAT | 547 | 已优化（§0.3） |
 | `AntiBot` | COMBAT | 177 | 已重构（§0.3） |
@@ -194,10 +194,10 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Surround` | COMBAT | 220 | 已优化（§0.3） |
 | `TriggerBot` | COMBAT | 233 | 已优化（§0.3） |
 | `WTap` | COMBAT | 126 | 已优化（见 §0.3） |
-| `AutoEat` | ITEMS | 351 | 待办 |
-| `AutoSteal` | ITEMS | 108 | 待办 |
-| `FastUse` | ITEMS | 105 | 待办 |
-| `Restock` | ITEMS | 180 | 待办 |
+| `AutoEat` | ITEMS | 351 | 不适用（§0.3） |
+| `AutoSteal` | ITEMS | 108 | 不适用（§0.3） |
+| `FastUse` | ITEMS | 105 | 已优化（§0.3） |
+| `Restock` | ITEMS | 180 | 不适用（§0.3） |
 | `AutoSprint` | MOVEMENT | 121 | 不适用（§0.3） |
 | `Blink` | MOVEMENT | 198 | 不适用（§0.3） |
 | `BunnyHop` | MOVEMENT | 87 | 不适用（§0.3） |
@@ -258,34 +258,34 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `AirPlace` | 131 | 待办 |
 | `AntiCactus` | 43 | 待办 |
 | `AutoBuild` | 315 | 待办 |
-| `AutoFarm` | 379 | 待办 |
+| `AutoFarm` | 379 | 不适用（§0.3） |
 | `AutoMine` | 115 | 待办 |
 | `AutoSign` | 43 | 待办 |
-| `AutoTool` | 289 | 待办 |
+| `AutoTool` | 289 | 不适用（§0.3） |
 | `BaritoneClearArea` | 125 | 待办 |
 | `BaritoneMine` | 160 | 待办 |
 | `BaritoneTreeBot` | 300 | 待办 |
 | `BonemealAura` | 281 | 待办 |
 | `BuildRandom` | 206 | 待办 |
-| `Excavator` | 549 | 待办 |
-| `FastBreak` | 109 | 待办 |
+| `Excavator` | 549 | 不适用（§0.3） |
+| `FastBreak` | 109 | 不适用（§0.3） |
 | `FastPlace` | 41 | 待办 |
 | `HandNoClip` | 49 | 待办 |
 | `InstaBuild` | 239 | 待办 |
 | `InstantBunker` | 118 | 待办 |
 | `Kaboom` | 109 | 待办 |
 | `Liquids` | 41 | 待办 |
-| `Nuker` | 165 | 待办 |
+| `Nuker` | 165 | 不适用（§0.3） |
 | `NukerLegit` | 205 | 待办 |
 | `PerimeterDigger` | 358 | 待办 |
-| `ScaffoldWalk` | 332 | 待办 |
+| `ScaffoldWalk` | 332 | 不适用（§0.3） |
 | `SpeedMine` | 85 | 待办 |
 | `SpeedNuker` | 110 | 待办 |
 | `TemplateTool` | 190 | 待办 |
 | `Tillaura` | 171 | 待办 |
 | `TreeBot` | 477 | 待办 |
 | `Tunneller` | 925 | 待办 |
-| `VeinMiner` | 246 | 待办 |
+| `VeinMiner` | 246 | 不适用（§0.3） |
 
 ### CHAT（7）
 
@@ -364,14 +364,14 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | hack | 行数 | 状态 |
 | --- | --- | --- |
 | `AutoDrop` | 90 | 待办 |
-| `AutoEat` | 351 | 待办 |
-| `AutoSteal` | 108 | 待办 |
+| `AutoEat` | 351 | 不适用（§0.3） |
+| `AutoSteal` | 108 | 不适用（§0.3） |
 | `AutoSwitch` | 47 | 待办 |
 | `CrashChest` | 62 | 待办 |
-| `FastUse` | 105 | 待办 |
+| `FastUse` | 105 | 已优化（§0.3） |
 | `ItemGenerator` | 87 | 待办 |
 | `KillPotion` | 119 | 待办 |
-| `Restock` | 180 | 待办 |
+| `Restock` | 180 | 不适用（§0.3） |
 | `TrollPotion` | 117 | 待办 |
 
 ### MOVEMENT（45）
