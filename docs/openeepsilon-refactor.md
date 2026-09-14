@@ -229,11 +229,11 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `EntityCulling` | RENDER | 99 | 不适用（§0.3） |
 | `Freecam` | RENDER | 183 | 不适用（§0.3） |
 | `Fullbright` | RENDER | 197 | 已优化（§0.3） |
-| `HoleEsp` | RENDER | 193 | 待办 |
+| `HoleEsp` | RENDER | 193 | 已优化（§0.3） |
 | `ItemEsp` | RENDER | 124 | 不适用（§0.3） |
 | `LightOverlay` | RENDER | 117 | 不适用（§0.3） |
 | `LogoutSpots` | RENDER | 199 | 不适用（§0.3） |
-| `MobEsp` | RENDER | 177 | 待办 |
+| `MobEsp` | RENDER | 177 | 不适用（§0.3） |
 | `NameTags` | RENDER | 227 | 不适用（§0.3） |
 | `NewChunks` | RENDER | 259 | 待办 |
 | `PlayerEsp` | RENDER | 315 | 不适用（§0.3） |
@@ -463,11 +463,11 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Freecam` | 183 | 不适用（§0.3） |
 | `Fullbright` | 197 | 已优化（§0.3） |
 | `HealthTags` | 54 | 待办 |
-| `HoleEsp` | 193 | 待办 |
+| `HoleEsp` | 193 | 已优化（§0.3） |
 | `ItemEsp` | 124 | 不适用（§0.3） |
 | `LightOverlay` | 117 | 不适用（§0.3） |
 | `LogoutSpots` | 199 | 不适用（§0.3） |
-| `MobEsp` | 177 | 待办 |
+| `MobEsp` | 177 | 不适用（§0.3） |
 | `MobSpawnEsp` | 193 | 待办 |
 | `NameProtect` | 56 | 待办 |
 | `NameTags` | 227 | 不适用（§0.3） |
