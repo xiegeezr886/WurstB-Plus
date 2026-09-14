@@ -25,6 +25,7 @@ import net.wurstclient.events.GUIRenderListener;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.render.skia.EspSkia;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.settings.EnumSetting;
@@ -44,6 +45,9 @@ import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.WorldToScreen;
 import net.wurstclient.util.WorldToScreen.ScreenBounds;
+import net.wurstclient.util.esp.EspNameTagElement;
+import net.wurstclient.util.esp.EspNameTagLayout;
+import net.wurstclient.util.esp.EspNameTagPolicy;
 
 @SearchTags({"player esp", "PlayerTracers", "player tracers"})
 public final class PlayerEspHack extends Hack implements UpdateListener,
@@ -106,6 +110,44 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	private final CheckboxSetting armorBar = new CheckboxSetting("Armor bar",
 		"Shows average armor durability below each 2D player box.", true)
 			.visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D);
+
+	private final CheckboxSetting boxStroke = new CheckboxSetting("Box stroke",
+		"Draws the box outline as a thin colored line wrapped in a dark casing,"
+			+ " the way the reference client draws it. Turn this off for the"
+			+ " old single-pixel border.",
+		true).visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D);
+
+	private final CheckboxSetting roundedBox = new CheckboxSetting(
+		"Rounded box", "Rounds the corners of the 2D box.", false)
+			.visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D);
+
+	private final SliderSetting cornerRadius = new SliderSetting(
+		"Corner radius", "Corner radius of the rounded 2D box.", 1.5, 0, 6, 0.5,
+		ValueDisplay.DECIMAL)
+			.visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D
+				&& roundedBox.isChecked());
+
+	private final CheckboxSetting nameTags = new CheckboxSetting("Name tags",
+		"Draws an element strip above each 2D box: status indicators plus the"
+			+ " player's name, health and distance.",
+		true).visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D);
+
+	private final CheckboxSetting tagDistance = new CheckboxSetting(
+		"Tag distance", "Adds the distance to the name tag strip.", true)
+			.visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D
+				&& nameTags.isChecked());
+
+	private final CheckboxSetting tagHealth = new CheckboxSetting("Tag health",
+		"Adds health to the name tag strip; absorption is appended"
+			+ " automatically whenever the player has some.",
+		true).visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D
+			&& nameTags.isChecked());
+
+	private final CheckboxSetting statusIndicators = new CheckboxSetting(
+		"Status indicators",
+		"Marks sneaking, invisible and blocking players on the name tag strip.",
+		true).visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D
+			&& nameTags.isChecked());
 	
 	private final EntityFilterList entityFilters = new EntityFilterList(
 		new FilterSleepingSetting("Won't show sleeping players.", false),
@@ -132,6 +174,13 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		addSetting(throughWalls);
 		addSetting(healthBar);
 		addSetting(armorBar);
+		addSetting(boxStroke);
+		addSetting(roundedBox);
+		addSetting(cornerRadius);
+		addSetting(nameTags);
+		addSetting(tagDistance);
+		addSetting(tagHealth);
+		addSetting(statusIndicators);
 		style.visibleWhen(() -> renderMode.getSelected() == RenderMode.THREE_D);
 		boxSize.visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D
 			|| style.hasBoxes());
@@ -230,7 +279,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 				: Mth.clamp((player.getHealth() + player.getAbsorptionAmount())
 					/ (player.getMaxHealth() + player.getAbsorptionAmount()), 0, 1);
 			boxes.add(new ScreenBox(bounds, getColor(player), health,
-				getArmorDurability(player)));
+				getArmorDurability(player), player));
 		}
 		screenBoxes = List.copyOf(boxes);
 	}
@@ -255,6 +304,189 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 			|| screenBoxes.isEmpty())
 			return;
 
+		// 参考的 2D ESP 全部走矢量绘制：带深色描边的细线、圆角、抗锯齿文字。
+		// 本工程没有 NanoVG，改走既有的 Skia 区域管线（Twilight 界面同一条），
+		// 原生库不可用时逐像素退回原来的原版四边形路径。
+		//
+		// 先预排版：区域只用「这一帧真会画到的并集」，而不是整屏——区域越大，
+		// 每帧 peekPixels + glTexSubImage2D 要上传的像素就越多。
+		ArrayList<DrawnBox> drawn = new ArrayList<>(screenBoxes.size());
+		for(ScreenBox box : screenBoxes)
+			drawn.add(new DrawnBox(box,
+				nameTags.isChecked() ? layoutNameTag(box) : null));
+
+		float[] content = contentBounds(drawn);
+		if(content == null)
+			return;
+
+		int guiWidth = context.guiWidth();
+		int guiHeight = context.guiHeight();
+		int x = Mth.clamp((int)Math.floor(content[0]), 0, guiWidth);
+		int y = Mth.clamp((int)Math.floor(content[1]), 0, guiHeight);
+		int x2 = Mth.clamp((int)Math.ceil(content[2]), 0, guiWidth);
+		int y2 = Mth.clamp((int)Math.ceil(content[3]), 0, guiHeight);
+		if(x2 - x < 1 || y2 - y < 1)
+			return;
+
+		if(!EspSkia.begin(context, x, y, x2 - x, y2 - y))
+		{
+			renderScreenBoxesVanilla(context);
+			return;
+		}
+
+		try
+		{
+			for(DrawnBox entry : drawn)
+				renderScreenBox(entry);
+		}finally
+		{
+			EspSkia.end(context);
+		}
+	}
+
+	/**
+	 * 这一帧所有内容的并集。方框四周留出健康条（左侧）、护甲条（下方）与
+	 * 描边的余量；铭牌条按真实排版结果算，避免长名字被区域裁掉。
+	 */
+	private float[] contentBounds(List<DrawnBox> drawn)
+	{
+		float minX = Float.POSITIVE_INFINITY;
+		float minY = Float.POSITIVE_INFINITY;
+		float maxX = Float.NEGATIVE_INFINITY;
+		float maxY = Float.NEGATIVE_INFINITY;
+
+		for(DrawnBox entry : drawn)
+		{
+			ScreenBounds bounds = entry.box().bounds();
+			minX = Math.min(minX, bounds.minX() - 8);
+			minY = Math.min(minY, bounds.minY() - 4);
+			maxX = Math.max(maxX, bounds.maxX() + 8);
+			maxY = Math.max(maxY, bounds.maxY() + 8);
+
+			EspNameTagLayout.Layout tag = entry.tag();
+			if(tag == null || tag.isEmpty())
+				continue;
+
+			float bgY = tag.placed().get(0).bgY();
+			float bgHeight = tag.placed().get(0).bgHeight();
+			minX = Math.min(minX, tag.startX() - 2);
+			minY = Math.min(minY, bgY - 1);
+			maxX = Math.max(maxX, tag.startX() + tag.totalWidth() + 2);
+			maxY = Math.max(maxY, bgY + bgHeight + 1);
+		}
+
+		if(minX > maxX || minY > maxY)
+			return null;
+		return new float[]{minX, minY, maxX, maxY};
+	}
+
+	private void renderScreenBox(DrawnBox entry)
+	{
+		ScreenBox box = entry.box();
+		ScreenBounds bounds = box.bounds();
+		float x1 = bounds.minX();
+		float y1 = bounds.minY();
+		float x2 = bounds.maxX();
+		float y2 = bounds.maxY();
+		float width = x2 - x1;
+		float height = y2 - y1;
+
+		int lineColor = box.color() & 0x00FFFFFF
+			| (int)(lineOpacity.getValue() * 255) << 24;
+		float radius = roundedBox.isChecked() ? cornerRadius.getValueF() : 0;
+
+		double fillAlpha = fillOpacity.getValue();
+		if(fillAlpha > 0)
+			EspSkia.fillRoundRect(x1, y1, width, height, radius,
+				box.color() & 0x00FFFFFF | (int)(fillAlpha * 120) << 24);
+
+		if(boxStroke.isChecked())
+			// 参考 ESPModule.renderFullBox() 的 boxStroke 分支：
+			// rectOutlineStroke(x, y, w, h, 0.5, 0.5 * 3, color, 0xff000000)
+			EspSkia.outlineRectCased(x1, y1, width, height, 0.5F, 1.5F,
+				lineColor, 0xFF000000);
+		else if(radius > 0)
+			EspSkia.strokeRoundRect(x1, y1, width, height, radius, 1F,
+				lineColor);
+		else
+			EspSkia.outlineRect(x1, y1, width, height, 1F, lineColor);
+
+		if(healthBar.isChecked())
+		{
+			float barX = x1 - 4;
+			float top = Mth.lerp(box.health(), y2, y1);
+			EspSkia.fillRect(barX, y1, 2, height, 0xA0000000);
+			EspSkia.fillRect(barX, top, 2, y2 - top, lineColor);
+		}
+
+		if(armorBar.isChecked() && box.armor() > 0)
+		{
+			float filled = width * box.armor();
+			EspSkia.fillRect(x1, y2 + 2, width, 2, 0xA0000000);
+			EspSkia.fillRect(x1, y2 + 2, filled, 2, 0xFF55AAFF);
+		}
+
+		if(entry.tag() != null && !entry.tag().isEmpty())
+			renderNameTag(entry.tag());
+	}
+
+	/** 按参考的元素顺序与排版算好这一帧的铭牌条。 */
+	private EspNameTagLayout.Layout layoutNameTag(ScreenBox box)
+	{
+		Player player = box.player();
+		if(player == null || MC.player == null)
+			return null;
+
+		boolean indicators = statusIndicators.isChecked();
+		EspNameTagPolicy.Options options = new EspNameTagPolicy.Options(
+			indicators, indicators, indicators, tagDistance.isChecked(), true,
+			tagHealth.isChecked());
+
+		EspNameTagPolicy.State state = new EspNameTagPolicy.State(
+			player.isCrouching(), player.isInvisible(), player.isBlocking(),
+			(int)Math.floor(MC.player.distanceTo(player)),
+			player.getDisplayName().getString(), player.getHealth(),
+			player.getAbsorptionAmount());
+
+		List<EspNameTagElement> elements =
+			EspNameTagPolicy.build(options, state);
+		if(elements.isEmpty())
+			return null;
+
+		ScreenBounds bounds = box.bounds();
+		float fontSize = EspNameTagLayout.FONT_SIZE;
+		return EspNameTagLayout.layout(elements,
+			(bounds.minX() + bounds.maxX()) / 2F, bounds.minY(),
+			text -> EspSkia.textWidth(text, fontSize));
+	}
+
+	private void renderNameTag(EspNameTagLayout.Layout layout)
+	{
+		float fontSize = EspNameTagLayout.FONT_SIZE;
+
+		for(EspNameTagLayout.Placed placed : layout.placed())
+		{
+			// 参考在此处先铺 NVGRenderer.BLUR_PAINT 再叠 50% 黑。CPU 光栅
+			// 画布拿不到游戏帧缓冲，做不了真正的背景模糊，这里只保留那层
+			// 半透明黑底（见 docs/openaopal-port.md「不搬的部分」）。
+			EspSkia.fillRoundRect(placed.bgX(), placed.bgY(),
+				placed.bgWidth(), placed.bgHeight(),
+				EspNameTagLayout.BG_RADIUS, 0x80000000);
+
+			EspNameTagElement element = placed.element();
+			if(element.hasIcon())
+				// 参考把图标画在 position.y + 1，正文画在 position.y
+				EspSkia.textBaseline(element.icon().glyph(), placed.iconX(),
+					layout.baselineY() + 1, fontSize, element.color());
+			if(element.hasText())
+				EspSkia.textBaseline(element.text(), placed.textX(),
+					layout.baselineY(), fontSize, element.color());
+		}
+	}
+
+	/** Skia 不可用时的原版兜底：与加入 Skia 路径之前逐像素一致。 */
+	private void renderScreenBoxesVanilla(GuiGraphics context)
+	{
 		for(ScreenBox box : screenBoxes)
 		{
 			ScreenBounds bounds = box.bounds();
@@ -299,7 +531,12 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	}
 
 	private record ScreenBox(ScreenBounds bounds, int color, float health,
-		float armor)
+		float armor, Player player)
+	{
+	}
+
+	/** 一个已经预算好铭牌排版的方框。 */
+	private record DrawnBox(ScreenBox box, EspNameTagLayout.Layout tag)
 	{
 	}
 

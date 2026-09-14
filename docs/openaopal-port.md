@@ -1,0 +1,123 @@
+# OpenOpal 视觉层移植 · ESP 第一批
+
+参考项目 [`ZSZ7/OpenOpal`](https://github.com/ZSZ7/OpenOpal)（`main`），本地只读检出
+`D:\WurstB\_op_ref`。**GPL-3.0**，与本工程同许可，源码可复用。
+
+本文件只记录**决定与证据**；布局数学在 `util/esp/`，绘制在 `render/skia/EspSkia`。
+
+---
+
+## 0. 先说差异：这是一次跨版本 + 跨加载器 + 跨映射的移植
+
+| | OpenOpal | 本工程（根目录） |
+| --- | --- | --- |
+| Minecraft | 1.21.10 | 1.20.1 |
+| 加载器 | Fabric（`splitEnvironmentSourceSets`，代码在 `src/client`） | Forge 47.4.10 |
+| 映射 | Yarn | 官方 Mojmap |
+| Java | 21 | 17 |
+| 渲染后端 | **NanoVG**（`NVGRenderer`，`nvgShapeAntiAlias`、`BLUR_PAINT`） | 原版 `GuiGraphics` + **Skia/Skiko region**（v1.6 新增） |
+| 模块基类 | `Module` + `Property` 体系 | `Hack` + `Setting` 体系 |
+
+所以可搬的是**几何、排版、元素模型与描边组合**，不可搬的是模块框架与 NanoVG 调用。
+这正是 `PROJECT_INDEX.md` 里 v1.6 的 `render.skia` 存在的原因：本工程已经有等价能力。
+
+---
+
+## 1. 后端决定
+
+OpenOpal 的 2D ESP 全部靠 NanoVG 在**屏幕空间**画：把碰撞箱 8 个角投影成屏幕矩形，
+再用 `rectOutline` / `rectOutlineStroke` / 圆角矩形 / 矢量文字画上去。
+
+本工程的 2D ESP（`PlayerEspHack` 的 `RenderMode.TWO_D`）原本已经在屏幕空间工作，
+但用的是 `RenderUtils.fill2D` / `drawBorder2D`——只有**轴对齐实心四边形**，
+没有圆角、没有描边、没有文字，于是参考那种「细线外包一圈黑边」和铭牌条都做不出来。
+
+**选择**：走既有的 `SkiaRegionRenderer` 区域管线，而不是把 NanoVG 原生库引进来。
+
+- 复用而不是新增原生依赖：Skiko 已随 v1.6 打包（`assets/wurst/skiko/`），NanoVG 要另带
+  `nanovg.dll` + LWJGL 绑定，且与 Skia 功能重叠。
+- 与上次 Twilight Echo 端口的做法一致（`TwilightSkia` + 原版 `blit` 兜底）。
+- 原生库缺失时**逐像素**退回原来的原版路径，行为与打这个补丁之前完全相同。
+
+---
+
+## 2. 搬了什么
+
+| 参考位置 | 本工程 | 说明 |
+| --- | --- | --- |
+| `visual/esp/NameTagElement.java`、`NameTagIcon.java`、`NameTagIconPosition.java` | `util/esp/EspNameTagElement.java` | 三个类型合并成一个文件，用嵌套 record/enum |
+| `visual/esp/ESPModule.java#calculateStartingPosition` + `renderNameTagElements` | `util/esp/EspNameTagLayout.java` | 只保留几何，字形宽度由 `GlyphMeasurer` 注入 |
+| `visual/esp/ESPModule.java#renderNameTag` | `util/esp/EspNameTagPolicy.java` | 拆成 `Options`（设置）+ `State`（实体事实）→ 有序元素列表 |
+| `utility/render/ESPUtility.java#ENCHANTMENT_NAMES` | `util/esp/EspEnchantNames.java` | 改按**注册名路径字符串**作键，去掉 `RegistryKey` 依赖 |
+| `renderer/NVGRenderer.java#rectOutline` / `rectOutlineStroke` / `rectStroke` | `render/skia/EspSkia.java` | 逐条移植的描边组合 |
+| `ESPModule.renderFullBox()` 的 `boxStroke` 分支 | `PlayerEspHack.renderScreenBox()` | `(0.5, 1.5, color, 0xff000000)` 参数原样 |
+
+几何口径与参考一致的关键常量（`EspNameTagLayout`）：
+字号 `5`、元素间隔 `5`、背景内边距 `2`、圆角 `2`、基线偏移 `4.5`。
+
+> **那处 4.5 的来历**：参考里背景是 `position.y - 2 - 4.5`，正文画在 `position.y`。
+> 看起来像多减了一次，但 `nvgText` 的 y 是**基线**而非顶边，多出来的 4.5 正好
+> 抵消字形上伸部分、让文字在背景里竖直居中。Skia 的 `drawString` 同样取基线，
+> 所以 `EspSkia.textBaseline()` 不做「顶边→基线」换算，偏移照抄。
+
+## 3. 故意不搬的
+
+1. **NanoVG 全套**：本工程走 Skia（见 §1）。
+2. **`materialicons-regular` 图标字体**：参考的力量/潜行/隐身/举盾/红心都是图标字体
+   字形（`\uefe4` 等）。本工程没有该字体资源，为 5 个图标引入一套字体 + 授权说明
+   不划算；`TwilightSkia` 移植参考界面时对同类问题给出的结论也是「图标字体无法移植」。
+   这里改用**中文字形**（`EspIndicatorGlyphs`：力/潜/隐/盾/血/吸）——铭牌正文本来就由
+   苹方绘制，常用汉字必然存在，既不加资源也无缺字风险。
+3. **`BLUR_PAINT` 背景模糊**：参考铭牌背景是「背景模糊 + 50% 黑」。CPU 光栅画布拿不到
+   游戏帧缓冲，做不了真正的 backdrop blur，只保留那层半透明黑底。
+4. **`Strength` 指示**：读的是 OpenPal 自己的 `LocalDataWatch.getStrengthedPlayerList()`
+   （按玩家名记录力量药水状态），本工程没有任何等价数据源。为一个恒为 `false` 的分支
+   留字段属于凭空造抽象，整项略去。
+5. **`TargetList` / `TargetProperty` 目标系统**：参考全模块共用一个目标收集器。本工程
+   的 `PlayerEsp` 已经有自己的一套（距离/FOV/实体过滤器 + `FakePlayerEntity`），
+   换过去要重做过滤链，收益不成比例。
+6. **`ESPUtility.getEntityPositionsOn2D` 的投影**：参考自己重建了一整个 `MatrixStack`
+   （FOV + 受伤倾斜 + 视角摇晃 + 相机旋转）。本工程 `WorldToScreen.project()` 用的就是
+   当前帧的 view/projection 矩阵，结果等价且不需要 `GameRendererAccessor` 那组
+   accessor mixin，故沿用。
+
+## 4. 与参考不同的两处（有意为之）
+
+1. **血条颜色**：参考 `renderHealthBar` 把颜色写死成 `0xff00ff00`。本工程保留自己的
+   `Color mode`（Distance / Health / Custom + 好友色）语义，血条仍用实体色——
+   否则 `Color mode` 这个既有设置对血条就失效了。几何（碰撞箱左侧、自下而上填充）不变。
+2. **距离元素不带图标**：参考是「数字 + 距离图标」。既然图标字体不搬，这里直接写成
+   `12m`，比一个没有图标位的裸数字清楚。
+
+## 5. 新增设置（只加，不改）
+
+`PlayerEspHack` 新增 7 项，全部只在 2D 模式下可见；**没有任何既有设置被改名、
+改默认值或改取值范围**：
+
+| 设置 | 默认 | 说明 |
+| --- | --- | --- |
+| `Box stroke` | 开 | 参考式「彩色细线 + 深色描边」，关掉回到原来的单像素边框 |
+| `Rounded box` | 关 | 参考的框是直角，故默认关 |
+| `Corner radius` | 1.5 | 仅在 `Rounded box` 打开时可见 |
+| `Name tags` | 开 | 铭牌条总开关 |
+| `Tag distance` | 开 | 距离元素 |
+| `Tag health` | 开 | 血量元素（吸收值自动追加，与参考一致） |
+| `Status indicators` | 开 | 潜行 / 隐身 / 举盾三个指示 |
+
+## 6. 性能：区域不是整屏
+
+`SkiaRegionRenderer` 每帧要 `peekPixels` + `glTexSubImage2D` 把画布传回 GPU，
+所以区域开成整屏的话，1080p 每帧要上传约 8 MB。`PlayerEspHack` 因此先**预排版**
+这一帧所有方框与铭牌条，取并集（再留出左侧血条、下方护甲条、上方铭牌与描边的余量）
+作为区域；铭牌条按真实排版结果参与并集，长名字不会被裁掉。
+
+## 7. 验证状态（诚实声明）
+
+- `compileJava` 通过；新增 3 个测试类、`test` 通过（见提交信息里的计数）。
+- **从未在游戏里看过**：Skia 的 `drawRect` / `drawRRect` / `drawString` / `measureTextWidth`
+  签名逐个核对过，但视觉效果、字号 5 在实机上是否偏小、描边 0.5px 在低 GUI 缩放下
+  是否可见，都没有实机确认。
+- `EspSkia` 的兜底路径（`begin` 返回 false）只做了逻辑核对，没有制造过原生库缺失的
+  场景去实跑。
+- 附魔短名表目前**还没有消费方**（`EspEnchantNames` 是为铭牌的装备元素准备的，
+  装备元素在下一批接入）——这一项按「暂未接线」记，不当作已完成。
