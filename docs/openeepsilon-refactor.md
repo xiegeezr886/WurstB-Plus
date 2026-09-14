@@ -225,21 +225,21 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Timer` | OTHER | 38 | 不适用（§0.3） |
 | `BaseFinder` | RENDER | 251 | 待办 |
 | `CaveFinder` | RENDER | 246 | 待办 |
-| `ChestEsp` | RENDER | 275 | 待办 |
+| `ChestEsp` | RENDER | 275 | 不适用（§0.3） |
 | `EntityCulling` | RENDER | 99 | 不适用（§0.3） |
 | `Freecam` | RENDER | 183 | 不适用（§0.3） |
 | `Fullbright` | RENDER | 197 | 已优化（§0.3） |
 | `HoleEsp` | RENDER | 193 | 待办 |
 | `ItemEsp` | RENDER | 124 | 不适用（§0.3） |
 | `LightOverlay` | RENDER | 117 | 不适用（§0.3） |
-| `LogoutSpots` | RENDER | 199 | 待办 |
+| `LogoutSpots` | RENDER | 199 | 不适用（§0.3） |
 | `MobEsp` | RENDER | 177 | 待办 |
 | `NameTags` | RENDER | 227 | 不适用（§0.3） |
 | `NewChunks` | RENDER | 259 | 待办 |
 | `PlayerEsp` | RENDER | 315 | 不适用（§0.3） |
 | `Radar` | RENDER | 120 | 不适用（§0.3） |
 | `Search` | RENDER | 256 | 待办 |
-| `Trajectories` | RENDER | 287 | 待办 |
+| `Trajectories` | RENDER | 287 | 已重构（§0.3） |
 | `XRay` | RENDER | 244 | 待办 |
 
 ## 全部 hack
@@ -457,7 +457,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `CameraDistance` | 35 | 待办 |
 | `CameraNoClip` | 24 | 待办 |
 | `CaveFinder` | 246 | 待办 |
-| `ChestEsp` | 275 | 待办 |
+| `ChestEsp` | 275 | 不适用（§0.3） |
 | `CityEsp` | 150 | 待办 |
 | `EntityCulling` | 99 | 不适用（§0.3） |
 | `Freecam` | 183 | 不适用（§0.3） |
@@ -466,7 +466,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `HoleEsp` | 193 | 待办 |
 | `ItemEsp` | 124 | 不适用（§0.3） |
 | `LightOverlay` | 117 | 不适用（§0.3） |
-| `LogoutSpots` | 199 | 待办 |
+| `LogoutSpots` | 199 | 不适用（§0.3） |
 | `MobEsp` | 177 | 待办 |
 | `MobSpawnEsp` | 193 | 待办 |
 | `NameProtect` | 56 | 待办 |
@@ -495,7 +495,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `SeedOreEsp` | 541 | 待办 |
 | `SeedStructureEsp` | 265 | 待办 |
 | `TargetShader` | 79 | 待办 |
-| `Trajectories` | 287 | 待办 |
+| `Trajectories` | 287 | 已重构（§0.3） |
 | `TrueSight` | 56 | 待办 |
 | `XRay` | 244 | 待办 |
 
