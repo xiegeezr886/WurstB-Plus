@@ -328,17 +328,17 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `HoleFiller` | 152 | 待办 |
 | `KeepSprint` | 30 | 已重构（§0.3） |
 | `Killaura` | 1259 | 已优化（§0.3） |
-| `KillauraLegit` | 349 | 待办 |
+| `KillauraLegit` | 349 | 已优化（§0.3） |
 | `MultiAura` | 1162 | 已优化（§0.3） |
 | `NoMissCooldown` | 67 | 待办 |
-| `ProjectilePuncher` | 136 | 待办 |
+| `ProjectilePuncher` | 136 | 不适用（§0.3） |
 | `Protect` | 386 | 待办 |
 | `RightClicker` | 124 | 待办 |
 | `SelfTrap` | 176 | 已优化（§0.3） |
 | `SuperKnockback` | 202 | 已优化（§0.3） |
 | `Surround` | 220 | 待办 |
-| `TargetStrafe` | 144 | 待办 |
-| `TpAura` | 192 | 待办 |
+| `TargetStrafe` | 144 | 已优化（§0.3） |
+| `TpAura` | 192 | 不适用（§0.3） |
 | `TriggerBot` | 233 | 已优化（§0.3） |
 | `WTap` | 126 | 待办 |
 
