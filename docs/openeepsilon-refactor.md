@@ -291,13 +291,13 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 
 | hack | 行数 | 状态 |
 | --- | --- | --- |
-| `AntiSpam` | 150 | 待办 |
-| `AutoComplete` | 161 | 待办 |
-| `ChatTranslator` | 150 | 待办 |
-| `FancyChat` | 68 | 待办 |
-| `ForceOp` | 305 | 待办 |
-| `InfiniChat` | 22 | 待办 |
-| `MassTpa` | 170 | 待办 |
+| `AntiSpam` | 150 | 不适用（§0.3） |
+| `AutoComplete` | 161 | 已优化（§0.3） |
+| `ChatTranslator` | 150 | 已优化（§0.3） |
+| `FancyChat` | 68 | 不适用（§0.3） |
+| `ForceOp` | 305 | 已优化（§0.3） |
+| `InfiniChat` | 22 | 不适用（§0.3） |
+| `MassTpa` | 170 | 不适用（§0.3） |
 
 ### COMBAT（38）
 
@@ -363,16 +363,16 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 
 | hack | 行数 | 状态 |
 | --- | --- | --- |
-| `AutoDrop` | 90 | 待办 |
+| `AutoDrop` | 90 | 不适用（§0.3） |
 | `AutoEat` | 351 | 不适用（§0.3） |
 | `AutoSteal` | 108 | 不适用（§0.3） |
-| `AutoSwitch` | 47 | 待办 |
-| `CrashChest` | 62 | 待办 |
+| `AutoSwitch` | 47 | 不适用（§0.3） |
+| `CrashChest` | 62 | 不适用（§0.3） |
 | `FastUse` | 105 | 已优化（§0.3） |
-| `ItemGenerator` | 87 | 待办 |
-| `KillPotion` | 119 | 待办 |
+| `ItemGenerator` | 87 | 已优化（§0.3） |
+| `KillPotion` | 119 | 不适用（§0.3） |
 | `Restock` | 180 | 不适用（§0.3） |
-| `TrollPotion` | 117 | 待办 |
+| `TrollPotion` | 117 | 不适用（§0.3） |
 
 ### MOVEMENT（45）
 

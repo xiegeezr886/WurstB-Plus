@@ -64,6 +64,11 @@ public final class ItemGeneratorHack extends Hack implements UpdateListener
 		{
 			ChatUtils.error("仅限创造模式。");
 			setEnabled(false);
+			// 必须立刻返回：setEnabled(false) 只是把监听器摘掉，本次
+			// UpdateEvent 的分发还在继续，旧实现少了这个 return，于是
+			// 生存模式下"报错并自动关闭"的同一 tick 仍会往下执行，
+			// 向服务端发出丢弃物品的点击包（丢的是你背包里真实存在的物品）。
+			return;
 		}
 		
 		int stacks = speed.getValueI();
