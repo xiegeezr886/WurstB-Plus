@@ -60,13 +60,12 @@ public final class FullbrightHack extends Hack implements UpdateListener
 			public void onUpdate()
 			{
 				double gamma = MC.options.gamma().get();
-				System.out.println("Brightness started at " + gamma);
-				
+
 				if(gamma > 1)
 					wasGammaChanged = true;
 				else
 					defaultGamma.setValue(gamma);
-				
+
 				EVENTS.remove(UpdateListener.class, this);
 			}
 		});

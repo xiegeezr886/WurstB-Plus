@@ -36,6 +36,7 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.filterlists.EntityFilterList;
 import net.wurstclient.settings.filters.FilterInvisibleSetting;
 import net.wurstclient.settings.filters.FilterSleepingSetting;
+import net.wurstclient.util.BlockUtils;
 import net.wurstclient.util.EntityEspRenderer;
 import net.wurstclient.util.EntityEspRenderer.ColorMode;
 import net.wurstclient.util.FakePlayerEntity;
@@ -207,7 +208,15 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		double expansion = boxSize.getExtraSize() / 2;
 		for(Player player : players)
 		{
-			if(!throughWalls.isChecked() && !MC.player.hasLineOfSight(player))
+			// 这里不能用原版 MC.player.hasLineOfSight(player)：它在 128 格外一律
+			// 返回 false（1.20.2 真源 world/entity/LivingEntity.java:147 的
+			// MAX_LINE_OF_SIGHT_TEST_RANGE，判定在 :2878），而 Max distance 默认
+			// 是 256。结果是「Through walls 关」时，150 格外、中间毫无遮挡的玩家
+			// 在 2D 模式不画、在 3D 模式照画——同一个开关两种模式不一致。
+			// BlockUtils.hasLineOfSight 用的是同一条 ClipContext.Block.COLLIDER
+			// 射线（util/BlockUtils.java:156-159），但没有距离上限。
+			if(!throughWalls.isChecked() && !BlockUtils.hasLineOfSight(
+				MC.player.getEyePosition(), player.getEyePosition()))
 				continue;
 
 			AABB box = EntityUtils.getLerpedBox(player, partialTicks)

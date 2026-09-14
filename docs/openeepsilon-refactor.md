@@ -227,8 +227,8 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `CaveFinder` | RENDER | 246 | 待办 |
 | `ChestEsp` | RENDER | 275 | 待办 |
 | `EntityCulling` | RENDER | 99 | 不适用（§0.3） |
-| `Freecam` | RENDER | 183 | 待办 |
-| `Fullbright` | RENDER | 197 | 待办 |
+| `Freecam` | RENDER | 183 | 不适用（§0.3） |
+| `Fullbright` | RENDER | 197 | 已优化（§0.3） |
 | `HoleEsp` | RENDER | 193 | 待办 |
 | `ItemEsp` | RENDER | 124 | 不适用（§0.3） |
 | `LightOverlay` | RENDER | 117 | 不适用（§0.3） |
@@ -460,8 +460,8 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `ChestEsp` | 275 | 待办 |
 | `CityEsp` | 150 | 待办 |
 | `EntityCulling` | 99 | 不适用（§0.3） |
-| `Freecam` | 183 | 待办 |
-| `Fullbright` | 197 | 待办 |
+| `Freecam` | 183 | 不适用（§0.3） |
+| `Fullbright` | 197 | 已优化（§0.3） |
 | `HealthTags` | 54 | 待办 |
 | `HoleEsp` | 193 | 待办 |
 | `ItemEsp` | 124 | 不适用（§0.3） |
