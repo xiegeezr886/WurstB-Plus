@@ -73,7 +73,41 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | hack | 状态 | 说明 |
 | --- | --- | --- |
 | `WTap` | **已优化（只借 1 个前置判断，刻意不换实现）** | 参考拦下 ATTACK 包并补发 `START_SPRINTING → STOP_SPRINTING → START_SPRINTING` 三个动作包，属**包级**手法；本工程是**模拟按键**（松开前进键再重按），更接近真人输入，而且 `chance` / `releaseDelay` / `rePressDelay` / `selectHits` 四个可调项参考都没有。**所以没有换实现**——换成连发疾跑包会在反作弊里明显得多，这是产品取舍不是技术优劣。只借用了参考的一条前置判断：**饥饿值 < 6 时原版根本不会疾跑**，这时松/按前进键只会白白停一下移动（新增 `canSprint()`）。 |
-| 其余 75 个常用 hack | 待办 | 见上面的常用清单 |
+| 其余常用 hack | 见下 | 第 12 轮逐个核对的结果见本节；未列出的仍按「常用清单」标的 `待办` |
+
+**第 12 轮真正改了代码的（6 个 hack + 1 处共享核心）**
+
+| hack | 状态 | 改了什么 / 为什么 |
+| --- | --- | --- |
+| `Surround` | **已优化** | ①**修掉一个真 bug**：候选位置原来只排除玩家自己的碰撞箱，被实体占住的格子照放。而 `BlockPlacer.place()` 只要找到可点面就返回 true（1.20.1 服务端却按 `Level#isUnobstructed` 拒绝），于是那一格永远放不上、`anyPlaced` 却为真，hack 一直空挥且不自动关闭。现在按原版自己的接受条件过滤（`!isRemoved() && isPickable()`，显式排除旁观者）——既不会漏掉原版能放的格子，也让剩下的面照常补齐。②四个面的顺序从写死的「东南西北」改成**朝向最近敌人先放**（`SurroundPlanner`，纯类 + 4 个单测）。没有敌人时分数全为 NaN，插入排序退化成不动，行为与旧版逐字节相同。<br>**已发现但未改**：`SupportMode.SKIP` 的实现与 `PLACE` 完全相同（描述却说「跳过不支持的格子」），不是参考带来的问题，改它会重新定义现有设置，留给使用者决定。 |
+| `HoleFiller` | **已优化** | 参考 `AutoHoleFill.getHoleInfos()` 会丢掉与任何活实体相交的洞；本地原来没有任何占用概念，于是**自己站着的那个洞永远同时是「最近的」和「放不上去的」**——每 tick 都去点一个不可能的坐标，后面的洞永远轮不到（同一道守卫 `SelfTrap` / `AutoWeb` / `AutoTrap` / `InstantBunker` 都已经有了）。现在先滤掉被占的洞再取最近（`HoleFillPolicy`，纯类 + 5 个单测）。 |
+| `AutoTrap` | **已优化** | 参考把「先放哪一格」当胜负手（`AutoTrap.kt:137` 原话 *sort offsetList by optimal caging success factor*）。1.20.1 上真正有效的只有脚下圈（dy=0）和头顶圈（dy=2）——dy=1 大多数时候被目标自己的碰撞箱占着，服务端根本不放，而旧代码按「离玩家最近」选，常常正好挑中这一圈白打一次并浪费一个 tick。现在先 dy=0/dy=2、同档按目标**正看着的方向**（它准备逃的方向）先补，再按距离（`AutoTrapPlanner`，纯类 + 5 个单测），并补上实体占用前置条件。 |
+| `AutoCity` | **已优化** | 参考 `checkPos` 只收「挖掉之后目标脚边真会空出一个水晶位」的墙。本项目**故意做成排序优先级而不是硬过滤**：参考那条分支要求目标本来就在真坑里（墙下必须有抗爆基底），照搬硬过滤会让本 hack 在泥地/石地的环绕上彻底不动，等于删功能。现在「能换水晶位的墙」排前，一面都没有时退回原来的最近优先（`CityBlockPlanner`，纯类 + 6 个单测）。 |
+| `AutoTotem` | **已优化** | 它本来就已经走 `InventoryActionQueue`（带容器 id 校验与确认），比参考的三连 `PICKUP` 干净，**不需要换成参考的实现**。只补了参考的 `Soft` 模式：打开后只有副手空着才装，不会顶掉你特意放在副手的物品。**默认关闭 = 行为与升级前完全一致**；参考的 `Force` 在本工程已有等价物（`Health = 0` 即「always active」）。 |
+| `AutoArmor` | **已重构** | 参考的 `AutoArmour.kt` 本身比本工程粗（逐件 `护甲值 + 保护等级`、只补空位），照抄是**降级**；真正可搬的是同包的 `util/combat/DamageReduction.kt`——按**整套四件**去量。1.20.1 的减伤是非线性的（`clamp(护甲 - 伤害/(2+韧性/4), 0.2*护甲, 20)/25`，有 20% 硬底），EPF 上限 20 也是**四件求和**后再截断，所以「逐件打分」在结构上就是错的：第 4 件保护 IV 可能一点用都没有，旧公式照样加分（旧实现另外把韧性当线性常数加、把耐久当约等于 1 点护甲的加权项）。现在改用原版 `CombatRules.getDamageAfterAbsorb` + 原版 `EnchantmentHelper.getDamageProtection`（1.20.1 附魔是数据驱动的，照抄参考的每级 EPF 表会算错）量出「换上这一件后整套少挨多少」，经现有 `DamageProfile` 合成，再选提升最大的那件（`ArmorUpgradePlanner`，纯类 + 10 个单测）。<br>**点击顺序、时机、优先级、validator 与所有设置名/默认值一字未动**，只换了「选哪一件」；耐久降级为**仅在同分时**分先后。 |
+| 共享核心：背包重试窗口 | **已优化** | 第 4 轮把「先移除再校验导致静默丢弃」修成了有限重试，但窗口写死 500 ms 墙钟。窗口的语义其实是「给容器同步留几个**服务端 tick**」——服务端掉到 10 TPS 时 500 ms 只等于 5 个 tick，容器可能还没同步完就被判超时，这正是参考统一按 `20/tickRate` 缩放的那件事。现在 `InventoryActionQueue` 按实测 TPS 换算窗口（`ActionRetryPolicy.compensatedWindow`，封顶 5 s，TPS 未测出时不补偿），**`TpsCompensation` 至此有了第一个真实消费方**（此前只有 TPS 的 HUD 显示在用它）。 |
+
+**第 12 轮核对后判定「不适用」的（7 个，均有逐条对照证据）**
+
+| hack | 结论 |
+| --- | --- |
+| `Step` | 参考的前置条件是本工程的**真子集**：头顶空间、在地面、梯子/可攀爬、水/岩浆、有移动输入、未跳跃、水平碰撞 7 条本工程全都有，且额外有 2 tick 冷却与正确的 `maxUpStep` 保存-恢复（参考把 `stepHeight` 硬写成 1.12.2 的 0.5，1.20.1 默认是 0.6，照搬会破坏玩家台阶高度）。参考把头顶查在 +2.0 是因为它的包表按 2 格台阶走；1.20.1 的 1 格台阶照搬 +2.0 会要求 2 格净空，**在 2 格高隧道里直接走不动**——是回归，故不搬。 |
+| `SafeWalk` | 参考这个文件里**根本没有几何算法**（连 `util.math` 都没 import）。Normal 模式只是重定向 `Entity.isSneaking()` 去复用原版边缘保护——本工程等价物是 `shouldClipEdges()`（挂在 `isStayingOnGroundSurface()` 上，1.20.1 里正是 `maybeBackOffFromEdge` 的闸门）；Eagle 模式只查玩家**中心列**下方一格是不是空气，本工程按缩小后的整个脚印 + 一个 `maxUpStep` 深度做 `noCollision`，**严格更保守**且边距可调（0.05~0.25 m）。搬 Eagle 是降级。 |
+| `AimAssist` | 参考的 wrap + 钳制 = 已有的 `RotationUtils.limitAngleChange`（连「179→-179 应得 181」这种边界都已有单测）；`repeat(10)`/tick 已被 `RotationSmoothing.smoothWithAcceleration` 取代；方形 FOV 不如现有的圆形瞄准锥（`getAngleToLookVec > fov/2`）；`(14..24).random()` 抖动与 `angleMin` 死区是**反作弊式的随机欠冲**，在这里只会让准星永远到不了选定瞄点（本工程刻意相反：亚度 ±1 微调把准星送进碰撞箱）。选人上参考「每 tick 重挑最近的玩家、零粘滞」，本工程有 `TargetTracker` 的粘滞/切换延迟/切换优势。没有可搬的数学。 |
+| `AutoSprint` | `canSprint()` 是参考判定规则的**严格超集**（含参考没有的乘客/下落飞行/水中禁用）。参考的 `keep`（拦下收到的 STOP_SPRINTING 包）是包级 exploit；`InventoryMove` 那条分支是 1.12.2「开 GUI 会强放按键」的补偿，1.20.1 照搬会变成「只要开着任意界面就一直疾跑」，是 bug。键位版移动判定在 1.20.1 **更差**：`KeyboardInput` 算的是净输入，同时按 W+S 时 `forwardImpulse == 0`，原版会停、键位版每 tick 重新开启并因此每 tick 发一对 START/STOP_SPRINTING。 |
+| `NoSlowdown` | 本工程有 9 个开关（使用物品 / 盾 / 灵魂沙 / 蜜块 / 黏液块 / 蛛网 / 细雪 / 甜浆果 / 手持物减速），覆盖面已超参考；参考剩下的是 `Packet`、`2B2T`（发 START_SNEAKING 与 RELEASE_USE_ITEM 包）以及直接改 `Blocks.SLIME_BLOCK.setDefaultSlipperiness` 这类 1.12.2 手法。<br>**已知唯一缺口**：参考的 `Sneak` 开关（潜行时也全速）在本工程没有对应实现——本工程两个 mixin 只处理「用物品」与「方块速度乘数」，潜行减速那条路没有口子。留作待办，而不是硬塞进这个 hack。 |
+| `Reach` | 参考整个文件只有 12 行、一个 `ReachAdd` 滑条；本工程已有 `ReachPolicy` 纯类 + 实体/方块两段距离 + 仅疾跑时生效 + 液体中禁用。没有可搬的判断。 |
+| `Timer` | 参考的 `TimerManager` 是一个**给别的模块用**的 tick 长度覆盖栈（带超时、按插入顺序取最后一个），本工程没有任何模块需要「临时改几个 tick 的 tick 长度」这种动作。在没有消费方之前先造这个栈，与之前判定不做 `util/pause/*` 令牌是同一个理由——**凭空抽象**，故不做。 |
+
+**第 12 轮未能完成的（2 个）**
+
+| hack | 状态 |
+| --- | --- |
+| `BowAimbot` | 待办。对照分析没做完（子任务两次在读完文件前就中断），**没有任何结论可声明**，也没有改动任何文件。 |
+| `Burrow` | 待办。同上。 |
+
+**另一条重要结论（影响后续该怎么做）**：本轮 13 个 hack 里只有 6 个找到了真能搬的东西，7 个判定不适用。原因不是核对得粗，而是**本工程在这几处本来就更完整**——它从初始提交起就带着一整套纯逻辑 `*Policy` / `*Planner` 类（`KeepSprintPolicy`、`CrystalAuraPlanner`、`ScaffoldPlacementPlanner`、`ReachPolicy`、`CombatActionPolicy`、`ProjectileThreatPolicy` … 共 20 余个），而参考的强项集中在两处：**包级 exploit**（1.12.2 的 NCP/AAC/Hypixel 绕过，在 1.20.1 上要么无效要么踢人）与 **GL11 立即模式渲染**（1.20.1 已无此渲染管线）。所以后续继续按「每个 hack 都必须改出点什么」推进是错的，正确做法是逐条核对、只搬真能搬的，并把「不适用」连同证据记下来。
+
 
 
 | 修复 | 内容 |
@@ -111,33 +145,33 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Nuker` | BLOCKS | 165 | 待办 |
 | `ScaffoldWalk` | BLOCKS | 332 | 待办 |
 | `VeinMiner` | BLOCKS | 246 | 待办 |
-| `AimAssist` | COMBAT | 275 | 待办 |
+| `AimAssist` | COMBAT | 275 | 不适用（§0.3） |
 | `AnchorAura` | COMBAT | 547 | 待办 |
 | `AntiBot` | COMBAT | 177 | 待办 |
-| `AutoArmor` | COMBAT | 262 | 待办 |
-| `AutoCity` | COMBAT | 159 | 待办 |
+| `AutoArmor` | COMBAT | 262 | 已重构（§0.3） |
+| `AutoCity` | COMBAT | 159 | 已优化（§0.3） |
 | `AutoSword` | COMBAT | 207 | 待办 |
-| `AutoTotem` | COMBAT | 156 | 待办 |
-| `AutoTrap` | COMBAT | 191 | 待办 |
+| `AutoTotem` | COMBAT | 156 | 已优化（§0.3） |
+| `AutoTrap` | COMBAT | 191 | 已优化（§0.3） |
 | `BowAimbot` | COMBAT | 261 | 待办 |
 | `Burrow` | COMBAT | 259 | 待办 |
 | `ClickAura` | COMBAT | 139 | 待办 |
 | `Criticals` | COMBAT | 228 | 待办 |
 | `CrystalAura` | COMBAT | 443 | 待办 |
-| `HoleFiller` | COMBAT | 152 | 待办 |
+| `HoleFiller` | COMBAT | 152 | 已优化（§0.3） |
 | `KeepSprint` | COMBAT | 30 | 待办 |
 | `Killaura` | COMBAT | 1259 | 待办 |
 | `MultiAura` | COMBAT | 1162 | 待办 |
 | `SelfTrap` | COMBAT | 176 | 待办 |
 | `SuperKnockback` | COMBAT | 202 | 待办 |
-| `Surround` | COMBAT | 220 | 待办 |
+| `Surround` | COMBAT | 220 | 已优化（§0.3） |
 | `TriggerBot` | COMBAT | 233 | 待办 |
-| `WTap` | COMBAT | 126 | 待办 |
+| `WTap` | COMBAT | 126 | 已优化（见 §0.3） |
 | `AutoEat` | ITEMS | 351 | 待办 |
 | `AutoSteal` | ITEMS | 108 | 待办 |
 | `FastUse` | ITEMS | 105 | 待办 |
 | `Restock` | ITEMS | 180 | 待办 |
-| `AutoSprint` | MOVEMENT | 121 | 待办 |
+| `AutoSprint` | MOVEMENT | 121 | 不适用（§0.3） |
 | `Blink` | MOVEMENT | 198 | 待办 |
 | `BunnyHop` | MOVEMENT | 87 | 待办 |
 | `ElytraFly` | MOVEMENT | 155 | 待办 |
@@ -150,18 +184,18 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Jesus` | MOVEMENT | 180 | 待办 |
 | `NoClip` | MOVEMENT | 95 | 待办 |
 | `NoFall` | MOVEMENT | 186 | 待办 |
-| `NoSlowdown` | MOVEMENT | 143 | 待办 |
+| `NoSlowdown` | MOVEMENT | 143 | 不适用 + 1 处缺口（§0.3） |
 | `NoVelocity` | MOVEMENT | 256 | 待办 |
 | `PacketFly` | MOVEMENT | 158 | 待办 |
 | `Parkour` | MOVEMENT | 79 | 待办 |
 | `ReverseStep` | MOVEMENT | 141 | 待办 |
-| `SafeWalk` | MOVEMENT | 109 | 待办 |
+| `SafeWalk` | MOVEMENT | 109 | 不适用（§0.3） |
 | `Sneak` | MOVEMENT | 150 | 待办 |
 | `SpeedHack` | MOVEMENT | 210 | 待办 |
 | `Spider` | MOVEMENT | 49 | 待办 |
-| `Step` | MOVEMENT | 161 | 待办 |
-| `Reach` | OTHER | 67 | 待办 |
-| `Timer` | OTHER | 38 | 待办 |
+| `Step` | MOVEMENT | 161 | 不适用（§0.3） |
+| `Reach` | OTHER | 67 | 不适用（§0.3） |
+| `Timer` | OTHER | 38 | 不适用（§0.3） |
 | `BaseFinder` | RENDER | 251 | 待办 |
 | `CaveFinder` | RENDER | 246 | 待办 |
 | `ChestEsp` | RENDER | 275 | 待办 |

@@ -7,6 +7,8 @@
  */
 package net.wurstclient.util.inventory;
 
+import net.wurstclient.util.TpsCompensation;
+
 /**
  * 背包动作链的执行判定：该执行、该再等等、还是该放弃。
  *
@@ -28,6 +30,16 @@ public final class ActionRetryPolicy
 	 * 又不至于让一条永远不成立的动作赖在队列里。
 	 */
 	public static final long DEFAULT_RETRY_WINDOW_MS = 500L;
+	
+	/**
+	 * 补偿后的等待窗口上限。
+	 *
+	 * <p>
+	 * 换算是线性的：服务端掉到 1 TPS 时 500ms 会被拉成 10 秒。窗口本身是为了等容器
+	 * 同步，而服务端真卡到那个地步时，与其让一条链把队列占满十秒，不如按上限放弃、
+	 * 让 owner 走别的路。所以这里封顶。
+	 */
+	public static final long MAX_RETRY_WINDOW_MS = 5_000L;
 	
 	public enum Decision
 	{
@@ -71,5 +83,28 @@ public final class ActionRetryPolicy
 		long windowMs)
 	{
 		return nowMs - submittedAtMs >= Math.max(0L, windowMs);
+	}
+	
+	/**
+	 * 把"按 20 TPS 写的等待窗口"换算成当前 tick 速率下应该等的毫秒。
+	 *
+	 * <p>
+	 * 窗口的含义是"给容器同步留多少服务端 tick"，不是"留多少墙钟时间"。服务端掉到
+	 * 10 TPS 时，同样的 500 毫秒只等于 5 个 tick，容器可能还没同步完链就被判超时——
+	 * 这正是参考项目统一按 {@code 20 / tickRate} 缩放的那件事（见
+	 * {@link TpsCompensation}）。TPS 还没测出来时按原值处理，不做补偿。
+	 *
+	 * <p>
+	 * 纯函数，便于单测；结果被夹在 {@code [0, }{@link #MAX_RETRY_WINDOW_MS}{@code ]}。
+	 */
+	public static long compensatedWindow(long baseWindowMs, double tps)
+	{
+		long base = Math.max(0L, baseWindowMs);
+		
+		if(!TpsCompensation.isMeasured(tps))
+			return base;
+		
+		long scaled = Math.round(TpsCompensation.scaleMillis(base, tps));
+		return Math.max(0L, Math.min(MAX_RETRY_WINDOW_MS, scaled));
 	}
 }

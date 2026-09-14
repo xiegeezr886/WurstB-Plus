@@ -41,6 +41,11 @@ public final class AutoTotemHack extends Hack implements UpdateListener
 		"Include absorption",
 		"Counts absorption hearts when evaluating the health threshold.", true);
 	
+	private final CheckboxSetting soft = new CheckboxSetting("Soft mode",
+		"Only equips a totem when your offhand slot is empty, so it never"
+			+ " replaces the item you deliberately put there.",
+		false);
+	
 	private int totems;
 	private int timer;
 	private boolean wasTotemInOffhand;
@@ -53,6 +58,7 @@ public final class AutoTotemHack extends Hack implements UpdateListener
 		addSetting(delay);
 		addSetting(health);
 		addSetting(includeAbsorption);
+		addSetting(soft);
 	}
 	
 	@Override
@@ -96,6 +102,14 @@ public final class AutoTotemHack extends Hack implements UpdateListener
 			wasTotemInOffhand = true;
 			return;
 		}
+		
+		/*
+		 * 参考项目 OpenEpsilon 的 Soft 模式：只有副手空着才装图腾。默认关闭，也就是
+		 * 维持本工程原来的行为（副手放什么都会被顶掉），打开后才不会抢走你特意放在
+		 * 副手的物品。
+		 */
+		if(soft.isChecked() && !MC.player.getOffhandItem().isEmpty())
+			return;
 		
 		if(wasTotemInOffhand)
 		{

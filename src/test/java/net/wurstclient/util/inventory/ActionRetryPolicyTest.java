@@ -104,4 +104,68 @@ public final class ActionRetryPolicyTest
 				"waited=" + waited + " 时两套判断不一致");
 		}
 	}
+	
+	/**
+	 * 窗口的语义是"留多少个服务端 tick"，所以低 TPS 必须把它拉长。写反了不会编译
+	 * 报错，但会让服务端一卡就再也等不到容器同步。
+	 */
+	@Test
+	public void stretchesTheWindowWhenTheServerIsSlow()
+	{
+		assertEquals(500L, ActionRetryPolicy.compensatedWindow(500L, 20.0D));
+		assertEquals(1_000L, ActionRetryPolicy.compensatedWindow(500L, 10.0D));
+		assertEquals(2_000L, ActionRetryPolicy.compensatedWindow(500L, 5.0D));
+	}
+	
+	/** 服务端超频（> 20 TPS）反而应该缩短窗口，与参考的 20/tickRate 一致。 */
+	@Test
+	public void shortensTheWindowWhenTheServerIsFast()
+	{
+		assertEquals(400L, ActionRetryPolicy.compensatedWindow(500L, 25.0D));
+	}
+	
+	/** TPS 还没测出来时不做补偿：宁可保持原样，也不要拿 0 或 NaN 去缩放。 */
+	@Test
+	public void leavesTheWindowAloneWhenTpsIsNotMeasured()
+	{
+		assertEquals(500L, ActionRetryPolicy.compensatedWindow(500L, 0.0D));
+		assertEquals(500L, ActionRetryPolicy.compensatedWindow(500L,
+			Double.NaN));
+		assertEquals(500L, ActionRetryPolicy.compensatedWindow(500L,
+			Double.POSITIVE_INFINITY));
+	}
+	
+	/** 服务端卡到极低 TPS 时窗口会线性膨胀，必须封顶，否则一条链能占住队列好几秒。 */
+	@Test
+	public void capsTheStretchedWindow()
+	{
+		assertEquals(ActionRetryPolicy.MAX_RETRY_WINDOW_MS,
+			ActionRetryPolicy.compensatedWindow(500L, 1.0D));
+		assertEquals(ActionRetryPolicy.MAX_RETRY_WINDOW_MS,
+			ActionRetryPolicy.compensatedWindow(60_000L, 20.0D));
+	}
+	
+	/** 窗口不能是负数，否则 decide() 会把所有链立刻判超时。 */
+	@Test
+	public void neverReturnsANegativeWindow()
+	{
+		assertEquals(0L, ActionRetryPolicy.compensatedWindow(-500L, 20.0D));
+		assertEquals(0L, ActionRetryPolicy.compensatedWindow(-500L, 10.0D));
+	}
+	
+	/** 补偿必须是单调的：TPS 越低，窗口不得更短。 */
+	@Test
+	public void isMonotonicInTps()
+	{
+		long previous = -1L;
+		
+		for(double tps = 20.0D; tps >= 1.0D; tps -= 0.5D)
+		{
+			long window = ActionRetryPolicy.compensatedWindow(500L, tps);
+			
+			assertTrue(window >= previous,
+				"tps=" + tps + " 时窗口比更高 TPS 时更短：" + window);
+			previous = window;
+		}
+	}
 }

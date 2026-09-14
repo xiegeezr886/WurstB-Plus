@@ -133,8 +133,23 @@ public final class InventoryActionQueue
 			menuMatches && chain.validator.getAsBoolean();
 		
 		return ActionRetryPolicy.decide(menuMatches, validatorPassed,
-			nowMs - chain.submittedAtMs,
-			ActionRetryPolicy.DEFAULT_RETRY_WINDOW_MS);
+			nowMs - chain.submittedAtMs, retryWindowMs());
+	}
+	
+	/**
+	 * 这一 tick 实际使用的等待窗口。
+	 *
+	 * <p>
+	 * 窗口表达的是"给容器同步留多少个服务端 tick"，所以按实测 TPS 换算
+	 * （{@link ActionRetryPolicy#compensatedWindow}），服务端掉帧时自动拉长，
+	 * 免得容器还没同步完链就被判超时。TPS 还没测出来时等于原值。
+	 */
+	private long retryWindowMs()
+	{
+		double tps = WurstClient.INSTANCE.getClientMetricsManager()
+			.getTicksPerSecond();
+		return ActionRetryPolicy.compensatedWindow(
+			ActionRetryPolicy.DEFAULT_RETRY_WINDOW_MS, tps);
 	}
 
 	@Override
