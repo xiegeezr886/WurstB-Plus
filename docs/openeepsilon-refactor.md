@@ -346,18 +346,18 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 
 | hack | 行数 | 状态 |
 | --- | --- | --- |
-| `AntiAim` | 134 | 待办 |
-| `DankBobbing` | 65 | 待办 |
-| `Derp` | 53 | 待办 |
-| `HeadRoll` | 50 | 待办 |
-| `Lsd` | 49 | 待办 |
-| `MileyCyrus` | 60 | 待办 |
-| `Notebot` | 217 | 待办 |
-| `RainbowUi` | 24 | 待办 |
-| `SkinDerp` | 53 | 待办 |
-| `Tired` | 45 | 待办 |
-| `Twerk` | 45 | 待办 |
-| `Vomit` | 48 | 待办 |
+| `AntiAim` | 134 | 已优化（§0.3） |
+| `DankBobbing` | 65 | 已优化（§0.3） |
+| `Derp` | 53 | 不适用（§0.3） |
+| `HeadRoll` | 50 | 不适用（§0.3） |
+| `Lsd` | 49 | 不适用（§0.3） |
+| `MileyCyrus` | 60 | 不适用（§0.3） |
+| `Notebot` | 217 | 已优化（§0.3） |
+| `RainbowUi` | 24 | 不适用（§0.3） |
+| `SkinDerp` | 53 | 已优化（§0.3） |
+| `Tired` | 45 | 不适用（§0.3） |
+| `Twerk` | 45 | 已优化（§0.3） |
+| `Vomit` | 48 | 已优化（§0.3） |
 
 ### ITEMS（10）
 

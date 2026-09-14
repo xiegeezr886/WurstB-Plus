@@ -27,6 +27,7 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.util.ChatUtils;
 import net.wurstclient.util.NbsSong;
 import net.wurstclient.util.NbsSong.Note;
 
@@ -57,6 +58,17 @@ public final class NotebotHack extends Hack implements UpdateListener
 	@Override
 	protected void onEnable()
 	{
+		// 创造模式下 MC.gameMode.startDestroyBlock() 走的是"立即破坏"分支
+		// （1.20.2 反编译源 MultiPlayerGameMode.java:140-148），既不会调用
+		// NoteBlock 的 attack()（真正发声的那一步在生存分支 :162），又会直接
+		// 把音符盒打碎 ⇒ 开着 Notebot 会把你的音乐机器拆掉而且一个音都不响。
+		if(MC.player.getAbilities().instabuild)
+		{
+			ChatUtils.error("创造模式下打音符会直接打碎音符盒，请改用生存模式。");
+			setEnabled(false);
+			return;
+		}
+		
 		EVENTS.add(UpdateListener.class, this);
 		loadSong();
 		scanNoteBlocks();

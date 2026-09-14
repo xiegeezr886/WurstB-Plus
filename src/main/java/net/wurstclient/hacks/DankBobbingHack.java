@@ -23,6 +23,9 @@ public final class DankBobbingHack extends Hack implements UpdateListener
 	private final CheckboxSetting noViewBob =
 		new CheckboxSetting("No View Bob", false);
 
+	/** 我们关掉"视角摇晃"之前玩家的原始设置，用于还原。 */
+	private Boolean savedViewBob;
+
 	public DankBobbingHack()
 	{
 		super("DankBobbing");
@@ -41,11 +44,14 @@ public final class DankBobbingHack extends Hack implements UpdateListener
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		restoreViewBobOption();
 	}
 
 	@Override
 	public void onUpdate()
 	{
+		updateViewBobOption();
+
 		if(!MC.player.onGround())
 			return;
 
@@ -53,9 +59,38 @@ public final class DankBobbingHack extends Hack implements UpdateListener
 		float bob = Mth.sin(MC.player.tickCount * 0.5F)
 			* speed * intensity.getValueF();
 		MC.player.walkDistO = MC.player.walkDist + bob;
+	}
 
-		if(noViewBob.isChecked())
-			MC.options.bobView().set(false);
+	/**
+	 * 按勾选状态开关原版的"视角摇晃"选项，并记住原值。
+	 *
+	 * <p>
+	 * 旧实现只调用 {@code MC.options.bobView().set(false)}，而且**从不还原**：
+	 * 关掉 DankBobbing（甚至只是取消勾选 No View Bob）之后，你的视频设置里
+	 * "视角摇晃"仍然是关闭状态，而且这个改动会被写进 options.txt 持久保留。
+	 */
+	private void updateViewBobOption()
+	{
+		if(shouldDisableViewBob())
+		{
+			if(savedViewBob == null)
+			{
+				savedViewBob = MC.options.bobView().get();
+				MC.options.bobView().set(false);
+			}
+			return;
+		}
+
+		restoreViewBobOption();
+	}
+
+	private void restoreViewBobOption()
+	{
+		if(savedViewBob == null)
+			return;
+
+		MC.options.bobView().set(savedViewBob);
+		savedViewBob = null;
 	}
 
 	public boolean shouldDisableViewBob()
