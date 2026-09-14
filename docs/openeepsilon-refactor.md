@@ -303,20 +303,20 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 
 | hack | 行数 | 状态 |
 | --- | --- | --- |
-| `AimAssist` | 275 | 待办 |
+| `AimAssist` | 275 | 不适用（§0.3） |
 | `AnchorAura` | 547 | 已优化（§0.3） |
 | `AntiBot` | 177 | 已重构（§0.3） |
 | `ArrowDmg` | 88 | 不适用（§0.3） |
-| `AutoArmor` | 262 | 待办 |
+| `AutoArmor` | 262 | 已重构（§0.3） |
 | `AutoCity` | 159 | 已优化（§0.3） |
-| `AutoLeave` | 138 | 待办 |
+| `AutoLeave` | 138 | 已优化（§0.3） |
 | `AutoPotion` | 134 | 待办 |
 | `AutoRespawn` | 55 | 已优化（§0.3） |
 | `AutoSoup` | 189 | 待办 |
 | `AutoSword` | 207 | 已优化（§0.3） |
-| `AutoTotem` | 156 | 待办 |
-| `AutoTrap` | 191 | 待办 |
-| `AutoWeb` | 157 | 待办 |
+| `AutoTotem` | 156 | 已优化（§0.3） |
+| `AutoTrap` | 191 | 已优化（§0.3） |
+| `AutoWeb` | 157 | 已优化（§0.3） |
 | `BowAimbot` | 261 | 已重构（§0.3） |
 | `Burrow` | 259 | 已优化（§0.3） |
 | `ClickAura` | 139 | 不适用（§0.3） |
@@ -325,7 +325,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `DelayRemover` | 61 | 已优化（§0.3） |
 | `FightBot` | 303 | 待办 |
 | `Hitboxes` | 36 | 不适用（§0.3） |
-| `HoleFiller` | 152 | 待办 |
+| `HoleFiller` | 152 | 已优化（§0.3） |
 | `KeepSprint` | 30 | 已重构（§0.3） |
 | `Killaura` | 1259 | 已优化（§0.3） |
 | `KillauraLegit` | 349 | 已优化（§0.3） |
@@ -336,11 +336,11 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `RightClicker` | 124 | 待办 |
 | `SelfTrap` | 176 | 已优化（§0.3） |
 | `SuperKnockback` | 202 | 已优化（§0.3） |
-| `Surround` | 220 | 待办 |
+| `Surround` | 220 | 已优化（§0.3） |
 | `TargetStrafe` | 144 | 已优化（§0.3） |
 | `TpAura` | 192 | 不适用（§0.3） |
 | `TriggerBot` | 233 | 已优化（§0.3） |
-| `WTap` | 126 | 待办 |
+| `WTap` | 126 | 已优化（见 §0.3） |
 
 ### FUN（12）
 

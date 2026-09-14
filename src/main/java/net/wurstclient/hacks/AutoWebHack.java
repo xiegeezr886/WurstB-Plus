@@ -25,7 +25,7 @@ import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.util.BlockPlacer;
 import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.FakePlayerEntity;
+import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.InventoryUtils;
 
 import java.util.ArrayList;
@@ -62,7 +62,6 @@ public final class AutoWebHack extends Hack implements UpdateListener
 	@Override
 	protected void onEnable()
 	{
-		WURST.getHax().killauraHack.setEnabled(false);
 		placeTimer = 0;
 		EVENTS.add(UpdateListener.class, this);
 	}
@@ -131,11 +130,10 @@ public final class AutoWebHack extends Hack implements UpdateListener
 		double rangeSq = Math.pow(range.getValue(), 2);
 		return StreamSupport
 			.stream(MC.level.entitiesForRendering().spliterator(), false)
-			.filter(e -> e instanceof LivingEntity
-				&& ((LivingEntity)e).getHealth() > 0)
-			.filter(e -> e != MC.player)
-			.filter(e -> !(e instanceof FakePlayerEntity))
-			.filter(e -> !WURST.getFriends().contains(e.getScoreboardName()))
+			.filter(EntityUtils.IS_ATTACKABLE)
+			.filter(e -> e instanceof LivingEntity living
+				&& living.getHealth() > 0)
+			.filter(e -> !e.isSpectator())
 			.filter(e -> MC.player.distanceToSqr(e) <= rangeSq)
 			.min(Comparator.comparingDouble(
 				e -> MC.player.distanceToSqr(e)))
@@ -145,13 +143,21 @@ public final class AutoWebHack extends Hack implements UpdateListener
 	private void placeWeb(BlockPos pos)
 	{
 		int oldSlot = MC.player.getInventory().selected;
-		InventoryUtils.selectItem(Items.COBWEB);
-		if(!MC.player.isHolding(Items.COBWEB))
-			return;
 
-		if(BlockPlacer.place(pos, airPlace.isChecked(), false))
-			swingHand.swing(InteractionHand.MAIN_HAND);
+		try
+		{
+			InventoryUtils.selectItem(Items.COBWEB);
+			if(!MC.player.isHolding(Items.COBWEB))
+				return;
 
-		MC.player.getInventory().selected = oldSlot;
+			if(BlockPlacer.place(pos, airPlace.isChecked(), false))
+				swingHand.swing(InteractionHand.MAIN_HAND);
+
+		}finally
+		{
+			// 旧实现在 !isHolding() 那条提前 return 上不会恢复快捷栏，会把玩家的
+			// 选中槽留在别处；改成 finally 保证一定还原。
+			MC.player.getInventory().selected = oldSlot;
+		}
 	}
 }
