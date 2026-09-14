@@ -428,21 +428,21 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 
 | hack | 行数 | 状态 |
 | --- | --- | --- |
-| `AntiAfk` | 259 | 待办 |
-| `AutoFish` | 274 | 待办 |
-| `AutoLibrarian` | 528 | 待办 |
-| `AutoReconnect` | 38 | 待办 |
-| `FeedAura` | 210 | 待办 |
-| `MusicPlayer` | 27 | 待办 |
-| `PacketCanceller` | 100 | 待办 |
-| `PacketLogger` | 91 | 待办 |
-| `Panic` | 47 | 待办 |
-| `PortalGui` | 24 | 待办 |
-| `PotionSaver` | 53 | 待办 |
-| `Reach` | 67 | 待办 |
-| `Throw` | 71 | 待办 |
-| `Timer` | 38 | 待办 |
-| `TooManyHax` | 159 | 待办 |
+| `AntiAfk` | 259 | 不适用（§0.3） |
+| `AutoFish` | 274 | 不适用（§0.3） |
+| `AutoLibrarian` | 528 | 已优化（§0.3） |
+| `AutoReconnect` | 38 | 不适用（§0.3） |
+| `FeedAura` | 210 | 不适用（§0.3） |
+| `MusicPlayer` | 27 | 不适用（§0.3） |
+| `PacketCanceller` | 100 | 已优化（§0.3） |
+| `PacketLogger` | 91 | 不适用（§0.3） |
+| `Panic` | 47 | 不适用（§0.3） |
+| `PortalGui` | 24 | 不适用（§0.3） |
+| `PotionSaver` | 53 | 不适用（§0.3） |
+| `Reach` | 67 | 不适用（§0.3） |
+| `Throw` | 71 | 不适用（§0.3） |
+| `Timer` | 38 | 不适用（§0.3） |
+| `TooManyHax` | 159 | 不适用（§0.3） |
 
 ### RENDER（50）
 
