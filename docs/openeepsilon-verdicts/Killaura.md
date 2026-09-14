@@ -86,7 +86,7 @@
 - 验证边界：本轮只有 `compileJava`/`compileTestJava`/`test`（全绿），没有实机战斗验证；
   `Switch delay`/`Switch advantage` 的 `visibleWhen` 只影响设置面板显示，不改变任何选人行为。
 
-## 排查：「有时候打玩家/动物不生效」的已知路径（只定位，不改代码）
+## 排查：「有时候打玩家/动物不生效」的已知路径（A/B/C/E 只定位，D 已修）
 
 按"卡在哪一步"分四组，证据全部在源码里；**没有实机验证**，都是从代码推出来的充分条件
 （命中任一条就足以解释现象），不代表这些条件一定会同时出现。
@@ -112,6 +112,30 @@
 | 目标被方块挡住 / 在墙后而 `Through walls range` 很小 | `createPlan():712-732` → `CombatAimPointPlanner.find:44-60`；`refreshed == null` → `:459-463` 空挥 |
 | 动物乱跑（小鸡/兔子碰撞箱小）时，`Target prediction`(1.5) 把瞄点推到范围/FOV 外，该 tick 判无效 | `CombatTargetUtils.isValid:170-175`（用预测瞄点算 FOV）、`getPredictedPreferredPoint():776-780` |
 | 开着背包：`Ignore open inventory`（默认开）会先偷偷发关容器包再打；把它关掉就完全不攻击 | `canAttackNow:606-607`、`prepareForAttack:519-521` |
+
+### E. 完全没反应：连一次挥手都没有（目标明明在范围内）——**第 15 轮追加**
+
+先看 KillAura 有没有画出**目标框**：`renderTarget` 只在 `targetPlan != null` 时才被赋值
+（`KillauraHack.java:379`），渲染在 `onRender`（`:1146`）。**没有框** = 卡在下面这一组；
+**有框但手不挥** = B 组。距离本身不用怀疑：`Range increase` 默认 1.2 → 交互距离 4.2 格
+（眼睛到碰撞箱最近点），扫描距离 `4.2 + 2~3` = 6.2~7.2 格（`:92-103`）。
+
+| 触发条件 | 证据 |
+| --- | --- |
+| `Require not breaking`（**默认开**）：你按住左键且准星落在方块上。原版 `MultiPlayerGameMode.startDestroyBlock/continueDestroyBlock` 把 `isDestroying` 置 true，松开左键或准星离开方块才清除 | `KillauraHack.java:186-187` → `requirementsMet():599` → `shouldResetTarget():582` → `onUpdate:371-376` 直接 `stopBlocking(false) + clearTracking() + return`：**不选目标、不空挥、连目标框都没有**。PvP 里"按住左键"很常见，准星扫到方块/地面就整体停摆 |
+| 同组冲突：你后来开过 `MultiAura` / `ClickAura` / `TriggerBot` / `FightBot` / `KillauraLegit` / `AimAssist` / `CrystalAura` / `AnchorAura` / `TpAura` / `Protect` / `ProjectilePuncher` 任意一个 | `hack/HackConflictManager.java:11-26`：启用时会 `conflict.setEnabled(false)` **静默关掉**同组的 KillAura（这些 hack 里都有 `addConflictGroup(HackConflictGroup.COMBAT_TARGETING)`） |
+| 开背包且 `Ignore open inventory` 被关掉 | `shouldResetTarget():584` |
+| 死亡 / 旁观 / 世界为空 / gameMode 为空 | `shouldResetTarget():579-581` |
+| 卡在 auto-block 的等待里（`Auto block` 开 + `Unblock mode` 不是 None） | `:510-515` 设置 `waitTicks`，`onHandleInput():434` 在 `waitTicks > 0` 时直接 return |
+
+还有一条最容易被当成 bug 的交互（默认配置就会踩）：
+
+`Attack cooldown`（**默认开**）读的是**你自己**的原版 `missTime`。你每手动挥空一次，原版就把
+`missTime` 设成 10（`Minecraft.java:1702-1705`），这 10 tick 内 KillAura 的点击全部被
+`CombatActionPolicy.isAttackMissCooldownActive`（`CombatActionPolicy.java:15-17`）吃掉（调用点
+`KillauraHack.java:451-454`）。所以"一边对着空气猛点左键、一边等 KillAura 出手"会表现成完全不攻击；
+把 `Attack cooldown` 关掉，或不再手动点，立刻恢复。这一条**不是** bug（设置描述就是这么写的），
+但它是"看起来完全没反应"的高频原因。
 
 ### C. 打出去了，但对方不掉血（原版机制，客户端无法绕）
 
