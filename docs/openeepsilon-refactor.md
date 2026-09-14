@@ -215,11 +215,11 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `NoVelocity` | MOVEMENT | 256 | 不适用（§0.3） |
 | `PacketFly` | MOVEMENT | 158 | 不适用（§0.3） |
 | `Parkour` | MOVEMENT | 79 | 不适用（§0.3） |
-| `ReverseStep` | MOVEMENT | 141 | 待办 |
+| `ReverseStep` | MOVEMENT | 141 | 不适用（§0.3） |
 | `SafeWalk` | MOVEMENT | 109 | 不适用（§0.3） |
 | `Sneak` | MOVEMENT | 150 | 不适用（§0.3） |
 | `SpeedHack` | MOVEMENT | 210 | 不适用（§0.3） |
-| `Spider` | MOVEMENT | 49 | 待办 |
+| `Spider` | MOVEMENT | 49 | 不适用（§0.3） |
 | `Step` | MOVEMENT | 161 | 不适用（§0.3） |
 | `Reach` | OTHER | 67 | 不适用（§0.3） |
 | `Timer` | OTHER | 38 | 不适用（§0.3） |
@@ -415,12 +415,12 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `NoWeb` | 40 | 待办 |
 | `PacketFly` | 158 | 不适用（§0.3） |
 | `Parkour` | 79 | 不适用（§0.3） |
-| `ReverseStep` | 141 | 待办 |
+| `ReverseStep` | 141 | 不适用（§0.3） |
 | `SafeWalk` | 109 | 待办 |
 | `Sneak` | 150 | 不适用（§0.3） |
 | `SnowShoe` | 25 | 待办 |
 | `SpeedHack` | 210 | 不适用（§0.3） |
-| `Spider` | 49 | 待办 |
+| `Spider` | 49 | 不适用（§0.3） |
 | `Step` | 161 | 待办 |
 | `VehicleBoost` | 74 | 待办 |
 
