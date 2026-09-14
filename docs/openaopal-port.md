@@ -126,11 +126,21 @@ OpenOpal 的 2D ESP 全部靠 NanoVG 在**屏幕空间**画：把碰撞箱 8 个
 
 - `compileJava` / `compileTestJava` / `test` 通过：148 个测试类、905 个测试、0 失败，
   其中 ESP 纯逻辑层新增 4 个测试类共 35 个测试。
-- **从未在游戏里看过**：Skia 的 `drawRect` / `drawRRect` / `drawString` / `measureTextWidth`
-  签名逐个核对过，但视觉效果、字号 5 在实机上是否偏小、描边 0.5px 在低 GUI 缩放下
-  是否可见、物品图标缩放 0.65 后与铭牌条的相对高度是否好看，都没有实机确认。
-- `EspSkia` 的兜底路径（`begin` 返回 false）只做了逻辑核对，没有制造过原生库缺失的
-  场景去实跑。
+- **绘制图元本身有像素级验证**：`SkiaPrimitiveSemanticsTest` 直接开一块 Skia 光栅
+  画布、画完读回像素，钉下了本工程对 Skia 的几条假设：
+  - `Rect` 的 right/bottom 是开区间（`EspSkia.fillRect` 的宽度换算依赖它）；
+  - `PaintMode.STROKE` 只画一圈空心边（`outlineRectCased` 的深色描边依赖它）；
+  - `RRect` 圆角会切角、半径过大会被收进一半（`Rounded box` 依赖它）；
+  - **`drawString` 的 y 是基线而不是顶边**——这是整套铭牌排版的立足点：参考把
+    背景放在 `y - 2 - 4.5`、正文放在 `y`，本工程照抄了这个偏移。如果 Skia 的 y
+    其实是顶边，整套铭牌会整体下移约一个字高，而编译期完全看不出。
+    这一条现在有实测像素证据。
+  Skiko 原生库加载不了的环境下这个类会整个跳过，不会变红。
+- **从未在游戏里看过**：字号 5 在实机上是否偏小、描边 0.5px 在低 GUI 缩放下是否
+  可见、物品图标缩放 0.65 后与铭牌条的相对高度是否好看，都没有实机确认。
+- `EspSkia` 的兜底路径（`begin` 返回 false）只做了逻辑核对。可以确认的是它不会
+  「卡死」：`SkiaRegionRenderer.beginRegion()` 只在原生库不可用时返回 null，而那
+  条分支在 `regionDrawing = true` **之前**，所以守卫不会把后续帧一直挡掉。
 - 装备元素的**顺序**假设（主手最左）是从参考原式推出来的，没有实机比对过。
-- 自动测试只覆盖纯几何与元素策略；`EspSkia` 与 `PlayerEspHack` 的绘制调用没有测试
-  （需要 GL 上下文），只能靠人工分栏。
+- `EspSkia` 与 `PlayerEspHack` 里「画什么、画在哪」这层没有自动测试（需要
+  GL 上下文与游戏内实体），只能靠人工分栏；有测试的是它下面那层图元语义。
