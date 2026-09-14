@@ -45,7 +45,7 @@ public final class PortalEspHack extends Hack implements UpdateListener,
 
 	private final SliderSetting lineOpacity = new SliderSetting("Line opacity",
 		"Opacity of portal outlines and tracer lines.", 0.5, 0, 1, 0.01,
-		ValueDisplay.PERCENTAGE);
+		ValueDisplay.PERCENTAGE).visibleWhen(style::hasLines);
 
 	private final CheckboxSetting throughWalls = new CheckboxSetting(
 		"Through walls", "Renders portals through solid blocks.", true);
