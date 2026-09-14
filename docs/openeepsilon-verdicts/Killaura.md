@@ -85,3 +85,53 @@
   换成真正的质量分（`CombatTargetUtils.getScore(...)`）。会改变现有手感，未做。
 - 验证边界：本轮只有 `compileJava`/`compileTestJava`/`test`（全绿），没有实机战斗验证；
   `Switch delay`/`Switch advantage` 的 `visibleWhen` 只影响设置面板显示，不改变任何选人行为。
+
+## 排查：「有时候打玩家/动物不生效」的已知路径（只定位，不改代码）
+
+按"卡在哪一步"分四组，证据全部在源码里；**没有实机验证**，都是从代码推出来的充分条件
+（命中任一条就足以解释现象），不代表这些条件一定会同时出现。
+
+### A. 根本没锁上（表现为这类目标一直不打）
+
+| 触发条件 | 证据 |
+| --- | --- |
+| 全局设置 Global Settings → Target 里 `Players` / `Animals` 被关掉 | `clickgui2/GuiPreferences.java:45-49`（默认全开，但会写进 config：`:81-90`、`:128-132`）→ `CombatTargetUtils.java:251-266 isGlobalTargetEnabled` → `isValid:167` 直接拒。玩家走 `PLAYERS`，动物走 `ANIMALS` |
+| 对方是你的好友（`.friend add`，或在对方身上**中键**，见 `mixin/MinecraftClientMixin.java:129`） | `EntityUtils.java:38-44 IS_ATTACKABLE` 里的 `!WURST.getFriends().isFriend(e)` → `CombatTargetUtils:165` |
+| 该玩家与你同队且 `Teams` 被关掉 | `CombatTargetUtils.java:256-257` |
+| 你自己勾了 KillAura 的过滤器（`Filter passive mobs` 挡猪牛羊鱼、`Filter neutral mobs` 挡狼/羊驼/蜜蜂、`Filter babies` 等） | `settings/filterlists/EntityFilterList.java:55-56`（**勾上才生效**）+ `FilterPassiveSetting.java:28-41`；`genericCombat()` 里默认全是 `false`/`Mode.OFF`，所以默认不挡动物 |
+
+### B. 锁上了，但这一 tick 不出手 / 只空挥（"有时候"最主要的一组）
+
+| 触发条件 | 证据 |
+| --- | --- |
+| `Require not breaking`（默认**开**）：你正在破坏方块 | `KillauraHack.java:186-187` + `requirementsMet():599`（`MC.gameMode.isDestroying()`） |
+| 你正在使用物品（吃/喝/拉弓/举盾）且 `Attack while using items`（默认关）没勾 | `prepareForAttack():516-517` |
+| `Criticals = Always`（默认 SMART）：必须处于下落状态才允许攻击，站在地上一发都不打 | `CriticalsSelectionMode.allowsAttack:1184-1193`，调用点 `canAttackNow:604` |
+| `Attack cooldown`（默认开）且原版 `missTime > 0`：你手动挥空后原版会设 `missTime = 10`，这段时间 KillAura 的点击被跳过 | 原版 `Minecraft.java:1702-1705`（MISS → `missTime = 10`）、`:1849-1850`（每 tick 递减）；`CombatActionPolicy.java:15-17`、`KillauraHack.java:451-454` |
+| 转向还没对齐：`isLookingAt` 要求"沿本次攻击用的朝向"的射线真的切到目标碰撞箱 | `isLookingAt():860-875`（用 `rotation.toLookVec()` 做 clip）；没切到就走 `performFailSwingAttempt`（`:461`、`:476`），而 `Fail swing`（默认开，`:226`）**只挥手臂、不发攻击**——这正是"看着在打、对方不掉血" |
+| 目标被方块挡住 / 在墙后而 `Through walls range` 很小 | `createPlan():712-732` → `CombatAimPointPlanner.find:44-60`；`refreshed == null` → `:459-463` 空挥 |
+| 动物乱跑（小鸡/兔子碰撞箱小）时，`Target prediction`(1.5) 把瞄点推到范围/FOV 外，该 tick 判无效 | `CombatTargetUtils.isValid:170-175`（用预测瞄点算 FOV）、`getPredictedPreferredPoint():776-780` |
+| 开着背包：`Ignore open inventory`（默认开）会先偷偷发关容器包再打；把它关掉就完全不攻击 | `canAttackNow:606-607`、`prepareForAttack:519-521` |
+
+### C. 打出去了，但对方不掉血（原版机制，客户端无法绕）
+
+| 触发条件 | 证据 |
+| --- | --- |
+| 目标处于原版无敌帧：10 tick 内刚被任何人打中（`invulnerableTime = 20`，第二下只在伤害更高时结算差值） | 原版 `LivingEntity.java:182`（`invulnerableDuration = 20`）、`:1620-1621`（命中即 `hurtTime = 10`） |
+| 目标举盾面朝你、你手上不是斧头：`Ignore target shield` 只影响"要不要锁他"，**不改变原版盾牌结算** | `KillauraHack.java:154-155`、`:747-749`（锁定判定）与 `:642-644`（斧头例外） |
+| 目标在创造/无敌，或有吸收/抗性/图腾 | 纯原版结算 |
+
+### D. 打出去了，但打在**别的**实体上（对方自然不掉血）
+
+`Raycast` 默认是 **All**（`:157-158`）。All 模式下射线只要求实体 `isPickable()`，
+**不再检查 `isValidScanTarget` / `IS_ATTACKABLE` / 过滤器**：`resolveRaycastTarget():843-857` 的谓词是
+`mode == RaycastMode.ALL || isValidScanTarget(entity)`，且 `performScheduledAttacks` 里
+`traceAllTarget` 会跳过 `isValidAttackTarget`（`:467-478`）。后果：
+
+- 你和敌人之间站着一个好友 / 宠物动物 / 盔甲架时，这一下打在它身上，**敌人不掉血**；
+- 反过来，All 模式也会打好友（`IS_ATTACKABLE` 的好友检查被绕过）。
+
+把 `Raycast` 改成 `Enemy`（只打过滤器允许的目标）或 `None`（只打当前锁定目标）即可避免。
+这条**故意不改**：`RaycastMode:1161-1174` 里 `ENEMY` 与 `ALL` 两档同时存在，说明"All = 不过滤"是
+设计意图；但 `:157-158` 的 `EnumSetting` 没有 description，用户看不出区别——建议至少补一句说明，
+或者让 All 也保留 `IS_ATTACKABLE`（好友/旁观/死亡）这一层安全过滤。属行为取舍，本轮只记录。
