@@ -27,6 +27,7 @@ import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictGroup;
+import net.wurstclient.mixinterface.IKeyBinding;
 import net.wurstclient.settings.AttackSpeedSliderSetting;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.PauseAttackOnContainersSetting;
@@ -172,12 +173,8 @@ public final class ProtectHack extends Hack
 		
 		enemy = null;
 		attackTarget = null;
-		
-		if(friend != null)
-		{
-			MC.options.keyUp.setDown(false);
-			friend = null;
-		}
+		friend = null;
+		releaseMovementKeys();
 	}
 	
 	@Override
@@ -236,10 +233,7 @@ public final class ProtectHack extends Hack
 		if(useAi.isChecked())
 		{
 			// reset pathfinder
-			if(pathFinder == null || pathFinder.entity != target
-				|| (processor == null || processor.isDone() || ticksProcessing >= 10
-				|| !pathFinder.isPathStillValid(processor.getIndex()))
-					&& (pathFinder.isDone() || pathFinder.isFailed()))
+			if(needsNewPath(target))
 			{
 				pathFinder = new EntityPathFinder(target, distance);
 				processor = null;
@@ -345,6 +339,43 @@ public final class ProtectHack extends Hack
 		enemy = null;
 		PathProcessor.releaseControls();
 		resetPath();
+		releaseMovementKeys();
+	}
+
+	/**
+	 * 松开被本 hack 强制按下的移动键。用 {@code resetPressedState()} 而不是
+	 * {@code setDown(false)}：前者按玩家**真实**按键状态恢复
+	 * （{@code mixin/KeyBindingMixin.java:29-38} 直接查 GLFW），后者会把玩家此刻
+	 * 正按着的键一并取消 —— 旧实现是 {@code MC.options.keyUp.setDown(false)}，
+	 * 关掉 Protect 时如果玩家正按着 W，会表现为"松手前走不动"。
+	 *
+	 * <p>
+	 * 另外旧实现只复位了 {@code keyUp}，飞行高度控制用的 {@code keyShift} /
+	 * {@code keyJump} 会停在最后一次被设置的状态（一直潜行 / 一直跳）。
+	 */
+	private void releaseMovementKeys()
+	{
+		IKeyBinding.get(MC.options.keyUp).resetPressedState();
+		IKeyBinding.get(MC.options.keyShift).resetPressedState();
+		IKeyBinding.get(MC.options.keyJump).resetPressedState();
+	}
+	
+	/**
+	 * 是否需要重新寻路。与原条件**语义完全一致**，只是抽出来并写清优先级
+	 * （原表达式是 {@code A || B || (C && D)}，靠 {@code &&} 优先级高于 {@code ||}）：
+	 * 没有寻路器 / 目标换了就重来；否则只有"处理器已完成、处理超过 10 tick、
+	 * 或路径已失效"**且**"寻路器已完成或已失败"时才重来，避免打断还在思考的搜索。
+	 */
+	private boolean needsNewPath(Entity target)
+	{
+		if(pathFinder == null || pathFinder.entity != target)
+			return true;
+		
+		boolean processorStale = processor == null || processor.isDone()
+			|| ticksProcessing >= 10
+			|| !pathFinder.isPathStillValid(processor.getIndex());
+		
+		return processorStale && (pathFinder.isDone() || pathFinder.isFailed());
 	}
 
 	private void resetPath()

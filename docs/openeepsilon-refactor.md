@@ -323,7 +323,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Criticals` | 228 | 已重构（§0.3） |
 | `CrystalAura` | 443 | 已重构（§0.3） |
 | `DelayRemover` | 61 | 已优化（§0.3） |
-| `FightBot` | 303 | 待办 |
+| `FightBot` | 303 | 已优化（§0.3） |
 | `Hitboxes` | 36 | 不适用（§0.3） |
 | `HoleFiller` | 152 | 已优化（§0.3） |
 | `KeepSprint` | 30 | 已重构（§0.3） |
@@ -332,7 +332,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `MultiAura` | 1162 | 已优化（§0.3） |
 | `NoMissCooldown` | 67 | 不适用（§0.3） |
 | `ProjectilePuncher` | 136 | 不适用（§0.3） |
-| `Protect` | 386 | 待办 |
+| `Protect` | 386 | 已优化（§0.3） |
 | `RightClicker` | 124 | 已优化（§0.3） |
 | `SelfTrap` | 176 | 已优化（§0.3） |
 | `SuperKnockback` | 202 | 已优化（§0.3） |

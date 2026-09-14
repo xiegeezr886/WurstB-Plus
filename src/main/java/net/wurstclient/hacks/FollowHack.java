@@ -26,6 +26,7 @@ import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.mixinterface.IKeyBinding;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
@@ -121,12 +122,29 @@ public final class FollowHack extends Hack
 		processor = null;
 		ticksProcessing = 0;
 		PathProcessor.releaseControls();
+		releaseMovementKeys();
 		
 		if(entity != null)
 			ChatUtils
 				.message("不再跟随 " + entity.getName().getString());
 		
 		entity = null;
+	}
+	
+	/**
+	 * 松开被本 hack 强制按下的移动键（{@code onUpdate} 会设置 keyUp /
+	 * keyShift / keyJump）。用 {@code resetPressedState()} 按玩家真实按键状态
+	 * 恢复（{@code mixin/KeyBindingMixin.java:29-38}），不会把玩家正按着的键取消。
+	 *
+	 * <p>
+	 * 旧实现从来没有复位过这些键：关掉 FollowHack 后角色会保持最后一次的
+	 * 前进 / 潜行 / 跳跃输入，直到玩家敲一下对应按键刷新状态。
+	 */
+	private void releaseMovementKeys()
+	{
+		IKeyBinding.get(MC.options.keyUp).resetPressedState();
+		IKeyBinding.get(MC.options.keyShift).resetPressedState();
+		IKeyBinding.get(MC.options.keyJump).resetPressedState();
 	}
 	
 	@Override
