@@ -122,7 +122,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `SafeWalk` | 参考这个文件里**根本没有几何算法**（连 `util.math` 都没 import）。Normal 模式只是重定向 `Entity.isSneaking()` 去复用原版边缘保护——本工程等价物是 `shouldClipEdges()`（挂在 `isStayingOnGroundSurface()` 上，1.20.1 里正是 `maybeBackOffFromEdge` 的闸门）；Eagle 模式只查玩家**中心列**下方一格是不是空气，本工程按缩小后的整个脚印 + 一个 `maxUpStep` 深度做 `noCollision`，**严格更保守**且边距可调（0.05~0.25 m）。搬 Eagle 是降级。 |
 | `AimAssist` | 参考的 wrap + 钳制 = 已有的 `RotationUtils.limitAngleChange`（连「179→-179 应得 181」这种边界都已有单测）；`repeat(10)`/tick 已被 `RotationSmoothing.smoothWithAcceleration` 取代；方形 FOV 不如现有的圆形瞄准锥（`getAngleToLookVec > fov/2`）；`(14..24).random()` 抖动与 `angleMin` 死区是**反作弊式的随机欠冲**，在这里只会让准星永远到不了选定瞄点（本工程刻意相反：亚度 ±1 微调把准星送进碰撞箱）。选人上参考「每 tick 重挑最近的玩家、零粘滞」，本工程有 `TargetTracker` 的粘滞/切换延迟/切换优势。没有可搬的数学。 |
 | `AutoSprint` | `canSprint()` 是参考判定规则的**严格超集**（含参考没有的乘客/下落飞行/水中禁用）。参考的 `keep`（拦下收到的 STOP_SPRINTING 包）是包级 exploit；`InventoryMove` 那条分支是 1.12.2「开 GUI 会强放按键」的补偿，1.20.1 照搬会变成「只要开着任意界面就一直疾跑」，是 bug。键位版移动判定在 1.20.1 **更差**：`KeyboardInput` 算的是净输入，同时按 W+S 时 `forwardImpulse == 0`，原版会停、键位版每 tick 重新开启并因此每 tick 发一对 START/STOP_SPRINTING。 |
-| `NoSlowdown` | 本工程有 9 个开关（使用物品 / 盾 / 灵魂沙 / 蜜块 / 黏液块 / 蛛网 / 细雪 / 甜浆果 / 手持物减速），覆盖面已超参考；参考剩下的是 `Packet`、`2B2T`（发 START_SNEAKING 与 RELEASE_USE_ITEM 包）以及直接改 `Blocks.SLIME_BLOCK.setDefaultSlipperiness` 这类 1.12.2 手法。<br>**已知唯一缺口**：参考的 `Sneak` 开关（潜行时也全速）在本工程没有对应实现——本工程两个 mixin 只处理「用物品」与「方块速度乘数」，潜行减速那条路没有口子。留作待办，而不是硬塞进这个 hack。 |
+| `NoSlowdown` | 本工程有 9 个开关（使用物品 / 盾 / 灵魂沙 / 蜜块 / 黏液块 / 蛛网 / 细雪 / 甜浆果 / 手持物减速），覆盖面已超参考；参考剩下的是 `Packet`、`2B2T`（发 START_SNEAKING 与 RELEASE_USE_ITEM 包）以及直接改 `Blocks.SLIME_BLOCK.setDefaultSlipperiness` 这类 1.12.2 手法。<br>**已知唯一缺口**（第 13 轮修正：原文说"没有对应实现"，不准确）：参考的 `Sneak` 开关（潜行时也全速，`NoSlowDown.kt:30,65-68` 用 `moveForward *= 5f` 抵消减速）在本工程**已有等价能力**，只是位置不同——`hacks/SneakHack.java:92-95` 的 `PACKET` 模式每个移动 tick 发 `PRESS_SHIFT_KEY` + `RELEASE_SHIFT_KEY`，服务端认为你在潜行而客户端不减速（详见 `openeepsilon-verdicts/Sneak.md`）。所以这不是能力缺口，只是没有把这个开关画在 NoSlowdown 那一页。 |
 | `Reach` | 参考整个文件只有 12 行、一个 `ReachAdd` 滑条；本工程已有 `ReachPolicy` 纯类 + 实体/方块两段距离 + 仅疾跑时生效 + 液体中禁用。没有可搬的判断。 |
 | `Timer` | 参考的 `TimerManager` 是一个**给别的模块用**的 tick 长度覆盖栈（带超时、按插入顺序取最后一个），本工程没有任何模块需要「临时改几个 tick 的 tick 长度」这种动作。在没有消费方之前先造这个栈，与之前判定不做 `util/pause/*` 令牌是同一个理由——**凭空抽象**，故不做。 |
 
@@ -173,52 +173,52 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `ScaffoldWalk` | BLOCKS | 332 | 待办 |
 | `VeinMiner` | BLOCKS | 246 | 待办 |
 | `AimAssist` | COMBAT | 275 | 不适用（§0.3） |
-| `AnchorAura` | COMBAT | 547 | 待办 |
-| `AntiBot` | COMBAT | 177 | 待办 |
+| `AnchorAura` | COMBAT | 547 | 已优化（§0.3） |
+| `AntiBot` | COMBAT | 177 | 已重构（§0.3） |
 | `AutoArmor` | COMBAT | 262 | 已重构（§0.3） |
 | `AutoCity` | COMBAT | 159 | 已优化（§0.3） |
-| `AutoSword` | COMBAT | 207 | 待办 |
+| `AutoSword` | COMBAT | 207 | 已优化（§0.3） |
 | `AutoTotem` | COMBAT | 156 | 已优化（§0.3） |
 | `AutoTrap` | COMBAT | 191 | 已优化（§0.3） |
-| `BowAimbot` | COMBAT | 261 | 待办 |
-| `Burrow` | COMBAT | 259 | 待办 |
-| `ClickAura` | COMBAT | 139 | 待办 |
-| `Criticals` | COMBAT | 228 | 待办 |
-| `CrystalAura` | COMBAT | 443 | 待办 |
+| `BowAimbot` | COMBAT | 261 | 已重构（§0.3） |
+| `Burrow` | COMBAT | 259 | 已优化（§0.3） |
+| `ClickAura` | COMBAT | 139 | 不适用（§0.3） |
+| `Criticals` | COMBAT | 228 | 已重构（§0.3） |
+| `CrystalAura` | COMBAT | 443 | 已重构（§0.3） |
 | `HoleFiller` | COMBAT | 152 | 已优化（§0.3） |
-| `KeepSprint` | COMBAT | 30 | 待办 |
-| `Killaura` | COMBAT | 1259 | 待办 |
-| `MultiAura` | COMBAT | 1162 | 待办 |
-| `SelfTrap` | COMBAT | 176 | 待办 |
-| `SuperKnockback` | COMBAT | 202 | 待办 |
+| `KeepSprint` | COMBAT | 30 | 已重构（§0.3） |
+| `Killaura` | COMBAT | 1259 | 不适用（§0.3） |
+| `MultiAura` | COMBAT | 1162 | 已优化（§0.3） |
+| `SelfTrap` | COMBAT | 176 | 已优化（§0.3） |
+| `SuperKnockback` | COMBAT | 202 | 已优化（§0.3） |
 | `Surround` | COMBAT | 220 | 已优化（§0.3） |
-| `TriggerBot` | COMBAT | 233 | 待办 |
+| `TriggerBot` | COMBAT | 233 | 已优化（§0.3） |
 | `WTap` | COMBAT | 126 | 已优化（见 §0.3） |
 | `AutoEat` | ITEMS | 351 | 待办 |
 | `AutoSteal` | ITEMS | 108 | 待办 |
 | `FastUse` | ITEMS | 105 | 待办 |
 | `Restock` | ITEMS | 180 | 待办 |
 | `AutoSprint` | MOVEMENT | 121 | 不适用（§0.3） |
-| `Blink` | MOVEMENT | 198 | 待办 |
-| `BunnyHop` | MOVEMENT | 87 | 待办 |
-| `ElytraFly` | MOVEMENT | 155 | 待办 |
-| `FakeLag` | MOVEMENT | 117 | 待办 |
-| `FastLadder` | MOVEMENT | 53 | 待办 |
-| `Flight` | MOVEMENT | 189 | 待办 |
-| `Glide` | MOVEMENT | 120 | 待办 |
-| `HighJump` | MOVEMENT | 36 | 待办 |
+| `Blink` | MOVEMENT | 198 | 不适用（§0.3） |
+| `BunnyHop` | MOVEMENT | 87 | 不适用（§0.3） |
+| `ElytraFly` | MOVEMENT | 155 | 已优化（§0.3） |
+| `FakeLag` | MOVEMENT | 117 | 不适用（§0.3） |
+| `FastLadder` | MOVEMENT | 53 | 不适用（§0.3） |
+| `Flight` | MOVEMENT | 189 | 不适用（§0.3） |
+| `Glide` | MOVEMENT | 120 | 不适用（§0.3） |
+| `HighJump` | MOVEMENT | 36 | 已优化（§0.3） |
 | `InvWalk` | MOVEMENT | 129 | 待办 |
-| `Jesus` | MOVEMENT | 180 | 待办 |
-| `NoClip` | MOVEMENT | 95 | 待办 |
-| `NoFall` | MOVEMENT | 186 | 待办 |
+| `Jesus` | MOVEMENT | 180 | 已优化（§0.3） |
+| `NoClip` | MOVEMENT | 95 | 不适用（§0.3） |
+| `NoFall` | MOVEMENT | 186 | 不适用（§0.3） |
 | `NoSlowdown` | MOVEMENT | 143 | 不适用 + 1 处缺口（§0.3） |
-| `NoVelocity` | MOVEMENT | 256 | 待办 |
-| `PacketFly` | MOVEMENT | 158 | 待办 |
-| `Parkour` | MOVEMENT | 79 | 待办 |
+| `NoVelocity` | MOVEMENT | 256 | 不适用（§0.3） |
+| `PacketFly` | MOVEMENT | 158 | 不适用（§0.3） |
+| `Parkour` | MOVEMENT | 79 | 不适用（§0.3） |
 | `ReverseStep` | MOVEMENT | 141 | 待办 |
 | `SafeWalk` | MOVEMENT | 109 | 不适用（§0.3） |
-| `Sneak` | MOVEMENT | 150 | 待办 |
-| `SpeedHack` | MOVEMENT | 210 | 待办 |
+| `Sneak` | MOVEMENT | 150 | 不适用（§0.3） |
+| `SpeedHack` | MOVEMENT | 210 | 不适用（§0.3） |
 | `Spider` | MOVEMENT | 49 | 待办 |
 | `Step` | MOVEMENT | 161 | 不适用（§0.3） |
 | `Reach` | OTHER | 67 | 不适用（§0.3） |
@@ -304,42 +304,42 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | hack | 行数 | 状态 |
 | --- | --- | --- |
 | `AimAssist` | 275 | 待办 |
-| `AnchorAura` | 547 | 待办 |
-| `AntiBot` | 177 | 待办 |
+| `AnchorAura` | 547 | 已优化（§0.3） |
+| `AntiBot` | 177 | 已重构（§0.3） |
 | `ArrowDmg` | 88 | 待办 |
 | `AutoArmor` | 262 | 待办 |
-| `AutoCity` | 159 | 待办 |
+| `AutoCity` | 159 | 已优化（§0.3） |
 | `AutoLeave` | 138 | 待办 |
 | `AutoPotion` | 134 | 待办 |
 | `AutoRespawn` | 55 | 待办 |
 | `AutoSoup` | 189 | 待办 |
-| `AutoSword` | 207 | 待办 |
+| `AutoSword` | 207 | 已优化（§0.3） |
 | `AutoTotem` | 156 | 待办 |
 | `AutoTrap` | 191 | 待办 |
 | `AutoWeb` | 157 | 待办 |
-| `BowAimbot` | 261 | 待办 |
-| `Burrow` | 259 | 待办 |
-| `ClickAura` | 139 | 待办 |
-| `Criticals` | 228 | 待办 |
-| `CrystalAura` | 443 | 待办 |
+| `BowAimbot` | 261 | 已重构（§0.3） |
+| `Burrow` | 259 | 已优化（§0.3） |
+| `ClickAura` | 139 | 不适用（§0.3） |
+| `Criticals` | 228 | 已重构（§0.3） |
+| `CrystalAura` | 443 | 已重构（§0.3） |
 | `DelayRemover` | 61 | 待办 |
 | `FightBot` | 303 | 待办 |
 | `Hitboxes` | 36 | 待办 |
 | `HoleFiller` | 152 | 待办 |
-| `KeepSprint` | 30 | 待办 |
-| `Killaura` | 1259 | 待办 |
+| `KeepSprint` | 30 | 已重构（§0.3） |
+| `Killaura` | 1259 | 不适用（§0.3） |
 | `KillauraLegit` | 349 | 待办 |
-| `MultiAura` | 1162 | 待办 |
+| `MultiAura` | 1162 | 已优化（§0.3） |
 | `NoMissCooldown` | 67 | 待办 |
 | `ProjectilePuncher` | 136 | 待办 |
 | `Protect` | 386 | 待办 |
 | `RightClicker` | 124 | 待办 |
-| `SelfTrap` | 176 | 待办 |
-| `SuperKnockback` | 202 | 待办 |
+| `SelfTrap` | 176 | 已优化（§0.3） |
+| `SuperKnockback` | 202 | 已优化（§0.3） |
 | `Surround` | 220 | 待办 |
 | `TargetStrafe` | 144 | 待办 |
 | `TpAura` | 192 | 待办 |
-| `TriggerBot` | 233 | 待办 |
+| `TriggerBot` | 233 | 已优化（§0.3） |
 | `WTap` | 126 | 待办 |
 
 ### FUN（12）
@@ -388,38 +388,38 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `AutoSwim` | 51 | 待办 |
 | `AutoWalk` | 43 | 待办 |
 | `BaritoneWalk` | 90 | 待办 |
-| `Blink` | 198 | 待办 |
+| `Blink` | 198 | 不适用（§0.3） |
 | `BoatFly` | 90 | 待办 |
-| `BunnyHop` | 87 | 待办 |
+| `BunnyHop` | 87 | 不适用（§0.3） |
 | `CreativeFlight` | 131 | 待办 |
 | `Dolphin` | 49 | 待办 |
-| `ElytraFly` | 155 | 待办 |
+| `ElytraFly` | 155 | 已优化（§0.3） |
 | `ExtraElytra` | 147 | 待办 |
-| `FakeLag` | 117 | 待办 |
-| `FastLadder` | 53 | 待办 |
+| `FakeLag` | 117 | 不适用（§0.3） |
+| `FastLadder` | 53 | 不适用（§0.3） |
 | `Fish` | 49 | 待办 |
-| `Flight` | 189 | 待办 |
+| `Flight` | 189 | 不适用（§0.3） |
 | `Follow` | 278 | 待办 |
-| `Glide` | 120 | 待办 |
-| `HighJump` | 36 | 待办 |
+| `Glide` | 120 | 不适用（§0.3） |
+| `HighJump` | 36 | 已优化（§0.3） |
 | `InvWalk` | 129 | 待办 |
-| `Jesus` | 180 | 待办 |
+| `Jesus` | 180 | 已优化（§0.3） |
 | `Jetpack` | 45 | 待办 |
-| `NoClip` | 95 | 待办 |
-| `NoFall` | 186 | 待办 |
+| `NoClip` | 95 | 不适用（§0.3） |
+| `NoFall` | 186 | 不适用（§0.3） |
 | `NoJumpDelay` | 79 | 待办 |
 | `NoLevitation` | 25 | 待办 |
 | `NoRotate` | 68 | 待办 |
 | `NoSlowdown` | 143 | 待办 |
-| `NoVelocity` | 256 | 待办 |
+| `NoVelocity` | 256 | 不适用（§0.3） |
 | `NoWeb` | 40 | 待办 |
-| `PacketFly` | 158 | 待办 |
-| `Parkour` | 79 | 待办 |
+| `PacketFly` | 158 | 不适用（§0.3） |
+| `Parkour` | 79 | 不适用（§0.3） |
 | `ReverseStep` | 141 | 待办 |
 | `SafeWalk` | 109 | 待办 |
-| `Sneak` | 150 | 待办 |
+| `Sneak` | 150 | 不适用（§0.3） |
 | `SnowShoe` | 25 | 待办 |
-| `SpeedHack` | 210 | 待办 |
+| `SpeedHack` | 210 | 不适用（§0.3） |
 | `Spider` | 49 | 待办 |
 | `Step` | 161 | 待办 |
 | `VehicleBoost` | 74 | 待办 |
