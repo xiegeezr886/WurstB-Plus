@@ -187,7 +187,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `CrystalAura` | COMBAT | 443 | 已重构（§0.3） |
 | `HoleFiller` | COMBAT | 152 | 已优化（§0.3） |
 | `KeepSprint` | COMBAT | 30 | 已重构（§0.3） |
-| `Killaura` | COMBAT | 1259 | 不适用（§0.3） |
+| `Killaura` | COMBAT | 1259 | 已优化（§0.3） |
 | `MultiAura` | COMBAT | 1162 | 已优化（§0.3） |
 | `SelfTrap` | COMBAT | 176 | 已优化（§0.3） |
 | `SuperKnockback` | COMBAT | 202 | 已优化（§0.3） |
@@ -327,7 +327,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Hitboxes` | 36 | 待办 |
 | `HoleFiller` | 152 | 待办 |
 | `KeepSprint` | 30 | 已重构（§0.3） |
-| `Killaura` | 1259 | 不适用（§0.3） |
+| `Killaura` | 1259 | 已优化（§0.3） |
 | `KillauraLegit` | 349 | 待办 |
 | `MultiAura` | 1162 | 已优化（§0.3） |
 | `NoMissCooldown` | 67 | 待办 |
