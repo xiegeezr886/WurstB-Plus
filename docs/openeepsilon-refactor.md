@@ -126,12 +126,12 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Reach` | 参考整个文件只有 12 行、一个 `ReachAdd` 滑条；本工程已有 `ReachPolicy` 纯类 + 实体/方块两段距离 + 仅疾跑时生效 + 液体中禁用。没有可搬的判断。 |
 | `Timer` | 参考的 `TimerManager` 是一个**给别的模块用**的 tick 长度覆盖栈（带超时、按插入顺序取最后一个），本工程没有任何模块需要「临时改几个 tick 的 tick 长度」这种动作。在没有消费方之前先造这个栈，与之前判定不做 `util/pause/*` 令牌是同一个理由——**凭空抽象**，故不做。 |
 
-**第 12 轮未能完成的（2 个）**
+**第 12 轮未能完成的（2 个）——第 13 轮已全部补齐**
 
 | hack | 状态 |
 | --- | --- |
-| `BowAimbot` | 待办。对照分析没做完（子任务两次在读完文件前就中断），**没有任何结论可声明**，也没有改动任何文件。 |
-| `Burrow` | 待办。同上。 |
+| `BowAimbot` | 已完成（第 13 轮）：按 1.20.2 真源重写弹道（0.99 阻力 / 0.05 重力 / 继承射手速度 / 弩 3.15 / 眼高 -0.1），见 `openeepsilon-verdicts/BowAimbot.md`；覆盖表标 **已重构**。第 12 轮"两次在读完文件前中断"的记录保留在案，结论以此处为准。 |
+| `Burrow` | 已完成（第 13 轮）：整方块过滤 + 共享放置参数 + `Disable after`，见 `openeepsilon-verdicts/Burrow.md`；覆盖表标 **已优化**。 |
 
 **另一条重要结论（影响后续该怎么做）**：本轮 13 个 hack 里只有 6 个找到了真能搬的东西，7 个判定不适用。原因不是核对得粗，而是**本工程在这几处本来就更完整**——它从初始提交起就带着一整套纯逻辑 `*Policy` / `*Planner` 类（`KeepSprintPolicy`、`CrystalAuraPlanner`、`ScaffoldPlacementPlanner`、`ReachPolicy`、`CombatActionPolicy`、`ProjectileThreatPolicy` … 共 20 余个），而参考的强项集中在两处：**包级 exploit**（1.12.2 的 NCP/AAC/Hypixel 绕过，在 1.20.1 上要么无效要么踢人）与 **GL11 立即模式渲染**（1.20.1 已无此渲染管线）。所以后续继续按「每个 hack 都必须改出点什么」推进是错的，正确做法是逐条核对、只搬真能搬的，并把「不适用」连同证据记下来。
 
