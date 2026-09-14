@@ -15,9 +15,11 @@ import net.wurstclient.util.BlockUtils;
 public final class AnchorHack extends Hack implements UpdateListener
 {
 	private final CheckboxSetting pullback = new CheckboxSetting(
-		"Pullback", "Pulls you back into the hole when pushed out.", true);
-
-	private int holeCheck;
+		"Pullback",
+		"被击退时把你往当前所在方块的中心拉。\n"
+			+ "（旧描述写的是「把你拉回洞里」，但代码里没有任何地方记录洞的坐标，"
+			+ "拉的目标始终是当前方块的中心，所以改了描述。）",
+		true);
 
 	public AnchorHack()
 	{
