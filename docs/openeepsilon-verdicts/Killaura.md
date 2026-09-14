@@ -9,7 +9,7 @@
 | 攻击时序 / CPS 调度 | `KillAura.kt:148-159` 自算 `atkSpeed`；`KillAura.kt:122-133` 用 `getCooledAttackStrength(...) >= 1f` | `util/CombatClickScheduler.java`（滚动点击数组 + 点击模式 + 冷却），调用点 `hacks/KillauraHack.java:396,421,444-446` | 本工程更强（共享调度器 + 点击模式） |
 | 原版攻击冷却 | 同上 | `hacks/KillauraHack.java:631-639`：`wurst_getAttackStrengthTicker() / wurst_getCurrentItemAttackStrengthDelay()`，默认冷却区间为 1..1 即满蓄力才打；另查 `getMissTime()`(:449-452) | 等价（1.20.1 的 `getAttackStrengthScale` 正是这两个 accessor 的比值），1.20.1 必需项已具备 |
 | 旋转 | `KillAura.kt:317-319` 直接 `PlayerPacketManager.sendPacket { rotate(...) }` | `hacks/KillauraHack.java:247-248` 构造 `CombatRotationController(RotationQueue.Priority.COMBAT)`；SILENT 走 `RotationQueue`，VISIBLE 走 `applyClient()`（可见模式本意），ON_TICK 才额外 `sendFullRotation` | 已走队列，比参考多优先级仲裁与插值曲线。见 §0.2 ② |
-| 死亡 / 好友 / AntiBot / 旁观 | `KillAura.kt:289-291`（`isDead`、`isFriend`、`AntiBot.isBot`、`EntityArmorStand`） | `util/EntityUtils.java:38-45` `IS_ATTACKABLE`，所有入口都经过它（`CombatTargetUtils.java:165`、`KillauraHack.java:737`） | 已覆盖，且比参考多 `FakePlayerEntity` |
+| 死亡 / 好友 / AntiBot / 旁观 | `KillAura.kt:289-291`（`isDead`、`isFriend`、`AntiBot.isBot`、`EntityArmorStand`） | `util/EntityUtils.java:38-45` `IS_ATTACKABLE`，所有入口都经过它（`CombatTargetUtils.java:165`、`KillauraHack.java:737`） | 已覆盖，且比参考多 `FakePlayerEntity`；但 `Raycast=All` 档曾经绕过它，见「实际改动」 |
 | 创造模式 / 队伍 | 参考无（只靠 `isFriend`） | `util/CombatTargetUtils.java:251-266` 走 `GuiPreferences.TargetType`；玩家过滤见 `settings/filterlists/EntityFilterList.java:61-90` | 等价或更强 |
 | 距离 / 视野 | `KillAura.kt:291` 用球心距离 `getDistance > range` | `util/CombatTargetUtils.java:204-218` 用眼睛到**碰撞箱最近点**；视野用 `RotationUtils.getAngleToLookVec` 分 `fov/2` | 本工程更准确（球心距离会低估贴脸目标） |
 | Hurt time 门限 | 参考**没有** hurtTime 过滤 | `hacks/KillauraHack.java:747` 拒绝 `hurtTime > limit`，等价于放行 `hurtTime <= limit`；`util/MultiTargetAttackPlanner.java:31-32` 同为 `<= limit` 放行 | 已核实**不是** bug，详见下节 |
@@ -39,6 +39,20 @@
 
 `hacks/KillauraHack.java:131-140`。与本工程其它条件设置的做法一致（例如 `MobEspHack.java:54` 的 `colorRange`）。
 关掉 `Sticky target` 后它们照旧生效。
+
+### `Raycast = All` 档不再绕过 `IS_ATTACKABLE`（好友 / 假人 / AntiBot 机器人）
+
+`resolveRaycastTarget`（`hacks/KillauraHack.java:843-858`）在 All 档原来的谓词只有
+`!entity.isSpectator() && entity.isPickable()`，而 `performScheduledAttacks`（`:467-478`）里的
+`traceAllTarget` 还会跳过 `isValidAttackTarget`，于是被射线命中的实体**不需要**通过
+`EntityUtils.IS_ATTACKABLE`（`util/EntityUtils.java:38-45`：好友 / 假人 / AntiBot 机器人 / 已死 / 自己）。
+
+反例：`Raycast = All`（默认档）时，好友站在你和锁定目标之间的瞄线上 → 这一下打在好友身上，
+**锁定目标完全不掉血**；AntiBot 的保护也一并失效。
+
+修法：谓词加 `EntityUtils.IS_ATTACKABLE.test(entity)`（`hacks/KillauraHack.java:843-858`）。
+盔甲架、末影水晶、潜影贝子弹本来就在 `IS_ATTACKABLE` 之内，所以 All 档"打射线里的任何实体"这一本意
+不变；`Enemy`（只打过滤器允许的）与 `None`（只打锁定目标）两档也不受影响。
 
 ## 已核实并否决的一处「疑似 bug」（留档，避免下次重复劳动）
 
@@ -83,89 +97,6 @@
   （`:687-691`），于是 `requiredAdvantage = |当前名次| * pct / 100`——当前目标排第 50 名时"10% 优势"要求新目标
   至少前进 5 名，排第 1 名时几乎任何更好的目标都能换。语义自洽但与"优势 10%"的直觉不符；要精确应把 score
   换成真正的质量分（`CombatTargetUtils.getScore(...)`）。会改变现有手感，未做。
-- 验证边界：本轮只有 `compileJava`/`compileTestJava`/`test`（全绿），没有实机战斗验证；
-  `Switch delay`/`Switch advantage` 的 `visibleWhen` 只影响设置面板显示，不改变任何选人行为。
-
-## 排查：「有时候打玩家/动物不生效」的已知路径（A/B/C/E 只定位，D 已修）
-
-按"卡在哪一步"分四组，证据全部在源码里；**没有实机验证**，都是从代码推出来的充分条件
-（命中任一条就足以解释现象），不代表这些条件一定会同时出现。
-
-### A. 根本没锁上（表现为这类目标一直不打）
-
-| 触发条件 | 证据 |
-| --- | --- |
-| 全局设置 Global Settings → Target 里 `Players` / `Animals` 被关掉 | `clickgui2/GuiPreferences.java:45-49`（默认全开，但会写进 config：`:81-90`、`:128-132`）→ `CombatTargetUtils.java:251-266 isGlobalTargetEnabled` → `isValid:167` 直接拒。玩家走 `PLAYERS`，动物走 `ANIMALS` |
-| 对方是你的好友（`.friend add`，或在对方身上**中键**，见 `mixin/MinecraftClientMixin.java:129`） | `EntityUtils.java:38-44 IS_ATTACKABLE` 里的 `!WURST.getFriends().isFriend(e)` → `CombatTargetUtils:165` |
-| 该玩家与你同队且 `Teams` 被关掉 | `CombatTargetUtils.java:256-257` |
-| 你自己勾了 KillAura 的过滤器（`Filter passive mobs` 挡猪牛羊鱼、`Filter neutral mobs` 挡狼/羊驼/蜜蜂、`Filter babies` 等） | `settings/filterlists/EntityFilterList.java:55-56`（**勾上才生效**）+ `FilterPassiveSetting.java:28-41`；`genericCombat()` 里默认全是 `false`/`Mode.OFF`，所以默认不挡动物 |
-
-### B. 锁上了，但这一 tick 不出手 / 只空挥（"有时候"最主要的一组）
-
-| 触发条件 | 证据 |
-| --- | --- |
-| `Require not breaking`（默认**开**）：你正在破坏方块 | `KillauraHack.java:186-187` + `requirementsMet():599`（`MC.gameMode.isDestroying()`） |
-| 你正在使用物品（吃/喝/拉弓/举盾）且 `Attack while using items`（默认关）没勾 | `prepareForAttack():516-517` |
-| `Criticals = Always`（默认 SMART）：必须处于下落状态才允许攻击，站在地上一发都不打 | `CriticalsSelectionMode.allowsAttack:1184-1193`，调用点 `canAttackNow:604` |
-| `Attack cooldown`（默认开）且原版 `missTime > 0`：你手动挥空后原版会设 `missTime = 10`，这段时间 KillAura 的点击被跳过 | 原版 `Minecraft.java:1702-1705`（MISS → `missTime = 10`）、`:1849-1850`（每 tick 递减）；`CombatActionPolicy.java:15-17`、`KillauraHack.java:451-454` |
-| 转向还没对齐：`isLookingAt` 要求"沿本次攻击用的朝向"的射线真的切到目标碰撞箱 | `isLookingAt():860-875`（用 `rotation.toLookVec()` 做 clip）；没切到就走 `performFailSwingAttempt`（`:461`、`:476`），而 `Fail swing`（默认开，`:226`）**只挥手臂、不发攻击**——这正是"看着在打、对方不掉血" |
-| 目标被方块挡住 / 在墙后而 `Through walls range` 很小 | `createPlan():712-732` → `CombatAimPointPlanner.find:44-60`；`refreshed == null` → `:459-463` 空挥 |
-| 动物乱跑（小鸡/兔子碰撞箱小）时，`Target prediction`(1.5) 把瞄点推到范围/FOV 外，该 tick 判无效 | `CombatTargetUtils.isValid:170-175`（用预测瞄点算 FOV）、`getPredictedPreferredPoint():776-780` |
-| 开着背包：`Ignore open inventory`（默认开）会先偷偷发关容器包再打；把它关掉就完全不攻击 | `canAttackNow:606-607`、`prepareForAttack:519-521` |
-
-### E. 完全没反应：连一次挥手都没有（目标明明在范围内）——**第 15 轮追加**
-
-先看 KillAura 有没有画出**目标框**：`renderTarget` 只在 `targetPlan != null` 时才被赋值
-（`KillauraHack.java:379`），渲染在 `onRender`（`:1146`）。**没有框** = 卡在下面这一组；
-**有框但手不挥** = B 组。距离本身不用怀疑：`Range increase` 默认 1.2 → 交互距离 4.2 格
-（眼睛到碰撞箱最近点），扫描距离 `4.2 + 2~3` = 6.2~7.2 格（`:92-103`）。
-
-| 触发条件 | 证据 |
-| --- | --- |
-| `Require not breaking`（**默认开**）：你按住左键且准星落在方块上。原版 `MultiPlayerGameMode.startDestroyBlock/continueDestroyBlock` 把 `isDestroying` 置 true，松开左键或准星离开方块才清除 | `KillauraHack.java:186-187` → `requirementsMet():599` → `shouldResetTarget():582` → `onUpdate:371-376` 直接 `stopBlocking(false) + clearTracking() + return`：**不选目标、不空挥、连目标框都没有**。PvP 里"按住左键"很常见，准星扫到方块/地面就整体停摆 |
-| 同组冲突：你后来开过 `MultiAura` / `ClickAura` / `TriggerBot` / `FightBot` / `KillauraLegit` / `AimAssist` / `CrystalAura` / `AnchorAura` / `TpAura` / `Protect` / `ProjectilePuncher` 任意一个 | `hack/HackConflictManager.java:11-26`：启用时会 `conflict.setEnabled(false)` **静默关掉**同组的 KillAura（这些 hack 里都有 `addConflictGroup(HackConflictGroup.COMBAT_TARGETING)`） |
-| 开背包且 `Ignore open inventory` 被关掉 | `shouldResetTarget():584` |
-| 死亡 / 旁观 / 世界为空 / gameMode 为空 | `shouldResetTarget():579-581` |
-| 卡在 auto-block 的等待里（`Auto block` 开 + `Unblock mode` 不是 None） | `:510-515` 设置 `waitTicks`，`onHandleInput():434` 在 `waitTicks > 0` 时直接 return |
-
-还有一条最容易被当成 bug 的交互（默认配置就会踩）：
-
-`Attack cooldown`（**默认开**）读的是**你自己**的原版 `missTime`。你每手动挥空一次，原版就把
-`missTime` 设成 10（`Minecraft.java:1702-1705`），这 10 tick 内 KillAura 的点击全部被
-`CombatActionPolicy.isAttackMissCooldownActive`（`CombatActionPolicy.java:15-17`）吃掉（调用点
-`KillauraHack.java:451-454`）。所以"一边对着空气猛点左键、一边等 KillAura 出手"会表现成完全不攻击；
-把 `Attack cooldown` 关掉，或不再手动点，立刻恢复。这一条**不是** bug（设置描述就是这么写的），
-但它是"看起来完全没反应"的高频原因。
-
-### C. 打出去了，但对方不掉血（原版机制，客户端无法绕）
-
-| 触发条件 | 证据 |
-| --- | --- |
-| 目标处于原版无敌帧：10 tick 内刚被任何人打中（`invulnerableTime = 20`，第二下只在伤害更高时结算差值） | 原版 `LivingEntity.java:182`（`invulnerableDuration = 20`）、`:1620-1621`（命中即 `hurtTime = 10`） |
-| 目标举盾面朝你、你手上不是斧头：`Ignore target shield` 只影响"要不要锁他"，**不改变原版盾牌结算** | `KillauraHack.java:154-155`、`:747-749`（锁定判定）与 `:642-644`（斧头例外） |
-| 目标在创造/无敌，或有吸收/抗性/图腾 | 纯原版结算 |
-
-### D. 打出去了，但打在**别的**实体上（对方自然不掉血）——**本轮已修**
-
-`Raycast` 默认是 **All**（`:157-158`）。All 模式下射线原来只要求实体 `isPickable()`，
-**不检查 `isValidScanTarget` / `IS_ATTACKABLE` / 过滤器**：`resolveRaycastTarget():843-857` 的谓词是
-`mode == RaycastMode.ALL || isValidScanTarget(entity)`，且 `performScheduledAttacks` 里
-`traceAllTarget` 会跳过 `isValidAttackTarget`（`:467-478`）。于是：
-
-- 你和敌人之间站着一个**好友**、假人、或 AntiBot 认定的机器人时，这一下打在它身上，**敌人不掉血**；
-- 反过来，All 模式也会打好友，并且**把 AntiBot 的保护整个绕过去了**（`IS_ATTACKABLE` 里
-  `antiBotHack.isBot(...)` 那条检查在 `EntityUtils.java:45`）。
-
-**反例输入（Rule 9）**：`Raycast = All`（默认），你锁着敌人 A，好友 B 站在你和 A 之间 3 格内的瞄线上。
-
-| | 旧 | 新 |
-| --- | --- | --- |
-| `resolveRaycastTarget` | 返回 B（`isPickable()` 为真） | 谓词里 `IS_ATTACKABLE.test(B)` 为假 → 射线不接受 B → 返回 `selected` = A |
-| `traceAllTarget` | true → 跳过 `isValidAttackTarget` | false → 走完整校验 |
-| 实际攻击 | `attack(player, B)`：A 不掉血、好友被误伤 | `attack(player, A)`：A 掉血、B 不受影响 |
-| AntiBot 机器人挡路 | 照打（`antiBotHack.isBot` 被绕过） | 不接受该实体，改用锁定目标 |
-
-改动只有一行谓词（`KillauraHack.java:843-858`）：加 `EntityUtils.IS_ATTACKABLE.test(entity)`。
-它只排除"已死/自己/假人/好友/AntiBot 机器人"，盔甲架、水晶、潜行贝子弹仍然算合法目标
-（`EntityUtils.java:38-45`），所以 `All` 档"打射线里的任何实体"这个本意没有变，
-`Enemy`（只打过滤器允许的）与 `None`（只打锁定目标）也都不受影响。
+- 验证边界：`compileJava` 通过；unit test 没有覆盖这两条路径（`visibleWhen` 与 `Raycast` 谓词），
+  也没有实机战斗验证。改动前的全量测试为 144 类 / 870 例全绿；当前工作区因并行会话未提交的
+  `EspNameTagPolicyTest` 而全量 `test` 为红，与本文件涉及的两处改动无关。
