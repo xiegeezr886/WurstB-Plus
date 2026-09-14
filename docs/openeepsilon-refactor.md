@@ -33,9 +33,9 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | 伤害减伤画像 | **已优化** | 新增 `util/DamageProfile.java`（纯类，11 个单测）+ `DamageUtils.profileOf()`：护甲/韧性/保护 EPF/抗性每实体每 250ms 只扫一次，替代原来的「每次调用扫 4 个护甲槽」。换世界自动失效，无需重置钩子。**数值不变**——EPF 仍由原版 `EnchantmentHelper.getDamageProtection` 产出（1.20.1 附魔是数据驱动的，照抄参考的 `2*level` 会算错），护甲吸收仍走原版 `CombatRules`，画像只负责组合系数 |
 | 吸收意识 | **已补齐** | 新增 `DamageUtils.totalHealth/scaledHealth/isLethal`。参考有而本工程原来没有；`scaledHealth = health + absorption * (health / maxHealth)` 是判断「能不能打死 / 会不会掉图腾」的基础 |
 | 点击调度 | 不适用 | `CombatClickScheduler` 已是 LiquidBounce 系实现，不逊于参考的 `TimerManager`；其 `tick * 50L` 对**客户端** tick 是正确的（客户端恒 20 TPS），不是 bug |
-| 旋转 | 待办 | 参考 `util/math/RotationUtils.kt` + `RotationUtil.kt` 对比本工程 `util/RotationQueue.java`(280) / `RotationSmoothing.java`(161) |
-| 背包操作 | 待办 | 参考 `util/inventory/`（`Task`/`Step`/`operation/*`）对比本工程 `InventoryActionQueue.java`(111) / `InventoryUtils.java`(261) |
-| 时序 / 暂停 | 待办 | 参考 `util/pause/*`（`HandPause`/`PriorityTimeoutPause`）对比本工程 `HackConflictManager.java`(39) |
+| 旋转 | **已核对，无可移植项（不适用）** | 参考 `util/math/RotationUtils.kt`(145) + `util/RotationUtil.kt`(178) 对比本工程 `util/RotationQueue.java`(280) / `RotationSmoothing.java`(161) / `RotationUtils.java`(201) / `CombatAimPointPlanner.java`(102)。逐条见下 |
+| 背包操作 | **重试窗口已补齐；链内步进与 Task/Future 抽象判定不适用** | 参考 `util/inventory/Task.kt`(148) + `Step.kt`(51) + `management/InventoryTaskManager.kt`(123) 对比本工程 `util/inventory/InventoryActionQueue.java`(166) / `ActionRetryPolicy.java`(92) / `InventoryUtils.java`(261)。逐条见下 |
+| 时序 / 暂停 | **已核对，暂不移植（无消费方）** | 参考 `util/pause/IPause.kt`(19) / `HandPause.kt`(17) / `PriorityTimeoutPause.kt`(47) + `process/PauseProcess.kt`(60) 对比本工程 `hack/HackConflictManager.java`(39)。逐条见下 |
 | 缓存原语 | **不适用（已有针对性缓存，不需要通用原语）** | 参考的 `util/delegate/*` 是一组通用小工具（`CachedValue` 35 / `FrameValue` 67 / `ComputeFlag` 12 / `AsyncCachedValue` 42 / `CachedValueN` 63，合计约 219 行）。本工程走的是**按需专用缓存**：`EntitySnapshotManager`(94)、`BlockBreakingCache`(46)、`MinimapTerrainCache`(221)、`TwilightCoverCache`(216)、以及第 1 轮加的每实体 `DamageProfile` 缓存。既然每个真实需求都已有对应实现，再加一个通用原语就是**没有消费方的抽象**——参考那几个类本身也只有 12~67 行，收益很小 |
 | 目标选择 | **共享核心已加，尚未接入（行为未变）** | 新增 `util/TargetScore.java`（纯类，13 个单测）：按参考 §7 实现五因子加权打分——`distF`(8 格饱和) + `healthF`(20 血饱和) + `armorF`(20 点爆炸实收伤害) + `holeF`(四水平邻向不抗爆占比) + `crosshairF`(`|相对偏航|` 30° 饱和)，默认权重各 0.5，总分降序。**注意：目前没有任何 hack 调用它**，所以还没有换来行为改善。**接入点已经定好，而且有一个坑必须避开**：
 
@@ -51,6 +51,33 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 
 **受益的常用 hack**（都走 `DamageUtils`，因此共享这一优化）：`CrystalAura`、`AnchorAura`、
 `AutoTotem`、`Protect`、`AutoTrap`、`Surround`、`AutoCity`、`HoleFiller`、`SelfTrap`、`AutoCev`。
+
+### 0.1.1 旋转 / 背包 / 时序暂停的逐条核对（第 13 轮）
+
+**旋转 → 不适用（本工程已经更强）**
+
+| 关注点 | 参考 | 本工程 | 判定 |
+| --- | --- | --- | --- |
+| 瞄点选择 | `util/math/RotationUtils.kt:56-61` 把眼睛位置 `coerceIn` 进目标碰撞箱，瞄"最近的那个点"而不是中心 | `util/CombatAimPointPlanner.java:76-89`：同样的 `clamp(box, eyes)`（:80）之外还采 3×3×3 共 27 个盒内点，按「能看见 > 转角最小 > 距离」三级排序（:57-59），并带穿墙射程与 LOS 判定 | 已覆盖且更彻底 |
+| 角度插值 | `util/RotationUtil.kt:37-46` 只按 factor 夹住差值 | `util/RotationUtils.java:167-200` 先把当前角 wrap 再算差值（跨 ±180° 不会绕远路），`slowlyTurnTowards`(:117-145) 还按 yaw/pitch 比例分配每 tick 上限 | 本工程更强 |
+| 朝向发包 | `util/RotationUtil.kt:48-57` 直接发 `CPacketPlayer.Rotation` | `util/RotationQueue.java:233-248` 单槽 + 8 级 `Priority` 仲裁，每 tick 只发一个朝向包 | §0.2 ② 已记不适用 |
+| 角度归一化 | 4 处语义相同的重载/副本 | 统一走 `Mth.wrapDegrees` | 不需要再引入一套 |
+| `getRotationsGucel` | `util/RotationUtil.kt:102-139` | —— | **有真实错误，不能抄**：三个 `yDiff` 分支的互斥条件写反（`yDiff > -0.25` 与 `yDiff < 0.25` 会互相覆盖），`entity.eyeHeight / HitLocation.*.offset` 的除数是 1.0 / 1.5 / 3.5 这种无意义常量 |
+
+**背包操作 → 重试窗口已补齐，另外两点判定不适用**
+
+- 参考的 `util/inventory/Task.kt`(148) 是带 `Future` 的异步任务壳，`Step.kt`(51) 是链内一个带延迟的步骤；本工程的链是**同一 tick 把动作一次性跑完**（`util/inventory/InventoryActionQueue.java:87-88`）。
+- **已补齐**（第 12 轮）：执行前的条件重试窗口，并按实测 TPS 换算（`ActionRetryPolicy.compensatedWindow`、`InventoryActionQueue.retryWindowMs` :147-153）。原来"先移除再校验"会把条件未满足的链静默丢弃、owner 永远等不到；现在留在队列里重试，受 5 秒窗口限制。
+- **不采纳「链内步进间隔」**：给链加 tick 间隔会直接改变既有四个消费方（`AutoTotem` / `AutoArmor` / `AutoSword` / `Restock`）的换装与补货速度。那是手感变更而不是修 bug，而且没有任何 hack 明确需要"两次点击之间隔 N tick"；在没有实机验证的条件下改这个，风险大于收益。
+- **不采纳 `Task` / `Future` 抽象**：本工程的链在客户端线程上同步执行，套一层异步壳只会引入线程安全问题。
+- **仍留的缺口（有意不修）**：链执行之后**没有"确认动作是否真的生效"**。要做需要把 `Runnable... actions` 换成能回报结果的类型（牵动四个调用方），而且"点完没生效该重试几次"这种行为只能实机验证。记在这里，不硬做。
+
+**时序 / 暂停 → 暂不移植（没有消费方）**
+
+- 参考 `util/pause/PriorityTimeoutPause.kt`(47) 是「按资源（主手 / 副手）的优先级 + 超时租约」：`requestPause(module, timeout)` 只有当前最高优先级（或更高优先级）的模块拿得到，`isOnTopPriority` 顺手清掉已失效的条目(:23-34)；`HandPause.kt`(17) 就是给主手/副手各一个实例。消费方式见 `module/combat/Surround.kt` 的 `MainHandPause.withPause(Surround, 50L) { ... }`——放方块期间占用主手 50ms。
+- 本工程**没有**对应原语（`hack/HackConflictManager.java`(39) 是"同一冲突分组只允许一个 hack 开着"，与"暂停某只手 N 毫秒"是两件事）。
+- **今天加它会是零消费方的抽象**：本工程需要独占主手的 hack 目前都**自己做"切槽 → 动作 → 切回"**（例如 `SurroundHack.java:125` 存 `prevSlot`、:189 还原）。把租约接进去必须同时重写这些 hack 的切槽时序，属于会改变行为、又只能实机验证的改动。所以维持与"缓存原语"那条相同的判断标准：**没有消费方就不加抽象**。
+- 参考 `process/PauseProcess.kt`(60) 是"让 Baritone 暂停寻路"的 `IBaritoneProcess`。本工程的 Baritone 集成走 `util/BaritoneUtils.java`(196)，已有更粗粒度的等价手段（`stop()` / `clearGoal()` / `cancelEverything()`，见 `BaritoneTreeBotHack.java:66,84`、`BaritoneMineHack.java:78`）；没有发现"必须在寻路中途短暂让路、又不能整段取消"的真实场景。
 
 ## 0.2 对参考「优先移植前 5 名」的核对结果
 
@@ -80,7 +107,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | hack | 状态 | 改了什么 / 为什么 |
 | --- | --- | --- |
 | `Surround` | **已优化** | ①**修掉一个真 bug**：候选位置原来只排除玩家自己的碰撞箱，被实体占住的格子照放。而 `BlockPlacer.place()` 只要找到可点面就返回 true（1.20.1 服务端却按 `Level#isUnobstructed` 拒绝），于是那一格永远放不上、`anyPlaced` 却为真，hack 一直空挥且不自动关闭。现在按原版自己的接受条件过滤（`!isRemoved() && isPickable()`，显式排除旁观者）——既不会漏掉原版能放的格子，也让剩下的面照常补齐。②四个面的顺序从写死的「东南西北」改成**朝向最近敌人先放**（`SurroundPlanner`，纯类 + 4 个单测）。没有敌人时分数全为 NaN，插入排序退化成不动，行为与旧版逐字节相同。<br>**已发现但未改**：`SupportMode.SKIP` 的实现与 `PLACE` 完全相同（描述却说「跳过不支持的格子」），不是参考带来的问题，改它会重新定义现有设置，留给使用者决定。 |
-| `HoleFiller` | **已优化** | 参考 `AutoHoleFill.getHoleInfos()` 会丢掉与任何活实体相交的洞；本地原来没有任何占用概念，于是**自己站着的那个洞永远同时是「最近的」和「放不上去的」**——每 tick 都去点一个不可能的坐标，后面的洞永远轮不到（同一道守卫 `SelfTrap` / `AutoWeb` / `AutoTrap` / `InstantBunker` 都已经有了）。现在先滤掉被占的洞再取最近（`HoleFillPolicy`，纯类 + 5 个单测）。 |
+| `HoleFiller` | **已优化** | 参考 `AutoHoleFill.getHoleInfos()` 会丢掉与任何活实体相交的洞；本地原来没有任何占用概念，于是**自己站着的那个洞永远同时是「最近的」和「放不上去的」**——每 tick 都去点一个不可能的坐标，后面的洞永远轮不到。现在先滤掉被占的洞再取最近（`HoleFillPolicy`，纯类 + 5 个单测）。<br>**订正**：这句话原来写成「同一道守卫 `SelfTrap` / `AutoWeb` / `AutoTrap` / `InstantBunker` 都已经有了」，与代码不符——第 12 轮实际只有 `AutoTrap`（和 `Surround`）有实体占用检查；`SelfTrap` 已在第 13 轮补上。剩下两个**已逐条核对，都不是同一类 bug**：`AutoWeb` 放的是蜘蛛网，而蜘蛛网是 `.noCollission()`（1.20.2 反编译源 `world/level/block/Blocks.java:721`），`CollisionGetter.java:31` 的 `voxelshape.isEmpty() \|\| ...` 会让「碰撞箱为空」的方块**无视格子里的实体**，所以往目标身上放网在原版就是允许的，不需要这条守卫；`InstantBunker`(`InstantBunkerHack.java:107-110`) 确实只看自身碰撞箱，但它的循环不 break、也不依赖返回值重试，被占的格子最多浪费一次交互包，属无害，故不改。 |
 | `AutoTrap` | **已优化** | 参考把「先放哪一格」当胜负手（`AutoTrap.kt:137` 原话 *sort offsetList by optimal caging success factor*）。1.20.1 上真正有效的只有脚下圈（dy=0）和头顶圈（dy=2）——dy=1 大多数时候被目标自己的碰撞箱占着，服务端根本不放，而旧代码按「离玩家最近」选，常常正好挑中这一圈白打一次并浪费一个 tick。现在先 dy=0/dy=2、同档按目标**正看着的方向**（它准备逃的方向）先补，再按距离（`AutoTrapPlanner`，纯类 + 5 个单测），并补上实体占用前置条件。 |
 | `AutoCity` | **已优化** | 参考 `checkPos` 只收「挖掉之后目标脚边真会空出一个水晶位」的墙。本项目**故意做成排序优先级而不是硬过滤**：参考那条分支要求目标本来就在真坑里（墙下必须有抗爆基底），照搬硬过滤会让本 hack 在泥地/石地的环绕上彻底不动，等于删功能。现在「能换水晶位的墙」排前，一面都没有时退回原来的最近优先（`CityBlockPlanner`，纯类 + 6 个单测）。 |
 | `AutoTotem` | **已优化** | 它本来就已经走 `InventoryActionQueue`（带容器 id 校验与确认），比参考的三连 `PICKUP` 干净，**不需要换成参考的实现**。只补了参考的 `Soft` 模式：打开后只有副手空着才装，不会顶掉你特意放在副手的物品。**默认关闭 = 行为与升级前完全一致**；参考的 `Force` 在本工程已有等价物（`Health = 0` 即「always active」）。 |

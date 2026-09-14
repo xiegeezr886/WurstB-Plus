@@ -84,4 +84,23 @@ public enum MovementPlanner
 			return new Vec3(current.x, proposed.y, current.z);
 		return clampHorizontal(proposed, maximum);
 	}
+
+	/**
+	 * 原版速度药水（{@code MobEffects.MOVEMENT_SPEED}）对移动速度的倍率。
+	 *
+	 * <p>
+	 * 原版把药水做成移动速度属性上的一个 {@code MULTIPLY_TOTAL} 修饰符
+	 * {@code 0.2 * (amplifier + 1)}，所以 I 级（amplifier 0）= 1.2、
+	 * II 级（amplifier 1）= 1.4。
+	 *
+	 * <p>
+	 * 之所以单独给这一个倍率函数：{@code SpeedHackHack} 的基准速度
+	 * {@code 0.2873} 已经是「原版疾跑」的每 tick 速度，而疾跑加成本身也是移动
+	 * 速度属性上的修饰符（{@code +0.3}，{@code MULTIPLY_TOTAL}），所以不能拿
+	 * 属性总量去除以默认值 0.1（那会把疾跑算两次），只能补药水这一份。
+	 */
+	public static double effectSpeedFactor(int amplifier)
+	{
+		return 1 + 0.2 * (Math.max(0, amplifier) + 1);
+	}
 }

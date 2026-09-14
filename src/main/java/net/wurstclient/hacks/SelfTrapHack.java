@@ -9,6 +9,8 @@ package net.wurstclient.hacks;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -116,8 +118,9 @@ public final class SelfTrapHack extends Hack implements UpdateListener
 				continue;
 			if(MC.player.getBoundingBox().intersects(new AABB(pos)))
 				continue;
-			if(BlockUtils.getState(pos).canBeReplaced()
-				&& placeBlock(pos))
+			if(isOccupiedByEntity(pos))
+				continue;
+			if(placeBlock(pos))
 			{
 				placed = true;
 				break;
@@ -126,6 +129,38 @@ public final class SelfTrapHack extends Hack implements UpdateListener
 
 		if(!placed)
 			setEnabled(false);
+	}
+
+	/**
+	 * 该位置是否已经被实体占住。
+	 *
+	 * <p>
+	 * 这一条与 {@code AutoTrapHack#isOccupiedByEntity} /
+	 * {@code SurroundHack#isOccupiedByEntity} 完全相同。1.20.1 放方块时原版会走
+	 * {@code BlockItem#canPlace} → {@code Level#isUnobstructed}，凡是
+	 * {@code blocksBuilding}（{@code LivingEntity} 构造时置真）的实体与方块碰撞
+	 * 箱相交，这一格就放不上去；1.12.2 参考项目里对应的是照抄原版
+	 * {@code World#checkNoEntityCollision} 的那条判定（{@code AutoTrap.kt} 的
+	 * placeBlockInRange / {@code Surround.kt} 的 checkColliding）。
+	 *
+	 * <p>
+	 * 而 {@code BlockPlacer.place()} 只看有没有能贴的面、不看方块有没有真的放上
+	 * 去，所以往被实体占住的格子里放它照样返回 true。旧代码因此会在那一格上
+	 * 直接 {@code break}：后面还没补的格子永远轮不到，模块也永远不满足
+	 * {@code !placed} 的关闭条件，每 2 tick 白发一次无效的交互包。1.8 格高的
+	 * 玩家身边站着敌人时，被占住的正是脚下那一圈（dy=0）或身体那一圈（dy=1），
+	 * 也正好是 SelfTrap 最常用的战场。
+	 *
+	 * <p>
+	 * 副作用是这条守卫比原版略严：只有碰撞箱与整格相交才算占住，所以被半砖之类
+	 * 只占半格的实体挡住的格子会被跳过（与 AutoTrap / Surround 的既有取舍一
+	 * 致）。旁观模式玩家不算占住，与原版实体查询一致。
+	 */
+	private boolean isOccupiedByEntity(BlockPos pos)
+	{
+		return MC.level.getEntities((Entity)null, new AABB(pos)).stream()
+			.filter(e -> !e.isSpectator())
+			.anyMatch(e -> e instanceof LivingEntity && !e.isRemoved());
 	}
 
 	private boolean placeBlock(BlockPos pos)

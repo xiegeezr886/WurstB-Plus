@@ -12,6 +12,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket.Action;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.wurstclient.Category;
@@ -25,6 +26,7 @@ import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.KnockbackBoostPolicy;
 import net.wurstclient.util.KnockbackBoostPolicy.State;
+import net.wurstclient.util.SuperKnockbackCritPolicy;
 
 @SearchTags({"super knockback", "MoreKB", "more kb", "knockback boost"})
 public final class SuperKnockbackHack extends Hack
@@ -100,10 +102,19 @@ public final class SuperKnockbackHack extends Hack
 
 		boolean sideways = Math.abs(MC.player.input.leftImpulse) > 1.0E-5F;
 		boolean moving = MC.player.input.getMoveVector().length() > 1.0E-5F;
-		boolean naturalCritical = MC.player.fallDistance > 0
-			&& !MC.player.onGround() && !MC.player.onClimbable()
-			&& !MC.player.isInWaterOrBubble() && !MC.player.isInLava();
-		boolean critical = skipCriticals.isChecked() && naturalCritical;
+		/*
+		 * 「这一次攻击会不会真的暴击」按原版 Player#attack 的判据逐项核对，见
+		 * SuperKnockbackCritPolicy。旧实现少了 !isSprinting() 等项，会把疾跑跳跃
+		 * 下落误判成暴击，于是 skipCriticals 在最有用的场景里一直跳过重置。
+		 */
+		boolean critical = skipCriticals.isChecked()
+			&& SuperKnockbackCritPolicy.isNaturalCritical(
+				new SuperKnockbackCritPolicy.State(MC.player.onGround(),
+					MC.player.onClimbable(), MC.player.isInWater(),
+					MC.player.isSprinting(), MC.player.isPassenger(),
+					MC.player.hasEffect(MobEffects.BLINDNESS),
+					MC.player.fallDistance,
+					MC.player.getAttackStrengthScale(0.5F)));
 		State state = new State(true, living.hurtTime, moving, sideways,
 			MC.player.onGround(), MC.player.isInWaterOrBubble()
 				|| MC.player.isInLava(),

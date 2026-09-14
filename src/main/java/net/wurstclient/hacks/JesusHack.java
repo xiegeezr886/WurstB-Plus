@@ -47,6 +47,9 @@ public final class JesusHack extends Hack
 	@Override
 	protected void onEnable()
 	{
+		// 清掉上次在水里关闭时留下的 tickTimer==0
+		// 否则重新开启的第一帧会误触发"跃出水面"的 0.30 上抛
+		tickTimer = 10;
 		EVENTS.add(UpdateListener.class, this);
 		EVENTS.add(PacketOutputListener.class, this);
 	}

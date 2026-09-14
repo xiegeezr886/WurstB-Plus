@@ -287,9 +287,10 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Override
 	protected float getJumpPower()
 	{
-		return super.getJumpPower()
-			+ WurstClient.INSTANCE.getHax().highJumpHack
-				.getAdditionalJumpMotion();
+		// HighJump 需要知道原版的基础跳跃力才能算出「正好到 N 格」的增量
+		// （跳跃提升、蜂蜜块都会改变它），所以把基准值传进去。
+		return WurstClient.INSTANCE.getHax().highJumpHack
+			.getJumpPowerFor(super.getJumpPower());
 	}
 	
 	/**

@@ -10,6 +10,8 @@
 package net.wurstclient.hacks;
 
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -103,7 +105,8 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 		if(mode.getSelected() != Mode.LOW_HOP)
 			lowHopActive = false;
 
-		double targetSpeed = BASE_SPEED * speed.getValue();
+		double targetSpeed =
+			BASE_SPEED * speed.getValue() * speedEffectFactor(player);
 		switch(mode.getSelected())
 		{
 			case NCP_BHOP -> applyHop(player, forward, sideways, targetSpeed,
@@ -132,6 +135,25 @@ public final class SpeedHackHack extends Hack implements UpdateListener
 			&& !player.getAbilities().flying && !player.isInWaterOrBubble()
 			&& !player.isInLava()
 			&& (whileUsingItems.isChecked() || !player.isUsingItem());
+	}
+
+	/**
+	 * 速度药水带来的倍率，没有药水时是 1（也就是不改变原有行为）。
+	 *
+	 * <p>
+	 * 修的是什么：旧实现的目标速度是固定常数 {@code BASE_SPEED * Speed}。
+	 * 喝了速度药水的玩家实际水平速度会高于它，于是
+	 * {@link MovementPlanner#clampControlledHorizontal} 的「保留现有动量」
+	 * 分支每 tick 都命中、直接原样返回当前水平速度，玩家的转向输入被丢掉——
+	 * 表现是「按住 W+D 也只会沿原方向飞」。乘上药水倍率后目标速度追上实际
+	 * 速度，该分支不再命中，转向恢复正常，速度也正好是「原版疾跑 × 药水 ×
+	 * Speed 倍数」。
+	 */
+	private static double speedEffectFactor(LocalPlayer player)
+	{
+		MobEffectInstance effect = player.getEffect(MobEffects.MOVEMENT_SPEED);
+		return effect == null ? 1
+			: MovementPlanner.effectSpeedFactor(effect.getAmplifier());
 	}
 
 	private void applyHop(LocalPlayer player, float forward, float sideways,

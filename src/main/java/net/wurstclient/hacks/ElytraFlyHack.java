@@ -134,7 +134,10 @@ public final class ElytraFlyHack extends Hack implements UpdateListener
 		if(!instantFly.isChecked())
 			return;
 
-		if(jumpTimer <= 0)
+		// jumpFromGround() 自己不检查是否站在地面上（LivingEntity#jumpFromGround，
+		// 原版唯一的调用点也用 onGround() 兜着），空中调用等于凭空得到一次 0.42 的
+		// 向上冲量，所以起跳必须限制在地面。
+		if(jumpTimer <= 0 && MC.player.onGround())
 		{
 			jumpTimer = 20;
 			MC.player.setJumping(false);
@@ -142,7 +145,13 @@ public final class ElytraFlyHack extends Hack implements UpdateListener
 			MC.player.jumpFromGround();
 		}
 
-		sendStartStopPacket();
+		// 先做原版的本地判定：tryToStartFallFlying() 成功时会立刻把本地鞘翅标志置位，
+		// 之后本 hack 就会走 isFallFlying() 分支、不再发包。
+		// 原来每 tick 无条件发包，起飞后还会继续补几个包给服务端，而服务端收到
+		// “已经在滑翔”的 START_FALL_FLYING 时会执行 stopFallFlying()，
+		// 反而把自己刚刚开始的滑翔取消掉（停飞分支正是靠这个特性生效的）。
+		if(MC.player.tryToStartFallFlying())
+			sendStartStopPacket();
 	}
 
 	private void sendStartStopPacket()

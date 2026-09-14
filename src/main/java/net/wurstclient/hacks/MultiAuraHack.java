@@ -250,7 +250,6 @@ public final class MultiAuraHack extends Hack
 	private final CombatRotationController rotationController =
 		new CombatRotationController(RotationQueue.Priority.COMBAT);
 	private final Random random = new Random();
-	private List<Entity> targets = List.of();
 	private boolean blockVisual;
 	private InteractionHand blockingHand;
 	private float rolledRange = -1;
@@ -376,7 +375,6 @@ public final class MultiAuraHack extends Hack
 		}
 		if(currentTarget == null)
 		{
-			targets = List.of();
 			rotationController.clear();
 			blockVisual = false;
 			stopBlocking(false);
@@ -391,7 +389,6 @@ public final class MultiAuraHack extends Hack
 			return;
 		}
 		updateRotation(scanPlan.aimPoint().point(), isClickTick());
-		targets = collectAttackTargets();
 
 		TargetPlan attackPlan = createPlan(currentTarget, rolledRangeFor());
 		boolean hittable = attackPlan != null
@@ -526,11 +523,7 @@ public final class MultiAuraHack extends Hack
 			fov.getValue() * 2, this::getPredictedAimPoint, entityFilters, false,
 			net.wurstclient.util.CombatTargetUtils.Priority.DISTANCE,
 			Integer.MAX_VALUE);
-		Comparator<Entity> comparator = Comparator
-			.comparingInt(this::getTargetTypeWeight)
-			.thenComparing(priority.getSelected().comparator(this))
-			.thenComparingDouble(CombatTargetUtils::distanceToBoxSqr)
-			.thenComparingInt(Entity::getId);
+		Comparator<Entity> comparator = targetComparator();
 		for(Entity entity : candidates.stream()
 			.filter(LivingEntity.class::isInstance).sorted(comparator).toList())
 			if(createPlan(entity, getMaximumRange()) != null)
@@ -538,15 +531,37 @@ public final class MultiAuraHack extends Hack
 		return null;
 	}
 
+	/**
+	 * 主目标与多目标用的是同一个排序键，这样 Target limit 砍掉的一定是优先级最低
+	 * 的那批，而不是渲染顺序里任意的前 N 个。
+	 */
+	private Comparator<Entity> targetComparator()
+	{
+		return Comparator.comparingInt(this::getTargetTypeWeight)
+			.thenComparing(priority.getSelected().comparator(this))
+			.thenComparingDouble(CombatTargetUtils::distanceToBoxSqr)
+			.thenComparingInt(Entity::getId);
+	}
+
 	private List<Entity> collectAttackTargets()
 	{
 		if(MC.level == null)
 			return List.of();
-		List<Entity> worldOrder = new ArrayList<>();
+
+		/*
+		 * 先按"扫描合法"过滤，再按主目标的优先级排序，最后才交给 planner 截断。
+		 * planner 只按传入顺序保留前 maxTargets 个，如果直接喂
+		 * entitiesForRendering()，Target limit 砍掉的就是渲染顺序里任意的前 N 个
+		 * （与主目标的选择结果无关，且随实体增删而抖动）。排序键以 Entity::getId
+		 * 收尾，保证同分时截断结果稳定。
+		 */
+		List<Entity> candidates = new ArrayList<>();
 		for(Entity entity : MC.level.entitiesForRendering())
-			if(entity instanceof LivingEntity)
-				worldOrder.add(entity);
-		return MultiTargetAttackPlanner.plan(worldOrder,
+			if(entity instanceof LivingEntity && isValidScanTarget(entity))
+				candidates.add(entity);
+		candidates.sort(targetComparator());
+
+		return MultiTargetAttackPlanner.plan(candidates,
 			this::isValidAttackTarget, this::getHurtTime, hurtTime.getValueI(),
 			maxTargets.getValueI());
 	}
@@ -563,7 +578,7 @@ public final class MultiAuraHack extends Hack
 		if(!isValidScanTarget(entity))
 			return false;
 		double distanceSq = CombatTargetUtils.distanceToBoxSqr(entity);
-		double attackRange = getMultiAttackRange(entity);
+		double attackRange = getMultiAttackRange();
 		if(distanceSq > attackRange * attackRange)
 			return false;
 		if(!checkLOS.isChecked())
@@ -621,12 +636,20 @@ public final class MultiAuraHack extends Hack
 			throughWallsRange.getValue());
 	}
 
-	private double getMultiAttackRange(Entity entity)
+	private double getMultiAttackRange()
 	{
-		double distance = Math.sqrt(CombatTargetUtils.distanceToBoxSqr(entity));
-		double value = distance >= throughWallsRange.getValue()
-			? range.getValue() + scanRange.getValue()
-			: throughWallsRange.getValue();
+		/*
+		 * 这里以前写成 "distance >= throughWallsRange ? range + scanRange
+		 * : throughWallsRange"，有两个问题：
+		 * 1) scanRange（扫描用的额外距离）漏进了攻击门限，默认配置下每个副目标
+		 *    都能打到 3.7+2=5.7 格，而主目标的门限只有 rolledRange（isLookingAtPrimary
+		 *    把射线截在 rolledRangeFor()），于是出现"副目标比主目标打得远"的矛盾；
+		 * 2) 结果不再是距离的单调函数：sprintRangeReduction > 0 且冲刺时，近处
+		 *    目标（(T-red, T) 区间）反而被拒绝，比它们更远的目标却能打。
+		 * 攻击距离只应该由 Range 减去冲刺削减决定，throughWallsRange 只在
+		 * isValidAttackTarget 里作为"无视墙体"的距离使用。
+		 */
+		double value = range.getValue();
 		if(MC.player.isSprinting())
 			value -= sprintRangeReduction.getValue();
 		return Math.max(0, value);
@@ -722,8 +745,8 @@ public final class MultiAuraHack extends Hack
 			Math.max(futureBox.minX, Math.min(futureEyes.x, futureBox.maxX)),
 			Math.max(futureBox.minY, Math.min(futureEyes.y, futureBox.maxY)),
 			Math.max(futureBox.minZ, Math.min(futureEyes.z, futureBox.maxZ)));
-		return futureEyes.distanceToSqr(nearest)
-			> getMultiAttackRange(currentTarget) * getMultiAttackRange(currentTarget);
+		double attackRange = getMultiAttackRange();
+		return futureEyes.distanceToSqr(nearest) > attackRange * attackRange;
 	}
 
 	private void updateRotation(Vec3 point, boolean clickReady)
@@ -982,7 +1005,6 @@ public final class MultiAuraHack extends Hack
 
 	private void clearTargets()
 	{
-		targets = List.of();
 		targetSession.clear();
 		intentQueue.clear();
 		rotationController.clear();

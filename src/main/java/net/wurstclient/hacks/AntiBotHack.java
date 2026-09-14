@@ -16,7 +16,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Locale;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.world.entity.player.Player;
@@ -28,11 +27,23 @@ import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.util.AntiBotPredicate;
+import net.wurstclient.util.AntiBotPredicate.Snapshot;
+import net.wurstclient.util.AntiBotPredicate.Verdict;
+import net.wurstclient.util.AntiBotSettings;
+import net.wurstclient.util.AntiBotTracker;
 
 @SearchTags({"anti bot", "fake player", "npc detect"})
 public final class AntiBotHack extends Hack
 	implements UpdateListener, WorldChangeListener
 {
+	/**
+	 * 「贴地但竖直速度非零」必须连续成立这么多 tick 才算数。取 2 是为了放过
+	 * 客户端插值 / 载具 / 丢包造成的单 tick 假象，同时仍然抓得住持续伪造竖直
+	 * 位移的假人。判定逻辑见 {@link AntiBotPredicate} 与 {@link AntiBotTracker}。
+	 */
+	private static final int IMPOSSIBLE_GROUND_GRACE_TICKS = 2;
+
 	private final CheckboxSetting checkPlayerInfo = new CheckboxSetting(
 		"Check player info", "Detects entities missing from the tab list.", true);
 	private final CheckboxSetting checkGameMode = new CheckboxSetting(
@@ -58,6 +69,8 @@ public final class AntiBotHack extends Hack
 		40, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
 
 	private final Set<UUID> detectedBots = new HashSet<>();
+	private final AntiBotTracker tracker =
+		new AntiBotTracker(IMPOSSIBLE_GROUND_GRACE_TICKS);
 
 	public AntiBotHack()
 	{
@@ -89,12 +102,14 @@ public final class AntiBotHack extends Hack
 		EVENTS.remove(UpdateListener.class, this);
 		EVENTS.remove(WorldChangeListener.class, this);
 		detectedBots.clear();
+		tracker.reset();
 	}
 
 	@Override
 	public void onWorldChange(ClientLevel world)
 	{
 		detectedBots.clear();
+		tracker.reset();
 	}
 
 	@Override
@@ -103,66 +118,73 @@ public final class AntiBotHack extends Hack
 		if(MC.level == null || MC.player == null)
 		{
 			detectedBots.clear();
+			tracker.reset();
 			return;
 		}
 
+		Set<UUID> onlineUuids = new HashSet<>();
 		Map<String, Integer> nameCounts = new HashMap<>();
 		for(Player player : MC.level.players())
-			nameCounts.merge(normalizeName(player), 1, Integer::sum);
+		{
+			onlineUuids.add(player.getUUID());
+			nameCounts.merge(profileName(player), 1, Integer::sum);
+		}
+		// 玩家下线 / 卸载后立刻丢弃其跨 tick 状态，列表不会随对局时长增长
+		tracker.retainOnly(onlineUuids);
 
+		AntiBotSettings settings = snapshotSettings();
 		Set<UUID> nextBots = new HashSet<>();
 		for(Player player : MC.level.players())
 		{
 			if(player == MC.player)
 				continue;
-			PlayerInfo info = MC.player.connection
-				.getPlayerInfo(player.getUUID());
-			if(isBot(player, info, nameCounts))
-				nextBots.add(player.getUUID());
+
+			UUID uuid = player.getUUID();
+			Snapshot snapshot = snapshot(player, uuid, settings);
+			if(AntiBotPredicate.classify(snapshot, nameCounts,
+				settings) == Verdict.BOT)
+				nextBots.add(uuid);
 		}
 
 		detectedBots.clear();
 		detectedBots.addAll(nextBots);
 	}
 
-	private boolean isBot(Player player, PlayerInfo info,
-		Map<String, Integer> nameCounts)
+	private AntiBotSettings snapshotSettings()
 	{
-		if(checkPlayerInfo.isChecked() && info == null)
-			return true;
-		if(checkGameMode.isChecked() && info != null && info.getGameMode() == null)
-			return true;
-		if(checkPing.isChecked() && info != null && info.getLatency() <= 0)
-			return true;
-		if(checkGround.isChecked() && player.onGround()
-			&& Math.abs(player.getDeltaMovement().y) > 0.1)
-			return true;
-		if(checkInvisible.isChecked() && player.isInvisible())
-			return true;
-		if(checkIllegalPitch.isChecked() && Math.abs(player.getXRot()) > 90)
-			return true;
-		if(checkIllegalHealth.isChecked()
-			&& (!Float.isFinite(player.getHealth()) || player.getHealth() < 0
-				|| player.getHealth() > player.getMaxHealth()))
-			return true;
-		if(checkEntityId.isChecked()
-			&& (player.getId() < 0 || player.getId() > 1_000_000_000))
-			return true;
-		if(checkDuplicateName.isChecked()
-			&& nameCounts.getOrDefault(normalizeName(player), 0) > 1)
-			return true;
-		if(player.tickCount < minimumAge.getValueI())
-			return true;
-
-		if(!checkUuid.isChecked())
-			return false;
-		String uuid = player.getUUID().toString();
-		return uuid.startsWith("00000000") || uuid.endsWith("000000000000");
+		return new AntiBotSettings(checkPlayerInfo.isChecked(),
+			checkGameMode.isChecked(), checkPing.isChecked(),
+			checkGround.isChecked(), checkInvisible.isChecked(),
+			checkUuid.isChecked(), checkIllegalPitch.isChecked(),
+			checkIllegalHealth.isChecked(), checkEntityId.isChecked(),
+			checkDuplicateName.isChecked(), minimumAge.getValueI());
 	}
 
-	private String normalizeName(Player player)
+	private Snapshot snapshot(Player player, UUID uuid, AntiBotSettings settings)
 	{
-		return player.getGameProfile().getName().toLowerCase(Locale.ROOT);
+		PlayerInfo info = MC.player.connection.getPlayerInfo(uuid);
+		// 关掉该判据时既不读也不写 tracker，避免重新打开时命中旧计数
+		boolean impossibleGround = false;
+		if(settings.checkGround())
+			impossibleGround = tracker.noteImpossibleGround(uuid,
+				AntiBotPredicate.isImpossibleGroundState(player.onGround(),
+					player.getDeltaMovement().y));
+
+		return new Snapshot(profileName(player), info != null,
+			info != null && info.getGameMode() != null,
+			info != null ? info.getLatency() : -1, impossibleGround,
+			player.isInvisible(), player.getXRot(), player.getHealth(),
+			player.getMaxHealth(), player.getId(), uuid.toString(),
+			player.tickCount);
+	}
+
+	/**
+	 * 玩家档案名（不带计分板队伍前缀 / 颜色），小写化后用于重名判据。
+	 */
+	private String profileName(Player player)
+	{
+		return AntiBotPredicate
+			.normalizeName(player.getGameProfile().getName());
 	}
 
 	public boolean isBot(Player player)

@@ -41,10 +41,13 @@ import net.wurstclient.util.SurroundPlanner;
 @SearchTags({"surround", "AutoSurround", "auto surround", "CityBlock"})
 public final class SurroundHack extends Hack implements UpdateListener
 {
+	// 原来这里还有第三个选项 Skip（"跳过没有支撑的位置"），但它的执行分支
+	// 与 Place 逐字节相同（都是 place(pos, false, false)），是个纯粹的摆设。
+	// 已删掉：老配置里的 "Skip" 由 EnumSetting.setSelected(String) 判为无效值
+	// 后静默保留默认值 Place，而 Skip 原本的行为就是 Place，所以用户侧零变化。
 	private final EnumSetting<SupportMode> support = new EnumSetting<>(
 		"Support", "\u00a7lPlace\u00a7r - Normal placement.\n"
-			+ "\u00a7lAirPlace\u00a7r - Place in air.\n"
-			+ "\u00a7lSkip\u00a7r - Skip unsupported positions.",
+			+ "\u00a7lAirPlace\u00a7r - Place in air.",
 		SupportMode.values(), SupportMode.PLACE);
 
 	private final SliderSetting bpt = new SliderSetting("BPT",
@@ -170,10 +173,8 @@ public final class SurroundHack extends Hack implements UpdateListener
 
 			if(mode == SupportMode.PLACE)
 				placed = BlockPlacer.place(pos, false, false);
-			else if(mode == SupportMode.AIRPLACE)
-				placed = BlockPlacer.place(pos, true, false);
 			else
-				placed = BlockPlacer.place(pos, false, false);
+				placed = BlockPlacer.place(pos, true, false);
 
 			if(placed)
 			{
@@ -257,8 +258,7 @@ public final class SurroundHack extends Hack implements UpdateListener
 	private enum SupportMode
 	{
 		PLACE("Place"),
-		AIRPLACE("AirPlace"),
-		SKIP("Skip");
+		AIRPLACE("AirPlace");
 
 		private final String name;
 
