@@ -154,14 +154,14 @@ public final class AutoSoupHack extends Hack implements UpdateListener
 		
 		if(hitResult instanceof EntityHitResult)
 		{
-			Entity entity = ((EntityHitResult)MC.hitResult).getEntity();
+			Entity entity = ((EntityHitResult)hitResult).getEntity();
 			return entity instanceof Villager
 				|| entity instanceof TamableAnimal;
 		}
 		
 		if(hitResult instanceof BlockHitResult)
 		{
-			BlockPos pos = ((BlockHitResult)MC.hitResult).getBlockPos();
+			BlockPos pos = ((BlockHitResult)hitResult).getBlockPos();
 			if(pos == null)
 				return false;
 			

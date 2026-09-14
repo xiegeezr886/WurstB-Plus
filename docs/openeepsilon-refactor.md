@@ -310,9 +310,9 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `AutoArmor` | 262 | 已重构（§0.3） |
 | `AutoCity` | 159 | 已优化（§0.3） |
 | `AutoLeave` | 138 | 已优化（§0.3） |
-| `AutoPotion` | 134 | 待办 |
+| `AutoPotion` | 134 | 已优化（§0.3） |
 | `AutoRespawn` | 55 | 已优化（§0.3） |
-| `AutoSoup` | 189 | 待办 |
+| `AutoSoup` | 189 | 已优化（§0.3） |
 | `AutoSword` | 207 | 已优化（§0.3） |
 | `AutoTotem` | 156 | 已优化（§0.3） |
 | `AutoTrap` | 191 | 已优化（§0.3） |
@@ -333,7 +333,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `NoMissCooldown` | 67 | 不适用（§0.3） |
 | `ProjectilePuncher` | 136 | 不适用（§0.3） |
 | `Protect` | 386 | 待办 |
-| `RightClicker` | 124 | 待办 |
+| `RightClicker` | 124 | 已优化（§0.3） |
 | `SelfTrap` | 176 | 已优化（§0.3） |
 | `SuperKnockback` | 202 | 已优化（§0.3） |
 | `Surround` | 220 | 已优化（§0.3） |
