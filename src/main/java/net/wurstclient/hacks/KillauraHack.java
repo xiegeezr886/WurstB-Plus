@@ -130,11 +130,13 @@ public final class KillauraHack extends Hack
 		true);
 	private final SliderSetting switchDelay = new SliderSetting("Switch delay",
 		"Ticks to wait before changing to a better target.", 3, 0, 20, 1,
-		ValueDisplay.INTEGER.withSuffix(" ticks"));
+		ValueDisplay.INTEGER.withSuffix(" ticks"))
+		.visibleWhen(() -> !stickyTarget.isChecked());
 	private final SliderSetting switchAdvantage = new SliderSetting(
 		"Switch advantage",
 		"How much better another target must rank before switching.", 10, 0,
-		100, 1, ValueDisplay.PERCENTAGE);
+		100, 1, ValueDisplay.PERCENTAGE)
+		.visibleWhen(() -> !stickyTarget.isChecked());
 	private final SliderSetting fov = new SliderSetting("FOV", 180, 0, 180,
 		5, ValueDisplay.DEGREES);
 	private final SliderSetting hurtTime = new SliderSetting("Hurt time", 10,
