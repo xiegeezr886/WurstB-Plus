@@ -207,7 +207,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Flight` | MOVEMENT | 189 | 不适用（§0.3） |
 | `Glide` | MOVEMENT | 120 | 不适用（§0.3） |
 | `HighJump` | MOVEMENT | 36 | 已优化（§0.3） |
-| `InvWalk` | MOVEMENT | 129 | 待办 |
+| `InvWalk` | MOVEMENT | 129 | 不适用（§0.3） |
 | `Jesus` | MOVEMENT | 180 | 已优化（§0.3） |
 | `NoClip` | MOVEMENT | 95 | 不适用（§0.3） |
 | `NoFall` | MOVEMENT | 186 | 不适用（§0.3） |
@@ -223,8 +223,8 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Step` | MOVEMENT | 161 | 不适用（§0.3） |
 | `Reach` | OTHER | 67 | 不适用（§0.3） |
 | `Timer` | OTHER | 38 | 不适用（§0.3） |
-| `BaseFinder` | RENDER | 251 | 待办 |
-| `CaveFinder` | RENDER | 246 | 待办 |
+| `BaseFinder` | RENDER | 251 | 已优化（§0.3） |
+| `CaveFinder` | RENDER | 246 | 不适用（§0.3） |
 | `ChestEsp` | RENDER | 275 | 不适用（§0.3） |
 | `EntityCulling` | RENDER | 99 | 不适用（§0.3） |
 | `Freecam` | RENDER | 183 | 不适用（§0.3） |
@@ -235,12 +235,12 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `LogoutSpots` | RENDER | 199 | 不适用（§0.3） |
 | `MobEsp` | RENDER | 177 | 不适用（§0.3） |
 | `NameTags` | RENDER | 227 | 不适用（§0.3） |
-| `NewChunks` | RENDER | 259 | 待办 |
+| `NewChunks` | RENDER | 259 | 已优化（§0.3） |
 | `PlayerEsp` | RENDER | 315 | 不适用（§0.3） |
 | `Radar` | RENDER | 120 | 不适用（§0.3） |
-| `Search` | RENDER | 256 | 待办 |
+| `Search` | RENDER | 256 | 不适用（§0.3） |
 | `Trajectories` | RENDER | 287 | 已重构（§0.3） |
-| `XRay` | RENDER | 244 | 待办 |
+| `XRay` | RENDER | 244 | 不适用（§0.3） |
 
 ## 全部 hack
 
@@ -402,7 +402,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Follow` | 278 | 待办 |
 | `Glide` | 120 | 不适用（§0.3） |
 | `HighJump` | 36 | 已优化（§0.3） |
-| `InvWalk` | 129 | 待办 |
+| `InvWalk` | 129 | 不适用（§0.3） |
 | `Jesus` | 180 | 已优化（§0.3） |
 | `Jetpack` | 45 | 待办 |
 | `NoClip` | 95 | 不适用（§0.3） |
@@ -451,12 +451,12 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `AntiBlind` | 28 | 待办 |
 | `AntiWobble` | 25 | 待办 |
 | `BarrierEsp` | 24 | 待办 |
-| `BaseFinder` | 251 | 待办 |
+| `BaseFinder` | 251 | 已优化（§0.3） |
 | `BossStack` | 74 | 待办 |
 | `Breadcrumbs` | 149 | 待办 |
 | `CameraDistance` | 35 | 待办 |
 | `CameraNoClip` | 24 | 待办 |
-| `CaveFinder` | 246 | 待办 |
+| `CaveFinder` | 246 | 不适用（§0.3） |
 | `ChestEsp` | 275 | 不适用（§0.3） |
 | `CityEsp` | 150 | 待办 |
 | `EntityCulling` | 99 | 不适用（§0.3） |
@@ -471,7 +471,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `MobSpawnEsp` | 193 | 待办 |
 | `NameProtect` | 56 | 待办 |
 | `NameTags` | 227 | 不适用（§0.3） |
-| `NewChunks` | 259 | 待办 |
+| `NewChunks` | 259 | 已优化（§0.3） |
 | `NoBackground` | 46 | 待办 |
 | `NoFireOverlay` | 36 | 待办 |
 | `NoFog` | 24 | 待办 |
@@ -491,11 +491,11 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Radar` | 120 | 不适用（§0.3） |
 | `RemoteView` | 180 | 待办 |
 | `RotationSnap` | 106 | 待办 |
-| `Search` | 256 | 待办 |
+| `Search` | 256 | 不适用（§0.3） |
 | `SeedOreEsp` | 541 | 待办 |
 | `SeedStructureEsp` | 265 | 待办 |
 | `TargetShader` | 79 | 待办 |
 | `Trajectories` | 287 | 已重构（§0.3） |
 | `TrueSight` | 56 | 待办 |
-| `XRay` | 244 | 待办 |
+| `XRay` | 244 | 不适用（§0.3） |
 

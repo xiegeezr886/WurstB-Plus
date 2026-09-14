@@ -12,6 +12,8 @@ import java.awt.Color;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -84,6 +86,7 @@ public final class NewChunksHack extends Hack
 	
 	private RegionPos lastRegion;
 	private DimensionType lastDimension;
+	private ExecutorService chunkCheckPool;
 	
 	public NewChunksHack()
 	{
@@ -106,6 +109,20 @@ public final class NewChunksHack extends Hack
 	{
 		EVENTS.add(UpdateListener.class, this);
 		EVENTS.add(RenderListener.class, this);
+		
+		// 用有界线程池代替"每个区块开一个新线程"：原实现在 afterLoadChunk() 里
+		// new Thread(...).start()，而飞图/传送时一次会加载成百上千个区块，等于
+		// 同时开成百上千个扫描线程（每个还占 1MB 栈）。线程池大小按 CPU 核数取，
+		// 上限 4，并设成 daemon，避免异常情况下拖住进程退出。
+		chunkCheckPool = Executors.newFixedThreadPool(
+			Math.max(1,
+				Math.min(4, Runtime.getRuntime().availableProcessors() / 2)),
+			runnable -> {
+				Thread thread = new Thread(runnable, "NewChunks chunk checker");
+				thread.setDaemon(true);
+				return thread;
+			});
+		
 		reset();
 	}
 	
@@ -126,6 +143,12 @@ public final class NewChunksHack extends Hack
 		EVENTS.remove(UpdateListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
 		renderer.closeBuffers();
+		
+		if(chunkCheckPool != null)
+		{
+			chunkCheckPool.shutdownNow();
+			chunkCheckPool = null;
+		}
 	}
 	
 	@Override
@@ -173,12 +196,11 @@ public final class NewChunksHack extends Hack
 	
 	public void afterLoadChunk(int x, int z)
 	{
-		if(!isEnabled())
+		if(!isEnabled() || chunkCheckPool == null)
 			return;
 		
 		LevelChunk chunk = MC.level.getChunk(x, z);
-		new Thread(() -> checkLoadedChunk(chunk), "NewChunks " + chunk.getPos())
-			.start();
+		chunkCheckPool.execute(() -> checkLoadedChunk(chunk));
 	}
 	
 	private void checkLoadedChunk(LevelChunk chunk)
