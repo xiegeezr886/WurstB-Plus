@@ -102,17 +102,16 @@ public final class InstantBunkerHack extends Hack implements UpdateListener
 		}
 		
 		// build instantly
-		if(startTimer <= 0)
-		{
-			for(BlockPos pos : positions)
-				if(BlockUtils.getState(pos).canBeReplaced()
-					&& !MC.player.getBoundingBox().intersects(new AABB(pos)))
-					BlockPlacer.place(pos, false, false);
-			MC.player.swing(InteractionHand.MAIN_HAND);
+		// （旧实现在这里套了一个 if(startTimer <= 0)：上面已经因为 startTimer > 0
+		// 返回过了，所以这个条件恒为真，是多余的判断。去掉后行为不变。）
+		for(BlockPos pos : positions)
+			if(BlockUtils.getState(pos).canBeReplaced()
+				&& !MC.player.getBoundingBox().intersects(new AABB(pos)))
+				BlockPlacer.place(pos, false, false);
+		MC.player.swing(InteractionHand.MAIN_HAND);
 
-			if(MC.player.onGround())
-				setEnabled(false);
-		}
+		if(MC.player.onGround())
+			setEnabled(false);
 	}
 
 }
