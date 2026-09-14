@@ -49,14 +49,15 @@ final class EspNameTagPolicyTest
 	}
 
 	@Test
-	void healthIconLeadsItsTextAndAbsorptionFollows()
+	void healthIconFollowsItsText()
 	{
 		List<EspNameTagElement> elements = EspNameTagPolicy.build(ALL,
 			new State(false, false, false, -1, null, 7.5F, 0));
 
 		// 没有距离也没有名字，只剩血量
 		assertEquals(1, elements.size());
-		assertEquals(EspNameTagElement.IconPosition.LEFT,
+		// 参考侧血量的红心也是默认的 RIGHT，画出来是「7.5♥」
+		assertEquals(EspNameTagElement.IconPosition.RIGHT,
 			elements.get(0).icon().position());
 		assertEquals("7.5", elements.get(0).text());
 	}

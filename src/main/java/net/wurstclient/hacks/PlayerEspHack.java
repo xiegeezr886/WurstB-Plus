@@ -11,11 +11,16 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.joml.Matrix4f;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.entity.player.Player;
 import net.wurstclient.Category;
@@ -45,6 +50,8 @@ import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.WorldToScreen;
 import net.wurstclient.util.WorldToScreen.ScreenBounds;
+import net.wurstclient.util.esp.EspEnchantNames;
+import net.wurstclient.util.esp.EspEquipmentLayout;
 import net.wurstclient.util.esp.EspNameTagElement;
 import net.wurstclient.util.esp.EspNameTagLayout;
 import net.wurstclient.util.esp.EspNameTagPolicy;
@@ -148,6 +155,13 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		"Marks sneaking, invisible and blocking players on the name tag strip.",
 		true).visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D
 			&& nameTags.isChecked());
+
+	private final CheckboxSetting tagEquipment = new CheckboxSetting(
+		"Tag equipment",
+		"Draws each player's armour and main-hand item above their 2D box,"
+			+ " labelled with shortened enchantment names.",
+		true).visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D
+			&& nameTags.isChecked());
 	
 	private final EntityFilterList entityFilters = new EntityFilterList(
 		new FilterSleepingSetting("Won't show sleeping players.", false),
@@ -181,6 +195,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		addSetting(tagDistance);
 		addSetting(tagHealth);
 		addSetting(statusIndicators);
+		addSetting(tagEquipment);
 		style.visibleWhen(() -> renderMode.getSelected() == RenderMode.THREE_D);
 		boxSize.visibleWhen(() -> renderMode.getSelected() == RenderMode.TWO_D
 			|| style.hasBoxes());
@@ -331,6 +346,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		if(!EspSkia.begin(context, x, y, x2 - x, y2 - y))
 		{
 			renderScreenBoxesVanilla(context);
+			renderEquipment(context, drawn);
 			return;
 		}
 
@@ -342,6 +358,102 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		{
 			EspSkia.end(context);
 		}
+
+		// 物品图标与附魔短名必须走原版绘制：Skia 是 CPU 光栅画布，画不了物品
+		// 模型的 GL 渲染。参考自己也是把物品丢进原版队列、和 NanoVG 分开画的。
+		// 这里放在区域 blit 之后，所以不会被区域覆盖。
+		renderEquipment(context, drawn);
+	}
+
+	/** 护甲四件 + 主手，空槽跳过；护甲顺序是头→胸→腿→靴。 */
+	private static List<ItemStack> collectEquipment(Player player)
+	{
+		List<ItemStack> equipment = new ArrayList<>(5);
+
+		for(ItemStack stack : player.getArmorSlots())
+			if(!stack.isEmpty())
+				equipment.add(stack);
+
+		ItemStack mainHand = player.getMainHandItem();
+		if(!mainHand.isEmpty())
+			equipment.add(mainHand);
+
+		return equipment;
+	}
+
+	/**
+	 * 参考 ESPModule.renderEquipment()。列表最后一项画在最左边（见
+	 * {@link EspEquipmentLayout}），所以主手在最左、头盔在最右。
+	 */
+	private void renderEquipment(GuiGraphics context, List<DrawnBox> drawn)
+	{
+		if(!tagEquipment.isChecked() || MC.player == null)
+			return;
+
+		for(DrawnBox entry : drawn)
+		{
+			Player player = entry.box().player();
+			if(player == null)
+				continue;
+
+			List<ItemStack> equipment = collectEquipment(player);
+			if(equipment.isEmpty())
+				continue;
+
+			ScreenBounds bounds = entry.box().bounds();
+			boolean hasTags = entry.tag() != null && !entry.tag().isEmpty();
+			List<EspEquipmentLayout.Slot> slots = EspEquipmentLayout.layout(
+				equipment.size(), (bounds.minX() + bounds.maxX()) / 2F,
+				bounds.minY(), hasTags);
+
+			for(EspEquipmentLayout.Slot slot : slots)
+			{
+				ItemStack stack = equipment.get(slot.index());
+				PoseStack pose = context.pose();
+				pose.pushPose();
+				pose.translate(slot.x(), slot.y(), 0);
+				pose.scale(EspEquipmentLayout.ICON_SCALE,
+					EspEquipmentLayout.ICON_SCALE, 1F);
+				context.renderItem(stack, 0, 0);
+				pose.popPose();
+
+				renderEnchantNames(context, stack, slot.x(), slot.y());
+			}
+		}
+	}
+
+	/**
+	 * 附魔短名。参考把每个附魔各画一行、叠在图标右下角；图标本身只有 10.4px
+	 * 宽，那样会和图标以及右边的相邻图标糊在一起，所以这里拼成一行放在图标
+	 * 正上方。短名表见 {@link EspEnchantNames}。
+	 */
+	private void renderEnchantNames(GuiGraphics context, ItemStack stack,
+		float x, float y)
+	{
+		StringBuilder text = new StringBuilder();
+
+		for(Map.Entry<Enchantment, Integer> entry : EnchantmentHelper
+			.getEnchantments(stack).entrySet())
+		{
+			ResourceLocation id =
+				BuiltInRegistries.ENCHANTMENT.getKey(entry.getKey());
+			if(id == null)
+				continue;
+
+			String shortName = EspEnchantNames.shortNameOf(id.getPath());
+			if(shortName == null)
+				continue;
+
+			if(text.length() > 0)
+				text.append(' ');
+			text.append(shortName).append(entry.getValue());
+		}
+
+		if(text.length() == 0)
+			return;
+
+		context.drawString(MC.font, text.toString(), (int)x, (int)(y - 9),
+			0xFFFFFFFF, true);
 	}
 
 	/**

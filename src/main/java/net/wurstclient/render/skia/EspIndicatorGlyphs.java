@@ -8,7 +8,6 @@
 package net.wurstclient.render.skia;
 
 import net.wurstclient.util.esp.EspNameTagElement.Icon;
-import net.wurstclient.util.esp.EspNameTagElement.IconPosition;
 
 /**
  * ESP 铭牌状态指示所用的字形。
@@ -72,13 +71,17 @@ public final class EspIndicatorGlyphs
 		return new Icon(BLOCKING);
 	}
 
+	/**
+	 * 参考侧所有图标都用默认位置（{@code RIGHT}），血量与伤害吸收也不例外：
+	 * 画出来是「20♥」而不是「♥20」，这里保持一致。
+	 */
 	public static Icon health()
 	{
-		return new Icon(HEALTH, IconPosition.LEFT);
+		return new Icon(HEALTH);
 	}
 
 	public static Icon absorption()
 	{
-		return new Icon(ABSORPTION, IconPosition.LEFT);
+		return new Icon(ABSORPTION);
 	}
 }

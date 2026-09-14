@@ -49,6 +49,7 @@ OpenOpal 的 2D ESP 全部靠 NanoVG 在**屏幕空间**画：把碰撞箱 8 个
 | `visual/esp/ESPModule.java#calculateStartingPosition` + `renderNameTagElements` | `util/esp/EspNameTagLayout.java` | 只保留几何，字形宽度由 `GlyphMeasurer` 注入 |
 | `visual/esp/ESPModule.java#renderNameTag` | `util/esp/EspNameTagPolicy.java` | 拆成 `Options`（设置）+ `State`（实体事实）→ 有序元素列表 |
 | `utility/render/ESPUtility.java#ENCHANTMENT_NAMES` | `util/esp/EspEnchantNames.java` | 改按**注册名路径字符串**作键，去掉 `RegistryKey` 依赖 |
+| `ESPModule.renderEquipment()` 的坐标式 | `util/esp/EspEquipmentLayout.java` | 槽位收集改成 `getArmorSlots()`（本就按头→胸→腿→靴有序），几何原式照抄 |
 | `renderer/NVGRenderer.java#rectOutline` / `rectOutlineStroke` / `rectStroke` | `render/skia/EspSkia.java` | 逐条移植的描边组合 |
 | `ESPModule.renderFullBox()` 的 `boxStroke` 分支 | `PlayerEspHack.renderScreenBox()` | `(0.5, 1.5, color, 0xff000000)` 参数原样 |
 
@@ -81,17 +82,26 @@ OpenOpal 的 2D ESP 全部靠 NanoVG 在**屏幕空间**画：把碰撞箱 8 个
    当前帧的 view/projection 矩阵，结果等价且不需要 `GameRendererAccessor` 那组
    accessor mixin，故沿用。
 
-## 4. 与参考不同的两处（有意为之）
+## 4. 与参考不同的三处（有意为之）
 
 1. **血条颜色**：参考 `renderHealthBar` 把颜色写死成 `0xff00ff00`。本工程保留自己的
    `Color mode`（Distance / Health / Custom + 好友色）语义，血条仍用实体色——
    否则 `Color mode` 这个既有设置对血条就失效了。几何（碰撞箱左侧、自下而上填充）不变。
 2. **距离元素不带图标**：参考是「数字 + 距离图标」。既然图标字体不搬，这里直接写成
    `12m`，比一个没有图标位的裸数字清楚。
+3. **附魔短名排成一行**：参考给每个附魔各画一行、叠在图标右下角。图标缩放后只有
+   10.4px 宽，那样会和图标本身以及右边的相邻图标糊在一起，所以这里拼成一行画在
+   图标正上方。`EspNameTagPolicy.formatHealth` 同样的理由不用跟随区域设置的
+   `DecimalFormat`（见该类的注释）。
+
+> 顺带一处**不**照样搬的地方：参考的血量图标字形写成
+> `new NameTagIcon(Formatting.RED + "\uE87D", RIGHT)`，把 `§c` 混进了字形串里。
+> 那是给 NanoVG 画的，`§c` 会被当成两个普通字符画出来（颜色其实由元素本身的
+> `-1` 决定）。本工程只取字形、颜色走元素颜色，不去复现这个瑕疵。
 
 ## 5. 新增设置（只加，不改）
 
-`PlayerEspHack` 新增 7 项，全部只在 2D 模式下可见；**没有任何既有设置被改名、
+`PlayerEspHack` 新增 8 项，全部只在 2D 模式下可见；**没有任何既有设置被改名、
 改默认值或改取值范围**：
 
 | 设置 | 默认 | 说明 |
@@ -103,6 +113,7 @@ OpenOpal 的 2D ESP 全部靠 NanoVG 在**屏幕空间**画：把碰撞箱 8 个
 | `Tag distance` | 开 | 距离元素 |
 | `Tag health` | 开 | 血量元素（吸收值自动追加，与参考一致） |
 | `Status indicators` | 开 | 潜行 / 隐身 / 举盾三个指示 |
+| `Tag equipment` | 开 | 护甲 + 主手图标与附魔短名（与铭牌条一起出现，和参考的 `Equipment` 元素同层） |
 
 ## 6. 性能：区域不是整屏
 
@@ -113,11 +124,13 @@ OpenOpal 的 2D ESP 全部靠 NanoVG 在**屏幕空间**画：把碰撞箱 8 个
 
 ## 7. 验证状态（诚实声明）
 
-- `compileJava` 通过；新增 3 个测试类、`test` 通过（见提交信息里的计数）。
+- `compileJava` / `compileTestJava` / `test` 通过：148 个测试类、905 个测试、0 失败，
+  其中 ESP 纯逻辑层新增 4 个测试类共 35 个测试。
 - **从未在游戏里看过**：Skia 的 `drawRect` / `drawRRect` / `drawString` / `measureTextWidth`
   签名逐个核对过，但视觉效果、字号 5 在实机上是否偏小、描边 0.5px 在低 GUI 缩放下
-  是否可见，都没有实机确认。
+  是否可见、物品图标缩放 0.65 后与铭牌条的相对高度是否好看，都没有实机确认。
 - `EspSkia` 的兜底路径（`begin` 返回 false）只做了逻辑核对，没有制造过原生库缺失的
   场景去实跑。
-- 附魔短名表目前**还没有消费方**（`EspEnchantNames` 是为铭牌的装备元素准备的，
-  装备元素在下一批接入）——这一项按「暂未接线」记，不当作已完成。
+- 装备元素的**顺序**假设（主手最左）是从参考原式推出来的，没有实机比对过。
+- 自动测试只覆盖纯几何与元素策略；`EspSkia` 与 `PlayerEspHack` 的绘制调用没有测试
+  （需要 GL 上下文），只能靠人工分栏。
