@@ -121,17 +121,27 @@
 | 目标举盾面朝你、你手上不是斧头：`Ignore target shield` 只影响"要不要锁他"，**不改变原版盾牌结算** | `KillauraHack.java:154-155`、`:747-749`（锁定判定）与 `:642-644`（斧头例外） |
 | 目标在创造/无敌，或有吸收/抗性/图腾 | 纯原版结算 |
 
-### D. 打出去了，但打在**别的**实体上（对方自然不掉血）
+### D. 打出去了，但打在**别的**实体上（对方自然不掉血）——**本轮已修**
 
-`Raycast` 默认是 **All**（`:157-158`）。All 模式下射线只要求实体 `isPickable()`，
-**不再检查 `isValidScanTarget` / `IS_ATTACKABLE` / 过滤器**：`resolveRaycastTarget():843-857` 的谓词是
+`Raycast` 默认是 **All**（`:157-158`）。All 模式下射线原来只要求实体 `isPickable()`，
+**不检查 `isValidScanTarget` / `IS_ATTACKABLE` / 过滤器**：`resolveRaycastTarget():843-857` 的谓词是
 `mode == RaycastMode.ALL || isValidScanTarget(entity)`，且 `performScheduledAttacks` 里
-`traceAllTarget` 会跳过 `isValidAttackTarget`（`:467-478`）。后果：
+`traceAllTarget` 会跳过 `isValidAttackTarget`（`:467-478`）。于是：
 
-- 你和敌人之间站着一个好友 / 宠物动物 / 盔甲架时，这一下打在它身上，**敌人不掉血**；
-- 反过来，All 模式也会打好友（`IS_ATTACKABLE` 的好友检查被绕过）。
+- 你和敌人之间站着一个**好友**、假人、或 AntiBot 认定的机器人时，这一下打在它身上，**敌人不掉血**；
+- 反过来，All 模式也会打好友，并且**把 AntiBot 的保护整个绕过去了**（`IS_ATTACKABLE` 里
+  `antiBotHack.isBot(...)` 那条检查在 `EntityUtils.java:45`）。
 
-把 `Raycast` 改成 `Enemy`（只打过滤器允许的目标）或 `None`（只打当前锁定目标）即可避免。
-这条**故意不改**：`RaycastMode:1161-1174` 里 `ENEMY` 与 `ALL` 两档同时存在，说明"All = 不过滤"是
-设计意图；但 `:157-158` 的 `EnumSetting` 没有 description，用户看不出区别——建议至少补一句说明，
-或者让 All 也保留 `IS_ATTACKABLE`（好友/旁观/死亡）这一层安全过滤。属行为取舍，本轮只记录。
+**反例输入（Rule 9）**：`Raycast = All`（默认），你锁着敌人 A，好友 B 站在你和 A 之间 3 格内的瞄线上。
+
+| | 旧 | 新 |
+| --- | --- | --- |
+| `resolveRaycastTarget` | 返回 B（`isPickable()` 为真） | 谓词里 `IS_ATTACKABLE.test(B)` 为假 → 射线不接受 B → 返回 `selected` = A |
+| `traceAllTarget` | true → 跳过 `isValidAttackTarget` | false → 走完整校验 |
+| 实际攻击 | `attack(player, B)`：A 不掉血、好友被误伤 | `attack(player, A)`：A 掉血、B 不受影响 |
+| AntiBot 机器人挡路 | 照打（`antiBotHack.isBot` 被绕过） | 不接受该实体，改用锁定目标 |
+
+改动只有一行谓词（`KillauraHack.java:843-858`）：加 `EntityUtils.IS_ATTACKABLE.test(entity)`。
+它只排除"已死/自己/假人/好友/AntiBot 机器人"，盔甲架、水晶、潜行贝子弹仍然算合法目标
+（`EntityUtils.java:38-45`），所以 `All` 档"打射线里的任何实体"这个本意没有变，
+`Enemy`（只打过滤器允许的）与 `None`（只打锁定目标）也都不受影响。

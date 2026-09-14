@@ -850,8 +850,16 @@ public final class KillauraHack extends Hack
 		Vec3 end = start.add(look.scale(getInteractionRange()));
 		AABB searchBox = MC.player.getBoundingBox()
 			.expandTowards(look.scale(getInteractionRange())).inflate(1);
+		/*
+		 * All 档位也只是"在射线里挑一个实体"，不代表可以打好友 / AntiBot 认定的机器人 /
+		 * 假人：这些检查都在 EntityUtils.IS_ATTACKABLE 里（EntityUtils.java:38-45）。
+		 * 一旦绕过，中间站着一个好友时这一下会被好友吃掉、敌人完全不掉血，而且会违反
+		 * AntiBot 的本意。所以这里保留 IS_ATTACKABLE 这层安全过滤。
+		 */
 		EntityHitResult hit = ProjectileUtil.getEntityHitResult(MC.player, start,
-			end, searchBox, entity -> !entity.isSpectator() && entity.isPickable()
+			end, searchBox, entity -> !entity.isSpectator()
+				&& EntityUtils.IS_ATTACKABLE.test(entity)
+				&& entity.isPickable()
 				&& (mode == RaycastMode.ALL || isValidScanTarget(entity)),
 			getInteractionRange() * getInteractionRange());
 		return hit == null ? selected : hit.getEntity();
