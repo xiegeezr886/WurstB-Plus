@@ -226,18 +226,18 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `BaseFinder` | RENDER | 251 | 待办 |
 | `CaveFinder` | RENDER | 246 | 待办 |
 | `ChestEsp` | RENDER | 275 | 待办 |
-| `EntityCulling` | RENDER | 99 | 待办 |
+| `EntityCulling` | RENDER | 99 | 不适用（§0.3） |
 | `Freecam` | RENDER | 183 | 待办 |
 | `Fullbright` | RENDER | 197 | 待办 |
 | `HoleEsp` | RENDER | 193 | 待办 |
-| `ItemEsp` | RENDER | 124 | 待办 |
-| `LightOverlay` | RENDER | 117 | 待办 |
+| `ItemEsp` | RENDER | 124 | 不适用（§0.3） |
+| `LightOverlay` | RENDER | 117 | 不适用（§0.3） |
 | `LogoutSpots` | RENDER | 199 | 待办 |
 | `MobEsp` | RENDER | 177 | 待办 |
-| `NameTags` | RENDER | 227 | 待办 |
+| `NameTags` | RENDER | 227 | 不适用（§0.3） |
 | `NewChunks` | RENDER | 259 | 待办 |
-| `PlayerEsp` | RENDER | 315 | 待办 |
-| `Radar` | RENDER | 120 | 待办 |
+| `PlayerEsp` | RENDER | 315 | 不适用（§0.3） |
+| `Radar` | RENDER | 120 | 不适用（§0.3） |
 | `Search` | RENDER | 256 | 待办 |
 | `Trajectories` | RENDER | 287 | 待办 |
 | `XRay` | RENDER | 244 | 待办 |
@@ -459,18 +459,18 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `CaveFinder` | 246 | 待办 |
 | `ChestEsp` | 275 | 待办 |
 | `CityEsp` | 150 | 待办 |
-| `EntityCulling` | 99 | 待办 |
+| `EntityCulling` | 99 | 不适用（§0.3） |
 | `Freecam` | 183 | 待办 |
 | `Fullbright` | 197 | 待办 |
 | `HealthTags` | 54 | 待办 |
 | `HoleEsp` | 193 | 待办 |
-| `ItemEsp` | 124 | 待办 |
-| `LightOverlay` | 117 | 待办 |
+| `ItemEsp` | 124 | 不适用（§0.3） |
+| `LightOverlay` | 117 | 不适用（§0.3） |
 | `LogoutSpots` | 199 | 待办 |
 | `MobEsp` | 177 | 待办 |
 | `MobSpawnEsp` | 193 | 待办 |
 | `NameProtect` | 56 | 待办 |
-| `NameTags` | 227 | 待办 |
+| `NameTags` | 227 | 不适用（§0.3） |
 | `NewChunks` | 259 | 待办 |
 | `NoBackground` | 46 | 待办 |
 | `NoFireOverlay` | 36 | 待办 |
@@ -483,12 +483,12 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `NoWeather` | 69 | 待办 |
 | `OpenWaterEsp` | 71 | 待办 |
 | `Overlay` | 67 | 待办 |
-| `PlayerEsp` | 315 | 待办 |
+| `PlayerEsp` | 315 | 不适用（§0.3） |
 | `PlayerHalo` | 47 | 待办 |
 | `PopChams` | 181 | 待办 |
 | `PortalEsp` | 223 | 待办 |
 | `ProphuntEsp` | 73 | 待办 |
-| `Radar` | 120 | 待办 |
+| `Radar` | 120 | 不适用（§0.3） |
 | `RemoteView` | 180 | 待办 |
 | `RotationSnap` | 106 | 待办 |
 | `Search` | 256 | 待办 |
