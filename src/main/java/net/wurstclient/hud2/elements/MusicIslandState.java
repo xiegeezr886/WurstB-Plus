@@ -12,7 +12,7 @@ import java.util.List;
 import net.wurstclient.music.LyricLine;
 
 /**
- * 音乐灵动岛的状态机：紧凑胶囊 ⇄ 展开卡片，以及紧凑态里轮换显示的内容。
+ * 音乐灵动岛的状态机：紧凑胶囊 ⇄ 展开卡片、形变弹簧、可视化柱平滑与歌词选择。
  *
  * <p>
  * 交互设计参考 WinIslandProject/WinIsland（Windows 桌面灵动岛，Rust）：它的核心
@@ -23,8 +23,15 @@ import net.wurstclient.music.LyricLine;
  *
  * <p>
  * 这里把状态、时序与插值全部做成**只依赖传入的毫秒时间**的纯逻辑，不碰 Minecraft，
- * 因此整条时间线（悬停延迟、新歌脉冲、收回、轮换）都能用单测逐帧驱动验证——
+ * 因此整条时间线（悬停延迟、新歌脉冲、收回、形变）都能用单测逐帧驱动验证——
  * 这类"动画看着不对"的 bug 靠编译是发现不了的。
+ *
+ * <p>
+ * 与 {@code _wi_ref/island-spec.md} 对齐的两处修正：<br>
+ * 1. 紧凑态内容**不是按时间轮换**的，而是用户配置的固定槽位（规格 §5.2），所以
+ * 原来的 {@code CompactContent} 轮换轴已删除，改由渲染层按槽位组装；<br>
+ * 2. 形变由**弹簧**驱动（规格 §3.1，stiffness=0.10 / damping=0.68），而不是缓动曲线，
+ * 这样中途反向时会自然减速再回弹，不会出现速度突变。
  */
 public final class MusicIslandState
 {
@@ -40,36 +47,36 @@ public final class MusicIslandState
 	public static final float EXPANDED_RADIUS = 14F;
 	
 	/** 时序（毫秒）。 */
-	public static final long MORPH_MS = 220L;
 	public static final long COLLAPSE_DELAY_MS = 450L;
 	public static final long SONG_CHANGE_PULSE_MS = 3_000L;
-	public static final long ROTATE_MS = 4_000L;
 	
-	/** 紧凑态显示的内容。 */
-	public enum CompactContent
-	{
-		/** 正在播放音乐时的内容，优先级最高。 */
-		MUSIC,
-		FPS,
-		TIME,
-		MEMORY
-	}
+	/** 尺寸弹簧：规格 §3.1 的 stiffness=0.10 / damping=0.68。 */
+	public static final float SIZE_STIFFNESS = 0.10F;
+	public static final float SIZE_DAMPING = 0.68F;
+	/** 弹簧速度上限 = 剩余距离 × 该系数（规格 §3.1）。 */
+	public static final float SPRING_MAX_SPEED = 0.2F;
+	/** 剩余距离小于该值就算到位，直接吸附，避免无限逼近。 */
+	public static final float SPRING_SNAP = 0.0005F;
+	/** 弹簧的积分基准帧率：规格的 stiffness/damping 是按 60fps 每帧给的。 */
+	public static final float SPRING_BASE_FPS = 60F;
 	
-	private static final CompactContent[] ROTATION =
-		{CompactContent.FPS, CompactContent.TIME, CompactContent.MEMORY};
+	/** 可视化柱：上升 0.6 / 下降 0.08（规格 §6.4，快起慢落）。 */
+	public static final float VISUAL_ATTACK = 0.6F;
+	public static final float VISUAL_RELEASE = 0.08F;
+	
+	/** 进度条：正常播放每帧 0.15，突出跳变或拖动时直接吸附（规格 §3.3）。 */
+	public static final float PROGRESS_SMOOTH = 0.15F;
+	public static final float PROGRESS_SNAP = 0.3F;
 	
 	private boolean expanded;
-	private float morphFrom;
-	private long morphStart;
-	private long morphDuration = MORPH_MS;
+	private float morphValue;
+	private float morphVelocity;
+	private long morphUpdateMs = Long.MIN_VALUE;
 	
 	private boolean hovered;
 	private long hoverEndMs = Long.MIN_VALUE;
 	private long pulseUntil = Long.MIN_VALUE;
 	private long lastSongId = -1L;
-	
-	private long rotationStart = Long.MIN_VALUE;
-	private int rotationIndex;
 	
 	/**
 	 * 推进一帧。
@@ -82,9 +89,6 @@ public final class MusicIslandState
 	public void update(long nowMs, boolean hovered, boolean playing,
 		long songId)
 	{
-		if(rotationStart == Long.MIN_VALUE)
-			rotationStart = nowMs;
-		
 		// 换歌时脉冲展开一次，让用户看到换了什么
 		if(songId != lastSongId)
 		{
@@ -107,43 +111,92 @@ public final class MusicIslandState
 				&& nowMs - hoverEndMs < COLLAPSE_DELAY_MS;
 		
 		if(wantExpanded != expanded)
-		{
-			// 从"当前实际值"接着走，中途反向不会跳变
-			morphFrom = morph(nowMs);
-			morphStart = nowMs;
-			morphDuration = MORPH_MS;
 			expanded = wantExpanded;
+		
+		step(nowMs);
+	}
+	
+	/**
+	 * 把弹簧推进到 {@code nowMs}。纯读取方法也会调用它，因为形状属性的取值
+	 * （宽/高/圆角）都从这里来，测试与渲染两条路径共用同一份积分。
+	 */
+	private void step(long nowMs)
+	{
+		if(morphUpdateMs == Long.MIN_VALUE)
+		{
+			// 第一帧只记录时间：起始值固定为 0（视觉上永远是"从紧凑开始"），
+			// 这样开局那一帧不会因为已经处于展开态而直接跳到满值
+			morphUpdateMs = nowMs;
+			return;
 		}
 		
-		if(nowMs - rotationStart >= ROTATE_MS)
+		float delta = Math.min(0.1F, (nowMs - morphUpdateMs) / 1000F);
+		morphUpdateMs = Math.max(morphUpdateMs, nowMs);
+		
+		if(delta <= 0F)
+			return;
+		
+		float target = expanded ? 1F : 0F;
+		float distance = target - morphValue;
+		
+		// 只按"还差多少"吸附：速度门限会随帧率变化，容易让弹簧在高帧率下
+		// 一直抖不到底
+		if(Math.abs(distance) <= SPRING_SNAP)
 		{
-			// 落后很多帧时也要按整数倍推进，避免长时间卡顿后只前进一格
-			long steps = (nowMs - rotationStart) / ROTATE_MS;
-			rotationIndex += (int)steps;
-			rotationStart += steps * ROTATE_MS;
+			morphValue = target;
+			morphVelocity = 0F;
+			return;
 		}
+		
+		// 规格的 stiffness/damping 是按 60fps 每帧给出的，这里把 dt 换算成
+		// "基准帧数"，因此 60fps 下与参考实现逐帧一致，其它帧率下也不会变速。
+		float ticks = delta * SPRING_BASE_FPS;
+		float force = distance * SIZE_STIFFNESS * ticks;
+		morphVelocity =
+			(morphVelocity + force) * (float)Math.pow(SIZE_DAMPING, ticks);
+		
+		// 速度上限是"剩余距离 × 0.2"，越接近目标越慢，因此弹簧不会越过目标
+		float limit = Math.abs(distance) * SPRING_MAX_SPEED;
+		morphVelocity = Math.max(-limit, Math.min(limit, morphVelocity));
+		morphValue += morphVelocity * ticks;
 	}
 	
 	/** 展开进度：0 全紧凑，1 全展开。 */
 	public float morph(long nowMs)
 	{
-		float target = expanded ? 1F : 0F;
-		float elapsed = nowMs - morphStart;
-		
-		if(morphDuration <= 0L || elapsed >= morphDuration)
-			return target;
-		
-		if(elapsed <= 0L)
-			return morphFrom;
-		
-		return morphFrom
-			+ (target - morphFrom) * easeOutCubic(elapsed / (float)morphDuration);
+		step(nowMs);
+		return clamp01(morphValue);
+	}
+	
+	/**
+	 * 紧凑内容透明度 = {@code clamp(1 - progress*1.5, 0, 1)}（规格 §6.3）：
+	 * 展开进度到 2/3 时紧凑内容已经完全淡出。
+	 */
+	public float compactAlpha(long nowMs)
+	{
+		return clamp01(1F - morph(nowMs) * 1.5F);
+	}
+	
+	/** 展开内容透明度 = {@code progress²}（规格 §6.3）。 */
+	public float expandedAlpha(long nowMs)
+	{
+		float progress = morph(nowMs);
+		return progress * progress;
+	}
+	
+	/**
+	 * 紧凑宽度：规格 §5.1 按歌词宽度自适应，两端夹在
+	 * {@link #COMPACT_MIN_WIDTH} / {@link #COMPACT_MAX_WIDTH} 内。
+	 */
+	public static int compactWidthFor(int contentWidth)
+	{
+		return Math.max(COMPACT_MIN_WIDTH,
+			Math.min(COMPACT_MAX_WIDTH, contentWidth));
 	}
 	
 	public int width(long nowMs, int compactWidth)
 	{
-		int compact = Math.max(COMPACT_MIN_WIDTH,
-			Math.min(COMPACT_MAX_WIDTH, compactWidth));
+		int compact = compactWidthFor(compactWidth);
 		return Math.round(compact
 			+ (EXPANDED_WIDTH - compact) * morph(nowMs));
 	}
@@ -161,31 +214,36 @@ public final class MusicIslandState
 	}
 	
 	/**
-	 * 紧凑态显示哪一项：在放歌时音乐优先，否则在 FPS / 时间 / 内存之间轮换。
+	 * 可视化柱的**非对称**平滑（规格 §6.4）：目标高于现值时用
+	 * {@link #VISUAL_ATTACK} 快速抬起，低于现值时用 {@link #VISUAL_RELEASE}
+	 * 缓慢落下，每帧都是指数逼近，因此与帧率无关。
+	 *
+	 * @param current 上一帧的高度（会被就地改写）
+	 * @param target  目标高度
+	 * @param delta   距上一帧的秒数
 	 */
-	public CompactContent compactContent(boolean playing, boolean hasSong)
+	public static float smoothVisual(float current, float target, float delta)
 	{
-		if(playing && hasSong)
-			return CompactContent.MUSIC;
+		float rate = target > current ? VISUAL_ATTACK : VISUAL_RELEASE;
+		float step = 1F - (float)Math.pow(1F - rate, delta * 60F);
+		return current + (target - current) * step;
+	}
+	
+	/**
+	 * 进度条的平滑值（规格 §3.3）：正常播放慢慢追，跨过 0 或跳出很远时直接吸附；
+	 * {@code dragging} 时由调用方直写，不走这里。
+	 */
+	public static float smoothProgress(float current, float raw,
+		boolean dragging)
+	{
+		if(dragging)
+			return raw;
 		
-		int index = Math.floorMod(rotationIndex, ROTATION.length);
-		return ROTATION[index];
-	}
-	
-	public boolean isExpanded()
-	{
-		return expanded;
-	}
-	
-	public boolean isHovered()
-	{
-		return hovered;
-	}
-	
-	/** 供测试与调试：当前轮换到第几格。 */
-	public int rotationIndex()
-	{
-		return rotationIndex;
+		// 开场从 0 爬升，或用户拖动跳转：直接吸附，别让指针慢慢飞过去
+		if(raw < 0.02F && current > 0.02F || Math.abs(raw - current) > PROGRESS_SNAP)
+			return raw;
+		
+		return current + (raw - current) * PROGRESS_SMOOTH;
 	}
 	
 	/**
@@ -217,13 +275,55 @@ public final class MusicIslandState
 		if(durationMs <= 0L)
 			return 0F;
 		
-		return Math.max(0F, Math.min(1F, positionMs / (float)durationMs));
+		return clamp01(positionMs / (float)durationMs);
 	}
 	
-	private static float easeOutCubic(float t)
+	/**
+	 * 从封面取强调色（规格 §4.1 的第 3、4 步）：线性放大后算亮度，
+	 * 亮度低于 80 就整体提亮到 80，保证深色封面上的柱不会糊在深色底里。
+	 *
+	 * @param rgb 未放大的封面平均色（0xRRGGBB）
+	 * @param gain 主色 1.3，辅色 1.5
+	 */
+	public static int accentFromAverage(int rgb, float gain)
 	{
-		float clamped = Math.max(0F, Math.min(1F, t));
-		float inverse = 1F - clamped;
-		return 1F - inverse * inverse * inverse;
+		int red = Math.min(255,
+			Math.round((rgb >> 16 & 0xFF) * gain));
+		int green = Math.min(255,
+			Math.round((rgb >> 8 & 0xFF) * gain));
+		int blue = Math.min(255, Math.round((rgb & 0xFF) * gain));
+		
+		float luminance = 0.299F * red + 0.587F * green + 0.114F * blue;
+		
+		if(luminance < 80F)
+		{
+			int boost = Math.round(80F - luminance);
+			red = Math.min(255, red + boost);
+			green = Math.min(255, green + boost);
+			blue = Math.min(255, blue + boost);
+		}
+		
+		return 0xFF000000 | red << 16 | green << 8 | blue;
+	}
+	
+	public boolean isExpanded()
+	{
+		return expanded;
+	}
+	
+	public boolean isHovered()
+	{
+		return hovered;
+	}
+	
+	/** 供测试：当前弹簧速度（基准帧单位/帧）。 */
+	public float morphVelocity()
+	{
+		return morphVelocity;
+	}
+	
+	private static float clamp01(float value)
+	{
+		return Math.max(0F, Math.min(1F, value));
 	}
 }
