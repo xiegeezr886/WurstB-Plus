@@ -290,6 +290,41 @@ AutoSprint 在 mixin 里有三处引用，语义并不相同，所以**没有硬
 
 **至此 `ClientPlayerEntityMixin` 的直接 hack 引用只剩 `applySprint()` 一处（有意保留、已注明理由）。**
 
+## 第 6 项：模块模式类化（参考 OpenOpal 的 `criticals/impl/*`、`velocity/impl/*`）
+
+### 第一个模块：Criticals（已完成）
+
+原来 `CriticalsHack.onPlayerAttacksEntity()` 里是一个 `switch(selectedMode)`，四个模式的动作
+（发什么包、要不要真跳）全写在 hack 里，模式自己的元数据（`requiresGround`）又是枚举构造参数。
+现在拆成 `net.wurstclient.hacks.criticals`：
+
+| 文件 | 内容 |
+| --- | --- |
+| `CriticalsMode` | 接口：`getName()` / `requiresGround()`（默认 false）/ `doCriticals(CriticalsHack)` |
+| `PacketCriticalsMode` | `hack.sendPacketProfile(hack.getPacketProfile())` |
+| `NoGroundCriticalsMode` | `hack.sendOffset(-0.000001, false)` |
+| `MiniJumpCriticalsMode` | `requiresGround()=true`；不在ground 返回 false；push + fallDistance + 两个位移动包 |
+| `JumpCriticalsMode` | `requiresGround()=true`；不在ground 返回 false；`jumpFromGround()` + 两个位移动包 |
+
+hack 侧只留通用流程：**状态检查 → 停冲刺 → 交给模式 → 粒子**；`Mode` 枚举变成
+"名字 + 一个 `CriticalsMode` 实例"的登记表，`requiresGround()`/`doCriticals()` 都转发给实例
+（单一事实来源，不再有重复的布尔字段）。
+
+**行为等价性**（Rule 9 口径）：四个模式的动作逐行照搬；原来 MINI_JUMP/JUMP 在 `!onGround()` 时
+`return` 会跳过粒子，现在由 `doCriticals()` 返回 false 让调用方跳过粒子，等价 ✓；
+`requiresGround` 仍在停冲刺之前用于 `CombatActionPolicy` 前置检查，位置和语义不变 ✓；
+`PacketProfile` 枚举与六个 profile 的包内容一字未改（只是为了让模式类能引用而改成 public）✓。
+
+为模式类开放了三个 public 成员：`getPacketProfile()`、`getJumpHeight()`、`sendOffset()`/`sendPacketProfile()`
+（`PacketProfile` 也随之 public）。这是"把 hack 当上下文对象传"的取舍：比新建一个 context 类少一层，
+代价是 hack 的 API 变宽 —— 已在代码注释里写明用途。
+
+### 后续（未做）
+
+Velocity / Flight 的模式也还是 `EnumSetting + switch`（`NoVelocityHack` 256 行、`FlightHack` 189 行，
+后者是一个 `switch` 表达式算移动向量，拆法与 Criticals 不同：要看它是否依赖同一批局部变量）。
+按 Criticals 这套模板逐个拆即可，我打算一次只动一个模块并单独编译验证。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
