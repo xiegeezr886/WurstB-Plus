@@ -337,6 +337,15 @@ public final class HudEditorScreen extends Screen
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
+		// 面板的滑条：这里才存盘。拖拽过程中每个鼠标事件都存一次会把
+		// hud-layout.json 按像素写盘。
+		if(settingsPanel.mouseReleased())
+		{
+			if(settingsPanel.consumeChanged())
+				hudManager.saveLayout();
+			return true;
+		}
+
 		if(draggedId == null || button != dragButton)
 			return super.mouseReleased(mouseX, mouseY, button);
 
@@ -377,6 +386,10 @@ public final class HudEditorScreen extends Screen
 	public boolean mouseDragged(double mouseX, double mouseY, int button,
 		double deltaX, double deltaY)
 	{
+		// 面板的滑条优先：只有真的抓着滑条时才会返回 true，否则照常拖元素
+		if(settingsPanel.mouseDragged(mouseX))
+			return true;
+
 		if(draggedId == null || button != dragButton)
 			return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
 

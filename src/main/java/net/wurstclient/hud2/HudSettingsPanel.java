@@ -12,6 +12,7 @@ import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.Setting;
+import net.wurstclient.settings.SliderSetting;
 
 /**
  * HUD 编辑器右下角的「逐元素设置」面板。
@@ -42,10 +43,61 @@ final class HudSettingsPanel
 	private final List<Setting> rows = new ArrayList<>();
 	private boolean changed;
 	private int rowsTop;
+	private SliderSetting sliderDrag;
 	private int x1;
 	private int y1;
 	private int x2;
 	private int y2;
+
+	/**
+	 * 轨道横向热区。绘制和命中都用这两个方法，不各算一份——画在那、点在那。
+	 */
+	private int trackX1()
+	{
+		return x1 + PADDING;
+	}
+
+	private int trackX2()
+	{
+		return x2 - PADDING;
+	}
+
+	/**
+	 * 由轨道上的横向位置算出滑条值：先按比例映射到 {@code [minimum, maximum]}，
+	 * 再把比例夹在 0..1 内（拖到轨道外面也不会越界）。
+	 *
+	 * <p>
+	 * <b>这里故意不做 increment 对齐</b>：{@code SliderSetting.setValueIgnoreLock()}
+	 * 自己会按 {@code increment} 从<b>零</b>对齐并夹到可用区间
+	 * （{@code SliderSetting.java:125-127}）。在这儿再对齐一次的话，当
+	 * {@code minimum} 不是 {@code increment} 的整数倍时两次对齐的基准不同，
+	 * 算出来的值和最终存下的值会对不上。
+	 *
+	 * <p>
+	 * 映射方式与工程里既有的滑条一致（{@code NavigatorSettingsPanel.java:507}
+	 * 是 {@code minimum + getRange() * percentage}）。
+	 */
+	static double valueForX(double mouseX, int trackX1, int trackX2,
+		double minimum, double maximum)
+	{
+		if(trackX2 <= trackX1 || maximum <= minimum)
+			return minimum;
+
+		double fraction = (mouseX - trackX1) / (double)(trackX2 - trackX1);
+		fraction = Math.max(0, Math.min(1, fraction));
+		return minimum + fraction * (maximum - minimum);
+	}
+
+	/** 当前值在轨道上的位置，0..1。 */
+	private static double trackFraction(SliderSetting slider)
+	{
+		double range = slider.getMaximum() - slider.getMinimum();
+		if(range <= 0)
+			return 0;
+
+		return Math.max(0, Math.min(1,
+			(slider.getValue() - slider.getMinimum()) / range));
+	}
 
 	/**
 	 * 命中的是第几行；点不到任何行时返回 -1。
@@ -171,16 +223,44 @@ final class HudSettingsPanel
 		graphics.drawString(font, label, x1 + PADDING, textY,
 			VisualTheme.TEXT, false);
 		// 可点的用强调色、只读的用灰：一眼能看出哪些行点得动
+		boolean interactive = setting instanceof EnumSetting
+			|| setting instanceof SliderSetting;
 		graphics.drawString(font, value, x2 - PADDING - valueWidth, textY,
-			setting instanceof EnumSetting ? VisualTheme.ACCENT
-				: VisualTheme.TEXT_DISABLED,
+			interactive ? VisualTheme.ACCENT : VisualTheme.TEXT_DISABLED,
 			false);
+
+		if(setting instanceof SliderSetting slider)
+			drawSliderTrack(graphics, slider, rowTop);
+	}
+
+	/**
+	 * 轨道画在行的下沿，宽度就是点击/拖拽的热区（{@link #trackX1()} 到
+	 * {@link #trackX2()}）——所见即所点。
+	 */
+	private void drawSliderTrack(GuiGraphics graphics, SliderSetting slider,
+		int rowTop)
+	{
+		int trackY = rowTop + ROW_HEIGHT - 5;
+		int left = trackX1();
+		int right = trackX2();
+		FlatRenderer.fillRoundedRect(graphics, left, trackY, right,
+			trackY + 2, 1, VisualTheme.CONTROL);
+
+		int fillX =
+			left + (int)Math.round((right - left) * trackFraction(slider));
+		if(fillX > left)
+			FlatRenderer.fillRoundedRect(graphics, left, trackY, fillX,
+				trackY + 2, 1, VisualTheme.ACCENT);
 	}
 
 	private static String valueText(Setting setting)
 	{
 		if(setting instanceof EnumSetting<?> enumSetting)
 			return String.valueOf(enumSetting.getSelected());
+
+		// 滑条自带的显示串：直接读数字会得到 "21.0" 这种，它有更合适的格式
+		if(setting instanceof SliderSetting slider)
+			return slider.getValueString();
 
 		JsonElement json = setting.toJson();
 		if(json == null || json.isJsonNull())
@@ -213,7 +293,39 @@ final class HudSettingsPanel
 		{
 			enumSetting.selectNext();
 			changed = true;
+		}else if(setting instanceof SliderSetting slider)
+		{
+			slider.setValue(valueForX(mouseX, trackX1(), trackX2(),
+				slider.getMinimum(), slider.getMaximum()));
+			// 按下就抓住，之后靠 mouseDragged 跟手；mouseReleased 放开
+			sliderDrag = slider;
+			changed = true;
 		}
+		return true;
+	}
+
+	/**
+	 * 拖拽中。只有确实抓着某条滑条时才返回 true，否则要让编辑器照常拖动元素
+	 * ——返 true 会把整个编辑器的拖动都吃掉。
+	 */
+	boolean mouseDragged(double mouseX)
+	{
+		if(sliderDrag == null)
+			return false;
+
+		sliderDrag.setValue(valueForX(mouseX, trackX1(), trackX2(),
+			sliderDrag.getMinimum(), sliderDrag.getMaximum()));
+		changed = true;
+		return true;
+	}
+
+	/** 松开左键。返回 true 表示刚才确实在拖滑条。 */
+	boolean mouseReleased()
+	{
+		if(sliderDrag == null)
+			return false;
+
+		sliderDrag = null;
 		return true;
 	}
 }

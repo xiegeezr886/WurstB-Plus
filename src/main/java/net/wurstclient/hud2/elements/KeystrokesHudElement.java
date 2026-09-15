@@ -18,21 +18,24 @@ import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.hud2.HudManager;
 import net.wurstclient.gui.visual.VisualTheme;
+import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
 public final class KeystrokesHudElement extends HudElement
 	implements MouseButtonListener
 {
-	private static final int KEY_SIZE = 21;
 	private static final int HALF_HEIGHT = 15;
 	private static final int GAP = 2;
-	private static final int WIDTH = KEY_SIZE * 3 + GAP * 2;
-	private static final int HEIGHT = KEY_SIZE * 2 + HALF_HEIGHT * 3 + GAP * 4;
 	private static final int IDLE_BACKGROUND = VisualTheme.SURFACE_68;
 	private static final int PRESSED_BACKGROUND = VisualTheme.ACCENT;
 	private static final int IDLE_TEXT = VisualTheme.TEXT_DIMMED;
 	private static final int PRESSED_TEXT = VisualTheme.TEXT;
 	private static final int IDLE_BORDER = VisualTheme.BORDER;
 	private static final int PRESSED_BORDER = VisualTheme.ACCENT_HOVER;
+
+	// 逐元素设置。默认 21 就是原来那个 KEY_SIZE 常量，所以默认观感不变。
+	private final SliderSetting keySize = new SliderSetting("Key size", 21, 12,
+		36, 1, ValueDisplay.INTEGER);
 
 	private final Map<KeyMapping, Float> animation = new IdentityHashMap<>();
 	private final CpsCounter leftCps = new CpsCounter();
@@ -42,6 +45,27 @@ public final class KeystrokesHudElement extends HudElement
 	public KeystrokesHudElement()
 	{
 		super("keystrokes", "键位");
+		addSetting(keySize);
+	}
+
+	/**
+	 * 键帽边长改成由设置驱动，于是尺寸不能再是 {@code static final}：原来
+	 * {@code WIDTH}/{@code HEIGHT} 都是从 {@code KEY_SIZE} 算出来的常量，
+	 * 现在必须每次读设置，否则拖了滑条尺寸不动。
+	 */
+	private int keySize()
+	{
+		return keySize.getValueI();
+	}
+
+	private int width()
+	{
+		return keySize() * 3 + GAP * 2;
+	}
+
+	private int height()
+	{
+		return keySize() * 2 + HALF_HEIGHT * 3 + GAP * 4;
 	}
 
 	@Override
@@ -78,13 +102,13 @@ public final class KeystrokesHudElement extends HudElement
 	@Override
 	public int getWidth()
 	{
-		return WIDTH;
+		return width();
 	}
 
 	@Override
 	public int getHeight()
 	{
-		return HEIGHT;
+		return height();
 	}
 
 	@Override
@@ -98,36 +122,34 @@ public final class KeystrokesHudElement extends HudElement
 	{
 		float delta = getFrameDelta();
 		var options = WurstClient.MC.options;
+		int key = keySize();
+		int total = width();
 		int column0 = x;
-		int column1 = x + KEY_SIZE + GAP;
-		int column2 = x + (KEY_SIZE + GAP) * 2;
+		int column1 = x + key + GAP;
+		int column2 = x + (key + GAP) * 2;
 		int rowW = y;
-		int rowAsd = rowW + KEY_SIZE + GAP;
-		int rowSpace = rowAsd + KEY_SIZE + GAP;
+		int rowAsd = rowW + key + GAP;
+		int rowSpace = rowAsd + key + GAP;
 		int rowModes = rowSpace + HALF_HEIGHT + GAP;
 		int rowMouse = rowModes + HALF_HEIGHT + GAP;
 
-		drawKey(graphics, options.keyUp, column1, rowW, KEY_SIZE, KEY_SIZE,
-			delta);
-		drawKey(graphics, options.keyLeft, column0, rowAsd, KEY_SIZE,
-			KEY_SIZE, delta);
-		drawKey(graphics, options.keyDown, column1, rowAsd, KEY_SIZE,
-			KEY_SIZE, delta);
-		drawKey(graphics, options.keyRight, column2, rowAsd, KEY_SIZE,
-			KEY_SIZE, delta);
-		drawKey(graphics, options.keyJump, x, rowSpace, WIDTH, HALF_HEIGHT,
+		drawKey(graphics, options.keyUp, column1, rowW, key, key, delta);
+		drawKey(graphics, options.keyLeft, column0, rowAsd, key, key, delta);
+		drawKey(graphics, options.keyDown, column1, rowAsd, key, key, delta);
+		drawKey(graphics, options.keyRight, column2, rowAsd, key, key, delta);
+		drawKey(graphics, options.keyJump, x, rowSpace, total, HALF_HEIGHT,
 			delta);
 
-		int halfWidth = (WIDTH - GAP) / 2;
+		int halfWidth = (total - GAP) / 2;
 		drawKey(graphics, options.keyShift, x, rowModes, halfWidth,
 			HALF_HEIGHT, delta);
 		drawKey(graphics, options.keySprint, x + halfWidth + GAP, rowModes,
-			WIDTH - halfWidth - GAP, HALF_HEIGHT, delta);
+			total - halfWidth - GAP, HALF_HEIGHT, delta);
 
 		drawMouseKey(graphics, "L " + leftCps.getCps(), options.keyAttack,
 			x, rowMouse, halfWidth, delta);
 		drawMouseKey(graphics, "R " + rightCps.getCps(), options.keyUse,
-			x + halfWidth + GAP, rowMouse, WIDTH - halfWidth - GAP, delta);
+			x + halfWidth + GAP, rowMouse, total - halfWidth - GAP, delta);
 	}
 
 	private void drawKey(GuiGraphics graphics, KeyMapping mapping, int x,
