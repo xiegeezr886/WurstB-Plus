@@ -32,6 +32,8 @@ public final class TemplateToolHack extends Hack
 	private BlockPos startPos;
 	private BlockPos endPos;
 	private BlockPos originPos;
+	/** 选 origin 那一刻玩家的朝向。模板坐标是"以 origin 为原点、按这个朝向旋转"存盘的。 */
+	private net.minecraft.core.Direction templateFront;
 	private final LinkedHashMap<BlockPos, BlockState> nonEmptyBlocks =
 		new LinkedHashMap<>();
 	private final LinkedHashSet<BlockPos> sortedBlocks = new LinkedHashSet<>();
@@ -70,6 +72,7 @@ public final class TemplateToolHack extends Hack
 		startPos = null;
 		endPos = null;
 		originPos = null;
+		templateFront = null;
 		nonEmptyBlocks.clear();
 		sortedBlocks.clear();
 		blockTypesEnabled = false;
@@ -156,6 +159,22 @@ public final class TemplateToolHack extends Hack
 	public void setOriginPos(BlockPos pos)
 	{
 		originPos = pos;
+		// 在这里（而不是存盘时）记下朝向：见 getTemplateFront() 的说明。
+		templateFront = MC.player.getDirection();
+	}
+	
+	/**
+	 * 存盘时用来把绝对坐标转成模板坐标的朝向。
+	 *
+	 * <p>旧实现是在 {@code SavingFileState} 里现读 {@code MC.player.getDirection()}，
+	 * 但那时候玩家已经过了「选 origin → 按回车 → 排序几 tick → 输入名字」这些步骤，
+	 * 中途完全可以自由转身（排序阶段没有界面挡住视角）。反例：面向北选好 origin，
+	 * 在"Creating template..."那几 tick 里把镜头转到东 —— 存出来的模板整体转了 90°，
+	 * 与你在选 origin 时看到的布局不一致（AutoBuild 会照着这个转过的布局建造）。
+	 */
+	public net.minecraft.core.Direction getTemplateFront()
+	{
+		return templateFront != null ? templateFront : MC.player.getDirection();
 	}
 	
 	public LinkedHashMap<BlockPos, BlockState> getNonEmptyBlocks()

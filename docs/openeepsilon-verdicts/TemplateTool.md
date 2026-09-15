@@ -51,3 +51,33 @@
 | 结构不连通时 | 若没有任何候选贴着已排好的方块，`current` 保持 `sortingHelper.first()`（离 origin 最近的） | 有兜底，不会卡住；悬空的方块最后被排进去 |
 | `last1024Added` 的作用 | `:79` 只读 `getLast()`（最近放入的），`:103-104` 裁到最多 1024 个，渲染时只画这批（`:125-126`） | 名字与用法一致，不会无界增长 |
 | 单块 / 空选区 | `totalBlocks == 1`：第 1 tick 搬进 helper，第 2 tick 放进 sorted 后即满足 `size == totalBlocks`；`totalBlocks == 0`（选区内没有非空气方块）：Pass 1/2 都跳过，`:99` 算 `0/0f` 得 NaN（只影响扫描面的显示位置），`:100` 判 0 == 0 成立 ⇒ 直接进 `ChooseNameState` | 空选区会一路生成一个"零方块模板"，存盘后由 `AutoBuildTemplate.load()` 用 `JsonException("Template has no blocks!")` 拒掉（AutoBuild/InstaBuild 会提示并自我关闭）。行为可接受，只是没有在源头拦下，留档不改 |
+## 第四轮精读：`SavingFileState.java`（存盘路径，136 行逐行）+ 一处实际改动
+
+读完 `onEnter` / `createV2Json` / `createV1Json` / `toTemplatePos`，发现并修掉一处
+"模板朝向取决于存盘那一刻的镜头"的问题。
+
+### 实际改动：模板朝向改为「选 origin 时」的朝向
+
+旧实现（`SavingFileState:72` 与 `:105`，v2/v1 各一处）：
+
+```java
+		Direction front = MC.player.getDirection();   // ← 存盘那一刻的朝向
+```
+
+模板坐标是"以 origin 为原点、按 `front` / `front.getCounterClockWise()` 旋转"存下来的
+（`toTemplatePos():122-135` 做点积投影，与 `AutoBuildTemplate.BlockData.toBlockPos()` 互逆）。
+但存盘发生在流程的最后（选 origin → 回车 → 排序若干 tick → 输入名字 → 存盘），
+**中间排序阶段没有界面挡住视角，玩家可以自由转身**。
+
+反例（Rule 9）：面向北选好 origin，在 "Creating template..." 那几 tick 里把镜头转到东 ——
+存出来的模板整体转了 90°，与选 origin 时看到的布局不一致；AutoBuild 之后就会照着这个转过的布局建造。
+现在改为 `TemplateToolHack.setOriginPos()` 里记下朝向（`templateFront` 字段），
+`getTemplateFront()` 供两个 JSON 构造器使用（为空时回退到当前朝向），`onDisable` 里清空。
+
+### 同一文件其余部分：无缺陷
+
+- v1/v2 的口径与 `AutoBuildTemplate.loadV1/loadV2` 一一对应（v1 只存坐标、v2 存坐标+方块名）。
+- `:78-81` 在 `sortedBlocks` 与 `nonEmptyBlocks` 不一致时抛 `IllegalStateException`：
+  这是防御性断言，两个容器由 `CreatingTemplateState` 保证同步，构造不出反例 ⇒ 保留不改。
+- `:43-53` 用 try-with-resources 写文件，失败时报错并自我关闭；`:56-62` 用可点击的 `OPEN_FILE`
+  链接提示保存位置（中文提示）。

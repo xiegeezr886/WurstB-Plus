@@ -69,7 +69,7 @@ public final class SavingFileState extends TemplateToolState
 		JsonObject json = new JsonObject();
 		json.addProperty("version", 2);
 		
-		Direction front = MC.player.getDirection();
+		Direction front = hack.getTemplateFront();
 		BlockPos origin = hack.getOriginPos();
 		
 		JsonArray jsonBlocks = new JsonArray();
@@ -102,7 +102,7 @@ public final class SavingFileState extends TemplateToolState
 		JsonObject json = new JsonObject();
 		json.addProperty("version", 1);
 		
-		Direction front = MC.player.getDirection();
+		Direction front = hack.getTemplateFront();
 		BlockPos origin = hack.getOriginPos();
 		
 		JsonArray jsonBlocks = new JsonArray();
