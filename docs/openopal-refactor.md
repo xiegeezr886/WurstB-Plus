@@ -348,6 +348,27 @@ JumpReset 的 `isFallDamageVelocity` 早退仍是"不计时也不取消包"✓�
 MODIFY 每 tick 调一次 `clearPendingJump()`，现在状态只存在于 JumpReset 模式里，别处**没有**可清的东西，
 因此该调用被去掉（不是行为变化，是状态归属变化的自然结果）✓。
 
+### 第三个模块：Flight（已完成）
+
+`FlightHack` 的模式与前面两个不同：它不是一个 `switch` 语句去"做动作"，而是一个 `switch`
+**表达式**参与计算"这一 tick 的移动向量"，而且 `VANILLA` 与 `ROCKET` 的水平部分完全相同、
+只有垂直倍率不同（原来写成 `mode.getSelected() == Mode.ROCKET ? 3 : 1`，把两个模式的差异
+藏在了模式枚举之外）。接口因此设计成两件事：
+
+| 文件 | 内容 |
+| --- | --- |
+| `FlightMode` | `getName()` / `getHorizontalMovement(delta, forward, sideways, yRot, horizontal)` / `getVerticalMultiplier()`（默认 1） |
+| `VanillaFlightMode` | `MovementPlanner.setHorizontal(...)` |
+| `RocketFlightMode` | 水平同 Vanilla，`getVerticalMultiplier()=3` |
+| `BoostFlightMode` | `clampHorizontal(blendHorizontal(..., 0.1), horizontal)` |
+
+**这个接口不接收 hack 引用**：参数由调用方给全，模式是纯函数，比 Criticals/Velocity 那套
+"把 hack 当上下文传"更干净 —— 只有确实需要读写 hack 状态的模式（JumpReset 的待跳计数）才该拿 hack。
+
+**行为等价性**：三种模式的公式逐字照搬；`ROCKET` 的 3 倍从三元表达式改成
+`getVerticalMultiplier()`，含义、位置（同一个 `verticalSpeed * …` 表达式）都未变；`VANILLA`/`ROCKET`
+共用同一段水平逻辑这一点也仍然成立（两个类各自调用同一个 `MovementPlanner.setHorizontal`）。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
