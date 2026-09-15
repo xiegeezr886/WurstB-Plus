@@ -671,3 +671,18 @@ WurstB：`PlayerAttacksEntityListener`（`TargetHudElement.java:33,83-90`）+ `k
   若以后要给 hud2 元素加设置，需要先设计这一层并确认
   `hud-layout.json` 的向后兼容（`HudManager.loadLayout()` 是 Gson + `elements` 数组，
   新增可选字段默认缺省是安全的）。
+- **§7 第 7 步的纯逻辑部分已完成**：`util/hud/IslandPriority.java`
+  （优先级栈：表头独占、并列取先加入者、自带坐标的表头抑制元素本体）+ 14 个单测。
+  两处与参考的有意分歧都写在类注释里：不照抄那个跨线程的非 volatile 静态
+  `SORTING_DIRTY` 标志（改成按需扫描，栈里只有个位数元素，比排序还便宜），
+  以及把「并列取先加入者」从稳定排序的副作用提升为显式契约。
+  **尚未接任何触发者**——参考的收益依赖触发者数量，音乐岛
+  （`MusicIslandHudElement`）是现成的第一个候选，但接进去属于渲染侧改动，未做。
+- **§5 表里 `ClientTheme` 那一条要下调**：核对后本工程其实大部分已经有了。
+  `RainbowUiHack` + `ClickGui.updateColors()`（434-444 行）已经在做
+  「彩虹 or 固定强调色」这个二分——`RenderUtils.getRainbowColor()`（周期 2s 的
+  正弦彩虹）就是参考 `ClientTheme.RAINBOW` 的等价物，只是算法不同（正弦 vs HSB
+  色轮）而非缺失；`CUSTOM` 也有 `ColorSetting` 一大堆。
+  **真正缺的只是「22 套命名主题」这个挑选器**，那是外观偏好而不是架构缺口，
+  且 WurstB 的 accent 是<b>单色</b>、参考的是<b>一对</b>渐变色——要移植得先决定
+  把这一对放进哪个设置容器。未做，理由记录在此以免以后重复评估。
