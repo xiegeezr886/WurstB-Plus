@@ -205,6 +205,31 @@ OpenOpal 有 `StuckInBlockEvent`，我们原本没有 —— 缺事件的代价�
 | 删除的代码 | — | `getJumpPowerFor()`（迁移后无引用） |
 | 行为 | 未开 HighJump 时原样返回基础值 | 逐位相同（事件初值就是基础值，没监听器改它就是原值） |
 
+### 第 5 项第五个：`ItemUseSlowdownListener`（对应 OpenOpal 的 `ItemUseEvent`）
+
+`ClientPlayerEntityMixin.onTickMovementItemUse()` 原来直接问 NoSlowdown：
+
+```java
+		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
+			&& WurstClient.INSTANCE.getHax().noSlowdownHack.shouldBypassUsingItem())
+			hideNextItemUse = true;
+```
+
+这里是**两步式**的：这个注入点在原版调用 `isUsingItem()` **之前**跑，真正拦截的是后面
+`onIsUsingItem()` 里那次调用，中间靠 `hideNextItemUse` 字段传递，所以事件必须承载"要不要绕过"
+这个决定，而不是直接返回布尔值。改成投票式事件后：
+
+```java
+		ItemUseSlowdownEvent event = new ItemUseSlowdownEvent(false);
+		EventManager.fire(event);
+		if(event.isBypass())
+			hideNextItemUse = true;
+```
+
+`NoSlowdownHack implements ItemUseSlowdownListener`，`onItemUseSlowdown()` 里用**原来那条一模一样的
+条件**（`isEnabled() && shouldBypassUsingItem()`）设 `setBypass(true)`。mixin 里 `noSlowdownHack`
+的引用从 3 处降到 1 处（剩下的 `shouldBypassStuckBlock` 已在第 5 项第一个里切走）。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。

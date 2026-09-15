@@ -36,6 +36,7 @@ import net.wurstclient.events.AirStrafingSpeedListener.AirStrafingSpeedEvent;
 import net.wurstclient.events.ClipAtLedgeListener.ClipAtLedgeEvent;
 import net.wurstclient.events.IsPlayerInLavaListener.IsPlayerInLavaEvent;
 import net.wurstclient.events.IsPlayerInWaterListener.IsPlayerInWaterEvent;
+import net.wurstclient.events.ItemUseSlowdownListener.ItemUseSlowdownEvent;
 import net.wurstclient.events.JumpPowerListener.JumpPowerEvent;
 import net.wurstclient.events.StayingOnGroundSurfaceListener.StayingOnGroundSurfaceEvent;
 import net.wurstclient.events.KnockbackListener.KnockbackEvent;
@@ -107,8 +108,10 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		ordinal = 0), method = "aiStep()V")
 	private void onTickMovementItemUse(CallbackInfo ci)
 	{
-		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
-			&& WurstClient.INSTANCE.getHax().noSlowdownHack.shouldBypassUsingItem())
+		ItemUseSlowdownEvent event = new ItemUseSlowdownEvent(false);
+		EventManager.fire(event);
+		
+		if(event.isBypass())
 			hideNextItemUse = true;
 	}
 	
