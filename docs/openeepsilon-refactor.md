@@ -194,7 +194,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Surround` | COMBAT | 276 | 已优化（§0.3） |
 | `TriggerBot` | COMBAT | 245 | 已优化（§0.3） |
 | `WTap` | COMBAT | 148 | 已优化（见 §0.3） |
-| `AutoEat` | ITEMS | 351 | 不适用（§0.3） |
+| `AutoEat` | ITEMS | 351 | 已优化（§0.3） |
 | `AutoSteal` | ITEMS | 108 | 不适用（§0.3） |
 | `FastUse` | ITEMS | 109 | 已优化（§0.3） |
 | `Restock` | ITEMS | 180 | 不适用（§0.3） |
@@ -364,7 +364,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | hack | 行数 | 状态 |
 | --- | --- | --- |
 | `AutoDrop` | 90 | 不适用（§0.3） |
-| `AutoEat` | 351 | 不适用（§0.3） |
+| `AutoEat` | 351 | 已优化（§0.3） |
 | `AutoSteal` | 108 | 不适用（§0.3） |
 | `AutoSwitch` | 47 | 不适用（§0.3） |
 | `CrashChest` | 62 | 不适用（§0.3） |

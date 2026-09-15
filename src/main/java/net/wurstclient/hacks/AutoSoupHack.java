@@ -180,7 +180,10 @@ public final class AutoSoupHack extends Hack implements UpdateListener
 			return;
 		
 		// stop eating
-		MC.options.keyUse.setDown(false);
+		// 用 resetPressedState() 而不是 setDown(false)：后者会把玩家此刻真按着的右键
+		// 一并按掉（键盘只在状态变化时才重写按键标记，玩家必须松手重按才会继续吃东西）。
+		net.wurstclient.mixinterface.IKeyBinding.get(MC.options.keyUse)
+			.resetPressedState();
 		
 		// reset slot
 		MC.player.getInventory().selected = oldSlot;

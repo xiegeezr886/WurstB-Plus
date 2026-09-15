@@ -264,7 +264,10 @@ public final class AutoEatHack extends Hack implements UpdateListener
 	
 	private void stopEating()
 	{
-		MC.options.keyUse.setDown(false);
+		// 用 resetPressedState() 而不是 setDown(false)：后者会把玩家此刻真按着的右键
+		// 一并按掉（键盘只在状态变化时才重写按键标记，玩家必须松手重按才会继续吃东西）。
+		net.wurstclient.mixinterface.IKeyBinding.get(MC.options.keyUse)
+			.resetPressedState();
 		MC.player.getInventory().selected = oldSlot;
 		oldSlot = -1;
 	}

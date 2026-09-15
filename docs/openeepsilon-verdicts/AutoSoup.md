@@ -48,3 +48,21 @@ containerId **0**（`mixin/ClientPlayerInteractionManagerMixin.java:103-115`）�
   得松开再按才能恢复响应）。Wurst 原设计（AutoEat 同样如此），未改。
 - 空碗整理每 tick 都会跑一遍：只在"有碗不在第 9 槽"时才发包，收敛后自然停止，未加节流。
 - `stack == null`（`:69`）是死判断（`Inventory.getItem` 返回 AIR，不会是 null），属于无害冗余，未动。
+
+## 补充改动（第二轮扫描发现）：stopIfEating() 会按掉玩家真实按着的右键
+
+与 AutoEatHack.stopEating() 同一处缺陷：旧实现是 MC.options.keyUse.setDown(false)，
+而这个方法既在吃到一半时调用，也在 onDisable() 里调用。
+
+**反例（Rule 9）**：玩家自己按着右键用盾/喝汤，AutoSoup 判定血量够了自己结束进食 ——
+按键标记被写成"没按"，玩家手指还按着，必须松手重按才恢复。KeyMapping.setDown 只写标记，
+键盘只在状态变化时重写它；IKeyBinding.resetPressedState() 才是"按玩家真实按键恢复"。
+
+改成：
+
+```java
+		net.wurstclient.mixinterface.IKeyBinding.get(MC.options.keyUse)
+			.resetPressedState();
+```
+
+玩家没按右键时行为不变。
