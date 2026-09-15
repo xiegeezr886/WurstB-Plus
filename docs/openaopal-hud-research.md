@@ -806,3 +806,30 @@ load → register → apply → migrate；`stop()` 的 `saveLayout()`（第 103 
 **没测到的**：持久化与时序依赖真实存档目录；行内容排版、命中后实际改了哪个
 设置、点击后是否存盘，都要真的画一帧才测得了。这些只有逻辑核对，**没有任何
 一处经过游戏内验证**。
+
+**滑条也接上了**（`SliderSetting`，点击与拖拽都支持）。映射抽成纯函数
+`valueForX(mouseX, trackX1, trackX2, minimum, maximum)`：按比例映射到区间再把
+比例夹在 0..1，拖到轨道外面也不越界；方式与工程里既有的滑条一致
+（`NavigatorSettingsPanel.java:507` 是 `minimum + getRange() * percentage`）。
+**故意不做 increment 对齐**：`SliderSetting.setValueIgnoreLock()` 自己会按
+`increment` 从**零**对齐并夹到可用区间（`SliderSetting.java:125-127`），在这儿
+再对齐一次的话，当 `minimum` 不是 `increment` 的整数倍时两次基准不同，算出的值
+与存下的值会对不上。轨道热区由 `trackX1()/trackX2()` 算，绘制与命中共用同一对
+方法——画在那、点在那。
+
+**拖拽接线里最容易写错的一处**：`mouseDragged` 只有确实抓着滑条时才返回 true。
+无条件返回 true 会把编辑器里所有元素的拖动都吃掉，整个编辑器就不能拖了——有
+测试专门钉住「空闲面板不吞拖拽」。存盘时机也挪到了 `mouseReleased`：拖动过程中
+不存，否则会按鼠标事件频率重写 `hud-layout.json`（`setValue` 每次还会调
+`WurstClient.saveSettings()`，那是另一个文件）。
+
+**真实消费者**：`KeystrokesHudElement` 的「键帽大小」滑条（12..36，默认 21 就是
+原来那个 `KEY_SIZE` 常量，默认观感不变）。为此 `KEY_SIZE`/`WIDTH`/`HEIGHT` 三个
+`static final` 必须改成实例方法，否则拖了滑条尺寸不动。
+
+**仍未做的设置类型**：颜色选择器、物品/方块列表、文本框。它们在面板里仍然只读，
+用灰色显示当前值。
+
+**面板测试现在 20 个**：行命中数学的上下边界与越界、空闲面板不吞点击也不吞拖拽、
+滑条的两端与中点映射、拖出轨道夹住、负区间、零宽轨道、零区间不出 NaN、
+遍历一圈确认永不越界。
