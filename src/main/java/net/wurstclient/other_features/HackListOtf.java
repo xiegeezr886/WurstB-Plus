@@ -53,6 +53,15 @@ public final class HackListOtf extends OtherFeature
 		"When enabled, entries slide into and out of the HackList as hacks are enabled and disabled.",
 		true);
 	
+	// 参考 OpenOpal 的 ToggledSettings.BarMode：每项旁边的竖条画在哪一侧。
+	// 默认 OUTER 就是本工程一直以来那个「跟着 Position 走外缘」的画法，因此
+	// 默认观感逐像素不变；LEFT/RIGHT 是参考那两种固定侧的语义。
+	private final EnumSetting<BarMode> barMode = new EnumSetting<>("Bar",
+		"Which side of each entry the colored bar is drawn on.\n"
+			+ "\u00a7lOuter edge\u00a7r follows the HackList position.\n"
+			+ "\u00a7lNone\u00a7r hides the bar entirely.",
+		BarMode.values(), BarMode.OUTER);
+	
 	private SortBy prevSortBy;
 	private Boolean prevRevSort;
 	
@@ -63,6 +72,7 @@ public final class HackListOtf extends OtherFeature
 		addSetting(mode);
 		addSetting(position);
 		addSetting(color);
+		addSetting(barMode);
 		addSetting(sortBy);
 		addSetting(revSort);
 		addSetting(animations);
@@ -71,6 +81,11 @@ public final class HackListOtf extends OtherFeature
 	public Mode getMode()
 	{
 		return mode.getSelected();
+	}
+	
+	public BarMode getBarMode()
+	{
+		return barMode.getSelected();
 	}
 	
 	public Position getPosition()
@@ -131,6 +146,40 @@ public final class HackListOtf extends OtherFeature
 		private final String name;
 		
 		private Mode(String name)
+		{
+			this.name = name;
+		}
+		
+		@Override
+		public String toString()
+		{
+			return name;
+		}
+	}
+	
+	/**
+	 * 竖条画在哪一侧，移植自 OpenOpal 的 {@code ToggledSettings.BarMode}
+	 * （GPL-3.0）。参考只有 NONE/LEFT/RIGHT；本工程多一个 {@code OUTER}，
+	 * 因为原本的竖条是「跟着 Position 走外缘」的——加上它才能在不改动既有
+	 * 观感的前提下，把参考那两种固定侧的选择也提供出来。
+	 *
+	 * <p>
+	 * {@link #toString()} 会被 {@code EnumSetting} 当作持久化值写进配置，
+	 * 改名会导致旧配置回落默认值。
+	 */
+	public static enum BarMode
+	{
+		OUTER("Outer edge"),
+		
+		LEFT("Left"),
+		
+		RIGHT("Right"),
+		
+		NONE("None");
+		
+		private final String name;
+		
+		private BarMode(String name)
 		{
 			this.name = name;
 		}

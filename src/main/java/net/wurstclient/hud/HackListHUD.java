@@ -100,7 +100,7 @@ public final class HackListHUD implements UpdateListener
 		preview.progress = 1;
 		preview.color = 0xFF007CFF;
 		ComposeHackList.renderEntry(context, preview, baseX, posY,
-			containerWidth, alignRight);
+			containerWidth, alignRight, otf.getBarMode());
 	}
 
 	public int getWidth()
@@ -129,7 +129,7 @@ public final class HackListHUD implements UpdateListener
 		entry.progress = 1;
 		entry.color = colors.colorFor(0, 1, System.currentTimeMillis());
 		ComposeHackList.renderEntry(context, entry, baseX, posY,
-			containerWidth, alignRight);
+			containerWidth, alignRight, otf.getBarMode());
 	}
 
 	private void drawHackList(GuiGraphics context, float partialTicks,
@@ -157,7 +157,7 @@ public final class HackListHUD implements UpdateListener
 			composeEntries.get(index).color = colors.colorFor(index,
 				composeEntries.size(), now);
 		ComposeHackList.render(context, composeEntries, baseX, posY,
-			alignRight, partialTicks);
+			alignRight, partialTicks, otf.getBarMode());
 	}
 	
 	public void updateState(Hack hack)

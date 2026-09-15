@@ -686,3 +686,20 @@ WurstB：`PlayerAttacksEntityListener`（`TargetHudElement.java:33,83-90`）+ `k
   **真正缺的只是「22 套命名主题」这个挑选器**，那是外观偏好而不是架构缺口，
   且 WurstB 的 accent 是<b>单色</b>、参考的是<b>一对</b>渐变色——要移植得先决定
   把这一对放进哪个设置容器。未做，理由记录在此以免以后重复评估。
+- **§7 第 4 步的「Bar mode」已完成**：`HackListOtf` 新增 `Bar` 设置
+  （`BarMode`: `Outer edge` / `Left` / `Right` / `None`），`ComposeHackList`
+  按它放置每项的竖条，`HackListHUD` 三处调用点透传。
+  又一处「先核实再动工」的收获：`ComposeHackList.renderEntry` 原本**已经有**
+  一条竖条，只是位置写死成「跟着 Position 走外缘」；所以真正缺的只是参考那两
+  种固定侧的选择，而不是从零加一条竖条。为此多了一个 `OUTER` 值——只有让它
+  等于原来那行 `rightAligned ? right - 3 : left + 1`，才能在不改默认观感的前提
+  下把参考的语义也提供出来，这一点有单测逐例钉住。
+  另外参考的竖条带一层 0.5px 偏移的阴影，本工程原本没有；**没有加**，因为加
+  了会改变默认观感，而这条竖条本来就存在、只是不可选。
+  §7 第 4 步剩余的 `Offset scoreboard`、`Visible categories`、`getTotalHeight()`
+  仍未做。
+- **顺带核实**：参考模块列表的逐项颜色是
+  `interpolateColorsBackAndForth(6, index * 20, theme.first, theme.second)`，
+  即「按行号在主题双色间来回渐变」；本工程的 `ModuleColors` 已有
+  RAINBOW/STATIC/FADE/GRADIENT/WAVE 五种逐项配色，比参考那一种更强，
+  不需要移植。
