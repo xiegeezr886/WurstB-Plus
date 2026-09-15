@@ -19,8 +19,8 @@
 | 事件优先级 | `@Subscribe(priority=…)` + `EventRegistry` 按优先级排序 | `EVENTS` 注册表，**无优先级**（按注册顺序） | ⏳ 影响面大，单独立项 |
 | 事件粒度 | 60+ 事件（Pre/PostMovementPacket、Jump、Step、BlockPlaced、AttackDelay、ItemUse、VisualSwing…） | 事件数明显更少 | ⏳ 按需补，不做全量 |
 | 模块结构 | 每个模式一个类（`criticals/impl/*`、`velocity/impl/*`、`flight/impl/*`…） | 枚举模式 + `switch` | ⏳ 架构性改动，最后做 |
-| 服务端状态预测 | `LocalDataWatch`(243)、`TransactionStreamValidator`(45)、`packet/blockage/*` | 无 | ❌ 不采纳：Hypixel 专用 |
-| 反作弊针对性绕过 | HeyPixel/Grim 专用（`HeypixelCriticals`(143)、`VelocityModule`(94) 等） | 通用实现 | ❌ 不采纳：定位不符 |
+| 服务端状态预测 | `LocalDataWatch`(243)、`TransactionStreamValidator`(45)、`packet/blockage/*` | `RotationFaker` 记录服务器上一次看到的朝向；`BlinkHack`/`FakeLagHack`/`PacketCancellerHack` 已经能扣包/延迟发包；`ConnectionPacketOutputListener`/`PacketInputListener` 提供包级钩子 | ❌ 不整类移植：实现绑定 Hypixel 事务包语义、能力我们已有等价物（见下文专节） |
+| 反作弊针对性绕过 | HeyPixel/Grim 专用（`HeypixelCriticals`(143)、`VelocityModule`(94) 等） | `CriticalsHack`/`NoVelocityHack`/`ReachHack` 等通用实现 | ❌ 不整类移植：无法在本环境验证、且会替换掉现有通用实现（见下文专节） |
 
 ### 移植时不能照抄的一处（有据可查）
 
@@ -87,14 +87,38 @@ lower priorities"*，但 `event/registry/EventRegistry.java` 的 `sortSubscriber
 等仍然按原样工作，但开启后发给服务器的旋转会比 hack 请求的值偏差 < 1 个像素
 （灵敏度 0.5 时 0.15°，灵敏度 1.0 时 0.768°）——这是把它做成可选开关而不是默认行为的原因。
 
+## 关于 Hypixel / GrimAC 专用件为什么不整类移植
+
+先把范围说清楚：**不移植的是"针对某个服务端/某个反作弊的具体实现"，不是这些能力类别**。
+这几类能力我们本来就有通用版本，照搬 OpenOpal 的专用版反而是降级。
+
+| OpenOpal 的东西 | 我们已有的对应物 | 结论 |
+| --- | --- | --- |
+| `packet/blockage/*`（按住/改写发出的包） | `BlinkHack`、`FakeLagHack`、`PacketCancellerHack` + `PacketOutputListener`（`runAfterSend`）、`ConnectionPacketOutputListener`、`PacketInputListener` | 能力已有；OpenOpal 那套是"按方向/按类型筛包"的另一种组织方式，不是新能力 |
+| `TransactionStreamValidator`（45 行） | 无对等物 | 它校验的是 **Hypixel 的事务包流**（用服务端确认序号推算"服务端处理到哪一 tick"）。换服务器后这个包流要么不存在、要么语义不同 ⇒ 结论全错，属于纯负担 |
+| `LocalDataWatch`（243 行） | `RotationFaker` 已经维护"服务器上一次看到的朝向/俯仰"（`serverYaw`/`serverPitch` + `onSentPacket`→`trackSentRotation`），`getServerYaw()` 就是"我上一次真正发出去的值" | 可移植的只是**思路**（把"服务端眼里的我"收拢到一处）；按它的实现照搬会造出第二份真相来源，和 `RotationFaker` 的数据互相漂移 |
+| `HeypixelCriticals`、`HypixelRotationModel`、`velocity/impl/*`、`disabler/impl/*` | `CriticalsHack`、`NoVelocityHack`、`ReachHack` 等通用实现（各有模式枚举） | 这些代码的价值 100% 是"某个反作弊的某个版本接受它"。本环境只能编译 + 单元测试，没有可连的真实服务器/反作弊实例 ⇒ **无法验证**，按 Rule 9 不能声称它有效 |
+
+三条更硬的理由：
+
+1. **验证边界**：本会话的验证手段只有 `gradlew compileJava` + JUnit。旋转栅格那类"数学上等价于真人鼠标输入"的东西可以离线证明；"GrimAC 会不会判我"不行。
+2. **维护成本不对称**：反作弊逻辑在服务端随时改，过期的绕过比没有更糟（会被标记）。而栅格/模型/事件优先级这些"与具体服务端无关"的改进不会过期。
+3. **风险不对称**：扣包/延迟技巧在管理规范的服务器上属于会被追责的行为。我们已经把它们做成**显式命名的可选 hack**；把它们改造成"默认就替用户扣包"的形态不是我们想要的默认值。
+
+**什么情况下我会改主意**：如果明确要针对某个服务端做模式，合理做法是 ——（a）只挑一个具体行为（例如某反作弊下的击退），（b）做成该 hack 里**新增的模式枚举**、默认仍是通用模式，（c）在文档里写明"未在真实服务器验证"。这条路随时可以走，但它需要一台能连的测试服务器，而不是照着别人的代码抄。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（见第 3 项）**。
 2. ~~旋转模型对齐~~ **已完成（见第 2 项）**。剩下的是把栅格与模型接到真正发包的地方（第 1 项）。
 3. **事件优先级**：给 `EVENTS` 加优先级排序（按 `Subscribe` 注释语义，即高优先级先跑），
    给现有监听器保留默认 0。改动面约 200 处引用，需要一次性提交。
-4. **按需补事件**：优先 `PostMovementPacketEvent`、`JumpEvent`、`AttackDelayEvent`、
-   `ItemUseEvent`、`VisualSwingEvent`（这几个能把「视觉挥手/真实挥手」「跳跃包/跳跃逻辑」分开，
-   是多个常用 hack 目前只能靠 mixin 硬插的地方）。
+4. **按需补事件**：我们已有 38 个监听器（含 `PreMotion`/`PostMotion`、`Knockback`、
+   `VelocityFromEntityCollision`、`VelocityFromFluid`、`PlayerMove`、`HandleInput`、
+   `MouseUpdate`、`PacketInput`/`PacketOutput`）。OpenOpal 有而我们**确实缺**的是：
+   `PostMovementPacketEvent`（移动包发完之后的时点）、`AttackDelayEvent`、`ItemUseEvent`、
+   `SwingEvent`/`VisualSwingEvent`（真挥手 vs 视觉挥手分离）、`JumpEvent`、`StepEvent`、
+   `ClipAtLedgeEvent`、`PushOutOfBlocksEvent`、`StuckInBlockEvent`、`SprintEvent`/`KeepSprintEvent`、
+   `SlowdownEvent`、`SlotChangeEvent`、`ChatReceivedEvent`。按"有 hack 需要"逐个补，不做全量。
 5. **模块模式类化**：`Criticals`、`Velocity`、`Flight`、`Speed`、`NoSlow` 这几组模式多的模块，
    每个模式拆成一个类（对应 OpenOpal 的 `impl` 目录）。
