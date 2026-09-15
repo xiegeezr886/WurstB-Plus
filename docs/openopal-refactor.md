@@ -369,6 +369,34 @@ MODIFY 每 tick 调一次 `clearPendingJump()`，现在状态只存在于 JumpRe
 `getVerticalMultiplier()`，含义、位置（同一个 `verticalSpeed * …` 表达式）都未变；`VANILLA`/`ROCKET`
 共用同一段水平逻辑这一点也仍然成立（两个类各自调用同一个 `MovementPlanner.setHorizontal`）。
 
+### 第四个模块：Speed（已完成）+ NoSlow 的结论（不适用）
+
+本仓库的 Speed 模块文件名是 `SpeedHackHack.java`（232 行，类名 `SpeedHackHack`、`getName()` 是
+"SpeedHack"），五个模式也是 `EnumSetting + switch`。拆成 `net.wurstclient.hacks.speed`：
+
+| 文件 | 内容 |
+| --- | --- |
+| `SpeedMode` | `getName()` / `apply(hack, player, forward, sideways, targetSpeed)` / `reset()`（默认空） |
+| `NcpBhopSpeedMode` | `hack.applyHop(..., 0.42, 0.35)` |
+| `StrafeSpeedMode` | blend（地面 1、空中 Strafe strength）+ Auto jump 时 y=0.42 |
+| `LowHopSpeedMode` | 落地 y=0.2、空中把下沉限制到 -0.08；**`lowHopActive` 状态搬进本类** |
+| `OnGroundSpeedMode` | 只在地面把水平速度设成目标速度 |
+| `BrutalSpeedMode` | `hack.applyHop(..., max(targetSpeed, Speed×0.45), 0.42, 1)` |
+
+hack 侧留：`canControl()`、`isMoving` 检查、`targetSpeed` 计算（`BASE_SPEED × Speed × 药水倍率`）、
+`applyHop()`（NCP Bhop 与 Brutal 共用，所以留在 hack 上并改成 public）与三个只读 getter
+（`isAutoJump()`、`getStrafeSpeed()`、`getSpeedSetting()`）。
+
+**状态归属的处理**：原来 `lowHopActive` 挂在 hack 上，而清除它的地方有三处 ——
+失去控制、没在移动、以及"当前模式不是 LowHop"（后一处是为了切走模式后不留脏状态）。
+现在状态在 `LowHopSpeedMode` 里，hack 用一个 `resetModeState()`（`for(Mode m : Mode.values())
+m.impl().reset();`）罩住这三处：只有 LowHop 有状态，其余是空操作，语义与原来"总是把
+`lowHopActive` 置回 false"一致 ✓；`onEnable/onDisable` 也改用它 ✓。
+
+**NoSlow 的结论：不适用**。`NoSlowdownHack` 没有模式枚举，它是"若干独立开关 + 事件订阅"的组合
+（物品减速、缠网/细雪/甜浆果丛、以及第 5 项里刚接的两个事件），没有"同一件事的多种实现"可拆；
+硬套模式类化只会平白多出一层。按 Rule 9，这里不做改动，只记录结论。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
