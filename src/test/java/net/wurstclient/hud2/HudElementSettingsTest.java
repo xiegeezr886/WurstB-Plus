@@ -9,13 +9,20 @@ package net.wurstclient.hud2;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.wurstclient.gui.visual.VisualTheme;
+import net.wurstclient.hud2.elements.ClockHudElement;
+import net.wurstclient.hud2.elements.FpsHudElement;
 import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.settings.ColorSetting;
+import net.wurstclient.settings.Setting;
 
 /**
  * 覆盖 {@code HudElement} 的「逐元素设置」注册表。
@@ -127,5 +134,30 @@ final class HudElementSettingsTest
 	{
 		assertTrue(new CheckboxSetting("A", true).toJson().getAsBoolean());
 		assertFalse(new CheckboxSetting("B", false).toJson().getAsBoolean());
+	}
+
+	/**
+	 * {@code TextHudElement} 上的文字颜色设置会同时长到 9 个子类上，所以这里
+	 * 用一个代表元素钉住它，重点是<b>默认值必须等于原来那个常量</b>
+	 * （{@code VisualTheme.TEXT}），否则那 9 个元素的默认观感一起变了。
+	 */
+	@Test
+	void textElementsGetAColorSettingThatDefaultsToTheOldConstant()
+	{
+		HudElement element = new FpsHudElement();
+		Setting setting = element.getSettings().get("text color");
+
+		assertNotNull(setting);
+		assertInstanceOf(ColorSetting.class, setting);
+		assertEquals(VisualTheme.TEXT,
+			((ColorSetting)setting).getColor().getRGB());
+	}
+
+	/** 基类构造函数里注册，子类不用各写一遍——多写一次会因为撞名直接抛。 */
+	@Test
+	void everyTextElementSharesTheSameSingleColorSetting()
+	{
+		assertEquals(1, new FpsHudElement().getSettings().size());
+		assertEquals(1, new ClockHudElement().getSettings().size());
 	}
 }

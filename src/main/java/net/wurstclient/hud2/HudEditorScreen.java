@@ -65,7 +65,7 @@ public final class HudEditorScreen extends Screen
 	{
 		clearDrag();
 		lastRenderNanos = 0;
-		boolean changed = false;
+
 		for(Map.Entry<String, HudLayout.HudElementConfig> entry : layout
 			.getElements().entrySet())
 		{
@@ -83,10 +83,13 @@ public final class HudEditorScreen extends Screen
 			if(x == oldX && y == oldY)
 				continue;
 			setAbsolutePosition(config, x, y, editorWidth, editorHeight);
-			changed = true;
 		}
-		if(changed)
-			hudManager.saveLayout();
+
+		// 无条件存盘（原来是「有位移才存」）。除了位移，逐元素设置也要靠这里
+		// 落盘：取色屏是另一个 Screen，编辑完回到编辑器会重跑 init()，而颜色
+		// 只写在 hud-layout.json 里（元素设置不在 SettingsFile 里），
+		// 不在这里存就会一直等到退出游戏才写。
+		hudManager.saveLayout();
 	}
 
 	@Override
@@ -594,6 +597,8 @@ public final class HudEditorScreen extends Screen
 					config.getHorizontalOffset(), config.getVerticalOffset());
 		}
 		clearDrag();
+		// 关编辑器时再存一次：逐元素设置只写在 hud-layout.json 里
+		hudManager.saveLayout();
 		minecraft.setScreen(parentScreen);
 	}
 

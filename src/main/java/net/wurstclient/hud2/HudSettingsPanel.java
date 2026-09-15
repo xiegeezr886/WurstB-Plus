@@ -7,9 +7,12 @@ import com.google.gson.JsonElement;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.clickgui2.screens.EditColorScreen;
 import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.Setting;
 import net.wurstclient.settings.SliderSetting;
@@ -215,6 +218,20 @@ final class HudSettingsPanel
 			return;
 		}
 
+		if(setting instanceof ColorSetting colorSetting)
+		{
+			int boxX = x2 - PADDING - BOX_SIZE * 2;
+			int boxY = rowTop + (ROW_HEIGHT - BOX_SIZE) / 2;
+			// 色块本身就是「值」，不再另写一串十六进制——196 宽的行放不下
+			FlatRenderer.fillRoundedRect(graphics, boxX, boxY, x2 - PADDING,
+				boxY + BOX_SIZE, 2, colorSetting.getColorI());
+			String label = font.plainSubstrByWidth(setting.getName(),
+				Math.max(0, WIDTH - PADDING * 3 - BOX_SIZE * 2));
+			graphics.drawString(font, label, x1 + PADDING, textY,
+				VisualTheme.TEXT, false);
+			return;
+		}
+
 		String value = valueText(setting);
 		int valueWidth = font.width(value);
 		String label = font.plainSubstrByWidth(setting.getName(),
@@ -300,6 +317,13 @@ final class HudSettingsPanel
 			// 按下就抓住，之后靠 mouseDragged 跟手；mouseReleased 放开
 			sliderDrag = slider;
 			changed = true;
+		}else if(setting instanceof ColorSetting colorSetting)
+		{
+			// 复用 ClickGUI 已有的取色屏，而不是自己写一个取色器。
+			// 开法与 ClickGUI 完全一致（ColorComponent.java:47），
+			// prevScreen 传当前屏，关掉取色屏就回到 HUD 编辑器。
+			WurstClient.MC.setScreen(
+				new EditColorScreen(WurstClient.MC.screen, colorSetting));
 		}
 		return true;
 	}
