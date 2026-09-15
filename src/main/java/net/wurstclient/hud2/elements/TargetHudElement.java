@@ -27,6 +27,7 @@ import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.hud2.HudManager;
 import net.wurstclient.hud2.render.RiseFrostedGlass;
 import net.wurstclient.hud2.render.RiseHudFont;
+import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.ScreenRegistry;
 import net.wurstclient.util.esp.EspEquipmentLayout;
 
@@ -69,9 +70,14 @@ public final class TargetHudElement extends HudElement
 	private float healthAnimationTarget;
 	private long healthAnimationStarted;
 
+	// 逐元素设置。默认值必须等于加这个开关之前的行为，否则老用户的观感会变。
+	private final CheckboxSetting equipment = new CheckboxSetting("Equipment",
+		"Show the target's armor and held item under the health bar.", true);
+
 	public TargetHudElement()
 	{
 		super("target_hud", "目标信息");
+		addSetting(equipment);
 	}
 
 	@Override
@@ -305,7 +311,8 @@ public final class TargetHudElement extends HudElement
 
 		drawParticles(graphics, x, y);
 		drawFace(graphics, target, x, y, partialTicks);
-		drawEquipment(graphics, target, x, y, width, contentX);
+		if(equipment.isChecked())
+			drawEquipment(graphics, target, x, y, width, contentX);
 	}
 
 	/**

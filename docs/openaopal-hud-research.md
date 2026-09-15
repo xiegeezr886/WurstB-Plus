@@ -749,3 +749,40 @@ WurstB：`PlayerAttacksEntityListener`（`TargetHudElement.java:33,83-90`）+ `k
   那是设计新功能而不是接线，且要在无法进游戏验证的前提下改那个 751 行的
   渲染类。所以停手，把它标注成死代码而不是假装它是活的。
   **如果以后不需要第三个主张者，删掉它比留着更干净。**
+
+## 十、hud2 逐元素设置机制（本轮新增）
+
+这一层是`hud2` 唯一被核实为**真实架构缺口**的东西：`HudElement` 原先只暴露
+`getId/getName/isSingleton/renderEditorPreview/onEnable/onDisable/getWidth/`
+`getHeight/getDefaultLayout`，`HudElementConfig` 只有 enabled / 对齐 / 偏移 /
+缩放——参考里那些「元素内的开关」在本工程**无处安放**。
+
+**实现**：`HudElement` 增加 `addSetting(Setting)` + `getSettings()`，键的算法
+与 `Feature.addSetting` 一致（名字转小写），但用 `Locale.ROOT` 而非默认区域
+（默认区域在土耳其语环境下会把 `I` 折成无点 `ı`）。持久化沿用
+`hud-layout.json`，在每个元素对象里多一个 `settings` 对象——不在
+`SettingsFile` 里做，因为那个文件是按 `Feature` 组织的（构造参数就是
+hax/cmds/otfs），把元素塞进去要么改它的构造器、要么让 `HudElement` 继承
+`Feature`，都会波及现有元素类。放在布局文件里则天然向后兼容：旧配置没有
+`settings` 键，`obj.has("settings")` 为假，元素保持构造时的默认值。
+
+**一个必须记住的时序陷阱**：`HudManager.start()` 里 `loadLayout()`（第 80 行）
+跑在 `registerDefaultElements()`（第 81 行）**之前**，所以 load 的时候
+`elements` 还是空的，没法把设置直接套上去。因此设置 JSON 先在
+`pendingElementSettings` 里缓存，等元素注册完由 `applyElementSettings()`
+（第 84 行）套上。它还必须排在 `migrateLegacyLayout()`（第 85 行）**之前**，
+因为后者可能触发 `saveLayout()`——那时元素上还是默认值，会把用户存过的设置
+**写回成默认值覆盖掉**。正确顺序是
+load → register → apply → migrate；`stop()` 的 `saveLayout()`（第 103 行）
+在最后，那时设置已就位。
+
+**已接的真实消费者**：`TargetHudElement` 的 `Equipment` 开关（默认 true，
+等于加开关之前那个「无条件画装备」的行为）。之前那个装备行是我加的、
+**没有办法关掉**，现在可以了。
+
+**还没做（下一步）**：`HudEditorScreen` 里让用户点得到这些设置。现在它们
+只存在于配置文件里——行为是真的、默认值是对的、手改 `hud-layout.json`
+是生效的，但**在游戏里点不到**。这一层故意做成纯追加，UI 接上去不需要改
+上面的任何机制。另外 6 个测试只覆盖注册表契约（小写键、大小写撞名即报错、
+不可外部修改、纯勾选框序列化成裸布尔量）；持久化与时序依赖真实存档目录，
+无头测不了。

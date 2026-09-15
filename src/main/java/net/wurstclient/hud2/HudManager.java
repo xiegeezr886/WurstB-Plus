@@ -20,6 +20,7 @@ import net.wurstclient.event.EventManager;
 import net.wurstclient.events.GUIRenderListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
+import net.wurstclient.settings.Setting;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
 import net.wurstclient.hud2.elements.CoordsHudElement;
@@ -60,6 +61,11 @@ public final class HudManager implements GUIRenderListener
 	private final Map<String, HudElement> elements = new LinkedHashMap<>();
 	private final HudLayout layout = new HudLayout();
 	private final Map<String, String> elementDisplayNames = new LinkedHashMap<>();
+	// loadLayout() 跑在 registerDefaultElements() 之前（见 start()），那时
+	// elements 还是空的，没法把设置直接套到元素上。所以先在这儿缓存下来，
+	// 等元素都注册完再 apply。
+	private final Map<String, JsonObject> pendingElementSettings =
+		new LinkedHashMap<>();
 	private final HudNotificationRenderer notificationRenderer;
 	private Path layoutFile;
 
@@ -73,6 +79,9 @@ public final class HudManager implements GUIRenderListener
 		layoutFile = WURST.getWurstFolder().resolve("hud-layout.json");
 		loadLayout();
 		registerDefaultElements();
+		// 必须在 migrateLegacyLayout() 之前：它可能触发 saveLayout()，而那时
+		// 元素上还是默认值，会把用户存过的设置写回成默认值覆盖掉。
+		applyElementSettings();
 		migrateLegacyLayout();
 
 		for(HudElement element : elements.values())
@@ -462,12 +471,54 @@ public final class HudManager implements GUIRenderListener
 						obj.get("verticalOffset").getAsInt());
 				if(obj.has("scale"))
 					config.setScale(obj.get("scale").getAsFloat());
+				// 逐元素设置先缓存，元素还没注册（见 pendingElementSettings）
+				if(obj.has("settings")
+					&& obj.get("settings").isJsonObject())
+					pendingElementSettings.put(id,
+						obj.getAsJsonObject("settings"));
 			}
 		}catch(IOException | JsonException e)
 		{
 			System.err.println(
 				"[HUD] Failed to load layout: " + e.getMessage());
 		}
+	}
+
+	/**
+	 * 把 {@link #pendingElementSettings} 里的值套到已注册的元素上。旧配置里
+	 * 没有 {@code settings} 键，于是这里什么都不做、元素保持构造时的默认值
+	 * ——这就是向后兼容的全部机制。
+	 */
+	private void applyElementSettings()
+	{
+		for(Map.Entry<String, JsonObject> entry : pendingElementSettings
+			.entrySet())
+		{
+			HudElement element = elements.get(entry.getKey());
+			if(element == null)
+				continue;
+
+			JsonObject json = entry.getValue();
+			for(Setting setting : element.getSettings().values())
+			{
+				JsonElement value = json.get(setting.getName());
+				if(value == null)
+					continue;
+
+				// 一个坏值不应该让整份布局都读不进来：手改过的 JSON 里
+				// 把布尔写成字符串是很正常的事，而 fromJson 会直接抛。
+				try
+				{
+					setting.fromJson(value);
+				}catch(RuntimeException e)
+				{
+					System.err.println("[HUD] Failed to load setting "
+						+ element.getId() + " " + setting.getName() + ": "
+						+ e);
+				}
+			}
+		}
+		pendingElementSettings.clear();
 	}
 
 	void saveLayout()
@@ -492,6 +543,15 @@ public final class HudManager implements GUIRenderListener
 			el.addProperty("verticalOffset",
 				entry.getValue().getVerticalOffset());
 			el.addProperty("scale", entry.getValue().getScale());
+
+			HudElement element = elements.get(entry.getKey());
+			if(element != null && !element.getSettings().isEmpty())
+			{
+				JsonObject elSettings = new JsonObject();
+				for(Setting setting : element.getSettings().values())
+					elSettings.add(setting.getName(), setting.toJson());
+				el.add("settings", elSettings);
+			}
 			arr.add(el);
 		}
 		root.add("elements", arr);
