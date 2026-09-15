@@ -9,15 +9,36 @@ package net.wurstclient.hacks;
 
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.events.PortalNauseaListener;
+import net.wurstclient.events.PortalNauseaListener.PortalNauseaEvent;
 import net.wurstclient.hack.Hack;
 
 @SearchTags({"portal gui"})
-public final class PortalGuiHack extends Hack
+public final class PortalGuiHack extends Hack implements PortalNauseaListener
 {
 	public PortalGuiHack()
 	{
 		super("PortalGUI");
 		setCategory(Category.OTHER);
+	}
+	
+	@Override
+	protected void onEnable()
+	{
+		EVENTS.add(PortalNauseaListener.class, this);
+	}
+	
+	@Override
+	protected void onDisable()
+	{
+		EVENTS.remove(PortalNauseaListener.class, this);
+	}
+	
+	@Override
+	public void onPortalNausea(PortalNauseaEvent event)
+	{
+		if(isEnabled())
+			event.setKeepScreen(true);
 	}
 	
 	// See ClientPlayerEntityMixin.beforeUpdateNausea()

@@ -27,7 +27,6 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
@@ -39,16 +38,17 @@ import net.wurstclient.events.ForwardImpulseListener.ForwardImpulseEvent;
 import net.wurstclient.events.HasEffectListener.HasEffectEvent;
 import net.wurstclient.events.IsPlayerInLavaListener.IsPlayerInLavaEvent;
 import net.wurstclient.events.IsPlayerInWaterListener.IsPlayerInWaterEvent;
+import net.wurstclient.events.IsSpectatorListener.IsSpectatorEvent;
 import net.wurstclient.events.ItemUseSlowdownListener.ItemUseSlowdownEvent;
 import net.wurstclient.events.JumpPowerListener.JumpPowerEvent;
 import net.wurstclient.events.StayingOnGroundSurfaceListener.StayingOnGroundSurfaceEvent;
 import net.wurstclient.events.KnockbackListener.KnockbackEvent;
 import net.wurstclient.events.PlayerMoveListener.PlayerMoveEvent;
 import net.wurstclient.events.PostMotionListener.PostMotionEvent;
+import net.wurstclient.events.PortalNauseaListener.PortalNauseaEvent;
 import net.wurstclient.events.SprintHungerListener.SprintHungerEvent;
 import net.wurstclient.events.PreMotionListener.PreMotionEvent;
 import net.wurstclient.events.UpdateListener.UpdateEvent;
-import net.wurstclient.hack.HackList;
 import net.wurstclient.mixinterface.IClientPlayerEntity;
 import net.wurstclient.util.Rotation;
 
@@ -202,8 +202,9 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	}
 	
 	/**
-	 * When PortalGUI is enabled, this mixin temporarily sets the current screen
-	 * to null to prevent the updateNausea() method from closing it.
+	 * When a listener asks to keep the current screen open (PortalGUI), this
+	 * mixin temporarily sets the current screen to null to prevent the
+	 * updateNausea() method from closing it.
 	 */
 	@Inject(at = @At(value = "FIELD",
 		target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;",
@@ -211,7 +212,10 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		ordinal = 0), method = "handleNetherPortalClient()V")
 	private void beforeUpdateNausea(CallbackInfo ci)
 	{
-		if(!WurstClient.INSTANCE.getHax().portalGuiHack.isEnabled())
+		PortalNauseaEvent event = new PortalNauseaEvent(false);
+		EventManager.fire(event);
+		
+		if(!event.shouldKeepScreen())
 			return;
 		
 		tempCurrentScreen = minecraft.screen;
@@ -295,8 +299,9 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Override
 	public boolean isSpectator()
 	{
-		return super.isSpectator()
-			|| WurstClient.INSTANCE.getHax().freecamHack.isEnabled();
+		IsSpectatorEvent event = new IsSpectatorEvent(super.isSpectator());
+		EventManager.fire(event);
+		return event.isSpectator();
 	}
 	
 	@Override

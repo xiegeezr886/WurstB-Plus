@@ -278,6 +278,18 @@ AutoSprint 在 mixin 里有三处引用，语义并不相同，所以**没有硬
 至此第 5 项已完成 8 个事件、迁移 10 个 hack；`ClientPlayerEntityMixin` 只剩两处直接引用
 （`applySprint()` 有意保留 + PortalGUI/Freecam）。
 
+### 第 5 项第九、十个：`PortalNauseaListener` + `IsSpectatorListener`（mixin 里最后两处直连）
+
+| | 旧 | 新 |
+| --- | --- | --- |
+| PortalGUI | `beforeUpdateNausea()` 里 `if(!portalGuiHack.isEnabled()) return;`，然后藏屏幕 | 先发 `PortalNauseaEvent`（初值 false），`shouldKeepScreen()` 为真才藏屏幕；`PortalGuiHack` 订阅后设 true（顺带补上它缺的 `onEnable/onDisable`） |
+| Freecam | `isSpectator()` 里 `return super.isSpectator() \|\| freecamHack.isEnabled();` | `IsSpectatorEvent(super.isSpectator())` → 监听器可改 → 返回 `event.isSpectator()`；`FreecamHack` 订阅（它本来就有全套 `EVENTS` 注册，加一行即可），并保留 `isNormallySpectator()` 供以后判断"本来是不是旁观者" |
+
+事件名刻意**不含 hack 名字**（不是 `PortalGuiEvent`/`FreecamEvent`）：PortalGUI 只是"要求保住界面"的
+第一个用户，Freecam 只是"要求当旁观者"的第一个用户，语义留给事件本身。
+
+**至此 `ClientPlayerEntityMixin` 的直接 hack 引用只剩 `applySprint()` 一处（有意保留、已注明理由）。**
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
