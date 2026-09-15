@@ -21,3 +21,22 @@
 - `:298` 在已经用 `ChatUtils.error` + 类名/消息告知用户之后仍然 `e.printStackTrace()`。
   与 `InstaBuildHack:228` 是同一份复制代码。属于控制台噪音而非缺陷，未改（删掉会损失排错信息）。
 - 未逐行核对建造顺序、`useSavedBlocks` 与 FastPlace 的具体实现细节；没有实机建造验证。
+
+## 第二轮精读（建造循环 / 物品切换 / 模板加载，逐行）
+
+本轮把 `:136-315` 逐行读完，未发现可举证缺陷。新增证据与留档：
+
+- `status` 在 `:78` 显式初始化为 `NO_TEMPLATE`（`onEnable` 不设它也不会让 `switch` 拿到 null），
+  与 `:144-147` 的回落逻辑配对，重开模块后的状态是确定的。
+- `:241` 那处「嵌套 if + 无括号 else」读起来难受，但 else 绑定的就是 `if(strictBuildOrder.isChecked())`，
+  语义正是想要的：严格顺序 = 遇到够不到的方块立刻停，否则跳过它继续找下一个。
+- `:247-252` 勾选「只用已存方块」而背包里没有该方块时，会**每 tick 空转并 return**（模块卡住不动）。
+  这是「严格按模板」的必然结果，没有反例说明它是错误行为，按第 9 条只记录。
+- `:279-301` 模板加载不需要额外空值保护：`FileSetting:36` 把 `selectedFile` 初始化为 "",
+  `:72` 有 `Objects.requireNonNull`，`:85-92` 有文件时取第一个 ⇒ `getSelectedFile()` 不会返回 null；
+  文件夹为空时 `folder.resolve("")` 指向目录本身，`JsonUtils.parseFileToObject` 抛 IOException，
+  已被 `:289` 捕获并自我关闭。
+- 物品切换的时序安全：原版 `MultiPlayerGameMode.ensureHasSentCarriedItem()`（反编译源 `:285-290`）
+  对比 `carriedIndex` 与 `inventory.selected`，并在每次交互前（`:200/:272/:294/:362/:407/:416/:422/:485`）
+  补发 `ServerboundSetCarriedItemPacket` ⇒ `giveOrSelectItem()` 换手后即便同 tick 就放置，
+  服务端也会先收到换手包。
