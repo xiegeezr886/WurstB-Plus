@@ -106,6 +106,26 @@ final class RotationGcdPolicyTest
 	}
 
 	@Test
+	void chainedPatchingKeepsEveryStepOnThePixelGrid()
+	{
+		double step = RotationGcdPolicy.gridStep(0.5);
+		float target = 47.3F;
+		float current = 12F;
+
+		for(int i = 0; i < 40; i++)
+		{
+			float next = RotationGcdPolicy.patch(target, current, step);
+			double pixels = (next - current) / step;
+			assertEquals(Math.round(pixels), pixels, 1E-3,
+				"每一次发送与上一次之间必须是整数个鼠标像素");
+			current = next;
+		}
+
+		// 收敛到目标半个像素以内（栅格决定不可能正好落在目标上）
+		assertEquals(target, current, step);
+	}
+
+	@Test
 	void resultIsAlwaysWithinHalfAPixel()
 	{
 		double step = RotationGcdPolicy.gridStep(0.5);
