@@ -40,3 +40,14 @@
 `SelectOriginState.java`(40)。这些是交互/落盘逻辑；其中 `CreatingTemplateState` 的排序循环是唯一可能
 "永远排不完"的地方（`:100` 只在 `sortedBlocks.size() == totalBlocks` 时前进），本轮没有足够预算逐行验证，
 留待下一轮。
+## 第三轮精读：`CreatingTemplateState.java`（建造顺序排序，135 行逐行）
+
+上一轮标为「未读、唯一可能永远排不完的地方」，本轮逐行读完 —— **不会死循环**，无缺陷。
+
+| 关注点 | 证据 | 结论 |
+| --- | --- | --- |
+| 会不会排不完 | Pass 1（`:52-58`）把 `nonEmptyBlocks` 全部搬进 `sortingHelper`，Pass 2（`:72-97`）每轮从 `sortingHelper` 取走一个放进 `sortedBlocks`；两个容器的元素总数守恒，`:100` 判 `sortedBlocks.size() == totalBlocks` | 必然终止，最坏情况就是慢（`:38` 每 tick `clamp(total/15,1,1024)` 个） |
+| 排序规则 | `:43-45` 用「到 origin 的距离 + BlockPos 自身」做 TreeSet 比较器（确定性）；`:83-91` 只接受"六邻接里已经有排好的方块"的候选，并在候选中取离"上一次放入的方块"最近的那个（`:79-81`） | 这就是"建造顺序"想要的贪心：贴着已成型的部分往上长 |
+| 结构不连通时 | 若没有任何候选贴着已排好的方块，`current` 保持 `sortingHelper.first()`（离 origin 最近的） | 有兜底，不会卡住；悬空的方块最后被排进去 |
+| `last1024Added` 的作用 | `:79` 只读 `getLast()`（最近放入的），`:103-104` 裁到最多 1024 个，渲染时只画这批（`:125-126`） | 名字与用法一致，不会无界增长 |
+| 单块 / 空选区 | `totalBlocks == 1`：第 1 tick 搬进 helper，第 2 tick 放进 sorted 后即满足 `size == totalBlocks`；`totalBlocks == 0`（选区内没有非空气方块）：Pass 1/2 都跳过，`:99` 算 `0/0f` 得 NaN（只影响扫描面的显示位置），`:100` 判 0 == 0 成立 ⇒ 直接进 `ChooseNameState` | 空选区会一路生成一个"零方块模板"，存盘后由 `AutoBuildTemplate.load()` 用 `JsonException("Template has no blocks!")` 拒掉（AutoBuild/InstaBuild 会提示并自我关闭）。行为可接受，只是没有在源头拦下，留档不改 |
