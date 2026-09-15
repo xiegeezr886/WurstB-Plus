@@ -206,7 +206,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `Surround` | COMBAT | 276 | 已优化（§0.3） |
 | `TriggerBot` | COMBAT | 245 | 已优化（§0.3） |
 | `WTap` | COMBAT | 148 | 已优化（见 §0.3） |
-| `AutoEat` | ITEMS | 351 | 已优化（§0.3） |
+| `AutoEat` | ITEMS | 354 | 已优化（§0.3） |
 | `AutoSteal` | ITEMS | 108 | 不适用（§0.3） |
 | `FastUse` | ITEMS | 109 | 已优化（§0.3） |
 | `Restock` | ITEMS | 180 | 不适用（§0.3） |
@@ -276,7 +276,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `AutoTool` | 289 | 不适用（§0.3） |
 | `BaritoneClearArea` | 125 | 不适用（§0.3） |
 | `BaritoneMine` | 160 | 不适用（§0.3） |
-| `BaritoneTreeBot` | 300 | 已优化（§0.3） |
+| `BaritoneTreeBot` | 305 | 已优化（§0.3） |
 | `BonemealAura` | 281 | 不适用（§0.3） |
 | `BuildRandom` | 206 | 已优化（§0.3） |
 | `Excavator` | 549 | 不适用（§0.3） |
@@ -324,7 +324,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `AutoLeave` | 206 | 已优化（§0.3） |
 | `AutoPotion` | 146 | 已优化（§0.3） |
 | `AutoRespawn` | 83 | 已优化（§0.3） |
-| `AutoSoup` | 189 | 已优化（§0.3） |
+| `AutoSoup` | 192 | 已优化（§0.3） |
 | `AutoSword` | 246 | 已优化（§0.3） |
 | `AutoTotem` | 170 | 已优化（§0.3） |
 | `AutoTrap` | 209 | 已优化（§0.3） |
@@ -376,7 +376,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | hack | 行数 | 状态 |
 | --- | --- | --- |
 | `AutoDrop` | 90 | 不适用（§0.3） |
-| `AutoEat` | 351 | 已优化（§0.3） |
+| `AutoEat` | 354 | 已优化（§0.3） |
 | `AutoSteal` | 108 | 不适用（§0.3） |
 | `AutoSwitch` | 47 | 不适用（§0.3） |
 | `CrashChest` | 62 | 不适用（§0.3） |
