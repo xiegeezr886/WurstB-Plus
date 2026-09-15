@@ -36,6 +36,7 @@ import net.wurstclient.events.AirStrafingSpeedListener.AirStrafingSpeedEvent;
 import net.wurstclient.events.ClipAtLedgeListener.ClipAtLedgeEvent;
 import net.wurstclient.events.IsPlayerInLavaListener.IsPlayerInLavaEvent;
 import net.wurstclient.events.IsPlayerInWaterListener.IsPlayerInWaterEvent;
+import net.wurstclient.events.StayingOnGroundSurfaceListener.StayingOnGroundSurfaceEvent;
 import net.wurstclient.events.KnockbackListener.KnockbackEvent;
 import net.wurstclient.events.PlayerMoveListener.PlayerMoveEvent;
 import net.wurstclient.events.PostMotionListener.PostMotionEvent;
@@ -300,10 +301,10 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Override
 	protected boolean isStayingOnGroundSurface()
 	{
-		HackList hax = WurstClient.INSTANCE.getHax();
-		return super.isStayingOnGroundSurface()
-			|| hax != null && (hax.safeWalkHack.shouldClipEdges()
-				|| hax.scaffoldWalkHack.shouldSafeWalk());
+		StayingOnGroundSurfaceEvent event = new StayingOnGroundSurfaceEvent(
+			super.isStayingOnGroundSurface());
+		EventManager.fire(event);
+		return event.isStayingOnGroundSurface();
 	}
 	
 	/**

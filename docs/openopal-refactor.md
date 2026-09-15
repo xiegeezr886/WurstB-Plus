@@ -166,6 +166,31 @@ OpenOpal 有 `StuckInBlockEvent`，我们原本没有 —— 缺事件的代价�
 | 消费 | SafeWalk 被反向调用 | SafeWalk 自行订阅；`EventManager` 的优先级机制（第 4 项）现在也适用于它 |
 | 行为 | SafeWalk 的"边缘显示潜行" | 逐位相同（同一条件、同一时机、同一个 `setSneaking`） |
 
+### 第 5 项第三个：`StayingOnGroundSurfaceListener`
+
+`ClientPlayerEntityMixin.isStayingOnGroundSurface()` 原来直接问两个 hack：
+
+```java
+		HackList hax = WurstClient.INSTANCE.getHax();
+		return super.isStayingOnGroundSurface()
+			|| hax != null && (hax.safeWalkHack.shouldClipEdges()
+				|| hax.scaffoldWalkHack.shouldSafeWalk());
+```
+
+这次用的是我们**已有的"投票式"事件形态**（与 `IsPlayerInWaterEvent` 同构：可读、可改、
+并保留 `normally…` 原值），而不是 OpenOpal 那套。mixin 变成：
+
+```java
+		StayingOnGroundSurfaceEvent event =
+			new StayingOnGroundSurfaceEvent(super.isStayingOnGroundSurface());
+		EventManager.fire(event);
+		return event.isStayingOnGroundSurface();
+```
+
+`SafeWalkHack` 贡献 `shouldClipEdges()`、`ScaffoldWalkHack` 贡献 `shouldSafeWalk()` —— 与原来
+逐位等价（同样的两个判断、同样的 `||` 语义），但 mixin 里再没有 hack 名字，两个 hack 也都
+和 `ClipAtLedge` 一样在 `onEnable/onDisable` 里自行订阅注销。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。

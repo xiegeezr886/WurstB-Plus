@@ -22,6 +22,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.events.StayingOnGroundSurfaceListener;
+import net.wurstclient.events.StayingOnGroundSurfaceListener.StayingOnGroundSurfaceEvent;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
@@ -37,7 +39,8 @@ import net.wurstclient.util.ScaffoldPlacementPlanner;
 
 @SearchTags({"scaffold walk", "BridgeWalk", "bridge walk", "AutoBridge",
 	"auto bridge", "tower"})
-public final class ScaffoldWalkHack extends Hack implements UpdateListener
+public final class ScaffoldWalkHack extends Hack
+	implements UpdateListener, StayingOnGroundSurfaceListener
 {
 	private final EnumSetting<Mode> mode = new EnumSetting<>("Mode",
 		"\u00a7lNormal\u00a7r - Standard scaffold placement.\n"
@@ -103,6 +106,13 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	}
 
 	@Override
+	public void onStayingOnGroundSurface(StayingOnGroundSurfaceEvent event)
+	{
+		if(shouldSafeWalk())
+			event.setStayingOnGroundSurface(true);
+	}
+
+	@Override
 	protected void onEnable()
 	{
 		oldSlot = -1;
@@ -112,12 +122,14 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			RotationQueue.Priority.BLOCK_PLACEMENT);
 		rotationQueue.start();
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(StayingOnGroundSurfaceListener.class, this);
 	}
 
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(StayingOnGroundSurfaceListener.class, this);
 		resetSlot();
 		currentPlan = null;
 		if(rotationQueue != null)
