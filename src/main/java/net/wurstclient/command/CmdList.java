@@ -63,6 +63,7 @@ public final class CmdList
 	public final SvCmd svCmd = new SvCmd();
 	public final SayCmd sayCmd = new SayCmd();
 	public final SeedCmd seedCmd = new SeedCmd();
+	public final TwilightCmd twilightCmd = new TwilightCmd();
 	public final SetBlockCmd setBlockCmd = new SetBlockCmd();
 	public final SetCheckboxCmd setCheckboxCmd = new SetCheckboxCmd();
 	public final SetColorCmd setColorCmd = new SetColorCmd();
