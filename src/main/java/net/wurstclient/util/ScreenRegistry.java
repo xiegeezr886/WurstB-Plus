@@ -17,9 +17,11 @@ import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.wurstclient.clickgui2.ClickGuiScreens;
 import net.wurstclient.clickgui2.NavigatorScreen;
+import net.wurstclient.clickgui2.NavigatorScreens;
 import net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen;
 import net.wurstclient.clickgui2.component.VapeClickGuiScreen;
 import net.wurstclient.clickgui2.epsilon.EpsilonDropdownScreen;
+import net.wurstclient.clickgui2.epsilon.EpsilonPanelNavigatorScreen;
 import net.wurstclient.hud2.HudEditorScreen;
 
 public enum ScreenRegistry
@@ -40,7 +42,7 @@ public enum ScreenRegistry
 	CLICK_GUI(SuperSoftClickGuiScreen.class,
 		(client, parent) -> ClickGuiScreens.create(parent)),
 	NAVIGATOR(NavigatorScreen.class,
-		(client, parent) -> new NavigatorScreen()),
+		(client, parent) -> NavigatorScreens.create(parent)),
 	HUD_EDITOR(HudEditorScreen.class,
 		(client, parent) -> new HudEditorScreen());
 
@@ -65,6 +67,9 @@ public enum ScreenRegistry
 			return screen instanceof SuperSoftClickGuiScreen
 				|| screen instanceof VapeClickGuiScreen
 				|| screen instanceof EpsilonDropdownScreen;
+		if(this == NAVIGATOR)
+			return screen instanceof NavigatorScreen
+				|| screen instanceof EpsilonPanelNavigatorScreen;
 		return screen != null && screenType.isInstance(screen);
 	}
 
@@ -74,6 +79,9 @@ public enum ScreenRegistry
 			return SuperSoftClickGuiScreen.class.isAssignableFrom(type)
 				|| VapeClickGuiScreen.class.isAssignableFrom(type)
 				|| EpsilonDropdownScreen.class.isAssignableFrom(type);
+		if(this == NAVIGATOR)
+			return NavigatorScreen.class.isAssignableFrom(type)
+				|| EpsilonPanelNavigatorScreen.class.isAssignableFrom(type);
 		return screenType.isAssignableFrom(Objects.requireNonNull(type));
 	}
 

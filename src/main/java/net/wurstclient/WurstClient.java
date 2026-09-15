@@ -116,7 +116,9 @@ public enum WurstClient
 		eventManager = new EventManager(this);
 		hackConflictManager = new HackConflictManager();
 		rotationFaker = new RotationFaker();
-		eventManager.add(PostMotionListener.class, rotationFaker);
+		// 高优先级：RotationFaker.onPostMotion() 会清空本 tick 的朝向请求，
+		// 必须排在其它 PostMotion 监听器之前，否则同 tick 里 hacks 设的朝向会被抹掉。
+		eventManager.add(PostMotionListener.class, rotationFaker, 1000);
 		eventManager.add(PacketOutputListener.class, rotationFaker);
 
 		clientMetricsManager = new ClientMetricsManager();

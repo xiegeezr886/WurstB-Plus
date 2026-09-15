@@ -7,19 +7,21 @@
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import net.minecraft.world.phys.AABB;
 import net.wurstclient.Category;
+import net.wurstclient.events.AutoJumpListener;
+import net.wurstclient.events.AutoJumpListener.AutoJumpEvent;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.hacks.step.LegitStepMode;
+import net.wurstclient.hacks.step.SimpleStepMode;
+import net.wurstclient.hacks.step.StepMode;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.util.BlockUtils;
 
-public final class StepHack extends Hack implements UpdateListener
+public final class StepHack extends Hack
+	implements UpdateListener, AutoJumpListener
 {
 	private final EnumSetting<Mode> mode = new EnumSetting<>("Mode",
 		"\u00a7lSimple\u00a7r mode can step up multiple blocks (enables Height slider).\n"
@@ -49,12 +51,14 @@ public final class StepHack extends Hack implements UpdateListener
 		trackPlayer(MC.player);
 		stepCooldown = 0;
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(AutoJumpListener.class, this);
 	}
 	
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(AutoJumpListener.class, this);
 		restoreTrackedPlayer();
 	}
 	
@@ -68,54 +72,32 @@ public final class StepHack extends Hack implements UpdateListener
 		if(stepCooldown > 0)
 			stepCooldown--;
 
-		if(mode.getSelected() == Mode.SIMPLE)
-		{
-			player.maxUpStep = height.getValueF();
-			return;
-		}
-		
-		player.maxUpStep = previousStepHeight;
-		
-		if(stepCooldown > 0 || !player.horizontalCollision)
-			return;
-		
-		if(!player.onGround() || player.onClimbable()
-			|| player.isInWater() || player.isInLava())
-			return;
-		
-		if(player.input.forwardImpulse == 0
-			&& player.input.leftImpulse == 0)
-			return;
-		
-		if(player.input.jumping)
-			return;
-		
-		AABB box = player.getBoundingBox().move(0, 0.05, 0).inflate(0.05);
-		
-		if(!MC.level.noCollision(player, box.move(0, 1, 0)))
-			return;
-		
-		double stepHeight = BlockUtils.getBlockCollisions(box)
-			.mapToDouble(bb -> bb.maxY).max().orElse(Double.NEGATIVE_INFINITY);
-		
-		stepHeight -= player.getY();
-		
-		if(stepHeight <= 0.5 || stepHeight > 1)
-			return;
-		
-		ClientPacketListener netHandler = player.connection;
-		
-		netHandler.send(new ServerboundMovePlayerPacket.Pos(
-			player.getX(), player.getY() + 0.42 * stepHeight, player.getZ(),
-			false));
-		
-		netHandler.send(new ServerboundMovePlayerPacket.Pos(
-			player.getX(), player.getY() + 0.753 * stepHeight, player.getZ(),
-			false));
-		
-		player.setPos(player.getX(), player.getY() + stepHeight,
-			player.getZ());
-		stepCooldown = 2;
+		// 具体做法交给模式类（见 net.wurstclient.hacks.step）。
+		mode.getSelected().impl().onUpdate(this, player);
+	}
+
+	/** 供 Simple 模式读取 Height 设置。 */
+	public float getHeight()
+	{
+		return height.getValueF();
+	}
+
+	/** 供 Legit 模式恢复/读取玩家原本的 maxUpStep。 */
+	public float getPreviousStepHeight()
+	{
+		return previousStepHeight;
+	}
+
+	/** 供 Legit 模式读取当前冷却。 */
+	public int getStepCooldown()
+	{
+		return stepCooldown;
+	}
+
+	/** 供 Legit 模式设置冷却。 */
+	public void setStepCooldown(int stepCooldown)
+	{
+		this.stepCooldown = stepCooldown;
 	}
 
 	private void trackPlayer(LocalPlayer player)
@@ -135,6 +117,17 @@ public final class StepHack extends Hack implements UpdateListener
 		trackedPlayer = null;
 	}
 	
+	/**
+	 * Step 启用时（以及 {@code .goto} 正在跑时）关掉原版的自动跳跃 —— 与原来的
+	 * {@code ClientPlayerEntityMixin} 用的是同一个判断。
+	 */
+	@Override
+	public void onAutoJump(AutoJumpEvent event)
+	{
+		if(!isAutoJumpAllowed())
+			event.setAutoJumpAllowed(false);
+	}
+	
 	public boolean isAutoJumpAllowed()
 	{
 		return !isEnabled() && !WURST.getCmds().goToCmd.isActive();
@@ -142,14 +135,21 @@ public final class StepHack extends Hack implements UpdateListener
 	
 	private enum Mode
 	{
-		SIMPLE("Simple"),
-		LEGIT("Legit");
+		SIMPLE("Simple", new SimpleStepMode()),
+		LEGIT("Legit", new LegitStepMode());
 		
 		private final String name;
+		private final StepMode impl;
 		
-		private Mode(String name)
+		private Mode(String name, StepMode impl)
 		{
 			this.name = name;
+			this.impl = impl;
+		}
+		
+		public StepMode impl()
+		{
+			return impl;
 		}
 		
 		@Override

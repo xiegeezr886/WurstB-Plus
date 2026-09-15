@@ -80,12 +80,14 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 
 	private final SliderSetting switchDelay = new SliderSetting("Switch delay",
 		"Ticks to wait before switching to another valid target.", 4, 0, 20,
-		1, ValueDisplay.INTEGER.withSuffix(" ticks"));
+		1, ValueDisplay.INTEGER.withSuffix(" ticks"))
+		.visibleWhen(() -> !stickyTarget.isChecked());
 
 	private final SliderSetting switchAdvantage = new SliderSetting(
 		"Switch advantage",
 		"How much better another target must score before switching.", 10, 0,
-		100, 1, ValueDisplay.PERCENTAGE);
+		100, 1, ValueDisplay.PERCENTAGE)
+		.visibleWhen(() -> !stickyTarget.isChecked());
 
 	private final CheckboxSetting checkLOS = new CheckboxSetting(
 		"Check line of sight", "Requires a visible point inside the target.",

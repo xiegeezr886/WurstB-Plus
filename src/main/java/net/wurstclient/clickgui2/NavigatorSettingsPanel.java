@@ -333,7 +333,7 @@ final class NavigatorSettingsPanel extends Window
 			int trackY = y + 5;
 			FlatUiRenderer.fill(graphics, trackLeft, trackY, trackRight,
 				trackY + 2, 1,
-				RiseColors.isRiseMode() ? 0x80121419 : PvPUtilsTheme.TRACK);
+				0x80121419);
 			int progressX = trackLeft + (int)Math.round(
 				(trackRight - trackLeft) * slider.getPercentage());
 			RiseShadow.draw(graphics, progressX - 2, trackY - 2,
@@ -352,8 +352,7 @@ final class NavigatorSettingsPanel extends Window
 				RiseFont.width(FONT, setting.getName()) * TEXT_SCALE);
 			int dotX = Math.min(right - 5, left + nameWidth + 3);
 			FlatUiRenderer.fill(graphics, dotX, y + 4, dotX + 5, y + 9,
-				3, RiseColors.isRiseMode() ? RiseColors.BACKGROUND.argb()
-					: PvPUtilsTheme.TRACK);
+				3, RiseColors.BACKGROUND.argb());
 			RiseAnimation animation = checkboxAnimations.computeIfAbsent(checkbox,
 				ignored -> new RiseAnimation(RiseAnimation.Easing.LINEAR, 100));
 			float scale = animation.run(checkbox.isChecked() ? 5 : 0);
@@ -625,12 +624,10 @@ final class NavigatorSettingsPanel extends Window
 			pickerX + COLOR_PICKER_WIDTH, y + 105, 4, 10, 0x28000000);
 		FlatUiRenderer.fill(graphics, pickerX - 1, y - 1,
 			pickerX + COLOR_PICKER_WIDTH + 1, y + 106, 5,
-			RiseColors.isRiseMode() ? RiseColors.SECONDARY.argb()
-				: PvPUtilsTheme.PICKER_BG);
+			RiseColors.SECONDARY.argb());
 		FlatUiRenderer.fill(graphics, pickerX, y,
 			pickerX + COLOR_PICKER_WIDTH, y + 105, 4,
-			RiseColors.isRiseMode() ? RiseColors.BACKGROUND.argb()
-				: PvPUtilsTheme.MODULE);
+			RiseColors.BACKGROUND.argb());
 
 		int hueColor = 0xFF000000 | Color.HSBtoRGB(colorHue, 1, 1)
 			& 0xFFFFFF;
@@ -833,7 +830,6 @@ final class NavigatorSettingsPanel extends Window
 
 	private int navigatorAccent()
 	{
-		return RiseColors.isRiseMode() ? RiseTheme.ACCENT
-			: PvPUtilsTheme.ACCENT;
+		return RiseTheme.ACCENT;
 	}
 }

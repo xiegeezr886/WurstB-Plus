@@ -27,20 +27,28 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.AirStrafingSpeedListener.AirStrafingSpeedEvent;
+import net.wurstclient.events.AutoJumpListener.AutoJumpEvent;
+import net.wurstclient.events.ClipAtLedgeListener.ClipAtLedgeEvent;
+import net.wurstclient.events.ForwardImpulseListener.ForwardImpulseEvent;
+import net.wurstclient.events.HasEffectListener.HasEffectEvent;
 import net.wurstclient.events.IsPlayerInLavaListener.IsPlayerInLavaEvent;
 import net.wurstclient.events.IsPlayerInWaterListener.IsPlayerInWaterEvent;
+import net.wurstclient.events.IsSpectatorListener.IsSpectatorEvent;
+import net.wurstclient.events.ItemUseSlowdownListener.ItemUseSlowdownEvent;
+import net.wurstclient.events.JumpPowerListener.JumpPowerEvent;
+import net.wurstclient.events.StayingOnGroundSurfaceListener.StayingOnGroundSurfaceEvent;
 import net.wurstclient.events.KnockbackListener.KnockbackEvent;
 import net.wurstclient.events.PlayerMoveListener.PlayerMoveEvent;
 import net.wurstclient.events.PostMotionListener.PostMotionEvent;
+import net.wurstclient.events.PortalNauseaListener.PortalNauseaEvent;
+import net.wurstclient.events.SprintHungerListener.SprintHungerEvent;
 import net.wurstclient.events.PreMotionListener.PreMotionEvent;
 import net.wurstclient.events.UpdateListener.UpdateEvent;
-import net.wurstclient.hack.HackList;
 import net.wurstclient.mixinterface.IClientPlayerEntity;
 import net.wurstclient.util.Rotation;
 
@@ -80,10 +88,10 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	private boolean wrapHasForwardMovement(Input input,
 		Operation<Boolean> original)
 	{
-		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldOmniSprint())
-			return input.getMoveVector().length() > 1e-5F;
-		
-		return original.call(input);
+		ForwardImpulseEvent event =
+			new ForwardImpulseEvent(input, original.call(input));
+		EventManager.fire(event);
+		return event.hasForwardImpulse();
 	}
 
 	@Inject(at = @At(value = "INVOKE",
@@ -91,6 +99,8 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		method = "aiStep()V")
 	private void applyAutoSprintAfterVanillaChecks(CallbackInfo ci)
 	{
+		// 这里是"执行动作"而不是"做决定"，所以仍是直接调用而不是事件：
+		// applySprint() 在原版整套冲刺检查跑完之后把冲刺打开，没有第二个参与者。
 		WurstClient.INSTANCE.getHax().autoSprintHack.applySprint();
 	}
 	
@@ -104,8 +114,10 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		ordinal = 0), method = "aiStep()V")
 	private void onTickMovementItemUse(CallbackInfo ci)
 	{
-		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
-			&& WurstClient.INSTANCE.getHax().noSlowdownHack.shouldBypassUsingItem())
+		ItemUseSlowdownEvent event = new ItemUseSlowdownEvent(false);
+		EventManager.fire(event);
+		
+		if(event.isBypass())
 			hideNextItemUse = true;
 	}
 	
@@ -181,13 +193,18 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		cancellable = true)
 	private void onIsAutoJumpEnabled(CallbackInfoReturnable<Boolean> cir)
 	{
-		if(!WurstClient.INSTANCE.getHax().stepHack.isAutoJumpAllowed())
+		// 注入点在 HEAD，读不到原版结果，所以事件初值取 true（允许），只接受否决。
+		AutoJumpEvent event = new AutoJumpEvent(true);
+		EventManager.fire(event);
+		
+		if(!event.isAutoJumpAllowed())
 			cir.setReturnValue(false);
 	}
 	
 	/**
-	 * When PortalGUI is enabled, this mixin temporarily sets the current screen
-	 * to null to prevent the updateNausea() method from closing it.
+	 * When a listener asks to keep the current screen open (PortalGUI), this
+	 * mixin temporarily sets the current screen to null to prevent the
+	 * updateNausea() method from closing it.
 	 */
 	@Inject(at = @At(value = "FIELD",
 		target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;",
@@ -195,7 +212,10 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		ordinal = 0), method = "handleNetherPortalClient()V")
 	private void beforeUpdateNausea(CallbackInfo ci)
 	{
-		if(!WurstClient.INSTANCE.getHax().portalGuiHack.isEnabled())
+		PortalNauseaEvent event = new PortalNauseaEvent(false);
+		EventManager.fire(event);
+		
+		if(!event.shouldKeepScreen())
 			return;
 		
 		tempCurrentScreen = minecraft.screen;
@@ -226,7 +246,12 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Inject(at = @At("HEAD"), method = "hasEnoughFoodToStartSprinting()Z", cancellable = true)
 	private void onCanSprint(CallbackInfoReturnable<Boolean> cir)
 	{
-		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldSprintHungry())
+		// 注入点在 HEAD，读不到原版的返回值，所以事件初值取 false：
+		// 只有一个监听器明确说"能饿着冲刺"时才会把结果改成 true（与原逻辑一致）。
+		SprintHungerEvent event = new SprintHungerEvent(false);
+		EventManager.fire(event);
+		
+		if(event.canSprintHungry())
 			cir.setReturnValue(true);
 	}
 	
@@ -274,8 +299,9 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Override
 	public boolean isSpectator()
 	{
-		return super.isSpectator()
-			|| WurstClient.INSTANCE.getHax().freecamHack.isEnabled();
+		IsSpectatorEvent event = new IsSpectatorEvent(super.isSpectator());
+		EventManager.fire(event);
+		return event.isSpectator();
 	}
 	
 	@Override
@@ -287,9 +313,11 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Override
 	protected float getJumpPower()
 	{
-		return super.getJumpPower()
-			+ WurstClient.INSTANCE.getHax().highJumpHack
-				.getAdditionalJumpMotion();
+		// HighJump 需要知道原版的基础跳跃力才能算出「正好到 N 格」的增量
+		// （跳跃提升、蜂蜜块都会改变它），所以把基准值传进去。
+		JumpPowerEvent event = new JumpPowerEvent(super.getJumpPower());
+		EventManager.fire(event);
+		return event.getJumpPower();
 	}
 	
 	/**
@@ -298,10 +326,10 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Override
 	protected boolean isStayingOnGroundSurface()
 	{
-		HackList hax = WurstClient.INSTANCE.getHax();
-		return super.isStayingOnGroundSurface()
-			|| hax != null && (hax.safeWalkHack.shouldClipEdges()
-				|| hax.scaffoldWalkHack.shouldSafeWalk());
+		StayingOnGroundSurfaceEvent event = new StayingOnGroundSurfaceEvent(
+			super.isStayingOnGroundSurface());
+		EventManager.fire(event);
+		return event.isStayingOnGroundSurface();
 	}
 	
 	/**
@@ -314,8 +342,8 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		Vec3 result = super.maybeBackOffFromEdge(movement, type);
 		
 		if(movement != null)
-			WurstClient.INSTANCE.getHax().safeWalkHack
-				.onClipAtLedge(!movement.equals(result));
+			EventManager.fire(
+				new ClipAtLedgeEvent(!movement.equals(result)));
 		
 		return result;
 	}
@@ -323,19 +351,9 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Override
 	public boolean hasEffect(MobEffect effect)
 	{
-		HackList hax = WurstClient.INSTANCE.getHax();
-		
-		if(effect == MobEffects.NIGHT_VISION
-			&& hax.fullbrightHack.isNightVisionActive())
-			return true;
-		
-		if(effect == MobEffects.LEVITATION
-			&& hax.noLevitationHack.isEnabled())
-			return false;
-		
-		if(effect == MobEffects.DARKNESS && hax.antiBlindHack.isEnabled())
-			return false;
-		
-		return super.hasEffect(effect);
+		HasEffectEvent event =
+			new HasEffectEvent(effect, super.hasEffect(effect));
+		EventManager.fire(event);
+		return event.hasEffect();
 	}
 }

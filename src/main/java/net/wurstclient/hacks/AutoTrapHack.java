@@ -7,9 +7,7 @@
  */
 package net.wurstclient.hacks;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -30,6 +28,7 @@ import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
+import net.wurstclient.util.AutoTrapPlanner;
 import net.wurstclient.util.BlockPlacer;
 import net.wurstclient.util.BlockUtils;
 import net.wurstclient.util.FakePlayerEntity;
@@ -94,46 +93,41 @@ public final class AutoTrapHack extends Hack implements UpdateListener
 		}
 
 		BlockPos targetPos = target.blockPosition();
-		ArrayList<BlockPos> toPlace = new ArrayList<>();
+		boolean[] usable = new boolean[AutoTrapPlanner.COUNT];
+		double[] distanceSq = new double[AutoTrapPlanner.COUNT];
 
-		BlockPos[] trapOffsets = {
-			new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0),
-			new BlockPos(0, 0, 1), new BlockPos(0, 0, -1),
-			new BlockPos(1, 1, 0), new BlockPos(-1, 1, 0),
-			new BlockPos(0, 1, 1), new BlockPos(0, 1, -1),
-			new BlockPos(1, 2, 0), new BlockPos(-1, 2, 0),
-			new BlockPos(0, 2, 1), new BlockPos(0, 2, -1),
-		};
-
-		for(BlockPos offset : trapOffsets)
+		for(int i = 0; i < AutoTrapPlanner.COUNT; i++)
 		{
-			BlockPos pos = targetPos.offset(offset);
-			if(BlockUtils.getState(pos).canBeReplaced()
-				&& !MC.player.getBoundingBox().intersects(new AABB(pos)))
-				toPlace.add(pos);
+			BlockPos pos = targetPos.offset(AutoTrapPlanner.offsetX(i),
+				AutoTrapPlanner.offsetY(i), AutoTrapPlanner.offsetZ(i));
+
+			usable[i] = BlockUtils.getState(pos).canBeReplaced()
+				&& !MC.player.getBoundingBox().intersects(new AABB(pos))
+				&& !isOccupiedByEntity(pos);
+			distanceSq[i] = MC.player.distanceToSqr(Vec3.atCenterOf(pos));
 		}
 
-		if(toPlace.isEmpty())
+		int[] order = AutoTrapPlanner.plan(usable, distanceSq,
+			target.getYRot());
+
+		if(order.length == 0)
 		{
 			if(disableAfter.isChecked())
 				setEnabled(false);
 			return;
 		}
 
-		BlockPos closest = toPlace.stream()
-			.min(Comparator.comparingDouble(
-				p -> MC.player.distanceToSqr(Vec3.atCenterOf(p))))
-			.orElse(null);
-
-		if(closest == null)
-			return;
+		BlockPos closest = targetPos.offset(
+			AutoTrapPlanner.offsetX(order[0]),
+			AutoTrapPlanner.offsetY(order[0]),
+			AutoTrapPlanner.offsetZ(order[0]));
 
 		placeBlock(closest);
 	}
 
 	private Entity findTarget()
 	{
-		double rangeSq = Math.pow(range.getValue(), 2);
+		double rangeSq = range.getValue() * range.getValue();
 
 		return StreamSupport
 			.stream(MC.level.entitiesForRendering().spliterator(), false)
@@ -161,6 +155,30 @@ public final class AutoTrapHack extends Hack implements UpdateListener
 			swingHand.swing(InteractionHand.MAIN_HAND);
 
 		MC.player.getInventory().selected = oldSlot;
+	}
+
+	/**
+	 * 该位置是否已经被生物占住。
+	 *
+	 * <p>
+	 * 这一条取自参考项目 OpenEpsilon 的 AutoTrap#placeBlockInRange：那边是
+	 * 照抄 1.12.2 原版 {@code World#checkNoEntityCollision} 的判定，也就是
+	 * 原版“这个格子到底能不能放方块”的检查。1.20.1 依然保留着这条判定（放置方块
+	 * 时原版会走 {@code Level#isUnobstructed}），所以往被生物占住的格子里放根本
+	 * 不会成功。而 {@code BlockPlacer.place()} 又只看有没有能贴的面、不看方块有
+	 * 没有真的放上去，于是它照样返回成功，这个模块就会一直以为“已经放下了”，
+	 * 继续重试同一个位置、白等 tick。
+	 *
+	 * <p>
+	 * 目标是一格宽两格高，它自己站着的时候正好占住 dy=1 那一圈，所以这条判断
+	 * 直接决定选出来的位置能不能放进去。同时它也让“把自己脚底那格放了”这种
+	 * 情况不可能发生。
+	 */
+	private boolean isOccupiedByEntity(BlockPos pos)
+	{
+		return MC.level.getEntities((Entity)null, new AABB(pos)).stream()
+			.filter(e -> !e.isSpectator())
+			.anyMatch(e -> e instanceof LivingEntity && !e.isRemoved());
 	}
 
 	private int findBlockSlot()

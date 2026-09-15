@@ -44,7 +44,8 @@ public final class ClickAuraHack extends Hack
 		"Determines which entity will be attacked first.\n"
 			+ "\u00a7lDistance\u00a7r - Attacks the closest entity.\n"
 			+ "\u00a7lAngle\u00a7r - Attacks the entity that requires the least head movement.\n"
-			+ "\u00a7lHealth\u00a7r - Attacks the weakest entity.",
+			+ "\u00a7lHealth\u00a7r - Attacks the weakest entity.\n"
+			+ "\u00a7lScore\u00a7r - Weighs distance, health, armour, blast exposure and crosshair angle together.",
 		Priority.values(), Priority.ANGLE);
 	
 	private final SliderSetting fov =

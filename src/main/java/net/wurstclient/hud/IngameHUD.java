@@ -11,6 +11,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.events.GUIRenderListener;
+import net.wurstclient.hacks.RadialMenuHack;
 import net.wurstclient.util.ScreenRegistry;
 
 public final class IngameHUD implements GUIRenderListener
@@ -27,6 +28,10 @@ public final class IngameHUD implements GUIRenderListener
 		
 		if(tabGui == null)
 			tabGui = new TabGui();
+		
+		// 懒注册长按 Tab 的功能圆盘：HackList 用的是写死的字段，不编辑
+		// WurstClient 就只能在这里补一句
+		RadialMenuHack.get();
 		
 		ClickGui clickGui = WurstClient.INSTANCE.getGui();
 		

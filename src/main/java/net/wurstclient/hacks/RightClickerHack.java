@@ -10,6 +10,7 @@ package net.wurstclient.hacks;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -93,7 +94,17 @@ public final class RightClickerHack extends Hack implements UpdateListener
 			|| MC.player.isUsingItem())
 			return;
 
-		if(MC.hitResult instanceof BlockHitResult blockHit
+		/*
+		 * 命中实体时必须走 interactAt/interact，而不是 useItem：原版
+		 * startUseItem() 的 case ENTITY 分支就是这样（1.20.2 反编译源
+		 * Minecraft.java:1739-1753）。旧实现只区分"方块/其它"，瞄着生物时落到
+		 * else 里发 useItem 包 —— 那是"对空气使用物品"，挤奶/剪羊毛/拴绳/
+		 * 村民交易这些交互都不会发生。
+		 */
+		if(MC.hitResult instanceof EntityHitResult entityHit)
+			InteractionSimulator.rightClickEntity(entityHit,
+				swingHand.getSelected());
+		else if(MC.hitResult instanceof BlockHitResult blockHit
 			&& blockHit.getType() == HitResult.Type.BLOCK)
 			InteractionSimulator.rightClickBlock(blockHit, swingHand.getSelected());
 		else

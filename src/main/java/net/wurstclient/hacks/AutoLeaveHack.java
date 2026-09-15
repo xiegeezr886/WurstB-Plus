@@ -7,7 +7,10 @@
  */
 package net.wurstclient.hacks;
 
+import java.util.stream.StreamSupport;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -17,6 +20,7 @@ import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.util.FakePlayerEntity;
 import net.wurstclient.util.InventoryUtils;
 
 @SearchTags({"auto leave", "AutoDisconnect", "auto disconnect", "AutoQuit",
@@ -51,6 +55,30 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 		11, 0, 11, 1, ValueDisplay.INTEGER.withSuffix(" totems")
 			.withLabel(1, "1 totem").withLabel(11, "ignore"));
 	
+	private final CheckboxSetting creepers = new CheckboxSetting("Creepers",
+		"Leaves the server when a creeper gets close.\n\n"
+			+ "Default off (the reference has it on): this hack used to be"
+			+ " health-only, and an extra trigger that is on by default would"
+			+ " silently change when it fires.",
+		false);
+	
+	private final SliderSetting creeperDistance = new SliderSetting(
+		"Creeper distance", "How close a creeper has to get.", 5, 1, 10, 1,
+		ValueDisplay.INTEGER.withSuffix(" blocks"))
+		.visibleWhen(creepers::isChecked);
+	
+	private final CheckboxSetting players = new CheckboxSetting("Players",
+		"Leaves the server when another player gets close.", false);
+	
+	private final SliderSetting playerDistance = new SliderSetting(
+		"Player distance", "How close another player has to get.", 64, 32,
+		128, 4, ValueDisplay.INTEGER.withSuffix(" blocks"))
+		.visibleWhen(players::isChecked);
+	
+	private final CheckboxSetting ignoreFriends = new CheckboxSetting(
+		"Ignore friends", "Doesn't leave the server because of your friends.",
+		true).visibleWhen(players::isChecked);
+	
 	public AutoLeaveHack()
 	{
 		super("AutoLeave");
@@ -59,6 +87,11 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 		addSetting(mode);
 		addSetting(disableAutoReconnect);
 		addSetting(totems);
+		addSetting(creepers);
+		addSetting(creeperDistance);
+		addSetting(players);
+		addSetting(playerDistance);
+		addSetting(ignoreFriends);
 	}
 	
 	@Override
@@ -91,7 +124,13 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 		
 		// check health
 		float currentHealth = MC.player.getHealth();
-		if(currentHealth <= 0F || currentHealth > health.getValueF() * 2F)
+		if(currentHealth <= 0F)
+			return;
+		
+		boolean inDanger = currentHealth <= health.getValueF() * 2F
+			|| creepers.isChecked() && isCreeperNear()
+			|| players.isChecked() && isPlayerNear();
+		if(!inDanger)
 			return;
 		
 		// check totems
@@ -107,6 +146,35 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 		
 		if(disableAutoReconnect.isChecked())
 			WURST.getHax().autoReconnectHack.setEnabled(false);
+	}
+	
+	/**
+	 * 对应参考 {@code module/combat/AutoLog.kt:83-91} 的 checkCreeper()。
+	 */
+	private boolean isCreeperNear()
+	{
+		double maxDistSq = Math.pow(creeperDistance.getValue(), 2);
+		return StreamSupport
+			.stream(MC.level.entitiesForRendering().spliterator(), false)
+			.filter(e -> e instanceof Creeper && e.isAlive())
+			.anyMatch(e -> MC.player.distanceToSqr(e) <= maxDistSq);
+	}
+	
+	/**
+	 * 对应参考 {@code module/combat/AutoLog.kt:93-104} 的 checkPlayers()，
+	 * 排除项照搬：自己、假人、AntiBot 判定出的机器人、可选的好友。
+	 */
+	private boolean isPlayerNear()
+	{
+		double maxDistSq = Math.pow(playerDistance.getValue(), 2);
+		return StreamSupport
+			.stream(MC.level.entitiesForRendering().spliterator(), false)
+			.filter(e -> e instanceof Player && e != MC.player)
+			.filter(e -> !(e instanceof FakePlayerEntity))
+			.filter(e -> !WURST.getHax().antiBotHack.isBot((Player)e))
+			.filter(e -> !ignoreFriends.isChecked()
+				|| !WURST.getFriends().isFriend(e))
+			.anyMatch(e -> MC.player.distanceToSqr(e) <= maxDistSq);
 	}
 	
 	public static enum Mode

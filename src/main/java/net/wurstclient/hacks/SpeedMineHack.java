@@ -7,12 +7,13 @@
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.hacks.speedmine.HasteSpeedMineMode;
+import net.wurstclient.hacks.speedmine.OgSpeedMineMode;
+import net.wurstclient.hacks.speedmine.SpeedMineMode;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
@@ -52,28 +53,53 @@ public final class SpeedMineHack extends Hack implements UpdateListener
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
-		MC.player.removeEffect(MobEffects.DIG_SPEED);
+		
+		// 只清掉"我们自己加进去的那一份"，并把原本就有的急迫（药水/信标）放回去。
+		// 旧实现无条件 removeEffect(DIG_SPEED)：反例是站在信标范围里用 Haste 模式后
+		// 关掉 SpeedMine，客户端自己的急迫效果也被清掉（服务端要等效果变化才会重新同步）。
+		// 用 appliedHaste 兜住"OG 模式从未加过效果"的情况，避免误删玩家真实的急迫。
+		// 这段状态现在归 Haste 模式所有，所以对所有模式都调一次 onDisable()：
+		// Haste 会收拾，OG 是空操作 —— 语义与原来"关闭时总是收拾"一致。
+		for(Mode m : Mode.values())
+			m.impl().onDisable();
 	}
 
 	@Override
 	public void onUpdate()
 	{
-		if(mode.getSelected() == Mode.HASTE)
-			MC.player.addEffect(new MobEffectInstance(
-				MobEffects.DIG_SPEED, 5, hasteLevel.getValueI(), false,
-				false, false));
+		// 具体行为交给模式类（见 net.wurstclient.hacks.speedmine）。
+		mode.getSelected().impl().onUpdate(this);
+	}
+
+	/** 供 Haste 模式读取 Haste level 设置。 */
+	public int getHasteLevel()
+	{
+		return hasteLevel.getValueI();
+	}
+
+	/** 供 OG 模式读取 Cooldown 设置。 */
+	public int getCooldown()
+	{
+		return cooldown.getValueI();
 	}
 
 	private enum Mode
 	{
-		HASTE("Haste"),
-		OG("OG");
+		HASTE("Haste", new HasteSpeedMineMode()),
+		OG("OG", new OgSpeedMineMode());
 
 		private final String name;
+		private final SpeedMineMode impl;
 
-		Mode(String name)
+		Mode(String name, SpeedMineMode impl)
 		{
 			this.name = name;
+			this.impl = impl;
+		}
+
+		public SpeedMineMode impl()
+		{
+			return impl;
 		}
 
 		@Override

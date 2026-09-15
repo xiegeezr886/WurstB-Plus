@@ -67,13 +67,17 @@ public final class FastUseHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
-		if(throwablesOnly.isChecked()
-			&& !(THROWABLE.contains(MC.player.getMainHandItem().getItem())
-				&& (!xpOnly.isChecked()
-					|| MC.player.getMainHandItem()
-						.getItem() == Items.EXPERIENCE_BOTTLE)))
+		Item heldItem = MC.player.getMainHandItem().getItem();
+		
+		// "Throwables only" 与 "XP only" 是两个互不依赖的开关，必须各自生效。
+		// 原实现把 xpOnly 嵌在 throwablesOnly 的括号里，于是"只勾 XP only、
+		// 不勾 Throwables only"时 xpOnly 完全没有作用，FastUse 会加速使用任何物品。
+		if(throwablesOnly.isChecked() && !THROWABLE.contains(heldItem))
 			return;
-
+		
+		if(xpOnly.isChecked() && heldItem != Items.EXPERIENCE_BOTTLE)
+			return;
+		
 		MC.rightClickDelay = 0;
 
 		if(mode.getSelected() == Mode.MULTI

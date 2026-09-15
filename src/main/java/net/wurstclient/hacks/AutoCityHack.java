@@ -7,13 +7,13 @@
  */
 package net.wurstclient.hacks;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.stream.StreamSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
@@ -27,6 +27,7 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.util.BlockUtils;
+import net.wurstclient.util.CityBlockPlanner;
 import net.wurstclient.util.FakePlayerEntity;
 import net.wurstclient.util.RotationUtils;
 
@@ -85,42 +86,34 @@ public final class AutoCityHack extends Hack implements UpdateListener
 		BlockPos targetPos = target.blockPosition();
 		BlockPos playerPos = BlockPos.containing(MC.player.position());
 
-		ArrayList<BlockPos> toMine = new ArrayList<>();
-		BlockPos[] cityOffsets = {
-			new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0),
-			new BlockPos(0, 0, 1), new BlockPos(0, 0, -1)
-		};
+		BlockPos[] candidates = new BlockPos[CityBlockPlanner.COUNT];
+		boolean[] usable = new boolean[CityBlockPlanner.COUNT];
+		boolean[] punishable = new boolean[CityBlockPlanner.COUNT];
+		double[] distanceSq = new double[CityBlockPlanner.COUNT];
 
-		for(BlockPos offset : cityOffsets)
+		for(int i = 0; i < CityBlockPlanner.COUNT; i++)
 		{
-			BlockPos pos = targetPos.offset(offset);
+			BlockPos pos = targetPos.offset(CityBlockPlanner.offsetX(i), 0,
+				CityBlockPlanner.offsetZ(i));
+			candidates[i] = pos;
+			distanceSq[i] = MC.player.distanceToSqr(Vec3.atCenterOf(pos));
 
 			boolean isObsidian = BlockUtils.getBlock(pos) == Blocks.OBSIDIAN
 				|| BlockUtils.getBlock(pos) == Blocks.CRYING_OBSIDIAN;
 
-			if(!isObsidian)
-				continue;
+			usable[i] = isObsidian && !BlockUtils.isUnbreakable(pos)
+				&& !(ignoreOwnSurround.isChecked()
+					&& pos.distManhattan(playerPos) <= 1);
 
-			if(BlockUtils.isUnbreakable(pos))
-				continue;
-
-			if(ignoreOwnSurround.isChecked()
-				&& pos.distManhattan(playerPos) <= 1)
-				continue;
-
-			toMine.add(pos);
+			// 挖掉之后能换来水晶位的墙排到前面，见 CityBlockPlanner 的类注释
+			punishable[i] = opensCrystalSpot(pos);
 		}
 
-		if(toMine.isEmpty())
+		int[] order = CityBlockPlanner.plan(distanceSq, usable, punishable);
+		if(order.length == 0)
 			return;
 
-		BlockPos closest = toMine.stream()
-			.min(Comparator.comparingDouble(
-				p -> MC.player.distanceToSqr(Vec3.atCenterOf(p))))
-			.orElse(null);
-
-		if(closest == null)
-			return;
+		BlockPos closest = candidates[order[0]];
 
 		Vec3 hitVec = Vec3.atCenterOf(closest);
 		RotationUtils.getNeededRotations(hitVec).sendPlayerLookPacket();
@@ -138,6 +131,25 @@ public final class AutoCityHack extends Hack implements UpdateListener
 
 		MC.gameMode.continueDestroyBlock(closest,
 			Direction.UP);
+	}
+
+	/**
+	 * 挖掉 pos 之后 pos 自己会变成空气，所以只要它下方是抗爆基底（黑曜石/基岩，
+	 * 与 CrystalAuraHack 判定水晶基底的写法一致）、上方又留得出水晶的高度，
+	 * pos 处就是一个能直接砸到目标的水晶位。
+	 *
+	 * <p>
+	 * 这一条来自参考项目 OpenEpsilon 的 AutoCity.checkPos：那边还有第二个分支
+	 * （再看 pos 的另一个水平邻块是不是基底），但那一支没有校验基底上方的空间，
+	 * 是 1.12.2 的写法，这里不收——宁可少认一个"能换来水晶位"，也不要认错。
+	 */
+	private boolean opensCrystalSpot(BlockPos pos)
+	{
+		Block below = BlockUtils.getBlock(pos.below());
+		if(below != Blocks.BEDROCK && below != Blocks.OBSIDIAN)
+			return false;
+
+		return BlockUtils.getState(pos.above()).canBeReplaced();
 	}
 
 	private Entity findTarget()

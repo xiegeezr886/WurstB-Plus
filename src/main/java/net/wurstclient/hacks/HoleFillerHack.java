@@ -9,6 +9,8 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -21,6 +23,7 @@ import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.util.BlockPlacer;
 import net.wurstclient.util.BlockUtils;
+import net.wurstclient.util.HoleFillPolicy;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -88,6 +91,7 @@ public final class HoleFillerHack extends Hack implements UpdateListener
 		}
 
 		BlockPos closest = holes.stream()
+			.filter(p -> !isOccupied(p))
 			.min(Comparator.comparingDouble(
 				p -> MC.player.distanceToSqr(Vec3.atCenterOf(p))))
 			.orElse(null);
@@ -117,18 +121,49 @@ public final class HoleFillerHack extends Hack implements UpdateListener
 		holes.clear();
 		int r = range.getValueI();
 		BlockPos pp = BlockPos.containing(MC.player.position());
+		HoleFillPolicy.BlockLookup blocks = this::blockKind;
 		for(int x = -r; x <= r; x++)
 			for(int z = -r; z <= r; z++)
 				for(int y = -2; y <= 2; y++)
 				{
 					BlockPos pos = pp.offset(x, y, z);
-					if(!BlockUtils.getState(pos).canBeReplaced()
-						|| !BlockUtils.getState(pos.above()).canBeReplaced())
-						continue;
-					if(BlockUtils.getBlock(pos.below()) == Blocks.AIR)
+					if(!HoleFillPolicy.isHole(blocks, pos.getX(), pos.getY(),
+						pos.getZ()))
 						continue;
 					holes.add(pos);
 				}
+	}
+
+	/**
+	 * 参考 AutoHoleFill 的 getHoleInfos()：洞里已经有实体时不要填，玩家
+	 * 自己占着的洞更要跳过。本项目的 SelfTrap/AutoWeb/AutoTrap/InstantBunker
+	 * 在放置前也有同样一条判断；否则按距离排序后离玩家最近的那个洞往往
+	 * 就是自己脚下这根，每次重试的都是这个填不进去的位置。
+	 */
+	private boolean isOccupied(BlockPos pos)
+	{
+		AABB playerBox = MC.player.getBoundingBox();
+		if(HoleFillPolicy.isOccupiedBy(playerBox.minX, playerBox.minY,
+			playerBox.minZ, playerBox.maxX, playerBox.maxY, playerBox.maxZ,
+			pos.getX(), pos.getY(), pos.getZ()))
+			return true;
+
+		AABB holeBox = new AABB(pos.getX(), pos.getY(), pos.getZ(),
+			pos.getX() + 1, pos.getY() + 2, pos.getZ() + 1);
+		return !MC.level.getEntities(MC.player, holeBox).isEmpty();
+	}
+
+	/**
+	 * 把方块的 {@code canBeReplaced()} 与是否为空气归纳成三态，供
+	 * {@link HoleFillPolicy} 判定洞时使用。
+	 */
+	private HoleFillPolicy.BlockKind blockKind(int x, int y, int z)
+	{
+		BlockState state = BlockUtils.getState(new BlockPos(x, y, z));
+		if(!state.canBeReplaced())
+			return HoleFillPolicy.BlockKind.SOLID;
+		return state.isAir() ? HoleFillPolicy.BlockKind.AIR
+			: HoleFillPolicy.BlockKind.REPLACEABLE;
 	}
 
 	private int findBlockSlot()

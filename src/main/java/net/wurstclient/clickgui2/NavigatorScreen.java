@@ -235,7 +235,6 @@ public final class NavigatorScreen extends Screen
 	{
 		updateDimensions();
 		WURST.getGui().updateColors();
-		RiseColors.setRiseMode(WURST.getGuiPreferences().isRiseMode());
 		animationProgress = scaleAnimation.run(closing ? 0 : 1);
 		float opacity = opacityAnimation.run(closing ? 0 : 1);
 		if(closing && animationProgress <= 0.001F)
@@ -256,7 +255,7 @@ public final class NavigatorScreen extends Screen
 		if(animationProgress > 0.993F)
 			RiseShadow.draw(graphics, panelX, panelY,
 				panelX + panelWidth, panelY + panelHeight, 12, 18,
-				RiseColors.isRiseMode() ? 0x1E000000 : PvPUtilsTheme.SHADOW);
+				0x1E000000);
 		FlatUiRenderer.fill(graphics, panelX, panelY, panelX + panelWidth,
 			panelY + panelHeight, 12, RiseColors.BACKGROUND.argb());
 		graphics.enableScissor(panelX + 1, panelY + 1,
@@ -293,10 +292,6 @@ public final class NavigatorScreen extends Screen
 		FlatUiRenderer.fill(graphics, panelX + 1, panelY + 1,
 			panelX + sidebarWidth, panelY + panelHeight - 1, 11,
 			RiseColors.SECONDARY.argb());
-		if(!RiseColors.isRiseMode())
-			graphics.fill(panelX + sidebarWidth, panelY + 14,
-				panelX + sidebarWidth + 1, panelY + panelHeight - 14,
-				PvPUtilsTheme.DIVIDER);
 		renderSidebar(graphics, mouseX, mouseY);
 		graphics.flush();
 		RenderSystem.setShaderColor(previousColor[0], previousColor[1],
@@ -345,7 +340,7 @@ public final class NavigatorScreen extends Screen
 				panelX + sidebarWidth - 7, y + RiseSidebarCategory.HEIGHT);
 			categories.get(index).render(graphics, font, panelX + 9, y,
 				sidebarWidth - 16, selectedCategory == index, hovering,
-				navigatorAccent(), RiseColors.isRiseMode());
+				navigatorAccent());
 		}
 		if(animationProgress >= 0.995F)
 			graphics.disableScissor();
@@ -431,8 +426,7 @@ public final class NavigatorScreen extends Screen
 			+ (int)Math.round((maxHeight - thumbHeight) * ratio);
 		FlatUiRenderer.fill(graphics, right, thumbY, right + 1,
 			thumbY + thumbHeight, 1,
-			RiseColors.isRiseMode() ? 0x3CFFFFFF
-				: PvPUtilsTheme.SCROLL_THUMB);
+			0x3CFFFFFF);
 	}
 
 	private void renderStylePage(GuiGraphics graphics, int mouseX, int mouseY,
@@ -442,34 +436,25 @@ public final class NavigatorScreen extends Screen
 		int right = contentRight() - 20;
 		int top = panelY + 7;
 		int bottom = panelY + 63;
-		int accent = navigatorAccent();
 		FlatUiRenderer.fill(graphics, left, top, right, bottom, 10,
-			RiseColors.isRiseMode() ? RiseTheme.OVERLAY
-				: PvPUtilsTheme.MODULE);
+			RiseTheme.OVERLAY);
 		graphics.drawString(MC.font,
 			RiseFont.text("风格"),
 			left + 16, top + 13,
-			RiseColors.isRiseMode() ? RiseColors.TEXT.argb()
-				: PvPUtilsTheme.TEXT, false);
+			RiseColors.TEXT.argb(), false);
+		/*
+		 * 这里原本是 Rise 模式开关。它已经移到客户端设置页（Epsilon 中央面板
+		 * 导航器的设置页，以及 ClickGUI 的设置列表），免得在 Rise 界面里做
+		 * "是否使用 Rise"这种自指切换；这里只显示当前状态和去处。
+		 */
 		graphics.drawString(MC.font,
-			RiseFont.text("选择导航器的外观主题"),
+			RiseFont.text("开关已移到客户端设置页"),
 			left + 16, top + 28,
-			RiseColors.isRiseMode() ? RiseColors.TRINARY_TEXT.argb()
-				: PvPUtilsTheme.TEXT_MUTED, false);
-
-		boolean riseMode = RiseColors.isRiseMode();
-		int trackX = right - 44 - 20;
-		int trackY = top + (bottom - top - 24) / 2;
-		FlatUiRenderer.fill(graphics, trackX, trackY, trackX + 44, trackY + 24,
-			12, riseMode ? accent : PvPUtilsTheme.TRACK_OFF);
-		int knobX = riseMode ? trackX + 22 : trackX + 2;
-		FlatUiRenderer.fill(graphics, knobX, trackY + 2, knobX + 20,
-			trackY + 22, 10, PvPUtilsTheme.THUMB);
+			RiseColors.TRINARY_TEXT.argb(), false);
 		graphics.drawString(MC.font,
-			RiseFont.text(riseMode ? "Rise 模式:开" : "Rise 模式:关"),
+			RiseFont.text("Rise 模式:开"),
 			left + 16, top + 44,
-			RiseColors.isRiseMode() ? RiseColors.SECONDARY_TEXT.argb()
-				: PvPUtilsTheme.TEXT_ROW, false);
+			RiseColors.SECONDARY_TEXT.argb(), false);
 		if(clip)
 			graphics.enableScissor(left, top, right, bottom);
 		graphics.flush();
@@ -542,30 +527,14 @@ public final class NavigatorScreen extends Screen
 			return true;
 		}
 
+		// 风格页现在只显示 Rise 模式状态；开关在客户端设置页，这里点击不做事
 		if(selectedCategory == CATEGORY_NAMES.length - 1)
-		{
-			if(button == 0 && inside(localX, localY,
-				styleToggleLeft(), styleToggleTop(),
-				styleToggleLeft() + 44, styleToggleTop() + 24))
-				WURST.getGuiPreferences().setRiseMode(
-					!WURST.getGuiPreferences().isRiseMode());
 			return true;
-		}
 
 		if(handleModuleClick(localX, localY, button))
 			return true;
 
 		return super.mouseClicked(localX, localY, button);
-	}
-
-	private int styleToggleLeft()
-	{
-		return contentRight() - 20 - 44 - 20;
-	}
-
-	private int styleToggleTop()
-	{
-		return panelY + 7 + (56 - 24) / 2;
 	}
 
 	private boolean handleModuleClick(double mouseX, double mouseY, int button)
@@ -798,8 +767,7 @@ public final class NavigatorScreen extends Screen
 
 	private int navigatorAccent()
 	{
-		return RiseColors.isRiseMode() ? RiseTheme.ACCENT
-			: PvPUtilsTheme.ACCENT;
+		return RiseTheme.ACCENT;
 	}
 
 	private static int withAlpha(int color, float opacity)

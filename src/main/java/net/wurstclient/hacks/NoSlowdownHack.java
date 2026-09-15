@@ -22,12 +22,17 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.events.ItemUseSlowdownListener;
+import net.wurstclient.events.ItemUseSlowdownListener.ItemUseSlowdownEvent;
+import net.wurstclient.events.StuckInBlockListener;
+import net.wurstclient.events.StuckInBlockListener.StuckInBlockEvent;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.AttributeValuePlanner;
 
 @SearchTags({"no slowdown", "no slow down", "anti slowdown"})
 public final class NoSlowdownHack extends Hack
+	implements StuckInBlockListener, ItemUseSlowdownListener
 {
 	private final CheckboxSetting usingItems = new CheckboxSetting(
 		"Using items", "Removes slowdown when eating, drinking, or using a bow.",
@@ -136,6 +141,34 @@ public final class NoSlowdownHack extends Hack
 				excluded.add(modifier.getId());
 
 		return AttributeValuePlanner.calculateExcluding(instance, excluded);
+	}
+
+	@Override
+	public void onEnable()
+	{
+		EVENTS.add(StuckInBlockListener.class, this);
+		EVENTS.add(ItemUseSlowdownListener.class, this);
+	}
+
+	@Override
+	public void onDisable()
+	{
+		EVENTS.remove(StuckInBlockListener.class, this);
+		EVENTS.remove(ItemUseSlowdownListener.class, this);
+	}
+
+	@Override
+	public void onItemUseSlowdown(ItemUseSlowdownEvent event)
+	{
+		if(isEnabled() && shouldBypassUsingItem())
+			event.setBypass(true);
+	}
+
+	@Override
+	public void onStuckInBlock(StuckInBlockEvent event)
+	{
+		if(isEnabled() && shouldBypassStuckBlock(event.getState()))
+			event.cancel();
 	}
 
 	// See BlockMixin.onGetVelocityMultiplier() and

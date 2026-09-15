@@ -7,8 +7,6 @@
  */
 package net.wurstclient.hacks;
 
-import java.lang.reflect.Method;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -19,8 +17,6 @@ import net.wurstclient.hack.Hack;
 public final class DelayRemoverHack extends Hack
 	implements PlayerAttacksEntityListener
 {
-	private Method resetAttackStrengthTicker;
-	
 	public DelayRemoverHack()
 	{
 		super("DelayRemover");
@@ -39,23 +35,25 @@ public final class DelayRemoverHack extends Hack
 		EVENTS.remove(PlayerAttacksEntityListener.class, this);
 	}
 	
+	/**
+	 * 旧实现用 {@code LocalPlayer.class.getDeclaredMethod(
+	 * "resetAttackStrengthTicker")} 加反射来调这个 public 方法，而
+	 * {@code getDeclaredMethod} 不查父类、该方法声明在 {@code Player} 上
+	 * （1.20.2 反编译源 {@code Player.java:2032}），所以它必然抛
+	 * {@code NoSuchMethodException}；catch 块又是空的 —— 于是这个 hack 一直是
+	 * 彻底的空操作。这里改成直接调用。
+	 *
+	 * <p>
+	 * 需要说明的是：1.20.1 的客户端本来就已经重置过这一次了
+	 * （{@code Player.attack} 与 {@code MultiPlayerGameMode.attack} 各调一次
+	 * {@code resetAttackStrengthTicker()}），服务端的伤害系数也无法由客户端改写，
+	 * 所以本 hack 在 1.20.1 不会有可观察的效果。客户端侧真正存在的攻击延迟只剩
+	 * {@code Minecraft.missTime}（反编译源 {@code Minecraft.java:1669} 是唯一的
+	 * 客户端攻击门槛），那一项由 {@code NoMissCooldown} 负责。
+	 */
 	@Override
 	public void onPlayerAttacksEntity(Entity target)
 	{
-		try
-		{
-			if(resetAttackStrengthTicker == null)
-			{
-				resetAttackStrengthTicker = LocalPlayer.class
-					.getDeclaredMethod("resetAttackStrengthTicker");
-				resetAttackStrengthTicker.setAccessible(true);
-			}
-			
-			resetAttackStrengthTicker.invoke(MC.player);
-			
-		}catch(Exception e)
-		{
-			// method not found in this mapping
-		}
+		MC.player.resetAttackStrengthTicker();
 	}
 }

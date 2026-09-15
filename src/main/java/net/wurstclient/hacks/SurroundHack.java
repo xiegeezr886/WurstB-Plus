@@ -8,9 +8,13 @@
 package net.wurstclient.hacks;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.StreamSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -29,16 +33,21 @@ import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.util.BlockPlacer;
 import net.wurstclient.util.BlockUtils;
+import net.wurstclient.util.FakePlayerEntity;
 import net.wurstclient.util.RotationQueue;
 import net.wurstclient.util.RotationUtils;
+import net.wurstclient.util.SurroundPlanner;
 
 @SearchTags({"surround", "AutoSurround", "auto surround", "CityBlock"})
 public final class SurroundHack extends Hack implements UpdateListener
 {
+	// 原来这里还有第三个选项 Skip（"跳过没有支撑的位置"），但它的执行分支
+	// 与 Place 逐字节相同（都是 place(pos, false, false)），是个纯粹的摆设。
+	// 已删掉：老配置里的 "Skip" 由 EnumSetting.setSelected(String) 判为无效值
+	// 后静默保留默认值 Place，而 Skip 原本的行为就是 Place，所以用户侧零变化。
 	private final EnumSetting<SupportMode> support = new EnumSetting<>(
 		"Support", "\u00a7lPlace\u00a7r - Normal placement.\n"
-			+ "\u00a7lAirPlace\u00a7r - Place in air.\n"
-			+ "\u00a7lSkip\u00a7r - Skip unsupported positions.",
+			+ "\u00a7lAirPlace\u00a7r - Place in air.",
 		SupportMode.values(), SupportMode.PLACE);
 
 	private final SliderSetting bpt = new SliderSetting("BPT",
@@ -58,11 +67,6 @@ public final class SurroundHack extends Hack implements UpdateListener
 
 	private final SwingHandSetting swingHand =
 		new SwingHandSetting(this, SwingHand.CLIENT);
-
-	private static final BlockPos[] SURROUND_POS = {
-		new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0),
-		new BlockPos(0, 0, 1), new BlockPos(0, 0, -1)
-	};
 
 	private RotationQueue rotationQueue;
 
@@ -125,16 +129,29 @@ public final class SurroundHack extends Hack implements UpdateListener
 		MC.player.getInventory().selected = slot;
 
 		BlockPos playerPos = MC.player.blockPosition();
-		List<BlockPos> toPlace = new ArrayList<>();
-		for(BlockPos offset : SURROUND_POS)
+		AABB box = MC.player.getBoundingBox();
+		BlockPos[] positions = new BlockPos[SurroundPlanner.COUNT];
+		boolean[] usable = new boolean[SurroundPlanner.COUNT];
+
+		for(int i = 0; i < SurroundPlanner.COUNT; i++)
 		{
-			BlockPos pos = playerPos.offset(offset);
-			AABB box = MC.player.getBoundingBox();
-			if(BlockUtils.getState(pos).canBeReplaced()
-				&& !(box.intersects(new AABB(pos)) || box.intersects(
-					new AABB(pos.above()))))
-				toPlace.add(pos);
+			BlockPos pos = playerPos.offset(SurroundPlanner.offsetX(i), 0,
+				SurroundPlanner.offsetZ(i));
+			positions[i] = pos;
+			usable[i] = BlockUtils.getState(pos).canBeReplaced()
+				&& !(box.intersects(new AABB(pos))
+					|| box.intersects(new AABB(pos.above())))
+				&& !isOccupiedByEntity(pos);
 		}
+
+		Entity threat = findThreat();
+		int[] order = SurroundPlanner.plan(MC.player.getX(), MC.player.getZ(),
+			threat == null ? Double.NaN : threat.getX(),
+			threat == null ? Double.NaN : threat.getZ(), usable);
+
+		List<BlockPos> toPlace = new ArrayList<>();
+		for(int i : order)
+			toPlace.add(positions[i]);
 
 		if(toPlace.isEmpty())
 		{
@@ -156,10 +173,8 @@ public final class SurroundHack extends Hack implements UpdateListener
 
 			if(mode == SupportMode.PLACE)
 				placed = BlockPlacer.place(pos, false, false);
-			else if(mode == SupportMode.AIRPLACE)
-				placed = BlockPlacer.place(pos, true, false);
 			else
-				placed = BlockPlacer.place(pos, false, false);
+				placed = BlockPlacer.place(pos, true, false);
 
 			if(placed)
 			{
@@ -173,6 +188,48 @@ public final class SurroundHack extends Hack implements UpdateListener
 			setEnabled(false);
 
 		MC.player.getInventory().selected = prevSlot;
+	}
+
+	/**
+	 * 最近的敌人，用来决定先补哪一侧；附近没有别人时返回 null。
+	 *
+	 * <p>
+	 * 参考项目 OpenEpsilon 的 Surround 是按枚举声明顺序（正下方 → 北 → 东 →
+	 * 南 → 西）固定放置的。这里保留“没有敌人时顺序不变”，只在有敌人时把面对
+	 * 敌人的那一侧提到最前面——BPT 默认只有 2，四个方向本来就补不完一 tick，
+	 * 先补最危险的一侧能少暴露一 tick。
+	 */
+	private Entity findThreat()
+	{
+		return StreamSupport
+			.stream(MC.level.entitiesForRendering().spliterator(), false)
+			.filter(e -> e instanceof LivingEntity
+				&& ((LivingEntity)e).getHealth() > 0)
+			.filter(e -> e != MC.player)
+			.filter(e -> !(e instanceof FakePlayerEntity))
+			.filter(e -> !WURST.getFriends().contains(e.getScoreboardName()))
+			.min(Comparator.comparingDouble(
+				e -> MC.player.distanceToSqr(e)))
+			.orElse(null);
+	}
+
+	/**
+	 * 该位置是否已经被实体占住。
+	 *
+	 * <p>
+	 * 这一条取自参考项目 OpenEpsilon 的 Surround#checkColliding：那边是照抄
+	 * 1.12.2 原版 World#checkNoEntityCollision 的判定，也就是原版“这个格子到底
+	 * 能不能放方块”的检查。1.20.1 依然保留着这条判定（放置时
+	 * BlockItem#canPlace 会调用 Level#isUnobstructed），这里的过滤条件就是
+	 * 原版那条判定用的条件，所以往被实体占住的格子里放根本不会成功。而
+	 * BlockPlacer.place() 又只看有没有能贴的面、不看方块有没有真的放上去，
+	 * 于是它一直返回成功，让这个模块永远关不掉、每 tick 重复发一遍无效的
+	 * 交互包（原版交互失败时还会再退化成一次右键空气）。
+	 */
+	private boolean isOccupiedByEntity(BlockPos pos)
+	{
+		return MC.level.getEntities((Entity)null, new AABB(pos)).stream()
+			.anyMatch(e -> !e.isSpectator() && !e.isRemoved() && e.isPickable());
 	}
 
 	private int findBlockSlot()
@@ -201,8 +258,7 @@ public final class SurroundHack extends Hack implements UpdateListener
 	private enum SupportMode
 	{
 		PLACE("Place"),
-		AIRPLACE("AirPlace"),
-		SKIP("Skip");
+		AIRPLACE("AirPlace");
 
 		private final String name;
 

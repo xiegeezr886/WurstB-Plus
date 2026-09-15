@@ -7,17 +7,39 @@
  */
 package net.wurstclient.hacks;
 
+import net.minecraft.world.effect.MobEffects;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.events.HasEffectListener;
+import net.wurstclient.events.HasEffectListener.HasEffectEvent;
 import net.wurstclient.hack.Hack;
 
 @SearchTags({"no levitation", "levitation", "levitate"})
-public final class NoLevitationHack extends Hack
+public final class NoLevitationHack extends Hack implements HasEffectListener
 {
 	public NoLevitationHack()
 	{
 		super("NoLevitation");
 		setCategory(Category.MOVEMENT);
+	}
+	
+	@Override
+	protected void onEnable()
+	{
+		EVENTS.add(HasEffectListener.class, this);
+	}
+	
+	@Override
+	protected void onDisable()
+	{
+		EVENTS.remove(HasEffectListener.class, this);
+	}
+	
+	@Override
+	public void onHasEffect(HasEffectEvent event)
+	{
+		if(isEnabled() && event.getEffect() == MobEffects.LEVITATION)
+			event.setHasEffect(false);
 	}
 	
 	// See ClientPlayerEntityMixin.hasStatusEffect() and

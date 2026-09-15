@@ -95,9 +95,21 @@ public final class AutoPotionHack extends Hack implements UpdateListener
 		int potionInInventory = findPotion(9, 36);
 		
 		// move potion in inventory to hotbar
-		if(potionInInventory != -1)
+		// 只有快捷栏还有空位时 shift-click 才移得动（原版
+		// InventoryMenu.quickMoveStack 在目标区满时返回 EMPTY）；旧实现没有这个
+		// 判断，快捷栏满时会每 tick 都发一次点击包，药水却永远不动。
+		if(potionInInventory != -1 && hasEmptyHotbarSlot())
 			IMC.getInteractionManager()
 				.windowClick_QUICK_MOVE(potionInInventory);
+	}
+	
+	private boolean hasEmptyHotbarSlot()
+	{
+		for(int i = 0; i < 9; i++)
+			if(MC.player.getInventory().getItem(i).isEmpty())
+				return true;
+		
+		return false;
 	}
 	
 	private int findPotion(int startSlot, int endSlot)

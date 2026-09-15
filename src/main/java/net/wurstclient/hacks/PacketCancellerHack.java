@@ -86,7 +86,7 @@ public final class PacketCancellerHack extends Hack
 	public void onReceivedPacket(PacketInputEvent event)
 	{
 		updateCancelledTypes();
-		if(cancelledTypes.contains(event.getPacket().getClass()))
+		if(isCancelled(event.getPacket()))
 			event.cancel();
 	}
 
@@ -94,7 +94,28 @@ public final class PacketCancellerHack extends Hack
 	public void onSentPacket(PacketOutputEvent event)
 	{
 		updateCancelledTypes();
-		if(cancelledTypes.contains(event.getPacket().getClass()))
+		if(isCancelled(event.getPacket()))
 			event.cancel();
+	}
+
+	/**
+	 * 用 {@code isInstance} 判断而不是 {@code getClass()} 相等。
+	 *
+	 * <p>
+	 * "Cancel Movement" 勾选后加进来的是抽象类
+	 * {@code ClientboundMoveEntityPacket}（见 {@link #updateCancelledTypes()}），
+	 * 而服务器真正发出来的是它的子类 {@code ClientboundMoveEntityPacket.Pos} /
+	 * {@code .Rot} / {@code .PosRot}。旧实现用
+	 * {@code cancelledTypes.contains(event.getPacket().getClass())} 比较，
+	 * 抽象父类永远不等于子类 ⇒ 这个开关一个移动包都取消不了，
+	 * 表现为"勾了没用"。
+	 */
+	private boolean isCancelled(Packet<?> packet)
+	{
+		for(Class<?> type : cancelledTypes)
+			if(type.isInstance(packet))
+				return true;
+
+		return false;
 	}
 }

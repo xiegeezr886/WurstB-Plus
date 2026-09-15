@@ -188,4 +188,18 @@ public final class SkiaRegionRenderer
 		regionDrawing = false;
 		lastRegionUseMs = 0;
 	}
+
+	/**
+	 * 本帧是否已经有一个区域正在绘制。
+	 *
+	 * <p>
+	 * 管线一帧只支持一个区域，而 {@link #beginRegion} 在已有区域时只会把
+	 * <b>同一块画布</b>原样返回、不会重新施加缩放与平移。第二个调用方若直接
+	 * 往上画，就会用到上一个调用方的坐标变换而把画面写花。所以后到者应当先问
+	 * 这一句，然后回退到自己的原版兜底路径。
+	 */
+	public boolean isRegionDrawing()
+	{
+		return regionDrawing;
+	}
 }

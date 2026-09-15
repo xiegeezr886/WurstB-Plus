@@ -152,7 +152,7 @@ public final class BaseFinderHack extends Hack
 	{
 		RegionPos region = RenderUtils.getCameraRegion();
 		if(!region.equals(lastRegion))
-			onUpdate();
+			updateVertexBuffer(region);
 		
 		if(vertexBuffer == null)
 			return;
@@ -169,6 +169,27 @@ public final class BaseFinderHack extends Hack
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 	
+	/**
+	 * 按当前 region 重新上传顶点。顶点是绝对坐标算出来的、上传时减去 region 原点，
+	 * 所以相机换 region 后必须重传一次。原实现是从 onRender() 里直接调 onUpdate()，
+	 * 那会把整段世界扫描（6 层 × 129 × 129 ≈ 10 万个位置，每个位置还要取一次方块名
+	 * 做二分查找）搬进渲染帧；这里拆成只做上传的方法，扫描仍然只发生在 tick 里。
+	 */
+	private void updateVertexBuffer(RegionPos region)
+	{
+		if(vertexBuffer != null)
+			vertexBuffer.close();
+		
+		vertexBuffer = EasyVertexBuffer.createAndUpload(Mode.QUADS,
+			DefaultVertexFormat.POSITION_COLOR, buffer -> {
+				for(int[] vertex : vertices)
+					buffer.vertex(vertex[0] - region.x(), vertex[1],
+						vertex[2] - region.z()).color(0xFFFFFFFF).endVertex();
+			});
+		
+		lastRegion = region;
+	}
+	
 	@Override
 	public void onUpdate()
 	{
@@ -176,21 +197,7 @@ public final class BaseFinderHack extends Hack
 		RegionPos region = RenderUtils.getCameraRegion();
 		
 		if(modulo == 0 || !region.equals(lastRegion))
-		{
-			if(vertexBuffer != null)
-				vertexBuffer.close();
-			
-			vertexBuffer = EasyVertexBuffer.createAndUpload(Mode.QUADS,
-				DefaultVertexFormat.POSITION_COLOR, buffer -> {
-					for(int[] vertex : vertices)
-						buffer
-							.vertex(vertex[0] - region.x(), vertex[1],
-								vertex[2] - region.z())
-							.color(0xFFFFFFFF).endVertex();
-				});
-			
-			lastRegion = region;
-		}
+			updateVertexBuffer(region);
 		
 		// reset matching blocks
 		if(modulo == 0)

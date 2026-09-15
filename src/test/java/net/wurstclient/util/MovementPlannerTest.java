@@ -89,4 +89,40 @@ final class MovementPlannerTest
 		assertEquals(new Vec3(0, 0.2, 0), MovementPlanner.clampHorizontal(
 			new Vec3(Double.NaN, 0.2, 1), 1));
 	}
+
+	/** 原版速度药水的属性修饰符是 MULTIPLY_TOTAL 的 0.2 * (amplifier + 1)。 */
+	@Test
+	void speedEffectFactorMatchesVanillaMultipliers()
+	{
+		assertEquals(1.2, MovementPlanner.effectSpeedFactor(0), 1.0E-9);
+		assertEquals(1.4, MovementPlanner.effectSpeedFactor(1), 1.0E-9);
+		assertEquals(2.0, MovementPlanner.effectSpeedFactor(4), 1.0E-9);
+		assertEquals(1.2, MovementPlanner.effectSpeedFactor(-1), 1.0E-9);
+	}
+
+	/**
+	 * 速度药水场景把上面的倍率钉死：目标速度乘上药水倍率后，实际速度不再
+	 * 超过目标，{@code clampControlledHorizontal} 就走「按输入方向」的正常
+	 * 分支；不乘倍率（旧行为）则命中「保留现有动量」分支，转向输入被丢掉。
+	 */
+	@Test
+	void potionSpeedNoLongerFreezesSteering()
+	{
+		double base = 0.2873;
+		double target = base * MovementPlanner.effectSpeedFactor(1);
+		Vec3 current = new Vec3(target, 0, 0);
+		Vec3 proposed = MovementPlanner.setHorizontal(current, 1, 0, 45, target);
+
+		Vec3 fixed = MovementPlanner.clampControlledHorizontal(current,
+			proposed, target);
+		Vec3 oldBehaviour = MovementPlanner.clampControlledHorizontal(current,
+			proposed, base);
+
+		// 新：跟着输入转过去（45 度方向）
+		assertEquals(proposed.x, fixed.x, 1.0E-9);
+		assertEquals(proposed.z, fixed.z, 1.0E-9);
+		// 旧：原样返回当前速度，方向不变
+		assertEquals(current.x, oldBehaviour.x, 1.0E-9);
+		assertEquals(current.z, oldBehaviour.z, 1.0E-9);
+	}
 }

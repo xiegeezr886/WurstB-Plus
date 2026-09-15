@@ -203,6 +203,13 @@ public final class ForceOpHack extends Hack implements ChatInputListener
 			while(!sent)
 				try
 				{
+					// 关掉 ForceOP 之后不要继续重试发送：旧实现只在
+					// sleep(50) 之间重试，没有检查 isEnabled()，断开连接时
+					// 这个内层循环会一直转下去，等重新连上服务器后还会把
+					// /login 发出去（此时模块已经是关闭状态）。
+					if(!isEnabled())
+						return;
+					
 					MC.getConnection()
 						.sendCommand("login " + passwords[i]);
 					sent = true;

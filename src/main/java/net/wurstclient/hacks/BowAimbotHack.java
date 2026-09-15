@@ -23,6 +23,7 @@ import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.GUIRenderListener;
@@ -34,6 +35,7 @@ import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.filterlists.EntityFilterList;
+import net.wurstclient.util.BowAimbotTrajectory;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.RotationUtils;
@@ -141,38 +143,41 @@ public final class BowAimbotHack extends Hack
 		if(velocity > 1)
 			velocity = 1;
 		
+		// 1.20.1 的箭初速：弓是 BowItem.releaseUsing 传的 3.0 乘以拉弓力度（上面
+		// 的 velocity 就是原版 getPowerForTime 的结果），弩是
+		// CrossbowItem.getShootingPower 的 3.15
+		double arrowSpeed = item instanceof CrossbowItem ? 3.15 : velocity * 3;
+		
 		// set position to aim at
 		double d = RotationUtils.getEyesPos().distanceTo(
 			target.getBoundingBox().getCenter()) * predictMovement.getValue();
-		double posX = target.getX() + (target.getX() - target.xOld) * d
-			- player.getX();
-		double posY = target.getY() + (target.getY() - target.yOld) * d
-			+ target.getBbHeight() * 0.5 - player.getY()
-			- player.getEyeHeight(player.getPose());
-		double posZ = target.getZ() + (target.getZ() - target.zOld) * d
-			- player.getZ();
+		double targetX = target.getX() + (target.getX() - target.xOld) * d;
+		double targetY = target.getY() + (target.getY() - target.yOld) * d
+			+ target.getBbHeight() * 0.5;
+		double targetZ = target.getZ() + (target.getZ() - target.zOld) * d;
 		
-		// set yaw
-		float neededYaw = (float)Math.toDegrees(Math.atan2(posZ, posX)) - 90;
-		MC.player.setYRot(
-			RotationUtils.limitAngleChange(MC.player.getYRot(), neededYaw));
+		// 箭在「眼睛高度 - 0.1」处生成（AbstractArrow 的 LivingEntity 构造器），
+		// 并且继承射手当 tick 的速度（Projectile.shootFromRotation，竖直分量只在
+		// 射手离地时才加上），两者都会明显影响弹道，交给弹道解算统一处理
+		Vec3 motion = player.getDeltaMovement();
+		BowAimbotTrajectory.Aim aim = BowAimbotTrajectory.solve(arrowSpeed,
+			targetX - player.getX(),
+			targetY - player.getY() - player.getEyeHeight(player.getPose())
+				+ 0.1,
+			targetZ - player.getZ(), motion.x, motion.y, motion.z,
+			player.onGround());
 		
-		// calculate needed pitch
-		double hDistance = Math.sqrt(posX * posX + posZ * posZ);
-		double hDistanceSq = hDistance * hDistance;
-		float g = 0.006F;
-		float velocitySq = velocity * velocity;
-		float velocityPow4 = velocitySq * velocitySq;
-		float neededPitch = (float)-Math.toDegrees(Math.atan((velocitySq - Math
-			.sqrt(velocityPow4 - g * (g * hDistanceSq + 2 * posY * velocitySq)))
-			/ (g * hDistance)));
-		
-		// set pitch
-		if(Float.isNaN(neededPitch))
+		// 几何退化（目标几乎在正上/正下方）时退回直接对着目标看
+		if(aim == null)
+		{
 			WURST.getRotationFaker()
 				.faceVectorClient(target.getBoundingBox().getCenter());
-		else
-			MC.player.setXRot(neededPitch);
+			return;
+		}
+		
+		MC.player.setYRot(RotationUtils
+			.limitAngleChange(MC.player.getYRot(), (float)aim.yaw()));
+		MC.player.setXRot((float)aim.pitch());
 	}
 	
 	private Entity filterEntities(Stream<Entity> s)

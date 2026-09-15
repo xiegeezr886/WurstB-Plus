@@ -22,6 +22,7 @@ import net.wurstclient.events.PreMotionListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictGroup;
 import net.wurstclient.mixinterface.IKeyBinding;
+import net.wurstclient.mixinterface.IMinecraftClient;
 import net.wurstclient.settings.AttackSpeedSliderSetting;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
@@ -30,6 +31,7 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.settings.filterlists.EntityFilterList;
+import net.wurstclient.util.CombatActionPolicy;
 import net.wurstclient.util.CombatTargetUtils;
 import net.wurstclient.util.CombatTargetSession;
 
@@ -171,6 +173,16 @@ public final class TriggerBotHack extends Hack
 		
 		if(simulateMouseClick.isChecked())
 		{
+			/*
+			 * 模拟按键走的是原版 startAttack()：原版在 missTime > 0（打空后的
+			 * 10 tick 冷却）时会吞掉这次点击。这里若照常按下并重置计时器，
+			 * 这一次攻击就被记成已执行、实际却没有任何攻击包发出去。
+			 * 自己走 gameMode.attack 的分支不受该冷却影响，所以只在模拟点击时挡。
+			 */
+			if(CombatActionPolicy.isAttackMissCooldownActive(
+				((IMinecraftClient)MC).getMissTime()))
+				return;
+			
 			IKeyBinding.get(MC.options.keyAttack).simulatePress(true);
 			simulatingMouseClick = true;
 			

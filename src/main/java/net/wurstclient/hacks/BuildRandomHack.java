@@ -144,7 +144,7 @@ public final class BuildRandomHack extends Hack
 			&& MC.gameMode.isDestroying())
 			return;
 		
-		if(!placeWhileRiding.isChecked() && MC.player.isHandsBusy())
+		if(!placeWhileRiding.isChecked() && MC.player.isPassenger())
 			return;
 		
 		int maxAttempts = this.maxAttempts.getValueI();
