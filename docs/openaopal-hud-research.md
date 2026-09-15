@@ -628,9 +628,15 @@ WurstB：`PlayerAttacksEntityListener`（`TargetHudElement.java:33,83-90`）+ `k
    `EspEquipmentLayout.rowStartX/rowOffsetX`，为此把这两个方法从 `layout()` 里抽了出来）。
    参考把这一行画在上半部分头像右边，但本工程面板那里被"名字 + 血条"占了，故改放下方空带。
    参考在这行上还叠了附魔短名；本面板只有 48px 高、图标缩放后不到 9px，叠字会糊，故只画图标。
-   **仍未做**：头像右侧的双血条（生命 + 吸收）分开显示、以及把 `TargetHudElement` 自己的
-   `easeOutQuint`/`easeOutElastic`（408-431 行）换成 `Easings`——后者要先逐值比对确认
-   曲线一致，否则会改动现有动画观感。
+   **仍未做**：把 `TargetHudElement` 自己的 `easeOutQuint`/`easeOutElastic` 换成
+   `Easings`——要先逐值比对确认曲线一致，否则会改动现有动画观感（有
+   `TargetHudElementTest` 钉着几个值，可以据此比对）。
+   **吸收值已完成**：血条改成参考的两层结构——底层是被伤害时滞后的暗色条，
+   上层压真实值，露出暗色拖尾；比例按参考口径把吸收同时算进分子与分母
+   （`healthRatio(combinedHealth, maxHealth, absorption)`），所以「满血 + 满吸收」
+   才是满条。动画值与显示文本也改成「生命 + 吸收」的合计。
+   **注意**：参考的 `TargetInfoElement` 我核对的是 `Easing.EASE_OUT_EXPO`，
+   本工程的进入/退出用的是自己那两条曲线，两者不是同一条，未改动。
 7. **动态岛（`IslandPriority` 纯逻辑 + 一个触发者）** —— 先只做"优先级表 + 表头选择 + 自定义坐标"
    这层纯逻辑与单测，再挑一个最少依赖的触发者（如音乐岛，`MusicIslandHudElement` 已是同类 UI）。
    理由：模型漂亮但收益依赖触发者数量，优先级低于目标元素。

@@ -130,7 +130,8 @@ public final class TargetHudElement extends HudElement
 		if(ScreenRegistry.HUD_EDITOR.isOpen() && WurstClient.MC.player != null)
 		{
 			Player player = WurstClient.MC.player;
-			displayedHealth = player.getHealth();
+			displayedHealth =
+				player.getHealth() + player.getAbsorptionAmount();
 			drawPanel(graphics, x, y, player, 1, partialTicks);
 			return;
 		}
@@ -165,7 +166,8 @@ public final class TargetHudElement extends HudElement
 
 		long elapsed = lastRenderNanos == 0 ? 0 : now - lastRenderNanos;
 		lastRenderNanos = now;
-		updateHealth(displayedTarget.getHealth(), now);
+		updateHealth(displayedTarget.getHealth()
+			+ displayedTarget.getAbsorptionAmount(), now);
 		updateParticles(displayedTarget, now, elapsed);
 		drawPanel(graphics, x, y, displayedTarget, Math.max(0, scale),
 			partialTicks);
@@ -262,7 +264,11 @@ public final class TargetHudElement extends HudElement
 		RiseFrostedGlass.draw(graphics, x, y, x + width - 1, y + HEIGHT,
 			PANEL_RADIUS, 1, 0x6E000000);
 
-		float health = Math.min(displayedHealth, target.getMaxHealth());
+		// 参考 TargetInfoElement.java:118-121 的酒量口径：吸收值同时进分子与分母，
+		// 所以「满血 + 满吸收」才是满条。
+		float absorption = target.getAbsorptionAmount();
+		float totalMax = target.getMaxHealth() + absorption;
+		float health = Math.min(displayedHealth, totalMax);
 		String healthText = formatHealth(health);
 		int healthTextWidth = RiseHudFont.width(font, healthText);
 		int nameWidth = RiseHudFont.width(font, target.getGameProfile().getName());
@@ -279,11 +285,20 @@ public final class TargetHudElement extends HudElement
 		int barY = y + EDGE_OFFSET + FACE_SIZE - INDENT - 7;
 		FlatRenderer.fillRoundedRect(graphics, contentX, barY,
 			contentX + healthBarWidth, barY + 6, 3, 0x76000000);
-		float healthRatio = Mth.clamp(health / Math.max(1, target.getMaxHealth()),
-			0, 1);
-		int progressWidth = Math.round(healthBarWidth * healthRatio);
+
+		// 参考是两层：下面那层是被伤害时滞后的暗色条，上面压着真实值。
+		// 回血时动画值落后于真实值，暗条比亮条短，自然被盖住；掉血时反过来，
+		// 于是露出一截暗色拖尾。
+		int progressWidth = Math.round(healthBarWidth
+			* healthRatio(health, target.getMaxHealth(), absorption));
 		if(progressWidth > 0)
-			drawHealthGradient(graphics, contentX, barY, progressWidth);
+			drawHealthGradient(graphics, contentX, barY, progressWidth, true);
+
+		int trueWidth = Math.round(healthBarWidth * healthRatio(
+			target.getHealth() + absorption, target.getMaxHealth(), absorption));
+		if(trueWidth > 0)
+			drawHealthGradient(graphics, contentX, barY, trueWidth, false);
+
 		RiseHudFont.draw(graphics, font, healthText,
 			contentX + healthBarWidth + INDENT, barY - 1, VisualTheme.ACCENT,
 			true);
@@ -357,19 +372,23 @@ public final class TargetHudElement extends HudElement
 		return equipment;
 	}
 
+	/** @param dark 画底层那根滞后的暗色条时传 true（参考 darker(theme, 0.6)）。 */
 	private static void drawHealthGradient(GuiGraphics graphics, int x, int y,
-		int width)
+		int width, boolean dark)
 	{
-		FlatRenderer.fillRoundedRect(graphics, x, y, x + width, y + 6, 3,
-			ACCENT_SECONDARY);
+		int from = dark ? VisualTheme.mix(ACCENT_SECONDARY, 0xFF000000, 0.4F)
+			: ACCENT_SECONDARY;
+		int to = dark ? VisualTheme.mix(VisualTheme.ACCENT, 0xFF000000, 0.4F)
+			: VisualTheme.ACCENT;
+
+		FlatRenderer.fillRoundedRect(graphics, x, y, x + width, y + 6, 3, from);
 		if(width <= 4)
 			return;
 		for(int column = 2; column < width - 2; column++)
 		{
 			float progress = column / (float)Math.max(1, width - 1);
-			int color = VisualTheme.mix(ACCENT_SECONDARY, VisualTheme.ACCENT,
-				progress);
-			graphics.fill(x + column, y, x + column + 1, y + 6, color);
+			graphics.fill(x + column, y, x + column + 1, y + 6,
+				VisualTheme.mix(from, to, progress));
 		}
 	}
 
@@ -397,6 +416,27 @@ public final class TargetHudElement extends HudElement
 	{
 		double rounded = Math.round(Math.max(0, health) * 10) / 10D;
 		return String.format(Locale.ROOT, "%.1f", rounded);
+	}
+
+	/**
+	 * 血条比例的参考口径（{@code TargetInfoElement.java:118-121}）：吸收值同时进
+	 * 分子与分母，所以 20/20 血 + 4 吸收时，要 24 点才算满条。本方法收的是
+	 * <b>已经加上吸收</b>的显示值 {@code combinedHealth}，分母再补一次吸收。
+	 *
+	 * <p>
+	 * 纯算、不碰 {@code Mth}，所以能在普通 JUnit 里直接跑。分母非正时返回 0，
+	 * 不产生 NaN/除零。
+	 */
+	static float healthRatio(float combinedHealth, float maxHealth,
+		float absorption)
+	{
+		float totalMax = maxHealth + absorption;
+		if(!(totalMax > 0))
+			return 0;
+		float ratio = combinedHealth / totalMax;
+		if(!(ratio > 0))
+			return 0;
+		return ratio > 1 ? 1 : ratio;
 	}
 
 	private void drawFace(GuiGraphics graphics, Player target, int panelX,
