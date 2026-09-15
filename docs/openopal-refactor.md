@@ -430,6 +430,24 @@ hack 留通用部分：玩家/世界非空检查、`trackPlayer()`（记录原 `
 `setStepCooldown()` 四个访问器（Legit 模式要读要写冷却）。**检查顺序原样保留** ——
 Legit 的九道 return 是顺序敏感的（先冷却再撞墙……），搬进模式类时逐行照抄，没有合并成一条布尔表达式。
 
+### 另两个候选的结论（本轮不做，附证据）
+
+**ScaffoldWalk（暂缓）**：它和前面六个模块不同 —— hack 里**根本没有 switch**，模式只出现在两处布尔判断：
+`onUpdate()` 里的 `towerActive`（L156，之后分别调 `doScaffold()` / `doTower()`），以及
+`shouldSafeWalk()` 里的 `mode.getSelected() == Mode.NORMAL`（L322，只有 Normal 模式才要求 SafeWalk）。
+也就是说"动作"其实已经分开了，缺的只是"把它放进类里"。之所以暂缓：`doScaffold()`/`doTower()`
+依赖的**共享机械**才是这个 hack 的主体 —— 状态 `placementCooldown` / `currentPlan` /
+`rotationQueue` 三个字段，加上 `findBlockSlot()` / `swapToSlot()` / `resetSlot()` /
+`placePlan()` / `updateTowerMotion()` 五个方法，以及 8 个设置（placeDelay、silentSwap、
+searchRange、prediction、requireLineOfSight、safeWalk、towerMotion、swingHand）。把它们都开成 public
+访问器，会让两个模式类几乎每一行都要回调 hack —— 那是"为了形状而重构"，比现在更难读。
+真要做，应先把这套共享机械抽成独立的 `ScaffoldPlacementContext`（一次更大的重构），
+而不是先把入口方法搬出去。
+
+**BunnyHop（不适用）**：`JumpIf` 的枚举常量自带 `Predicate<LocalPlayer> condition`
+（L58 直接 `jumpIf.getSelected().condition.test(player)`），这已经是"每个模式自带行为"的形态，
+既没有 switch 也没有 hack 内部状态可搬 —— 再套一层模式类只会多一层间接。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
