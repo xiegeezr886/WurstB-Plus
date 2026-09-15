@@ -33,6 +33,7 @@ public final class HudEditorScreen extends Screen
 	private final Screen parentScreen;
 	private final Map<String, Float> hoverOpacity = new HashMap<>();
 	private final List<ClickRipple> clickRipples = new ArrayList<>();
+	private final HudSettingsPanel settingsPanel = new HudSettingsPanel();
 
 	private String draggedId;
 	private int dragButton = -1;
@@ -102,10 +103,38 @@ public final class HudEditorScreen extends Screen
 			: Math.min(0.1F, (now - lastRenderNanos) / 1_000_000_000F);
 		lastRenderNanos = now;
 		String hoveredId = findTopmostElement(mouseX, mouseY);
+		updateSettingsPanel(hoveredId, mouseX, mouseY);
 		renderElements(graphics, hoveredId, elapsedSeconds);
 		renderSnapGuides(graphics);
 		renderToolbar(graphics);
+		renderSettingsPanel(graphics);
 		renderClickRipples(graphics, now);
+	}
+
+	/**
+	 * 面板跟着悬停走：悬停到有设置的元素就切过去。光标已经在面板上时不再切换
+	 * ——否则鼠标一挪进面板、下面的元素不再被悬停，面板就消失了，永远点不到。
+	 * 它也因此不会自己消失，这是有意的。
+	 */
+	private void updateSettingsPanel(String hoveredId, double mouseX,
+		double mouseY)
+	{
+		if(settingsPanel.contains(mouseX, mouseY) || hoveredId == null)
+			return;
+
+		HudElement hovered = elements.get(hoveredId);
+		if(hovered != null && !hovered.getSettings().isEmpty())
+			settingsPanel.show(hovered);
+	}
+
+	private void renderSettingsPanel(GuiGraphics graphics)
+	{
+		String id = settingsPanel.getElementId();
+		if(id == null)
+			return;
+
+		settingsPanel.render(graphics, minecraft.font, elements.get(id), width,
+			height, TOOLBAR_HEIGHT);
 	}
 
 	private void renderReferenceGuides(GuiGraphics graphics)
@@ -253,6 +282,16 @@ public final class HudEditorScreen extends Screen
 	{
 		clickRipples.add(new ClickRipple((int)mouseX, (int)mouseY,
 			System.nanoTime()));
+		// 面板在所有元素之上：先给它。不然点击会穿透去开关或拖动底下的元素，
+		// 而用户以为自己点的是设置行。
+		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT
+			&& settingsPanel.mouseClicked(mouseX, mouseY))
+		{
+			if(settingsPanel.consumeChanged())
+				hudManager.saveLayout();
+			return true;
+		}
+
 		String id = findTopmostElement(mouseX, mouseY);
 		if(id == null)
 			return super.mouseClicked(mouseX, mouseY, button);
