@@ -276,7 +276,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `AutoTool` | 289 | 不适用（§0.3） |
 | `BaritoneClearArea` | 125 | 不适用（§0.3） |
 | `BaritoneMine` | 160 | 不适用（§0.3） |
-| `BaritoneTreeBot` | 300 | 不适用（§0.3） |
+| `BaritoneTreeBot` | 300 | 已优化（§0.3） |
 | `BonemealAura` | 281 | 不适用（§0.3） |
 | `BuildRandom` | 206 | 已优化（§0.3） |
 | `Excavator` | 549 | 不适用（§0.3） |

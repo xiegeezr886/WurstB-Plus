@@ -79,7 +79,7 @@ public final class BaritoneTreeBotHack extends Hack implements UpdateListener
 		if(currentTree != null && !currentTree.hasLogs())
 		{
 			if(replant.isChecked())
-				replantSapling(currentTree.basePos);
+				replantSapling(currentTree.basePos, currentTree.baseLog);
 			currentTree = null;
 			BaritoneUtils.stop();
 		}
@@ -125,7 +125,7 @@ public final class BaritoneTreeBotHack extends Hack implements UpdateListener
 
 					if(isLog(block) && isTreeBase(pos))
 					{
-						TreeTarget tree = new TreeTarget(pos);
+						TreeTarget tree = new TreeTarget(pos, block);
 						collectTreeLogs(tree);
 						if(!tree.logs.isEmpty())
 							return tree;
@@ -200,13 +200,15 @@ public final class BaritoneTreeBotHack extends Hack implements UpdateListener
 				logBlocks.toArray(new Block[0]));
 	}
 
-	private void replantSapling(BlockPos pos)
+	private void replantSapling(BlockPos pos, Block baseLog)
 	{
 		if(MC.player == null)
 			return;
 
-		Block block = BlockUtils.getBlock(pos);
-		Block sapling = getSaplingForLog(block);
+		// 必须用"砍之前记下的原木种类"，不能现读 pos 上的方块：
+		// 走到这里时树已经砍完了，pos 上现在是空气，getSaplingForLog(air) 永远返回 null
+		// ⇒ 旧实现的 Replant 开关是个空操作（反例：勾上 Replant 砍一棵橡树，从来没种下过树苗）。
+		Block sapling = getSaplingForLog(baseLog);
 
 		if(sapling == null)
 			return;
@@ -280,11 +282,14 @@ public final class BaritoneTreeBotHack extends Hack implements UpdateListener
 	private static class TreeTarget
 	{
 		final BlockPos basePos;
+		/** 发现这棵树时树根处的原木种类，供砍完后补种使用（砍完后该位置已经是空气）。 */
+		final Block baseLog;
 		final ArrayList<BlockPos> logs = new ArrayList<>();
 
-		TreeTarget(BlockPos basePos)
+		TreeTarget(BlockPos basePos, Block baseLog)
 		{
 			this.basePos = basePos;
+			this.baseLog = baseLog;
 		}
 
 		boolean hasLogs()
