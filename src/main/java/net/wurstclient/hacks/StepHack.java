@@ -12,6 +12,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.phys.AABB;
 import net.wurstclient.Category;
+import net.wurstclient.events.AutoJumpListener;
+import net.wurstclient.events.AutoJumpListener.AutoJumpEvent;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.EnumSetting;
@@ -19,7 +21,8 @@ import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.BlockUtils;
 
-public final class StepHack extends Hack implements UpdateListener
+public final class StepHack extends Hack
+	implements UpdateListener, AutoJumpListener
 {
 	private final EnumSetting<Mode> mode = new EnumSetting<>("Mode",
 		"\u00a7lSimple\u00a7r mode can step up multiple blocks (enables Height slider).\n"
@@ -49,12 +52,14 @@ public final class StepHack extends Hack implements UpdateListener
 		trackPlayer(MC.player);
 		stepCooldown = 0;
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(AutoJumpListener.class, this);
 	}
 	
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(AutoJumpListener.class, this);
 		restoreTrackedPlayer();
 	}
 	
@@ -133,6 +138,17 @@ public final class StepHack extends Hack implements UpdateListener
 		if(trackedPlayer != null)
 			trackedPlayer.maxUpStep = previousStepHeight;
 		trackedPlayer = null;
+	}
+	
+	/**
+	 * Step 启用时（以及 {@code .goto} 正在跑时）关掉原版的自动跳跃 —— 与原来的
+	 * {@code ClientPlayerEntityMixin} 用的是同一个判断。
+	 */
+	@Override
+	public void onAutoJump(AutoJumpEvent event)
+	{
+		if(!isAutoJumpAllowed())
+			event.setAutoJumpAllowed(false);
 	}
 	
 	public boolean isAutoJumpAllowed()

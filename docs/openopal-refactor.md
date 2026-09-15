@@ -266,6 +266,18 @@ AutoSprint 在 mixin 里有三处引用，语义并不相同，所以**没有硬
 至此 `ClientPlayerEntityMixin` 里 `HackList` 只剩 SafeWalk/ScaffoldWalk 之外的 3 处引用
 （`applySprint` 有意保留、`stepHack`、`portalGuiHack`/`freecamHack`）。
 
+### 第 5 项第八个：`AutoJumpListener`
+
+`ClientPlayerEntityMixin.onIsAutoJumpEnabled()`（`@Inject(HEAD)` 打在 `isAutoJumpEnabled()`）原来直接问
+`stepHack.isAutoJumpAllowed()`（已确认全仓库只有这一处调用）。改成 `AutoJumpEvent`：
+**同样因为注入点在 HEAD 读不到原版结果**，事件初值取 `true`（允许），只接受否决 ——
+`if(!event.isAutoJumpAllowed()) cir.setReturnValue(false);`，与原逻辑（只有 `!isAutoJumpAllowed()`
+时才关掉）逐位一致。`StepHack` 订阅后仍然复用自己那条 `!isEnabled() && !goToCmd.isActive()` 判断，
+条件只有一份，mixin 里不再出现 hack 名字。
+
+至此第 5 项已完成 8 个事件、迁移 10 个 hack；`ClientPlayerEntityMixin` 只剩两处直接引用
+（`applySprint()` 有意保留 + PortalGUI/Freecam）。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。

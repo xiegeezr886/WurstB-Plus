@@ -33,6 +33,7 @@ import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.AirStrafingSpeedListener.AirStrafingSpeedEvent;
+import net.wurstclient.events.AutoJumpListener.AutoJumpEvent;
 import net.wurstclient.events.ClipAtLedgeListener.ClipAtLedgeEvent;
 import net.wurstclient.events.ForwardImpulseListener.ForwardImpulseEvent;
 import net.wurstclient.events.HasEffectListener.HasEffectEvent;
@@ -192,7 +193,11 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		cancellable = true)
 	private void onIsAutoJumpEnabled(CallbackInfoReturnable<Boolean> cir)
 	{
-		if(!WurstClient.INSTANCE.getHax().stepHack.isAutoJumpAllowed())
+		// 注入点在 HEAD，读不到原版结果，所以事件初值取 true（允许），只接受否决。
+		AutoJumpEvent event = new AutoJumpEvent(true);
+		EventManager.fire(event);
+		
+		if(!event.isAutoJumpAllowed())
 			cir.setReturnValue(false);
 	}
 	
