@@ -293,7 +293,7 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 | `ScaffoldWalk` | 332 | 不适用（§0.3） |
 | `SpeedMine` | 122 | 已优化（§0.3） |
 | `SpeedNuker` | 110 | 不适用（§0.3） |
-| `TemplateTool` | 190 | 已优化（§0.3） |
+| `TemplateTool` | 209 | 已优化（§0.3） |
 | `Tillaura` | 171 | 不适用（§0.3） |
 | `TreeBot` | 477 | 不适用（§0.3） |
 | `Tunneller` | 944 | 已优化（§0.3） |
