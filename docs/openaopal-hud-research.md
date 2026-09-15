@@ -827,8 +827,26 @@ load → register → apply → migrate；`stop()` 的 `saveLayout()`（第 103 
 原来那个 `KEY_SIZE` 常量，默认观感不变）。为此 `KEY_SIZE`/`WIDTH`/`HEIGHT` 三个
 `static final` 必须改成实例方法，否则拖了滑条尺寸不动。
 
-**仍未做的设置类型**：颜色选择器、物品/方块列表、文本框。它们在面板里仍然只读，
-用灰色显示当前值。
+**仍未做的设置类型**：物品/方块列表、文本框。它们在面板里仍然只读，用灰色
+显示当前值。
+
+**颜色行不自己写取色器**，直接开 ClickGUI 已有的 `EditColorScreen`——开法与
+ClickGUI 完全一致（`ColorComponent.java:47`），`prevScreen` 传当前屏，关掉就回到
+HUD 编辑器。色块本身就是「值」，不再另写一串十六进制（196 宽的行放不下）。
+
+**颜色的真实消费者挑在基类上**：`TextHudElement` 是 9 个子类（Clock/Combo/Coords/
+Fps/Ping/Server/SoarText/Speed/Tps）的公共基类，而它的文字颜色只有一处
+`VisualTheme.TEXT`。在基类加一个 `ColorSetting`，9 个元素一次全都有文字颜色设置。
+默认值 `(255,255,255)` 即 `VisualTheme.TEXT`，所以默认观感不变——测试里钉住了
+这一点，因为它一变就是 9 个元素一起变。绘制用 `getColor().getRGB()` 而不是
+`getColorI()`：后者会把 alpha 强制成不透明（`ColorSetting.java:72`），用户调的
+透明度会被吃掉；`Color.getRGB()` 的 24-31 位就是 alpha。
+
+**顺带修了一处持久化时机**：取色屏是另一个 `Screen`，编辑完回来会重跑
+`HudEditorScreen.init()`，而元素设置只写在 `hud-layout.json` 里（不在
+`SettingsFile` 里——`EditColorScreen` 触发的 `saveSettings()` 保存的是主设置文件，
+不含元素设置）。所以 `init()` 改成无条件存盘（原来是「有位移才存」），`onClose()`
+也加了一次。不这么做的话，改完颜色要等到退出游戏才落盘，崩一次就丢了。
 
 **面板测试现在 20 个**：行命中数学的上下边界与越界、空闲面板不吞点击也不吞拖拽、
 滑条的两端与中点映射、拖出轨道夹住、负区间、零宽轨道、零区间不出 NaN、
