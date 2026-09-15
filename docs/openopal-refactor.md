@@ -325,6 +325,29 @@ Velocity / Flight 的模式也还是 `EnumSetting + switch`（`NoVelocityHack` 2
 后者是一个 `switch` 表达式算移动向量，拆法与 Criticals 不同：要看它是否依赖同一批局部变量）。
 按 Criticals 这套模板逐个拆即可，我打算一次只动一个模块并单独编译验证。
 
+### 第二个模块：Velocity（已完成）
+
+`NoVelocityHack` 原来是**散开的三处模式判断**：收到速度包时 `mode.getSelected() == Mode.JUMP_RESET`、
+收到爆炸包时 `== Mode.MODIFY`、每 tick 时 `!= Mode.JUMP_RESET`，外加挂在 hack 上的三个
+`pendingJump*` 字段（其实只有 JumpReset 用）。现在拆成 `net.wurstclient.hacks.velocity`：
+
+| 文件 | 内容 |
+| --- | --- |
+| `VelocityMode` | 接口：`getName()` / `onEntityVelocity(hack, event, incoming)`（返回 true = 取消包）/ `handlesExplosions()` / `onExplosion(packet, hMult, vMult)` / `onUpdate(hack)` / `reset()`，后四个都有默认实现 |
+| `ModifyVelocityMode` | 按 Horizontal/Vertical/Retain 改速度包 → `setDeltaMovement` → 返回 true（由 hack 取消）；`handlesExplosions()=true`，爆炸击退按同样比例缩放 |
+| `JumpResetVelocityMode` | 不改包（返回 false）；把"刚被击退"记成待跳计数，每 tick 用 `VelocityPlanner.evaluateJumpReset` 决定等/跳；**三个 `pendingJump*` 字段随模式一起搬进来** |
+
+hack 侧只留通用流程与设置读取：`onReceivedPacket` 分派、`shouldApply()` 前置检查、以及 7 个
+只读 getter（4 个倍率 + `getJumpDelay()` + `isOnlyMoving()` + `isRequireSprint()`），
+`Mode` 枚举同样是"名字 + 一个 `VelocityMode` 实例"的登记表。
+
+**行为等价性**（Rule 9 口径）：`shouldApply()` 仍在两个模式之前调用（原来也在 JUMP_RESET 分支之前）✓；
+Modify 的"改包 → 设速度 → 取消包"顺序等价（原来是先设速度再 `event.cancel()`，现在是模式设完速度、
+由 hack 取消）✓；爆炸分支仍是 `爆炸开关 && 只有 Modify 处理 && shouldApply()`，操作数顺序未变 ✓；
+JumpReset 的 `isFallDamageVelocity` 早退仍是"不计时也不取消包"✓。唯一有意的结构差异：原来
+MODIFY 每 tick 调一次 `clearPendingJump()`，现在状态只存在于 JumpReset 模式里，别处**没有**可清的东西，
+因此该调用被去掉（不是行为变化，是状态归属变化的自然结果）✓。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
