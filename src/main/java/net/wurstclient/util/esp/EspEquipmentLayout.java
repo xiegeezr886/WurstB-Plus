@@ -57,6 +57,28 @@ public final class EspEquipmentLayout
 	}
 
 	/**
+	 * 一行的起始 x（最左边那枚图标的左上角），整行关于 {@code centerX} 对称。
+	 *
+	 * <p>
+	 * 横向口径单独抽出来，是为了让目标信息面板也能复用同一套间距约定——
+	 * 面板有自己的一套竖直位置，{@link #layout} 里那两个「方框上方 23.5/14」
+	 * 的偏移对面板没有意义。
+	 */
+	public static float rowStartX(int count, float centerX, float step)
+	{
+		return centerX - count * step / 2F;
+	}
+
+	/**
+	 * 第 {@code index} 项在该行中的 x。注意参考是<b>倒序</b>排的：下标
+	 * {@code count-1} 在最左边，所以这里乘的是 {@code (count - index - 1)}。
+	 */
+	public static float rowOffsetX(int count, int index, float step)
+	{
+		return (count - index - 1) * step;
+	}
+
+	/**
 	 * @param count
 	 *            图标数量，&le; 0 时返回空列表。
 	 * @param boxCenterX
@@ -74,11 +96,11 @@ public final class EspEquipmentLayout
 
 		float y = boxTopY
 			- (hasNameTags ? OFFSET_WITH_NAME_TAGS : OFFSET_WITHOUT_NAME_TAGS);
-		float startX = boxCenterX - count * STEP / 2F;
+		float startX = rowStartX(count, boxCenterX, STEP);
 
 		List<Slot> slots = new ArrayList<>(count);
 		for(int i = 0; i < count; i++)
-			slots.add(new Slot(i, startX + (count - i - 1) * STEP, y));
+			slots.add(new Slot(i, startX + rowOffsetX(count, i, STEP), y));
 
 		return Collections.unmodifiableList(slots);
 	}

@@ -143,4 +143,84 @@ final class EspEquipmentLayoutTest
 			// 预期
 		}
 	}
+
+	// ------------------------------------------------------------------
+	// 抽出来的横向口径（目标信息面板复用）
+	// ------------------------------------------------------------------
+
+	@Test
+	void rowStartXCentresTheRowOnTheGivenCentre()
+	{
+		for(int count = 0; count <= 6; count++)
+		{
+			float start = EspEquipmentLayout.rowStartX(count, CENTER,
+				EspEquipmentLayout.STEP);
+			float left = start
+				+ EspEquipmentLayout.rowOffsetX(count, count - 1,
+					EspEquipmentLayout.STEP);
+			float right = start
+				+ EspEquipmentLayout.rowOffsetX(count, 0,
+					EspEquipmentLayout.STEP) + EspEquipmentLayout.STEP;
+
+			if(count == 0)
+				assertEquals(CENTER, start, EPSILON);
+			else
+				assertEquals(CENTER, (left + right) / 2F, EPSILON,
+					"count=" + count);
+		}
+	}
+
+	@Test
+	void rowOffsetXPutsTheLastEntryAtZeroAndTheFirstAtTheFarEnd()
+	{
+		int count = 4;
+
+		assertEquals(0F,
+			EspEquipmentLayout.rowOffsetX(count, count - 1, 10F), EPSILON);
+		assertEquals((count - 1) * 10F,
+			EspEquipmentLayout.rowOffsetX(count, 0, 10F), EPSILON);
+	}
+
+	/**
+	 * 两个入口必须给出同一套 x，否则 ESP 铭牌条与目标面板会各排各的。
+	 */
+	@Test
+	void layoutUsesTheSameHorizontalConventionAsRowStartX()
+	{
+		for(int count = 1; count <= 5; count++)
+		{
+			List<Slot> slots =
+				EspEquipmentLayout.layout(count, CENTER, BOX_TOP, true);
+			float start = EspEquipmentLayout
+				.rowStartX(count, CENTER, EspEquipmentLayout.STEP);
+
+			for(Slot slot : slots)
+				assertEquals(
+					start + EspEquipmentLayout.rowOffsetX(count, slot.index(),
+						EspEquipmentLayout.STEP),
+					slot.x(), EPSILON);
+		}
+	}
+
+	/**
+	 * 目标面板用的步长比 ESP 铭牌条小（图标缩放到 0.5 而不是 0.65），
+	 * 所以步长必须是参数。
+	 */
+	@Test
+	void rowStepIsParameterisable()
+	{
+		float half = EspEquipmentLayout.STEP / 2F;
+
+		float wideStart =
+			EspEquipmentLayout.rowStartX(4, CENTER, EspEquipmentLayout.STEP);
+		float narrowStart = EspEquipmentLayout.rowStartX(4, CENTER, half);
+
+		assertEquals(CENTER - 4 * half / 2F, narrowStart, EPSILON);
+		assertEquals(half,
+			EspEquipmentLayout.rowOffsetX(4, 2, half)
+				- EspEquipmentLayout.rowOffsetX(4, 3, half),
+			EPSILON);
+		assertTrue(narrowStart > wideStart,
+			"a smaller step should start further right, not further left");
+	}
 }

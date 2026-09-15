@@ -592,12 +592,26 @@ WurstB：`PlayerAttacksEntityListener`（`TargetHudElement.java:33,83-90`）+ `k
    语义直接对齐 `UiTween`（`UiTween.java:40-51`：钳制进度 + `Math.max(1,duration)`），
    把参考 `Easing.java:8-35` 的曲线表搬过来即可（正弦三条换掉 `MathHelper`）。
    理由：先有统一动画口径，后面所有元素才不会各写一套。
-2. **`HudPlacement`（相对坐标/锚点/吸附纯几何）** —— 把参考 `ScreenPositionProperty.getScaledX/setRelativeX/snapToGrid`
-   （52-124 行）的几何语义做成纯函数，供 `HudEditorScreen` 与未来的"聊天栏拖拽"共用；
-   `HudLayout` 的锚点模型保持不动（它更强）。理由：这是定位层唯一真正缺的东西，且零渲染依赖。
-3. **通知元素补齐（模块开关通知开关 + 事件钩子）** —— `HudNotificationRenderer` 与
-   `HudNotification.lifetimeProgress`（已钳制）都已就绪，只缺一个"模块开关时发通知"的开关项与回调；
-   顺带把 §3-D4 的教训写成测试（进度必须钳制）。理由：最小的"新增可开关元素"闭环。
+2. ~~**`HudPlacement`（相对坐标/锚点/吸附纯几何）**~~ —— **作废，本工程已经有了，而且更强。**
+   本报告原先没核实就断言"这是定位层唯一真正缺的东西"。实际核对结果：
+   `HudEditorScreen.snapPosition()`（405-459 行）已经在做参考 `snapToGrid()`
+   的全部事情，并且多做了参考没有的**元素间边对边吸附**——它拿移动元素的两条边
+   去比每一个其它已启用元素的两条边，取最近者（`bestXDistance` 就近取胜），
+   再叠加屏幕中线吸附（`SNAP_RANGE = 5`，`renderSnapGuides()` 画参考线）。
+   参考的 `snapToGrid()` 只把元素自己吸到屏幕边缘/中线。**无需移植。**
+3. ~~**通知元素补齐（模块开关通知 + 事件钩子）**~~ —— **作废，本工程已经有了。**
+   同样是没有核实就下的结论。实际核对结果：`Hack.setEnabled()` 在 171-173 行
+   **无条件**发通知（`WURST.getHudManager().addNotification(this)`，只是排除了
+   `ClickGuiHack`/`NavigatorHack`），`HudManager.addNotification(Feature)`
+   （186-193 行）按 `isEnabled()` 选 `ENABLED`/`DISABLED` 严重级。模块开关通知
+   是**默认一直开着**的，不存在"缺一个开关项与回调"。
+   唯一还算缺的是一个"关掉它"的偏好设置，那是取舍不是移植缺口，未做。
+
+> **教训**：以上两条都是把"看起来该有"当成了"实际没有"。`hud2` 的完成度比本报告
+> 原先假设的高得多——`TargetHudElement`（14KB，含头像、血条渐变动画、粒子）、
+> `MusicIslandHudElement`（24KB）、`HudNotificationRenderer` 都已存在。**后续每一项
+> 动工前都必须先 grep 确认缺口真实存在**，本节其余条目的前提同理。
+
 4. **`HackList` 增强（Bar mode / Offset scoreboard / Visible categories / 列表高度）** ——
    在既有 `HackListHUD`/`HackListOtf` 上加设置，不改默认值；`getTotalHeight()` 供记分板重排
    （参考 `InGameHudMixin.java:225-245` 的口径）。理由：模块列表是最有辨识度的 HUD，且数据源现成。
@@ -610,6 +624,13 @@ WurstB：`PlayerAttacksEntityListener`（`TargetHudElement.java:33,83-90`）+ `k
    装备栏几何用 `EspEquipmentLayout`（已存在）、附魔短名用 `EspEnchantNames`（已存在）
    与 `PlayerEspHack.java:430-457` 的 1.20.1 取法（`EnchantmentHelper.getEnchantments` + `BuiltInRegistries.ENCHANTMENT.getKey`）；
    双血条动画改用第 1 步的 `HudTween`。理由：最大件，且它的两个难点（装备/附魔、头像）都已有本地先例。
+   **进度：装备行已完成**（只画图标，排在面板下半部分空带；横向口径复用
+   `EspEquipmentLayout.rowStartX/rowOffsetX`，为此把这两个方法从 `layout()` 里抽了出来）。
+   参考把这一行画在上半部分头像右边，但本工程面板那里被"名字 + 血条"占了，故改放下方空带。
+   参考在这行上还叠了附魔短名；本面板只有 48px 高、图标缩放后不到 9px，叠字会糊，故只画图标。
+   **仍未做**：头像右侧的双血条（生命 + 吸收）分开显示、以及把 `TargetHudElement` 自己的
+   `easeOutQuint`/`easeOutElastic`（408-431 行）换成 `Easings`——后者要先逐值比对确认
+   曲线一致，否则会改动现有动画观感。
 7. **动态岛（`IslandPriority` 纯逻辑 + 一个触发者）** —— 先只做"优先级表 + 表头选择 + 自定义坐标"
    这层纯逻辑与单测，再挑一个最少依赖的触发者（如音乐岛，`MusicIslandHudElement` 已是同类 UI）。
    理由：模型漂亮但收益依赖触发者数量，优先级低于目标元素。
@@ -627,3 +648,20 @@ WurstB：`PlayerAttacksEntityListener`（`TargetHudElement.java:33,83-90`）+ `k
   **死代码**（D7）。没有把"看起来可疑"写成"缺陷"。
 - 未在游戏内验证任何视觉效果；`hud2` 与参考的观感差异需要实机比对。
 - §6-B8 列的 5 条为**未验证**，实现前需先在 1.20.1 侧确认。
+
+## 9. 动工后的修订（后续补记）
+
+- **§7 第 1 步已完成**：`util/anim/Easings.java`（28 条曲线）、`Curve.java`、
+  `EasedTween.java`。移植中发现参考自身两条曲线是错的（`EASE_IN_OUT_SINE` 与
+  `EASE_IN_SINE` 是同一个表达式；`EASE_IN_OUT_CIRC` 在 x=0.5 处从 0.5 跳到 1.20711），
+  已按正确公式实现并在类注释里写下反例。
+- **§7 第 2、3 步作废**：缺口不存在，见上文。
+- **§7 第 6 步的装备行已完成**：`TargetHudElement.drawEquipment()`。
+- **`hud2` 缺一层「逐元素设置」机制**：`HudElement` 只有
+  `getId/getName/isSingleton/renderEditorPreview/onEnable/onDisable/getWidth/getHeight/getDefaultLayout`，
+  没有任何设置容器；`HudElementConfig` 也只有 `enabled`/对齐/偏移/缩放。所以参考里那些
+  「元素内的开关」（例如 TargetInfo 的装备开关）在本工程**无处安放**。
+  装备行按参考的实际行为（参考那段是无条件块，没有 if）做成了无条件绘制。
+  若以后要给 hud2 元素加设置，需要先设计这一层并确认
+  `hud-layout.json` 的向后兼容（`HudManager.loadLayout()` 是 Gson + `elements` 数组，
+  新增可选字段默认缺省是安全的）。
