@@ -127,6 +127,31 @@ OpenOpal 的 `@Subscribe(priority = …)` 是按优先级派发；我们的 `Eve
 **范围说明**：注解订阅路径（`@WurstSubscribe` / `WurstSubscriber`）**还没有**优先级，
 目前只有测试在用；本轮不动它，等有真实订阅者需要排序时再加（见待办）。
 
+## 第 5 项（已开始）：按需补事件，第一个是 `StuckInBlockListener`
+
+OpenOpal 有 `StuckInBlockEvent`，我们原本没有 —— 缺事件的代价是 **mixin 里直接写死某个 hack**。
+`mixin/EntityMixin.onMakeStuckInBlock()` 原来是：
+
+```java
+		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
+			&& WurstClient.INSTANCE.getHax().noSlowdownHack
+				.shouldBypassStuckBlock(state))
+			ci.cancel();
+```
+
+同一个文件里紧挨着的 `VelocityFromFluidEvent`/`VelocityFromEntityCollisionEvent` 早就走事件了，
+所以这是**同一文件内两种风格并存**的不一致：新增一个能实现同样效果的 hack，就得回头改 mixin。
+
+**改法**：
+
+| | 旧 | 新 |
+| --- | --- | --- |
+| 事件 | 无 | `events/StuckInBlockListener.java`（含嵌套 `StuckInBlockEvent extends CancellableEvent`，与 `VelocityFromFluidListener` 同构） |
+| mixin | 直接查 `noSlowdownHack` 与 `getHax()` | `EventManager.fire(new StuckInBlockEvent(state))` + `if(event.isCancelled()) ci.cancel();`，**不再 import 任何 hack 或 HackList** |
+| 消费者 | `NoSlowdownHack` 被 mixin 反向调用 | `NoSlowdownHack implements StuckInBlockListener`，`onEnable/onDisable` 里注册/注销，`onStuckInBlock()` 用**原来那条一模一样的条件** `isEnabled() && shouldBypassStuckBlock(state)` 决定是否 `cancel()` |
+| 行为 | 缠网/细雪/甜浆果丛三个开关生效 | 逐位相同（同一个 `shouldBypassStuckBlock()`、同一个取消点、同一 tick 触发），但现在任何 hack 都能挂上去 |
+| 验证 | — | `gradlew compileJava` 通过；无 JUnit（mixin + MC 单例，无法离线触发） |
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
@@ -134,7 +159,7 @@ OpenOpal 的 `@Subscribe(priority = …)` 是按优先级派发；我们的 `Eve
    读取并存下来，`subscribeAnnotated` 按优先级（大的先）稳定排序。等出现第一个真实订阅者再做，
    避免造出没人用的机制。
 3. ~~事件优先级~~ **已完成（第 4 项）**：经典注册表已支持，`RotationFaker` 是第一个使用点。
-4. **按需补事件**：我们已有 38 个监听器（含 `PreMotion`/`PostMotion`、`Knockback`、
+4. **按需补事件**（`StuckInBlockListener` 已完成，见第 5 项）：我们已有 38 个监听器（含 `PreMotion`/`PostMotion`、`Knockback`、
    `VelocityFromEntityCollision`、`VelocityFromFluid`、`PlayerMove`、`HandleInput`、
    `MouseUpdate`、`PacketInput`/`PacketOutput`）。OpenOpal 有而我们**确实缺**的是：
    `PostMovementPacketEvent`（移动包发完之后的时点）、`AttackDelayEvent`、`ItemUseEvent`、
