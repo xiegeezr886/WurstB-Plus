@@ -1,0 +1,44 @@
+name: Sync version branches
+
+# Keeps the 22 per-version snapshot branches (1.20.1 ... 26.2) in sync with main.
+#
+# Each branch is regenerated from main, filtered down to that one MC version, and
+# committed with two parents (previous branch tip + main), so every branch stays a
+# descendant of main and shows up as already merged.  See
+# scripts/sync-version-branches.py for the filtering rules.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-version-branches
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Fetch every version branch
+        run: |
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+
+      - name: Show what will change
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python3 scripts/sync-version-branches.py --dry-run
+
+      - name: Regenerate and push the version branches
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python3 scripts/sync-version-branches.py
