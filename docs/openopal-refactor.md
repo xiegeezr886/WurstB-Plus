@@ -414,6 +414,22 @@ m.impl().reset();`）罩住这三处：只有 LowHop 有状态，其余是空操
 `for(Mode m : Mode.values()) m.impl().onDisable();`：Haste 会收拾，OG 是空操作，
 与"关闭时总是收拾"逐位一致。原注释（为什么要 `appliedHaste` 兜底）也一并搬进了模式类。
 
+### 第六个模块：Step（已完成）
+
+`StepHack` 的 Simple/Legit 差异很大：Simple 只是把 `maxUpStep` 设成 Height，Legit 则是
+一整套"撞墙 + 0.5~1 格台阶"的判断加两次位移动包。拆成 `net.wurstclient.hacks.step`：
+
+| 文件 | 内容 |
+| --- | --- |
+| `StepMode` | `getName()` / `onUpdate(hack, player)` |
+| `SimpleStepMode` | `player.maxUpStep = hack.getHeight();` |
+| `LegitStepMode` | 先把 `maxUpStep` 还原成原值，然后冷却/撞墙/在地面/非梯子非水/有移动输入/没按跳跃/头顶不卡/台阶 0.5~1 的九道检查，再发 0.42 与 0.753 两个位移动包、本地 `setPos` 抬升，最后 `hack.setStepCooldown(2)` |
+
+hack 留通用部分：玩家/世界非空检查、`trackPlayer()`（记录原 `maxUpStep`）、`stepCooldown`
+每 tick 递减，以及 `getHeight()` / `getPreviousStepHeight()` / `getStepCooldown()` /
+`setStepCooldown()` 四个访问器（Legit 模式要读要写冷却）。**检查顺序原样保留** ——
+Legit 的九道 return 是顺序敏感的（先冷却再撞墙……），搬进模式类时逐行照抄，没有合并成一条布尔表达式。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
