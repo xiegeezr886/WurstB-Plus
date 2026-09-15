@@ -68,12 +68,30 @@ public final class HackListHUD implements UpdateListener
 		// 颜色模式：rainbowUi 开启走 RAINBOW，否则 STATIC 单色
 		ModuleColors colors = buildColors();
 
-		float height = y + activeHax.size() * ENTRY_HEIGHT;
+		float height = y + countVisible() * ENTRY_HEIGHT;
 
 		if(otf.getMode() == Mode.COUNT || height > context.guiHeight())
 			drawCounter(context, colors);
 		else
 			drawHackList(context, partialTicks, colors);
+	}
+
+	/**
+	 * 该条是否被「可见分类」放行。参考
+	 * {@code ModuleElement.isModuleVisible()} 除了开关状态之外也查这一项。
+	 */
+	private boolean isVisible(HackListEntry entry)
+	{
+		return otf.isCategoryVisible(entry.hack.getCategory());
+	}
+
+	private int countVisible()
+	{
+		int count = 0;
+		for(HackListEntry entry : activeHax)
+			if(isVisible(entry))
+				count++;
+		return count;
 	}
 
 	private ModuleColors buildColors()
@@ -107,9 +125,9 @@ public final class HackListHUD implements UpdateListener
 	{
 		Font font = WurstClient.MC.font;
 		if(otf.getMode() == Mode.COUNT)
-			return Math.max(90, font.width(activeHax.size()
+			return Math.max(90, font.width(countVisible()
 				+ " hacks enabled") + 11);
-		return Math.max(90, activeHax.stream()
+		return Math.max(90, activeHax.stream().filter(this::isVisible)
 			.map(entry -> entry.hack.getDisplayName()).mapToInt(font::width)
 			.max().orElse(font.width("HackList")) + 11);
 	}
@@ -118,12 +136,12 @@ public final class HackListHUD implements UpdateListener
 	{
 		if(otf.getMode() == Mode.COUNT)
 			return ENTRY_HEIGHT;
-		return Math.max(ENTRY_HEIGHT, activeHax.size() * ENTRY_HEIGHT);
+		return Math.max(ENTRY_HEIGHT, countVisible() * ENTRY_HEIGHT);
 	}
 	
 	private void drawCounter(GuiGraphics context, ModuleColors colors)
 	{
-		long size = activeHax.stream().filter(e -> e.hack.isEnabled()).count();
+		long size = activeHax.stream().filter(this::isVisible).count();
 		ComposeHackList.Entry entry = new ComposeHackList.Entry(size
 			+ " 项功能已启用");
 		entry.progress = 1;
@@ -147,6 +165,10 @@ public final class HackListHUD implements UpdateListener
 				iterator.remove();
 				continue;
 			}
+			// 分类被隐藏时只是不画，但上面那条清理必须照跑，否则关掉的
+			// 隐藏分类条目会一直留在 activeHax 里。
+			if(!isVisible(entry))
+				continue;
 			ComposeHackList.Entry composeEntry = new ComposeHackList.Entry(
 				entry.hack.getDisplayName());
 			composeEntry.progress = progress;

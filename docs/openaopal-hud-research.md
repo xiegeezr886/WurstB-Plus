@@ -703,3 +703,19 @@ WurstB：`PlayerAttacksEntityListener`（`TargetHudElement.java:33,83-90`）+ `k
   即「按行号在主题双色间来回渐变」；本工程的 `ModuleColors` 已有
   RAINBOW/STATIC/FADE/GRADIENT/WAVE 五种逐项配色，比参考那一种更强，
   不需要移植。
+- **§7 第 4 步的「Visible categories」已完成**：`HackListOtf` 为
+  `Category` 的 8 个分类各加一个 `CheckboxSetting`（名字 `Show <分类显示名>`，
+  默认全勾），`HackListHUD` 在 `getWidth()`/`getHeight()`/`countVisible()`/
+  `drawCounter()`/`drawHackList()` 五处按它过滤，`renderAt()` 判断
+  「列表是否放得下、要不要退化成计数模式」用的也是可见条数而不是总条数。
+  默认全开，所以默认行为逐字节不变。
+  一处容易写错的细节：`drawHackList()` 里那条「已关闭且动画归零就移出
+  `activeHax`」的清理必须<b>在</b>分类过滤<b>之前</b>执行，否则被隐藏分类里
+  关掉的条目会一直留在列表里出不去。
+- **测试环境的一条硬限制**（写在这里免得以后重复踩）：无法在无头测试里拨动
+  任何设置。`CheckboxSetting.setChecked()` 最后会走到
+  `WurstClient.saveSettings()`（`CheckboxSetting.java:74` →
+  `WurstClient.java:254`），在没有存档文件时对 `settingsFile` 抛 NPE；
+  本工程现有测试也没有一个去拨动设置。所以「可见分类」的单测只钉默认值契约
+  （默认全开 + 每分类一个开关 + 名字跟着分类显示名，因为那是持久化键），
+  **「关掉之后列表里就看不到」这一步没有自动测试**，只有逻辑核对。

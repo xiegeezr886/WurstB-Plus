@@ -9,7 +9,10 @@ package net.wurstclient.other_features;
 
 import java.awt.Color;
 import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.Map;
 
+import net.wurstclient.Category;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.WurstClient;
@@ -65,6 +68,11 @@ public final class HackListOtf extends OtherFeature
 	private SortBy prevSortBy;
 	private Boolean prevRevSort;
 	
+	// 参考 ToggledSettings.getVisibleCategories()：每个分类一个开关，只有开着的
+	// 分类才进列表。默认全开，所以默认观感不变。
+	private final Map<Category, CheckboxSetting> visibleCategories =
+		new EnumMap<>(Category.class);
+	
 	public HackListOtf()
 	{
 		super("HackList", "Shows a list of active hacks on the screen.");
@@ -76,6 +84,31 @@ public final class HackListOtf extends OtherFeature
 		addSetting(sortBy);
 		addSetting(revSort);
 		addSetting(animations);
+		
+		for(Category category : Category.values())
+		{
+			// 名字会作为持久化键写进配置，所以跟着分类走、不要随手改
+			CheckboxSetting setting =
+				new CheckboxSetting("Show " + category.getName(),
+					"Whether hacks in the " + category + " category appear in"
+						+ " the HackList.",
+					true);
+			visibleCategories.put(category, setting);
+			addSetting(setting);
+		}
+	}
+	
+	/**
+	 * 该分类的 hack 是否允许进列表。{@code category} 为 null 时按可见处理——
+	 * 列表宁可多显示一项，也不要因为分类缺失整条消失。
+	 */
+	public boolean isCategoryVisible(Category category)
+	{
+		if(category == null)
+			return true;
+		
+		CheckboxSetting setting = visibleCategories.get(category);
+		return setting == null || setting.isChecked();
 	}
 	
 	public Mode getMode()
