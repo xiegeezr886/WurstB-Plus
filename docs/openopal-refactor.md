@@ -397,6 +397,23 @@ m.impl().reset();`）罩住这三处：只有 LowHop 有状态，其余是空操
 （物品减速、缠网/细雪/甜浆果丛、以及第 5 项里刚接的两个事件），没有"同一件事的多种实现"可拆；
 硬套模式类化只会平白多出一层。按 Rule 9，这里不做改动，只记录结论。
 
+### 第五个模块：SpeedMine（已完成）
+
+`SpeedMineHack`（122 行）只有两个模式，但它的**状态归属于 hack**这一点和 Speed 一样
+（`appliedHaste`/`previousHaste` 是 Haste 模式的一次性状态）。拆成 `net.wurstclient.hacks.speedmine`：
+
+| 文件 | 内容 |
+| --- | --- |
+| `SpeedMineMode` | `getName()` / `onUpdate(hack)` / `onDisable()`（默认空） |
+| `HasteSpeedMineMode` | 维持我们自己加的急迫；**`appliedHaste`/`previousHaste` 随模式搬进来**，`onDisable()` 负责"只清掉我们加的那一份、把原有急迫放回去" |
+| `OgSpeedMineMode` | `MC.gameMode.destroyDelay = hack.getCooldown()` |
+
+**一个容易拆错的点**：原来的清理代码在 hack 的 `onDisable()` 里，**与当前选中的模式无关** ——
+即使玩家用 Haste 模式加过效果、然后切到 OG 再关闭，也必须在关闭时清掉。状态搬进 Haste 模式后，
+如果只调"当前模式"的 `onDisable()`，这一路就会漏掉。所以 hack 侧写成
+`for(Mode m : Mode.values()) m.impl().onDisable();`：Haste 会收拾，OG 是空操作，
+与"关闭时总是收拾"逐位一致。原注释（为什么要 `appliedHaste` 兜底）也一并搬进了模式类。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
