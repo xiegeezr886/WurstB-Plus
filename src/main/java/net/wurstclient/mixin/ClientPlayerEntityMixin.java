@@ -35,6 +35,7 @@ import net.wurstclient.event.EventManager;
 import net.wurstclient.events.AirStrafingSpeedListener.AirStrafingSpeedEvent;
 import net.wurstclient.events.ClipAtLedgeListener.ClipAtLedgeEvent;
 import net.wurstclient.events.ForwardImpulseListener.ForwardImpulseEvent;
+import net.wurstclient.events.HasEffectListener.HasEffectEvent;
 import net.wurstclient.events.IsPlayerInLavaListener.IsPlayerInLavaEvent;
 import net.wurstclient.events.IsPlayerInWaterListener.IsPlayerInWaterEvent;
 import net.wurstclient.events.ItemUseSlowdownListener.ItemUseSlowdownEvent;
@@ -340,19 +341,9 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Override
 	public boolean hasEffect(MobEffect effect)
 	{
-		HackList hax = WurstClient.INSTANCE.getHax();
-		
-		if(effect == MobEffects.NIGHT_VISION
-			&& hax.fullbrightHack.isNightVisionActive())
-			return true;
-		
-		if(effect == MobEffects.LEVITATION
-			&& hax.noLevitationHack.isEnabled())
-			return false;
-		
-		if(effect == MobEffects.DARKNESS && hax.antiBlindHack.isEnabled())
-			return false;
-		
-		return super.hasEffect(effect);
+		HasEffectEvent event =
+			new HasEffectEvent(effect, super.hasEffect(effect));
+		EventManager.fire(event);
+		return event.hasEffect();
 	}
 }

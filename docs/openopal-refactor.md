@@ -248,6 +248,24 @@ AutoSprint 在 mixin 里有三处引用，语义并不相同，所以**没有硬
 所以事件初值只能给 `false`，语义是"只有监听器明确投票 true 才会改结果" ——
 这与原逻辑（只有 `shouldSprintHungry()` 为真时才 `setReturnValue(true)`）逐位一致。
 
+### 第 5 项第七个：`HasEffectListener`（一次迁移三个 hack）
+
+`ClientPlayerEntityMixin.hasEffect(MobEffect)` 是第 5 项里最划算的一处：**一个方法里塞了三个 hack**
+（Fullbright 的夜视、NoLevitation 的漂浮、AntiBlind 的黑暗），而且都是"按效果类型投票"的同一种语义，
+所以用一个事件一次解决：
+
+| | 旧 | 新 |
+| --- | --- | --- |
+| mixin | `HackList hax = …` + 三段 `if(effect == X && hax.Y...)` | `new HasEffectEvent(effect, super.hasEffect(effect))` → `event.hasEffect()` |
+| Fullbright | 被 mixin 调 `isNightVisionActive()` | 订阅；`NIGHT_VISION` 且 `isNightVisionActive()` 时设 true（沿用原判断，不改方法本身） |
+| NoLevitation | 被 mixin 调 `isEnabled()` | 订阅；`LEVITATION` 时设 false，新增 `onEnable/onDisable` |
+| AntiBlind | 被 mixin 调 `isEnabled()` | 订阅；`DARKNESS` 时设 false，新增 `onEnable/onDisable` |
+
+行为逐位等价：事件初值就是 `super.hasEffect(effect)`，三个监听器用的是各自原来那条一模一样的条件，
+且**按效果对象分别判断**，所以多个 hack 同时开会各自生效、不会互相覆盖。
+至此 `ClientPlayerEntityMixin` 里 `HackList` 只剩 SafeWalk/ScaffoldWalk 之外的 3 处引用
+（`applySprint` 有意保留、`stepHack`、`portalGuiHack`/`freecamHack`）。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。

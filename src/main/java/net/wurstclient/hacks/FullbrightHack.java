@@ -9,8 +9,11 @@ package net.wurstclient.hacks;
 
 import net.minecraft.client.OptionInstance;
 import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffects;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.events.HasEffectListener;
+import net.wurstclient.events.HasEffectListener.HasEffectEvent;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.mixinterface.ISimpleOption;
@@ -22,7 +25,8 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 @SearchTags({"Fullbrightness", "full brightness", "Fulbrightness",
 	"ful brightness", "NightVision", "night vision", "FullLightness",
 	"FulLightness", "full lightness", "FullGamma", "full gamma"})
-public final class FullbrightHack extends Hack implements UpdateListener
+public final class FullbrightHack extends Hack
+	implements UpdateListener, HasEffectListener
 {
 	private final EnumSetting<Method> method = new EnumSetting<>("Method",
 		"\u00a7lGamma\u00a7r works by setting your brightness slider beyond 100%. Incompatible with shader packs.\n\n"
@@ -50,6 +54,7 @@ public final class FullbrightHack extends Hack implements UpdateListener
 		
 		checkGammaOnStartup();
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(HasEffectListener.class, this);
 	}
 	
 	private void checkGammaOnStartup()
@@ -69,6 +74,15 @@ public final class FullbrightHack extends Hack implements UpdateListener
 				EVENTS.remove(UpdateListener.class, this);
 			}
 		});
+	}
+	
+	/** Night Vision 模式下假装玩家一直带着夜视效果。 */
+	@Override
+	public void onHasEffect(HasEffectEvent event)
+	{
+		if(event.getEffect() == MobEffects.NIGHT_VISION
+			&& isNightVisionActive())
+			event.setHasEffect(true);
 	}
 	
 	@Override
