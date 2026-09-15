@@ -36,6 +36,7 @@ import net.wurstclient.events.AirStrafingSpeedListener.AirStrafingSpeedEvent;
 import net.wurstclient.events.ClipAtLedgeListener.ClipAtLedgeEvent;
 import net.wurstclient.events.IsPlayerInLavaListener.IsPlayerInLavaEvent;
 import net.wurstclient.events.IsPlayerInWaterListener.IsPlayerInWaterEvent;
+import net.wurstclient.events.JumpPowerListener.JumpPowerEvent;
 import net.wurstclient.events.StayingOnGroundSurfaceListener.StayingOnGroundSurfaceEvent;
 import net.wurstclient.events.KnockbackListener.KnockbackEvent;
 import net.wurstclient.events.PlayerMoveListener.PlayerMoveEvent;
@@ -291,8 +292,9 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	{
 		// HighJump 需要知道原版的基础跳跃力才能算出「正好到 N 格」的增量
 		// （跳跃提升、蜂蜜块都会改变它），所以把基准值传进去。
-		return WurstClient.INSTANCE.getHax().highJumpHack
-			.getJumpPowerFor(super.getJumpPower());
+		JumpPowerEvent event = new JumpPowerEvent(super.getJumpPower());
+		EventManager.fire(event);
+		return event.getJumpPower();
 	}
 	
 	/**

@@ -191,6 +191,20 @@ OpenOpal 有 `StuckInBlockEvent`，我们原本没有 —— 缺事件的代价�
 逐位等价（同样的两个判断、同样的 `||` 语义），但 mixin 里再没有 hack 名字，两个 hack 也都
 和 `ClipAtLedge` 一样在 `onEnable/onDisable` 里自行订阅注销。
 
+### 第 5 项第四个：`JumpPowerListener`
+
+`ClientPlayerEntityMixin.getJumpPower()` 原来直接调 `highJumpHack.getJumpPowerFor(super.getJumpPower())`
+（全仓库唯一调用点，已确认无其它引用）。改成 `JumpPowerEvent`（投票式，同时带 `getBaseJumpPower()`：
+跳跃提升、蜂蜜块都会改基础值，监听器应基于它算），`HighJumpHack` 改为订阅并实现
+`onEnable/onDisable` 注册注销；原来的 `getJumpPowerFor()` 随之删掉（否则就是没人调的代码）。
+
+| | 旧 | 新 |
+| --- | --- | --- |
+| mixin | `WurstClient.INSTANCE.getHax().highJumpHack.getJumpPowerFor(super.getJumpPower())` | `EventManager.fire(new JumpPowerEvent(super.getJumpPower()))` 后返回 `event.getJumpPower()` |
+| hack 侧 | 被 mixin 反向调用 | `HighJumpHack implements JumpPowerListener`，`onJumpPower()` 里 `isEnabled()` + 同一个 `JumpHeightSolver.requiredVelocity(height)` |
+| 删除的代码 | — | `getJumpPowerFor()`（迁移后无引用） |
+| 行为 | 未开 HighJump 时原样返回基础值 | 逐位相同（事件初值就是基础值，没监听器改它就是原值） |
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
