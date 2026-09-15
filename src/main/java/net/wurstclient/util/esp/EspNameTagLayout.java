@@ -160,6 +160,37 @@ public final class EspNameTagLayout
 		return measurer.width(text);
 	}
 
+	// ------------------------------------------------------------------
+	// 原版字体的换算（兜底路径用）
+	// ------------------------------------------------------------------
+
+	/**
+	 * 把原版字体缩到铭牌字号所需的倍率。
+	 *
+	 * <p>
+	 * 原版 {@code GuiGraphics.drawString} 没有「按字号绘制」的入口，只能整串
+	 * 用 pose 缩放。{@code lineHeight} 传原版字体的行高（通常 9）。
+	 */
+	public static float vanillaScale(int lineHeight)
+	{
+		return lineHeight <= 0 ? 1F : FONT_SIZE / lineHeight;
+	}
+
+	/**
+	 * 缩放后文字<b>顶边</b>该放哪，才能竖直居中于背景条里。
+	 *
+	 * <p>
+	 * 这是原版与 Skia 的口径差：Skia/NanoVG 的 y 是<b>基线</b>（见
+	 * {@link #BASELINE_OFFSET}），原版 {@code drawString} 的 y 是<b>顶边</b>。
+	 * 这里不去猜原版字体的 ascent，而是直接用行高把文字在背景条里居中——
+	 * 只用得到公开的 {@code lineHeight}，不需要「ascent = 7」这类假设。
+	 */
+	public static float vanillaTextTop(float bgY, float bgHeight, float scale,
+		int lineHeight)
+	{
+		return bgY + (bgHeight - lineHeight * scale) / 2F;
+	}
+
 	private static float iconWidth(EspNameTagElement element,
 		GlyphMeasurer measurer)
 	{

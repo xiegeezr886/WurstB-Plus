@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import org.joml.Matrix4f;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -325,10 +326,21 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		//
 		// 先预排版：区域只用「这一帧真会画到的并集」，而不是整屏——区域越大，
 		// 每帧 peekPixels + glTexSubImage2D 要上传的像素就越多。
+		// 先定路径、再排版：标尺必须和实际画的那条路径同源。
+		//
+		// 这一点原先搞反了——排版无条件用 EspSkia.textWidth，于是原生库不可用时
+		// 会在排版阶段就抛 UnsatisfiedLinkError，异常穿出渲染事件，
+		// renderScreenBoxesVanilla 那条兜底路径永远执行不到。
+		boolean skia = EspSkia.isUsable();
+		EspNameTagLayout.GlyphMeasurer measurer =
+			skia ? text -> EspSkia.textWidth(text, EspNameTagLayout.FONT_SIZE)
+				: text -> MC.font.width(text)
+					* EspNameTagLayout.vanillaScale(MC.font.lineHeight);
+
 		ArrayList<DrawnBox> drawn = new ArrayList<>(screenBoxes.size());
 		for(ScreenBox box : screenBoxes)
 			drawn.add(new DrawnBox(box,
-				nameTags.isChecked() ? layoutNameTag(box) : null));
+				nameTags.isChecked() ? layoutNameTag(box, measurer) : null));
 
 		float[] content = contentBounds(drawn);
 		if(content == null)
@@ -343,9 +355,10 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		if(x2 - x < 1 || y2 - y < 1)
 			return;
 
-		if(!EspSkia.begin(context, x, y, x2 - x, y2 - y))
+		if(!skia || !EspSkia.begin(context, x, y, x2 - x, y2 - y))
 		{
 			renderScreenBoxesVanilla(context);
+			renderNameTagsVanilla(context, drawn);
 			renderEquipment(context, drawn);
 			return;
 		}
@@ -543,7 +556,8 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	}
 
 	/** 按参考的元素顺序与排版算好这一帧的铭牌条。 */
-	private EspNameTagLayout.Layout layoutNameTag(ScreenBox box)
+	private EspNameTagLayout.Layout layoutNameTag(ScreenBox box,
+		EspNameTagLayout.GlyphMeasurer measurer)
 	{
 		Player player = box.player();
 		if(player == null || MC.player == null)
@@ -566,10 +580,84 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 			return null;
 
 		ScreenBounds bounds = box.bounds();
-		float fontSize = EspNameTagLayout.FONT_SIZE;
 		return EspNameTagLayout.layout(elements,
-			(bounds.minX() + bounds.maxX()) / 2F, bounds.minY(),
-			text -> EspSkia.textWidth(text, fontSize));
+			(bounds.minX() + bounds.maxX()) / 2F, bounds.minY(), measurer);
+	}
+
+	/**
+	 * Skia 不可用时的铭牌兜底。
+	 *
+	 * <p>
+	 * 排版结果与 Skia 路径<b>是同一份</b>（同一个
+	 * {@link EspNameTagLayout.Layout}），只是换成原版图元：背景用
+	 * {@code RenderUtils.fill2D}，文字用 {@code drawString}。所以两条路径给出的
+	 * 元素顺序、间距、居中位置都一致，差别只在字形的抗锯齿与栅格化。
+	 *
+	 * <p>
+	 * 原版没有「按字号绘制」的入口，整串用 pose 缩放到铭牌字号，再把
+	 * Skia/NanoVG 的<b>基线</b>口径换算成原版的<b>顶边</b>口径
+	 * （{@link EspNameTagLayout#vanillaTextTop}）。
+	 *
+	 * <p>
+	 * 图标相对正文低 1px，与参考的 {@code position.y + 1} 一致。
+	 */
+	private void renderNameTagsVanilla(GuiGraphics context,
+		List<DrawnBox> drawn)
+	{
+		Font font = MC.font;
+		float scale = EspNameTagLayout.vanillaScale(font.lineHeight);
+		int lineHeight = font.lineHeight;
+
+		// 先把所有背景铺完再画字：背景条之间不重叠（间距 5、内边距 2），
+		// 所以两趟不会互相遮挡，而 fill2D 的批次要先结束才能交给
+		// drawString 的另一种渲染类型。
+		for(DrawnBox entry : drawn)
+		{
+			EspNameTagLayout.Layout layout = entry.tag();
+			if(layout == null || layout.isEmpty())
+				continue;
+
+			for(EspNameTagLayout.Placed placed : layout.placed())
+				RenderUtils.fill2D(context, placed.bgX(), placed.bgY(),
+					placed.bgX() + placed.bgWidth(),
+					placed.bgY() + placed.bgHeight(), 0x80000000);
+		}
+		RenderUtils.getVCP().endBatch();
+
+		for(DrawnBox entry : drawn)
+		{
+			EspNameTagLayout.Layout layout = entry.tag();
+			if(layout == null || layout.isEmpty())
+				continue;
+
+			for(EspNameTagLayout.Placed placed : layout.placed())
+			{
+				EspNameTagElement element = placed.element();
+				float textTop = EspNameTagLayout.vanillaTextTop(placed.bgY(),
+					placed.bgHeight(), scale, lineHeight);
+
+				if(element.hasIcon())
+					drawVanillaGlyph(context, font, element.icon().glyph(),
+						placed.iconX(), textTop + scale, scale,
+						element.color());
+				if(element.hasText())
+					drawVanillaGlyph(context, font, element.text(),
+						placed.textX(), textTop, scale, element.color());
+			}
+		}
+	}
+
+	private static void drawVanillaGlyph(GuiGraphics context, Font font,
+		String text, float x, float topY, float scale, int color)
+	{
+		if(text == null || text.isEmpty() || Float.isNaN(x))
+			return;
+
+		context.pose().pushPose();
+		context.pose().translate(x, topY, 0);
+		context.pose().scale(scale, scale, 1);
+		context.drawString(font, text, 0, 0, color, false);
+		context.pose().popPose();
 	}
 
 	private void renderNameTag(EspNameTagLayout.Layout layout)
@@ -596,7 +684,10 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		}
 	}
 
-	/** Skia 不可用时的原版兜底：与加入 Skia 路径之前逐像素一致。 */
+	/**
+	 * Skia 不可用时的原版兜底：方框/血条/护甲条的画法与加入 Skia 路径之前
+	 * 逐像素一致；铭牌条另见 {@link #renderNameTagsVanilla}。
+	 */
 	private void renderScreenBoxesVanilla(GuiGraphics context)
 	{
 		for(ScreenBox box : screenBoxes)

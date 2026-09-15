@@ -135,6 +135,58 @@ final class EspNameTagLayoutTest
 		assertEquals(0, placed.textWidth());
 	}
 
+	// ------------------------------------------------------------------
+	// 原版兜底路径的口径换算
+	// ------------------------------------------------------------------
+
+	@Test
+	void vanillaScaleBringsTheVanillaLineDownToTheNameTagSize()
+	{
+		// 原版默认行高 9，铭牌字号 5
+		assertEquals(5F / 9F, EspNameTagLayout.vanillaScale(9), 1E-5F);
+		assertEquals(1F, EspNameTagLayout.vanillaScale(5), 1E-5F);
+	}
+
+	/** 行高非正时不能除零——字体对象异常或第三方字体都可能给 0。 */
+	@Test
+	void vanillaScaleIsSafeForANonPositiveLineHeight()
+	{
+		assertEquals(1F, EspNameTagLayout.vanillaScale(0), 1E-5F);
+		assertEquals(1F, EspNameTagLayout.vanillaScale(-3), 1E-5F);
+	}
+
+	/**
+	 * 原版 {@code drawString} 的 y 是顶边、Skia 的是基线，所以兜底路径要换算。
+	 * 这里不去猜 ascent，而是把文字在背景条里竖直居中。
+	 */
+	@Test
+	void vanillaTextTopCentresTheLineInsideTheBackground()
+	{
+		float bgY = 100;
+		float bgHeight =
+			EspNameTagLayout.FONT_SIZE + EspNameTagLayout.BG_PADDING * 2F;
+		int lineHeight = 9;
+		float scale = EspNameTagLayout.vanillaScale(lineHeight);
+
+		float top = EspNameTagLayout.vanillaTextTop(bgY, bgHeight, scale,
+			lineHeight);
+		float bottom = top + lineHeight * scale;
+
+		assertEquals(bgY + bgHeight / 2F, (top + bottom) / 2F, 1E-4F);
+		assertTrue(top >= bgY, "text must not start above the background");
+		assertTrue(bottom <= bgY + bgHeight,
+			"text must not spill below the background");
+	}
+
+	@Test
+	void vanillaTextTopFollowsTheBackgroundVertically()
+	{
+		float scale = EspNameTagLayout.vanillaScale(9);
+
+		assertEquals(EspNameTagLayout.vanillaTextTop(100, 9, scale, 9) + 40,
+			EspNameTagLayout.vanillaTextTop(140, 9, scale, 9), 1E-4F);
+	}
+
 	private static EspNameTagElement element(String text)
 	{
 		return new EspNameTagElement(text, 0xFFFFFFFF);

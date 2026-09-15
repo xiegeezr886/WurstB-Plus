@@ -11,6 +11,7 @@ import java.util.HashMap;
 
 import org.jetbrains.skia.Canvas;
 import org.jetbrains.skia.Font;
+import org.jetbrains.skia.FontMgr;
 import org.jetbrains.skia.FontMetrics;
 import org.jetbrains.skia.Paint;
 import org.jetbrains.skia.PaintMode;
@@ -56,8 +57,62 @@ public final class EspSkia
 	private static Canvas canvas;
 	private static Paint paint;
 
+	/** 原生库探测结果；{@code null} 表示还没探过。 */
+	private static Boolean nativesUsable;
+
 	private EspSkia()
 	{
+	}
+
+	/**
+	 * 这一帧能不能用 Skia。<b>必须在任何 Skia 调用之前问</b>——包括量字宽。
+	 *
+	 * <p>
+	 * 为什么不能只问 {@link SkikoNatives#ensure()}：它只负责把 DLL 解压出来并
+	 * 设置 {@code skiko.library.path}，<b>不校验平台</b>。本工程打包的是
+	 * {@code skiko-windows-x64.dll}，所以在 Linux/macOS 上 {@code ensure()}
+	 * 照样返回 true，真正的 {@code UnsatisfiedLinkError} 要等到第一次触碰
+	 * Skia 类才抛。这里真的去摸一次原生入口（{@code FontMgr}），把异常收在
+	 * 本方法内，并把结果缓存下来，避免每帧重试。
+	 *
+	 * <p>
+	 * 顺带把「这一帧已经有别的界面开着区域」也算作不可用：那种情况下区域管线
+	 * 会复用同一个画布、不会重新施加平移，画进去会把别人的画面写花
+	 * （见 {@link #begin}）。
+	 */
+	public static boolean isUsable()
+	{
+		if(!nativesUsable())
+			return false;
+
+		return !SkiaRegionRenderer.get().isRegionDrawing();
+	}
+
+	private static boolean nativesUsable()
+	{
+		if(nativesUsable != null)
+			return nativesUsable;
+
+		try
+		{
+			if(!SkikoNatives.ensure())
+			{
+				nativesUsable = Boolean.FALSE;
+				return false;
+			}
+
+			// 真正摸一次原生入口。FontMgr 是 SkiaFontManager 本来就要用的，
+			// 平台上不匹配时就是在这里抛。
+			FontMgr.Companion.getDefault();
+			nativesUsable = Boolean.TRUE;
+		}catch(Throwable t)
+		{
+			// UnsatisfiedLinkError / ExceptionInInitializerError 都要吃掉：
+			// 本方法的存在意义就是「不可用就退回原版」，而不是把异常抛给渲染事件。
+			nativesUsable = Boolean.FALSE;
+		}
+
+		return nativesUsable;
 	}
 
 	/** @return 本帧 Skia 是否可用；返回 false 时不得调用任何绘制方法。 */
@@ -72,17 +127,29 @@ public final class EspSkia
 			return false;
 		}
 
-		Canvas started =
-			SkiaRegionRenderer.get().beginRegion(x, y, width, height);
-
-		if(started == null)
+		try
 		{
+			Canvas started =
+				SkiaRegionRenderer.get().beginRegion(x, y, width, height);
+
+			if(started == null)
+			{
+				canvas = null;
+				return false;
+			}
+
+			canvas = started;
+			return true;
+		}catch(Throwable t)
+		{
+			// beginRegion 的注释说 native 初始化失败会抛，但调用方原先没有接。
+			// 这里兜住，否则异常会穿出渲染事件，兜底路径永远不会执行。
+			// regionDrawing 是在 beginRegion 快结束时才置位的，抛在这里说明
+			// 它还没被置位，所以标志不会被卡住。
+			nativesUsable = Boolean.FALSE;
 			canvas = null;
 			return false;
 		}
-
-		canvas = started;
-		return true;
 	}
 
 	/** 上传区域并 blit 回 GUI。 */

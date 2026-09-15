@@ -144,3 +144,40 @@ OpenOpal 的 2D ESP 全部靠 NanoVG 在**屏幕空间**画：把碰撞箱 8 个
 - 装备元素的**顺序**假设（主手最左）是从参考原式推出来的，没有实机比对过。
 - `EspSkia` 与 `PlayerEspHack` 里「画什么、画在哪」这层没有自动测试（需要
   GL 上下文与游戏内实体），只能靠人工分栏；有测试的是它下面那层图元语义。
+
+### 7.1 兜底路径原先到不了（已修）
+
+上面那条「兜底路径只做了逻辑核对」的写法过于宽松，复核后发现**它不是到不了画面，
+而是根本执行不到**，两个独立原因：
+
+1. **排版阶段就先把 Skia 摸了。** `onRenderGUI` 原先无条件用
+   `EspSkia.textWidth` 量铭牌宽度，而这发生在 `EspSkia.begin` **之前**。
+   `EspSkia.textWidth` → `font()` → `SkiaFontManager.semibold()` →
+   `FontMgr.Companion.getDefault()`，`SkiaFontManager.load()` 只接 `IOException`，
+   原生库不可用时抛的是 `UnsatisfiedLinkError`。异常穿出 `onRenderGUI`
+   （渲染事件），`renderScreenBoxesVanilla` 一次都没被调用过。
+2. **原生库探测本身不校验平台。** `SkikoNatives.ensure()` 只做「解压 DLL +
+   设置 `skiko.library.path`」，打包的是 `skiko-windows-x64.dll`，
+   所以在 Linux/macOS 上它照样返回 `true`；真正的加载失败要等到第一次触碰
+   Skia 类才发生。`SkiaRegionRenderer.beginRegion` 的注释写「native 初始化失败时
+   抛 `IllegalStateException`」，但 `EspSkia.begin` 当时没有任何 try/catch。
+
+修法：
+
+- `EspSkia.isUsable()`：真的去摸一次原生入口（`FontMgr`）并把结果缓存，
+  异常（含 `UnsatisfiedLinkError` / `ExceptionInInitializerError`）收在方法内；
+  同时把「这一帧已有别的界面开着区域」也算作不可用。
+- `EspSkia.begin` 整个包进 try/catch，失败即返回 false，兜底得以执行。
+  `regionDrawing` 是在 `beginRegion` 快结束时才置位的，抛在它之前，所以标志不会卡住。
+- `onRenderGUI` 改成**先定路径再排版**：标尺与实际绘制路径同源
+  （Skia 用 `EspSkia.textWidth`，兜底用原版字体宽度 ×
+  `EspNameTagLayout.vanillaScale`）。
+- 兜底路径补上铭牌条：`renderNameTagsVanilla`，与 Skia 路径共用**同一份**
+  `EspNameTagLayout.Layout`，只是换成 `fill2D` + `drawString`。原版没有按字号绘制
+  的入口，整串用 pose 缩放；基线/顶边口径换算见
+  `EspNameTagLayout.vanillaTextTop`（只依赖公开的 `lineHeight`，不假设 ascent=7）。
+
+由此新增的纯函数 `vanillaScale` / `vanillaTextTop` 有 4 个单测。
+**仍未实机验证**：兜底路径的实际观感（原版字体缩放后的字形质量、与 Skia 路径的
+并排差异）没有看过；本次只证明了「这条路现在走得到」，没有证明「走得好看」。
+
