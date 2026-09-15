@@ -38,7 +38,7 @@ Java 21），本地只读检出 `D:\WurstB\_op_ref`。**GPL-3.0**，与本工程
 | --- | --- |
 | 元素模型**可移植且值得移植** | `IOverlayElement` 只有 7 个方法，语义干净；`hud2` 的 `HudElement` 已经覆盖其中 6 个的等价物 |
 | 定位模型**不照抄** | 参考是"相对坐标 0..1 + 左/右阈值"，hud2 是"锚点(LEFT/CENTER/RIGHT × TOP/CENTER/BOTTOM) + 整数偏移 + scale"，后者更强；参考能补的是**相对坐标↔像素的纯函数**与**边缘/中线吸附** |
-| bloom 第二遍**不能照抄** | 参考的实现会让元素 `render()` 在同一帧跑两次，产生已证实的重复入队缺陷（§3-D5）；`hud2` 也没有 GUI 后处理通道（§6-B1） |
+| bloom 第二遍**不能照抄** | 参考的实现会让元素 `render()` 在同一帧跑两次，产生已证实的重复入队缺陷（§3-D5）；`hud2` 也没有 GUI 后处理通道（§6-B1）。**世界空间那半已用既有 `PostEffectQueue` 的 `Mode == 4` 做完**，GUI 那半仍未做——见 §6-B1 的更新 |
 | 动画层**大部分已存在** | `UiTween`（钳制、零时长防护）与 `RiseAnimation` 已是同类物；缺的是 30 条缓动曲线 + 统一口径 |
 | 最大工作量是 **TargetInfoElement** | 头像 + 装备栏 + 附魔短名 + 双血条；其中装备/附魔在 `PlayerEspHack` 已有先例，头像在 1.20.1 有 `graphics.blit` 方案 |
 
@@ -511,6 +511,32 @@ monitor 线程写入的 `true`（36-38 行只在 true 时排序），于是新�
 （`PostEffectQueue.java:192-212`，资源见 `assets/wurst/shaders/post/target_*.json`），没有 glow/bloom。
 → 想复刻"亮部进 glow buffer 再模糊叠加"，需要在 `HudManager.onRenderGUI` 里新增一条
 `TextureTarget + PostChain` 通道（可复用 `PostEffectQueue` 的写法），这是一个**新增子系统**，不是移植。
+
+> **2025 更新——B1 拆成了两半，一半已经做完。**
+> 后处理管线本身是完整且可用的（这一点上表早期措辞容易读成"没有后处理设施"，
+> 实际是"没有 **GUI** 通道"）：`queue(Effect, RenderTask)` 把绘制任务按效果排队，
+> `flush()` 在离屏 target 上重放、跑 `PostChain`、合成回主 target
+> （`PostEffectQueue.java:82-103`）；失败会记进 `failedEffects` 并**永久停用**该效果
+> 并打日志（`:69`），所以坏着色器是静默降级而不是崩。
+>
+> **已完成（世界空间那半）**：bloom 加成了既有的第 5 个 `Mode`（`Mode == 4`），
+> 资源 `shaders/post/target_bloom.json`，着色器分支用三圈各 8 次稀疏环形采样
+> （24 次/像素）代替半径 12 的稠密核（25×25 = 625 次/像素）。因为
+> `TargetShaderHack` 的 `Effect` 设置就是 `Effect.values()`，加一个枚举值就自动
+> 出现在它的"Effect"选项里，零新增管线。同时把 `smoke` 从 `else` 改成显式
+> `Mode == 3`、最后的 `else` 改为什么都不画——写错 `Mode` 时"没有效果"比
+> "看起来像别的效果"好排查。
+>
+> **仍未做（GUI 那半）**：`flush()` 注入在 `renderLevel` 的 `renderHand` 字段读取处
+> （`GameRendererMixin.java:99-111`），也就是**画 HUD 之前**。HUD bloom 需要 HUD 之后
+> 再 flush 一次，现成挂点就是 `WurstForgeInitializer.onRenderGui` 里
+> `EventManager.fire(new GUIRenderEvent(...))` 之后那一行。难点不在 flush，而在
+> 排队的任务要往离屏 target 上画 HUD 内容——需要绑定到该 target 的 `GuiGraphics`
+> 加 GUI 正交投影，这两样只有进游戏才能验证。
+>
+> 三种静默失败（少 json / 少 Mode 分支 / 两个效果共用 Mode）现由
+> `PostEffectQueueEffectTest`（4 个测试）钉住。
+
 
 **B2｜`GUIRenderEvent` 不携带鼠标坐标。**
 `RenderScreenEvent` 有 `mouseX/mouseY`（`RenderScreenEvent.java:5`），参考的拖拽与悬停全靠它
