@@ -40,3 +40,4 @@
   对比 `carriedIndex` 与 `inventory.selected`，并在每次交互前（`:200/:272/:294/:362/:407/:416/:422/:485`）
   补发 `ServerboundSetCarriedItemPacket` ⇒ `giveOrSelectItem()` 换手后即便同 tick 就放置，
   服务端也会先收到换手包。
+- 共享的 `util/AutoBuildTemplate.java` 里发现并修掉 1 处 NPE（模板里出现不存在的方块名时），见覆盖文档 §0.1。

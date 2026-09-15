@@ -27,6 +27,18 @@ LiquidBounce 系的滚动点击数组 + 冷却 + 点击模式；`util/DamageUtil
 护甲/韧性吸收、保护附魔与抗性。值得动的是它们**周边**缺失的抽象与缓存。
 
 ## 0.1 共享核心进度
+- **`util/AutoBuildTemplate.java`（模板核心，被 AutoBuild/InstaBuild/DefaultAutoBuildTemplates 共用）：逐行读完，修掉 1 处 NPE。**
+  `BlockData.toItem()`（旧 `:145-149`）是 `BlockUtils.getBlockFromName(name).asItem()`。`getBlockFromName()`
+  （`util/BlockUtils.java:69-78`）只在名字**语法非法**（`ResourceLocationException`）时返回 `Blocks.AIR`；对语法合法但
+  不存在的名字（拼错的 id、没装的模组方块）返回的是 `null`。反例（Rule 9）：v2 模板里写 `"minecraft:not_a_block"`，
+  在 AutoBuild/InstaBuild 里右键放置那一刻 NPE —— `getBlocksToPlace()` 被两个模块的 `onRightClick` 直接调用，
+  事件回调里没有 try。现改为 `block == null ? Items.AIR : block.asItem()`，正是调用方期待的口径
+  （`AutoBuildHack:247` 用 `item != Items.AIR` 判断「模板在这个位置保存了方块」）。
+- 同文件已核对无问题的部分：`load()` 的版本分派与未知版本报错（`:48-54`）、`loadV1`/`loadV2` 的逐条 `JsonException` 包装、
+  `getBlocksToPlace()` 的 `left = front.getCounterClockWise()` 旋转（`:108-117` + `:142`）、`isSelected()` 的 Path 比较
+  （两条路径都由 `FileSetting` 构造，必然同形）。留档一条边界：模板里若有两条「坐标相同、方块名不同」的条目，
+  `LinkedHashMap` 会让后者覆盖前者（而 `size()` 仍返回 2），属畸形模板的边界，没有反例说明它是错的，未改。
+
 
 | 共享核心 | 状态 | 说明 |
 | --- | --- | --- |

@@ -14,6 +14,8 @@ import java.util.LinkedHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
 import net.wurstclient.settings.FileSetting;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
@@ -144,7 +146,13 @@ public final class AutoBuildTemplate
 		
 		public Item toItem()
 		{
-			return BlockUtils.getBlockFromName(name).asItem();
+			// getBlockFromName() 只在名字"语法非法"时返回 Blocks.AIR；对语法合法但不存在的名字
+			// （拼错的、没装的模组方块）返回 null。旧实现直接 .asItem() ⇒ 右键放置那一刻 NPE，
+			// 而调用方（AutoBuildHack.onRightClick / InstaBuildHack.onRightClick）的事件回调里没有 try。
+			// 返回 Items.AIR 才是调用方期待的口径：AutoBuildHack:247 用 `item != Items.AIR`
+			// 判断"这个位置在模板里保存了方块"，未知方块就应当按"没保存"处理。
+			Block block = BlockUtils.getBlockFromName(name);
+			return block == null ? Items.AIR : block.asItem();
 		}
 	}
 }

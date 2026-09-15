@@ -33,3 +33,4 @@
   玩家之后的任何交互也会顺手同步回来。
 - `:180-185` 与 AutoBuild 的差别（这里换手后同 tick 继续放置，AutoBuild 是 return 等下一 tick）只是风格差异，
   上面那条时序证据说明两者都正确。
+- 共享的 `util/AutoBuildTemplate.java` 里发现并修掉 1 处 NPE（模板里出现不存在的方块名时），见覆盖文档 §0.1。
