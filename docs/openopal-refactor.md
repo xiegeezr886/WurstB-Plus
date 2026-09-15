@@ -230,6 +230,24 @@ OpenOpal 有 `StuckInBlockEvent`，我们原本没有 —— 缺事件的代价�
 条件**（`isEnabled() && shouldBypassUsingItem()`）设 `setBypass(true)`。mixin 里 `noSlowdownHack`
 的引用从 3 处降到 1 处（剩下的 `shouldBypassStuckBlock` 已在第 5 项第一个里切走）。
 
+### 第 5 项第六个：`ForwardImpulseListener` + `SprintHungerListener`（对应 OpenOpal 的 `SprintEvent`/`KeepSprintEvent`）
+
+AutoSprint 在 mixin 里有三处引用，语义并不相同，所以**没有硬塞进一个事件**：
+
+| mixin 位置 | 语义 | 处理 |
+| --- | --- | --- |
+| `@WrapOperation` 包住 `Input#hasForwardImpulse()` | "这次移动算不算有前进输入"（决定要不要冲刺） | → `ForwardImpulseListener`（投票式，初值就是 `original.call(input)` 的原版结果） |
+| `@Inject` 在 `AbstractClientPlayer;aiStep()` 之后 | "原版检查跑完了，现在把冲刺打开" | **保持直接调用**，并在注释里写明理由：这是执行动作、没有第二个参与者，做成事件只是形式主义 |
+| `@Inject(HEAD)` 打在 `hasEnoughFoodToStartSprinting()` | "饿着肚子能不能开始冲刺" | → `SprintHungerListener`（投票式） |
+
+`AutoSprintHack` 改为实现这两个监听器（`onEnable/onDisable` 注册注销），原来的
+`shouldOmniSprint()`/`shouldSprintHungry()` 被对应的事件处理器取代（只有 mixin 调它们，已确认无其它引用）。
+
+**一个必须记录的坑**：`hasEnoughFoodToStartSprinting()` 的注入点是 `@At("HEAD")`，
+`CallbackInfoReturnable#getReturnValueZ()` 在 HEAD **读不到原版返回值**（会抛异常），
+所以事件初值只能给 `false`，语义是"只有监听器明确投票 true 才会改结果" ——
+这与原逻辑（只有 `shouldSprintHungry()` 为真时才 `setReturnValue(true)`）逐位一致。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。

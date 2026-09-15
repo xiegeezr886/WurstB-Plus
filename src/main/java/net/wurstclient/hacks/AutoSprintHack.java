@@ -11,11 +11,16 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.effect.MobEffects;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.events.ForwardImpulseListener;
+import net.wurstclient.events.ForwardImpulseListener.ForwardImpulseEvent;
+import net.wurstclient.events.SprintHungerListener;
+import net.wurstclient.events.SprintHungerListener.SprintHungerEvent;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 
 @SearchTags({"auto sprint"})
 public final class AutoSprintHack extends Hack
+	implements ForwardImpulseListener, SprintHungerListener
 {
 	private final CheckboxSetting allDirections =
 		new CheckboxSetting("Omnidirectional Sprint",
@@ -54,11 +59,15 @@ public final class AutoSprintHack extends Hack
 	protected void onEnable()
 	{
 		sprintOwner = null;
+		EVENTS.add(ForwardImpulseListener.class, this);
+		EVENTS.add(SprintHungerListener.class, this);
 	}
 	
 	@Override
 	protected void onDisable()
 	{
+		EVENTS.remove(ForwardImpulseListener.class, this);
+		EVENTS.remove(SprintHungerListener.class, this);
 		stopOwnedSprint();
 	}
 	
@@ -109,13 +118,20 @@ public final class AutoSprintHack extends Hack
 		sprintOwner = null;
 	}
 	
-	public boolean shouldOmniSprint()
+	/** Omnidirectional Sprint：把"任意方向的移动"也算成有前进输入。 */
+	@Override
+	public void onForwardImpulse(ForwardImpulseEvent event)
 	{
-		return isEnabled() && allDirections.isChecked();
+		if(isEnabled() && allDirections.isChecked())
+			event.setForwardImpulse(
+				event.getInput().getMoveVector().length() > 1.0E-5F);
 	}
 	
-	public boolean shouldSprintHungry()
+	/** Hungry Sprint：饿着肚子也允许开始冲刺。 */
+	@Override
+	public void onSprintHunger(SprintHungerEvent event)
 	{
-		return isEnabled() && hungry.isChecked();
+		if(isEnabled() && hungry.isChecked())
+			event.setCanSprintHungry(true);
 	}
 }

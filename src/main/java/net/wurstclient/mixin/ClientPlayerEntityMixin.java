@@ -34,6 +34,7 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.AirStrafingSpeedListener.AirStrafingSpeedEvent;
 import net.wurstclient.events.ClipAtLedgeListener.ClipAtLedgeEvent;
+import net.wurstclient.events.ForwardImpulseListener.ForwardImpulseEvent;
 import net.wurstclient.events.IsPlayerInLavaListener.IsPlayerInLavaEvent;
 import net.wurstclient.events.IsPlayerInWaterListener.IsPlayerInWaterEvent;
 import net.wurstclient.events.ItemUseSlowdownListener.ItemUseSlowdownEvent;
@@ -42,6 +43,7 @@ import net.wurstclient.events.StayingOnGroundSurfaceListener.StayingOnGroundSurf
 import net.wurstclient.events.KnockbackListener.KnockbackEvent;
 import net.wurstclient.events.PlayerMoveListener.PlayerMoveEvent;
 import net.wurstclient.events.PostMotionListener.PostMotionEvent;
+import net.wurstclient.events.SprintHungerListener.SprintHungerEvent;
 import net.wurstclient.events.PreMotionListener.PreMotionEvent;
 import net.wurstclient.events.UpdateListener.UpdateEvent;
 import net.wurstclient.hack.HackList;
@@ -84,10 +86,10 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	private boolean wrapHasForwardMovement(Input input,
 		Operation<Boolean> original)
 	{
-		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldOmniSprint())
-			return input.getMoveVector().length() > 1e-5F;
-		
-		return original.call(input);
+		ForwardImpulseEvent event =
+			new ForwardImpulseEvent(input, original.call(input));
+		EventManager.fire(event);
+		return event.hasForwardImpulse();
 	}
 
 	@Inject(at = @At(value = "INVOKE",
@@ -95,6 +97,8 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		method = "aiStep()V")
 	private void applyAutoSprintAfterVanillaChecks(CallbackInfo ci)
 	{
+		// 这里是"执行动作"而不是"做决定"，所以仍是直接调用而不是事件：
+		// applySprint() 在原版整套冲刺检查跑完之后把冲刺打开，没有第二个参与者。
 		WurstClient.INSTANCE.getHax().autoSprintHack.applySprint();
 	}
 	
@@ -232,7 +236,12 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Inject(at = @At("HEAD"), method = "hasEnoughFoodToStartSprinting()Z", cancellable = true)
 	private void onCanSprint(CallbackInfoReturnable<Boolean> cir)
 	{
-		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldSprintHungry())
+		// 注入点在 HEAD，读不到原版的返回值，所以事件初值取 false：
+		// 只有一个监听器明确说"能饿着冲刺"时才会把结果改成 true（与原逻辑一致）。
+		SprintHungerEvent event = new SprintHungerEvent(false);
+		EventManager.fire(event);
+		
+		if(event.canSprintHungry())
 			cir.setReturnValue(true);
 	}
 	
