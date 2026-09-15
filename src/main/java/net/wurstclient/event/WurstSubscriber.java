@@ -23,6 +23,7 @@ public final class WurstSubscriber
 	private final Object target;
 	private final Method method;
 	private final String signature;
+	private final int priority;
 
 	public WurstSubscriber(Object target, Method method)
 	{
@@ -48,6 +49,7 @@ public final class WurstSubscriber
 			this.eventClass = eventClass;
 			this.target = target;
 			this.method = method;
+			priority = resolvePriority(method);
 			targetClass = target.getClass();
 			signature = method.getDeclaringClass().getName() + "."
 				+ method.getName() + "("
@@ -56,6 +58,18 @@ public final class WurstSubscriber
 		{
 			throw new RuntimeException(t);
 		}
+	}
+
+	/** 注解上写的优先级（没写就是 0；方法上没有注解时也是 0）。 */
+	private static int resolvePriority(Method method)
+	{
+		WurstSubscribe annotation = method.getAnnotation(WurstSubscribe.class);
+		return annotation == null ? 0 : annotation.priority();
+	}
+
+	public int getPriority()
+	{
+		return priority;
 	}
 
 	private static Class<?> getEvent(Method method)

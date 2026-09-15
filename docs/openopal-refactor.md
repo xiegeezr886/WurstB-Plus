@@ -448,6 +448,42 @@ searchRange、prediction、requireLineOfSight、safeWalk、towerMotion、swingHa
 （L58 直接 `jumpIf.getSelected().condition.test(player)`），这已经是"每个模式自带行为"的形态，
 既没有 switch 也没有 hack 内部状态可搬 —— 再套一层模式类只会多一层间接。
 
+## 第 7 项：注解订阅路径的优先级（已完成）
+
+前面一直把这项挂着的原因是"没有真实订阅者就无法验证"，这次查清了：注解订阅机制**一直都在**——
+`@WurstSubscribe` + `WurstSubscriber` + `EventManager.subscribeAnnotated()`，
+而且 `Hack` 在 `onEnable/onDisable` 里就会调用它，所以每个 hack 都是潜在订阅者；
+现有测试 `EventManagerTest` 也已经在用它。缺的只是**顺序**：`subscribeAnnotated()` 原来只是
+`subscribers.add(subscriber)`，注解里没法表达"我要先跑"。
+
+改动：
+
+| 文件 | 改动 |
+| --- | --- |
+| `WurstSubscribe` | 新增 `int priority() default 0`，javadoc 写明"数值越大越先调用，同优先级按注册顺序"（与第 4 项给 `EventManager.add(type, listener, priority)` 定的约定一致） |
+| `WurstSubscriber` | 新增 `priority` 字段 + `getPriority()`；优先级在构造时从方法上的注解读出，**没有注解时是 0**（这样 3 参数构造器那条路径也不受影响） |
+| `EventManager` | `subscribeAnnotated()` 改为 `insertByPriority()`：从高到低找到第一个优先级更低的位置插入，同优先级插在已有者**之后** ⇒ 稳定；另加 `getAnnotatedSubscribers(eventType)` 只读快照（与第 4 项加的 `getListeners(type)` 对称） |
+
+测试：`EventManagerAnnotatedPriorityTest` 四个用例（乱序注册后按优先级排、同优先级保序、
+默认 0 高于 -5、注销后计数归零）。
+
+### 这一项暴露出的测试陷阱（值得记下来）
+
+第一版测试是"直接 `fire(new DummyEvent())` 然后断言回调顺序"，结果三个用例全部失败，
+实际值是 `[]` —— 追下去发现 `EventManager.fireImpl()` 开头有 `if(!wurst.isEnabled()) return;`，
+离线单测里客户端没启用，**事件根本不会派发**。所以改成断言
+`getAnnotatedSubscribers()` 的列表顺序（那正是 `fireAnnotated()` 的迭代顺序），
+并把原因写在测试类的 javadoc 里。
+
+已知限制（没做）：`fireAnnotated()` 是按 `annotatedSubscribers` 这个 **HashMap 的 entrySet**
+迭代的，所以"同一个事件同时命中多个不同事件类（例如事件类与它的子类各注册了订阅者）"时，
+**类与类之间**的先后由 map 顺序决定，优先级只在**同一个事件类内部**保证。要彻底确定，
+得把 key 也排序；目前没有这种订阅者，先记录、不猜。
+
+验证边界：本项有真正跑起来的 JUnit（`net.wurstclient.event.*` 全部通过）——
+但如上一段所述，端到端的"事件确实被派发到注解订阅者"在这套离线测试里做不了（被
+`wurst.isEnabled()` 挡住），只能验证派发**顺序**。
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。

@@ -16,4 +16,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface WurstSubscribe
 {
+	/**
+	 * 调用顺序：数值**越大越先**被调用（与
+	 * {@link EventManager#add(Class, Listener, int)} 的约定一致）。
+	 * 同优先级的订阅者按注册顺序调用（稳定排序）。
+	 */
+	int priority() default 0;
 }

@@ -233,8 +233,24 @@ public final class EventManager
 				.computeIfAbsent(subscriber.getEventClass(),
 					k -> new CopyOnWriteArrayList<>());
 			if(!subscribers.contains(subscriber))
-				subscribers.add(subscriber);
+				insertByPriority(subscribers, subscriber);
 		}
+	}
+
+	/**
+	 * 按优先级从高到低插入；同优先级放在已有同优先级订阅者**之后**，
+	 * 所以注册顺序仍然保留（稳定）。原来只是 {@code add()}，注解订阅无法表达调用顺序。
+	 */
+	private static void insertByPriority(List<WurstSubscriber> subscribers,
+		WurstSubscriber subscriber)
+	{
+		int priority = subscriber.getPriority();
+		int index = 0;
+		while(index < subscribers.size()
+			&& subscribers.get(index).getPriority() >= priority)
+			index++;
+
+		subscribers.add(index, subscriber);
 	}
 
 	public void unsubscribeAnnotated(Object obj)
@@ -274,5 +290,15 @@ public final class EventManager
 	{
 		List<WurstSubscriber> subscribers = annotatedSubscribers.get(eventType);
 		return subscribers == null ? 0 : subscribers.size();
+	}
+
+	/**
+	 * 只读快照：某个事件类的注解订阅者，**顺序就是调用顺序**（已按优先级从高到低排好）。
+	 */
+	public List<WurstSubscriber> getAnnotatedSubscribers(
+		Class<? extends Event<?>> eventType)
+	{
+		List<WurstSubscriber> subscribers = annotatedSubscribers.get(eventType);
+		return subscribers == null ? List.of() : List.copyOf(subscribers);
 	}
 }
