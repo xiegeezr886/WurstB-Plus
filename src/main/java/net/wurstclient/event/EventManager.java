@@ -28,6 +28,9 @@ public final class EventManager
 		new HashMap<>();
 	private final ConcurrentHashMap<Class<? extends Listener>, ArrayList<? extends Listener>> listenerSnapshots =
 		new ConcurrentHashMap<>();
+	/** 与 listenerMap 里每个列表一一对应的优先级，用于按优先级插入。 */
+	private final HashMap<Class<? extends Listener>, ArrayList<Integer>> priorityMap =
+		new HashMap<>();
 	private final ConcurrentHashMap<Class<? extends Listener>, LongAdder> eventCounters =
 		new ConcurrentHashMap<>();
 	private final LongAdder totalEventsFired = new LongAdder();
@@ -99,22 +102,51 @@ public final class EventManager
 					s.callSubscriber(event);
 	}
 	
+	/**
+	 * 以默认优先级 0 注册监听器，等价于 {@code add(type, listener, 0)}。
+	 */
 	public synchronized <L extends Listener> void add(Class<L> type, L listener)
+	{
+		add(type, listener, 0);
+	}
+
+	/**
+	 * 按优先级注册监听器：**数值大的先被调用**，同优先级保持注册先后顺序。
+	 *
+	 * <p>为什么需要它：注册顺序原本只取决于谁先在代码里 {@code add}，而同一个事件上不同
+	 * 监听器之间是有先后要求的（例如 {@link net.wurstclient.RotationFaker} 必须在每 tick 的
+	 * PostMotion 阶段**最先**清空上一 tick 的朝向，否则同 tick 里后设的朝向会被它抹掉）。
+	 * 有了优先级，这种要求由显式数字表达，而不是靠"谁先被 new 出来"的隐含顺序。
+	 */
+	public synchronized <L extends Listener> void add(Class<L> type, L listener,
+		int priority)
 	{
 		try
 		{
 			@SuppressWarnings("unchecked")
 			ArrayList<L> listeners = (ArrayList<L>)listenerMap.get(type);
-			
+			ArrayList<Integer> priorities = priorityMap.get(type);
+
 			if(listeners == null)
 			{
 				listeners = new ArrayList<>();
 				listenerMap.put(type, listeners);
+				priorities = new ArrayList<>();
+				priorityMap.put(type, priorities);
 			}
-			
-			listeners.add(listener);
+
+			int index = listeners.size();
+			for(int i = 0; i < priorities.size(); i++)
+				if(priorities.get(i) < priority)
+				{
+					index = i;
+					break;
+				}
+
+			listeners.add(index, listener);
+			priorities.add(index, priority);
 			listenerSnapshots.put(type, new ArrayList<>(listeners));
-			
+
 		}catch(Throwable e)
 		{
 			e.printStackTrace();
@@ -124,9 +156,20 @@ public final class EventManager
 			CrashReportCategory section = report.addCategory("Affected listener");
 			section.setDetail("Listener type", () -> type.getName());
 			section.setDetail("Listener class", () -> listener.getClass().getName());
+			section.setDetail("Priority", () -> Integer.toString(priority));
 			
 			throw new ReportedException(report);
 		}
+	}
+
+	/**
+	 * 当前已注册监听器的只读快照（按调用顺序）。用于调试与测试。
+	 */
+	public <L extends Listener> List<L> getListeners(Class<L> type)
+	{
+		@SuppressWarnings("unchecked")
+		ArrayList<L> snapshot = (ArrayList<L>)listenerSnapshots.get(type);
+		return snapshot == null ? List.of() : List.copyOf(snapshot);
 	}
 	
 	public synchronized <L extends Listener> void remove(Class<L> type,
@@ -140,10 +183,20 @@ public final class EventManager
 			if(listeners == null)
 				return;
 
-			listeners.remove(listener);
+			int index = listeners.indexOf(listener);
+			if(index < 0)
+				return;
+
+			listeners.remove(index);
+			ArrayList<Integer> priorities = priorityMap.get(type);
+			if(priorities != null && index < priorities.size())
+				priorities.remove(index);
+
 			if(listeners.isEmpty())
+			{
 				listenerSnapshots.remove(type);
-			else
+				priorityMap.remove(type);
+			}else
 				listenerSnapshots.put(type, new ArrayList<>(listeners));
 			
 		}catch(Throwable e)

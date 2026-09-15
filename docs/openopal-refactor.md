@@ -107,12 +107,33 @@ lower priorities"*，但 `event/registry/EventRegistry.java` 的 `sortSubscriber
 
 **什么情况下我会改主意**：如果明确要针对某个服务端做模式，合理做法是 ——（a）只挑一个具体行为（例如某反作弊下的击退），（b）做成该 hack 里**新增的模式枚举**、默认仍是通用模式，（c）在文档里写明"未在真实服务器验证"。这条路随时可以走，但它需要一台能连的测试服务器，而不是照着别人的代码抄。
 
+## 第 4 项（已完成，部分范围）：事件监听器优先级
+
+OpenOpal 的 `@Subscribe(priority = …)` 是按优先级派发；我们的 `EventManager` 原本只有
+"注册顺序"（`listeners.add(listener)` 后整表复制成快照），同一个事件上不同监听器之间的先后
+要求只能靠"谁先被 new 出来"这种隐含顺序。
+
+**改法（对约 200 处既有调用零影响）**：
+
+| | 旧 | 新 |
+| --- | --- | --- |
+| 注册 | `add(Class<L>, L)`：追加到列表尾部 | 保留该重载，内部转调 `add(type, listener, 0)`；新增 `add(Class<L>, L, int priority)`，按"数值大的先调用、同优先级保持注册顺序"插入 |
+| 优先级存储 | — | 新增 `priorityMap`，与 `listenerMap` 的列表**下标一一对应** |
+| 移除 | `listeners.remove(listener)` 后重建快照 | 改成按 `indexOf` 定位、同时摘掉 `priorities` 的同一格，列表空了连带清掉 `priorityMap`（否则删中间一个会让后续优先级错位） |
+| 可观测性 | 只有 `getListenerCount` | 新增 `getListeners(Class<L>)`（只读快照，按调用顺序） |
+| 第一个真实使用点 | `RotationFaker` 的 `PostMotionListener` 靠"客户端初始化时最先注册"排在前面 | 显式注册为优先级 **1000**：`onPostMotion()` 会清空本 tick 的朝向请求，必须早于其它 PostMotion 监听器，否则 hacks 同 tick 设的朝向会被抹掉 |
+| 测试 | — | `EventManagerPriorityTest` 4 个用例（高优先级在前 + 同级保持插入顺序、默认重载等于 0、删中间后优先级仍对齐、删空后类型被清理） |
+
+**范围说明**：注解订阅路径（`@WurstSubscribe` / `WurstSubscriber`）**还没有**优先级，
+目前只有测试在用；本轮不动它，等有真实订阅者需要排序时再加（见待办）。
+
 ## 待办（按建议顺序）
 
-1. ~~把栅格接到发送路径~~ **已完成（见第 3 项）**。
-2. ~~旋转模型对齐~~ **已完成（见第 2 项）**。剩下的是把栅格与模型接到真正发包的地方（第 1 项）。
-3. **事件优先级**：给 `EVENTS` 加优先级排序（按 `Subscribe` 注释语义，即高优先级先跑），
-   给现有监听器保留默认 0。改动面约 200 处引用，需要一次性提交。
+1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
+2. **注解订阅路径的优先级**：`@WurstSubscribe` 加 `int priority() default 0`，`WurstSubscriber`
+   读取并存下来，`subscribeAnnotated` 按优先级（大的先）稳定排序。等出现第一个真实订阅者再做，
+   避免造出没人用的机制。
+3. ~~事件优先级~~ **已完成（第 4 项）**：经典注册表已支持，`RotationFaker` 是第一个使用点。
 4. **按需补事件**：我们已有 38 个监听器（含 `PreMotion`/`PostMotion`、`Knockback`、
    `VelocityFromEntityCollision`、`VelocityFromFluid`、`PlayerMove`、`HandleInput`、
    `MouseUpdate`、`PacketInput`/`PacketOutput`）。OpenOpal 有而我们**确实缺**的是：
