@@ -33,6 +33,7 @@ import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.AirStrafingSpeedListener.AirStrafingSpeedEvent;
+import net.wurstclient.events.ClipAtLedgeListener.ClipAtLedgeEvent;
 import net.wurstclient.events.IsPlayerInLavaListener.IsPlayerInLavaEvent;
 import net.wurstclient.events.IsPlayerInWaterListener.IsPlayerInWaterEvent;
 import net.wurstclient.events.KnockbackListener.KnockbackEvent;
@@ -315,8 +316,8 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		Vec3 result = super.maybeBackOffFromEdge(movement, type);
 		
 		if(movement != null)
-			WurstClient.INSTANCE.getHax().safeWalkHack
-				.onClipAtLedge(!movement.equals(result));
+			EventManager.fire(
+				new ClipAtLedgeEvent(!movement.equals(result)));
 		
 		return result;
 	}

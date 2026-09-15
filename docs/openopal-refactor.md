@@ -152,6 +152,20 @@ OpenOpal 有 `StuckInBlockEvent`，我们原本没有 —— 缺事件的代价�
 | 行为 | 缠网/细雪/甜浆果丛三个开关生效 | 逐位相同（同一个 `shouldBypassStuckBlock()`、同一个取消点、同一 tick 触发），但现在任何 hack 都能挂上去 |
 | 验证 | — | `gradlew compileJava` 通过；无 JUnit（mixin + MC 单例，无法离线触发） |
 
+### 第 5 项第二个：`ClipAtLedgeListener`
+
+`ClientPlayerEntityMixin.maybeBackOffFromEdge()` 原来直接调
+`WurstClient.INSTANCE.getHax().safeWalkHack.onClipAtLedge(...)`（这是全仓库唯一的调用点）。
+现在改成发 `ClipAtLedgeEvent`（**不可取消**的通知型事件，携带"这一步的移动是否真被边缘收缩修正过"），
+`SafeWalkHack implements ClipAtLedgeListener` 并在 `onEnable/onDisable` 注册注销，
+`onClipAtLedge(ClipAtLedgeEvent)` 内部第一行取 `event.isClipping()`，**其余逻辑一字未动**。
+
+| | 旧 | 新 |
+| --- | --- | --- |
+| 触发 | mixin 直接调 SafeWalk 的方法 | `EventManager.fire(new ClipAtLedgeEvent(...))` |
+| 消费 | SafeWalk 被反向调用 | SafeWalk 自行订阅；`EventManager` 的优先级机制（第 4 项）现在也适用于它 |
+| 行为 | SafeWalk 的"边缘显示潜行" | 逐位相同（同一条件、同一时机、同一个 `setSneaking`） |
+
 ## 待办（按建议顺序）
 
 1. ~~把栅格接到发送路径~~ **已完成（第 3 项）**；~~旋转模型对齐~~ **已完成（第 2 项）**。
