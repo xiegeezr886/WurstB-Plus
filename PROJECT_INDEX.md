@@ -11,7 +11,7 @@
 > 它们的 `compileJava` 已全部通过，且已**全部打包并上传到
 > [v1.5.0 Release](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)**，
 > 但**没有游戏内启动验证**，
-> 逐版本状态见 [README.md](README.md#多版本平行移植) 与
+> 逐版本状态见 [docs/RELEASE.md](docs/RELEASE.md#多版本平行移植) 与
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
 
 ## 版本与源码路径索引
