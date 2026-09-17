@@ -21,7 +21,6 @@
 - [从源码构建](#从源码构建)
 - [仓库结构](#仓库结构)
 - [文档索引](#文档索引)
-- [许可与署名](#许可与署名)
 
 ---
 
@@ -35,7 +34,7 @@
 | 当前版本 | 根工程 **v1.6.0**（Forge 1.20.1）；其余工程 v1.5.0 |
 | 加载器 | Forge、NeoForge、Fabric |
 | 映射 | Mojang 官方映射（Fabric 侧走 Loom + 官方映射） |
-| 许可 | 源码 **GPL-3.0**（继承自 Wurst），详见[许可与署名](#许可与署名) |
+| 许可 | 源码 **GPL-3.0**（继承自 Wurst） |
 
 **规模**（根目录 Forge 1.20.1 工程）：
 
@@ -273,26 +272,3 @@ cd versions\1.21.5
 | [docs/CONFIG-FORMAT.md](docs/CONFIG-FORMAT.md) | 配置文件格式 |
 | [docs/ANTICHEAT.md](docs/ANTICHEAT.md) | 反作弊相关说明 |
 | [docs/COMBAT_ARCHITECTURE.md](docs/COMBAT_ARCHITECTURE.md) | 战斗链路架构 |
-
----
-
-## 许可与署名
-
-- **源码**：继承自 Wurst，采用 **GNU General Public License v3.0**。根工程 1040 个 Java 文件中
-  830 个带有 GPL-3.0 文件头。详见 `src/main/java` 各文件头部。
-- **`LICENSE.txt`**：是 Minecraft Forge / Forge Mod Loader 的 **LGPL 2.1** 声明文本
-  （上游随附），不是本项目的许可。
-- **[Wurst](https://github.com/Wurst-Imperium/Wurst7)**（Wurst-Imperium）—— 本项目的代码结构基础。
-- **[Baritone](https://github.com/cabaletta/baritone)** —— 寻路与自动挖掘。
-- **[Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger)**（HackerRouter）—— 周界挖掘功能的语义来源。
-- **[OpenOpal](https://github.com/ZSZ7/OpenOpal)**（ZSZ7）—— ESP / HUD 视觉设计的参考。
-
----
-
-## 安全与免责
-
-- 这是**作弊 / 辅助客户端**。在多人服务器上使用可能违反服务器规则并导致封禁，
-  **请自行承担风险**，并只在允许的服务器或单人世界中使用。
-- 项目**不提供任何反检测保证**。`docs/ANTICHEAT.md` 记录的是已知情况，不是免封承诺。
-- 部分功能（种子矿透、种子反解）依赖对原版世界生成数学的复刻，其**已知偏差与能力边界**
-  写在 [CHANGELOG.md](CHANGELOG.md) 中；不要把它们当成精确无误的结论。
