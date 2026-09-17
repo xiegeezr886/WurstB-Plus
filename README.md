@@ -9,8 +9,8 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 - **15 个原发布工程**：Minecraft 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2 × Forge / NeoForge / Fabric；
 - **46 个新版本工程**：MC 1.20.2–1.20.6、1.21–1.21.10、26.1、26.1.1 的加载器工程（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）。
 
-**61 个工程的 v1.5.0 产物已全部构建并上传到 GitHub Release**
-[**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（61 个 jar，命名统一为
+**61 个工程中，60 个的 v1.5.0 产物已重新构建，并与留存的原 1.20.1 Forge 产物一起发布在 GitHub Release
+[**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（共 62 个资产，命名统一为
 `WurstB+.Plus-<版本>-<加载器>-<mc>.jar`）。每个 jar 都做过打包校验（zip 完好、含加载器元数据与 Mixin 配置、含主类），
 但**除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证**——详见[多版本平行移植](#多版本平行移植)与[验证状态](#验证状态)。
 
@@ -21,22 +21,24 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 > **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
 > 其余 **63 个工程均为 v1.5.0 形态**，v1.6 子系统尚未移植，见「v1.6 新增子系统」。
 
-## 发布产物矩阵（61 个 jar）
+## 发布产物矩阵（60 个重建 + 1 个留存）
 
 下表是 GitHub Release **v1.5.0** 的资产清单，文件名规则为
 `WurstB+.Plus-<版本>-<加载器>-<mc>.jar`（本地文件名用空格，见下）。
 
-| 加载器 | 覆盖的 MC 版本 | jar 数 | 生产任务 |
+| 加载器 | 覆盖的 MC 版本 | 工程数 | 生产任务 |
 | --- | --- | --- | --- |
-| Forge | 1.20.1、1.20.2–1.20.4、1.20.6、1.21、1.21.1、1.21.3–1.21.11、26.1、26.1.1、26.1.2、26.2 | 20 | `jarJar`（1.20.2–1.21.1）/ `allJar`（1.21.3+） |
-| Fabric | 1.20.1–1.20.6、1.21、1.21.1、1.21.2–1.21.11、26.1、26.1.1、26.1.2、26.2 | 21 | `remapJar`（26.x：`jar`） |
-| NeoForge | 1.20.1、1.20.2–1.20.6、1.21、1.21.1、1.21.2–1.21.11、26.1、26.1.1、26.1.2、26.2 | 21 | `jar` |
+| Forge | 1.20.2–1.20.4、1.20.6、1.21、1.21.1、1.21.3–1.21.11、26.1、26.1.1、26.1.2、26.2 | 19 | `jarJar`（1.20.2–1.21.1）/ `allJar`（1.21.3+） |
+| Fabric | 1.20.2–1.20.6、1.21、1.21.1、1.21.2–1.21.11、26.1、26.1.1、26.1.2、26.2 | 21 | `remapJar`（26.x：`jar`） |
+| NeoForge | 1.20.2–1.20.6、1.21、1.21.1、1.21.2–1.21.11、26.1、26.1.1、26.1.2、26.2 | 21 | `jar` |
 
 Forge 无官方 1.20.5 与 1.21.2，故这两个版本只有 Fabric / NeoForge。
 
-> **1.20.1 的三个 jar 是发布当时的历史产物，未随本轮重建**：根目录 Forge 工程已推进到 **v1.6.0**，`fabric/` 与
-> `neoforge/` 根工程同样是 v1.6.0 形态，无法再逐字节重建 1.5.0 的它们。其余 **58 个 jar 由工作区 `main` 分支重新构建**。
-> `WurstB+.Plus-v1.5.0-Forge-1.20.1.jar` 仍沿用旧命名，未改名。
+> **Release 里 62 个资产 = 本轮重建的 60 个 + 留存的 1 个**（`WurstB+.Plus-v1.5.0-Forge-1.20.1.jar`，
+> 旧命名未改名）。1.20.1 的三个工程（根目录 Forge、`fabric/`、`neoforge/`）现在都是 **v1.6.0** 形态，
+> 无法再逐字节重建 1.5.0 的它们：Forge 那个保留发布当时的产物，Fabric / NeoForge 那代的旧资产已被
+> 本轮产物取代。上表按 **61 个工程目录**统计（`versions/` 19 + `fabric/versions/` 21 + `neoforge/versions/` 21），
+> 其中 60 个是本轮重建的，另有 1 个是上述留存的根工程产物。
 
 ### 本地构建路径
 
@@ -112,7 +114,7 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组 ID | `wurstpenguin` |
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
-| 构建状态 | **61 个工程全部产出打包 jar**，均已上传 v1.5.0 Release；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证（详见 [PORTING_TASK.md](PORTING_TASK.md) 与 [PROJECT_INDEX.md](PROJECT_INDEX.md)） |
+| 构建状态 | **61 个工程全部产出打包 jar**，其中 60 个是本轮重建、已上传 v1.5.0 Release；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证（详见 [PORTING_TASK.md](PORTING_TASK.md) 与 [PROJECT_INDEX.md](PROJECT_INDEX.md)） |
 | 注册 Hack | 210 个（根工程 v1.6.0；`hacks/` 目录含内部辅助类共 252 个 Java 文件） |
 | 注册命令 | 56 |
 | Other Feature | 17 |
@@ -867,7 +869,7 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 
 - **46 / 46 个工程 `compileJava` 通过**；其中 34 个带测试源码的工程 `compileTestJava` 也通过，`neoforge/versions/1.21.5` 另跑通 JUnit（51 测试类 / 135 用例 / 0 失败）
 - **46 / 46 个工程打包通过**，jar 已上传 v1.5.0 Release；打包必须联网（`--offline` 会因部分 MC 依赖无本地缓存而失败），NeoForge 1.20.2–1.20.6 另需联网完成 MC 产物解压/反编译
-- 46 个新版本工程 + 12 个非 1.20.1 的原发布工程 = **58 个 jar 本轮重建**；**没有游戏内启动验证**，也未移植 v1.6 子系统；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)
+- 46 个新版本工程 + 14 个非根目录的原发布工程 = **60 个 jar 本轮重建**（根目录 Forge 1.20.1 的 v1.5 产物无法重建，沿用发布当时的那一个）；**没有游戏内启动验证**，也未移植 v1.6 子系统；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)
 
 打包校验口径（`tmp-recon/validate-jars.py`，61/61 通过）：zip 完好、含加载器元数据（`mods.toml` / `neoforge.mods.toml` / `fabric.mod.json`）、含 Mixin 配置（Forge/NeoForge 为 `wurst.mixins.json`，Fabric 为 `wurstpenguin.mixins.json`）、含 `net/wurstclient/WurstClient.class`、条目数 ≥ 200。
 
@@ -891,7 +893,7 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 
 ### 发布包校验
 
-以下 SHA-256 对应 **v1.5.0 Release 的 61 个资产**。除 `WurstB+.Plus-v1.5.0-Forge-1.20.1.jar` 沿用发布当时的产物外，其余均为本轮由工作区 `main` 构建后上传。`download/` 聚合目录由 `build-all.ps1 -PublishToDownload` 按需创建，当前工作区中不存在。
+以下 SHA-256 对应 **v1.5.0 Release 的 62 个资产**：本轮由工作区 `main` 重新构建并上传的 60 个 jar，加上发布当时留存、本轮未重建的 `WurstB+.Plus-v1.5.0-Forge-1.20.1.jar`（旧命名，未改名）。`download/` 聚合目录由 `build-all.ps1 -PublishToDownload` 按需创建，当前工作区中不存在。
 
 | 文件 | 大小 | SHA-256 |
 | --- | --- | --- |
