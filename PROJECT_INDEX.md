@@ -8,7 +8,9 @@
 >
 > 本文件的下表只覆盖上述 **15 个已发布工程**。工作区另有 **46 个新版本工程**
 > （`versions/` 无 1.20.5 / 1.21.2；`fabric/versions/`、`neoforge/versions/` 各 21 个），
-> 它们的 `compileJava` 已全部通过，但**没有 `build/libs/` 产物、没有启动验证**，
+> 它们的 `compileJava` 已全部通过，且已**全部打包并上传到
+> [v1.5.0 Release](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)**，
+> 但**没有游戏内启动验证**，
 > 逐版本状态见 [README.md](README.md#多版本平行移植) 与
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
 

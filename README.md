@@ -4,10 +4,15 @@
 
 # WurstB+ Plus
 
-WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **61 个独立 Gradle 构建工程**，分为两类：
+WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **61 个独立 Gradle 构建工程**，全部已有打包产物：
 
-- **15 个已发布工程**：Minecraft 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2 × Forge / NeoForge / Fabric，各自已有 `build/libs/` 产物；
-- **46 个新版本工程**：MC 1.20.2–1.20.6、1.21–1.21.10、26.1、26.1.1 的加载器工程（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）。截至最近一轮，**这 46 个工程的 `compileJava` 全部通过**（有测试源码的工程 `compileTestJava` 也通过），但**尚无 `build/libs/` 发布产物、无启动验证**，见[多版本平行移植](#多版本平行移植)。
+- **15 个原发布工程**：Minecraft 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2 × Forge / NeoForge / Fabric；
+- **46 个新版本工程**：MC 1.20.2–1.20.6、1.21–1.21.10、26.1、26.1.1 的加载器工程（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）。
+
+**61 个工程的 v1.5.0 产物已全部构建并上传到 GitHub Release**
+[**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（61 个 jar，命名统一为
+`WurstB+.Plus-<版本>-<加载器>-<mc>.jar`）。每个 jar 都做过打包校验（zip 完好、含加载器元数据与 Mixin 配置、含主类），
+但**除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证**——详见[多版本平行移植](#多版本平行移植)与[验证状态](#验证状态)。
 
 > 计数口径：**61 个工程目录** = `versions/` 19（Forge）+ `fabric/versions/` 21 + `neoforge/versions/` 21。加上 3 个 1.20.1 根工程（根目录 Forge、`neoforge/`、`fabric/`）合计 **64 个独立 Gradle 构建**，与「多加载器目录」一节的 64 一致。
 
@@ -16,7 +21,44 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 > **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
 > 其余 **63 个工程均为 v1.5.0 形态**，v1.6 子系统尚未移植，见「v1.6 新增子系统」。
 
-## 已发布版本矩阵（15 个工程）
+## 发布产物矩阵（61 个 jar）
+
+下表是 GitHub Release **v1.5.0** 的资产清单，文件名规则为
+`WurstB+.Plus-<版本>-<加载器>-<mc>.jar`（本地文件名用空格，见下）。
+
+| 加载器 | 覆盖的 MC 版本 | jar 数 | 生产任务 |
+| --- | --- | --- | --- |
+| Forge | 1.20.1、1.20.2–1.20.4、1.20.6、1.21、1.21.1、1.21.3–1.21.11、26.1、26.1.1、26.1.2、26.2 | 20 | `jarJar`（1.20.2–1.21.1）/ `allJar`（1.21.3+） |
+| Fabric | 1.20.1–1.20.6、1.21、1.21.1、1.21.2–1.21.11、26.1、26.1.1、26.1.2、26.2 | 21 | `remapJar`（26.x：`jar`） |
+| NeoForge | 1.20.1、1.20.2–1.20.6、1.21、1.21.1、1.21.2–1.21.11、26.1、26.1.1、26.1.2、26.2 | 21 | `jar` |
+
+Forge 无官方 1.20.5 与 1.21.2，故这两个版本只有 Fabric / NeoForge。
+
+> **1.20.1 的三个 jar 是发布当时的历史产物，未随本轮重建**：根目录 Forge 工程已推进到 **v1.6.0**，`fabric/` 与
+> `neoforge/` 根工程同样是 v1.6.0 形态，无法再逐字节重建 1.5.0 的它们。其余 **58 个 jar 由工作区 `main` 分支重新构建**。
+> `WurstB+.Plus-v1.5.0-Forge-1.20.1.jar` 仍沿用旧命名，未改名。
+
+### 本地构建路径
+
+构建脚本把每个工程的产物收敛到 `build/release-v1.5/`（该目录在 `.gitignore` 内），日志在
+`build/release-v1.5-logs/`，逐工程结果在 `build/release-v1.5/_build-report.txt`。脚本本身位于
+`tmp-recon/`（仓库外，不随仓库分发），逻辑是「读 `gradle.properties` 的 `mod_version` → 选生产任务 → 跑 Gradle → 收集并重命名 jar」：
+
+```powershell
+# 构建全部 v1.5 工程（联网；JDK 21 用于 MC ≤ 1.21.11，JDK 25 用于 26.x）
+python D:\WurstB\tmp-recon\build-v1.5-release.py
+
+# 只重试指定工程
+python D:\WurstB\tmp-recon\build-v1.5-release.py Forge-1.21.5 NeoForge-26.2
+
+# 打包校验（zip 完好 / 加载器元数据 / Mixin 配置 / 主类）
+python D:\WurstB\tmp-recon\validate-jars.py
+```
+
+各工程自身产物仍落在自己的 `build/libs/`，例如
+`versions/1.21.5/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.5.jar`。
+
+## 原发布版本矩阵（15 个工程）
 
 | Minecraft | 加载器 | 加载器版本 | Java | 工程目录 | 项目版本 | 发布产物 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -38,7 +80,7 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 
 > 26.2 为最新的 **v1.5 形态**适配版本。6 个 1.21.11/26.2 工程的最终状态见 [PORTING_TASK.md](PORTING_TASK.md)。
 > **v1.6 新子系统目前只在根目录 Forge 1.20.1 工程中实现**，见「v1.6 新增子系统」。
-> 上表以外的 46 个新版本工程**编译已全部通过**，但都还没有 `build/libs/` 产物，状态见[多版本平行移植](#多版本平行移植)。
+> 上表以外的 46 个新版本工程**已全部打包并上传到 v1.5.0 Release**，但无启动验证，状态见[多版本平行移植](#多版本平行移植)。
 
 ### Baritone 依赖兼容性
 
@@ -70,7 +112,7 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组 ID | `wurstpenguin` |
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
-| 构建状态 | 15 个工程各自输出 `build/libs/` 产物；根目录 **v1.6.0** 已通过 `compileJava` + `test` 验证，其余 14 个工程为 **v1.5.0** 既有产物；另有 46 个新版本工程 `compileJava` 全部通过、但无发布产物（详见 [PORTING_TASK.md](PORTING_TASK.md) 与 [PROJECT_INDEX.md](PROJECT_INDEX.md)） |
+| 构建状态 | **61 个工程全部产出打包 jar**，均已上传 v1.5.0 Release；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证（详见 [PORTING_TASK.md](PORTING_TASK.md) 与 [PROJECT_INDEX.md](PROJECT_INDEX.md)） |
 | 注册 Hack | 210 个（根工程 v1.6.0；`hacks/` 目录含内部辅助类共 252 个 Java 文件） |
 | 注册命令 | 56 |
 | Other Feature | 17 |
@@ -572,9 +614,11 @@ Forge 1.21.11/26.2 使用 `allJar`，NeoForge 与 Fabric 使用 `build`。所有
 
 已发布矩阵之外，工作区为 **1.20.2 / 1.20.3 / 1.20.4 / 1.20.5 / 1.20.6 / 1.21 / 1.21.2 / 1.21.3 / 1.21.4 / 1.21.5 / 1.21.6 / 1.21.7 / 1.21.8 / 1.21.9 / 1.21.10 / 26.1 / 26.1.1** 建好了加载器工程，共 **46 个**（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）。做法是只从最近的 v1.5 工程拷贝源码，再按目标 MC API 修编译，**不引入根工程的 v1.6 GUI/音乐/Skia 子系统**。
 
-### 编译状态：46 / 46 通过
+### 编译状态：46 / 46 通过，打包状态：46 / 46 通过
 
-最近一轮完整验收（61 个工程目录、`compileJava`，有测试源码的工程加跑 `compileTestJava`）：**0 失败**。验收方式为避免 `clean` 抹掉构建中间产物的增量编译；逐工程日志与 `BUILD SUCCESSFUL` 原文留存在本地 `tmp-recon/acceptance/`。
+早前的完整验收（61 个工程目录、`compileJava`，有测试源码的工程加跑 `compileTestJava`）：**0 失败**。验收方式为避免 `clean` 抹掉构建中间产物的增量编译；逐工程日志与 `BUILD SUCCESSFUL` 原文留存在本地 `tmp-recon/acceptance/`。
+
+随后一轮是**打包验收**：61 个工程目录各自跑生产 jar 任务，**0 失败**，产物上传 v1.5.0 Release。打包必须**联网**（`--offline` 会因 `com.mojang:jtracy` 等依赖无本地缓存而失败），且不能先 `clean`。
 
 | MC 版本 | Forge | NeoForge | Fabric |
 | --- | --- | --- | --- |
@@ -591,6 +635,17 @@ Forge 1.21.11/26.2 使用 `allJar`，NeoForge 与 Fabric 使用 `build`。所有
 | 26.1 / 26.1.1 | ✅ | ✅ | ✅ |
 
 产出的类文件数（`compileJava` 产物，不含依赖）：Forge 993–1065、Fabric 994–1053、NeoForge 1036–1052（NeoForge 1.20.x 的 `build/` 另含整套反编译 MC 的 class，故目录总数上万）。
+
+### 打包阶段修掉的构建阻塞
+
+| 现象 | 原因 | 处理 |
+| --- | --- | --- |
+| Forge 1.21.3–1.21.11 报 `Task 'jarJar' not found` | 这一代工程不再用 JarJar 插件，而是自己注册 `allJar` | 按 `build.gradle` 动态选择任务：1.20.2–1.21.1 用 `jarJar`，1.21.3+ 用 `allJar` |
+| Fabric 26.x 报 `Task 'remapJar' not found` | MC 26.x 不再混淆，Looms 不生成 remap 任务 | 26.x 改用普通 `jar` |
+| NeoForge 1.20.2 `processResources` 报 `neoforge.mods.toml is a duplicate` | `build.gradle` 把 `src/main/templates` 也加进资源源集，而 `META-INF/neoforge.mods.toml` 在 `resources` 与 `templates` 各存一份 | 删除 `src/main/resources/META-INF/neoforge.mods.toml` |
+| 9 个 NeoForge 工程的 jar 名带错 MC 版本（1.21.5 打出 `...-NeoForge-1.21.11.jar`，26.1.1 打出 `...-26.1.2.jar`） | 从克隆源带过来的硬编码 `archiveFileName` 没改；26.1.2 与 26.2 因此输出同名互相覆盖 | 删掉这些覆盖，回落到默认 `<archivesName>-<project.version>` |
+| `versions/1.20.6` 配置 `jarJar` 即失败：`Task with path 'reobfJarJar' not found` | 该工程声明了不存在的 finalizer | 删掉 `finalizedBy "reobfJarJar"` |
+| Forge 1.21.3 配置阶段失败：`Failed to download .../server.jar`（`Connection reset`） | Mojang 下载瞬时中断 | 重试即通过 |
 
 ### 本轮完成的关键工程与做法
 
@@ -615,9 +670,9 @@ Forge 1.21.11/26.2 使用 `allJar`，NeoForge 与 Fabric 使用 `build`。所有
 
 ### 尚未完成的部分
 
-- 46 个工程**都没有 `build/libs/` 发布产物**，`scripts/build-all.ps1` / `run-version-tests.ps1` 的工程表仍只覆盖已发布的 15 个工程。
-- **没有任何游戏内运行验证**：未启动客户端、未做 Mixin 应用校验、未跑 `gradlew build`。已知的运行时债务（Mixin 目标描述符不匹配、部分 1.21.6–1.21.8 姓名牌渲染调整失效、1.21.5 的 `PostEffectQueue`/`LsdHack` 降级等）逐条记在 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) 的「剩余工作」。
+- **没有任何游戏内运行验证**（1.21.11 / 26.2 的六个工程除外）：未启动客户端、未做 Mixin 应用校验。已知的运行时债务（Mixin 目标描述符不匹配、部分 1.21.6–1.21.8 姓名牌渲染调整失效、1.21.5 的 `PostEffectQueue`/`LsdHack` 降级等）逐条记在 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) 的「剩余工作」。
 - v1.6 子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透）在这 46 个工程中均未移植。
+- `scripts/build-all.ps1` / `run-version-tests.ps1` 的工程表仍只覆盖已发布的 15 个工程；新版本工程的批量打包目前靠 `tmp-recon/build-v1.5-release.py`（未纳入仓库，逻辑见[本地构建路径](#本地构建路径)）。
 
 > `scripts/common.ps1` 的工程表与 `scripts/build-all.ps1` / `scripts/run-version-tests.ps1` 的过滤范围目前仍只覆盖已发布的 15 个工程，新版本工程需要手工执行 Gradle 任务。
 
@@ -625,7 +680,7 @@ Forge 1.21.11/26.2 使用 `allJar`，NeoForge 与 Fabric 使用 `build`。所有
 
 ### 一键构建 15 个发布产物
 
-`scripts/build-all.ps1` 依次构建 15 个已发布版本（5 个 MC 版本 × Forge/NeoForge/Fabric），每个工程的产物输出到各自的 `build/libs/`。46 个新版本工程不在脚本的工程表内，需手工执行 Gradle 任务（它们目前只验证到 `compileJava`）。
+`scripts/build-all.ps1` 依次构建 15 个原发布版本（5 个 MC 版本 × Forge/NeoForge/Fabric），每个工程的产物输出到各自的 `build/libs/`。61 个工程的 v1.5.0 全量打包已单独完成并上传 Release，走的是工作区 `tmp-recon/build-v1.5-release.py`（仓库外，不随仓库分发）；新版本工程的批量构建因此仍需手工执行各自的生产任务。
 
 ```powershell
 # 全量构建
@@ -789,7 +844,7 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 
 ## 验证状态
 
-**已发布矩阵（15 个工程）**
+**原发布矩阵（15 个工程）**
 
 版本分布为 **根目录 Forge 1.20.1 = v1.6.0**，其余 14 个工程 = **v1.5.0**。
 
@@ -800,18 +855,21 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 - 产物 `build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB）：含全部 v1.6 子系统、`assets/wurst/skiko/` 原生库（`skiko-windows-x64.dll` 16.51 MB + `icudtl.dat` 9.98 MB）、`META-INF/jarjar/metadata.json` 记录的 17 个内嵌 jarJar 依赖
 - **未做游戏内运行验证**：v1.6 的 GUI / 音乐 / Skia 子系统与 12 个新 Hack 只经过编译与单元测试，尚未进入世界实测
 
-其余 14 个 v1.5.0 工程（既有结论）：
+其余 14 个 v1.5.0 工程：
 
+- 本轮**全部重新打包**并上传 v1.5.0 Release（1.21.11 / 26.2 的六个此前已有 `build/libs/` 产物，其余为新建产物）
 - 1.21.11 与 26.2 六个版本完成过 clean 构建、核心类检查、内嵌 Baritone 检查、真实客户端启动、单人世界加载及 `#goto 0 88 0` 命令验证
-- 上述结论来自工作区导入前的记录，本轮**未重新复现**
+- 上述启动验证结论来自工作区导入前的记录，本轮**未重新复现**；1.20.1 的三个 jar 保留发布当时产物
 
 任一结论都不代表所有战斗、移动、GUI 和 HUD 功能均已穷举测试。
 
 **新版本矩阵（46 个工程）**
 
 - **46 / 46 个工程 `compileJava` 通过**；其中 34 个带测试源码的工程 `compileTestJava` 也通过，`neoforge/versions/1.21.5` 另跑通 JUnit（51 测试类 / 135 用例 / 0 失败）
-- 验收为增量编译（不加 `clean`）；NeoForge 1.20.2–1.20.6 需要联网完成 MC 产物解压/反编译，其余可用 `--offline`
-- 全部 46 个工程**无发布产物、无启动验证**，也未移植 v1.6 子系统；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)
+- **46 / 46 个工程打包通过**，jar 已上传 v1.5.0 Release；打包必须联网（`--offline` 会因部分 MC 依赖无本地缓存而失败），NeoForge 1.20.2–1.20.6 另需联网完成 MC 产物解压/反编译
+- 46 个新版本工程 + 12 个非 1.20.1 的原发布工程 = **58 个 jar 本轮重建**；**没有游戏内启动验证**，也未移植 v1.6 子系统；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)
+
+打包校验口径（`tmp-recon/validate-jars.py`，61/61 通过）：zip 完好、含加载器元数据（`mods.toml` / `neoforge.mods.toml` / `fabric.mod.json`）、含 Mixin 配置（Forge/NeoForge 为 `wurst.mixins.json`，Fabric 为 `wurstpenguin.mixins.json`）、含 `net/wurstclient/WurstClient.class`、条目数 ≥ 200。
 
 发布产物清单：
 
@@ -833,25 +891,72 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 
 ### 发布包校验
 
-以下 SHA-256 对应 **v1.5.0 系列**的 15 个发布文件（含 1.20.1 根工程的 v1.5 历史产物）；根工程当前产物已更新为 `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB），未列入下表。`download/` 聚合目录由 `build-all.ps1 -PublishToDownload` 按需创建，当前工作区中不存在。
+以下 SHA-256 对应 **v1.5.0 Release 的 61 个资产**。除 `WurstB+.Plus-v1.5.0-Forge-1.20.1.jar` 沿用发布当时的产物外，其余均为本轮由工作区 `main` 构建后上传。`download/` 聚合目录由 `build-all.ps1 -PublishToDownload` 按需创建，当前工作区中不存在。
 
-| 文件 | SHA-256 |
-| --- | --- |
-| `WurstB+ Plus-1.5.0-Fabric-1.20.1.jar` | `5382A8066844B38CE868590714F2B5F1A547DEAFFFD290934CAA3C32340F3727` |
-| `WurstB+ Plus-1.5.0-Fabric-1.21.1.jar` | `0E3838806FC21AC158CB3EB1550AE143F10D6066F84ADE7F73A69134ECCC110B` |
-| `WurstB+ Plus-1.5.0-Fabric-1.21.11.jar` | `A9BF64ABC3674F859E42759038FDE65A4857EFCACF0E35D2DAAA61295B0E5ECD` |
-| `WurstB+ Plus-1.5.0-Fabric-26.1.2.jar` | `8A2B04A5994B585BC3B8B7204DBA45BA3B5B1A6A5078CD8F10CA6F33E26865E0` |
-| `WurstB+ Plus-1.5.0-Fabric-26.2.jar` | `D5F1E340A9B47B28512C0DDC989EF327BC6876E7C6DCE2211284053015A809C5` |
-| `WurstB+ Plus-v1.5.0-Forge-1.20.1.jar` | `CFC5EF862A0D822E20895AA69D952EB809D253D80CC89B2CB27172A5D2CDB9C0` |
-| `WurstB+ Plus-v1.5.0-Forge-1.21.1.jar` | `A78BFEFA7BD7B4220EB7017827742CA477B971450CA08362D4C66C7BD32F00C8` |
-| `WurstB+ Plus-v1.5.0-Forge-1.21.11.jar` | `ABEB6903587A70D1EBC2F13D6E24381145943359CC705CDFD8AC1DE3EB11834D` |
-| `WurstB+ Plus-v1.5.0-Forge-26.1.2.jar` | `489DC385B0389AFF604B276829821E354F4FBD1EDBB384EA29708C3B4A27D5A2` |
-| `WurstB+ Plus-v1.5.0-Forge-26.2.jar` | `E9921F1847E3F58802FF0E1B1D9182DE2885CF4BF65300DEEC6E9EBBB7C4A35A` |
-| `WurstB+ Plus-v1.5.0-NeoForge-1.20.1.jar` | `0C05A07ED15B5E4B84259D592777A00231A6C8639027E2C0E50C0E91E88ACB4D` |
-| `WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar` | `87622A2F7BC0692377A58B87D3B1787AC13CC12E7D87D872EB8DBD70E7452343` |
-| `WurstB+ Plus-v1.5.0-NeoForge-1.21.11.jar` | `BD0003E63077383C8429DE28BB69214C11C7EE3C948558C96AF6B288B66D3BB9` |
-| `WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar` | `5B772ED2791B2A1FE3315BF2F032BFFCC5F48B36F6D1EF306F10A85744C70BB3` |
-| `WurstB+ Plus-v1.5.0-NeoForge-26.2.jar` | `08A2DF2A6DF6A5A947905B8648D33F931FB628794BD439098D75A94F5884701C` |
+| 文件 | 大小 | SHA-256 |
+| --- | --- | --- |
+| `WurstB+.Plus-1.5.0-Fabric-1.20.2.jar` | 28.6 MB | `9C59EB7B697640D8043988E1C15A238C03D9A2E4831D2CF27484F0FFB18BE3D8` |
+| `WurstB+.Plus-1.5.0-Fabric-1.20.3.jar` | 28.6 MB | `DEA3960BBA798A33C2D9C94DB5CAACE1107D79EBC2C160D7FC5A1D45E378BB02` |
+| `WurstB+.Plus-1.5.0-Fabric-1.20.4.jar` | 28.6 MB | `BC6562DCAA13040B4D98382A38A2BA3B34D7EFF970EFAAC9326983D8809F92BD` |
+| `WurstB+.Plus-1.5.0-Fabric-1.20.5.jar` | 28.6 MB | `1BDE056441E55357F0DC2A8F3331DF500ACEB9C66E9F342CE86643BD58D3895B` |
+| `WurstB+.Plus-1.5.0-Fabric-1.20.6.jar` | 28.6 MB | `4029050B0DC41E2D972BF898F0F47A74CF7F54144EB4FAD8177FB85194DD5DAE` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.1.jar` | 28.6 MB | `5E0366F434501B79D9BB478282EF89DEB9EB281BDE637A3CB4B3E6C56BBFD825` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.10.jar` | 31.7 MB | `9066A69ACB48D46EFBF3BE2E5C47F1140A4563B771CAA3890FE08021579467F6` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.11.jar` | 31.7 MB | `9C48DADD814A911062601CB845F433737A86EB6184EC0ED116B285ABEDACB3DA` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.2.jar` | 28.6 MB | `98122244F087BEA50852B317DD34CB62AC26DE09657F164BB22C20B5E3FCE852` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.3.jar` | 31.7 MB | `2BED1A955B14491AB7C144A811480D069174B95841D282009D40E4C3F23A0689` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.4.jar` | 31.7 MB | `5AEB7991ACF75CA3BA8497189B21B888D5A47E69C0FF92F10D35F7B9FEA42D1F` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.5.jar` | 31.7 MB | `58836F6A0BB408D91020D94BA64F05C8B669F08C0F53F88C6D776D0454BAD6F9` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.6.jar` | 31.7 MB | `5CDA2DA2A7D1CEE2A8A4DAAAA53EB99EC3081011A064EEA60E9C55C2863F8B62` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.7.jar` | 31.7 MB | `2C205627CB56E8ED090321ABF71BE3AF002213B348CFA6769CD774D6668AEFE9` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.8.jar` | 31.7 MB | `15990573230F56BCEC1364947166458A68B64648735EBB75B2C6E12904A61DE6` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.9.jar` | 31.7 MB | `7A40971C312BF2E27511EB1A0F5278A0F625269D103A1BB8F8A7498E5930A041` |
+| `WurstB+.Plus-1.5.0-Fabric-1.21.jar` | 28.6 MB | `9D57D9BFC9A3B874BE81146944A3BD1B7D9A959A7B6C2E6A311D9C2ECB974C92` |
+| `WurstB+.Plus-1.5.0-Fabric-26.1.1.jar` | 31.7 MB | `9DE019A698E1A9F4D0B47635692D9550313503999F3210A72A02213D7CEC86E6` |
+| `WurstB+.Plus-1.5.0-Fabric-26.1.2.jar` | 31.7 MB | `4ACB3C8E9DED42E27320B0820BD466F79D42F3CBA598ED1AF9490E25801461B0` |
+| `WurstB+.Plus-1.5.0-Fabric-26.1.jar` | 31.7 MB | `7979EF3771ECFA09026F9996598CDDD0AD58A1B740862888F25D140C93C889B9` |
+| `WurstB+.Plus-1.5.0-Fabric-26.2.jar` | 31.7 MB | `283B4EB9D7AF544D9482686C5732567CB7084BEE5F2B21863B403F77ED8F088C` |
+| `WurstB+.Plus-1.5.0-Forge-1.20.2.jar` | 29.0 MB | `FC1F277785EAD86537085E2B2BEA982A1C17E0C565D92C62A7CAE4B0A7B271FC` |
+| `WurstB+.Plus-1.5.0-Forge-1.20.3.jar` | 29.0 MB | `48FFC8EE9B135C52DF380690A0AE4A9F7F2E578B5AEC8F9777D02381FA856DEA` |
+| `WurstB+.Plus-1.5.0-Forge-1.20.4.jar` | 29.0 MB | `0B459F84C1B3A2908A369DA1E84694917A2150ABF1A389FF87A6F3055F137004` |
+| `WurstB+.Plus-1.5.0-Forge-1.20.6.jar` | 28.9 MB | `AC7941D0987D0C32F30AC3A1F899649558746FBF40ACB914221FC15AA01D5DC0` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.1.jar` | 29.2 MB | `DA3B5ECF47AE592F954F78E02323C0950B180184CD558389CFA57C57A2A541D1` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.10.jar` | 31.7 MB | `812F14B0766B2BE49762A53AA0B10A9226B9D7D06DCDF4B79CBB7CFD62CE2C83` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.11.jar` | 31.7 MB | `AA83D792B8FF54EF2C17BFAC82D0ED977677EEC19ADD62EA2B91C60A0EA61A35` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.3.jar` | 31.7 MB | `DA621D39CF989B8CCED1BBDE2A0DCEBAF225FFD20A8533EE78F5C3A815E52EA3` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.4.jar` | 31.7 MB | `94BE45FB4AE24FFA165C7B2A056146A7137C8CED6685A78DD15524A561208C53` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.5.jar` | 31.7 MB | `B49F4935612F9CFCE533569484B351C11BA3F9F9168A310FCE769E88456E8F38` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.6.jar` | 31.7 MB | `F25CD9523C4B299A66FBDA12B13B56E7684F4BC767D5DB257B5D74B71F7EF5DD` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.7.jar` | 31.7 MB | `E3917BA17598CB76EE71C5F7CF320E440C59B33187F9CA6EBA5E97FC6DDC8782` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.8.jar` | 31.7 MB | `F07ACEA0F6AE88F333C95045CD65D8E742CA9F03E5385DA76DA8EACC1056A3A0` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.9.jar` | 31.7 MB | `C5DAB27A54E3B77594BF361BBE7C72F9609964E179131A4CA1924337E90E218C` |
+| `WurstB+.Plus-1.5.0-Forge-1.21.jar` | 29.2 MB | `D1C9E7A33DEFEFF11EA71A26415CD38B441700B916A8734AF3F27547DDBA113F` |
+| `WurstB+.Plus-1.5.0-Forge-26.1.1.jar` | 31.8 MB | `7210B3295E153295CFF8CF878167EB6B72EA81D86BEEAC10D5BC0AC27F15D6AD` |
+| `WurstB+.Plus-1.5.0-Forge-26.1.2.jar` | 31.8 MB | `8C80DDC62DB217CD46AFCCF2B4CAA570B8DC25EE3429FC73F4191170DBAD1BA6` |
+| `WurstB+.Plus-1.5.0-Forge-26.1.jar` | 31.8 MB | `3E72FB3E1246A8D45214D17C7FDF52A5977F57E36E6B72927D4854634C843DBC` |
+| `WurstB+.Plus-1.5.0-Forge-26.2.jar` | 31.8 MB | `F6D8588C2EC0F6FD6F8DB741EB3ECA521BA90443A8DEEE4C18AE3E74BDFD5275` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.20.2.jar` | 26.9 MB | `99616B20C50C13AE10B9FD977DB69486135A776393BEC2DC339601C8DA88A50B` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.20.3.jar` | 26.9 MB | `D463018642F356EDF7F18BEFB2CCDBABDBE8AE883285693425F72FDA9D2D4F22` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.20.4.jar` | 26.9 MB | `3A8180585AFD8C38F304A75325432F8599FE70B708E9C3F6363993C410FACAB2` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.20.5.jar` | 26.9 MB | `ADEA9816CA5DA5EB202A4FF8963FB53414AA30AC76A94F11BCDCE25E78D0639E` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.20.6.jar` | 26.9 MB | `019E4073D5FA38935588568F67FDCA69C3F5FAE6AEAEE7AA611E79C1C6CD14B6` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.1.jar` | 28.6 MB | `B26AB9D4DB9177A1277C41BAE342FE216F2130F84529D35033817DE3F9E0F97C` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.10.jar` | 31.7 MB | `19600C00CA1E33446D3BE8422C595F4BB293A89A42D7FE1E9406F7EE5175D4B7` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.11.jar` | 31.7 MB | `F034C15D039A6F225267CD65C62F67C3C2A61A31814DFB7CFB771B0303CAFAEE` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.2.jar` | 28.6 MB | `BA0A0B0E6EBD1D12690C1B855CA42D485D2B6FAF9A623CB4B159DDBCB2412868` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.3.jar` | 31.7 MB | `820FEFFEBABA5D4234D0113B5075FF8B2333032216DEC5DE4CB4FF35A71A9F1E` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.4.jar` | 31.7 MB | `B3235F0B17783FD5D08C95624705EA43225B25DFD234B149A22CFDAF4F676CCC` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.5.jar` | 31.7 MB | `72CACA7CE3828A690EC5CDD4E30EDD5743230F7A62D589819BD56187587836EB` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.6.jar` | 31.7 MB | `761B0A3427C4804468B0CFAC3214F11C8072C7844E988E1700E87478ADFB94AE` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.7.jar` | 31.7 MB | `38E5A2DC1EB3690506248EC699A275B1D0C58091C035589186F685D0282084A8` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.8.jar` | 31.7 MB | `34A10AF2A57FA3F35C5760F4CFFD79F9373E4EDF5C36CCECBECD6C6C707ED60A` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.9.jar` | 31.7 MB | `64977BC9062FE701674D30532C8ADFC8C802D4B3AE9E1E603A7E57C76196B8DB` |
+| `WurstB+.Plus-1.5.0-NeoForge-1.21.jar` | 28.6 MB | `1A9DA225D917D6F46DFB2A08BE57AF36F457097B4F7BE4B0B5B3A38D61031E7C` |
+| `WurstB+.Plus-1.5.0-NeoForge-26.1.1.jar` | 31.7 MB | `5F62F2C679109E594D8B43E09575698B0A640B7D0369D05452320864BA2D01C7` |
+| `WurstB+.Plus-1.5.0-NeoForge-26.1.2.jar` | 31.7 MB | `B2E6517E39B0483E1422AFA27C666818C96FDD5F69DE598589E710F3618A57EA` |
+| `WurstB+.Plus-1.5.0-NeoForge-26.1.jar` | 31.7 MB | `E47F1F335D90A67969A48567CFC7273B8A371753A5494EA1CF8DDE00ECFFE7A7` |
+| `WurstB+.Plus-1.5.0-NeoForge-26.2.jar` | 31.7 MB | `DC7F0D54A72EA560A649BB4A8A98F3BC5032300B905E147C94C23D9140A9D283` |
+| `WurstB+.Plus-v1.5.0-Forge-1.20.1.jar`（发布当时产物，本轮未重建） | 28.2 MB | `CFC5EF862A0D822E20895AA69D952EB809D253D80CC89B2CB27172A5D2CDB9C0` |
 
 ### 1.21.1 渲染管线说明
 
