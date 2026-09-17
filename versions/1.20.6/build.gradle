@@ -142,5 +142,4 @@ jar {
 
 tasks.named("jarJar").configure {
     archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
-    finalizedBy "reobfJarJar"
 }
