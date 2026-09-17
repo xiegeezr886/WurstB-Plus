@@ -53,8 +53,14 @@ public class ChatHudMixin
 		}
 		
 		message = event.getComponent();
-		indicator = WurstClient.INSTANCE.getOtfs().noChatReportsOtf
-			.modifyIndicator(message, signature, indicator);
+		
+		// Baritone 的 BaritoneAPI 静态初始化发生在 Minecraft.<init> 阶段，
+		// 而 WurstClient 的 otfs 还更晚才创建（WurstClient.java:139）。Baritone 此时
+		// 会通过 logDirect 打印「settings file not found, resetting」，从而命中本注入，
+		// 所以这里必须判空，否则抛 NPE（同 MinecraftClientMixin 的写法）。
+		if(WurstClient.INSTANCE.getOtfs() != null)
+			indicator = WurstClient.INSTANCE.getOtfs().noChatReportsOtf
+				.modifyIndicator(message, signature, indicator);
 		
 		shadow$logChatMessage(message, indicator);
 		shadow$addMessage(message, signature, minecraft.gui.getGuiTicks(),
