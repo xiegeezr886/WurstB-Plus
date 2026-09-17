@@ -1,0 +1,1762 @@
+{
+ "hacks": [
+  {
+   "class": "AimAssistHack",
+   "name": "AimAssist",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AirPlaceHack",
+   "name": "AirPlace",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "AnchorAuraHack",
+   "name": "AnchorAura",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AnchorHack",
+   "name": "Anchor",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "AntiAfkHack",
+   "name": "AntiAFK",
+   "category": "OTHER"
+  },
+  {
+   "class": "AntiAimHack",
+   "name": "AntiAim",
+   "category": "FUN"
+  },
+  {
+   "class": "AntiBlindHack",
+   "name": "AntiBlind",
+   "category": "RENDER"
+  },
+  {
+   "class": "AntiCactusHack",
+   "name": "AntiCactus",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "AntiEntityPushHack",
+   "name": "AntiEntityPush",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "AntiHungerHack",
+   "name": "AntiHunger",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "AntiSpamHack",
+   "name": "AntiSpam",
+   "category": "CHAT"
+  },
+  {
+   "class": "AntiWaterPushHack",
+   "name": "AntiWaterPush",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "AntiWobbleHack",
+   "name": "AntiWobble",
+   "category": "RENDER"
+  },
+  {
+   "class": "AntiVoidHack",
+   "name": "AntiVoid",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "ArrowDmgHack",
+   "name": "ArrowDMG",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AutoArmorHack",
+   "name": "AutoArmor",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AutoBuildHack",
+   "name": "AutoBuild",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "AutoCityHack",
+   "name": "AutoCity",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AutoCompleteHack",
+   "name": "AutoComplete",
+   "category": "CHAT"
+  },
+  {
+   "class": "AutoDropHack",
+   "name": "AutoDrop",
+   "category": "ITEMS"
+  },
+  {
+   "class": "AutoLeaveHack",
+   "name": "AutoLeave",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AutoLibrarianHack",
+   "name": "AutoLibrarian",
+   "category": "OTHER"
+  },
+  {
+   "class": "AutoEatHack",
+   "name": "AutoEat",
+   "category": "ITEMS"
+  },
+  {
+   "class": "AutoFarmHack",
+   "name": "AutoFarm",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "AutoFishHack",
+   "name": "AutoFish",
+   "category": "OTHER"
+  },
+  {
+   "class": "AutoMineHack",
+   "name": "AutoMine",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "AutoPotionHack",
+   "name": "AutoPotion",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AutoReconnectHack",
+   "name": "自动重连",
+   "category": "OTHER"
+  },
+  {
+   "class": "AutoRespawnHack",
+   "name": "AutoRespawn",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AutoSignHack",
+   "name": "AutoSign",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "AutoSoupHack",
+   "name": "AutoSoup",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AutoSprintHack",
+   "name": "AutoSprint",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "AutoStealHack",
+   "name": "AutoSteal",
+   "category": "ITEMS"
+  },
+  {
+   "class": "AutoSwimHack",
+   "name": "AutoSwim",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "AutoSwitchHack",
+   "name": "AutoSwitch",
+   "category": "ITEMS"
+  },
+  {
+   "class": "AutoSwordHack",
+   "name": "AutoSword",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AutoToolHack",
+   "name": "AutoTool",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "AutoTotemHack",
+   "name": "AutoTotem",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AutoTrapHack",
+   "name": "AutoTrap",
+   "category": "COMBAT"
+  },
+  {
+   "class": "AutoWalkHack",
+   "name": "AutoWalk",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "AutoWebHack",
+   "name": "AutoWeb",
+   "category": "COMBAT"
+  },
+  {
+   "class": "BarrierEspHack",
+   "name": "BarrierESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "BaritoneClearAreaHack",
+   "name": "BaritoneClearArea",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "BaritoneMineHack",
+   "name": "BaritoneMine",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "BaritoneTreeBotHack",
+   "name": "BaritoneTreeBot",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "BaritoneWalkHack",
+   "name": "BaritoneWalk",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "BaseFinderHack",
+   "name": "BaseFinder",
+   "category": "RENDER"
+  },
+  {
+   "class": "BlinkHack",
+   "name": "Blink",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "BoatFlyHack",
+   "name": "BoatFly",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "BonemealAuraHack",
+   "name": "BonemealAura",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "BossStackHack",
+   "name": "BossStack",
+   "category": "RENDER"
+  },
+  {
+   "class": "BowAimbotHack",
+   "name": "BowAimbot",
+   "category": "COMBAT"
+  },
+  {
+   "class": "BuildRandomHack",
+   "name": "BuildRandom",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "BunnyHopHack",
+   "name": "BunnyHop",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "BurrowHack",
+   "name": "Burrow",
+   "category": "COMBAT"
+  },
+  {
+   "class": "CameraDistanceHack",
+   "name": "CameraDistance",
+   "category": "RENDER"
+  },
+  {
+   "class": "CameraNoClipHack",
+   "name": "CameraNoClip",
+   "category": "RENDER"
+  },
+  {
+   "class": "CaveFinderHack",
+   "name": "CaveFinder",
+   "category": "RENDER"
+  },
+  {
+   "class": "ChatTranslatorHack",
+   "name": "ChatTranslator",
+   "category": "CHAT"
+  },
+  {
+   "class": "ChestEspHack",
+   "name": "ChestESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "CityEspHack",
+   "name": "CityESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "ClickAuraHack",
+   "name": "ClickAura",
+   "category": "COMBAT"
+  },
+  {
+   "class": "ClickGuiHack",
+   "name": "ClickGUI",
+   "category": null
+  },
+  {
+   "class": "CrashChestHack",
+   "name": "CrashChest",
+   "category": "ITEMS"
+  },
+  {
+   "class": "CreativeFlightHack",
+   "name": "CreativeFlight",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "CriticalsHack",
+   "name": "Criticals",
+   "category": "COMBAT"
+  },
+  {
+   "class": "CrystalAuraHack",
+   "name": "CrystalAura",
+   "category": "COMBAT"
+  },
+  {
+   "class": "DelayRemoverHack",
+   "name": "DelayRemover",
+   "category": "COMBAT"
+  },
+  {
+   "class": "DerpHack",
+   "name": "Derp",
+   "category": "FUN"
+  },
+  {
+   "class": "DolphinHack",
+   "name": "Dolphin",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "ExcavatorHack",
+   "name": "Excavator",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "ElytraFlyHack",
+   "name": "ElytraFly",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "EntityCullingHack",
+   "name": "EntityCulling",
+   "category": "RENDER"
+  },
+  {
+   "class": "ExtraElytraHack",
+   "name": "ExtraElytra",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "FancyChatHack",
+   "name": "FancyChat",
+   "category": "CHAT"
+  },
+  {
+   "class": "FakeLagHack",
+   "name": "FakeLag",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "FastBreakHack",
+   "name": "FastBreak",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "FastLadderHack",
+   "name": "FastLadder",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "FastPlaceHack",
+   "name": "FastPlace",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "FastUseHack",
+   "name": "FastUse",
+   "category": "ITEMS"
+  },
+  {
+   "class": "FeedAuraHack",
+   "name": "FeedAura",
+   "category": "OTHER"
+  },
+  {
+   "class": "FightBotHack",
+   "name": "FightBot",
+   "category": "COMBAT"
+  },
+  {
+   "class": "FishHack",
+   "name": "Fish",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "FlightHack",
+   "name": "Flight",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "FollowHack",
+   "name": "Follow",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "ForceOpHack",
+   "name": "ForceOP",
+   "category": "CHAT"
+  },
+  {
+   "class": "FreecamHack",
+   "name": "Freecam",
+   "category": "RENDER"
+  },
+  {
+   "class": "FullbrightHack",
+   "name": "Fullbright",
+   "category": "RENDER"
+  },
+  {
+   "class": "GlideHack",
+   "name": "Glide",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "HandNoClipHack",
+   "name": "HandNoClip",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "HeadRollHack",
+   "name": "HeadRoll",
+   "category": "FUN"
+  },
+  {
+   "class": "HealthTagsHack",
+   "name": "HealthTags",
+   "category": "RENDER"
+  },
+  {
+   "class": "HighJumpHack",
+   "name": "HighJump",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "HitboxesHack",
+   "name": "Hitboxes",
+   "category": "COMBAT"
+  },
+  {
+   "class": "HoleEspHack",
+   "name": "HoleESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "HoleFillerHack",
+   "name": "HoleFiller",
+   "category": "COMBAT"
+  },
+  {
+   "class": "InfiniChatHack",
+   "name": "InfiniChat",
+   "category": "CHAT"
+  },
+  {
+   "class": "InstaBuildHack",
+   "name": "InstaBuild",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "InstantBunkerHack",
+   "name": "InstantBunker",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "InvWalkHack",
+   "name": "InvWalk",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "ItemEspHack",
+   "name": "ItemESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "ItemGeneratorHack",
+   "name": "ItemGenerator",
+   "category": "ITEMS"
+  },
+  {
+   "class": "JesusHack",
+   "name": "Jesus",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "JetpackHack",
+   "name": "Jetpack",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "KaboomHack",
+   "name": "Kaboom",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "KeepSprintHack",
+   "name": "KeepSprint",
+   "category": "COMBAT"
+  },
+  {
+   "class": "KillauraLegitHack",
+   "name": "KillauraLegit",
+   "category": "COMBAT"
+  },
+  {
+   "class": "KillauraHack",
+   "name": "Killaura",
+   "category": "COMBAT"
+  },
+  {
+   "class": "KillPotionHack",
+   "name": "KillPotion",
+   "category": "ITEMS"
+  },
+  {
+   "class": "LiquidsHack",
+   "name": "Liquids",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "LsdHack",
+   "name": "LSD",
+   "category": "FUN"
+  },
+  {
+   "class": "MassTpaHack",
+   "name": "MassTPA",
+   "category": "CHAT"
+  },
+  {
+   "class": "MileyCyrusHack",
+   "name": "MileyCyrus",
+   "category": "FUN"
+  },
+  {
+   "class": "MobEspHack",
+   "name": "MobESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "MobSpawnEspHack",
+   "name": "MobSpawnESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "MultiAuraHack",
+   "name": "MultiAura",
+   "category": "COMBAT"
+  },
+  {
+   "class": "NameProtectHack",
+   "name": "NameProtect",
+   "category": "RENDER"
+  },
+  {
+   "class": "NameTagsHack",
+   "name": "NameTags",
+   "category": "RENDER"
+  },
+  {
+   "class": "NavigatorHack",
+   "name": "Navigator",
+   "category": null
+  },
+  {
+   "class": "NewChunksHack",
+   "name": "NewChunks",
+   "category": "RENDER"
+  },
+  {
+   "class": "NoBackgroundHack",
+   "name": "NoBackground",
+   "category": "RENDER"
+  },
+  {
+   "class": "NoClipHack",
+   "name": "NoClip",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "NoFallHack",
+   "name": "NoFall",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "NoFireOverlayHack",
+   "name": "NoFireOverlay",
+   "category": "RENDER"
+  },
+  {
+   "class": "NoFogHack",
+   "name": "NoFog",
+   "category": "RENDER"
+  },
+  {
+   "class": "NoHurtcamHack",
+   "name": "NoHurtcam",
+   "category": "RENDER"
+  },
+  {
+   "class": "NoJumpDelayHack",
+   "name": "NoJumpDelay",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "NoLevitationHack",
+   "name": "NoLevitation",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "NoOverlayHack",
+   "name": "NoOverlay",
+   "category": "RENDER"
+  },
+  {
+   "class": "NoPumpkinHack",
+   "name": "NoPumpkin",
+   "category": "RENDER"
+  },
+  {
+   "class": "NoShieldOverlayHack",
+   "name": "NoShieldOverlay",
+   "category": "RENDER"
+  },
+  {
+   "class": "NoSlowdownHack",
+   "name": "NoSlowdown",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "NoVignetteHack",
+   "name": "NoVignette",
+   "category": "RENDER"
+  },
+  {
+   "class": "NoVelocityHack",
+   "name": "NoVelocity",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "NoWeatherHack",
+   "name": "NoWeather",
+   "category": "RENDER"
+  },
+  {
+   "class": "NoWebHack",
+   "name": "NoWeb",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "NukerHack",
+   "name": "Nuker",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "NukerLegitHack",
+   "name": "NukerLegit",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "OpenWaterEspHack",
+   "name": "OpenWaterESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "OverlayHack",
+   "name": "Overlay",
+   "category": "RENDER"
+  },
+  {
+   "class": "PacketFlyHack",
+   "name": "PacketFly",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "PanicHack",
+   "name": "Panic",
+   "category": "OTHER"
+  },
+  {
+   "class": "ParkourHack",
+   "name": "Parkour",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "PlayerEspHack",
+   "name": "PlayerESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "PlayerHaloHack",
+   "name": "PlayerHalo",
+   "category": "RENDER"
+  },
+  {
+   "class": "PortalEspHack",
+   "name": "PortalESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "PortalGuiHack",
+   "name": "PortalGUI",
+   "category": "OTHER"
+  },
+  {
+   "class": "PotionSaverHack",
+   "name": "PotionSaver",
+   "category": "OTHER"
+  },
+  {
+   "class": "ProphuntEspHack",
+   "name": "ProphuntESP",
+   "category": "RENDER"
+  },
+  {
+   "class": "ProtectHack",
+   "name": "Protect",
+   "category": "COMBAT"
+  },
+  {
+   "class": "RadarHack",
+   "name": "Radar",
+   "category": "RENDER"
+  },
+  {
+   "class": "RainbowUiHack",
+   "name": "RainbowUI",
+   "category": "FUN"
+  },
+  {
+   "class": "ReachHack",
+   "name": "Reach",
+   "category": "OTHER"
+  },
+  {
+   "class": "RemoteViewHack",
+   "name": "RemoteView",
+   "category": "RENDER"
+  },
+  {
+   "class": "RestockHack",
+   "name": "Restock",
+   "category": "ITEMS"
+  },
+  {
+   "class": "RotationSnapHack",
+   "name": "RotationSnap",
+   "category": "RENDER"
+  },
+  {
+   "class": "SafeWalkHack",
+   "name": "SafeWalk",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "ScaffoldWalkHack",
+   "name": "ScaffoldWalk",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "SearchHack",
+   "name": "搜索",
+   "category": "RENDER"
+  },
+  {
+   "class": "SelfTrapHack",
+   "name": "SelfTrap",
+   "category": "COMBAT"
+  },
+  {
+   "class": "SkinDerpHack",
+   "name": "SkinDerp",
+   "category": "FUN"
+  },
+  {
+   "class": "SneakHack",
+   "name": "Sneak",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "SnowShoeHack",
+   "name": "SnowShoe",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "SpeedHackHack",
+   "name": "SpeedHack",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "SpeedMineHack",
+   "name": "SpeedMine",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "SpeedNukerHack",
+   "name": "SpeedNuker",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "SpiderHack",
+   "name": "Spider",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "StepHack",
+   "name": "Step",
+   "category": "MOVEMENT"
+  },
+  {
+   "class": "SurroundHack",
+   "name": "Surround",
+   "category": "COMBAT"
+  },
+  {
+   "class": "TemplateToolHack",
+   "name": "TemplateTool",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "ThrowHack",
+   "name": "Throw",
+   "category": "OTHER"
+  },
+  {
+   "class": "TillauraHack",
+   "name": "Tillaura",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "TimerHack",
+   "name": "Timer",
+   "category": "OTHER"
+  },
+  {
+   "class": "TiredHack",
+   "name": "Tired",
+   "category": "FUN"
+  },
+  {
+   "class": "TooManyHaxHack",
+   "name": "TooManyHax",
+   "category": "OTHER"
+  },
+  {
+   "class": "TargetStrafeHack",
+   "name": "TargetStrafe",
+   "category": "COMBAT"
+  },
+  {
+   "class": "TargetShaderHack",
+   "name": "TargetShader",
+   "category": "RENDER"
+  },
+  {
+   "class": "TpAuraHack",
+   "name": "TP-Aura",
+   "category": "COMBAT"
+  },
+  {
+   "class": "TrajectoriesHack",
+   "name": "Trajectories",
+   "category": "RENDER"
+  },
+  {
+   "class": "TreeBotHack",
+   "name": "TreeBot",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "TriggerBotHack",
+   "name": "TriggerBot",
+   "category": "COMBAT"
+  },
+  {
+   "class": "TrollPotionHack",
+   "name": "TrollPotion",
+   "category": "ITEMS"
+  },
+  {
+   "class": "TrueSightHack",
+   "name": "TrueSight",
+   "category": "RENDER"
+  },
+  {
+   "class": "TunnellerHack",
+   "name": "Tunneller",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "VeinMinerHack",
+   "name": "VeinMiner",
+   "category": "BLOCKS"
+  },
+  {
+   "class": "XRayHack",
+   "name": "X-Ray",
+   "category": "RENDER"
+  },
+  {
+   "class": "AntiBotHack",
+   "name": "AntiBot",
+   "category": "COMBAT"
+  },
+  {
+   "class": "BreadcrumbsHack",
+   "name": "Breadcrumbs",
+   "category": "RENDER"
+  },
+  {
+   "class": "DankBobbingHack",
+   "name": "DankBobbing",
+   "category": "FUN"
+  },
+  {
+   "class": "LightOverlayHack",
+   "name": "LightOverlay",
+   "category": "RENDER"
+  },
+  {
+   "class": "LogoutSpotsHack",
+   "name": "LogoutSpots",
+   "category": "RENDER"
+  },
+  {
+   "class": "NotebotHack",
+   "name": "Notebot",
+   "category": "FUN"
+  },
+  {
+   "class": "PopChamsHack",
+   "name": "PopChams",
+   "category": "RENDER"
+  },
+  {
+   "class": "PacketCancellerHack",
+   "name": "PacketCanceller",
+   "category": "OTHER"
+  },
+  {
+   "class": "PacketLoggerHack",
+   "name": "PacketLogger",
+   "category": "OTHER"
+  },
+  {
+   "class": "TwerkHack",
+   "name": "Twerk",
+   "category": "FUN"
+  },
+  {
+   "class": "VomitHack",
+   "name": "Vomit",
+   "category": "FUN"
+  }
+ ],
+ "hack_names": [
+  "AimAssist",
+  "AirPlace",
+  "AnchorAura",
+  "Anchor",
+  "AntiAFK",
+  "AntiAim",
+  "AntiBlind",
+  "AntiCactus",
+  "AntiEntityPush",
+  "AntiHunger",
+  "AntiSpam",
+  "AntiWaterPush",
+  "AntiWobble",
+  "AntiVoid",
+  "ArrowDMG",
+  "AutoArmor",
+  "AutoBuild",
+  "AutoCity",
+  "AutoComplete",
+  "AutoDrop",
+  "AutoLeave",
+  "AutoLibrarian",
+  "AutoEat",
+  "AutoFarm",
+  "AutoFish",
+  "AutoMine",
+  "AutoPotion",
+  "自动重连",
+  "AutoRespawn",
+  "AutoSign",
+  "AutoSoup",
+  "AutoSprint",
+  "AutoSteal",
+  "AutoSwim",
+  "AutoSwitch",
+  "AutoSword",
+  "AutoTool",
+  "AutoTotem",
+  "AutoTrap",
+  "AutoWalk",
+  "AutoWeb",
+  "BarrierESP",
+  "BaritoneClearArea",
+  "BaritoneMine",
+  "BaritoneTreeBot",
+  "BaritoneWalk",
+  "BaseFinder",
+  "Blink",
+  "BoatFly",
+  "BonemealAura",
+  "BossStack",
+  "BowAimbot",
+  "BuildRandom",
+  "BunnyHop",
+  "Burrow",
+  "CameraDistance",
+  "CameraNoClip",
+  "CaveFinder",
+  "ChatTranslator",
+  "ChestESP",
+  "CityESP",
+  "ClickAura",
+  "ClickGUI",
+  "CrashChest",
+  "CreativeFlight",
+  "Criticals",
+  "CrystalAura",
+  "DelayRemover",
+  "Derp",
+  "Dolphin",
+  "Excavator",
+  "ElytraFly",
+  "EntityCulling",
+  "ExtraElytra",
+  "FancyChat",
+  "FakeLag",
+  "FastBreak",
+  "FastLadder",
+  "FastPlace",
+  "FastUse",
+  "FeedAura",
+  "FightBot",
+  "Fish",
+  "Flight",
+  "Follow",
+  "ForceOP",
+  "Freecam",
+  "Fullbright",
+  "Glide",
+  "HandNoClip",
+  "HeadRoll",
+  "HealthTags",
+  "HighJump",
+  "Hitboxes",
+  "HoleESP",
+  "HoleFiller",
+  "InfiniChat",
+  "InstaBuild",
+  "InstantBunker",
+  "InvWalk",
+  "ItemESP",
+  "ItemGenerator",
+  "Jesus",
+  "Jetpack",
+  "Kaboom",
+  "KeepSprint",
+  "KillauraLegit",
+  "Killaura",
+  "KillPotion",
+  "Liquids",
+  "LSD",
+  "MassTPA",
+  "MileyCyrus",
+  "MobESP",
+  "MobSpawnESP",
+  "MultiAura",
+  "NameProtect",
+  "NameTags",
+  "Navigator",
+  "NewChunks",
+  "NoBackground",
+  "NoClip",
+  "NoFall",
+  "NoFireOverlay",
+  "NoFog",
+  "NoHurtcam",
+  "NoJumpDelay",
+  "NoLevitation",
+  "NoOverlay",
+  "NoPumpkin",
+  "NoShieldOverlay",
+  "NoSlowdown",
+  "NoVignette",
+  "NoVelocity",
+  "NoWeather",
+  "NoWeb",
+  "Nuker",
+  "NukerLegit",
+  "OpenWaterESP",
+  "Overlay",
+  "PacketFly",
+  "Panic",
+  "Parkour",
+  "PlayerESP",
+  "PlayerHalo",
+  "PortalESP",
+  "PortalGUI",
+  "PotionSaver",
+  "ProphuntESP",
+  "Protect",
+  "Radar",
+  "RainbowUI",
+  "Reach",
+  "RemoteView",
+  "Restock",
+  "RotationSnap",
+  "SafeWalk",
+  "ScaffoldWalk",
+  "搜索",
+  "SelfTrap",
+  "SkinDerp",
+  "Sneak",
+  "SnowShoe",
+  "SpeedHack",
+  "SpeedMine",
+  "SpeedNuker",
+  "Spider",
+  "Step",
+  "Surround",
+  "TemplateTool",
+  "Throw",
+  "Tillaura",
+  "Timer",
+  "Tired",
+  "TooManyHax",
+  "TargetStrafe",
+  "TargetShader",
+  "TP-Aura",
+  "Trajectories",
+  "TreeBot",
+  "TriggerBot",
+  "TrollPotion",
+  "TrueSight",
+  "Tunneller",
+  "VeinMiner",
+  "X-Ray",
+  "AntiBot",
+  "Breadcrumbs",
+  "DankBobbing",
+  "LightOverlay",
+  "LogoutSpots",
+  "Notebot",
+  "PopChams",
+  "PacketCanceller",
+  "PacketLogger",
+  "Twerk",
+  "Vomit"
+ ],
+ "hack_count": 197,
+ "by_category": {
+  "RENDER": [
+   "AntiBlind",
+   "AntiWobble",
+   "BarrierESP",
+   "BaseFinder",
+   "BossStack",
+   "CameraDistance",
+   "CameraNoClip",
+   "CaveFinder",
+   "ChestESP",
+   "CityESP",
+   "EntityCulling",
+   "Freecam",
+   "Fullbright",
+   "HealthTags",
+   "HoleESP",
+   "ItemESP",
+   "MobESP",
+   "MobSpawnESP",
+   "NameProtect",
+   "NameTags",
+   "NewChunks",
+   "NoBackground",
+   "NoFireOverlay",
+   "NoFog",
+   "NoHurtcam",
+   "NoOverlay",
+   "NoPumpkin",
+   "NoShieldOverlay",
+   "NoVignette",
+   "NoWeather",
+   "OpenWaterESP",
+   "Overlay",
+   "PlayerESP",
+   "PlayerHalo",
+   "PortalESP",
+   "ProphuntESP",
+   "Radar",
+   "RemoteView",
+   "RotationSnap",
+   "搜索",
+   "TargetShader",
+   "Trajectories",
+   "TrueSight",
+   "X-Ray",
+   "Breadcrumbs",
+   "LightOverlay",
+   "LogoutSpots",
+   "PopChams"
+  ],
+  "MOVEMENT": [
+   "Anchor",
+   "AntiEntityPush",
+   "AntiHunger",
+   "AntiWaterPush",
+   "AntiVoid",
+   "AutoSprint",
+   "AutoSwim",
+   "AutoWalk",
+   "BaritoneWalk",
+   "Blink",
+   "BoatFly",
+   "BunnyHop",
+   "CreativeFlight",
+   "Dolphin",
+   "ElytraFly",
+   "ExtraElytra",
+   "FakeLag",
+   "FastLadder",
+   "Fish",
+   "Flight",
+   "Follow",
+   "Glide",
+   "HighJump",
+   "InvWalk",
+   "Jesus",
+   "Jetpack",
+   "NoClip",
+   "NoFall",
+   "NoJumpDelay",
+   "NoLevitation",
+   "NoSlowdown",
+   "NoVelocity",
+   "NoWeb",
+   "PacketFly",
+   "Parkour",
+   "SafeWalk",
+   "Sneak",
+   "SnowShoe",
+   "SpeedHack",
+   "Spider",
+   "Step"
+  ],
+  "COMBAT": [
+   "AimAssist",
+   "AnchorAura",
+   "ArrowDMG",
+   "AutoArmor",
+   "AutoCity",
+   "AutoLeave",
+   "AutoPotion",
+   "AutoRespawn",
+   "AutoSoup",
+   "AutoSword",
+   "AutoTotem",
+   "AutoTrap",
+   "AutoWeb",
+   "BowAimbot",
+   "Burrow",
+   "ClickAura",
+   "Criticals",
+   "CrystalAura",
+   "DelayRemover",
+   "FightBot",
+   "Hitboxes",
+   "HoleFiller",
+   "KeepSprint",
+   "KillauraLegit",
+   "Killaura",
+   "MultiAura",
+   "Protect",
+   "SelfTrap",
+   "Surround",
+   "TargetStrafe",
+   "TP-Aura",
+   "TriggerBot",
+   "AntiBot"
+  ],
+  "BLOCKS": [
+   "AirPlace",
+   "AntiCactus",
+   "AutoBuild",
+   "AutoFarm",
+   "AutoMine",
+   "AutoSign",
+   "AutoTool",
+   "BaritoneClearArea",
+   "BaritoneMine",
+   "BaritoneTreeBot",
+   "BonemealAura",
+   "BuildRandom",
+   "Excavator",
+   "FastBreak",
+   "FastPlace",
+   "HandNoClip",
+   "InstaBuild",
+   "InstantBunker",
+   "Kaboom",
+   "Liquids",
+   "Nuker",
+   "NukerLegit",
+   "ScaffoldWalk",
+   "SpeedMine",
+   "SpeedNuker",
+   "TemplateTool",
+   "Tillaura",
+   "TreeBot",
+   "Tunneller",
+   "VeinMiner"
+  ],
+  "OTHER": [
+   "AntiAFK",
+   "AutoLibrarian",
+   "AutoFish",
+   "自动重连",
+   "FeedAura",
+   "Panic",
+   "PortalGUI",
+   "PotionSaver",
+   "Reach",
+   "Throw",
+   "Timer",
+   "TooManyHax",
+   "PacketCanceller",
+   "PacketLogger"
+  ],
+  "FUN": [
+   "AntiAim",
+   "Derp",
+   "HeadRoll",
+   "LSD",
+   "MileyCyrus",
+   "RainbowUI",
+   "SkinDerp",
+   "Tired",
+   "DankBobbing",
+   "Notebot",
+   "Twerk",
+   "Vomit"
+  ],
+  "ITEMS": [
+   "AutoDrop",
+   "AutoEat",
+   "AutoSteal",
+   "AutoSwitch",
+   "CrashChest",
+   "FastUse",
+   "ItemGenerator",
+   "KillPotion",
+   "Restock",
+   "TrollPotion"
+  ],
+  "CHAT": [
+   "AntiSpam",
+   "AutoComplete",
+   "ChatTranslator",
+   "FancyChat",
+   "ForceOP",
+   "InfiniChat",
+   "MassTPA"
+  ],
+  "Unknown": [
+   "ClickGUI",
+   "Navigator"
+  ]
+ },
+ "categories": {
+  "RENDER": 48,
+  "MOVEMENT": 41,
+  "COMBAT": 33,
+  "BLOCKS": 30,
+  "OTHER": 14,
+  "FUN": 12,
+  "ITEMS": 10,
+  "CHAT": 7,
+  "Unknown": 2
+ },
+ "category_blurb": {
+  "RENDER": "X-Ray、夜视、无遮挡视野、自定义准星与外观",
+  "MOVEMENT": "飞行、加速、自动上台阶、防摔、爬墙",
+  "COMBAT": "自动攻击、暴击、反击退、瞄准辅助、自动格挡",
+  "BLOCKS": "加速挖掘、自动破坏、建筑与放置辅助",
+  "OTHER": "杂项工具与日常便捷功能",
+  "FUN": "恶搞视觉、按键音效、表情与彩蛋",
+  "ITEMS": "自动补货、工具切换、掉落物与库存管理",
+  "CHAT": "聊天翻译、反垃圾消息、本地过滤",
+  "Unknown": "其他工具"
+ },
+ "category_label": {
+  "RENDER": "渲染强化",
+  "MOVEMENT": "移动增强",
+  "COMBAT": "战斗辅助",
+  "BLOCKS": "方块操作",
+  "OTHER": "杂项工具",
+  "FUN": "娱乐恶搞",
+  "ITEMS": "物品管理",
+  "CHAT": "聊天社交",
+  "Unknown": "其他"
+ },
+ "commands": [
+  "addAltCmd",
+  "annoyCmd",
+  "authorCmd",
+  "bindCmd",
+  "bindsCmd",
+  "blinkCmd",
+  "blockListCmd",
+  "clearCmd",
+  "copyitemCmd",
+  "damageCmd",
+  "digCmd",
+  "dropCmd",
+  "enabledHaxCmd",
+  "enchantCmd",
+  "excavateCmd",
+  "featuresCmd",
+  "followCmd",
+  "friendsCmd",
+  "getPosCmd",
+  "giveCmd",
+  "gmCmd",
+  "goToCmd",
+  "helpCmd",
+  "invseeCmd",
+  "ipCmd",
+  "itemListCmd",
+  "jumpCmd",
+  "leaveCmd",
+  "macrosCmd",
+  "modifyCmd",
+  "pathCmd",
+  "potionCmd",
+  "protectCmd",
+  "proxyCmd",
+  "renameCmd",
+  "repairCmd",
+  "rvCmd",
+  "svCmd",
+  "sayCmd",
+  "setBlockCmd",
+  "setCheckboxCmd",
+  "setColorCmd",
+  "setModeCmd",
+  "setSliderCmd",
+  "settingsCmd",
+  "tacoCmd",
+  "tCmd",
+  "tooManyHaxCmd",
+  "tpCmd",
+  "unbindCmd",
+  "vClipCmd",
+  "waypointsCmd",
+  "viewNbtCmd",
+  "xrayCmd"
+ ],
+ "command_count": 54,
+ "hud_elements": [
+  "ArmorHudElement",
+  "ClockHudElement",
+  "ComboHudElement",
+  "CoordsHudElement",
+  "FpsHudElement",
+  "InventoryHudElement",
+  "KeystrokesHudElement",
+  "MinimapHudElement",
+  "PingHudElement",
+  "PotionHudElement",
+  "ServerHudElement",
+  "SpeedHudElement",
+  "TargetHudElement",
+  "TpsHudElement"
+ ],
+ "hud_count": 14,
+ "jars": [
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.20.2.jar",
+   "bytes": 29953170
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.20.3.jar",
+   "bytes": 29952297
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.20.4.jar",
+   "bytes": 29952297
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.20.5.jar",
+   "bytes": 29958710
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.20.6.jar",
+   "bytes": 29958710
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.1.jar",
+   "bytes": 29960893
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.10.jar",
+   "bytes": 33201724
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.11.jar",
+   "bytes": 33199904
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.2.jar",
+   "bytes": 29958067
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.3.jar",
+   "bytes": 33193314
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.4.jar",
+   "bytes": 33193401
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.5.jar",
+   "bytes": 33197183
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.6.jar",
+   "bytes": 33199265
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.7.jar",
+   "bytes": 33199766
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.8.jar",
+   "bytes": 33200535
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.9.jar",
+   "bytes": 33201698
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-1.21.jar",
+   "bytes": 29960889
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-26.1.1.jar",
+   "bytes": 33269955
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-26.1.2.jar",
+   "bytes": 33269965
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-26.1.jar",
+   "bytes": 33269953
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Fabric-26.2.jar",
+   "bytes": 33278427
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.20.2.jar",
+   "bytes": 30367060
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.20.3.jar",
+   "bytes": 30367118
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.20.4.jar",
+   "bytes": 30367118
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.20.6.jar",
+   "bytes": 30336797
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.1.jar",
+   "bytes": 30590441
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.10.jar",
+   "bytes": 33261406
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.11.jar",
+   "bytes": 33257307
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.3.jar",
+   "bytes": 33262667
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.4.jar",
+   "bytes": 33262658
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.5.jar",
+   "bytes": 33278105
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.6.jar",
+   "bytes": 33262757
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.7.jar",
+   "bytes": 33264750
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.8.jar",
+   "bytes": 33262815
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.9.jar",
+   "bytes": 33260934
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-1.21.jar",
+   "bytes": 30590441
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-26.1.1.jar",
+   "bytes": 33312094
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-26.1.2.jar",
+   "bytes": 33312095
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-26.1.jar",
+   "bytes": 33312091
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-Forge-26.2.jar",
+   "bytes": 33320985
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.20.2.jar",
+   "bytes": 28193244
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.20.3.jar",
+   "bytes": 28192013
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.20.4.jar",
+   "bytes": 28192014
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.20.5.jar",
+   "bytes": 28187275
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.20.6.jar",
+   "bytes": 28187277
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.1.jar",
+   "bytes": 30036317
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.10.jar",
+   "bytes": 33228777
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.11.jar",
+   "bytes": 33227276
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.2.jar",
+   "bytes": 30033392
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.3.jar",
+   "bytes": 33213449
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.4.jar",
+   "bytes": 33213514
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.5.jar",
+   "bytes": 33225664
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.6.jar",
+   "bytes": 33225523
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.7.jar",
+   "bytes": 33225527
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.8.jar",
+   "bytes": 33226931
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.9.jar",
+   "bytes": 33228777
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-1.21.jar",
+   "bytes": 30036316
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-26.1.1.jar",
+   "bytes": 33272951
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-26.1.2.jar",
+   "bytes": 33272938
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-26.1.jar",
+   "bytes": 33272952
+  },
+  {
+   "file": "WurstB+.Plus-1.5.0-NeoForge-26.2.jar",
+   "bytes": 33283506
+  }
+ ],
+ "jar_count": 61,
+ "release_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0",
+ "repo_url": "https://github.com/xiegeezr886/WurstB-Plus"
+}
