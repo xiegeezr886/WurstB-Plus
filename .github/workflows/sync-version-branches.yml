@@ -33,6 +33,11 @@ jobs:
         run: |
           git fetch origin '+refs/heads/*:refs/remotes/origin/*'
 
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Show what will change
         env:
           PYTHONIOENCODING: utf-8

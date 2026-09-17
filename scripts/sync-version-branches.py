@@ -107,6 +107,22 @@ def run(args, env=None, inp=None, check=True):
     return r.stdout
 
 
+def ensure_identity():
+    """`git commit-tree` refuses to run without a committer identity, and a bare
+    CI runner has none.  Fill in a bot identity when the repo has no user.name /
+    user.email configured, unless GIT_AUTHOR_* already supplies one."""
+    if os.environ.get("GIT_AUTHOR_NAME") and os.environ.get("GIT_AUTHOR_EMAIL"):
+        return
+    for key in ("user.name", "user.email"):
+        if subprocess.run(["git", "config", "--get", key], cwd=REPO,
+                          capture_output=True).returncode == 0:
+            continue
+        default = ("github-actions[bot]" if key == "user.name"
+                   else "41898282+github-actions[bot]@users.noreply.github.com")
+        subprocess.run(["git", "config", key, default], cwd=REPO, check=True)
+        print(f"set {key} = {default} (no identity configured)")
+
+
 def ok(args, env=None):
     return subprocess.run(["git", *args], cwd=REPO, env=env,
                           capture_output=True, text=True).returncode == 0
@@ -176,6 +192,8 @@ def main():
         todo = wanted
     else:
         todo = list(BRANCHES)
+
+    ensure_identity()
 
     if not ok(["rev-parse", "--verify", "--quiet", f"refs/remotes/origin/{MAIN}"]):
         run(["fetch", "origin", MAIN], check=False)
