@@ -44,7 +44,7 @@
 | Java 源文件（`src/main/java`） | 1040 |
 | Hack 类（`hacks/` 下 `extends Hack`） | 211 |
 | 命令类（`extends Command`） | 57 |
-| HUD 元素类（`hud2/elements`） | 33 |
+| HUD 元素类（`hud2/elements` 下 `extends HudElement`） | 31 |
 | 单元测试 | 161 个测试类 / 1024 项，0 失败 |
 
 > **v1.6 新子系统目前只实现在根目录 Forge 1.20.1 工程里**，其余 63 个工程是 v1.5.0 形态。
