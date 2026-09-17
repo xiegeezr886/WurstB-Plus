@@ -143,14 +143,14 @@ Minecraft 1.20.5 与 1.21.2 没有官方 Forge 版本，因此这两个版本只
 
 ### 客户端核心
 
-- **211 个 Hack**、**57 个命令**、**17 个 Other Feature**，分类包括战斗、移动、渲染、世界、
+- **211 个 Hack**、**57 个命令**、**18 个 Other Feature**，分类包括战斗、移动、渲染、世界、
   物品、聊天、Fun 等。
 - **三套 ClickGUI**，可在设置里循环切换（默认 Epsilon）：
   - **Epsilon** —— 拉式下拉面板
   - **SuperSoft** —— MD3 TonalSpot 调色板 + 磨砂玻璃
   - **Vape** —— VAPE 风格组件层
 - **统一强调色** `#007CFF`（`VisualTheme.ACCENT`），音乐、通知、PvPUtils 等共用该语义 token。
-- **HUD 编辑系统**（`hud2`）：33 个 HUD 元素，支持锚点定位、缩放、逐元素设置；
+- **HUD 编辑系统**（`hud2`）：31 个 HUD 元素，支持锚点定位、缩放、逐元素设置；
   带吸附的编辑器（屏幕中心吸附 + 元素互相吸附）。
 - **Skiko 矢量渲染**：`skiko-windows-x64.dll` 随 mod 资源打包（不走 jarJar，否则会重定位资源
   路径导致定位不到原生库），运行时解压加载。这也是根工程产物约 68 MB 的主要原因。
@@ -203,6 +203,10 @@ build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar
 ```powershell
 .\gradlew.bat runClient --console=plain
 ```
+
+> 首次 `runClient` **需要联网**：ForgeGradle 要拉取 Minecraft 资源与 `commons-io` 等原版库。
+> `compileJava` / `test` 可以完全离线跑，但 `runClient` 加 `--offline` 会失败在
+> `:minecraftLibraryCopy`（`commons-io:commons-io:2.6` 不在离线缓存里）。
 
 > `jarJar` 结束后会自动把产物复制到本地测试实例的 `mods/` 目录
 > （`.test/versions/1.20.1-Forge_47.4.22/mods/`，见 `build.gradle` 的 `copyJarToTestMods`），
