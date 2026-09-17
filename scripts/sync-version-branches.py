@@ -210,6 +210,7 @@ def main():
     print(f"main tracks {len(entries)} paths")
 
     updated, unchanged, problems = [], [], []
+    leases = {}
 
     for v in todo:
         roots = BRANCHES[v]
@@ -247,9 +248,14 @@ def main():
             except OSError:
                 pass
 
+        # The previous tip has to come from the remote-tracking ref: on a fresh CI
+        # checkout there is no local refs/heads/<version>, and falling back to
+        # "no parent" would silently drop the merge link to the old tip.
         old = None
-        if ok(["rev-parse", "--verify", "--quiet", f"refs/heads/{v}"]):
-            old = run(["rev-parse", f"refs/heads/{v}"]).strip()
+        for ref in (f"refs/heads/{v}", f"refs/remotes/origin/{v}"):
+            if ok(["rev-parse", "--verify", "--quiet", ref]):
+                old = run(["rev-parse", ref]).strip()
+                break
 
         if old and run(["rev-parse", f"{old}^{{tree}}"]).strip() == tree:
             print(f"{v:8s} up to date (tree {tree[:8]})")
@@ -275,6 +281,7 @@ def main():
         print(f"{v:8s} synced {old[:8] if old else '(new)'} -> {commit[:8]} "
               f"files={n}")
         updated.append(v)
+        leases[v] = old
 
     print(f"\nupdated={len(updated)} unchanged={len(unchanged)} "
           f"problems={len(problems)}")
@@ -284,9 +291,15 @@ def main():
             print("(not pushed)")
         return 0
 
+    # Lease explicitly against the tip we built on: on a CI checkout there is no
+    # local refs/remotes/origin/<branch> to fall back on, and a bare
+    # --force-with-lease would then be rejected as "stale info".
     print(f"pushing {len(updated)} branch(es) ...")
-    r = subprocess.run(["git", "push", "--force-with-lease", "origin", *updated],
-                       cwd=REPO, capture_output=True, text=True,
+    cmd = ["git", "push", "origin"]
+    for v in updated:
+        cmd.append(f"--force-with-lease=refs/heads/{v}:{leases[v] or ''}")
+    cmd += [f"refs/heads/{v}:refs/heads/{v}" for v in updated]
+    r = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True,
                        encoding="utf-8", errors="replace")
     for line in (r.stdout + r.stderr).splitlines():
         if "->" in line or "rejected" in line or "error" in line.lower():
