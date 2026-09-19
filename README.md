@@ -63,24 +63,6 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar
 例如 `WurstB+.Plus-v1.5.0-Forge-1.20.1.jar`。
 根工程 v1.6.0 的产物名为 `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`。
 
-### 宣传片
-
-Release 里还带了一支 v1.5.0 的宣传片（**88 秒 / 1080p / 30 fps**）：
-
-| 项 | 值 |
-| --- | --- |
-| 文件 | [`WurstB+.Plus-v1.5.0-Promo.mp4`](https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-v1.5.0-Promo.mp4)（22.2 MB） |
-| 时长 / 分辨率 | 88 秒 / 1920×1080 / 30 fps，H.264 + AAC 立体声 |
-| 封面 / 片尾 | `WurstB+.Plus-v1.5.0-Promo-Cover.png`、`WurstB+.Plus-v1.5.0-Promo-Outro.png` |
-| 生成脚本 | [`scripts/make-promo.py`](scripts/make-promo.py)（需 Pillow + imageio-ffmpeg） |
-
-片子里的数字全部取自本仓库的真实内容，没有编造：8 个场景分别是
-标题、统计计数器、Hack 分类、使用流程、自动化功能、**21 个 MC 版本 × 3 加载器的支持矩阵**、
-197 个 Hack 名单滚动、下载信息页。数据由脚本从工程里现读（`scripts/collect-promo-facts.py`）。
-
-> 画面是**信息动画**（卡片、计数器、矩阵、名单滚动），不是游戏内录屏——
-> 本仓库里没有可用的游戏画面素材，所以没有拿别的视频冒充。
-
 ### 版本支持矩阵
 
 | Minecraft | Forge | NeoForge | Fabric | Java |
