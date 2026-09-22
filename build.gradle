@@ -337,9 +337,27 @@ tasks.register("copyJarToTestMods") {
 //
 //  用 -PnoRelocate 可关闭。
 def RELOCATE_PREFIXES = [
-	"kotlin/"             : "net/wurstclient/shaded/kotlin/",
-	"kotlinx/coroutines/" : "net/wurstclient/shaded/kotlinx/coroutines/",
-	"javazoom/"           : "net/wurstclient/shaded/javazoom/",
+	// —— 第一批：实测崩溃日志点名的三个 ——
+	"kotlin/"                       : "net/wurstclient/shaded/kotlin/",
+	"kotlinx/coroutines/"           : "net/wurstclient/shaded/kotlinx/coroutines/",
+	"javazoom/"                     : "net/wurstclient/shaded/javazoom/",
+	// kotlinx-coroutines 的根级包，不在 kotlinx/coroutines/ 下，第一版漏掉过，
+	// 结果自动模块导出它、与 KotlinForForge 撞在 _COROUTINE 上又崩一次。
+	"_COROUTINE/"                   : "net/wurstclient/shaded/_COROUTINE/",
+	// —— 第二批：整合包里同样有其它 mod 提供（modid 重复）的纯 Java 库 ——
+	// 一次性全部重定位，避免逐个试错（每次试错都要用户启动一次游戏）。
+	"com/google/zxing/"             : "net/wurstclient/shaded/com/google/zxing/",
+	"com/goxr3plus/"                : "net/wurstclient/shaded/com/goxr3plus/",
+	"com/jcraft/jogg/"              : "net/wurstclient/shaded/com/jcraft/jogg/",
+	"com/jcraft/jorbis/"            : "net/wurstclient/shaded/com/jcraft/jorbis/",
+	"com/github/trilarion/"         : "net/wurstclient/shaded/com/github/trilarion/",
+	"org/jaudiotagger/"             : "net/wurstclient/shaded/org/jaudiotagger/",
+	"org/java_websocket/"           : "net/wurstclient/shaded/org/java_websocket/",
+	"org/jflac/"                    : "net/wurstclient/shaded/org/jflac/",
+	"org/tritonus/"                 : "net/wurstclient/shaded/org/tritonus/",
+	"io/netty/handler/codec/socks/" : "net/wurstclient/shaded/io/netty/handler/codec/socks/",
+	"io/netty/handler/codec/socksx/": "net/wurstclient/shaded/io/netty/handler/codec/socksx/",
+	"io/netty/handler/proxy/"       : "net/wurstclient/shaded/io/netty/handler/proxy/",
 ]
 
 // 注意：不能用 ASM 自带的 SimpleRemapper —— 它的 map() 只有一句
@@ -463,14 +481,37 @@ def relocateNestedJars = { File jarFile ->
 		int count = 0
 		while((entry = zin.getNextEntry()) != null)
 		{
+			String name = entry.name
 			byte[] data = zin.readAllBytes()
-			if(entry.name.startsWith("META-INF/jarjar/")
-				&& entry.name.endsWith(".jar"))
+			String outName = name
+			if(name.startsWith("META-INF/jarjar/")
+				&& name.endsWith(".jar"))
 			{
 				data = rewriteNestedJar(data)
 				count++
 			}
-			def ne = new java.util.zip.ZipEntry(entry.name)
+			else if(name.endsWith(".class"))
+			{
+				// 外层自身的类也要改写：本工程有类直接引用了 com.google.zxing /
+				// com.goxr3plus / io.netty.handler.proxy，这些包重定位后引用必须
+				// 同步更新，否则会指向不存在的类。
+				try
+				{
+					data = relocateClassBytes(data)
+					relocStats.classes++
+				}
+				catch(Throwable t)
+				{
+					if(relocStats.failures.size() < 5)
+						relocStats.failures << "${name}: ${t}"
+				}
+				outName = remapEntryName(name)
+			}
+			else if(name.startsWith("META-INF/services/"))
+				data = remapServiceFile(data)
+			if(!outName.equals(name))
+				relocStats.renamed++
+			def ne = new java.util.zip.ZipEntry(outName)
 			ne.time = entry.time
 			zout.putNextEntry(ne)
 			zout.write(data)
