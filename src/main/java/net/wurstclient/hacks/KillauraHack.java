@@ -647,10 +647,8 @@ public final class KillauraHack extends Hack
 		if(!hitSelect.isChecked() || !(target instanceof LivingEntity living))
 			return true;
 
-		if(living.hurtTime <= getLatencyTicks() + 1)
-			return true;
-
-		return MC.player.hurtTime >= 6;
+		return CombatActionPolicy.isHitSelectWindowOpen(living.hurtTime,
+			getLatencyTicks(), MC.player.hurtTime);
 	}
 
 	private int getLatencyTicks()

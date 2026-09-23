@@ -20,6 +20,7 @@ import java.util.Random;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
@@ -117,6 +118,12 @@ public final class MultiAuraHack extends Hack
 
 	private final SliderSetting hurtTime = new SliderSetting("Hurt time", 10,
 		0, 10, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
+	// 与 KillauraHack 同一套判据，共享 CombatActionPolicy 里的纯逻辑实现。
+	private final CheckboxSetting hitSelect = new CheckboxSetting("Hit select",
+		"Only attacks when the hit can actually land: waits for the target to leave"
+			+ " its invulnerability window (latency-aware), or attacks immediately"
+			+ " while you are in your own hurt window (trading).",
+		true);
 	private final SliderSetting maxTargets = new SliderSetting("Target limit",
 		0, 0, 50, 1, ValueDisplay.INTEGER.withLabel(0, "unlimited"));
 	private final EnumSetting<TargetPriority> priority = new EnumSetting<>(
@@ -273,6 +280,7 @@ public final class MultiAuraHack extends Hack
 		addSetting(maximumCooldown);
 		addSetting(ignoreCooldownWhenExitingRange);
 		addSetting(hurtTime);
+		addSetting(hitSelect);
 		addSetting(maxTargets);
 		addSetting(priority);
 		addSetting(fov);
@@ -474,15 +482,19 @@ public final class MultiAuraHack extends Hack
 			boolean attacked = false;
 			for(Entity entity : freshTargets)
 			{
-				if(!isValidAttackTarget(entity))
+				if(!isValidAttackTarget(entity)
+					|| !isHitSelectWindowOpen(entity))
 					continue;
 				boolean wasSprinting = MC.player.isSprinting();
-				swingHand.swing(InteractionHand.MAIN_HAND);
+				// 顺序与原版一致：先攻击、后挥手。且挥手移出循环，全部攻击完只挥一次
+				// （Epsilon 的 MultiAura 同样是先循环攻击、最后挥一次）。
 				MC.gameMode.attack(MC.player, entity);
 				if(keepSprint.isChecked() && wasSprinting)
 					restoreSprint();
 				attacked = true;
 			}
+			if(attacked)
+				swingHand.swing(InteractionHand.MAIN_HAND);
 
 			if(onTick)
 				sendFullRotation(
@@ -730,6 +742,23 @@ public final class MultiAuraHack extends Hack
 		return clickScheduler.isCooldownPassed(progress)
 			|| ignoreCooldownWhenExitingRange.isChecked()
 				&& predictExitingRange(1 + ticks);
+	}
+
+	private boolean isHitSelectWindowOpen(Entity target)
+	{
+		if(!hitSelect.isChecked() || !(target instanceof LivingEntity living))
+			return true;
+
+		return CombatActionPolicy.isHitSelectWindowOpen(living.hurtTime,
+			getLatencyTicks(), MC.player.hurtTime);
+	}
+
+	private int getLatencyTicks()
+	{
+		if(MC.getConnection() == null || MC.player == null)
+			return 0;
+		PlayerInfo info = MC.getConnection().getPlayerInfo(MC.player.getUUID());
+		return info == null ? 0 : info.getLatency() / 50;
 	}
 
 	private boolean predictExitingRange(double ticks)

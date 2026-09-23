@@ -62,4 +62,41 @@ final class CombatActionPolicyTest
 		assertTrue(CombatActionPolicy.canStartSpoofedCritical(airborne, false,
 			true));
 	}
+
+	@Test
+	void hitSelectWaitsForTargetInvulnerabilityToExpire()
+	{
+		// 无延迟时，目标 hurtTime 必须降到 1 以内才出刀
+		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(0, 0, 0));
+		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(1, 0, 0));
+		assertFalse(CombatActionPolicy.isHitSelectWindowOpen(2, 0, 0));
+		assertFalse(CombatActionPolicy.isHitSelectWindowOpen(10, 0, 0));
+	}
+
+	@Test
+	void hitSelectCompensatesLatencyInTicks()
+	{
+		// 100ms 延迟 = 2 tick，窗口随之放宽到 hurtTime <= 3
+		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(3, 2, 0));
+		assertFalse(CombatActionPolicy.isHitSelectWindowOpen(4, 2, 0));
+	}
+
+	@Test
+	void hitSelectAllowsTradingWhileTakingDamage()
+	{
+		// 自己正在受伤（>= 6）说明在对拼，即使目标仍在无敌帧也还手
+		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(10, 0,
+			CombatActionPolicy.HIT_SELECT_TRADE_HURT_TIME));
+		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(10, 0, 10));
+		assertFalse(CombatActionPolicy.isHitSelectWindowOpen(10, 0, 5));
+	}
+
+	@Test
+	void hitSelectPassesWhenHurtTimeIsUnknown()
+	{
+		// 负数表示取不到值，此时放行，不能因为它把攻击整个卡死
+		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(-1, 0, 0));
+		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(10, -1, 0));
+		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(10, 0, -1));
+	}
 }
