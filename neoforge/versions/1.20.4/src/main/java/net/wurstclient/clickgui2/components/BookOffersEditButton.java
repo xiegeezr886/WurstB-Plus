@@ -33,7 +33,7 @@ public final class BookOffersEditButton extends AbstractListEditButton
 	@Override
 	protected String getText()
 	{
-		return setting.getName() + ": " + setting.getOffers().size();
+		return setting.getTranslatedName() + ": " + setting.getOffers().size();
 	}
 	
 	@Override

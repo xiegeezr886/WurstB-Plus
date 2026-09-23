@@ -35,7 +35,7 @@ final class VapeTextInputComponent extends ValueRowComponent
 		int left = (int)x + 5;
 		int top = (int)y + 10;
 		int right = (int)(x + getWidth()) - 5;
-		graphics.drawString(font(), textSetting.getName(), left, (int)y + 2,
+		graphics.drawString(font(), textSetting.getTranslatedName(), left, (int)y + 2,
 			focused ? VapePalette.TEXT_HOVER : VapePalette.TEXT, false);
 		graphics.fill(left, top, right, top + 13,
 			focused ? VapePalette.ROW_HOVER : VapePalette.FRAME);
@@ -57,7 +57,7 @@ final class VapeTextInputComponent extends ValueRowComponent
 		int left = (int)x + 4;
 		int top = (int)y + 17;
 		int right = (int)(x + getWidth()) - 4;
-		graphics.drawString(font(), textSetting.getName(), left, (int)y + 2,
+		graphics.drawString(font(), textSetting.getTranslatedName(), left, (int)y + 2,
 			SuperSoftTheme.TEXT_SECONDARY, false);
 		String description = font().plainSubstrByWidth(
 			textSetting.getDescription(), Math.max(20, right - left));

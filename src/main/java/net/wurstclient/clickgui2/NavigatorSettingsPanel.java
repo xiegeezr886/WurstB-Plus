@@ -322,7 +322,7 @@ final class NavigatorSettingsPanel extends Window
 		int height = rowHeight(setting);
 		if(setting instanceof SliderSetting slider)
 		{
-			drawText(graphics, setting.getName(), left, y + 2,
+			drawText(graphics, setting.getTranslatedName(), left, y + 2,
 				RiseColors.SECONDARY_TEXT.argb());
 			int trackLeft = sliderTrackLeft(slider);
 			int trackRight = Math.min(right - 25, trackLeft + 100);
@@ -346,10 +346,10 @@ final class NavigatorSettingsPanel extends Window
 
 		if(setting instanceof CheckboxSetting checkbox)
 		{
-			drawText(graphics, setting.getName(), left, y + 3,
+			drawText(graphics, setting.getTranslatedName(), left, y + 3,
 				RiseColors.SECONDARY_TEXT.argb());
 			int nameWidth = Math.round(
-				RiseFont.width(FONT, setting.getName()) * TEXT_SCALE);
+				RiseFont.width(FONT, setting.getTranslatedName()) * TEXT_SCALE);
 			int dotX = Math.min(right - 5, left + nameWidth + 3);
 			FlatUiRenderer.fill(graphics, dotX, y + 4, dotX + 5, y + 9,
 				3, RiseColors.BACKGROUND.argb());
@@ -366,7 +366,7 @@ final class NavigatorSettingsPanel extends Window
 
 		if(setting instanceof TextFieldSetting)
 		{
-			drawText(graphics, setting.getName(), left, y + 2,
+			drawText(graphics, setting.getTranslatedName(), left, y + 2,
 				RiseColors.SECONDARY_TEXT.argb());
 			String text = setting == activeInput ? draftWithCursor()
 				: ((TextFieldSetting)setting).getValue();
@@ -383,7 +383,7 @@ final class NavigatorSettingsPanel extends Window
 
 		if(setting instanceof EnumSetting<?> enumSetting)
 		{
-			String prefix = setting.getName() + ":";
+			String prefix = setting.getTranslatedName() + ":";
 			drawText(graphics, prefix, left, y + 3,
 				RiseColors.SECONDARY_TEXT.argb());
 			int valueX = left + Math.round(
@@ -396,7 +396,7 @@ final class NavigatorSettingsPanel extends Window
 
 		String value = setting == activeInput ? draftWithCursor()
 			: valueText(setting);
-		drawText(graphics, setting.getName() + (value.isEmpty() ? "" : ":"),
+		drawText(graphics, setting.getTranslatedName() + (value.isEmpty() ? "" : ":"),
 			left, y + 3, RiseColors.SECONDARY_TEXT.argb());
 		if(!value.isEmpty())
 			drawTextRight(graphics, value, right - (setting.hasChildren() ? 10 : 0),
@@ -608,10 +608,10 @@ final class NavigatorSettingsPanel extends Window
 	private void renderColorSetting(GuiGraphics graphics, ColorSetting setting,
 		int y, int left, int right)
 	{
-		drawText(graphics, setting.getName(), left, y + 3,
+		drawText(graphics, setting.getTranslatedName(), left, y + 3,
 			RiseColors.SECONDARY_TEXT.argb());
 		int nameWidth = Math.round(
-			RiseFont.width(FONT, setting.getName()) * TEXT_SCALE);
+			RiseFont.width(FONT, setting.getTranslatedName()) * TEXT_SCALE);
 		int swatchX = Math.min(right - 17, left + nameWidth + 5);
 		FlatUiRenderer.fill(graphics, swatchX, y + 3, swatchX + 15, y + 10,
 			3, setting.getColorI());
@@ -726,7 +726,7 @@ final class NavigatorSettingsPanel extends Window
 	{
 		int left = 1 + setting.getDepth() * 8;
 		int nameWidth = Math.round(
-			RiseFont.width(FONT, setting.getName()) * TEXT_SCALE);
+			RiseFont.width(FONT, setting.getTranslatedName()) * TEXT_SCALE);
 		return Math.max(left + 22,
 			Math.min(bodyWidth - COLOR_PICKER_WIDTH - 2,
 				left + nameWidth + 22));
@@ -736,7 +736,7 @@ final class NavigatorSettingsPanel extends Window
 	{
 		int left = 1 + slider.getDepth() * 8;
 		int nameWidth = Math.round(
-			RiseFont.width(FONT, slider.getName()) * TEXT_SCALE);
+			RiseFont.width(FONT, slider.getTranslatedName()) * TEXT_SCALE);
 		return Math.min(bodyWidth - 54, left + nameWidth + 7);
 	}
 

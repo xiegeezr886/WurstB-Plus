@@ -94,7 +94,7 @@ public final class HudEditorScreen extends Screen
 			FlatRenderer.drawRoundedOutline(graphics, elX, elY,
 				elX + editorWidth, elY + editorHeight, 5, border);
 
-			String name = font.plainSubstrByWidth(element.getName(),
+			String name = font.plainSubstrByWidth(element.getTranslatedName(),
 				CARD_WIDTH - 12);
 			graphics.drawString(font, name, elX + 6, elY + 5,
 				config.isEnabled() ? 0xFFF2F4F7 : 0xFF727B88, false);

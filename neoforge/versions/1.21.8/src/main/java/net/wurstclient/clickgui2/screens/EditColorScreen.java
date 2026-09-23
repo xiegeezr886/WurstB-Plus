@@ -173,7 +173,7 @@ public final class EditColorScreen extends Screen
 		Font tr = minecraft.font;
 		
 		context.centeredText(minecraft.font,
-			colorSetting.getName(), width / 2, 16, 0xFFF0F0F0);
+			colorSetting.getTranslatedName(), width / 2, 16, 0xFFF0F0F0);
 		
 		// Draw palette
 		int x = paletteX;

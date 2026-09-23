@@ -65,7 +65,8 @@ final class FeatureMenuSupport
 
 		StringBuilder settings = new StringBuilder();
 		feature.getSettings().values().forEach(setting -> settings.append(' ')
-			.append(setting.getName()));
+			.append(setting.getName()).append(' ')
+			.append(setting.getTranslatedName()));
 		best = Math.max(best, boostedScore(
 			FuzzySearch.score(settings.toString(), query), 40));
 		String combined = feature.getName() + " " + feature.getDisplayName()

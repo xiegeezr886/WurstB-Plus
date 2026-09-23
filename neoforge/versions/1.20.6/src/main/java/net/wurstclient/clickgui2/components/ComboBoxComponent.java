@@ -118,7 +118,7 @@ public final class ComboBoxComponent<T extends Enum<T>> extends Component
 			hBox, !isPopupOpen());
 		
 		// text
-		String name = setting.getName();
+		String name = setting.getTranslatedName();
 		String value = "" + setting.getSelected();
 		int txtColor = GUI.getTxtColor();
 		context.drawString(TR, name, x1, y1 + 2, txtColor, false);
@@ -128,7 +128,7 @@ public final class ComboBoxComponent<T extends Enum<T>> extends Component
 	@Override
 	public int getDefaultWidth()
 	{
-		return TR.width(setting.getName()) + popupWidth + ARROW_SIZE + 6;
+		return TR.width(setting.getTranslatedName()) + popupWidth + ARROW_SIZE + 6;
 	}
 	
 	@Override

@@ -41,7 +41,7 @@ public abstract class ValueRowComponent extends GuiComponent
 	protected void drawLabel(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 		Font font = Minecraft.getInstance().font;
-		String label = setting.getName();
+		String label = setting.getTranslatedName();
 		float hover = hoverMotion.update(isHovered(mouseX, mouseY) ? 1 : 0);
 		int labelColor = SuperSoftTheme.mix(SuperSoftTheme.TEXT_SECONDARY,
 			SuperSoftTheme.TEXT, hover);

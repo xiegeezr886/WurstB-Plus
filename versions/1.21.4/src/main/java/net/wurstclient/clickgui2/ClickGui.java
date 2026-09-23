@@ -20,6 +20,7 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.theme.FlatTheme;
 import net.wurstclient.hacks.ClickGuiHack;
 import net.wurstclient.util.RenderUtils;
+import net.minecraft.util.Mth;
 
 public final class ClickGui
 {
@@ -383,10 +384,20 @@ public final class ClickGui
 		int sw = MC.screen.width;
 		int sh = MC.screen.height;
 		
+		int boxWidth = tw + 3;
+		int boxHeight = th + 2;
+
 		int xt1 = mouseX + tw + 11 <= sw ? mouseX + 8 : mouseX - tw - 8;
-		int xt2 = xt1 + tw + 3;
 		int yt1 = mouseY + th - 2 <= sh ? mouseY - 4 : mouseY - th - 4;
-		int yt2 = yt1 + th + 2;
+
+		// Keep the tooltip on screen. Choosing a side is not enough on its own:
+		// a long tooltip near the right/bottom edge would flip to negative
+		// coordinates and render outside the GUI.
+		xt1 = Mth.clamp(xt1, 0, Math.max(0, sw - boxWidth));
+		yt1 = Mth.clamp(yt1, 0, Math.max(0, sh - boxHeight));
+
+		int xt2 = xt1 + boxWidth;
+		int yt2 = yt1 + boxHeight;
 		
 		matrixStack.pushPose();
 		matrixStack.translate(0, 0, 300);

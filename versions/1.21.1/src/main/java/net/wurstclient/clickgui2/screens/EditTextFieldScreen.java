@@ -90,7 +90,7 @@ public final class EditTextFieldScreen extends Screen
 	{
 		renderBackground(context, mouseX, mouseY, partialTicks);
 		context.drawCenteredString(minecraft.font,
-			setting.getName(), width / 2, 20, 0xFFFFFF);
+			setting.getTranslatedName(), width / 2, 20, 0xFFFFFF);
 		
 		valueField.render(context, mouseX, mouseY, partialTicks);
 		super.render(context, mouseX, mouseY, partialTicks);

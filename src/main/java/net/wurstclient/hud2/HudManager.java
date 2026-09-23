@@ -288,7 +288,7 @@ public final class HudManager implements GUIRenderListener
 	public void registerElement(HudElement element)
 	{
 		elements.put(element.getId(), element);
-		elementDisplayNames.put(element.getId(), element.getName());
+		elementDisplayNames.put(element.getId(), element.getTranslatedName());
 		layout.addElement(element);
 	}
 

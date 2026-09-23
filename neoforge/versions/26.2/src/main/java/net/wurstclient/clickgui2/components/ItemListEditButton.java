@@ -33,7 +33,7 @@ public final class ItemListEditButton extends AbstractListEditButton
 	@Override
 	protected String getText()
 	{
-		return setting.getName() + ": " + setting.getItemNames().size();
+		return setting.getTranslatedName() + ": " + setting.getItemNames().size();
 	}
 	
 	@Override

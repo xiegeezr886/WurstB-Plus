@@ -103,7 +103,7 @@ public final class EditBlockScreen extends Screen
 		Font tr = minecraft.font;
 		
 		renderBackground(context);
-		context.drawCenteredString(tr, setting.getName(), width / 2, 20,
+		context.drawCenteredString(tr, setting.getTranslatedName(), width / 2, 20,
 			0xFFFFFF);
 		
 		blockField.render(context, mouseX, mouseY, partialTicks);

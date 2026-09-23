@@ -42,9 +42,18 @@ public abstract class KeyBindingMixin implements IKeyBinding
 	@Deprecated // use IKeyBinding.simulatePress() instead
 	public void wurst_simulatePress(boolean pressed)
 	{
-		// TODO: 26.1.2 - keyPress is now private in Forge
-		// Need to find alternative approach
+		// setDown() only writes the isDown flag. Vanilla attacks through
+		// Minecraft.handleKeybinds(), which reads keyAttack.consumeClick(),
+		// and consumeClick() only returns true while KeyMapping's private
+		// clickCount is above zero. That counter is incremented exclusively
+		// by the static KeyMapping.click(), which vanilla calls from
+		// MouseHandler.onButton() and KeyboardHandler.keyPress(). So a
+		// simulated press that only calls setDown() is invisible to the
+		// attack code path and silently does nothing.
 		setDown(pressed);
+
+		if(pressed)
+			KeyMapping.click(key);
 	}
 	
 	@Shadow

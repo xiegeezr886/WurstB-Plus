@@ -33,7 +33,7 @@ public final class SettingsWindow extends Window
 
 	private SettingsWindow(Feature feature)
 	{
-		super(feature.getDisplayName() + " 璁剧疆");
+		super(feature.getDisplayName() + " 设置");
 		settings = new ArrayList<>(feature.getSettings().values());
 		
 		setClosable(true);
@@ -80,8 +80,14 @@ public final class SettingsWindow extends Window
 		if(y + getHeight() > mcWindow.getGuiScaledHeight())
 			y -= getHeight() - 14;
 		
-		x = Mth.clamp(x, 0, mcWindow.getGuiScaledWidth());
-		y = Mth.clamp(y, 0, mcWindow.getGuiScaledHeight());
+		// Clamp against the window's own size, not just the screen size.
+		// Clamping to getGuiScaledWidth() alone still allowed this window to
+		// hang off the right/bottom edge by up to its full width/height, which
+		// is what pushed the settings panel off-screen.
+		x = Mth.clamp(x, 0,
+			Math.max(0, mcWindow.getGuiScaledWidth() - getWidth()));
+		y = Mth.clamp(y, 0,
+			Math.max(0, mcWindow.getGuiScaledHeight() - getHeight()));
 		
 		setX(x);
 		setY(y);

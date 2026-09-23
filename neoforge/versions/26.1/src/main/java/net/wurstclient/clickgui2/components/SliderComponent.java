@@ -151,7 +151,7 @@ public final class SliderComponent extends Component
 			(int)xk2, (int)yk2, 3, GUI.getTheme().highlight(0.48F));
 		
 		// text
-		String name = setting.getName();
+		String name = setting.getTranslatedName();
 		String value = setting.getValueString();
 		int valueWidth = TR.width(value);
 		int txtColor = GUI.getTxtColor();
@@ -185,7 +185,7 @@ public final class SliderComponent extends Component
 	@Override
 	public int getDefaultWidth()
 	{
-		int nameWitdh = TR.width(setting.getName());
+		int nameWitdh = TR.width(setting.getTranslatedName());
 		int valueWidth = TR.width(setting.getValueString());
 		return nameWitdh + valueWidth + 6;
 	}
