@@ -103,7 +103,6 @@
   "description.wurst.hack.jetpack": "使你像有喷气背包一样飞行。\n\n§c§l警告：§r 如果你不使用 NoFall，依然会受到摔落伤害。",
   "description.wurst.hack.keepsprint": "向前移动时持续保持疾跑，并防止攻击造成减速或中断。",
   "description.wurst.hack.kaboom": "像爆炸一样破坏你附近的方块。\n如果服务器没有反作弊的话，这个可能比 Nuker 功能破坏得更快，使用适合的工具和破坏脆弱的方块可以事半功倍。\n注意：这并不是真正的爆炸。",
-  "description.wurst.hack.killauralegit": "KillauraLegit 更难被反作弊检测。\n在正常的 NoCheat+（NCP）服务器上不需要！",
   "description.wurst.hack.killaura": "自动攻击你附近的实体。",
   "description.wurst.hack.killpotion": "生成一个能杀死绝大多数生物（包括创造模式的玩家）的药水，但对那些亡灵生物或者已死生物无效。\n\n需要在创造模式下。",
   "description.wurst.hack.liquids": "取消无法把方块直接放置在水中的限制，允许你直接在水方块中放置方块。",

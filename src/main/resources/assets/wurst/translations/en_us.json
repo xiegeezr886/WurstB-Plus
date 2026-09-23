@@ -145,7 +145,6 @@
   "description.wurst.setting.kaboom.power": "Determines how many sets of block breaking packets will be sent for each block.\n\nHigher values increase your odds of breaking more blocks, but also place additional load on the server. Small servers are likely to crash at the higher values.",
   "description.wurst.setting.kaboom.sound": "Whether or not to play an explosion sound. Does not affect block breaking. Only you can hear the sound.",
   "description.wurst.setting.kaboom.particles": "Whether or not to display explosion particles. Does not affect block breaking. Only you can see the particles.",
-  "description.wurst.hack.killauralegit": "Slower Killaura that is harder to detect.\nNot required on normal NoCheat+ servers!",
   "description.wurst.hack.killaura": "Automatically attacks entities around you.",
   "description.wurst.hack.killpotion": "Generates a potion that can kill almost anything, including players in Creative mode. Does not work on undead mobs, since they are already dead.\n\nRequires Creative mode.",
   "description.wurst.hack.liquids": "Allows you to place blocks in liquids.",

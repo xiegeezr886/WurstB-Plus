@@ -33,7 +33,7 @@ public final class WurstCnNamesTest
 			JsonObject names = JsonParser
 				.parseReader(new InputStreamReader(stream, UTF_8)).getAsJsonObject();
 
-			assertEquals(195, names.size());
+			assertEquals(194, names.size());
 			assertEquals("空中跳跃",
 				names.get("hack.name.airjump").getAsString());
 			assertEquals("杀戮光环",

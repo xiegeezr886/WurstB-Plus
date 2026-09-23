@@ -140,7 +140,6 @@
   "description.wurst.setting.kaboom.power": "Her blok için kaç set blok kırma paketi gönderileceğini belirler.\n\nDaha yüksek değerler daha fazla blok kırma şansınızı artırır, ancak sunucuya ek yük bindirir. Küçük sunucular yüksek değerlerde büyük olasılıkla çöker.",
   "description.wurst.setting.kaboom.sound": "Patlama sesi çalınıp çalınmayacağı. Blok kırmayı etkilemez. Sesi yalnızca siz duyarsınız.",
   "description.wurst.setting.kaboom.particles": "Patlama parçacıkları gösterilip gösterilmeyeceği. Blok kırmayı etkilemez. Parçacıkları yalnızca siz görürsünüz.",
-  "description.wurst.hack.killauralegit": "Tespit edilmesi daha zor olan daha yavaş bir Killaura.\nNormal NoCheat+ sunucularında gerekli değildir!",
   "description.wurst.hack.killaura": "Çevrenizdeki varlıklara otomatik olarak saldırır.",
   "description.wurst.hack.killpotion": "Yaratıcı moddaki oyuncular da dahil olmak üzere neredeyse her şeyi öldürebilen bir iksir oluşturur. Zaten ölü oldukları için undead moblarda çalışmaz.\n\nYaratıcı mod gerektirir.",
   "description.wurst.hack.liquids": "Sıvıların içine blok yerleştirmenizi sağlar.",

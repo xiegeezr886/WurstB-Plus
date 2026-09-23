@@ -91,7 +91,6 @@
   "description.wurst.hack.jesus": "Umožňuje chodit po vodě.\nJežíš použil tento hack asi tak před 2000 lety.",
   "description.wurst.hack.jetpack": "Umožňuje létat, jako byste měli jetpack.\n\n§c§lUPOZORNĚNÍ:§r Pokud nepoužijete NoFall, zraníte se pádem.",
   "description.wurst.hack.kaboom": "Rozbíjí bloky kolem vás polo-explozí.\nMůže být mnohem rychlejší než Nuker, pokud server nemá NoCheat+. Nejlépe to funguje s rychlými nástroji a slabými bloky.\nPoznámka: Nejedná se o skutečnou explozi.",
-  "description.wurst.hack.killauralegit": "Pomalejší, hůře detekovatelná Killaura.\nZbytečné na obyčejných NoCheat+ serverech!",
   "description.wurst.hack.killaura": "Automaticky útočí na entity kolem vás.",
   "description.wurst.hack.killpotion": "Vytvoří lektvar, který může zabít téměř cokoliv, včetně hráčů v kreativním režimu. Nefunguje na nemrtvé, protože jsou již mrtví.\n\nVyžaduje kreativní režim.",
   "description.wurst.hack.liquids": "Umožňuje umístit bloky do kapalin.",
