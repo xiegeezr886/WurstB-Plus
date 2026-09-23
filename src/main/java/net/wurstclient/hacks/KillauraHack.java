@@ -18,6 +18,7 @@ import java.util.Random;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
@@ -145,6 +146,13 @@ public final class KillauraHack extends Hack
 		5, ValueDisplay.DEGREES);
 	private final SliderSetting hurtTime = new SliderSetting("Hurt time", 10,
 		0, 10, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
+	// 移植自 Epsilon KillAura 的 Hit Select。原实现只对玩家目标生效（配合 AntiBot /
+	// 同队过滤），这里对全部 LivingEntity 生效——对刷怪同样有用，判据与原实现一致。
+	private final CheckboxSetting hitSelect = new CheckboxSetting("Hit select",
+		"Only attacks when the hit can actually land: waits for the target to leave"
+			+ " its invulnerability window (latency-aware), or attacks immediately"
+			+ " while you are in your own hurt window (trading).",
+		true);
 	private final AimAtSetting aimAt = new AimAtSetting(
 		"Preferred point used by the sampled hit-box point tracker.");
 	private final SliderSetting targetPrediction = new SliderSetting(
@@ -291,6 +299,7 @@ public final class KillauraHack extends Hack
 		addSetting(switchAdvantage);
 		addSetting(fov);
 		addSetting(hurtTime);
+		addSetting(hitSelect);
 		addSetting(aimAt);
 		addSetting(targetPrediction);
 		addSetting(selfPrediction);
@@ -610,8 +619,46 @@ public final class KillauraHack extends Hack
 	{
 		if(target == null || !criticalsSelection.getSelected().allowsAttack(target))
 			return false;
+		if(!isHitSelectWindowOpen(target))
+			return false;
 		return !isInventoryOpen() || ignoreOpenInventory.isChecked()
 			|| simulateInventoryClosing.isChecked();
+	}
+
+	/**
+	 * Hit Select（移植自 Epsilon KillAura）：只在"这一刀真能打中"的窗口出刀。
+	 *
+	 * <p>
+	 * 打不进窗口的刀伤害为 0，却照样会重置自己的攻击蓄力，等于白费一次满蓄力，
+	 * 所以这种刀干脆不发。
+	 *
+	 * <p>
+	 * 判据一：目标已经走出无敌帧。原实现用 ping 换算成 tick 补偿延迟
+	 * （{@code getLatency() / 50}），否则会在服务端仍判定无敌时提前出刀。
+	 * 判据二：自己正处在受伤窗口里，说明在对拼，必须还手。
+	 *
+	 * <p>
+	 * 与 Epsilon 的差异：原实现只对玩家目标生效（自己再做 AntiBot / 同队过滤），
+	 * 这里对全部 {@link LivingEntity} 生效。好友与机器人的过滤在本工程里由
+	 * {@code EntityUtils.IS_ATTACKABLE} 统一负责，不在这里重复。
+	 */
+	private boolean isHitSelectWindowOpen(Entity target)
+	{
+		if(!hitSelect.isChecked() || !(target instanceof LivingEntity living))
+			return true;
+
+		if(living.hurtTime <= getLatencyTicks() + 1)
+			return true;
+
+		return MC.player.hurtTime >= 6;
+	}
+
+	private int getLatencyTicks()
+	{
+		if(MC.getConnection() == null || MC.player == null)
+			return 0;
+		PlayerInfo info = MC.getConnection().getPlayerInfo(MC.player.getUUID());
+		return info == null ? 0 : info.getLatency() / 50;
 	}
 
 	private boolean shouldSimulateInventoryClose()
