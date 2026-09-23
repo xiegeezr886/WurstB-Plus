@@ -123,8 +123,12 @@ public final class KillauraHack extends Hack
 	private final CheckboxSetting prioritizeType = new CheckboxSetting(
 		"Prioritize target type", "Orders players before hostile and neutral mobs.",
 		true);
+	// 默认按准星夹角选目标，与 Wurst 原版 KillAura(Legit) 的 ANGLE、以及 Epsilon
+	// KillAura 默认按视线夹角排序的行为一致。此前默认是 HEALTH：它会挑射程内血量最低
+	// 的怪下手，而玩家正在瞄准的那只只吃到横扫伤害（对所有剑恒为 1 点），现象就是
+	// "杀戮光环的伤害只有 1"。
 	private final EnumSetting<Priority> priority = new EnumSetting<>("Priority",
-		Priority.values(), Priority.HEALTH);
+		Priority.values(), Priority.ANGLE);
 	private final CheckboxSetting stickyTarget = new CheckboxSetting(
 		"Sticky target", "Keeps a valid target until it leaves the scan range.",
 		true);
@@ -487,8 +491,11 @@ public final class KillauraHack extends Hack
 			}
 
 			boolean wasSprinting = MC.player.isSprinting();
-			swingHand.swing(InteractionHand.MAIN_HAND);
+			// 顺序与原版一致：先攻击、后挥手。原版 Minecraft.startAttack()、
+			// Epsilon 的 KillAura 与 Wurst 原版 KillAura(Legit) 都是这个顺序，
+			// 这里曾经写反过。
 			MC.gameMode.attack(MC.player, attackTarget);
+			swingHand.swing(InteractionHand.MAIN_HAND);
 			if(keepSprint.isChecked() && wasSprinting
 				&& !shouldBlockSprinting())
 				restoreSprint();
