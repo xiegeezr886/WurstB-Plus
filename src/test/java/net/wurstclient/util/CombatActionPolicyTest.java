@@ -1,5 +1,6 @@
 package net.wurstclient.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -98,5 +99,48 @@ final class CombatActionPolicyTest
 		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(-1, 0, 0));
 		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(10, -1, 0));
 		assertTrue(CombatActionPolicy.isHitSelectWindowOpen(10, 0, -1));
+	}
+
+	@Test
+	void roundRobinVisitsEveryTargetInOrder()
+	{
+		int size = 3;
+		int cursor = 0;
+		for(int round = 0; round < 2; round++)
+			for(int expected = 0; expected < size; expected++)
+			{
+				int index = CombatActionPolicy.findNextEligibleIndex(cursor, size,
+					i -> true);
+				assertEquals(expected, index);
+				cursor = index + 1;
+			}
+	}
+
+	@Test
+	void roundRobinSkipsIneligibleTargets()
+	{
+		// 下标 1 不可攻击 -> 0 之后应直接跳到 2
+		int index = CombatActionPolicy.findNextEligibleIndex(1, 3, i -> i != 1);
+		assertEquals(2, index);
+	}
+
+	@Test
+	void roundRobinWrapsAndToleratesStaleCursor()
+	{
+		// 游标超出当前列表长度（目标死亡后列表变短）时要能回绕，不能越界。
+		// 注意这里是取模而不是截断：7 % 3 = 1、13 % 3 = 1、floorMod(-2, 3) = 1。
+		assertEquals(1, CombatActionPolicy.findNextEligibleIndex(7, 3, i -> true));
+		assertEquals(1, CombatActionPolicy.findNextEligibleIndex(13, 3, i -> true));
+		assertEquals(1, CombatActionPolicy.findNextEligibleIndex(-2, 3, i -> true));
+		assertEquals(0, CombatActionPolicy.findNextEligibleIndex(3, 3, i -> true));
+	}
+
+	@Test
+	void roundRobinReturnsMinusOneWhenNothingIsEligible()
+	{
+		assertEquals(-1, CombatActionPolicy.findNextEligibleIndex(0, 3, i -> false));
+		assertEquals(-1, CombatActionPolicy.findNextEligibleIndex(0, 0, i -> true));
+		assertEquals(-1, CombatActionPolicy.findNextEligibleIndex(0, -5, i -> true));
+		assertEquals(-1, CombatActionPolicy.findNextEligibleIndex(0, 3, null));
 	}
 }

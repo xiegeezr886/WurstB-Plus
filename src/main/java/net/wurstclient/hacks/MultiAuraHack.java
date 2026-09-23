@@ -261,6 +261,8 @@ public final class MultiAuraHack extends Hack
 	private InteractionHand blockingHand;
 	private float rolledRange = -1;
 	private int rangeRollCounter;
+	/** 轮转攻击的目标游标，见 {@link #nextRoundRobinTarget(List)}。 */
+	private int roundRobinIndex;
 
 	public MultiAuraHack()
 	{
@@ -335,6 +337,7 @@ public final class MultiAuraHack extends Hack
 	protected void onEnable()
 	{
 		clearTargets();
+		roundRobinIndex = 0;
 		clickScheduler.reset(minCps.getValueI(), maxCps.getValueI(),
 			clickPattern.getSelected(), minimumCooldown.getValueF(),
 			maximumCooldown.getValueF(), System.currentTimeMillis());
@@ -479,16 +482,13 @@ public final class MultiAuraHack extends Hack
 				sendFullRotation(attackRotation);
 
 			List<Entity> freshTargets = collectAttackTargets();
+			Entity attackTarget = nextRoundRobinTarget(freshTargets);
 			boolean attacked = false;
-			for(Entity entity : freshTargets)
+			if(attackTarget != null)
 			{
-				if(!isValidAttackTarget(entity)
-					|| !isHitSelectWindowOpen(entity))
-					continue;
 				boolean wasSprinting = MC.player.isSprinting();
-				// 顺序与原版一致：先攻击、后挥手。且挥手移出循环，全部攻击完只挥一次
-				// （Epsilon 的 MultiAura 同样是先循环攻击、最后挥一次）。
-				MC.gameMode.attack(MC.player, entity);
+				// 顺序与原版一致：先攻击、后挥手。
+				MC.gameMode.attack(MC.player, attackTarget);
 				if(keepSprint.isChecked() && wasSprinting)
 					restoreSprint();
 				attacked = true;
@@ -583,6 +583,32 @@ public final class MultiAuraHack extends Hack
 		return CombatTargetUtils.isValid(entity, getMaximumRange(),
 			fov.getValue() * 2, this::getPredictedAimPoint, entityFilters, false)
 			&& getHurtTime(entity) <= hurtTime.getValueI();
+	}
+
+	/**
+	 * 轮转挑一个目标：一次 click 只打一个，按 {@link #collectAttackTargets()} 的顺序
+	 * 依次轮换，跳过不合法与当前打不中的目标。
+	 *
+	 * <p>
+	 * 为什么不能一次打多个：1.9+ 的攻击蓄力按【攻击者】计算（不是按目标），
+	 * {@code gameMode.attack} 结束时会把 attackStrengthTicker 清零，所以同一 tick
+	 * 内第二刀起服务端的蓄力已经是 0，伤害只剩 20%。轮转是"每个目标都吃满伤害"与
+	 * "仍然算多目标光环"之间少数能兼顾的做法。
+	 *
+	 * <p>
+	 * 列表本身是稳定有序的（按主目标优先级排序，同分以 Entity::getId 兜底），
+	 * 所以这个游标在 tick 之间有确定的含义。
+	 */
+	private Entity nextRoundRobinTarget(List<Entity> targets)
+	{
+		int index = CombatActionPolicy.findNextEligibleIndex(roundRobinIndex,
+			targets.size(), i -> isValidAttackTarget(targets.get(i))
+				&& isHitSelectWindowOpen(targets.get(i)));
+		if(index < 0)
+			return null;
+
+		roundRobinIndex = index + 1;
+		return targets.get(index);
 	}
 
 	private boolean isValidAttackTarget(Entity entity)
