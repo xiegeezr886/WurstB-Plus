@@ -42,8 +42,6 @@ public abstract class KeyBindingMixin implements IKeyBinding
 	@Deprecated // use IKeyBinding.simulatePress() instead
 	public void wurst_simulatePress(boolean pressed)
 	{
-		// TODO: 26.1.2 - keyPress is now private in Forge
-		// Need to find alternative approach
 		setDown(pressed);
 	}
 	
