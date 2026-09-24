@@ -179,6 +179,63 @@ function Test-McRangeAdmits($rangeSpec, $mcVersion) {
     return $false
 }
 
+function Test-HackNameIdentity($projectDir) {
+    # A Hack's constructor argument is an identifier (registration key, keybind
+    # target, save key, and the basis of its translation keys), not just a label.
+    # A non-ASCII name derives keys like "hack.name.<cjk>" that can never match
+    # the English keys in the translation files, silently losing the text.
+    # Also asserts the translation table and the classes describe the same set.
+    $hackDir = Join-Path $projectDir "src\main\java\net\wurstclient\hacks"
+    $jsonPath = Join-Path $projectDir "src\main\resources\assets\wurst\translations\zh_cn_names.json"
+    if (-not (Test-Path -LiteralPath $hackDir) -or -not (Test-Path -LiteralPath $jsonPath)) {
+        return @{ Passed = $true; Note = "not applicable" }
+    }
+
+    $names = New-Object System.Collections.Generic.List[string]
+    foreach ($file in Get-ChildItem -LiteralPath $hackDir -Recurse -File -Filter "*Hack.java") {
+        $text = [System.IO.File]::ReadAllText($file.FullName)
+        $m = [regex]::Match($text, 'super\(\s*"([^"]+)"\s*\)')
+        if ($m.Success) { $names.Add($m.Groups[1].Value) }
+    }
+    if ($names.Count -eq 0) { return @{ Passed = $true; Note = "no hack names found" } }
+
+    $nonAscii = @($names | Where-Object { $_ -match '[^\x00-\x7F]' })
+    if ($nonAscii.Count -gt 0) {
+        return @{ Passed = $false; Note = "non-ASCII hack identifier(s): $($nonAscii -join ', ')" }
+    }
+
+    $keys = @{}
+    foreach ($n in $names) { $keys["hack.name." + $n.ToLower()] = $true }
+
+    try {
+        $json = [System.IO.File]::ReadAllText($jsonPath) | ConvertFrom-Json
+    } catch {
+        return @{ Passed = $false; Note = "zh_cn_names.json is not valid JSON" }
+    }
+    $jsonKeys = @($json.PSObject.Properties.Name)
+
+    $dead = @($jsonKeys | Where-Object { -not $keys.ContainsKey($_) })
+    $missing = @($keys.Keys | Where-Object { $jsonKeys -notcontains $_ })
+    if ($dead.Count -gt 0 -or $missing.Count -gt 0) {
+        $parts = @()
+        if ($dead.Count -gt 0) { $parts += "unreachable keys: $($dead -join ', ')" }
+        if ($missing.Count -gt 0) { $parts += "untranslated hacks: $($missing -join ', ')" }
+        return @{ Passed = $false; Note = ($parts -join '; ') }
+    }
+
+    # The size assertion in WurstCnNamesTest must track the resource.
+    $testPath = Join-Path $projectDir "src\test\java\net\wurstclient\WurstCnNamesTest.java"
+    if (Test-Path -LiteralPath $testPath) {
+        $t = [System.IO.File]::ReadAllText($testPath)
+        $tm = [regex]::Match($t, 'assertEquals\((\d+),\s*names\.size\(\)\)')
+        if ($tm.Success -and [int]$tm.Groups[1].Value -ne $jsonKeys.Count) {
+            return @{ Passed = $false; Note = "WurstCnNamesTest asserts $($tm.Groups[1].Value) but the resource has $($jsonKeys.Count) keys" }
+        }
+    }
+
+    return @{ Passed = $true; Note = "$($jsonKeys.Count) names, all reachable" }
+}
+
 function Get-NestedBaritoneMcSpec($nestedArchive) {
     # The bundled Baritone's own Minecraft dependency, whichever loader file it
     # ships. Returns $null when the archive declares no Minecraft dependency.
@@ -382,6 +439,13 @@ foreach ($p in $projects) {
     if (-not $coreCheck.Passed) {
         Write-Host "[$($p.Name)] FAIL: $($coreCheck.Note)" -ForegroundColor Red
         $report += @{ Name = $p.Name; Status = "FAIL"; Note = $coreCheck.Note; Elapsed = $elapsed }
+        $failed = $true
+        continue
+    }
+    $identityCheck = Test-HackNameIdentity $projDir
+    if (-not $identityCheck.Passed) {
+        Write-Host "[$($p.Name)] FAIL: $($identityCheck.Note)" -ForegroundColor Red
+        $report += @{ Name = $p.Name; Status = "FAIL"; Note = $identityCheck.Note; Elapsed = $elapsed }
         $failed = $true
         continue
     }

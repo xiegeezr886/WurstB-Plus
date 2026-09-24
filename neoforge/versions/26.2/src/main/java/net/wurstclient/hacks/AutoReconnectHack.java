@@ -24,7 +24,7 @@ public final class AutoReconnectHack extends Hack
 	
 	public AutoReconnectHack()
 	{
-		super("自动重连");
+		super("AutoReconnect");
 		setCategory(Category.OTHER);
 		addSetting(waitTime);
 	}

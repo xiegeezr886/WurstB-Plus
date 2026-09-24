@@ -300,6 +300,22 @@ Minecraft / Mixin hook
 - `src/main/java/net/wurstclient/util/json/JsonUtils.java`
 - `src/main/java/net/wurstclient/clickgui2/SettingsWindow.java`
 
+### Hack 名称是标识符，不是显示名
+
+`Hack` 构造函数的那个字符串不只是界面上显示的名字，它同时是：
+
+- 注册键与查表键 —— `HackList.hax.put(hack.getName(), hack)` / `getHackByName()`，**大小写敏感的精确匹配**；
+- 快捷键绑定的目标名与启用状态存档里的键（`KeybindProcessor`、`EnabledHacksFile`）；
+- 翻译键 —— `Hack.java:66` 取 `"hack.name." + name.toLowerCase()`，`Hack.java:35` 取 `"description.wurst.hack." + name.toLowerCase()`。
+
+所以**名称必须是 ASCII 英文**，中文只放在翻译文件里。全部 196 个 hack 中曾经只有 `SearchHack`、`AutoReconnectHack` 写成了 `super("搜索")` / `super("自动重连")`，后果是派生出的键变成 `hack.name.搜索` / `description.wurst.hack.搜索`，而 `en_us.json`、`zh_cn.json` 里存的是 `hack.name.search` / `description.wurst.hack.search`，两者永远匹配不上——这两个 hack 的描述文字因此完全丢失，界面只能退回显示键名本身。
+
+修复：把标识符改回 `Search` / `AutoReconnect`。中文显示不受影响，`hack.name.search` → 「方块搜索」、`hack.name.autoreconnect` → 「自动重连」本来就在翻译文件里。
+
+顺带清掉了每个工程 `zh_cn_names.json` 里永远不可能被任何类命中的死键（`hack.name.antiknockback` —— 类已改名为 `NoVelocity`；`hack.name.entityculling` —— 仅根工程 v1.6.0 还有这个类，那里保留）。判断死键要**按工程逐个看**有没有对应类，不能只看到键存在就删。
+
+> 不变式：`zh_cn_names.json` 的键集合应与该工程 `hacks/` 下所有 `*Hack.java` 的 `super()` 名称一一对应，且 `WurstCnNamesTest` 断言的数字等于该键数（现为 197 或 196，根工程 210）。这条不变式曾被 `ce794b2` 破坏——它把 183 键扩到 198 键却没同步测试断言，导致 34 个工程 `:test` 失败、`build` 挂掉。
+
 ## v1.5 新增功能
 
 ### 架构升级
