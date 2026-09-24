@@ -54,14 +54,17 @@
 ## 下载
 
 全部产物发布在 GitHub Release **[v1.5.0](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)**
-（62 个资产），命名规则为：
+（**64 个资产** = 22 个 MC 版本 × 3 加载器 − 2，即 1.20.5 与 1.21.2 无官方 Forge），命名规则为：
 
 ```text
 WurstB+.Plus-<版本>-<加载器>-<mc>.jar
 ```
 
-例如 `WurstB+.Plus-v1.5.0-Forge-1.20.1.jar`。
-根工程 v1.6.0 的产物名为 `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`。
+例如 `WurstB+.Plus-1.5.0-Forge-1.20.1.jar`。**版本号不带 `v`**，64 个资产全部遵循这一规则。
+
+根工程（Forge 1.20.1 v1.6.0）的产物在单独的
+[v1.6.0 Release](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)（prerelease），
+名为 `WurstB+.Plus-v1.6.0-Forge-1.20.1.backup-<时间戳>.jar`。
 
 ### 版本支持矩阵
 

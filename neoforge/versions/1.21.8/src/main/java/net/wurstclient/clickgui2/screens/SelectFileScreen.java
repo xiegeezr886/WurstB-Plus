@@ -135,7 +135,7 @@ public final class SelectFileScreen extends Screen
 		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
 		
 		context.centeredText(minecraft.font,
-			setting.getName(), width / 2, 12, 0xFFffffff);
+			setting.getTranslatedName(), width / 2, 12, 0xFFffffff);
 		
 		super.render(context.getInner(), mouseX, mouseY, partialTicks);
 		
