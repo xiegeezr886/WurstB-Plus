@@ -56,24 +56,29 @@ public class ChatHudMixin
 		indicator = WurstClient.INSTANCE.getOtfs().noChatReportsOtf
 			.modifyIndicator(message, signature, indicator);
 		
-		shadow$logChatMessage(message, indicator);
-		shadow$addMessage(message, signature, minecraft.gui.getGuiTicks(),
-			indicator, false);
+		GuiMessage guiMessage = new GuiMessage(minecraft.gui.getGuiTicks(),
+			message, signature, indicator);
+		shadow$logChatMessage(guiMessage);
+		shadow$addMessageToDisplayQueue(guiMessage);
+		shadow$addMessageToQueue(guiMessage);
 		
 		ci.cancel();
 	}
 	
 	@Shadow
-	private void shadow$logChatMessage(Component message,
-		@Nullable GuiMessageTag indicator)
+	private void shadow$logChatMessage(GuiMessage message)
 	{
 		
 	}
 	
 	@Shadow
-	private void shadow$addMessage(Component message,
-		@Nullable MessageSignature signature, int ticks,
-		@Nullable GuiMessageTag indicator, boolean refresh)
+	private void shadow$addMessageToDisplayQueue(GuiMessage message)
+	{
+		
+	}
+	
+	@Shadow
+	private void shadow$addMessageToQueue(GuiMessage message)
 	{
 		
 	}
