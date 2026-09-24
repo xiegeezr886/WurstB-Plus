@@ -138,7 +138,6 @@ public final class TunnellerHack extends Hack
 		overlay.resetProgress();
 		if(currentBlock != null)
 		{
-			// TODO: 26.1.2 - isDestroying is now private
 			MC.gameMode.isDestroying = true;
 			MC.gameMode.stopDestroyBlock();
 			currentBlock = null;

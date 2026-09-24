@@ -202,7 +202,6 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 
 	private void updateScreenBoxes(PoseStack matrixStack, float partialTicks)
 	{
-		// TODO: 26.1.2 - RenderSystem.getProjectionMatrix() removed
 		Matrix4f view = new Matrix4f(matrixStack.last().pose());
 		Matrix4f projection = RenderEvent.getLastProjection();
 		ArrayList<ScreenBox> boxes = new ArrayList<>(players.size());

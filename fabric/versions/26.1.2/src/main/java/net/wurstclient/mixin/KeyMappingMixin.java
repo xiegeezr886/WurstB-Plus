@@ -55,7 +55,6 @@ public abstract class KeyMappingMixin implements IKeyMapping
 	@Deprecated // use IKeyMapping.simulatePress() instead
 	public void wurst_simulatePress(boolean pressed)
 	{
-		// TODO: 26.1.2 - keyPress is now private in Forge
 		setDown(pressed);
 	}
 	

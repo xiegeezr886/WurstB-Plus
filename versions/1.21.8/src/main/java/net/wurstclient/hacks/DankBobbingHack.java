@@ -52,8 +52,7 @@ public final class DankBobbingHack extends Hack implements UpdateListener
 		float speed = MC.player.getSpeed() * 10;
 		float bob = Mth.sin(MC.player.tickCount * 0.5F)
 			* speed * intensity.getValueF();
-		// TODO: 26.1.2 - walkDistO field removed
-		// MC.player.walkDistO = MC.player.walkDist + bob;
+		MC.player.walkDistO = MC.player.walkDist + bob;
 
 		if(noViewBob.isChecked())
 			MC.options.bobView().set(false);

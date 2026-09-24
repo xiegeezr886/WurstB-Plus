@@ -8,8 +8,8 @@
 package net.wurstclient.hacks;
 
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
-import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket.Action;
+import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
+import net.minecraft.world.entity.player.Input;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.PostMotionListener;
@@ -70,8 +70,7 @@ public final class SneakHack extends Hack
 			break;
 			
 			case PACKET:
-			// TODO: 26.1.2 - RELEASE_SHIFT_KEY removed from Action enum
-			// sendSneakPacket(Action.RELEASE_SHIFT_KEY);
+			sendSneakPacket(false);
 			break;
 		}
 	}
@@ -92,9 +91,8 @@ public final class SneakHack extends Hack
 			
 			case PACKET:
 			sneakKey.resetPressedState();
-			// TODO: 26.1.2 - PRESS_SHIFT_KEY/RELEASE_SHIFT_KEY removed from Action enum
-			// sendSneakPacket(Action.PRESS_SHIFT_KEY);
-			// sendSneakPacket(Action.RELEASE_SHIFT_KEY);
+			sendSneakPacket(true);
+			sendSneakPacket(false);
 			break;
 		}
 	}
@@ -105,9 +103,8 @@ public final class SneakHack extends Hack
 		if(mode.getSelected() != SneakMode.PACKET)
 			return;
 		
-		// TODO: 26.1.2 - PRESS_SHIFT_KEY/RELEASE_SHIFT_KEY removed from Action enum
-		// sendSneakPacket(Action.RELEASE_SHIFT_KEY);
-		// sendSneakPacket(Action.PRESS_SHIFT_KEY);
+		sendSneakPacket(false);
+		sendSneakPacket(true);
 	}
 	
 	private boolean isFlying()
@@ -124,12 +121,21 @@ public final class SneakHack extends Hack
 		return false;
 	}
 	
-	private void sendSneakPacket(Action mode)
+	private void sendSneakPacket(boolean shift)
 	{
 		LocalPlayer player = MC.player;
-		ServerboundPlayerCommandPacket packet =
-			new ServerboundPlayerCommandPacket(player, mode);
-		player.connection.send(packet);
+		if(player == null)
+			return;
+		
+		// 1.21.6 removed PRESS_SHIFT_KEY / RELEASE_SHIFT_KEY from
+		// ServerboundPlayerCommandPacket.Action. The server now derives the
+		// sneak state from the input flags (handlePlayerInput calls
+		// setShiftKeyDown(input.shift())), so send the current input with
+		// the shift flag forced to the wanted value.
+		Input input = player.input.keyPresses;
+		player.connection.send(new ServerboundPlayerInputPacket(new Input(
+			input.forward(), input.backward(), input.left(), input.right(),
+			input.jump(), shift, input.sprint())));
 	}
 	
 	private enum SneakMode
