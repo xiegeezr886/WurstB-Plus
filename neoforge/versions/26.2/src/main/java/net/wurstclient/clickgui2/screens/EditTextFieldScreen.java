@@ -91,7 +91,7 @@ public final class EditTextFieldScreen extends Screen
 	public void extractRenderState(GuiGraphicsExtractor context, int mouseX,
 		int mouseY, float partialTicks)
 	{
-		context.centeredText(minecraft.font, setting.getName(), width / 2, 20,
+		context.centeredText(minecraft.font, setting.getTranslatedName(), width / 2, 20,
 			CommonColors.WHITE);
 		
 		valueField.extractRenderState(context, mouseX, mouseY, partialTicks);

@@ -83,7 +83,7 @@ public final class BlockComponent extends Component
 			GUI.getTheme().accent(0.22F));
 		
 		// text
-		String name = setting.getName() + ":";
+		String name = setting.getTranslatedName() + ":";
 		context.text(TR, name, x1, y1 + 2, GUI.getTxtColor(), false);
 		
 		// block
@@ -127,7 +127,7 @@ public final class BlockComponent extends Component
 	@Override
 	public int getDefaultWidth()
 	{
-		return TR.width(setting.getName() + ":") + BLOCK_WITDH + 4;
+		return TR.width(setting.getTranslatedName() + ":") + BLOCK_WITDH + 4;
 	}
 	
 	@Override
