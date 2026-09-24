@@ -52,6 +52,7 @@
     "InGameOverlayRendererMixin",
     "KeyBindingMixin",
     "KeyboardMixin",
+    "KeyEntryAccessor",
     "LanguageManagerMixin",
     "LightmapTextureManagerMixin",
     "LivingEntityMixin",
