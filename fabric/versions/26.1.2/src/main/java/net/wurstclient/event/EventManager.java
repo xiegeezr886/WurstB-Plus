@@ -140,10 +140,18 @@ public final class EventManager
 			if(listeners == null)
 				return;
 
-			listeners.remove(listener);
+			if(!listeners.remove(listener))
+				return;
+
 			if(listeners.isEmpty())
+			{
+				// listenerMap 必须和 listenerSnapshots 一起清掉。如果只清
+				// snapshot，listenerMap 里会残留一个空列表，导致下一次 add
+				// 复用该列表、而快照状态与 map 不一致，
+				// 表现为“开→关→再开”后事件丢失或行为异常。
+				listenerMap.remove(type);
 				listenerSnapshots.remove(type);
-			else
+			}else
 				listenerSnapshots.put(type, new ArrayList<>(listeners));
 			
 		}catch(Throwable e)

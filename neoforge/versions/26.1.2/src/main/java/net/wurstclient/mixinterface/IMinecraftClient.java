@@ -16,6 +16,15 @@ public interface IMinecraftClient
 	public int getRightClickDelay();
 
 	public void setRightClickDelay(int delay);
+
+	/**
+	 * Minecraft's "you missed your swing" cooldown, in ticks. It is non-zero
+	 * for a short window after a failed attack, and combat hacks use it to
+	 * avoid spamming attacks that the server would ignore anyway.
+	 */
+	public int getMissTime();
+
+	public void setMissTime(int missTime);
 	
 	public ILocalPlayer getPlayer();
 	

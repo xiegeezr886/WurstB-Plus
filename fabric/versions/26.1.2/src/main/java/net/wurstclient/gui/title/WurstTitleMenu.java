@@ -16,6 +16,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
+import net.wurstclient.gui.mods.FabricModListScreen;
 import net.wurstclient.util.ScreenRegistry;
 
 public final class WurstTitleMenu
@@ -82,11 +83,12 @@ public final class WurstTitleMenu
 		addButton(addWidget, cardX, utilityY, compactWidth, compactHeight,
 			"账号", USER, () -> minecraft.setScreen(new AltManagerScreen(parent,
 				WurstClient.INSTANCE.getAltManager())), true, false);
+		// Fabric 没有原生模组列表（Forge/NeoForge 有 ModListScreen）。
+		// 这里原来开的是一个空的匿名 Screen，点进去一片空白（issue #5）。
 		addButton(addWidget, cardX + compactWidth + compactGap, utilityY,
 			compactWidth, compactHeight, "模组", INFO,
-			() -> minecraft.setScreen(new Screen(Component.literal("模组"))
-		{
-		}), true, false);
+			() -> minecraft.setScreen(FabricModListScreen.open(parent)), true,
+			false);
 		addButton(addWidget, cardX + (compactWidth + compactGap) * 2, utilityY,
 			cardWidth - (compactWidth + compactGap) * 2, compactHeight,
 			"退出", EXIT, minecraft::stop, true, true);

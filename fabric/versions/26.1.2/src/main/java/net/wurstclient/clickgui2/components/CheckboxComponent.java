@@ -91,7 +91,7 @@ public final class CheckboxComponent extends Component
 		FlatRenderer.drawControl(context, x1, y1, x3, y2, 3,
 			GUI.getTheme(), hover, setting.isChecked());
 
-		String name = setting.getName();
+		String name = setting.getTranslatedName();
 		int textRight = hasChildren ? x2 - 14 : x2;
 		float scale = 0.75F;
 		String trimmedName = TR.plainSubstrByWidth(name,
@@ -128,7 +128,7 @@ public final class CheckboxComponent extends Component
 	@Override
 	public int getDefaultWidth()
 	{
-		int width = BOX_SIZE + TR.width(setting.getName()) + 2;
+		int width = BOX_SIZE + TR.width(setting.getTranslatedName()) + 2;
 		if(setting.hasChildren())
 			width += 12;
 		return width;

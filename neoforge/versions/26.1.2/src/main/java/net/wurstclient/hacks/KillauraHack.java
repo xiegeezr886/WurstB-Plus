@@ -432,7 +432,8 @@ public final class KillauraHack extends Hack
 		for(int i = 0; i < clicks; i++)
 		{
 			if(attackCooldown.isChecked()
-				&& CombatActionPolicy.isAttackMissCooldownActive(0))
+				&& CombatActionPolicy.isAttackMissCooldownActive(
+					((IMinecraftClient)MC).getMissTime()))
 				continue;
 			if(!isItemCooldownPassed(0) || !canAttackNow(selected))
 				continue;
@@ -543,14 +544,14 @@ public final class KillauraHack extends Hack
 				return;
 		}
 		if(attackCooldown.isChecked()
-			&& CombatActionPolicy.isAttackMissCooldownActive(0))
+			&& CombatActionPolicy.isAttackMissCooldownActive(
+				((IMinecraftClient)MC).getMissTime()))
 			return;
 		if(!prepareForAttack(null))
 			return;
 
-		// TODO: 26.1.2 - setMissTime() removed
-		// if(attackCooldown.isChecked())
-		// 	((IMinecraftClient)MC).setMissTime(10);
+		if(attackCooldown.isChecked())
+			((IMinecraftClient)MC).setMissTime(10);
 		swingHand.swing(InteractionHand.MAIN_HAND);
 		clickScheduler.recordSuccessfulClick(now);
 		finishAttackPreparation(null, true);
