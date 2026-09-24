@@ -23,6 +23,7 @@
     "ChatInputSuggestorMixin",
     "ChatScreenMixin",
     "ChunkOcclusionGraphBuilderMixin",
+    "ClientCommonNetworkHandlerMixin",
     "ClientPacketListenerAccessor",
     "ConnectionChannelInitializerMixin",
     "ClientConnectionMixin",
