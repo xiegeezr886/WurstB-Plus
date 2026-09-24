@@ -426,7 +426,8 @@ public final class MultiAuraHack extends Hack
 		for(int click = 0; click < clicks; click++)
 		{
 			if(attackCooldown.isChecked()
-				&& CombatActionPolicy.isAttackMissCooldownActive(0))
+				&& CombatActionPolicy.isAttackMissCooldownActive(
+					((IMinecraftClient)MC).getMissTime()))
 				continue;
 			if(!isItemCooldownPassed(0))
 				continue;
@@ -510,10 +511,11 @@ public final class MultiAuraHack extends Hack
 				|| MC.hitResult.getType() != HitResult.Type.MISS)
 				continue;
 			if(attackCooldown.isChecked()
-				&& CombatActionPolicy.isAttackMissCooldownActive(0))
+				&& CombatActionPolicy.isAttackMissCooldownActive(
+					((IMinecraftClient)MC).getMissTime()))
 				continue;
 			if(attackCooldown.isChecked())
-			((IMinecraftClient)MC).setMissTime(10);
+				((IMinecraftClient)MC).setMissTime(10);
 			swingHand.swing(InteractionHand.MAIN_HAND);
 			clickScheduler.recordSuccessfulClick(now);
 		}
@@ -1150,7 +1152,7 @@ public final class MultiAuraHack extends Hack
 					entity instanceof LivingEntity living && living.onClimbable() ? 0 : 1);
 				case IN_LIQUID -> Comparator.comparingInt(entity ->
 					entity instanceof LivingEntity living
-						&& (living.isInWaterOrSwimmable() || living.isInLava()) ? 0 : 1);
+						&& (living.isInWater() || living.isInLava()) ? 0 : 1);
 				case IN_WEB -> Comparator.comparingInt(entity ->
 					aura.MC.level.getBlockState(entity.blockPosition())
 						.is(Blocks.COBWEB) ? 0 : 1);

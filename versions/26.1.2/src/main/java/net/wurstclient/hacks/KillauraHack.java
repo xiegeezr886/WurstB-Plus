@@ -432,7 +432,8 @@ public final class KillauraHack extends Hack
 		for(int i = 0; i < clicks; i++)
 		{
 			if(attackCooldown.isChecked()
-				&& CombatActionPolicy.isAttackMissCooldownActive(0))
+				&& CombatActionPolicy.isAttackMissCooldownActive(
+					((IMinecraftClient)MC).getMissTime()))
 				continue;
 			if(!isItemCooldownPassed(0) || !canAttackNow(selected))
 				continue;
@@ -543,13 +544,14 @@ public final class KillauraHack extends Hack
 				return;
 		}
 		if(attackCooldown.isChecked()
-			&& CombatActionPolicy.isAttackMissCooldownActive(0))
+			&& CombatActionPolicy.isAttackMissCooldownActive(
+				((IMinecraftClient)MC).getMissTime()))
 			return;
 		if(!prepareForAttack(null))
 			return;
 
 		if(attackCooldown.isChecked())
-		((IMinecraftClient)MC).setMissTime(10);
+			((IMinecraftClient)MC).setMissTime(10);
 		swingHand.swing(InteractionHand.MAIN_HAND);
 		clickScheduler.recordSuccessfulClick(now);
 		finishAttackPreparation(null, true);
@@ -1148,7 +1150,7 @@ public final class KillauraHack extends Hack
 			if(this != ALWAYS || target == null)
 				return true;
 			return !MC.player.onGround() && MC.player.fallDistance > 0
-				&& !MC.player.onClimbable() && !MC.player.isInWaterOrSwimmable()
+				&& !MC.player.onClimbable() && !MC.player.isInWater()
 				&& !MC.player.isInLava() && !MC.player.isPassenger()
 				&& !MC.player.isSprinting()
 				&& !MC.player.hasEffect(MobEffects.BLINDNESS);
