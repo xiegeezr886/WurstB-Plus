@@ -127,10 +127,15 @@ public final class EventManager
 			ArrayList<L> listeners = (ArrayList<L>)listenerMap.get(type);
 			ArrayList<Integer> priorities = priorityMap.get(type);
 
+			// 两个 map 必须各判各的。只判 listeners 会在两者不同步时把
+			// priorities 留成 null，紧接着 priorities.size() 抛 NPE。
 			if(listeners == null)
 			{
 				listeners = new ArrayList<>();
 				listenerMap.put(type, listeners);
+			}
+			if(priorities == null)
+			{
 				priorities = new ArrayList<>();
 				priorityMap.put(type, priorities);
 			}
@@ -194,6 +199,11 @@ public final class EventManager
 
 			if(listeners.isEmpty())
 			{
+				// 三个 map 必须一起去掉。漏掉 listenerMap 会让它留下一个空列表，
+				// 下次 add 时 listeners != null 但 priorityMap 里已无条目，
+				// priorities 取到 null -> 紧跟其后的 priorities.size() 抛 NPE。
+				// 实测复现：开 MultiAura -> 关 -> 再开即崩。
+				listenerMap.remove(type);
 				listenerSnapshots.remove(type);
 				priorityMap.remove(type);
 			}else

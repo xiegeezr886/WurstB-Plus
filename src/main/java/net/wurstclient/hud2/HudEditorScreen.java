@@ -201,7 +201,7 @@ public final class HudEditorScreen extends Screen
 		FlatRenderer.drawRoundedOutline(graphics, 0, 0, CARD_WIDTH,
 			CARD_HEIGHT, 5, VisualTheme.BORDER);
 
-		String name = font.plainSubstrByWidth(element.getName(),
+		String name = font.plainSubstrByWidth(element.getTranslatedName(),
 			CARD_WIDTH - 12);
 		graphics.drawString(font, name, 6, 5,
 			config.isEnabled() ? VisualTheme.TEXT : VisualTheme.TEXT_DISABLED,

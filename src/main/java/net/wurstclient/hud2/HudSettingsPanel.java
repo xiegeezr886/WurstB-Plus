@@ -182,7 +182,7 @@ final class HudSettingsPanel
 		FlatRenderer.drawPanel(graphics, x1, y1, x2, y2, 4,
 			VisualTheme.PANEL, VisualTheme.BORDER);
 
-		String title = font.plainSubstrByWidth(element.getName(),
+		String title = font.plainSubstrByWidth(element.getTranslatedName(),
 			WIDTH - PADDING * 2);
 		graphics.drawString(font, title, x1 + PADDING, y1 + PADDING,
 			VisualTheme.TEXT, false);
@@ -211,7 +211,7 @@ final class HudSettingsPanel
 				boxX + BOX_SIZE, boxY + BOX_SIZE, 2,
 				checkbox.isChecked() ? VisualTheme.ACCENT
 					: VisualTheme.CONTROL);
-			String label = font.plainSubstrByWidth(setting.getName(),
+			String label = font.plainSubstrByWidth(setting.getTranslatedName(),
 				WIDTH - PADDING * 3 - BOX_SIZE);
 			graphics.drawString(font, label, x1 + PADDING, textY,
 				VisualTheme.TEXT, false);
@@ -225,7 +225,7 @@ final class HudSettingsPanel
 			// 色块本身就是「值」，不再另写一串十六进制——196 宽的行放不下
 			FlatRenderer.fillRoundedRect(graphics, boxX, boxY, x2 - PADDING,
 				boxY + BOX_SIZE, 2, colorSetting.getColorI());
-			String label = font.plainSubstrByWidth(setting.getName(),
+			String label = font.plainSubstrByWidth(setting.getTranslatedName(),
 				Math.max(0, WIDTH - PADDING * 3 - BOX_SIZE * 2));
 			graphics.drawString(font, label, x1 + PADDING, textY,
 				VisualTheme.TEXT, false);
@@ -234,7 +234,7 @@ final class HudSettingsPanel
 
 		String value = valueText(setting);
 		int valueWidth = font.width(value);
-		String label = font.plainSubstrByWidth(setting.getName(),
+		String label = font.plainSubstrByWidth(setting.getTranslatedName(),
 			Math.max(0, WIDTH - PADDING * 2 - valueWidth - 8));
 
 		graphics.drawString(font, label, x1 + PADDING, textY,

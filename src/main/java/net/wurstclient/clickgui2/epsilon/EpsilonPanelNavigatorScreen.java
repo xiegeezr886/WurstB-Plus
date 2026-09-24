@@ -723,7 +723,7 @@ public final class EpsilonPanelNavigatorScreen extends Screen
 		
 		if(setting instanceof SliderSetting slider)
 		{
-			text(graphics, setting.getName(), labelX,
+			text(graphics, setting.getTranslatedName(), labelX,
 				row.centerY() - textHeight(0.68F) / 2F, 0.68F, labelColor);
 			
 			Rect track = EpsilonPanelLayout.settingSliderTrack(content);
@@ -755,7 +755,7 @@ public final class EpsilonPanelNavigatorScreen extends Screen
 		
 		if(setting instanceof CheckboxSetting checkbox)
 		{
-			text(graphics, setting.getName(), labelX,
+			text(graphics, setting.getTranslatedName(), labelX,
 				row.centerY() - textHeight(0.68F) / 2F, 0.68F, labelColor);
 			Rect toggle = EpsilonPanelLayout.settingSwitch(content);
 			checkboxRows.put(setting, toggle);
@@ -768,7 +768,7 @@ public final class EpsilonPanelNavigatorScreen extends Screen
 		
 		if(setting instanceof EnumSetting<?> enumSetting)
 		{
-			text(graphics, setting.getName(), labelX,
+			text(graphics, setting.getTranslatedName(), labelX,
 				row.centerY() - textHeight(0.68F) / 2F, 0.68F, labelColor);
 			
 			String value = String.valueOf(enumSetting.getSelected());
@@ -792,9 +792,9 @@ public final class EpsilonPanelNavigatorScreen extends Screen
 		
 		String value = setting instanceof TextFieldSetting textField
 			? textField.getValue() : setting.getDescription();
-		text(graphics, setting.getName(), labelX,
+		text(graphics, setting.getTranslatedName(), labelX,
 			row.centerY() - textHeight(0.68F) / 2F, 0.68F, labelColor);
-		float nameWidth = textWidth(setting.getName(), 0.68F);
+		float nameWidth = textWidth(setting.getTranslatedName(), 0.68F);
 		text(graphics, trim(value,
 			content.right() - labelX - nameWidth - 12F, 0.60F),
 			labelX + nameWidth + 6F,

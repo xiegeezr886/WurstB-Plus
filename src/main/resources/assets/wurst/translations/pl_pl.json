@@ -141,7 +141,6 @@
   "description.wurst.setting.kaboom.power": "Określa, ile zestawów pakietów niszczenia bloków zostanie wysłanych dla każdego bloku.\n\nWyższe wartości zwiększają szanse na zniszczenie większej liczby bloków, ale także dodatkowo obciążają serwer. Małe serwery mogą się zawiesić przy wyższych wartościach.",
   "description.wurst.setting.kaboom.sound": "Czy odtwarzać dźwięk eksplozji. Nie wpływa na niszczenie bloków. Tylko ty możesz usłyszeć dźwięk.",
   "description.wurst.setting.kaboom.particles": "Czy wyświetlać cząsteczki eksplozji. Nie ma wpływu na niszczenie bloków. Tylko ty widzisz cząsteczki.",
-  "description.wurst.hack.killauralegit": "Wolniejsza Killaura, trudniejsza do wykrycia.\nNiewymagane na normalnych serwerach NoCheat+!",
   "description.wurst.hack.killaura": "Automatycznie atakuje byty wokół ciebie.",
   "description.wurst.hack.killpotion": "Generuje miksturę, która może zabić prawie wszystko, w tym graczy w trybie kreatywnym. Nie działa na nieumarłych mobach, ponieważ są już martwe.\n\nWymaga trybu kreatywnego.",
   "description.wurst.hack.liquids": "Umożliwia umieszczanie bloków w płynach.",

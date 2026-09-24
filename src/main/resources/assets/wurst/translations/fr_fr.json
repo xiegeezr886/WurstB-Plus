@@ -88,7 +88,6 @@
   "description.wurst.hack.jesus": "Permet de marcher sur l'eau.\nJésus a utilisé ce hack il y a environ 2000 ans.",
   "description.wurst.hack.jetpack": "Permet de voler comme si vous aviez un jetpack.\n\n§c§lATTENTION:§r Vous subirez des dégâts de chute si vous n'utilisez pas le NoFall.",
   "description.wurst.hack.kaboom": "Brise les blocs autour de vous comme une explosion.\nCela peut être beaucoup plus rapide que le Nuker si le serveur n'a pas NoCheat+. Cela fonctionne mieux avec des outils rapides et des blocs faibles.\nNote: Ceci n'est pas une véritable explosion.",
-  "description.wurst.hack.killauralegit": "Killaura plus lent qui est plus difficile à détecter.\nNon requis sur les serveurs NoCheat+ normaux !",
   "description.wurst.hack.killaura": "Attaque automatiquement les entités autour de vous.",
   "description.wurst.hack.killpotion": "Génère une potion qui peut presque tout tuer, y compris les joueurs en mode Créatif. Ne fonctionne pas sur les monstres morts-vivants, car ils sont déjà morts.\n\nNécessite le mode Créatif.",
   "description.wurst.hack.liquids": "Permet de placer des blocs dans des liquides.",

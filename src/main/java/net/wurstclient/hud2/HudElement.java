@@ -32,6 +32,25 @@ public abstract class HudElement
 	}
 
 	/**
+	 * Returns the display name of this HUD element, translated into the current
+	 * language when a translation exists.
+	 *
+	 * <p>
+	 * Used for rendering only. {@link #getName()} and {@link #getId()} keep
+	 * returning the stored values, which is what the layout file serializes and
+	 * what settings are keyed by.
+	 */
+	public final String getTranslatedName()
+	{
+		String key = "hud.name." + name.toLowerCase(java.util.Locale.ROOT)
+			.replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
+		String translated = net.wurstclient.WurstClient.INSTANCE.translate(key);
+		if(translated.equals(key))
+			return name;
+		return translated;
+	}
+
+	/**
 	 * 注册一个「逐元素设置」。
 	 *
 	 * <p>

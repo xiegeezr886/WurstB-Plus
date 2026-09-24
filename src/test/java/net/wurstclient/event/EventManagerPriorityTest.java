@@ -88,6 +88,38 @@ final class EventManagerPriorityTest
 		assertTrue(manager.getListeners(TestListener.class).isEmpty());
 	}
 
+	/**
+	 * 回归测试：全部移除之后**再加回来**曾经抛 NPE。
+	 *
+	 * <p>原因：{@code remove} 在列表变空时清掉了 priorityMap 与
+	 * listenerSnapshots，却漏掉 listenerMap，于是那里留着一个空列表；下次
+	 * {@code add} 取到的 listeners 非空、priorities 却是 null，紧接着
+	 * {@code priorities.size()} 就崩。
+	 *
+	 * <p>实机复现路径：ClickGUI 里开 MultiAura → 关掉 → 再开。上面的
+	 * {@link #removingEverythingClearsTheType()} 只检查了"移除后为空"，没检查
+	 * "再加回来"，所以当初没拦住这个 bug。
+	 */
+	@Test
+	void readdingAfterRemovingEverythingWorks()
+	{
+		EventManager manager = new EventManager(WurstClient.INSTANCE);
+		TestListener listener = () -> {};
+		manager.add(TestListener.class, listener, 3);
+
+		manager.remove(TestListener.class, listener);
+		manager.add(TestListener.class, listener, 3);
+		assertEquals(List.of(listener), manager.getListeners(TestListener.class));
+
+		// 反复开关也要稳（对应 hack 反复启用/禁用）
+		for(int i = 0; i < 3; i++)
+		{
+			manager.remove(TestListener.class, listener);
+			manager.add(TestListener.class, listener, i);
+		}
+		assertEquals(List.of(listener), manager.getListeners(TestListener.class));
+	}
+
 	private interface TestListener extends Listener
 	{
 		void onTest();

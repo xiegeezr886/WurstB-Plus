@@ -37,7 +37,9 @@ public final class PlayerDetailOverlay extends MusicRegion
 		float progress = ctx.detailMotion.update(ctx.detailVisible ? 1 : 0);
 		if(progress <= 0.001F)
 			return;
-		int offset = Math.round((1 - progress) * b.height());
+		int width = b.width();
+		int height = b.height();
+		int offset = PlayerDetailLayout.slideOffset(progress, height);
 		int top = b.top + offset;
 		int panelBottom = b.bottom + offset;
 		FlatRenderer.fillRoundedRect(graphics, b.left, top, b.right,
@@ -59,14 +61,9 @@ public final class PlayerDetailOverlay extends MusicRegion
 			b.left + 28, top + 28, 10,
 			SuperSoftTheme.mix(0x1AFFFFFF, 0x44FFFFFF, closeHover));
 		drawIcon(graphics, ICON_CLOSE, b.left + 15, top + 15, 6, TEXT, 1);
-		drawText(graphics, "NOW PLAYING", 5, b.left + 36, top + 10,
-			withAlpha(accent(), 0.82F), 100);
-		drawText(graphics, song.name(), 10, b.left + 36, top + 21, TEXT, 116);
-		drawText(graphics, song.artist(), 6, b.left + 36, top + 36, MUTED, 116);
-
-		int coverSize = Math.max(96, Math.min(120, b.height() - 132));
-		int coverLeft = b.left + 28;
-		int coverTop = top + 53;
+		int coverSize = PlayerDetailLayout.coverSize(width, height);
+		int coverLeft = PlayerDetailLayout.coverLeft(b.left);
+		int coverTop = PlayerDetailLayout.coverTop(top);
 		FlatRenderer.fillRoundedRect(graphics, coverLeft - 5, coverTop + 5,
 			coverLeft + coverSize + 5, coverTop + coverSize + 8, 9, 0x55000000);
 		drawCover(graphics, song.coverUrl(), coverLeft, coverTop,
@@ -86,9 +83,19 @@ public final class PlayerDetailOverlay extends MusicRegion
 		particles.render(graphics);
 		ripples.update();
 		ripples.render(graphics);
+		// 歌名/歌手紧贴封面下方，与封面同宽（对齐 Apple Music 详情页）；
+		// 面板太矮时封面先缩小，缩到下限就把文字块拉到进度条上方
+		drawText(graphics, song.name(), PlayerDetailLayout.TITLE_SIZE,
+			coverLeft, PlayerDetailLayout.titleY(top, width, height), TEXT,
+			coverSize);
+		drawText(graphics, song.artist(), PlayerDetailLayout.ARTIST_SIZE,
+			coverLeft, PlayerDetailLayout.artistY(top, width, height), MUTED,
+			coverSize);
 
-		int lyricLeft = b.left + 154;
-		int lyricRight = b.right - 12;
+		int lyricLeft = PlayerDetailLayout.lyricLeft(b.left, width, height);
+		int lyricRight = PlayerDetailLayout.lyricRight(b.right);
+		int lyricTop = PlayerDetailLayout.lyricTop(top);
+		int lyricBottom = PlayerDetailLayout.lyricBottom(top, height);
 		drawText(graphics, "LYRICS", 5, lyricLeft + 8, top + 17,
 			withAlpha(MUTED, 0.8F), lyricRight - lyricLeft - 16);
 		renderLyricTiming(graphics, lyricRight, top, mouseX, mouseY);
@@ -97,13 +104,14 @@ public final class PlayerDetailOverlay extends MusicRegion
 			== NeteaseMusicPlayer.PlaybackState.PLAYING;
 		float energy = playing ? 0.65F : 0.05F;
 		starRiver.update(energy);
-		starRiver.render(graphics, lyricLeft, top + 34, lyricRight,
-			panelBottom - 66, energy);
-		renderDetailLyrics(graphics, lyricLeft, top + 34, lyricRight,
-			panelBottom - 66);
-		int progressLeft = b.left + 16;
-		int progressRight = b.right - 16;
-		int progressY = panelBottom - 51;
+		starRiver.render(graphics, lyricLeft, lyricTop, lyricRight, lyricBottom,
+			energy);
+		renderDetailLyrics(graphics, lyricLeft, lyricTop, lyricRight,
+			lyricBottom);
+		int progressLeft = PlayerDetailLayout.progressLeft(b.left);
+		int progressRight = PlayerDetailLayout.progressRight(b.left, width,
+			height);
+		int progressY = PlayerDetailLayout.progressY(top, height);
 		long duration = player().getDurationMs();
 		float songProgress = duration <= 0 ? 0
 			: Mth.clamp(player().getPositionMs() / (float)duration, 0, 1);
@@ -115,32 +123,36 @@ public final class PlayerDetailOverlay extends MusicRegion
 		FlatRenderer.fillRoundedRect(graphics, thumbX - 3, progressY - 3,
 			thumbX + 4, progressY + 5, 4, TEXT);
 		drawText(graphics,
-			NeteaseMusicPlayer.formatTime(player().getPositionMs()), 5,
-			progressLeft, progressY + 6, withAlpha(TEXT, 0.5F), 40);
-		String durationText = NeteaseMusicPlayer.formatTime(duration);
-		drawTextRight(graphics, durationText, 5, progressRight, progressY + 6,
+			NeteaseMusicPlayer.formatTime(player().getPositionMs()),
+			PlayerDetailLayout.PROGRESS_LABEL_SIZE, progressLeft, progressY + 6,
+			withAlpha(TEXT, 0.5F), 40);
+		String remainingText = NeteaseMusicPlayer.formatTime(
+			duration - player().getPositionMs());
+		drawTextRight(graphics, remainingText,
+			PlayerDetailLayout.PROGRESS_LABEL_SIZE, progressRight, progressY + 6,
 			withAlpha(TEXT, 0.5F), 40);
 
-		int controlY = panelBottom - 20;
-		int toggleX = b.left + b.width() / 2;
+		int controlY = PlayerDetailLayout.controlY(top, height);
+		int toggleX = PlayerDetailLayout.controlCenterX(b.left, width, height);
 		int previousX = toggleX - 31;
 		int nextX = toggleX + 31;
 		renderControl(graphics, "detail-previous", previousX, controlY, 10,
 			mouseX, mouseY, false);
-		renderControl(graphics, "toggle", toggleX, controlY, 15, mouseX, mouseY,
-			true);
+		renderControl(graphics, "toggle", toggleX, controlY,
+			PlayerDetailLayout.PLAY_BUTTON_RADIUS, mouseX, mouseY, true);
 		renderControl(graphics, "detail-next", nextX, controlY, 10,
 			mouseX, mouseY, false);
-		drawVolume(graphics, b.right - 99, controlY, withAlpha(TEXT, 0.6F),
-			false);
-		int volumeLeft = b.right - 84;
-		int volumeRight = b.right - 28;
-		graphics.fill(volumeLeft, controlY - 1, volumeRight, controlY + 1,
+		int volumeLeft = PlayerDetailLayout.volumeLeft(b.left);
+		int volumeRight = PlayerDetailLayout.volumeRight(b.left, width, height);
+		int volumeY = PlayerDetailLayout.volumeY(top, height);
+		drawVolume(graphics, PlayerDetailLayout.volumeIconX(b.left), volumeY,
+			withAlpha(TEXT, 0.6F), player().getVolume() > 0.55F);
+		graphics.fill(volumeLeft, volumeY - 1, volumeRight, volumeY + 1,
 			0x33FFFFFF);
-		graphics.fill(volumeLeft, controlY - 1,
+		graphics.fill(volumeLeft, volumeY - 1,
 			volumeLeft + Math.round((volumeRight - volumeLeft)
 				* player().getVolume()),
-			controlY + 1, accent());
+			volumeY + 1, accent());
 	}
 
 	private void renderDetailLyrics(GuiGraphics graphics, int left, int top,
@@ -201,13 +213,13 @@ public final class PlayerDetailOverlay extends MusicRegion
 	{
 		if(ctx.detailMotion.get() < 0.9F)
 			return false;
-		int offset = Math.round((1 - ctx.detailMotion.get()) * b.height());
-		int top = b.top + offset;
-		int panelBottom = b.bottom + offset;
-		int lyricLeft = b.left + 154;
-		int lyricRight = b.right - 12;
-		int lyricTop = top + 34;
-		int lyricBottom = panelBottom - 66;
+		int top = b.top
+			+ PlayerDetailLayout.slideOffset(ctx.detailMotion.get(), b.height());
+		int lyricLeft = PlayerDetailLayout.lyricLeft(b.left, b.width(),
+			b.height());
+		int lyricRight = PlayerDetailLayout.lyricRight(b.right);
+		int lyricTop = PlayerDetailLayout.lyricTop(top);
+		int lyricBottom = PlayerDetailLayout.lyricBottom(top, b.height());
 		if(!contains(mouseX, mouseY, lyricLeft, lyricTop, lyricRight,
 			lyricBottom))
 			return false;
@@ -253,7 +265,8 @@ public final class PlayerDetailOverlay extends MusicRegion
 	{
 		if(ctx.detailMotion.get() < 0.9F)
 			return true;
-		int top = b.top + Math.round((1 - ctx.detailMotion.get()) * b.height());
+		int top = b.top
+			+ PlayerDetailLayout.slideOffset(ctx.detailMotion.get(), b.height());
 		if(contains(mouseX, mouseY, b.left + 8, top + 8, b.left + 28,
 			top + 28))
 		{
@@ -261,9 +274,9 @@ public final class PlayerDetailOverlay extends MusicRegion
 			return true;
 		}
 		// MineRadio 封面粒子：按住封面从指针位置迸发
-		int coverSize = Math.max(96, Math.min(120, b.height() - 132));
-		int coverLeft = b.left + 28;
-		int coverTop = top + 53;
+		int coverSize = PlayerDetailLayout.coverSize(b.width(), b.height());
+		int coverLeft = PlayerDetailLayout.coverLeft(b.left);
+		int coverTop = PlayerDetailLayout.coverTop(top);
 		if(contains(mouseX, mouseY, coverLeft, coverTop, coverLeft + coverSize,
 			coverTop + coverSize))
 		{
@@ -272,7 +285,7 @@ public final class PlayerDetailOverlay extends MusicRegion
 			ripples.spawnRipple(mouseX, mouseY, accent());
 			return true;
 		}
-		int lyricRight = b.right - 12;
+		int lyricRight = PlayerDetailLayout.lyricRight(b.right);
 		int timingCenter = lyricRight - 43;
 		if(contains(mouseX, mouseY, timingCenter - 37, top + 12,
 			timingCenter - 21, top + 27))
@@ -292,11 +305,10 @@ public final class PlayerDetailOverlay extends MusicRegion
 			player().adjustLyricOffset(100);
 			return true;
 		}
-		int panelBottom =
-			b.bottom + Math.round((1 - ctx.detailMotion.get()) * b.height());
-		int lyricLeft = b.left + 154;
-		int lyricTop = top + 34;
-		int lyricBottom = panelBottom - 66;
+		int lyricLeft = PlayerDetailLayout.lyricLeft(b.left, b.width(),
+			b.height());
+		int lyricTop = PlayerDetailLayout.lyricTop(top);
+		int lyricBottom = PlayerDetailLayout.lyricBottom(top, b.height());
 		if(contains(mouseX, mouseY, lyricLeft, lyricTop, lyricRight,
 			lyricBottom))
 		{
@@ -308,9 +320,10 @@ public final class PlayerDetailOverlay extends MusicRegion
 				return true;
 			}
 		}
-		int progressLeft = b.left + 16;
-		int progressRight = b.right - 16;
-		int progressY = b.bottom - 51;
+		int progressLeft = PlayerDetailLayout.progressLeft(b.left);
+		int progressRight = PlayerDetailLayout.progressRight(b.left, b.width(),
+			b.height());
+		int progressY = PlayerDetailLayout.progressY(top, b.height());
 		if(contains(mouseX, mouseY, progressLeft, progressY - 6, progressRight,
 			progressY + 9) && player().getDurationMs() > 0)
 		{
@@ -318,16 +331,19 @@ public final class PlayerDetailOverlay extends MusicRegion
 			seekDetail(mouseX, b);
 			return true;
 		}
-		int controlY = b.bottom - 20;
-		int toggleX = b.left + b.width() / 2;
+		int controlY = PlayerDetailLayout.controlY(top, b.height());
+		int toggleX = PlayerDetailLayout.controlCenterX(b.left, b.width(),
+			b.height());
+		int volumeY = PlayerDetailLayout.volumeY(top, b.height());
 		if(distance(mouseX, mouseY, toggleX - 31, controlY) <= 13)
 			player().playPrevious();
 		else if(distance(mouseX, mouseY, toggleX, controlY) <= 17)
 			player().toggle();
 		else if(distance(mouseX, mouseY, toggleX + 31, controlY) <= 13)
 			player().playNext();
-		else if(contains(mouseX, mouseY, b.right - 88, controlY - 8,
-			b.right - 24, controlY + 8))
+		else if(contains(mouseX, mouseY, PlayerDetailLayout.volumeLeft(b.left),
+			volumeY - 8, PlayerDetailLayout.volumeRight(b.left, b.width(),
+				b.height()), volumeY + 8))
 		{
 			draggingDetailVolume = true;
 			setDetailVolume(mouseX, b);
@@ -342,7 +358,8 @@ public final class PlayerDetailOverlay extends MusicRegion
 			// 按住拖动封面时持续迸发粒子
 			particles.spawnBurst(mouseX, mouseY, accent(), 3);
 			return true;
-		}		if(button == 0 && draggingDetailProgress)
+		}
+		if(button == 0 && draggingDetailProgress)
 		{
 			seekDetail(mouseX, b);
 			return true;
@@ -376,14 +393,19 @@ public final class PlayerDetailOverlay extends MusicRegion
 		long duration = player().getDurationMs();
 		if(duration <= 0)
 			return;
-		float value = Mth.clamp((float)((mouseX - (b.left + 16))
-			/ (b.width() - 32D)), 0, 1);
+		int left = PlayerDetailLayout.progressLeft(b.left);
+		int right = PlayerDetailLayout.progressRight(b.left, b.width(),
+			b.height());
+		float value = Mth.clamp((float)((mouseX - left) / (right - left)), 0, 1);
 		player().seekTo(Math.round(duration * value));
 	}
 
 	private void setDetailVolume(double mouseX, MusicContext.Bounds b)
 	{
-		player().setVolume(Mth.clamp((float)((mouseX - (b.right - 84)) / 56D),
-			0, 1));
+		int left = PlayerDetailLayout.volumeLeft(b.left);
+		int right = PlayerDetailLayout.volumeRight(b.left, b.width(),
+			b.height());
+		player().setVolume(
+			Mth.clamp((float)((mouseX - left) / (right - left)), 0, 1));
 	}
 }
