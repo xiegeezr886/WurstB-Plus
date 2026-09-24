@@ -1,5 +1,4 @@
 {
-  "ClientAvatarStateMixin",
   "required": true,
   "minVersion": "0.8",
   "package": "net.wurstclient.mixin",
@@ -21,6 +20,7 @@
     "ChatInputSuggestorMixin",
     "ChatScreenMixin",
     "ChunkOcclusionGraphBuilderMixin",
+    "ClientAvatarStateMixin",
     "ConnectionChannelInitializerMixin",
     "ClientConnectionMixin",
     "ClientPacketListenerAccessor",
