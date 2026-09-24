@@ -45,7 +45,7 @@ dependencies {
 	include implementation("io.netty:netty-codec-socks:4.1.118.Final")
 	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
 
-	include implementation("baritone:baritone-api-fabric:1.17.0-1.21.11")
+	include implementation("baritone:baritone-api-fabric:1.17.0-1.21.11-mc1.21.10")
 
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"

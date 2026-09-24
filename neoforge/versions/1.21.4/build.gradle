@@ -84,7 +84,7 @@ dependencies {
 		transitive = false
 	}
 
-	jarJar(implementation("baritone:baritone-neoforge:1.17.0-1.21.11")) {
+	jarJar(implementation("baritone:baritone-neoforge:1.17.0-1.21.11-mc1.21.4")) {
 		transitive = false
 	}
 

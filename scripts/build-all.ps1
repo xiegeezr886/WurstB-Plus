@@ -69,9 +69,144 @@ if (@($selectedProjects | Where-Object { $_.MC -eq "26.2" }).Count -gt 0) {
     if ($LASTEXITCODE -ne 0) { throw "Baritone 26.2 compatibility patch failed" }
 }
 
+# The per-MC Baritone copies live in baritone-maven/, which .gitignore excludes,
+# so they do not survive a clone. This step is idempotent and cheap: it recreates
+# whatever is missing and leaves correct artifacts alone. A fresh clone has no
+# baritone-maven/ at all, in which case the jars must be rebuilt from source
+# (see docs/PORTING-NEW-VERSIONS.md) - hence -AllowUnresolved, so a missing local
+# Maven repo is a warning here rather than a hard failure.
+$baritoneMcFix = Join-Path $ProjectRoot "scripts\fix-baritone-mc-declaration.ps1"
+Write-Info "Ensuring bundled Baritone declares each project's Minecraft version..."
+& $baritoneMcFix -ProjectRoot $ProjectRoot -AllowUnresolved
+if ($LASTEXITCODE -ne 0) { throw "Baritone Minecraft declaration fix failed" }
+
 Write-Info "========== WurstB+ Plus build-all ($($selectedProjects.Count) artifacts) =========="
 $report = @()
 $failed = $false
+
+function Test-McRangeAdmits($rangeSpec, $mcVersion) {
+    # Does a declared Minecraft dependency admit this MC version?
+    # Handles Maven ranges ([1.21.8], [1.20,1.20.1], [1.21.11,1.22)) and Fabric
+    # predicates (["1.21.8"], ["26.1.*"], "~1.21.8", ">=1.20 <=1.20.1").
+    # A bundled Baritone whose own declaration rejects the host MC version makes
+    # the loader refuse to start, so this is checked on every artifact.
+    if ([string]::IsNullOrWhiteSpace($rangeSpec)) { return $false }
+
+    $compare = {
+        param($a, $b)
+        $pa = @($a -split '\.'); $pb = @($b -split '\.')
+        for ($i = 0; $i -lt [Math]::Max($pa.Count, $pb.Count); $i++) {
+            $va = 0; $vb = 0
+            if ($i -lt $pa.Count -and $pa[$i] -match '^\d+$') { $va = [int]$pa[$i] }
+            if ($i -lt $pb.Count -and $pb[$i] -match '^\d+$') { $vb = [int]$pb[$i] }
+            if ($va -ne $vb) { return [Math]::Sign($va - $vb) }
+        }
+        return 0
+    }
+
+    $terms = @()
+    $s = $rangeSpec.Trim()
+    if ($s.StartsWith('[')) {
+        # JSON array of Fabric predicates, or a single Maven range.
+        $inner = $s.Substring(1, $s.Length - 2)
+        if ($inner -match '"') {
+            foreach ($t in @($inner -split ',')) { $terms += $t.Trim().Trim('"').Trim("'").Trim() }
+        } else {
+            $terms += $s
+        }
+    } else {
+        $terms += $s.Trim('"').Trim("'")
+    }
+
+    foreach ($term in $terms) {
+        if ([string]::IsNullOrWhiteSpace($term) -or $term -eq '*') { return $true }
+
+        if ($term.StartsWith('[') -or $term.StartsWith('(')) {
+            $loInc = $term.StartsWith('['); $hiInc = $term.EndsWith(']')
+            $body = @($term.Substring(1, $term.Length - 2) -split ',' | ForEach-Object { $_.Trim() })
+            if ($body.Count -eq 1) {
+                if ((& $compare $mcVersion $body[0]) -eq 0) { return $true }
+                continue
+            }
+            $ok = $true
+            if ($body[0]) {
+                $lo = & $compare $mcVersion $body[0]
+                if ($loInc) { if ($lo -lt 0) { $ok = $false } } else { if ($lo -le 0) { $ok = $false } }
+            }
+            if ($ok -and $body.Count -gt 1 -and $body[1]) {
+                $hi = & $compare $mcVersion $body[1]
+                if ($hiInc) { if ($hi -gt 0) { $ok = $false } } else { if ($hi -ge 0) { $ok = $false } }
+            }
+            if ($ok) { return $true }
+            continue
+        }
+
+        if ($term -match '\*' -or $term -match '\.x$') {
+            $prefix = ($term -replace '(\*|x)$', '')
+            if ($mcVersion -eq $prefix.TrimEnd('.') -or $mcVersion.StartsWith($prefix)) { return $true }
+            continue
+        }
+
+        if ($term.StartsWith('~') -or $term.StartsWith('^')) {
+            $base = $term.Substring(1)
+            $parts = @($base -split '\.')
+            if ($term.StartsWith('~') -and $parts.Count -ge 2) { $hi = "$($parts[0]).$([int]$parts[1] + 1).0" }
+            else { $hi = "$([int]$parts[0] + 1).0.0" }
+            if ((& $compare $mcVersion $base) -ge 0 -and (& $compare $mcVersion $hi) -lt 0) { return $true }
+            continue
+        }
+
+        if ($term -match '^[<>]') {
+            $ok = $true
+            foreach ($part in @($term -split '\s+' | Where-Object { $_ })) {
+                $m = [regex]::Match($part, '^(>=|<=|>|<|=)?\s*(.+)$')
+                if (-not $m.Success) { continue }
+                $c = & $compare $mcVersion $m.Groups[2].Value.Trim()
+                switch ($m.Groups[1].Value) {
+                    '>=' { if ($c -lt 0) { $ok = $false } }
+                    '<=' { if ($c -gt 0) { $ok = $false } }
+                    '>' { if ($c -le 0) { $ok = $false } }
+                    '<' { if ($c -ge 0) { $ok = $false } }
+                    default { if ($c -ne 0) { $ok = $false } }
+                }
+            }
+            if ($ok) { return $true }
+            continue
+        }
+
+        if ((& $compare $mcVersion $term) -eq 0) { return $true }
+    }
+    return $false
+}
+
+function Get-NestedBaritoneMcSpec($nestedArchive) {
+    # The bundled Baritone's own Minecraft dependency, whichever loader file it
+    # ships. Returns $null when the archive declares no Minecraft dependency.
+    $readEntry = {
+        param($name)
+        $e = $nestedArchive.GetEntry($name)
+        if (-not $e) { return $null }
+        $s = $e.Open()
+        try {
+            $r = New-Object System.IO.StreamReader($s)
+            try { return $r.ReadToEnd() } finally { $r.Dispose() }
+        } finally { $s.Dispose() }
+    }
+    $fabric = & $readEntry "fabric.mod.json"
+    if ($fabric) {
+        $m = [regex]::Match($fabric, '"minecraft"\s*:\s*(\[[^\]]*\]|"[^"]*")')
+        if ($m.Success) { return $m.Groups[1].Value }
+    }
+    foreach ($tomlName in @("META-INF/neoforge.mods.toml", "META-INF/mods.toml")) {
+        $toml = & $readEntry $tomlName
+        if (-not $toml) { continue }
+        $modId = [regex]::Match($toml, 'modId\s*=\s*"minecraft"')
+        if (-not $modId.Success) { continue }
+        $vr = [regex]::Match($toml.Substring($modId.Index), 'versionRange\s*=\s*"([^"]*)"')
+        if ($vr.Success) { return $vr.Groups[1].Value }
+    }
+    return $null
+}
 
 function Test-EmbeddedBaritone($artifact, $entryName, $mcVersion) {
     if (-not $entryName) { return @{ Passed = $true; Note = "not required" } }
@@ -93,6 +228,17 @@ function Test-EmbeddedBaritone($artifact, $entryName, $mcVersion) {
         if (-not $nestedArchive.GetEntry("baritone/api/BaritoneAPI.class")) {
             return @{ Passed = $false; Note = "Baritone API class missing from $entryName" }
         }
+
+        # The nested mod's own `minecraft` dependency must admit the host version,
+        # otherwise the loader rejects the bundle at startup.
+        $mcSpec = Get-NestedBaritoneMcSpec $nestedArchive
+        if (-not $mcSpec) {
+            return @{ Passed = $false; Note = "bundled Baritone declares no minecraft dependency" }
+        }
+        if (-not (Test-McRangeAdmits $mcSpec $mcVersion)) {
+            return @{ Passed = $false; Note = "bundled Baritone declares minecraft $mcSpec, which excludes $mcVersion" }
+        }
+
         if ($mcVersion -eq "26.2") {
             $compatibilityEntries = @(
                 "baritone/api/utils/LegacyTuple.class",
@@ -124,7 +270,7 @@ function Test-EmbeddedBaritone($artifact, $entryName, $mcVersion) {
             }
         }
         $compatibilityNote = if ($mcVersion -eq "26.2") { "; 26.2 compatibility verified" } else { "" }
-        return @{ Passed = $true; Note = "$entryName ($($entry.Length) bytes)$compatibilityNote" }
+        return @{ Passed = $true; Note = "$entryName ($($entry.Length) bytes); declares minecraft $mcSpec$compatibilityNote" }
     } catch {
         return @{ Passed = $false; Note = "Baritone archive check failed: $($_.Exception.Message)" }
     } finally {

@@ -45,7 +45,7 @@ dependencies {
 	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
 
 	// Meteor's 1.21.1 Baritone build, bundled with this distribution.
-	include implementation("baritone:baritone-api-fabric:1.11.2")
+	include implementation("baritone:baritone-api-fabric:1.11.2-mc1.21.2")
 
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"

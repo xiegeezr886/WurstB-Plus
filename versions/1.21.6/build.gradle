@@ -86,7 +86,7 @@ dependencies {
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
     implementation "io.netty:netty-codec-socks:4.2.7.Final"
     implementation "io.netty:netty-handler-proxy:4.2.7.Final"
-    implementation "baritone:baritone-forge:1.17.0-1.21.11"
+    implementation "baritone:baritone-forge:1.17.0-1.21.11-mc1.21.6"
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
@@ -163,7 +163,7 @@ tasks.register('allJar', Jar) {
             dependency.isDirectory() ? dependency : zipTree(dependency)
         }
     }
-    from("../../baritone-maven/baritone/baritone-forge/1.17.0-1.21.11/baritone-forge-1.17.0-1.21.11.jar") {
+    from("../../baritone-maven/baritone/baritone-forge/1.17.0-1.21.11-mc1.21.6/baritone-forge-1.17.0-1.21.11-mc1.21.6.jar") {
         into "META-INF/jarjar"
     }
     exclude 'net/minecraft/**', 'net/minecraftforge/**'

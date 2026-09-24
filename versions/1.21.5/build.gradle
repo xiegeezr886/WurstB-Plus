@@ -86,7 +86,7 @@ dependencies {
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
     implementation "io.netty:netty-codec-socks:4.2.7.Final"
     implementation "io.netty:netty-handler-proxy:4.2.7.Final"
-    implementation "baritone:baritone-forge:1.17.0-1.21.11"
+    implementation "baritone:baritone-forge:1.17.0-1.21.11-mc1.21.5"
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     // NOTE: eventbus-validator:7.0.5 needs the EventBus 7 API, which does not
     // exist on the Forge 55.x (MC 1.21.5) line. It aborts the build with
@@ -166,7 +166,7 @@ tasks.register('allJar', Jar) {
             dependency.isDirectory() ? dependency : zipTree(dependency)
         }
     }
-    from("../../baritone-maven/baritone/baritone-forge/1.17.0-1.21.11/baritone-forge-1.17.0-1.21.11.jar") {
+    from("../../baritone-maven/baritone/baritone-forge/1.17.0-1.21.11-mc1.21.5/baritone-forge-1.17.0-1.21.11-mc1.21.5.jar") {
         into "META-INF/jarjar"
     }
     exclude 'net/minecraft/**', 'net/minecraftforge/**'
