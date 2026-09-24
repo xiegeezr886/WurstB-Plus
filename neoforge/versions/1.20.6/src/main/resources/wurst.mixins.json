@@ -83,6 +83,7 @@
     "TelemetryManagerMixin",
     "TextVisitFactoryMixin",
     "TitleScreenMixin",
+    "ToastComponentAccessor",
     "WorldMixin",
     "WorldRendererMixin"
   ],

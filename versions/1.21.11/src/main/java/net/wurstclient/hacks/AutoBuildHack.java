@@ -251,7 +251,7 @@ public final class AutoBuildHack extends Hack
 				return;
 			}
 			
-			// MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+			MC.rightClickDelay = 4;
 			RotationUtils.getNeededRotations(params.hitVec())
 				.sendPlayerLookPacket();
 			InteractionSimulator.rightClickBlock(params.toHitResult());

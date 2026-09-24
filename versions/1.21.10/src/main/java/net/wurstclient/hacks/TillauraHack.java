@@ -79,7 +79,7 @@ public final class TillauraHack extends Hack implements HandleInputListener
 	public void onHandleInput()
 	{
 		// wait for right click timer
-		if(false) // TODO: 26.1.2 - rightClickDelay is private
+		if(MC.rightClickDelay > 0)
 			return;
 		
 		// don't till while breaking or riding
@@ -148,7 +148,7 @@ public final class TillauraHack extends Hack implements HandleInputListener
 			return false;
 		
 		// face and right click the block
-		// MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+		MC.rightClickDelay = 4;
 		WURST.getRotationFaker().faceVectorPacket(params.hitVec());
 		InteractionSimulator.rightClickBlock(params.toHitResult());
 		return true;
