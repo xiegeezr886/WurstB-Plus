@@ -153,7 +153,7 @@ public final class EditBookOffersScreen extends Screen
 		matrixStack.translate(0, 0);
 		
 		context.centeredText(minecraft.font,
-			bookOffers.getName() + " (" + bookOffers.getOffers().size() + ")",
+			bookOffers.getTranslatedName() + " (" + bookOffers.getOffers().size() + ")",
 			width / 2, 12, 0xFFFFFFFF);
 		
 		super.extractRenderState(context, mouseX, mouseY, partialTicks);
