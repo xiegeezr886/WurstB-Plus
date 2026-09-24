@@ -154,7 +154,7 @@ public final class AutoFishHack extends Hack
 				return;
 			
 			// TODO: 26.1.2 - startUseItem() is private in Forge
-			// MC.startUseItem();
+			MC.startUseItem();
 			castRodTimer = retryDelay.getValueI();
 			return;
 		}
@@ -175,7 +175,7 @@ public final class AutoFishHack extends Hack
 		if(reelInTimer == 0)
 		{
 			// TODO: 26.1.2 - startUseItem() is private in Forge
-			// MC.startUseItem();
+			MC.startUseItem();
 			reelInTimer = retryDelay.getValueI();
 			castRodTimer = retryDelay.getValueI();
 		}

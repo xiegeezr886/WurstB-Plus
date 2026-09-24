@@ -513,8 +513,8 @@ public final class MultiAuraHack extends Hack
 				&& CombatActionPolicy.isAttackMissCooldownActive(0))
 				continue;
 			// TODO: 26.1.2 - setMissTime() removed
-			// if(attackCooldown.isChecked())
-			// 	((IMinecraftClient)MC).setMissTime(10);
+			if(attackCooldown.isChecked())
+			((IMinecraftClient)MC).setMissTime(10);
 			swingHand.swing(InteractionHand.MAIN_HAND);
 			clickScheduler.recordSuccessfulClick(now);
 		}
