@@ -170,7 +170,7 @@ public final class EditColorScreen extends Screen
 		
 		renderBackground(context, mouseX, mouseY, partialTicks);
 		context.drawCenteredString(minecraft.font,
-			colorSetting.getName(), width / 2, 16, 0xF0F0F0);
+			colorSetting.getTranslatedName(), width / 2, 16, 0xF0F0F0);
 		
 		// Draw palette
 		int x = paletteX;
