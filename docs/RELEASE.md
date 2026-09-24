@@ -101,6 +101,17 @@ python D:\WurstB\tmp-recon\validate-jars.py
 - Fabric 1.20.1 内嵌官方 `baritone-api-fabric-1.10.3`，仅匹配 MC 1.20-1.20.1。
 - Fabric 1.21.1 内嵌 `baritone-api-fabric-1.11.2`，仅匹配 MC 1.21-1.21.1。
 - 新版本工程沿用各自源码基线的 Baritone 依赖。Forge 1.21 与 1.21.1 已在 `build.gradle` 中启用 `flatDir { dirs "libs" }`，由工程内的 `libs/baritone-api-forge-1.21.1.jar` 提供依赖，避开 ForgeGradle 重映射仓库解析失败的问题。
+- **每个工程内嵌的 Baritone 都必须声明它自己那个 MC 版本**。加载器会校验内嵌 mod 自身的 `minecraft` 依赖，声明不匹配的 Baritone 会让游戏在启动前就被拒绝，表现为「Baritone 要求的 Minecraft 版本不符」，而不是编译错误。历史上一个 Baritone 构建被整条 MC 线共用（例：1.21.11 的 jar 被 1.21.3…1.21.11 复用），于是只有 1.21.11 能通过校验。
+
+  > 修复脚本：`scripts/fix-baritone-mc-declaration.ps1`（幂等，可反复运行；`-WhatIf` 只打印计划，`-SelfTest` 跑断言）。
+  >
+  > 判定规则：内嵌 jar 的声明若已接受本工程的 MC 版本则保持不动，工程继续依赖共享的基准 jar；否则在同一个本地 Maven 仓库里生成一份 `<版本>-mc<MC>` 副本（连同改写过的 `.pom`），并把 `build.gradle` 的坐标、`from(...)` 硬编码路径、签入的 `jarjar/metadata.json` 一并指向该副本。基准 jar 本身永不被改写，因此重跑始终得到同一结果。
+  >
+  > 末行输出 `updated / already-correct / unresolved / failed` 四项。`unresolved` 表示**根本找不到内嵌 jar**，与「已经正确」是两回事，因此它单独计数；只要它不为 0 脚本就以非 0 退出。新克隆仓库时 `baritone-maven/` 并不存在，属于预期情况，`build-all.ps1` 因此传 `-AllowUnresolved` 把它降级为警告。
+  >
+  > 注意：这只是**元数据修复**，字节码仍是原来那个构建。1.21.3–1.21.5、1.20.5/1.20.6、1.21.2 等版本内嵌的仍是别的 MC 世代的 Baritone 代码，改声明并不能解决代码层面的不兼容，只能让加载器不再拒绝它。
+  >
+  > `scripts/build-all.ps1` 的 `Test-EmbeddedBaritone` 会在打包后校验内嵌 Baritone 的声明是否接受本工程的 MC 版本，不匹配直接判 FAIL，防止该问题回归。
 
 > **注意**：`baritone-maven/` 在 `.gitignore` 中，不随仓库分发。Fabric 26.2 依赖的 `baritone-api-fabric-1.18.0-26.2.jar` 曾因 `META-INF/MANIFEST.MF` 把 `MixinConfigs` 放到空行之后而非法，导致 javac 对每个 `net.minecraft.*` 导入报 `invalid manifest format`（101 个假错误）。本地已重打包修复；克隆仓库后如遇同样报错，需按 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) 的说明重建该 jar。
 
@@ -288,6 +299,22 @@ Minecraft / Mixin hook
 - `src/main/java/net/wurstclient/settings/SettingsFile.java`
 - `src/main/java/net/wurstclient/util/json/JsonUtils.java`
 - `src/main/java/net/wurstclient/clickgui2/SettingsWindow.java`
+
+### Hack 名称是标识符，不是显示名
+
+`Hack` 构造函数的那个字符串不只是界面上显示的名字，它同时是：
+
+- 注册键与查表键 —— `HackList.hax.put(hack.getName(), hack)` / `getHackByName()`，**大小写敏感的精确匹配**；
+- 快捷键绑定的目标名与启用状态存档里的键（`KeybindProcessor`、`EnabledHacksFile`）；
+- 翻译键 —— `Hack.java:66` 取 `"hack.name." + name.toLowerCase()`，`Hack.java:35` 取 `"description.wurst.hack." + name.toLowerCase()`。
+
+所以**名称必须是 ASCII 英文**，中文只放在翻译文件里。全部 196 个 hack 中曾经只有 `SearchHack`、`AutoReconnectHack` 写成了 `super("搜索")` / `super("自动重连")`，后果是派生出的键变成 `hack.name.搜索` / `description.wurst.hack.搜索`，而 `en_us.json`、`zh_cn.json` 里存的是 `hack.name.search` / `description.wurst.hack.search`，两者永远匹配不上——这两个 hack 的描述文字因此完全丢失，界面只能退回显示键名本身。
+
+修复：把标识符改回 `Search` / `AutoReconnect`。中文显示不受影响，`hack.name.search` → 「方块搜索」、`hack.name.autoreconnect` → 「自动重连」本来就在翻译文件里。
+
+顺带清掉了每个工程 `zh_cn_names.json` 里永远不可能被任何类命中的死键（`hack.name.antiknockback` —— 类已改名为 `NoVelocity`；`hack.name.entityculling` —— 仅根工程 v1.6.0 还有这个类，那里保留）。判断死键要**按工程逐个看**有没有对应类，不能只看到键存在就删。
+
+> 不变式：`zh_cn_names.json` 的键集合应与该工程 `hacks/` 下所有 `*Hack.java` 的 `super()` 名称一一对应，且 `WurstCnNamesTest` 断言的数字等于该键数（现为 197 或 196，根工程 210）。这条不变式曾被 `ce794b2` 破坏——它把 183 键扩到 198 键却没同步测试断言，导致 34 个工程 `:test` 失败、`build` 挂掉。
 
 ## v1.5 新增功能
 
