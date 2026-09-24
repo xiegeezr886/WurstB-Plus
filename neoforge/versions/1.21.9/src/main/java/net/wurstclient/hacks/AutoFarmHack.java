@@ -112,7 +112,6 @@ public final class AutoFarmHack extends Hack
 		
 		if(currentlyHarvesting != null)
 		{
-			// TODO: 26.1.2 - isDestroying is now private
 			MC.gameMode.isDestroying = true;
 			MC.gameMode.stopDestroyBlock();
 			currentlyHarvesting = null;
