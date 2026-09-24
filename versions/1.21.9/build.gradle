@@ -22,6 +22,11 @@ configurations {
 }
 
 minecraft {
+    // ForgeGradle 7 only applies access transformers to the dev classpath when
+    // this is enabled; true = src/main/resources/META-INF/accesstransformer.cfg.
+    accessTransformer = true
+
+
     mappings channel: "official", version: project.minecraft_version
 
     runs {

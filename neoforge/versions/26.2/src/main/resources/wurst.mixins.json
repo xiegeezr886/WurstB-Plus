@@ -75,6 +75,7 @@
     "TelemetryManagerMixin",
     "TextVisitFactoryMixin",
     "TitleScreenMixin",
+    "ToastManagerAccessor",
     "WorldMixin",
     "LevelRendererMixin"
   ],

@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.layouts.GridLayout;
+import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.DisconnectedScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -40,7 +40,7 @@ public class DisconnectedScreenMixin extends Screen
 	private Screen parent;
 	@Shadow
 	@Final
-	private GridLayout layout;
+	private LinearLayout layout;
 	
 	private DisconnectedScreenMixin(WurstClient wurst, Component title)
 	{
@@ -75,14 +75,15 @@ public class DisconnectedScreenMixin extends Screen
 		Button reconnectButton = layout.addChild(
 			Button.builder(Component.literal("重新连接"),
 				b -> LastServerRememberer.reconnect(parent)).build(),
-			3, 0, 1, 1, layout.newCellSettings().padding(2).paddingTop(-6));
+			layout.newCellSettings().padding(2));
 		
 		autoReconnectButton = layout.addChild(
 			Button.builder(Component.literal("自动重连"),
 				b -> pressAutoReconnect()).build(),
-			4, 0, 1, 1, layout.newCellSettings().padding(2));
+			layout.newCellSettings().padding(2));
 		
 		layout.arrangeElements();
+		layout.setY((height - layout.getHeight()) / 2);
 		Stream.of(reconnectButton, autoReconnectButton)
 			.forEach(this::addRenderableWidget);
 		

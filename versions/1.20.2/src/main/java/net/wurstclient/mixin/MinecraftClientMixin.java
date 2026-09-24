@@ -158,7 +158,7 @@ public abstract class MinecraftClientMixin
 		target = "Lnet/minecraft/client/Minecraft;user:Lnet/minecraft/client/User;",
 		opcode = Opcodes.GETFIELD,
 		ordinal = 0),
-		method = "getProfileProperties()Lcom/mojang/authlib/properties/PropertyMap;")
+		method = "getGameProfile()Lcom/mojang/authlib/GameProfile;")
 	private User getSessionForSessionProperties(Minecraft mc)
 	{
 		return wurstSession != null ? wurstSession : user;
