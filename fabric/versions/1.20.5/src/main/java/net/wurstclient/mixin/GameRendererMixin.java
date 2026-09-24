@@ -32,7 +32,6 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.CameraTransformViewBobbingListener.CameraTransformViewBobbingEvent;
 import net.wurstclient.events.HitResultRayTraceListener.HitResultRayTraceEvent;
-import net.wurstclient.events.RenderListener.RenderEvent;
 import net.wurstclient.hack.HackList;
 import net.wurstclient.hacks.FullbrightHack;
 import net.wurstclient.hacks.ReachHack;
@@ -54,9 +53,9 @@ public abstract class GameRendererMixin implements AutoCloseable
 	@Inject(at = @At(value = "INVOKE",
 		target = "Lnet/minecraft/client/renderer/GameRenderer;bobView(Lcom/mojang/blaze3d/vertex/PoseStack;F)V",
 		ordinal = 0),
-		method = "renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V")
+		method = "renderLevel(FJ)V")
 	private void onRenderWorldViewBobbing(float tickDelta, long limitTime,
-		PoseStack matrices, CallbackInfo ci)
+		CallbackInfo ci)
 	{
 		CameraTransformViewBobbingEvent event =
 			new CameraTransformViewBobbingEvent();
@@ -89,25 +88,11 @@ public abstract class GameRendererMixin implements AutoCloseable
 	 * after the view-bobbing call.
 	 */
 	@Inject(at = @At("HEAD"),
-		method = "renderItemInHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/Camera;F)V")
-	private void onRenderHand(PoseStack matrices, Camera camera,
-		float tickDelta, CallbackInfo ci)
+		method = "renderItemInHand(Lnet/minecraft/client/Camera;FLorg/joml/Matrix4f;)V")
+	private void onRenderHand(Camera camera, float tickDelta,
+		org.joml.Matrix4f matrix, CallbackInfo ci)
 	{
 		cancelNextBobView = false;
-	}
-	
-	@Inject(
-		at = @At(value = "FIELD",
-			target = "Lnet/minecraft/client/renderer/GameRenderer;renderHand:Z",
-			opcode = Opcodes.GETFIELD,
-			ordinal = 0),
-		method = "renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V")
-	private void onRenderWorld(float tickDelta, long limitTime,
-		PoseStack matrices, CallbackInfo ci)
-	{
-		RenderEvent event = new RenderEvent(matrices, tickDelta);
-		EventManager.fire(event);
-		WurstClient.INSTANCE.getPostEffectQueue().flush(matrices, tickDelta);
 	}
 	
 	@ModifyReturnValue(at = @At("RETURN"),
@@ -118,11 +103,11 @@ public abstract class GameRendererMixin implements AutoCloseable
 			.changeFovBasedOnZoom(original);
 	}
 	
-	@Inject(at = @At(value = "INVOKE",
-		target = "Lnet/minecraft/world/entity/Entity;getEyePosition(F)Lnet/minecraft/world/phys/Vec3;",
-		opcode = Opcodes.INVOKEVIRTUAL,
-		ordinal = 0), method = "pick(F)V")
-	private void onHitResultRayTrace(float tickDelta, CallbackInfo ci)
+	@Inject(at = @At("HEAD"),
+		method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;")
+	private void onHitResultRayTrace(net.minecraft.world.entity.Entity entity,
+		double maxDistance, float tickDelta, boolean includeFluids,
+		CallbackInfoReturnable<HitResult> cir)
 	{
 		HitResultRayTraceEvent event = new HitResultRayTraceEvent(tickDelta);
 		EventManager.fire(event);
@@ -155,7 +140,7 @@ public abstract class GameRendererMixin implements AutoCloseable
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/util/Mth;lerp(FFF)F",
 			ordinal = 0),
-		method = "renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V")
+		method = "renderLevel(FJ)V")
 	private float wurstNauseaLerp(float delta, float start, float end)
 	{
 		if(!WurstClient.INSTANCE.getHax().antiWobbleHack.isEnabled())
