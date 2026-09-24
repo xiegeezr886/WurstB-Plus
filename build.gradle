@@ -1,5 +1,16 @@
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.commons.ClassRemapper
+import org.objectweb.asm.commons.Remapper
+
 buildscript {
 	repositories {
+		mavenCentral()
+		maven {
+			// 国内镜像，避免 Maven Central 直连超时
+			name = "Aliyun Central"
+			url = "https://maven.aliyun.com/repository/central"
+		}
 		maven {
 			name = "Sponge"
 			url = "https://repo.spongepowered.org/repository/maven-public/"
@@ -7,6 +18,8 @@ buildscript {
 	}
 	dependencies {
 		classpath "org.spongepowered:mixingradle:0.7-SNAPSHOT"
+		// 重定位内嵌库用的字节码工具
+		classpath "org.ow2.asm:asm-commons:9.7"
 	}
 }
 
@@ -72,6 +85,37 @@ repositories {
 }
 
 jarJar.enable()
+
+// ---- 整合包兼容构建 ----
+// 背景：jarJar 内嵌的库会被 Forge 放到 JPMS 模块路径上。大型整合包里往往已经有
+// 同一个库（作为独立 mod、或别的 mod 内嵌、或像 KotlinForForge 那样自带 kotlin），
+// 于是同一个包被两个模块导出，而第三个模块同时读取它们 —— ModLauncher 构建模块层
+// 时直接抛 ResolutionException，游戏在 Forge 加载任何 mod 之前就崩。
+// 实测：v1.6.0（内嵌 17 个库）在 900-mod 整合包里必崩，v1.5.0（内嵌 2 个）正常。
+//
+//   ./gradlew jarJar -PpackCompat      只跳过已被崩溃日志点名的三个库
+//                                      （kotlin-stdlib / kotlinx-coroutines / jlayer）
+//   ./gradlew jarJar -PpackCompatFull  只内嵌 baritone + mixinextras（= v1.5.0 形态）
+//
+// 两者都会把产物名加上 -packCompat 后缀，不影响正常构建。
+def packCompatLite = project.hasProperty("packCompat")
+def packCompatFull = project.hasProperty("packCompatFull")
+def packCompatAny = packCompatLite || packCompatFull
+
+def skipNestedLib = { String spec ->
+	// baritone 与 mixinextras 是 WurstB+ 自身运行必需的（mixin 依赖它们），
+	// 任何兼容构建都保留，否则产物直接不可用。
+	if(spec.startsWith("baritone:") || spec.startsWith("io.github.llamalad7:"))
+		return false
+	if(packCompatFull)
+		return true
+	if(!packCompatLite)
+		return false
+	// 保守名单：v1.6.0 崩溃日志里被点名的模块所对应的库
+	return spec.startsWith("org.jetbrains.kotlin:")
+		|| spec.startsWith("org.jetbrains.kotlinx:")
+		|| spec.startsWith("com.googlecode.soundlibs:jlayer:")
+}
 
 dependencies {
 	minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
@@ -168,6 +212,16 @@ dependencies {
 	testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
 }
 
+// 整合包兼容构建：把要跳过的库从 jarJar 配置里摘掉。
+// 注意 implementation / minecraftLibrary 声明保持不动 —— 编译期照常能解析这些类，
+// 只是不再打进产物，运行期由整合包提供。
+if(packCompatAny)
+{
+	configurations.jarJar.dependencies.removeAll { dep ->
+		skipNestedLib("${dep.group}:${dep.name}:")
+	}
+}
+
 mixin {
 	add sourceSets.main, "wurstpenguin-refmap.json"
 	config "wurst.mixins.json"
@@ -220,8 +274,15 @@ jar {
 	finalizedBy "reobfJar"
 }
 
+// 兼容构建的产物名沿用发布资产的 backup-<时间戳> 约定：
+//   WurstB+.Plus-v1.6.0-Forge-1.20.1.backup-20260920-000207.jar
+def packCompatStamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
+def packCompatJarName = "WurstB+.Plus-${project.version}.backup-${packCompatStamp}.jar"
+def defaultJarName = "${project.base.archivesName.get()}-${project.version}.jar"
+def jarFileName = packCompatAny ? packCompatJarName : defaultJarName
+
 tasks.named("jarJar").configure {
-	archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
+	archiveFileName = jarFileName
 	finalizedBy "reobfJarJar"
 	finalizedBy "copyJarToTestMods"
 }
@@ -230,6 +291,12 @@ tasks.named("jarJar").configure {
 tasks.register("copyJarToTestMods") {
 	dependsOn "reobfJarJar"
 	doLast {
+		// 兼容构建的产物是给整合包用的，不往开发测试实例里放
+		if(packCompatAny)
+		{
+			println "packCompat build: skipping copyJarToTestMods"
+			return
+		}
 		def targetDir = file(".test/versions/1.20.1-Forge_47.4.22/mods")
 		targetDir.mkdirs()
 		// 清理旧版本 jar，避免多个 WurstB+ 版本并存导致 Forge 重复加载
@@ -243,5 +310,234 @@ tasks.register("copyJarToTestMods") {
 			into targetDir
 		}
 		println "Deployed to " + targetDir.absolutePath
+	}
+}
+
+// ============================================================================
+//  整合包兼容：重定位内嵌库中与其它 mod 冲突的包
+// ============================================================================
+//  为什么需要：jarJar 内嵌的库会被 Forge 放进 JPMS 模块路径，而没有 module-info
+//  的 jar 是「自动模块」，会导出它的全部包。整合包里若已有别的模块导出同一个包，
+//  而第三个模块同时读取两者，ModLauncher 组装模块层时直接抛
+//      java.lang.module.ResolutionException: Modules A and B export package P to C
+//  游戏在 Forge 加载任何 mod 之前就崩。实测：v1.6.0 在 900-mod 整合包里必崩，
+//  报错点名的三处正是 kotlin / kotlinx.coroutines / javazoom。
+//
+//  做法：把这三个包重定位到 net.wurstclient.shaded.*。包名不再重复，冲突消失，
+//  而 Skia 渲染与音乐播放功能完整保留（依赖仍随 jar 分发，保持自包含）。
+//
+//  刻意不动的两个：
+//    org.jetbrains.skia / org.jetbrains.skiko
+//        skiko 的 JNI 原生符号按原类名生成，改名会直接让 Skia 加载不了原生库。
+//    com.llamalad7.mixinextras
+//        必须保持原包名才能被 Mixin 识别，改名会让本工程的 mixin 全部失效。
+//
+//  另注：kotlin-stdlib / kotlinx-coroutines 的 META-INF/versions/9/module-info.class
+//  必须删除，否则重定位后模块描述符里仍写着导出旧包名，冲突照样存在。
+//
+//  用 -PnoRelocate 可关闭。
+def RELOCATE_PREFIXES = [
+	// —— 第一批：实测崩溃日志点名的三个 ——
+	"kotlin/"                       : "net/wurstclient/shaded/kotlin/",
+	"kotlinx/coroutines/"           : "net/wurstclient/shaded/kotlinx/coroutines/",
+	"javazoom/"                     : "net/wurstclient/shaded/javazoom/",
+	// kotlinx-coroutines 的根级包，不在 kotlinx/coroutines/ 下，第一版漏掉过，
+	// 结果自动模块导出它、与 KotlinForForge 撞在 _COROUTINE 上又崩一次。
+	"_COROUTINE/"                   : "net/wurstclient/shaded/_COROUTINE/",
+	// —— 第二批：整合包里同样有其它 mod 提供（modid 重复）的纯 Java 库 ——
+	// 一次性全部重定位，避免逐个试错（每次试错都要用户启动一次游戏）。
+	"com/google/zxing/"             : "net/wurstclient/shaded/com/google/zxing/",
+	"com/goxr3plus/"                : "net/wurstclient/shaded/com/goxr3plus/",
+	"com/jcraft/jogg/"              : "net/wurstclient/shaded/com/jcraft/jogg/",
+	"com/jcraft/jorbis/"            : "net/wurstclient/shaded/com/jcraft/jorbis/",
+	"com/github/trilarion/"         : "net/wurstclient/shaded/com/github/trilarion/",
+	"org/jaudiotagger/"             : "net/wurstclient/shaded/org/jaudiotagger/",
+	"org/java_websocket/"           : "net/wurstclient/shaded/org/java_websocket/",
+	"org/jflac/"                    : "net/wurstclient/shaded/org/jflac/",
+	"org/tritonus/"                 : "net/wurstclient/shaded/org/tritonus/",
+	"io/netty/handler/codec/socks/" : "net/wurstclient/shaded/io/netty/handler/codec/socks/",
+	"io/netty/handler/codec/socksx/": "net/wurstclient/shaded/io/netty/handler/codec/socksx/",
+	"io/netty/handler/proxy/"       : "net/wurstclient/shaded/io/netty/handler/proxy/",
+]
+
+// 注意：不能用 ASM 自带的 SimpleRemapper —— 它的 map() 只有一句
+//     return mapping.get(internalName);
+// 是「精确全名」查找，键写成 "kotlin/" 这类包前缀永远匹配不上，结果是静默地
+// 一个类都不改（实测踩过：module-info 被删了、类名却全没动，且不报错）。
+class WurstPrefixRemapper extends Remapper {
+	private final Map<String, String> prefixes
+
+	WurstPrefixRemapper(Map<String, String> prefixes) {
+		this.prefixes = prefixes
+	}
+
+	@Override
+	String map(String internalName) {
+		if(internalName == null)
+			return null
+		for(Map.Entry<String, String> e : prefixes.entrySet())
+			if(internalName.startsWith(e.key))
+				return e.value + internalName.substring(e.key.length())
+		return internalName
+	}
+
+	@Override
+	String mapPackageName(String name) {
+		String internal = name.replace('.', '/')
+		String mapped = map(internal)
+		return mapped.equals(internal) ? name : mapped.replace('/', '.')
+	}
+}
+
+def relocateClassBytes = { byte[] input ->
+	ClassReader reader = new ClassReader(input)
+	ClassWriter writer = new ClassWriter(0)
+	reader.accept(new ClassRemapper(writer, new WurstPrefixRemapper(RELOCATE_PREFIXES)), 0)
+	return writer.toByteArray()
+}
+
+def remapServiceFile = { byte[] data ->
+	String text = new String(data, java.nio.charset.StandardCharsets.UTF_8)
+	RELOCATE_PREFIXES.each { from, to ->
+		text = text.replace(from.replace("/", "."), to.replace("/", "."))
+	}
+	return text.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+}
+
+def relocStats = [classes: 0, renamed: 0, failures: []]
+
+// 条目路径也要跟着重定位。只改类字节里的内部名而不改路径，会做出一个自相矛盾的
+// jar（路径 kotlin/x.class 但类自称 net/wurstclient/shaded/kotlin/x），
+// 加载时必然 NoClassDefFoundError: ... (wrong name: ...)，比不重定位还糟。
+// 多版本 jar 的 META-INF/versions/<N>/ 前缀要单独处理，否则匹配不到包前缀。
+def remapEntryName = { String path ->
+	String prefix = ""
+	String rest = path
+	def m = path =~ /^(META-INF\/versions\/\d+\/)(.*)$/
+	if(m.matches())
+	{
+		prefix = m.group(1)
+		rest = m.group(2)
+	}
+	for(Map.Entry<String, String> e : RELOCATE_PREFIXES.entrySet())
+		if(rest.startsWith(e.key))
+			return prefix + e.value + rest.substring(e.key.length())
+	return path
+}
+
+def rewriteNestedJar = { byte[] jarBytes ->
+	def zin = new java.util.zip.ZipInputStream(new ByteArrayInputStream(jarBytes))
+	def bout = new ByteArrayOutputStream()
+	def zout = new java.util.zip.ZipOutputStream(bout)
+	def entry
+	while((entry = zin.getNextEntry()) != null)
+	{
+		String name = entry.name
+		if(name.endsWith("module-info.class"))
+			continue	// 必须丢弃，见上面的说明
+		byte[] data = zin.readAllBytes()
+		if(name.endsWith(".class"))
+		{
+			try
+			{
+				data = relocateClassBytes(data)
+				relocStats.classes++
+			}
+			catch(Throwable t)
+			{
+				// 不静默吞掉：重定位失败必须看得见，否则会误判成「已生效」
+				if(relocStats.failures.size() < 5)
+					relocStats.failures << "${name}: ${t}"
+			}
+		}
+		else if(name.startsWith("META-INF/services/"))
+			data = remapServiceFile(data)
+		String outName = remapEntryName(name)
+		if(!outName.equals(name))
+			relocStats.renamed++
+		def ne = new java.util.zip.ZipEntry(outName)
+		ne.time = entry.time
+		zout.putNextEntry(ne)
+		zout.write(data)
+		zout.closeEntry()
+	}
+	zin.close()
+	zout.close()
+	return bout.toByteArray()
+}
+
+def relocateNestedJars = { File jarFile ->
+	if(!jarFile.exists())
+		return
+	def tmp = File.createTempDir("wurst-reloc", "")
+	try
+	{
+		def outJar = new File(tmp, jarFile.name)
+		def zin = new java.util.zip.ZipInputStream(
+			new BufferedInputStream(new FileInputStream(jarFile)))
+		def zout = new java.util.zip.ZipOutputStream(
+			new BufferedOutputStream(new FileOutputStream(outJar)))
+		def entry
+		int count = 0
+		while((entry = zin.getNextEntry()) != null)
+		{
+			String name = entry.name
+			byte[] data = zin.readAllBytes()
+			String outName = name
+			if(name.startsWith("META-INF/jarjar/")
+				&& name.endsWith(".jar"))
+			{
+				data = rewriteNestedJar(data)
+				count++
+			}
+			else if(name.endsWith(".class"))
+			{
+				// 外层自身的类也要改写：本工程有类直接引用了 com.google.zxing /
+				// com.goxr3plus / io.netty.handler.proxy，这些包重定位后引用必须
+				// 同步更新，否则会指向不存在的类。
+				try
+				{
+					data = relocateClassBytes(data)
+					relocStats.classes++
+				}
+				catch(Throwable t)
+				{
+					if(relocStats.failures.size() < 5)
+						relocStats.failures << "${name}: ${t}"
+				}
+				outName = remapEntryName(name)
+			}
+			else if(name.startsWith("META-INF/services/"))
+				data = remapServiceFile(data)
+			if(!outName.equals(name))
+				relocStats.renamed++
+			def ne = new java.util.zip.ZipEntry(outName)
+			ne.time = entry.time
+			zout.putNextEntry(ne)
+			zout.write(data)
+			zout.closeEntry()
+		}
+		zin.close()
+		zout.close()
+		java.nio.file.Files.move(outJar.toPath(), jarFile.toPath(),
+			java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+		println "relocateNestedLibs: rewrote ${count} nested jars, ${relocStats.classes} classes processed, ${relocStats.renamed} entries renamed, in ${jarFile.name}"
+		relocStats.failures.each { println "  !! relocate failure: ${it}" }
+	}
+	finally
+	{
+		tmp.deleteDir()
+	}
+}
+
+// 挂在 reobfJarJar 的末尾：那时 build/libs 下的产物才是最终形态
+tasks.matching { it.name == "reobfJarJar" }.configureEach {
+	doLast {
+		if(project.hasProperty("noRelocate"))
+		{
+			println "relocateNestedLibs: skipped (-PnoRelocate)"
+			return
+		}
+		relocateNestedJars(tasks.named("jarJar").get().archiveFile.get().asFile)
 	}
 }

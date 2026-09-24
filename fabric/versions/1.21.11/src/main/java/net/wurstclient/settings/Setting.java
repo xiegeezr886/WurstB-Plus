@@ -19,6 +19,7 @@ import java.util.function.BooleanSupplier;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.Component;
 import net.wurstclient.keybinds.PossibleKeybind;
 import net.wurstclient.util.ChatUtils;
@@ -45,6 +46,35 @@ public abstract class Setting
 	public final String getName()
 	{
 		return name;
+	}
+
+	/**
+	 * Returns the display name of this setting, translated into the current
+	 * language if a translation exists.
+	 *
+	 * <p>
+	 * Unlike {@link #getName()}, this must never be used to identify a setting.
+	 * The raw name is what gets written into the settings file, matched by the
+	 * ".set" commands and used as the key in the owning feature's settings map,
+	 * so translating it earlier would break saved configs and commands.
+	 */
+	public final String getTranslatedName()
+	{
+		String key = "setting.name." + translationKey(name);
+		String translated = WurstClient.INSTANCE.translate(key);
+		if(translated.equals(key))
+			return name;
+		return translated;
+	}
+
+	/**
+	 * Turns a setting name into the second half of its translation key, e.g.
+	 * "Check line of sight" into "check_line_of_sight".
+	 */
+	static String translationKey(String name)
+	{
+		return name.toLowerCase(java.util.Locale.ROOT).replace("'", "")
+			.replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
 	}
 	
 	public final String getDescription()
