@@ -6,10 +6,10 @@
         "artifact": "baritone-forge"
       },
       "version": {
-        "range": "[1.17.0-1.21.11,1.18)",
-        "artifactVersion": "1.17.0-1.21.11"
+        "range": "[1.17.0-1.21.11-mc1.21.7,1.18)",
+        "artifactVersion": "1.17.0-1.21.11-mc1.21.7"
       },
-      "path": "META-INF/jarjar/baritone-forge-1.17.0-1.21.11.jar",
+      "path": "META-INF/jarjar/baritone-forge-1.17.0-1.21.11-mc1.21.7.jar",
       "isObfuscated": false
     }
   ]
