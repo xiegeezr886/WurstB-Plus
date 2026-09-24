@@ -20,6 +20,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.level.material.FogType;
 import net.wurstclient.WurstClient;
+import net.wurstclient.hacks.DankBobbingHack;
 import net.wurstclient.hacks.CameraDistanceHack;
 
 @Mixin(Camera.class)
@@ -72,6 +73,13 @@ public abstract class CameraMixin
 	{
 		if(WurstClient.INSTANCE.getHax().antiBlindHack.isEnabled())
 			cameraState.entityRenderState.doesMobEffectBlockSky = false;
+
+		DankBobbingHack dankBobbing =
+			WurstClient.INSTANCE.getHax().dankBobbingHack;
+		if(dankBobbing.shouldOverrideWalkDistance())
+			cameraState.entityRenderState
+				.backwardsInterpolatedWalkDistance =
+				dankBobbing.getForcedWalkDistance();
 	}
 	
 	/**
