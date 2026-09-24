@@ -96,7 +96,7 @@ public final class EditSliderScreen extends Screen
 	{
 		renderBackground(context, mouseX, mouseY, partialTicks);
 		context.drawCenteredString(minecraft.font,
-			slider.getName(), width / 2, 20, 0xFFFFFF);
+			slider.getTranslatedName(), width / 2, 20, 0xFFFFFF);
 		
 		valueField.render(context, mouseX, mouseY, partialTicks);
 		super.render(context, mouseX, mouseY, partialTicks);
