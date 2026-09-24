@@ -46,19 +46,34 @@ public final class DankBobbingHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
-		if(!MC.player.onGround())
-			return;
-
-		float speed = MC.player.getSpeed() * 10;
-		float bob = Mth.sin(MC.player.tickCount * 0.5F)
-			* speed * intensity.getValueF();
-		// TODO: 26.1.2 - walkDistO field removed
-		// MC.player.walkDistO = MC.player.walkDist + bob;
 
 		if(noViewBob.isChecked())
 			MC.options.bobView().set(false);
 	}
 
+
+	/**
+	 * Whether this hack should drive the view bob phase. Writing walkDistO
+	 * directly worked while it was a public AbstractClientPlayer field; from
+	 * 1.21.9 the walk distance lives in ClientAvatarState (1.21.9-1.21.11)
+	 * and in the camera render state (26.1+), so the mixins reading those
+	 * ask us for the value instead.
+	 */
+	public boolean shouldOverrideWalkDistance()
+	{
+		return isEnabled() && MC.player != null && MC.player.onGround();
+	}
+
+	/**
+	 * The walk distance the hack wants the bob phase to use, in the same
+	 * units as the old walkDistO - walkDist relationship.
+	 */
+	public float getForcedWalkDistance()
+	{
+		float speed = MC.player.getSpeed() * 10;
+		return Mth.sin(MC.player.tickCount * 0.5F) * speed
+			* intensity.getValueF();
+	}
 	public boolean shouldDisableViewBob()
 	{
 		return isEnabled() && noViewBob.isChecked();

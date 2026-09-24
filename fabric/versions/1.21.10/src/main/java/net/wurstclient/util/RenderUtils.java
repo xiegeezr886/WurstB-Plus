@@ -866,7 +866,6 @@ public enum RenderUtils
 	public static void drawBoxShadow2D(GuiGraphicsExtractor context, int x1, int y1,
 		int x2, int y2)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
 		float[] acColor = WurstClient.INSTANCE.getGui().getAcColor();
 		
 		// outline

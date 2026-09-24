@@ -29,9 +29,4 @@ public abstract class WorldMixin implements LevelAccessor, AutoCloseable
 			cir.setReturnValue(0F);
 	}
 	
-	// TODO: 26.1.2 - getTimeOfDay/getMoonPhase methods removed from Level
-	// @Override
-	// public float getTimeOfDay(float tickDelta) { return 0; }
-	// @Override
-	// public int getMoonPhase() { return 0; }
 }
