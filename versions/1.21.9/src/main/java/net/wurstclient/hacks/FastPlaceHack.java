@@ -36,6 +36,6 @@ public final class FastPlaceHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
-		// MC.rightClickDelay = 0; // TODO: 26.1.2 - rightClickDelay is private
+		MC.rightClickDelay = 0;
 	}
 }

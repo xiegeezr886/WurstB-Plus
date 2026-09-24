@@ -43,6 +43,7 @@ import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.WorldToScreen;
 import net.wurstclient.util.WorldToScreen.ScreenBounds;
+import net.wurstclient.events.RenderListener.RenderEvent;
 
 @SearchTags({"player esp", "PlayerTracers", "player tracers"})
 public final class PlayerEspHack extends Hack implements UpdateListener,
@@ -203,7 +204,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	{
 		// TODO: 26.1.2 - RenderSystem.getProjectionMatrix() removed
 		Matrix4f view = new Matrix4f(matrixStack.last().pose());
-		Matrix4f projection = new Matrix4f(); // Placeholder
+		Matrix4f projection = RenderEvent.getLastProjection();
 		ArrayList<ScreenBox> boxes = new ArrayList<>(players.size());
 		double expansion = boxSize.getExtraSize() / 2;
 		for(Player player : players)

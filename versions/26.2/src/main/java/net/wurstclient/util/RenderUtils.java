@@ -745,18 +745,9 @@ public enum RenderUtils
 	public static void fill2D(GuiGraphicsExtractor context, float x1, float y1, float x2,
 		float y2, int color)
 	{
-		// TODO: 26.1.2 - new GUI rendering pipeline
-		// Scale to pixel coordinates and use context.fill()
-		int scale = WurstClient.MC.getWindow().getGuiScale();
-		int xs1 = (int)(x1 * scale);
-		int ys1 = (int)(y1 * scale);
-		int xs2 = (int)(x2 * scale);
-		int ys2 = (int)(y2 * scale);
-		
-		context.pose().pushMatrix();
-		context.pose().scale(1F / scale);
-		context.fill(xs1, ys1, xs2, ys2, color);
-		context.pose().popMatrix();
+		// Coordinates are already in GUI space (the caller projects with
+		// gui-scaled dimensions), so no manual rescaling is needed.
+		context.fill((int)x1, (int)y1, (int)x2, (int)y2, color);
 	}
 	
 	/**
@@ -800,7 +791,24 @@ public enum RenderUtils
 	public static void drawLine2D(GuiGraphicsExtractor context, float x1, float y1,
 		float x2, float y2, int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(color >>> 24 == 0)
+			return;
+		
+		// Simulate a 1px line with a quad, like vanilla hLine/vLine do
+		// (the 26.x GUI pipeline only supports QUADS topology).
+		float dx = x2 - x1;
+		float dy = y2 - y1;
+		float length = (float)Math.sqrt(dx * dx + dy * dy);
+		if(length < 0.0001F)
+			return;
+		
+		float nx = -dy / length * 0.5F;
+		float ny = dx / length * 0.5F;
+		
+		// CCW order: left-top, left-bottom, right-bottom, right-top
+		float[][] quad = {{x1 - nx, y1 - ny}, {x1 + nx, y1 + ny},
+			{x2 + nx, y2 + ny}, {x2 - nx, y2 - ny}};
+		fillQuads2D(context, quad, color);
 	}
 	
 	/**
@@ -812,7 +820,13 @@ public enum RenderUtils
 	public static void drawBorder2D(GuiGraphicsExtractor context, float x1, float y1,
 		float x2, float y2, int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(color >>> 24 == 0)
+			return;
+		
+		drawLine2D(context, x1, y1, x2, y1, color);
+		drawLine2D(context, x2, y1, x2, y2, color);
+		drawLine2D(context, x2, y2, x1, y2, color);
+		drawLine2D(context, x1, y2, x1, y1, color);
 	}
 	
 	/**
@@ -821,7 +835,12 @@ public enum RenderUtils
 	public static void drawLineStrip2D(GuiGraphicsExtractor context, float[][] vertices,
 		int color)
 	{
-		// TODO: 26.1.2 - needs guiRenderState.addGuiElement() approach
+		if(vertices == null || vertices.length < 2 || color >>> 24 == 0)
+			return;
+		
+		for(int i = 0; i < vertices.length - 1; i++)
+			drawLine2D(context, vertices[i][0], vertices[i][1],
+				vertices[i + 1][0], vertices[i + 1][1], color);
 	}
 	
 	/**

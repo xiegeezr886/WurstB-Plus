@@ -8,6 +8,7 @@
 package net.wurstclient.commands;
 
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.SearchTags;
@@ -16,6 +17,7 @@ import net.wurstclient.command.CmdException;
 import net.wurstclient.command.CmdSyntaxError;
 import net.wurstclient.command.Command;
 import net.wurstclient.util.ChatUtils;
+import net.minecraft.resources.RegistryOps;
 
 @SearchTags({"view nbt", "NBTViewer", "nbt viewer"})
 public final class ViewNbtCmd extends Command
@@ -34,8 +36,12 @@ public final class ViewNbtCmd extends Command
 		if(stack.isEmpty())
 			throw new CmdError("You must hold an item in your main hand.");
 		
-		// TODO: 26.1.2 - stack.save() method removed
-		Tag tag = null; // stack.save(player.registryAccess());
+		// 26.1.2 removed ItemStack.save(); serialise through the
+		// item codec against the player's registries instead.
+		RegistryOps<Tag> ops = player.registryAccess()
+			.createSerializationContext(NbtOps.INSTANCE);
+		Tag tag =
+			ItemStack.CODEC.encodeStart(ops, stack).result().orElse(null);
 		String nbt = tag != null ? tag.toString() : "N/A";
 		
 		switch(String.join(" ", args).toLowerCase())

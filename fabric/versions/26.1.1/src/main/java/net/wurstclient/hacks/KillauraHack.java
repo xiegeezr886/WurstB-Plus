@@ -548,9 +548,8 @@ public final class KillauraHack extends Hack
 		if(!prepareForAttack(null))
 			return;
 
-		// TODO: 26.1.2 - setMissTime() removed
-		// if(attackCooldown.isChecked())
-		// 	((IMinecraftClient)MC).setMissTime(10);
+		if(attackCooldown.isChecked())
+			((IMinecraftClient)MC).setMissTime(10);
 		swingHand.swing(InteractionHand.MAIN_HAND);
 		clickScheduler.recordSuccessfulClick(now);
 		finishAttackPreparation(null, true);

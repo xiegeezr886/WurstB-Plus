@@ -283,10 +283,6 @@ public final class AutoFarmHack extends Hack
 	
 	private boolean replant(List<BlockPos> blocksToReplant)
 	{
-		// TODO: 26.1.2 - rightClickDelay is private in Forge
-		// if(false) // TODO: 26.1.2 - rightClickDelay is private
-		// 	return false;
-		
 		// check if already holding one of the seeds needed for blocksToReplant
 		Optional<Item> heldSeed = blocksToReplant.stream().map(plants::get)
 			.distinct().filter(item -> MC.player.isHolding(item)).findFirst();
@@ -324,8 +320,7 @@ public final class AutoFarmHack extends Hack
 					SwingHand.SERVER.swing(hand);
 				
 				// reset cooldown
-				// TODO: 26.1.2 - rightClickDelay is private in Forge
-				// // MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+				MC.rightClickDelay = 4;
 				return true;
 			}
 		}

@@ -11,20 +11,20 @@ public enum PlatformUtils
 
 	public static boolean isModLoaded(String modId)
 	{
-		// TODO: 26.1.2 - ModList.get() not found
-		return false;
+		return ModList.isLoaded(modId);
 	}
 
 	public static String getModVersion(String modId)
 	{
-		// TODO: 26.1.2 - ModList.get() not found
-		return "unknown";
+		return ModList.getModContainerById(modId)
+			.map(container -> container.getModInfo().getVersion().toString())
+			.orElse(null);
 	}
 
 	public static List<String> getLoadedModIds()
 	{
-		// TODO: 26.1.2 - ModList.get() not found
-		return List.of();
+		return ModList.getMods().stream().map(info -> info.getModId())
+			.toList();
 	}
 
 	public static boolean isDevelopmentEnvironment()
