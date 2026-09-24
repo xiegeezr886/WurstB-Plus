@@ -72,7 +72,7 @@ public final class FileComponent extends Component
 		
 		// text
 		int txtColor = GUI.getTxtColor();
-		String labelText = setting.getName() + ":";
+		String labelText = setting.getTranslatedName() + ":";
 		String buttonText = setting.getSelectedFileName();
 		context.drawString(TR, labelText, x1, y1 + 2, txtColor, false);
 		context.drawString(TR, buttonText, x3 + 2, y1 + 2, txtColor, false);
@@ -86,7 +86,7 @@ public final class FileComponent extends Component
 	@Override
 	public int getDefaultWidth()
 	{
-		String text = setting.getName() + ":";
+		String text = setting.getTranslatedName() + ":";
 		return TR.width(text) + getButtonWidth() + 6;
 	}
 	
