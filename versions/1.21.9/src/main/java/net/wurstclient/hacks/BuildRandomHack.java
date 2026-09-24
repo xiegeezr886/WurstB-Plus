@@ -176,7 +176,7 @@ public final class BuildRandomHack extends Hack
 		if(checkLOS.isChecked() && !params.lineOfSight())
 			return false;
 		
-		// MC.rightClickDelay = 4; // TODO: 26.1.2 - rightClickDelay is private
+		MC.rightClickDelay = 4;
 		facing.getSelected().face(params.hitVec());
 		lastPos = pos;
 		
