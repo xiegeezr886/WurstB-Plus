@@ -82,7 +82,7 @@ public final class TextFieldEditButton extends Component
 		
 		// text
 		int txtColor = GUI.getTxtColor();
-		context.drawString(TR, setting.getName(), x1, y1 + 2, txtColor, false);
+		context.drawString(TR, setting.getTranslatedName(), x1, y1 + 2, txtColor, false);
 		String value = setting.getValue();
 		int maxWidth = getWidth() - TR.width("...") - 2;
 		int maxLength = TR.getSplitter().formattedIndexByWidth(value,
@@ -95,7 +95,7 @@ public final class TextFieldEditButton extends Component
 	@Override
 	public int getDefaultWidth()
 	{
-		return TR.width(setting.getName()) + 4;
+		return TR.width(setting.getTranslatedName()) + 4;
 	}
 	
 	@Override
