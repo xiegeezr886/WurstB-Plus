@@ -43,6 +43,7 @@
     "FogRendererMixin",
     "noshieldoverlay.ItemInHandRendererMixin",
     "GuiMixin",
+    "RenderTypeAccessor",
     "ScreenEffectRendererMixin",
     "KeyBindingMixin",
     "KeyEntryAccessor",
