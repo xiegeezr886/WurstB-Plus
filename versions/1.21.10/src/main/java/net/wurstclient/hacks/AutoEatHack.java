@@ -27,6 +27,9 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.Foods;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
+import net.minecraft.world.item.consume_effects.ConsumeEffect;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -230,7 +233,7 @@ public final class AutoEatHack extends Hack implements UpdateListener
 			FoodProperties food = stack.get(DataComponents.FOOD);
 			if(food == null)
 				continue;
-			if(!isAllowedFood(food))
+			if(!isAllowedFood(stack))
 				continue;
 			
 			if(maxPoints >= 0 && food.nutrition() > maxPoints)
@@ -272,22 +275,37 @@ public final class AutoEatHack extends Hack implements UpdateListener
 		oldSlot = -1;
 	}
 	
-	private boolean isAllowedFood(FoodProperties food)
+	private boolean isAllowedFood(ItemStack stack)
 	{
+		FoodProperties food = stack.get(DataComponents.FOOD);
+		if(food == null)
+			return false;
+		
 		if(!allowChorus.isChecked() && food == Foods.CHORUS_FRUIT)
 			return false;
 		
-		// TODO: 26.1.2 - FoodProperties.effects() removed
-		// for(PossibleEffect possibleEffect : food.effects())
-		// {
-		// 	Holder<MobEffect> effect = possibleEffect.effect().getEffect();
-		// 	
-		// 	if(!allowHunger.isChecked() && effect == MobEffects.HUNGER)
-		// 		return false;
-		// 	
-		// 	if(!allowPoison.isChecked() && effect == MobEffects.POISON)
-		// 		return false;
-		// }
+		// 26.1.2 moved status effects out of FoodProperties and into the
+		// item's CONSUMABLE data component.
+		Consumable consumable = stack.get(DataComponents.CONSUMABLE);
+		if(consumable == null)
+			return true;
+		
+		for(ConsumeEffect effect : consumable.onConsumeEffects())
+		{
+			if(!(effect instanceof ApplyStatusEffectsConsumeEffect applyEffect))
+				continue;
+			
+			for(MobEffectInstance instance : applyEffect.effects())
+			{
+				if(!allowHunger.isChecked()
+					&& instance.is(MobEffects.HUNGER))
+					return false;
+				
+				if(!allowPoison.isChecked()
+					&& instance.is(MobEffects.POISON))
+					return false;
+			}
+		}
 		
 		return true;
 	}
