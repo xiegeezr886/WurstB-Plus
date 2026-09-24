@@ -83,7 +83,7 @@ public final class ColorComponent extends Component
 			GUI.getTheme().controlBorder(hover, false));
 		
 		// text
-		String name = setting.getName();
+		String name = setting.getTranslatedName();
 		String value = ColorUtils.toHex(setting.getColor());
 		int valueWidth = TR.width(value);
 		int txtColor = GUI.getTxtColor();
@@ -104,7 +104,7 @@ public final class ColorComponent extends Component
 	@Override
 	public int getDefaultWidth()
 	{
-		return TR.width(setting.getName() + "#FFFFFF") + 6;
+		return TR.width(setting.getTranslatedName() + "#FFFFFF") + 6;
 	}
 	
 	@Override

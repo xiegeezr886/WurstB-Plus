@@ -11,7 +11,7 @@ logoFile="assets/wurst/icon.png"
 authors="Penguin"
 displayTest="IGNORE_ALL_VERSION"
 description='''
-WurstB+ Plus for Minecraft 1.21.4.
+WurstB+ Plus for Minecraft 1.21.3.
 '''
 
 [[dependencies.wurstpenguin]]
@@ -24,6 +24,6 @@ side="CLIENT"
 [[dependencies.wurstpenguin]]
 modId="minecraft"
 mandatory=true
-versionRange="[1.21.4,1.21.5)"
+versionRange="[1.21.3,1.21.4)"
 ordering="NONE"
 side="CLIENT"
