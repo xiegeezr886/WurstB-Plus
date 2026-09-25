@@ -1,8 +1,9 @@
 # 发布与维护手册（原 README）
 
-> 本文件是 WurstB+ Plus **原来的根 README**，在重写 README 时**原样搬到这里，正文一字未删**。
-> 内容是**维护者 / 发布导向**的：61 个工程的产物矩阵、构建脚本与本地路径、打包校验、
-> 逐版本移植状态、Baritone 依赖兼容性与验证状态。
+> 本文件是 WurstB+ Plus 的**维护与发布手册**：早期由原来的根 README 搬移而来，之后持续更新，
+> 现在同时承担**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）与
+> **维护者 / 发布文档**（64 个工程的产物矩阵、构建与运行、打包校验、逐版本移植状态、
+> Baritone 依赖兼容性、验证状态）。
 > 面向用户的介绍、下载与安装请看根目录 [README.md](../README.md)。
 
 <p align="center">
@@ -11,24 +12,24 @@
 
 ## 项目概览
 
-WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **61 个独立 Gradle 构建工程**，全部已有打包产物：
+WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **64 个独立 Gradle 构建工程**，全部已有打包产物：
 
-- **15 个原发布工程**：Minecraft 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2 × Forge / NeoForge / Fabric；
-- **46 个新版本工程**：MC 1.20.2–1.20.6、1.21–1.21.10、26.1、26.1.1 的加载器工程（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）。
+- **61 个版本工程**：`versions/` 19（Forge）+ `fabric/versions/` 21 + `neoforge/versions/` 21，覆盖 MC 1.20.2–1.20.6、1.21–1.21.11、26.1、26.1.1、26.1.2、26.2（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）；
+- **3 个 1.20.1 根工程**：根目录 Forge（**v1.6.0**）、`fabric/` 与 `neoforge/`（后两个是 **v1.5.0**）。
 
-**61 个工程中，60 个的 v1.5.0 产物已重新构建，并与留存的原 1.20.1 Forge 产物一起发布在 GitHub Release
-[**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（共 62 个资产，命名统一为
+**64 个工程中，63 个的 v1.5.0 产物已按当前源码重新构建**，并与留存的原 1.20.1 Forge 产物一起发布在 GitHub Release
+[**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（**共 64 个资产**，命名统一为
 `WurstB+.Plus-<版本>-<加载器>-<mc>.jar`）。每个 jar 都做过打包校验（zip 完好、含加载器元数据与 Mixin 配置、含主类），
 但**除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证**——详见[多版本平行移植](#多版本平行移植)与[验证状态](#验证状态)。
 
 > 计数口径：**61 个工程目录** = `versions/` 19（Forge）+ `fabric/versions/` 21 + `neoforge/versions/` 21。加上 3 个 1.20.1 根工程（根目录 Forge、`neoforge/`、`fabric/`）合计 **64 个独立 Gradle 构建**，与「多加载器目录」一节的 64 一致。
 
-详细文件索引见 [PROJECT_INDEX.md](PROJECT_INDEX.md)，版本变更见 [CHANGELOG.md](CHANGELOG.md)，移植计划与逐版本状态见 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
+详细文件索引见 [PROJECT_INDEX.md](../PROJECT_INDEX.md)，版本变更见 [CHANGELOG.md](../CHANGELOG.md)，移植计划与逐版本状态见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)。
 
 > **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
 > 其余 **63 个工程均为 v1.5.0 形态**，v1.6 子系统尚未移植，见「v1.6 新增子系统」。
 
-## 发布产物矩阵（60 个重建 + 1 个留存）
+## 发布产物矩阵（63 个重建 + 1 个留存）
 
 下表是 GitHub Release **v1.5.0** 的资产清单，文件名规则为
 `WurstB+.Plus-<版本>-<加载器>-<mc>.jar`（本地文件名用空格，见下）。
@@ -41,11 +42,12 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 
 Forge 无官方 1.20.5 与 1.21.2，故这两个版本只有 Fabric / NeoForge。
 
-> **Release 里 62 个资产 = 本轮重建的 60 个 + 留存的 1 个**（`WurstB+.Plus-v1.5.0-Forge-1.20.1.jar`，
-> 旧命名未改名）。1.20.1 的三个工程（根目录 Forge、`fabric/`、`neoforge/`）现在都是 **v1.6.0** 形态，
-> 无法再逐字节重建 1.5.0 的它们：Forge 那个保留发布当时的产物，Fabric / NeoForge 那代的旧资产已被
-> 本轮产物取代。上表按 **61 个工程目录**统计（`versions/` 19 + `fabric/versions/` 21 + `neoforge/versions/` 21），
-> 其中 60 个是本轮重建的，另有 1 个是上述留存的根工程产物。
+> **Release 里 64 个资产 = 本轮重建的 63 个 + 留存的 1 个**（`WurstB+.Plus-1.5.0-Forge-1.20.1.jar`，
+> 命名未改）。三个 1.20.1 工程里**只有根目录 Forge 是 v1.6.0 形态**，无法再逐字节重建 1.5.0 的它，
+> 故保留发布当时的产物；`fabric/` 与 `neoforge/` 仍是 v1.5.0，本轮按当前源码重建并替换了同名旧资产。
+> 计数口径：上表 **61 个版本工程**（`versions/` 19 + `fabric/versions/` 21 + `neoforge/versions/` 21）
+> 全部重建，再加 `fabric/`、`neoforge/` 两个 1.20.1 根工程，共 **63 个重建**；加上留存的根 Forge 产物，
+> Release 合计 **64 个资产**。
 
 ### 本地构建路径
 
@@ -87,7 +89,7 @@ python D:\WurstB\tmp-recon\validate-jars.py
 | 26.2 | NeoForge | 26.2.0.53-beta | 25 | `neoforge/versions/26.2/` | v1.5.0 | `neoforge/versions/26.2/build/libs/WurstB+ Plus-v1.5.0-NeoForge-26.2.jar` |
 | 26.2 | Fabric | Loader 0.19.3 / API 0.156.0 | 25 | `fabric/versions/26.2/` | v1.5.0 | `fabric/versions/26.2/build/libs/WurstB+ Plus-1.5.0-Fabric-26.2.jar` |
 
-> 26.2 为最新的 **v1.5 形态**适配版本。6 个 1.21.11/26.2 工程的最终状态见 [PORTING_TASK.md](PORTING_TASK.md)。
+> 26.2 为最新的 **v1.5 形态**适配版本。6 个 1.21.11/26.2 工程的最终状态见 [PORTING_TASK.md](../PORTING_TASK.md)。
 > **v1.6 新子系统目前只在根目录 Forge 1.20.1 工程中实现**，见「v1.6 新增子系统」。
 > 上表以外的 46 个新版本工程**已全部打包并上传到 v1.5.0 Release**，但无启动验证，状态见[多版本平行移植](#多版本平行移植)。
 
@@ -113,13 +115,15 @@ python D:\WurstB\tmp-recon\validate-jars.py
   >
   > `scripts/build-all.ps1` 的 `Test-EmbeddedBaritone` 会在打包后校验内嵌 Baritone 的声明是否接受本工程的 MC 版本，不匹配直接判 FAIL，防止该问题回归。
 
-> **注意**：`baritone-maven/` 在 `.gitignore` 中，不随仓库分发。Fabric 26.2 依赖的 `baritone-api-fabric-1.18.0-26.2.jar` 曾因 `META-INF/MANIFEST.MF` 把 `MixinConfigs` 放到空行之后而非法，导致 javac 对每个 `net.minecraft.*` 导入报 `invalid manifest format`（101 个假错误）。本地已重打包修复；克隆仓库后如遇同样报错，需按 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) 的说明重建该 jar。
+> **注意**：`baritone-maven/` 在 `.gitignore` 中，不随仓库分发。Fabric 26.2 依赖的 `baritone-api-fabric-1.18.0-26.2.jar` 曾因 `META-INF/MANIFEST.MF` 把 `MixinConfigs` 放到空行之后而非法，导致 javac 对每个 `net.minecraft.*` 导入报 `invalid manifest format`（101 个假错误）。本地已重打包修复；克隆仓库后如遇同样报错，需按 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md) 的说明重建该 jar。
 
 > 注意：为避免 JPMS 模块读取错误（`baritone.api.forge does not read module minecraft`），NeoForge 1.21.1、Forge/NeoForge 26.1.2 的发布包已将 Baritone 类直接合并进 WurstB+ Plus 主模块（类归属 `wurstpenguin` 模块，可访问 `minecraft` 模块）；Forge 1.20.1/1.21.1 仍以 Jar-in-Jar 形式打包。Fabric 版本不受 JPMS 模块读取限制，仍按各自版本内嵌 Baritone JAR。
 
 NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module minecraft`，说明仍加载了旧的 1.21.2 包。请删除旧包和单独的 Baritone JAR，只保留对应版本的 `*.jar`。
 
-## 根工程状态
+## 工程状态
+
+> 下表前六行（Minecraft / Java / 构建插件 / 映射 / 加载器 / MixinExtras）描述的是**原发布矩阵**（5 个 MC 版本 × Forge / NeoForge / Fabric，即「原发布版本矩阵」一节那 15 个工程）的工具链；其余各行是根目录 Forge 1.20.1（v1.6.0）工程的实测值。
 
 | 项目 | 当前值 |
 | --- | --- |
@@ -132,13 +136,13 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组 ID | `wurstpenguin` |
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
-| 构建状态 | **61 个工程全部产出打包 jar**，其中 60 个是本轮重建、已上传 v1.5.0 Release；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证（详见 [PORTING_TASK.md](PORTING_TASK.md) 与 [PROJECT_INDEX.md](PROJECT_INDEX.md)） |
-| 注册 Hack | 210 个（根工程 v1.6.0；`hacks/` 目录含内部辅助类共 252 个 Java 文件） |
-| 注册命令 | 56 |
-| Other Feature | 17 |
+| 构建状态 | **64 个工程全部产出打包 jar**，其中 63 个按当前源码重建并已上传 v1.5.0 Release（另 1 个是留存的根 Forge 1.20.1 产物）；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证（详见 [PORTING_TASK.md](../PORTING_TASK.md) 与 [PROJECT_INDEX.md](../PROJECT_INDEX.md)） |
+| 注册 Hack | **209** 个（根工程 v1.6.0；`hacks/` 下声明 `extends Hack` 的类共 210 个，其中 `RadialMenuHack` 未注册） |
+| 注册命令 | **57** |
+| Other Feature | **18** |
 | Forge Mixin | 74 (1.20.1 根工程，见 `wurst.mixins.json`) |
-| 活跃 Java 文件 | 952 (根 1.20.1 `src/main/java`) / 741 (1.21.1) / 791 (26.2) |
-| 单元测试 | 112 个测试类 / 545 项 / 0 失败（根工程 1.20.1 最近一次 `test`），覆盖 v1.6 音乐解析、AMLL 歌词流水线与布局、Compose 动画、MD3 主题、周界挖掘全套（区域几何、边界检测、液体策略、配置迁移、双语文本）、种子矿透（抽样契约、预测确定性、种子存储）、结构定位（区域扫描、频率削减速率）、种子反解（LCG 逐位一致性、搜索闭环、无范围反解还原）与结构扫描器 |
+| Java 文件 | **1040**（根 1.20.1 `src/main/java`，含 v1.6 子系统） |
+| 单元测试 | **162 个测试类 / 1040 项 / 0 失败**（根工程 1.20.1，2026-09-25 以 Java 17 跑 `gradlew test --offline`），覆盖 v1.6 音乐解析、AMLL 歌词流水线与布局、Compose 动画、MD3 主题、周界挖掘全套（区域几何、边界检测、液体策略、配置迁移、双语文本）、种子矿透（抽样契约、预测确定性、种子存储）、结构定位（区域扫描、频率削减速率）、种子反解（LCG 逐位一致性、搜索闭环、无范围反解还原）与结构扫描器 |
 
 > 根目录是 Forge 1.20.1-47.4.10 工程；`neoforge/`、`versions/` 和 `fabric/` 是独立版本工程，不共享加载器运行时。Forge/NeoForge 使用 Mojang 官方映射，Fabric 使用 Fabric Loom + 官方映射；Fabric 版本通过 Access Widener 和 Fabric API 适配，不代表根工程是 Fabric 项目。
 
@@ -253,7 +257,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 
 ## v1.6 新增子系统
 
-以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 63 个工程（已发布的 14 个平台工程 + 46 个新版本工程）均未移植。
+以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 63 个工程（61 个版本工程，外加 `fabric/` 与 `neoforge/` 两个 1.20.1 根工程）均未移植。
 
 ### 源码包（152 个 Java 文件）
 
@@ -601,6 +605,21 @@ build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar
 .\gradlew.bat runClient --console=plain
 ```
 
+跑单元测试（可完全离线；**必须用 Java 17**——wrapper 是 Gradle 8.11，用 JDK 25 会在配置阶段就以
+`Could not create task ':test' > Type T not present` 失败）：
+
+```powershell
+.\gradlew.bat test --offline --console=plain
+```
+
+> **首次 `runClient` 必须联网**：ForgeGradle 要拉取 Minecraft 资源与 `commons-io` 等原版库。
+> `compileJava` / `test` 能离线跑，但 `runClient --offline` 会失败在 `:minecraftLibraryCopy`
+> （`commons-io:commons-io:2.6` 不在离线缓存里）。
+>
+> `jarJar` 结束后会自动把产物复制到本地测试实例的 `mods/`
+> （`.test/versions/1.20.1-Forge_47.4.22/mods/`，见 `build.gradle` 的 `copyJarToTestMods`），
+> 并清掉该目录里旧的 WurstB+ jar，避免 Forge 重复加载。
+
 ### NeoForge 1.20.1
 
 `neoforge/` 目录为 NeoForge 1.20.1 分支，使用 ForgeGradle 6.x + MixinGradle 0.7 + Mixin 0.8.7，需要 Java 17：
@@ -805,7 +824,7 @@ Forge 1.21.11/26.2 使用 `allJar`，NeoForge 与 Fabric 使用 `build`。所有
 
 ### 尚未完成的部分
 
-- **没有任何游戏内运行验证**（1.21.11 / 26.2 的六个工程除外）：未启动客户端、未做 Mixin 应用校验。已知的运行时债务（Mixin 目标描述符不匹配、部分 1.21.6–1.21.8 姓名牌渲染调整失效、1.21.5 的 `PostEffectQueue`/`LsdHack` 降级等）逐条记在 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) 的「剩余工作」。
+- **没有任何游戏内运行验证**（1.21.11 / 26.2 的六个工程除外）：未启动客户端、未做 Mixin 应用校验。已知的运行时债务（Mixin 目标描述符不匹配、部分 1.21.6–1.21.8 姓名牌渲染调整失效、1.21.5 的 `PostEffectQueue`/`LsdHack` 降级等）逐条记在 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md) 的「剩余工作」。
 - v1.6 子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透）在这 46 个工程中均未移植。
 - `scripts/build-all.ps1` / `run-version-tests.ps1` 的工程表仍只覆盖已发布的 15 个工程；新版本工程的批量打包目前靠 `tmp-recon/build-v1.5-release.py`（未纳入仓库，逻辑见[本地构建路径](#本地构建路径)）。
 
@@ -1002,7 +1021,7 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 
 - **46 / 46 个工程 `compileJava` 通过**；其中 34 个带测试源码的工程 `compileTestJava` 也通过，`neoforge/versions/1.21.5` 另跑通 JUnit（51 测试类 / 135 用例 / 0 失败）
 - **46 / 46 个工程打包通过**，jar 已上传 v1.5.0 Release；打包必须联网（`--offline` 会因部分 MC 依赖无本地缓存而失败），NeoForge 1.20.2–1.20.6 另需联网完成 MC 产物解压/反编译
-- 46 个新版本工程 + 14 个非根目录的原发布工程 = **60 个 jar 本轮重建**（根目录 Forge 1.20.1 的 v1.5 产物无法重建，沿用发布当时的那一个）；**没有游戏内启动验证**，也未移植 v1.6 子系统；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)
+- 46 个新版本工程 + 14 个非根目录的原发布工程 = **60 个 jar 本轮重建**（根目录 Forge 1.20.1 的 v1.5 产物无法重建，沿用发布当时的那一个）；**没有游戏内启动验证**，也未移植 v1.6 子系统；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)
 
 打包校验口径（`tmp-recon/validate-jars.py`，61/61 通过）：zip 完好、含加载器元数据（`mods.toml` / `neoforge.mods.toml` / `fabric.mod.json`）、含 Mixin 配置（Forge/NeoForge 为 `wurst.mixins.json`，Fabric 为 `wurstpenguin.mixins.json`）、含 `net/wurstclient/WurstClient.class`、条目数 ≥ 200。
 
