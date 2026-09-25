@@ -197,3 +197,137 @@ Updated: 2026-08-29
 | Baritone 26.2 重新打包 | `powershell -ExecutionPolicy Bypass -File scripts/patch-baritone-26.2.ps1`（需 JDK 25 + ASM + MC 26.2 compile jar） |
 
 > 注：26.1.2 使用 Gradle 9.4.1 wrapper。所有活动工程的 `gradle-wrapper.jar` 已统一替换为含 `Main-Class` 的完整 wrapper（43,764 bytes，见已完成任务 4），`java -jar` 与 `gradlew.bat` 均可用。
+
+---
+
+# 2026-09-25 会话：运行时缺陷清查（真实启动验证）
+
+上文记录的是更早几轮的静态检查成果。本次会话换了判据——**真启动客户端**——结果推翻了一部分
+"已完成"的结论，并暴露出一个此前完全没被发现的缺陷大类。以下是可交接的状态。
+
+## 一、方法论（比单条修复更重要）
+
+1. **混入的注入点/访问器目标没有任何编译期校验。** 本仓库这个版本线上的注解处理器不生成
+   refmap，等于完全不校验。已用对照实验确认：把一个目标方法早已不存在的过时混入注册进去，
+   `clean compileJava` 照样 `BUILD SUCCESSFUL`。**"编译通过"不能作为"客户端能跑"的证据。**
+2. **冒烟判据要看准。** 我最初用日志里的 `Sound engine started`（资源重载阶段）当"启动成功"，
+   会产生**假通过**：混入注入是在目标类被加载时才应用的，可能晚于该判据。铁证是
+   `PlayerMixin.java` 在 1.21.6 与 1.21.7 里**逐字节相同**、都注册了、配置的 `defaultRequire`
+   也都是 1、目标方法在两个版本都不存在，却只有 1.21.7 崩——另一个只是还没走到就被结束了。
+   **可信判据至少要"见到主菜单"，最好进一次世界。**
+3. **判据本身也要被验证。** 本会话我两次因工具自身缺陷误判：一次是幂等守卫用子串判断（注释行
+   含同样子串）导致 30 个文件被误判为"已完成"而跳过；一次是固定日志路径被并发运行的进程写乱，
+   把 `1.21.1` 记成"10 秒启动成功"。**工具的结论要用别的方式交叉验证。**
+
+## 二、已修复并推送（4 个提交）
+
+| 提交 | 内容 | 验证 |
+| --- | --- | --- |
+| `3fdf47b` | 国内镜像（4 处）+ 启动脚本 + 资源预取 + 两个启动崩溃 | 见下 |
+| `c12fc91` | `neoforge/26.1`、`26.1.1` 的非法 `mod_version` | 两工程 `runClient` 实测启动 |
+| `c77c5f9` | 删除 1.21.3–1.21.5 失效的 `BlockMixin` 注入 | 编译通过 |
+| `b78ac0d` | `tickDownDuration` 改 void 形式（1.21.5–26.3） | 编译通过，实测越过该失败 |
+| `d444107` | `1.21.7` 的 `neo_version_range` 补 `-beta` | 实测错误消失 |
+| `362b958` | `PlayerMixin` 的 `keepSprintMotion` 加 `require = 0`（1.21.6–1.21.10） | 编译通过 |
+
+其中 `3fdf47b` 含两个**启动即崩**的真实缺陷（真启动才发现）：
+- 内置 Baritone 的 `mixins.baritone.json` 声明 `compatibilityLevel: JAVA_25`，而 Forge 26.2 自带的
+  Mixin 0.8.7 里该枚举**最高只到 `JAVA_21`** → 混入子系统初始化直接中止。全仓库其余 baritone jar
+  都是 `JAVA_17`，只有 `1.18.0-26.2` 三个是异类。`baritone-maven/` 被 .gitignore，故做成可复现
+  脚本 `scripts/patch-baritone-mixin-level.py`。
+- `ToastManagerAccessor` 的 `@Accessor("queued")` 声明返回 `List<Toast>`，而 MC 自 **1.21.3** 起该
+  字段是 `Deque<Toast>`。Mixin 按擦除后的描述符精确匹配，类型不符即找不到候选。26.x 线三棵树
+  共 15 个文件，已全部改为 `Deque<Toast>`（调用方只用 `removeIf`，无需改动）。
+
+修复后的 26.2 Forge 实机结果（唯一做过深度验证的一个）：
+
+```text
+Successfully loaded Mixin Connector [baritone.launch.BaritoneMixinConnector]
+Setting user: Dev / Backend library: LWJGL 3.4.1+2
+Starting WurstB+ Plus... / [nether-pathfinder] Loaded shared library
+[HUD] Notification system started / Sound engine started
+```
+
+## 三、崩溃清单：neoforge 线（23 个工程，唯一扫完的一条线）
+
+浅层判据下：**浅层通过 9、崩溃 14**（"浅层通过"含义见一.2，不等于健康）。崩溃聚成几类：
+
+| 类别 | 工程 | 状态 |
+| --- | --- | --- |
+| `neo_version_range` 漏 `-beta` 限定符 | 1.21.2、1.21.7 | **已修** |
+| 混入目标失效 `PlayerInventoryMixin`（目标 `swapPaint(D)V` 在 1.21.3+ 已从 `Inventory` 移除） | 1.21.2、1.21.4、1.21.5 | 未修，诊断完成 |
+| 混入目标失效 `PlayerMixin`（`causeExtraKnockback` 只在 1.21.11 存在） | 1.21.7、1.21.8、1.21.10 | **已修**（`require = 0`） |
+| baritone 的 `MixinMinecraft` 描述符不匹配 | 1.21.3 | 未修，需与该 MC 版本匹配的 baritone 构建 |
+| 构建失败（仅有 Gradle 任务摘要，无 FATAL） | 1.20.4、1.20.6、1.21 | 未查 |
+| 首次下载资源超时（NeoForm 自下、不走镜像） | 1.20.2、1.20.3、1.20.5 | 环境耗时，非缺陷 |
+| 未编译通过（脚手架） | 26.3 | 见四 |
+
+**fabric 与 forge（`versions/*`）两棵树从未做过同样扫描**，所以清单不完整。
+
+## 四、26.3 的状态与精确修法
+
+三个 26.3 工程（`versions/` `fabric/versions/` `neoforge/versions/`）`compileJava` 已通过，但
+`runClient` **三棵树全部崩在同一处**：
+
+```text
+InvalidAccessorException: No candidates were found matching swingTime:I
+  in net/minecraft/world/entity/LivingEntity
+  for wurst.mixins.json:LivingEntityAccessor
+```
+
+根因：**26.3 把 `LivingEntity.swingTime` 换成了对象化机制**（26.1.2 与 26.2 都还是
+`public int swingTime`，javap 已确认；26.3 整个 jar 里已无该字符串）：
+
+```text
+LivingEntity.swingState        (private final SwingState)
+LivingEntity.getCurrentSwing() (public -> SwingDescription 记录: hand/animation/durationTicks)
+LivingEntity$SwingState        (private int ticks / private float animation / isSwinging())
+```
+
+`SwingState.ticks` 才是旧 `swingTime` 的语义对应（`durationTicks()` 是挥动总时长，不是同一个量）。
+唯一调用方是 `MultiAuraHack:866`（用对手挥动进度做节流）。修法三步：
+
+1. 新增 `@Mixin(LivingEntity.SwingState.class)` 的访问器，暴露 private 的 `ticks`；
+2. `LivingEntityAccessor` 里把 `@Accessor("swingTime")` 改为 `@Accessor("swingState")`（也是 private）；
+3. 调用点改为 `((LivingEntityAccessor)living).wurst_getSwingState().wurst_getTicks() > ...`。
+
+**注意 `@Accessor` 没有 `require` 参数**，字段找不到就是致命错误——不能像 `PlayerMixin` 那样用
+`require = 0` 绕过，26.3 在改完之前一直起不来。三棵树同一改法。`attackStrengthTicker` 在 26.3
+仍存在，那一半不用动。
+
+## 五、环境事实（本会话搭建，交接时可直接用）
+
+- **国内镜像落在四处**（细节见 `docs/CLIENT-LAUNCH.md`）：各工程 `settings.gradle` 的
+  `pluginManagement`（插件）、`gradle/init-mirrors.gradle`（依赖）、23 个 fabric 工程的
+  `gradle.properties`（Loom 的 `loom_*` 三项）、67 个 wrapper 的 `distributionUrl`（腾讯云）。
+- **资源库已全量预取并合并**：`.minecraft/assets`（9222 对象 / 15 索引）已合并进
+  `~/.gradle/caches/fabric-loom/assets`（→9222）与 `~/.gradle/caches/neoformruntime/assets`
+  （→9365）。对象内容寻址、跨版本共用，因此 fabric/neoforge 工程不再需要那 435MB 首次下载。
+  重新预取用 `python scripts/fetch-assets.py <版本>` 或 `--all`。
+- **JDK 实际路径**（与 `scripts/common.ps1` 的默认值不一致，建议回填）：
+  `1.17` → `C:\Program Files\Microsoft\jdk-17.0.20.101-hotspot`；
+  `21` → `C:\Program Files\Java\jdk-21.0.11`；
+  `25` → `C:\Program Files\Microsoft\jdk-25.0.4.101-hotspot`。
+  **老工程的 Gradle 8.x 跑在 JDK 25 上会死在 `Unsupported class file major version 69`**，与模组无关。
+- **脚本**：`scripts/smoke-launch.py`（批量真启动＋按版本选 JDK）、`scripts/fetch-assets.py`、
+  `scripts/audit-mixin-targets.py`（javap 校验访问器目标，启发式、有误报）、
+  `scripts/patch-baritone-mixin-level.py`（可复现的 baritone 修复）、`scripts/run-client.ps1/.sh`。
+
+## 六、两套测试体系（别混淆）
+
+1. **浅层冒烟**（本会话的 `smoke-launch.py`）：编译＋`runClient`，判据 `Sound engine started`。
+   覆盖 67 个工程，但判据浅（见一.2），且**全量扫描三次都在第一个工程后中断**，未跑完。
+2. **全量测试**（仓库原有 `scripts/run-version-tests.ps1`）：跑**构建好的 jar** 在真实实例里启动，
+   可 `-QuickPlayWorld` 进世界并断言 `worldLoaded`/`wurstSeen`/`baritoneSeen`——判据强得多。
+   但它依赖 `.test/versions/<MC>-<Loader>_<版本>/` 下的实例（含 `<名>.json`、`<名>.jar`、
+   `mods/`、`saves/`）。**目前该目录只有一个空壳 `1.20.1-Forge_47.4.22`（只有 `mods/`），
+   缺 `.json` 与 `.jar`**，所以全量测试在任何版本上都跑不起来，需要单独搭建实例基础设施。
+
+## 七、建议的下一步顺序
+
+1. **先改冒烟判据**（`Sound engine started` → 主菜单出现），否则扫出来的"通过"没有意义。
+2. 修 26.3 的 `LivingEntityAccessor`（方案已在四给出，三棵树，可编译＋启动验证）。
+3. 用改好的判据扫完全部 67 个（资源瓶颈已解，预期半小时量级；分批落盘汇总）。
+4. 按清单批量修：`PlayerInventoryMixin`（3 个）、baritone 的 `MixinMinecraft`（1 个）、
+   `1.20.4/1.20.6/1.21` 的构建失败、以及清单暴露的其余项。
+5. 顺手回填 `scripts/common.ps1` 的 JDK 路径。
