@@ -272,15 +272,7 @@ cd versions\1.21.5
 
 ---
 
-## 致谢与许可
-
-本项目建立在许多人的工作之上：
-
-- [**Wurst**](https://github.com/Wurst-Imperium/Wurst7) —— 代码结构与大部分功能的来源
-- [**Baritone**](https://github.com/cabaletta/baritone) —— 寻路与自动化
-- [**OpenOpal**](https://github.com/ZSZ7/OpenOpal) —— ESP / HUD 视觉设计参考
-- [**Perimeter Digger**](https://github.com/HackerRouter/Perimeter-Digger) —— 周界挖掘的行为参考
-- **Skiko / Skia** —— 矢量渲染后端
+## 许可
 
 **源码采用 [GPL-3.0](LICENSE.txt)（继承自 Wurst）**。
 仓库根目录的 `LICENSE.txt` 是 Forge MDK 模板带来的 LGPL 2.1 文本，适用于其中所述的
