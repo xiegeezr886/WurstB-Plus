@@ -1,23 +1,15 @@
 <div align="center">
 
-**简体中文** · [English](README.en.md)
+简体中文 · [English](README.en.md)
 
 <img src="logo.png" alt="WurstB+ Plus" width="620"/>
 
-**把 Wurst 的代码结构，扩展到新的加载器与新的 Minecraft 版本**
-
 [![Release](https://img.shields.io/github/v/release/xiegeezr886/WurstB-Plus?style=flat-square&label=release&color=007CFF)](https://github.com/xiegeezr886/WurstB-Plus/releases)
-[![Downloads](https://img.shields.io/github/downloads/xiegeezr886/WurstB-Plus/total?style=flat-square&label=downloads&color=007CFF)](https://github.com/xiegeezr886/WurstB-Plus/releases)
-[![Stars](https://img.shields.io/github/stars/xiegeezr886/WurstB-Plus?style=flat-square&label=stars&color=007CFF)](https://github.com/xiegeezr886/WurstB-Plus/stargazers)
-[![Forks](https://img.shields.io/github/forks/xiegeezr886/WurstB-Plus?style=flat-square&label=forks)](https://github.com/xiegeezr886/WurstB-Plus/forks)
-[![Last commit](https://img.shields.io/github/last-commit/xiegeezr886/WurstB-Plus?style=flat-square&label=last_commit)](https://github.com/xiegeezr886/WurstB-Plus/commits/main)
-[![Contributors](https://img.shields.io/github/contributors/xiegeezr886/WurstB-Plus?style=flat-square&label=contributors)](https://github.com/xiegeezr886/WurstB-Plus/graphs/contributors)
-
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1~26.2-3C8527?style=flat-square)](#-版本支持矩阵)
-[![Loaders](https://img.shields.io/badge/Loaders-Forge%20%7C%20NeoForge%20%7C%20Fabric-6E6E6E?style=flat-square)](#-版本支持矩阵)
-[![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#-版本支持矩阵)
-[![Projects](https://img.shields.io/badge/Gradle_projects-64-4C1D95?style=flat-square)](#-仓库结构)
-[![Preview](https://img.shields.io/badge/preview-v1.6.0-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1~26.2-3C8527?style=flat-square)](#版本支持矩阵)
+[![Loaders](https://img.shields.io/badge/Loaders-Forge%20%7C%20NeoForge%20%7C%20Fabric-6E6E6E?style=flat-square)](#版本支持矩阵)
+[![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#版本支持矩阵)
+[![Gradle projects](https://img.shields.io/badge/Gradle_projects-64-4C1D95?style=flat-square)](#仓库结构)
+[![preview](https://img.shields.io/badge/preview-v1.6.0-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)
 [![License](https://img.shields.io/badge/license-GPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
 
 </div>
@@ -26,24 +18,23 @@
 Minecraft 客户端（utility mod）。同一套功能被移植到 **Forge / NeoForge / Fabric** 三种加载器、
 **22 个 Minecraft 版本**上，并以 64 个彼此独立的 Gradle 工程维护。
 
-> [!TIP]
-> **只想直接玩？** 到 [Releases](https://github.com/xiegeezr886/WurstB-Plus/releases) 按你的
-> 游戏版本和加载器下载对应 jar，然后看[安装](#-安装)。**务必注意 Java 版本要匹配**（见下表）。
+> **想直接玩？** 到 [Releases](https://github.com/xiegeezr886/WurstB-Plus/releases) 按你的
+> 游戏版本和加载器下载对应 jar，然后看[安装](#安装)。**务必注意 Java 版本要匹配**（见下表）。
 
 ---
 
-## 📦 版本支持矩阵
+## 版本支持矩阵
 
 | Minecraft | Forge | NeoForge | Fabric | Java |
 | --- | :---: | :---: | :---: | :---: |
-| **1.20.1** | ✅ <sup>v1.6.0</sup> | ✅ | ✅ | 17 |
-| 1.20.2 · 1.20.3 · 1.20.4 | ✅ | ✅ | ✅ | 17 |
-| 1.20.5 | — | ✅ | ✅ | 17 |
-| 1.20.6 | ✅ | ✅ | ✅ | 17 |
-| 1.21 · 1.21.1 | ✅ | ✅ | ✅ | 21 |
-| 1.21.2 | — | ✅ | ✅ | 21 |
-| 1.21.3 → 1.21.11 | ✅ | ✅ | ✅ | 21 |
-| 26.1 · 26.1.1 · 26.1.2 · 26.2 | ✅ | ✅ | ✅ | 25 |
+| **1.20.1** | ✓ <sup>v1.6.0</sup> | ✓ | ✓ | 17 |
+| 1.20.2 · 1.20.3 · 1.20.4 | ✓ | ✓ | ✓ | 17 |
+| 1.20.5 | — | ✓ | ✓ | 17 |
+| 1.20.6 | ✓ | ✓ | ✓ | 17 |
+| 1.21 · 1.21.1 | ✓ | ✓ | ✓ | 21 |
+| 1.21.2 | — | ✓ | ✓ | 21 |
+| 1.21.3 → 1.21.11 | ✓ | ✓ | ✓ | 21 |
+| 26.1 · 26.1.1 · 26.1.2 · 26.2 | ✓ | ✓ | ✓ | 25 |
 
 <sub>Minecraft **1.20.5** 与 **1.21.2** 没有官方 Forge，故这两个版本只有 NeoForge 与 Fabric。</sub>
 
@@ -58,15 +49,14 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 | [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 64 个资产 | 全部版本的主力发布 |
 | [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | 预发布（prerelease），含 v1.6 新子系统 |
 
-> [!NOTE]
-> 1.20.1 的三个工程并不都是 v1.5：**根目录 Forge 1.20.1 是 v1.6.0**（唯一带 v1.6 新子系统的工程），
-> `fabric/` 与 `neoforge/` 仍是 v1.5.0。v1.5.0 Release 里的
+> **说明：** 1.20.1 的三个工程并不都是 v1.5。**根目录 Forge 1.20.1 是 v1.6.0**（唯一带 v1.6 新子系统的
+> 工程），`fabric/` 与 `neoforge/` 仍是 v1.5.0。v1.5.0 Release 里的
 > `WurstB+.Plus-1.5.0-Forge-1.20.1.jar` 是 1.5.0 时期的产物（该工程已升级，无法再逐字节重建那一份），
 > 予以保留；想要 v1.6 的 1.20.1 Forge，请取 v1.6.0 Release。
 
 ---
 
-## 🚀 安装
+## 安装
 
 把 jar 丢进 `.minecraft/mods/` 即可。**Java 版本必须与上表一致**，否则加载器起不来。
 
@@ -87,9 +77,8 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
    26.1.2 → `26.1.2.87`，26.2 → `26.2.0.53-beta`。
 2. 把 `WurstB+.Plus-<版本>-NeoForge-<mc>.jar` 放进 `.minecraft/mods/`。
 
-> [!WARNING]
-> NeoForge 1.21.1 若报 `baritone.api.forge does not read module minecraft`，说明同时存在旧包或
-> 单独的 Baritone JAR；删掉它们，只留对应版本的一个 jar。
+> **注意：** NeoForge 1.21.1 若报 `baritone.api.forge does not read module minecraft`，
+> 说明同时存在旧包或单独的 Baritone JAR；删掉它们，只留对应版本的一个 jar。
 
 </details>
 
@@ -114,7 +103,7 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 
 ---
 
-## 🧩 功能
+## 功能
 
 规模（根目录 Forge 1.20.1 工程实测）：
 
@@ -139,19 +128,18 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 
 | 子系统 | 说明 |
 | --- | --- |
-| 🎵 **网易云音乐播放器** | 网易云 API 与账号登录；主页 / 搜索 / 我喜欢 / 歌单 / 播放详情页；逐字歌词动画与 AMLL 级视觉层（弹簧、遮罩、强调、分行平衡） |
-| ⛏ **周界挖掘** `PerimeterDigger` | 社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 的原生等价移植：闭区间矩形与**不规则区域边界检测**、液体 `avoid` / `replace` / `seal_boundary` 策略、批次上限与背包满自动暂停、自动拾取与多卸货点、工具/鞘翅耐久替换、自动进食补给睡觉、跨维度熔炉修复、寻路、按服务器/存档分存配置、中英双语 |
-| 💎 **种子矿透** `SeedOreESP` | 按服务器/存档分存种子；纯 Java 复刻原版矿物生成数学（Xoroshiro + 逐条 `placed_feature` 规则表）预测矿物坐标并在客户端渲染 ESP，可选交给官方 Baritone 挖掘。**零新增依赖**：不内置 Meteor、不引入 Cubiomes / seedfinding |
-| 🏛 **结构定位** `SeedStructureESP` | 直接调用原版 public 的 `RandomSpreadStructurePlacement#getPotentialStructureChunk`，与原版构造上一致；19 个原版结构中支持 18 个（要塞的 `concentric_rings` 算法不同，跳过） |
-| 🔑 **种子反解** `seed.search` / `seed.crack` | 用实际观测到的结构反推候选种子；热循环 LCG 与频率削减与原版**逐位对照**，搜索前有运行时自检。**注意**：不做格基归约，无法在 2⁴⁸ 全域内无范围求解，通常返回多个候选需逐步收敛 |
+| **网易云音乐播放器** | 网易云 API 与账号登录；主页 / 搜索 / 我喜欢 / 歌单 / 播放详情页；逐字歌词动画与 AMLL 级视觉层（弹簧、遮罩、强调、分行平衡） |
+| **周界挖掘** `PerimeterDigger` | 社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 的原生等价移植：闭区间矩形与**不规则区域边界检测**、液体 `avoid` / `replace` / `seal_boundary` 策略、批次上限与背包满自动暂停、自动拾取与多卸货点、工具/鞘翅耐久替换、自动进食补给睡觉、跨维度熔炉修复、寻路、按服务器/存档分存配置、中英双语 |
+| **种子矿透** `SeedOreESP` | 按服务器/存档分存种子；纯 Java 复刻原版矿物生成数学（Xoroshiro + 逐条 `placed_feature` 规则表）预测矿物坐标并在客户端渲染 ESP，可选交给官方 Baritone 挖掘。**零新增依赖**：不内置 Meteor、不引入 Cubiomes / seedfinding |
+| **结构定位** `SeedStructureESP` | 直接调用原版 public 的 `RandomSpreadStructurePlacement#getPotentialStructureChunk`，与原版构造上一致；19 个原版结构中支持 18 个（要塞的 `concentric_rings` 算法不同，跳过） |
+| **种子反解** `seed.search` / `seed.crack` | 用实际观测到的结构反推候选种子；热循环 LCG 与频率削减与原版**逐位对照**，搜索前有运行时自检。**注意**：不做格基归约，无法在 2⁴⁸ 全域内无范围求解，通常返回多个候选需逐步收敛 |
 
 新增 Hack 14 个：
 `AirJump` · `EntityCulling` · `MusicPlayer` · `NoMissCooldown` · `NoRotate` · `PerimeterDigger` ·
 `ProjectilePuncher` · `ReverseStep` · `RightClicker` · `SeedOreESP` · `SeedStructureESP` ·
 `SuperKnockback` · `VehicleBoost` · `WTap`
 
-> [!IMPORTANT]
-> 已知局限与偏差（例如种子矿透不按生物群系过滤、未在真实存档逐格校验）都写在
+> **重要：** 已知局限与偏差（例如种子矿透不按生物群系过滤、未在真实存档逐格校验）都写在
 > [CHANGELOG.md](CHANGELOG.md) 里，没有藏起来。
 
 ### ESP 与视觉
@@ -163,7 +151,7 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 
 ---
 
-## 🛠️ 从源码构建
+## 从源码构建
 
 每个工程都是**独立的 Gradle 构建**，自带 wrapper，相互之间**没有共享 sourceSet**。
 
@@ -185,9 +173,8 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 .\gradlew.bat test --offline --console=plain # 跑单元测试
 ```
 
-> [!NOTE]
-> 首次 `runClient` **必须联网**：ForgeGradle 要拉 Minecraft 资源与 `commons-io` 等原版库。
-> `compileJava` / `test` 能完全离线跑，但 `runClient` 加 `--offline` 会失败在
+> **说明：** 首次 `runClient` **必须联网**：ForgeGradle 要拉 Minecraft 资源与 `commons-io`
+> 等原版库。`compileJava` / `test` 能完全离线跑，但 `runClient` 加 `--offline` 会失败在
 > `:minecraftLibraryCopy`（`commons-io:commons-io:2.6` 不在离线缓存里）。
 >
 > `jarJar` 结束后会自动把产物复制到本地测试实例的 `mods/`
@@ -216,7 +203,7 @@ cd versions\1.21.5
 
 ---
 
-## 📁 仓库结构
+## 仓库结构
 
 ```text
 .
@@ -236,7 +223,7 @@ cd versions\1.21.5
 
 ---
 
-## 📚 文档索引
+## 文档索引
 
 | 文档 | 内容 |
 | --- | --- |
@@ -253,7 +240,7 @@ cd versions\1.21.5
 
 ---
 
-## ⚖️ 致谢与许可
+## 致谢与许可
 
 本项目建立在许多人的工作之上：
 
@@ -267,8 +254,7 @@ cd versions\1.21.5
 仓库根目录的 `LICENSE.txt` 是 Forge MDK 模板带来的 LGPL 2.1 文本，适用于其中所述的
 Minecraft Forge / FML 部分。
 
-> [!WARNING]
-> **验证状态**：只有 **1.21.11 与 26.2 的六个工程**做过**游戏内启动**验证；其余工程的产物通过的是
+> **注意：** 只有 **1.21.11 与 26.2 的六个工程**做过**游戏内启动**验证；其余工程的产物通过的是
 > 编译与**打包校验**（zip 完好、含加载器元数据与 Mixin 配置、含主类），**没有游戏内启动验证**。
 > 逐版本状态见 [docs/RELEASE.md](docs/RELEASE.md) 与
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
