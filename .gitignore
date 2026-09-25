@@ -45,3 +45,7 @@ fabric/baritone-maven/
 # Stale porting artifacts and baritone tool workspaces
 _porting_stale/
 _tools/
+
+# Local smoke-test scratch space (launch logs, javap dumps, audit output)
+_smoke/
+scripts/__pycache__/
