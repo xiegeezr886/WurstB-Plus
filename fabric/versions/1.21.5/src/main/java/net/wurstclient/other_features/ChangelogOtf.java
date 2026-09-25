@@ -12,7 +12,6 @@ import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.WurstClient;
 import net.wurstclient.other_feature.OtherFeature;
-import net.wurstclient.update.Version;
 
 @SearchTags({"change log", "wurst update", "release notes", "what's new",
 	"what is new", "new features", "recently added features"})
@@ -33,8 +32,8 @@ public final class ChangelogOtf extends OtherFeature
 	@Override
 	public void doPrimaryAction()
 	{
-		String link = new Version(WurstClient.VERSION).getChangelogLink()
-			+ "?utm_source=Wurst+Client&utm_medium=ChangelogOtf&utm_content=View+Changelog";
+		String link = "https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v"
+			+ WurstClient.VERSION;
 		Util.getPlatform().openUri(link);
 	}
 }
