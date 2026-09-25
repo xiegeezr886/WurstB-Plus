@@ -289,15 +289,7 @@ distribution resolves even offline.
 
 ---
 
-## Credits and licence
-
-This project builds on the work of many others:
-
-- [**Wurst**](https://github.com/Wurst-Imperium/Wurst7) — the code structure and most of the features
-- [**Baritone**](https://github.com/cabaletta/baritone) — pathfinding and automation
-- [**OpenOpal**](https://github.com/ZSZ7/OpenOpal) — the ESP / HUD visual design
-- [**Perimeter Digger**](https://github.com/HackerRouter/Perimeter-Digger) — the reference behaviour for perimeter digging
-- **Skiko / Skia** — the vector rendering backend
+## Licence
 
 **The source is [GPL-3.0](LICENSE.txt), inherited from Wurst.** The `LICENSE.txt` at the repository
 root is the LGPL 2.1 text that ships with the Forge MDK template and applies to the Minecraft Forge
