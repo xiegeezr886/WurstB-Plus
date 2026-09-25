@@ -25,7 +25,7 @@ import net.wurstclient.WurstClient;
 public class ScreenEffectRendererMixin
 {
 	@ModifyConstant(
-		method = "renderFire(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V",
+		method = "renderFire(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V",
 		constant = @Constant(floatValue = -0.3F))
 	private static float getFireOffset(float original)
 	{

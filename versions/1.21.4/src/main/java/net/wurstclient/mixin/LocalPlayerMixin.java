@@ -30,9 +30,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.InputFaker;
 import net.wurstclient.InputFaker.TempRealInput;
@@ -47,7 +45,6 @@ import net.wurstclient.events.PreMotionListener.PreMotionEvent;
 import net.wurstclient.events.UpdateListener.UpdateEvent;
 import net.wurstclient.hack.HackList;
 import net.wurstclient.mixinterface.ILocalPlayer;
-import net.wurstclient.util.MovementPlanner;
 
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerMixin extends AbstractClientPlayer
@@ -56,39 +53,40 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	@Shadow
 	@Final
 	protected Minecraft minecraft;
-	
+
 	private Screen tempCurrentScreen;
-	
+	private boolean hideNextItemUse;
+
 	private LocalPlayerMixin(WurstClient wurst, ClientLevel world,
 		GameProfile profile)
 	{
 		super(world, profile);
 	}
-	
+
 	@Inject(method = "tick()V", at = @At("HEAD"))
 	private void onTickHead(CallbackInfo ci)
 	{
 		InputFaker.swapIfNeeded();
 	}
-	
+
 	@Inject(method = "tick()V", at = @At("RETURN"))
 	private void onTickReturn(CallbackInfo ci)
 	{
 		InputFaker.restoreIfNeeded();
 	}
-	
+
 	@Inject(method = "rideTick()V", at = @At("HEAD"))
 	private void onRideTickHead(CallbackInfo ci)
 	{
 		InputFaker.swapIfNeeded();
 	}
-	
+
 	@Inject(method = "rideTick()V", at = @At("RETURN"))
 	private void onRideTickReturn(CallbackInfo ci)
 	{
 		InputFaker.restoreIfNeeded();
 	}
-	
+
 	@Inject(method = "tick()V",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/client/player/AbstractClientPlayer;tick()V",
@@ -100,7 +98,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 			EventManager.fire(UpdateEvent.INSTANCE);
 		}
 	}
-	
+
 	/**
 	 * This mixin makes AutoSprint's "Omnidirectional Sprint" setting work.
 	 */
@@ -113,7 +111,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	{
 		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldOmniSprint())
 			return input.getMoveVector().length() > 1e-5F;
-		
+
 		return original.call(input);
 	}
 
@@ -122,67 +120,82 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	{
 		WurstClient.INSTANCE.getHax().autoSprintHack.applySprint();
 	}
+
 	/**
-	 * Makes you keep sprinting when using an item while NoSlowdown is enabled.
+	 * This mixin runs just before the vanilla movement code calls
+	 * isUsingItem(), so that the onIsUsingItem() mixin knows which call to
+	 * intercept.
 	 */
-	@WrapOperation(method = "aiStep()V",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/player/LocalPlayer;isSlowDueToUsingItem()Z",
-			ordinal = 0))
-	private boolean wrapTickMovementItemUse(LocalPlayer instance,
-		Operation<Boolean> original)
-	{
-		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled())
-			return false;
-		
-		return original.call(instance);
-	}
-	
-	/**
-	 * Prevents item-use movement slowdown while NoSlowdown is enabled.
-	 */
-	@WrapOperation(
-		method = "modifyInput(Lnet/minecraft/world/phys/Vec2;)Lnet/minecraft/world/phys/Vec2;",
+	@Inject(method = "aiStep()V",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z",
 			ordinal = 0))
-	private boolean wrapModifyInputItemUse(LocalPlayer instance,
-		Operation<Boolean> original)
+	private void onTickMovementItemUse(CallbackInfo ci)
 	{
-		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled())
-			return false;
-		
-		return original.call(instance);
+		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
+			&& WurstClient.INSTANCE.getHax().noSlowdownHack
+				.shouldBypassUsingItem())
+			hideNextItemUse = true;
 	}
-	
+
+	/**
+	 * Pretends that the player is not using an item when instructed to do so by
+	 * the onTickMovementItemUse() mixin.
+	 */
+	@Inject(method = "isUsingItem()Z", at = @At("HEAD"), cancellable = true)
+	private void onIsUsingItem(CallbackInfoReturnable<Boolean> cir)
+	{
+		if(!hideNextItemUse)
+			return;
+
+		cir.setReturnValue(false);
+		hideNextItemUse = false;
+	}
+
+	/**
+	 * This mixin is injected into a random field access later in the aiStep()
+	 * method to ensure that hideNextItemUse is always reset after the item use
+	 * slowdown calculation.
+	 */
+	@Inject(method = "aiStep()V",
+		at = @At(value = "FIELD",
+			target = "Lnet/minecraft/client/player/LocalPlayer;autoJumpTime:I",
+			opcode = Opcodes.GETFIELD, ordinal = 0))
+	private void afterIsUsingItem(CallbackInfo ci)
+	{
+		hideNextItemUse = false;
+	}
+
 	/**
 	 * Allows sprinting to start while using an item when NoSlowdown is enabled.
 	 */
 	@WrapOperation(method = "canStartSprinting()Z",
 		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/player/LocalPlayer;isSlowDueToUsingItem()Z",
+			target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z",
 			ordinal = 0))
 	private boolean wrapCanStartSprintingItemUse(LocalPlayer instance,
 		Operation<Boolean> original)
 	{
-		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled())
+		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
+			&& WurstClient.INSTANCE.getHax().noSlowdownHack
+				.shouldBypassUsingItem())
 			return false;
-		
+
 		return original.call(instance);
 	}
-	
+
 	@Inject(method = "sendPosition()V", at = @At("HEAD"))
 	private void onSendMovementPacketsHEAD(CallbackInfo ci)
 	{
 		EventManager.fire(PreMotionEvent.INSTANCE);
 	}
-	
+
 	@Inject(method = "sendPosition()V", at = @At("TAIL"))
 	private void onSendMovementPacketsTAIL(CallbackInfo ci)
 	{
 		EventManager.fire(PostMotionEvent.INSTANCE);
 	}
-	
+
 	@Inject(
 		method = "move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V",
 		at = @At("HEAD"))
@@ -190,7 +203,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	{
 		EventManager.fire(PlayerMoveEvent.INSTANCE);
 	}
-	
+
 	@Inject(method = "isAutoJumpEnabled()Z",
 		at = @At("HEAD"),
 		cancellable = true)
@@ -199,57 +212,56 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		if(!WurstClient.INSTANCE.getHax().stepHack.isAutoJumpAllowed())
 			cir.setReturnValue(false);
 	}
-	
+
 	/**
 	 * When PortalGUI is enabled, this mixin temporarily sets the current screen
 	 * to null to prevent the updateNausea() method from closing it.
 	 */
-	@Inject(method = "handlePortalTransitionEffect(Z)V",
+	@Inject(method = "handleConfusionTransitionEffect(Z)V",
 		at = @At(value = "FIELD",
 			target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;",
 			opcode = Opcodes.GETFIELD,
 			ordinal = 0))
-	private void beforeTickNausea(boolean fromPortalEffect, CallbackInfo ci)
+	private void beforeTickNausea(boolean isConfusionPortal, CallbackInfo ci)
 	{
 		if(!WurstClient.INSTANCE.getHax().portalGuiHack.isEnabled())
 			return;
-		
+
 		tempCurrentScreen = minecraft.screen;
-		minecraft.setScreen(null);
+		minecraft.screen = null;
 	}
-	
+
 	/**
 	 * This mixin restores the current screen as soon as the updateNausea()
 	 * method is done looking at it.
 	 */
-	@Inject(method = "handlePortalTransitionEffect(Z)V",
+	@Inject(method = "handleConfusionTransitionEffect(Z)V",
 		at = @At(value = "FIELD",
-			target = "Lnet/minecraft/client/player/LocalPlayer;portalEffectIntensity:F",
+			target = "Lnet/minecraft/client/player/LocalPlayer;spinningEffectIntensity:F",
 			opcode = Opcodes.GETFIELD,
 			ordinal = 1))
-	private void afterTickNausea(boolean fromPortalEffect, CallbackInfo ci)
+	private void afterTickNausea(boolean isConfusionPortal, CallbackInfo ci)
 	{
 		if(tempCurrentScreen == null)
 			return;
-		
-		minecraft.setScreen(tempCurrentScreen);
+
+		minecraft.screen = tempCurrentScreen;
 		tempCurrentScreen = null;
 	}
-	
+
 	/**
 	 * This mixin allows AutoSprint to enable sprinting even when the player is
 	 * too hungry.
 	 */
-	@Inject(method = "isSprintingPossible(Z)Z",
+	@Inject(method = "hasEnoughFoodToStartSprinting()Z",
 		at = @At("HEAD"),
 		cancellable = true)
-	private void onCanSprint(boolean allowTouchingWater,
-		CallbackInfoReturnable<Boolean> cir)
+	private void onCanSprint(CallbackInfoReturnable<Boolean> cir)
 	{
 		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldSprintHungry())
 			cir.setReturnValue(true);
 	}
-	
+
 	/**
 	 * Getter method for what used to be airStrafingSpeed.
 	 * Overridden to allow for the speed to be modified by hacks.
@@ -262,7 +274,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		EventManager.fire(event);
 		return event.getSpeed();
 	}
-	
+
 	@Override
 	public void lerpMotion(double x, double y, double z)
 	{
@@ -270,30 +282,30 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		EventManager.fire(event);
 		super.lerpMotion(event.getX(), event.getY(), event.getZ());
 	}
-	
+
 	@Override
 	public boolean isInWater()
 	{
 		boolean inWater = super.isInWater();
 		IsPlayerInWaterEvent event = new IsPlayerInWaterEvent(inWater);
 		EventManager.fire(event);
-		
+
 		return event.isInWater();
 	}
-	
+
 	@Override
 	public boolean isTouchingWaterBypass()
 	{
 		return super.isInWater();
 	}
-	
+
 	@Override
 	protected float getJumpPower()
 	{
 		return super.getJumpPower() + WurstClient.INSTANCE.getHax().highJumpHack
 			.getAdditionalJumpMotion();
 	}
-	
+
 	/**
 	 * This is the part that makes SafeWalk work.
 	 */
@@ -303,7 +315,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		return super.isStayingOnGroundSurface()
 			|| WurstClient.INSTANCE.getHax().safeWalkHack.isEnabled();
 	}
-	
+
 	/**
 	 * This mixin allows SafeWalk to sneak visibly when the player is
 	 * near a ledge.
@@ -312,81 +324,63 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	protected Vec3 maybeBackOffFromEdge(Vec3 movement, MoverType type)
 	{
 		Vec3 result = super.maybeBackOffFromEdge(movement, type);
-		
+
 		if(movement != null)
 			WurstClient.INSTANCE.getHax().safeWalkHack
 				.onClipAtLedge(!movement.equals(result));
-		
+
 		return result;
 	}
-	
+
 	@Override
 	public boolean hasEffect(Holder<MobEffect> effect)
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
-		
-		if(effect == MobEffects.NIGHT_VISION
+
+		if(effect.is(MobEffects.NIGHT_VISION)
 			&& hax.fullbrightHack.isNightVisionActive())
 			return true;
-		
-		if(effect == MobEffects.LEVITATION && hax.noLevitationHack.isEnabled())
+
+		if(effect.is(MobEffects.LEVITATION) && hax.noLevitationHack.isEnabled())
 			return false;
-		
-		if(effect == MobEffects.BLINDNESS && hax.antiBlindHack.isEnabled())
+
+		if(effect.is(MobEffects.BLINDNESS) && hax.antiBlindHack.isEnabled())
 			return false;
-		
-		if(effect == MobEffects.DARKNESS && hax.antiBlindHack.isEnabled())
+
+		if(effect.is(MobEffects.DARKNESS) && hax.antiBlindHack.isEnabled())
 			return false;
-		
+
 		return super.hasEffect(effect);
 	}
-	
+
 	@Override
 	public MobEffectInstance getEffect(Holder<MobEffect> effect)
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
-		
-		if(effect == MobEffects.LEVITATION && hax.noLevitationHack.isEnabled())
+
+		if(effect.is(MobEffects.LEVITATION) && hax.noLevitationHack.isEnabled())
 			return null;
-		
+
 		return super.getEffect(effect);
 	}
-	
+
 	@Override
 	public double blockInteractionRange()
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
 		if(hax == null || !hax.reachHack.isEnabled())
 			return super.blockInteractionRange();
-		
+
 		return hax.reachHack.getReachDistance();
 	}
-	
+
 	@Override
 	public double entityInteractionRange()
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
 		if(hax == null || !hax.reachHack.isEnabled())
 			return super.entityInteractionRange();
-		
+
 		return hax.reachHack.getReachDistance();
-	}
-	
-	/**
-	 * This is the part that makes Liquids work.
-	 */
-	@WrapOperation(
-		method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/entity/Entity;pick(DFZ)Lnet/minecraft/world/phys/HitResult;",
-			ordinal = 0))
-	private static HitResult liquidsRaycast(Entity instance, double maxDistance,
-		float tickDelta, boolean includeFluids, Operation<HitResult> original)
-	{
-		if(!WurstClient.INSTANCE.getHax().liquidsHack.isEnabled())
-			return original.call(instance, maxDistance, tickDelta,
-				includeFluids);
-		
-		return original.call(instance, maxDistance, tickDelta, true);
 	}
 }

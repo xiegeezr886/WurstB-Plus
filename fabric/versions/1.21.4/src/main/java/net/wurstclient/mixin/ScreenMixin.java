@@ -36,7 +36,7 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 	@Inject(at = @At("HEAD"),
 		method = "renderBlurredBackground",
 		cancellable = true)
-	public void onRenderBlurredBackground(float partialTick, CallbackInfo ci)
+	public void onRenderBlurredBackground(CallbackInfo ci)
 	{
 		Screen screen = (Screen)(Object)this;
 		

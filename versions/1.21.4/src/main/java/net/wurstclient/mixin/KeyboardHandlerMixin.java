@@ -21,9 +21,9 @@ public class KeyboardHandlerMixin
 {
 	/**
 	 * MC 1.21.4 still uses the primitive callback signature
-	 * {@code keyPress(JIII)V} instead of the 1.21.9+ {@code KeyEvent}.
+	 * {@code keyPress(JIIII)V} instead of the 1.21.9+ {@code KeyEvent}.
 	 */
-	@Inject(method = "keyPress(JIII)V", at = @At("HEAD"))
+	@Inject(method = "keyPress(JIIII)V", at = @At("HEAD"))
 	private void onOnKey(long windowHandle, int key, int scancode, int action,
 		int modifiers, CallbackInfo ci)
 	{

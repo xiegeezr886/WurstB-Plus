@@ -69,7 +69,6 @@
                    "MultiplayerScreenMixin",
                    "PackScreenMixin",
                    "PlayerEntityAccessor",
-                   "PlayerInventoryMixin",
                    "PlayerMixin",
                    "PlayerSkinProviderMixin",
                    "PowderSnowBlockMixin",
