@@ -105,61 +105,6 @@ it will clash with the bundled version. Per-version details are in
 
 ---
 
-## Building from source
-
-Every project is an **independent Gradle build** with its own wrapper; there is **no shared
-source set** between them.
-
-### Root project: Forge 1.20.1
-
-Requires **JDK 17**:
-
-```powershell
-.\gradlew.bat clean jarJar --console=plain
-```
-
-Artifact: `build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`.
-
-<details>
-<summary>Dev client and tests</summary>
-
-```powershell
-.\gradlew.bat runClient --console=plain      # launch the development client
-.\gradlew.bat test --offline --console=plain # run the unit tests
-```
-
-> **Note:** the first `runClient` **needs a network connection**: ForgeGradle has to fetch Minecraft
-> assets and vanilla libraries such as `commons-io`. `compileJava` / `test` run fully offline, but
-> `runClient --offline` fails in `:minecraftLibraryCopy` (`commons-io:commons-io:2.6` is not in the
-> offline cache).
->
-> When `jarJar` finishes it copies the artifact into the local test instance's `mods/`
-> (`.test/versions/1.20.1-Forge_47.4.22/mods/`, see `copyJarToTestMods` in `build.gradle`) and
-> removes older WurstB+ jars from that directory so Forge does not load two copies.
-
-</details>
-
-### Other version projects
-
-The production task differs per loader:
-
-| Loader | Task |
-| --- | --- |
-| Forge | `jarJar` (1.20.2 – 1.21.1) / `allJar` (1.21.3+) |
-| NeoForge | `jar` |
-| Fabric | `remapJar` (`jar` on 26.x) |
-
-```powershell
-cd versions\1.21.5
-..\..\gradlew.bat clean allJar --console=plain
-```
-
-Per-project toolchains (JDK / Gradle / loader versions) are listed in
-[PROJECT_INDEX.md](PROJECT_INDEX.md); batch build and packaging validation scripts are in
-[docs/RELEASE.md](docs/RELEASE.md).
-
----
-
 ## Repository layout
 
 ```text
@@ -187,7 +132,7 @@ distribution resolves even offline.
 | --- | --- |
 | [CHANGELOG.md](CHANGELOG.md) | Version history, including known limitations and deviations |
 | [PROJECT_INDEX.md](PROJECT_INDEX.md) | Per-project index: toolchain, source file count, entry classes, artifact names |
-| [docs/RELEASE.md](docs/RELEASE.md) | **Release and maintenance handbook** (the original README): **feature documentation** (new subsystems, the new-hack inventory, HUD elements, refactored internals, architecture), artifact matrix, build scripts, packaging validation, verification status |
+| [docs/RELEASE.md](docs/RELEASE.md) | **Release and maintenance handbook** (the original README): **feature documentation** (new subsystems, the new-hack inventory, HUD elements, refactored internals, architecture), **building and running**, artifact matrix, packaging validation, verification status |
 | [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) | Porting plan and per-version status for the new-version projects |
 | [docs/PORTING-1.21.11-26.2.md](docs/PORTING-1.21.11-26.2.md) | Render pipeline and porting notes for 1.21.11 / 26.2 |
 | [PORTING_TASK.md](PORTING_TASK.md) | Porting tasks and open items |

@@ -100,58 +100,6 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 
 ---
 
-## 从源码构建
-
-每个工程都是**独立的 Gradle 构建**，自带 wrapper，相互之间**没有共享 sourceSet**。
-
-### 根工程：Forge 1.20.1
-
-需要 **JDK 17**：
-
-```powershell
-.\gradlew.bat clean jarJar --console=plain
-```
-
-产物 `build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`。
-
-<details>
-<summary>开发客户端与测试</summary>
-
-```powershell
-.\gradlew.bat runClient --console=plain     # 启动开发客户端
-.\gradlew.bat test --offline --console=plain # 跑单元测试
-```
-
-> **说明：** 首次 `runClient` **必须联网**：ForgeGradle 要拉 Minecraft 资源与 `commons-io`
-> 等原版库。`compileJava` / `test` 能完全离线跑，但 `runClient` 加 `--offline` 会失败在
-> `:minecraftLibraryCopy`（`commons-io:commons-io:2.6` 不在离线缓存里）。
->
-> `jarJar` 结束后会自动把产物复制到本地测试实例的 `mods/`
-> （`.test/versions/1.20.1-Forge_47.4.22/mods/`，见 `build.gradle` 的 `copyJarToTestMods`），
-> 并清掉该目录里旧的 WurstB+ jar，避免 Forge 重复加载。
-
-</details>
-
-### 其他版本工程
-
-生产任务因加载器而异：
-
-| 加载器 | 任务 |
-| --- | --- |
-| Forge | `jarJar`（1.20.2 – 1.21.1） / `allJar`（1.21.3+） |
-| NeoForge | `jar` |
-| Fabric | `remapJar`（26.x 为 `jar`） |
-
-```powershell
-cd versions\1.21.5
-..\..\gradlew.bat clean allJar --console=plain
-```
-
-逐工程的工具链（JDK / Gradle / 加载器版本）见 [PROJECT_INDEX.md](PROJECT_INDEX.md)；
-批量构建与打包校验脚本见 [docs/RELEASE.md](docs/RELEASE.md)。
-
----
-
 ## 仓库结构
 
 ```text
@@ -178,7 +126,7 @@ cd versions\1.21.5
 | --- | --- |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更，含已知局限与偏差 |
 | [PROJECT_INDEX.md](PROJECT_INDEX.md) | 逐工程索引：工具链、源码文件数、入口类、产物名 |
-| [docs/RELEASE.md](docs/RELEASE.md) | **发布与维护手册**（原 README）：**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）、产物矩阵、构建脚本、打包校验、验证状态 |
+| [docs/RELEASE.md](docs/RELEASE.md) | **发布与维护手册**（原 README）：**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）、**构建与运行**、产物矩阵、打包校验、验证状态 |
 | [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) | 新版本工程的移植计划与逐版本状态 |
 | [docs/PORTING-1.21.11-26.2.md](docs/PORTING-1.21.11-26.2.md) | 1.21.11 / 26.2 的渲染管线与移植说明 |
 | [PORTING_TASK.md](PORTING_TASK.md) | 移植任务与未完成项 |
