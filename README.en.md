@@ -116,6 +116,75 @@ Scale (measured on the root Forge 1.20.1 project):
 <sub>There are 210 hack classes; 209 are registered in `HackList` (`RadialMenuHack` is not
 registered and never appears in game).</sub>
 
+### New hacks
+
+57 hacks are new relative to upstream Wurst. **42 of them exist in every project**:
+
+| Hack | Category | What it does |
+| --- | --- | --- |
+| `AntiBot` | Combat | Spots anti-cheat bots (player info / game mode / ping / ground / invisible / UUID) and filters them out of combat targets |
+| `Anchor` | Movement | Anchors you in a hole: pulls you back when you get knocked away |
+| `AntiAim` | Fun | Spin / jitter / invert / look down / walk backwards, with optional silent rotation |
+| `AntiVoid` | Movement | Saves you from the void, optionally only while in a Nether hole |
+| `AutoCity` | Combat | Mines into an opponent's city defence, with auto tool switching and an option to ignore your own surround |
+| `AutoTrap` | Combat | Traps opponents in blocks, optionally obsidian only |
+| `AutoWeb` | Combat | Places cobwebs on opponents, optionally at their feet only |
+| `BaritoneClearArea` | Blocks | Clears an area through Baritone |
+| `BaritoneMine` | Blocks | Mines chosen ores through Baritone, with walk-home and auto-logout options |
+| `BaritoneTreeBot` | Blocks | Chops trees through Baritone, optionally replanting |
+| `BaritoneWalk` | Movement | Walks a set distance along your facing through Baritone |
+| `BossStack` | Render | Renders boss bars stacked and compact |
+| `Breadcrumbs` | Render | Draws a movement trail, with configurable point budget and colour |
+| `Burrow` | Combat | Instantly burrows you into a block, preferring obsidian |
+| `CityESP` | Render | Marks city-defence blocks you can mine, optionally players only / ignoring friends |
+| `DankBobbing` | Fun | Exaggerates the view bob |
+| `DelayRemover` | Combat | Removes the attack cooldown |
+| `ElytraFly` | Movement | Elytra flight: speed, vertical speed, instant take-off, stop in water |
+| `FakeLag` | Movement | Adds fake latency (lag switch) with a configurable pulse interval |
+| `FastUse` | Items | Uses items faster, optionally throwables or XP bottles only |
+| `Hitboxes` | Combat | Expands entity hitboxes |
+| `HoleESP` | Render | Marks safe holes, optionally bedrock / obsidian only with separate colours |
+| `HoleFiller` | Combat | Fills holes automatically |
+| `KeepSprint` | Combat | Keeps you sprinting after an attack |
+| `LightOverlay` | Render | Overlays the areas where mobs can spawn |
+| `LogoutSpots` | Render | Marks where players logged out, optionally with their name |
+| `NoJumpDelay` | Movement | Removes the jump delay |
+| `NoVelocity` | Movement | Anti-knockback, optionally horizontal / vertical only while keeping the rest of the motion |
+| `Notebot` | Fun | Parses NBS songs and plays them on note blocks |
+| `PacketCanceller` | Other | Selectively cancels packets (boss events / entity data / movement / player info / passengers) |
+| `PacketFly` | Movement | Packet-based flight, with horizontal / vertical speed and fall settings |
+| `PacketLogger` | Other | Rate-limited packet log, with separate switches for sent / received and payload |
+| `PlayerHalo` | Render | Draws a theme-coloured halo above visible players |
+| `PopChams` | Render | Coloured rising animation when a totem pops |
+| `RotationSnap` | Render | Snaps your view at a set interval |
+| `SelfTrap` | Combat | Wraps you in blocks automatically |
+| `SpeedMine` | Blocks | Mines faster, with configurable haste level and cooldown |
+| `Surround` | Combat | Places obsidian around you, with optional auto-centre |
+| `TargetShader` | Render | Sends the current combat target to its own FBO and applies outline / pulse / gradient / smoke post-processing |
+| `TargetStrafe` | Combat | Strafes around the target, with optional auto jump |
+| `Twerk` | Fun | Fast crouch dancing |
+| `Vomit` | Fun | Eats very fast |
+
+**15 exist only in the root Forge 1.20.1 project (v1.6.0)**:
+
+| Hack | Category | What it does |
+| --- | --- | --- |
+| `AirJump` | Movement | Mid-air / multi jump, with modes |
+| `EntityCulling` | Render | Asynchronous occlusion queries that skip fully occluded entities, with per-group and delay controls |
+| `MusicPlayer` | Other | NetEase Cloud Music player |
+| `NoMissCooldown` | Combat | Removes the miss cooldown, optionally cancelling an attack that misses |
+| `NoRotate` | Movement | Ignores server-side rotation corrections, preserving yaw / pitch separately |
+| `PerimeterDigger` | Blocks | Perimeter excavation automation, detailed under "New subsystems" |
+| `ProjectilePuncher` | Combat | Punches incoming projectiles |
+| `RadialMenu` | Other | Long-press Tab radial menu (not registered in `HackList`, so it never appears in game) |
+| `ReverseStep` | Movement | Fast falling, with mode, factor and maximum fall distance |
+| `RightClicker` | Combat | Right-click auto-clicker, with CPS bounds and a start delay |
+| `SeedOreESP` | Render | Seed ore ESP, detailed under "Seed features" |
+| `SeedStructureESP` | Render | Seed structure locator, detailed under "Seed features" |
+| `SuperKnockback` | Combat | Boosts the knockback you deal, with hurt-time and trigger conditions |
+| `VehicleBoost` | Movement | Boosts vehicles, with horizontal / vertical speed |
+| `WTap` | Combat | Automatic W-tap to reset sprint, with chance and key timing |
+
 ### Interface
 
 - **Three ClickGUI styles** (`clickgui2`), switchable in the settings: **Epsilon** · **SuperSoft**
@@ -189,6 +258,69 @@ Name tags, the armour strip, short enchantment names and health bars follow the 
 backend (Skia / `GuiGraphics`) while keeping the native drawing path as a fallback. Two bugs in the
 reference implementation were fixed while porting its 28 easing curves; the process is recorded in
 [docs/openaopal-hud-research.md](docs/openaopal-hud-research.md).
+
+### Added in v1.5
+
+**Architecture**
+
+- **LambdaMetafactory event dispatch**: `@WurstSubscribe` methods get a generated
+  `Consumer<Event>`, so dispatch is a direct call with no reflection overhead.
+- **Event inheritance dispatch**: subscribing to a parent event class also delivers its subclasses.
+- **Levenshtein fuzzy search**: misspelled names and search tags still match in the ClickGUI and Navigator.
+- **Binding modes**: TOGGLE (default, `killaura`), HOLD (`+killaura`), SMART (`~killaura`).
+- **Deferred action queue**: `DeferredActionQueue` runs work across ticks in named queues.
+- **Nested settings tree**: `Setting.withChildren()` supports arbitrary depth with cycle detection.
+- **Stable setting bindings**: the overlay and Navigator only rebuild their layout when the expanded
+  level or visibility changes, so dragging a slider keeps the same component instance.
+- **System credential protection**: account passwords live in Windows Credential Manager / macOS
+  Keychain / Linux Secret Service; locally they are encrypted with AES-GCM using a random nonce, and
+  older formats are migrated automatically.
+- **Shared rotation arbitration**: `RotationQueue` arbitrates silent rotations by priority (background,
+  movement, block placing, combat, emergency); `RotationFaker` only changes the return value of the
+  angle getters inside the mixin — it never writes the player's real rotation and never builds extra
+  rotation packets.
+- **Inventory action queue**: `InventoryActionQueue` schedules atomic click chains by menu id, state
+  validation, priority and owner.
+
+**Subsystems**
+
+- **Macros**: `.macros add / remove / list`, key-triggered command sequences with `_delay:N` ticks.
+- **Waypoints**: `.waypoints add / remove / list`, rendered as 3D crosses and persisted per dimension.
+- **Proxy**: `.proxy add / remove / set / clear / list`, injecting SOCKS4 / SOCKS5 handlers into new
+  server connections through the Netty pipeline rather than touching the JVM-wide proxy properties.
+- **Addon**: `WurstAddon` + `AddonManager`, discovered via ServiceLoader, rejecting hack / command
+  name clashes.
+- **Brigadier commands**: a `BrigadierCommand` base class registered into the client `CommandDispatcher`.
+- **Discord RPC**: shows only single-player / multiplayer / main-menu state, the client version and how
+  many hacks are enabled — never the server address.
+
+**HUD elements**
+
+- `HudManager` owns rendering, alignment, lifecycle and layout persistence.
+- Text: FPS / coordinates (with the 1:8 Overworld-to-Nether conversion) / ping / TPS (smoothed from
+  time-sync packet intervals) / speed / server / clock / game mode / memory / play time / player count.
+- Panels: armour (real icons and durability), potion effects (sorted by name), combo counter (counts
+  hits within a three-second window through an attack hook), keystrokes (real bindings, press animation
+  and one-second CPS), inventory grid (slots 9–35 as a 3×9 grid with stack counts and durability),
+  target HUD (head, theme-coloured health bar and a compact equipment strip), minimap (north-up,
+  circular terrain built from 16×16 tiles refreshed within a per-tick budget, with chunk grid and
+  entity markers).
+- Notification cards carry a three-second progress bar matching their severity and fade out when read.
+
+**Advanced features**
+
+- **Click patterns**: `ClickPattern` implements Stabilized / Efficient / Spamming / DoubleClick / Drag /
+  Butterfly / NormalDistribution, used by Killaura, MultiAura and friends.
+- **Rotation smoothing**: `RotationSmoothing` offers Linear / EaseInOut / Factor / Instant.
+
+### Refactored internals
+
+| Area | Notes |
+| --- | --- |
+| **Combat pipeline** | Target selection, click scheduling, rotation timing and post-miss verification now go through one set of policy objects (`CombatTargetUtils` / `CombatActionPolicy` / `CombatClickScheduler`) shared by Killaura and MultiAura |
+| **Movement pipeline** | `MovementPlanner` centralises movement-intent checks for AutoSprint, AutoArmor and others; silent rotation is decoupled from movement input, so the first-person direction is unaffected |
+| **ESP and visuals** | ESP and HUD visuals follow OpenOpal (GPL-3.0) and are reimplemented on this project's Skia / `GuiGraphics` backend, keeping the native drawing path as a fallback; two bugs in the reference implementation were fixed while porting its 28 easing curves |
+| **Performance** | Entity occlusion queries are asynchronous (`EntityCulling`); the minimap refreshes tiles within a budget and never force-loads chunks just to draw; the HUD and ClickGUI only rebuild their layout when needed |
 
 ---
 
