@@ -115,29 +115,61 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 
 ### 界面
 
-- **三套 ClickGUI**，设置里可切换：**Epsilon** · **SuperSoft**（MD3 TonalSpot 调色板 + 磨砂玻璃）·
-  **Vape**。
-- **HUD 编辑系统**（`hud2`）：31 个元素，支持锚点定位、缩放、逐元素设置；编辑器带
-  屏幕中心吸附与元素互相吸附。
-- **声明式 UI 层**（`compose`）：`UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer` 等布局原语 + 动画。
+- **三套 ClickGUI**（`clickgui2`），设置里可切换：**Epsilon** · **SuperSoft**（MD3 TonalSpot 调色板 +
+  磨砂玻璃）· **Vape**。含窗口、设置树、下拉与弹出层、圆角矩形渲染、导航页、图标与字体动画。
+- **HUD 编辑系统**（`hud2`）：31 个元素，支持锚点定位、缩放、逐元素设置；编辑器带屏幕中心吸附与
+  元素互相吸附。
 - **统一强调色** `#007CFF`（`RiseTheme.ACCENT`），音乐、通知、PvP 相关 UI 共用同一语义色。
-- **Skiko 矢量渲染**：`skiko-windows-x64.dll` 随 mod 资源打包（**不走 jarJar**，否则会重定位资源路径
-  导致找不到原生库），运行时解压加载。这也是根工程产物偏大的原因。
+- 自定义标题界面（`gui/title`）与共用视觉层（`gui/visual`：`VisualTheme` / `VisualRenderer` /
+  屏幕切换动效）。
 
 ### 新增子系统
 
+对比上游 [Wurst](https://github.com/Wurst-Imperium/Wurst7)（基准为上游 `master`：157 个 hack /
+52 个命令 / 18 个 Other Feature），本仓库新增 **14 个包、57 个 hack、7 个命令**；
+Other Feature 数量与上游相同（18 个），没有新增项。其中 8 个包在所有工程里都有，
+另外 6 个只在根目录 Forge 1.20.1（v1.6.0）里实现。
+
+**所有工程都可用** —— 8 个包、42 个 hack、3 个命令：
+
 | 子系统 | 说明 |
 | --- | --- |
-| **网易云音乐播放器** | 网易云 API 与账号登录；主页 / 搜索 / 我喜欢 / 歌单 / 播放详情页；逐字歌词动画与 AMLL 级视觉层（弹簧、遮罩、强调、分行平衡） |
-| **周界挖掘** `PerimeterDigger` | 社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 的原生等价移植：闭区间矩形与**不规则区域边界检测**、液体 `avoid` / `replace` / `seal_boundary` 策略、批次上限与背包满自动暂停、自动拾取与多卸货点、工具/鞘翅耐久替换、自动进食补给睡觉、跨维度熔炉修复、寻路、按服务器/存档分存配置、中英双语 |
+| `clickgui2` | 三套 ClickGUI 皮肤与组件库：窗口、设置树、下拉与弹出层、圆角矩形渲染、导航页、图标、字体与动画 |
+| `hud2` | 31 个 HUD 元素与带吸附的编辑器，支持锚点定位、缩放、逐元素设置 |
+| `gui` | 自定义标题界面（`gui/title`）与共用视觉层（`gui/visual`） |
+| `addon` | 第三方附加包 API：继承 `WurstAddon` 声明名称/版本/作者并注册自己的 hack 与命令，`AddonManager` 负责发现与加载 |
+| `macros` | 命令宏：`.macros add <名称> <按键> <命令…>`，多条命令用 `;` 分隔 |
+| `proxy` | SOCKS4 / SOCKS5 代理管理：`.proxy add / set / remove / clear / list` |
+| `waypoints` | 路径点管理：`.waypoints add / remove / list`，支持命名与颜色 |
+| `discord` | Discord Rich Presence：经 `\\.\pipe\discord-ipc-N` 命名管道与桌面客户端通信 |
+
+**仅根目录 Forge 1.20.1（v1.6.0）** —— 6 个包、15 个 hack、4 个命令：
+
+| 子系统 | 说明 |
+| --- | --- |
+| `music` + `twilight` | 网易云音乐播放器：`music` 负责 API、账号与歌词解析；`twilight` 是它的 Skia 视觉外壳（主题、外壳/首页/列表布局、封面缓存与适配、缓动几何、圆角遮罩）。`.twilight` 打开界面 |
+| `render/skia` | Skia / Skiko 矢量渲染后端：GL 后端、区域渲染、字体管理、ESP 字形，以及 Skiko 原生库的加载（`skiko-windows-x64.dll` 作为普通 mod 资源打包，**不走 jarJar**，否则会重定位资源路径导致找不到原生库；运行时解压）。这也是根工程产物偏大的原因 |
+| `compose` | 声明式 UI 层：`UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer` 布局原语、`AnimFloat` 动画、`ComposeHackList`、`ComposeNotifications` |
+| `perimeter` | 周界挖掘自动化 `PerimeterDigger`，社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 的原生等价移植：闭区间矩形与**不规则区域边界检测**、液体 `avoid` / `replace` / `seal_boundary` 策略、批次上限与背包满自动暂停、自动拾取与多卸货点、工具/鞘翅耐久替换、自动进食补给睡觉、跨维度熔炉修复、寻路、按服务器/存档分存配置、中英双语。`.perimeter` 负责规划与 start / pause / resume / stop / status / clear，`.perimeterdig` 负责规划、检测、执行 |
+| `seed` | 种子相关能力的总入口，详见下方「种子功能」。`.seed get / set / clear / list / structures / mine / structesp`、`observe *`、`search / crack` |
+
+### 种子功能
+
+| 项 | 说明 |
+| --- | --- |
 | **种子矿透** `SeedOreESP` | 按服务器/存档分存种子；纯 Java 复刻原版矿物生成数学（Xoroshiro + 逐条 `placed_feature` 规则表）预测矿物坐标并在客户端渲染 ESP，可选交给官方 Baritone 挖掘。**零新增依赖**：不内置 Meteor、不引入 Cubiomes / seedfinding |
 | **结构定位** `SeedStructureESP` | 直接调用原版 public 的 `RandomSpreadStructurePlacement#getPotentialStructureChunk`，与原版构造上一致；19 个原版结构中支持 18 个（要塞的 `concentric_rings` 算法不同，跳过） |
 | **种子反解** `seed.search` / `seed.crack` | 用实际观测到的结构反推候选种子；热循环 LCG 与频率削减与原版**逐位对照**，搜索前有运行时自检。**注意**：不做格基归约，无法在 2⁴⁸ 全域内无范围求解，通常返回多个候选需逐步收敛 |
 
-新增 Hack 14 个：
+根工程新增的 15 个 hack：
 `AirJump` · `EntityCulling` · `MusicPlayer` · `NoMissCooldown` · `NoRotate` · `PerimeterDigger` ·
-`ProjectilePuncher` · `ReverseStep` · `RightClicker` · `SeedOreESP` · `SeedStructureESP` ·
-`SuperKnockback` · `VehicleBoost` · `WTap`
+`ProjectilePuncher` · `RadialMenuHack`（未注册） · `ReverseStep` · `RightClicker` · `SeedOreESP` ·
+`SeedStructureESP` · `SuperKnockback` · `VehicleBoost` · `WTap`
+
+上游有、本仓库没有：4 个 hack（`AntiKnockback` · `AttributeSwap` · `KillauraLegit` · `MaceDmg`）、
+1 个命令（`ViewComp`）、3 个包——`clickgui` 与 `navigator` 已由 `clickgui2` 取代；`analytics`
+是上游的 Plausible 遥测上报，本仓库没有移植，另有 `NoTelemetry` / `NoChatReports` 两个
+Other Feature 用于关闭遥测与聊天上报。
 
 > **重要：** 已知局限与偏差（例如种子矿透不按生物群系过滤、未在真实存档逐格校验）都写在
 > [CHANGELOG.md](CHANGELOG.md) 里，没有藏起来。
