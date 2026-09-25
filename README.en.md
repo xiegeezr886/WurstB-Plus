@@ -56,55 +56,6 @@ WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.0-Forge-1.21
 
 ---
 
-## Installation
-
-Drop the jar into `.minecraft/mods/`. **The Java version must match the table above**, otherwise
-the loader will not start.
-
-<details open>
-<summary><b>Forge</b></summary>
-
-1. Install the matching Forge: 1.20.1 → `47.4.10`, 1.21.1 → `52.1.16`, 1.21.11 → `61.2.0`,
-   26.1.2 → `64.1.0`, 26.2 → `65.1.0`.
-2. Put `WurstB+.Plus-<version>-Forge-<mc>.jar` into `.minecraft/mods/`.
-3. Launch with the matching Java.
-
-</details>
-
-<details>
-<summary><b>NeoForge</b></summary>
-
-1. Install the matching NeoForge: 1.20.1 → `47.1.3`, 1.21.1 → `21.1.244`, 1.21.11 → `21.11.45`,
-   26.1.2 → `26.1.2.87`, 26.2 → `26.2.0.53-beta`.
-2. Put `WurstB+.Plus-<version>-NeoForge-<mc>.jar` into `.minecraft/mods/`.
-
-> **Note:** if NeoForge 1.21.1 fails with `baritone.api.forge does not read module minecraft`, an
-> older package or a standalone Baritone JAR is present as well; remove it and keep exactly one jar.
-
-</details>
-
-<details>
-<summary><b>Fabric</b></summary>
-
-1. Install Fabric Loader: 1.20.1 / 1.21.1 → `0.16.14`, 1.21.11 / 26.1.2 / 26.2 → `0.19.3`.
-2. **Also install the matching [Fabric API](https://modrinth.com/mod/fabric-api)**:
-   1.20.1 → `0.92.6`, 1.21.1 → `0.115.0`, 1.21.11 → `0.141.6`, 26.1.2 → `0.155.2`, 26.2 → `0.156.0`.
-3. Put `WurstB+.Plus-<version>-Fabric-<mc>.jar` into `.minecraft/mods/`.
-
-</details>
-
-<details>
-<summary><b>Baritone (do not add a second copy)</b></summary>
-
-Some platforms bundle Baritone as a Jar-in-Jar, others merge the Baritone classes into the main
-module (to dodge a JPMS module read error). **Do not** drop a standalone Baritone JAR next to it —
-it will clash with the bundled version. Per-version details are in
-[docs/RELEASE.md](docs/RELEASE.md).
-
-</details>
-
----
-
 ## Repository layout
 
 ```text
@@ -132,7 +83,7 @@ distribution resolves even offline.
 | --- | --- |
 | [CHANGELOG.md](CHANGELOG.md) | Version history, including known limitations and deviations |
 | [PROJECT_INDEX.md](PROJECT_INDEX.md) | Per-project index: toolchain, source file count, entry classes, artifact names |
-| [docs/RELEASE.md](docs/RELEASE.md) | **Release and maintenance handbook** (the original README): **feature documentation** (new subsystems, the new-hack inventory, HUD elements, refactored internals, architecture), **building and running**, artifact matrix, packaging validation, verification status |
+| [docs/RELEASE.md](docs/RELEASE.md) | **Release and maintenance handbook** (the original README): **feature documentation** (new subsystems, the new-hack inventory, HUD elements, refactored internals, architecture), **installation**, **building and running**, artifact matrix, packaging validation, verification status |
 | [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) | Porting plan and per-version status for the new-version projects |
 | [docs/PORTING-1.21.11-26.2.md](docs/PORTING-1.21.11-26.2.md) | Render pipeline and porting notes for 1.21.11 / 26.2 |
 | [PORTING_TASK.md](PORTING_TASK.md) | Porting tasks and open items |
