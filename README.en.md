@@ -19,10 +19,6 @@
 loaders — **Forge / NeoForge / Fabric** — and **22 Minecraft versions**, maintained as 64
 independent Gradle projects.
 
-> **Just want to play?** Grab the jar for your game version and loader from
-> [Releases](https://github.com/xiegeezr886/WurstB-Plus/releases), then read
-> [Installation](#installation). **Make sure your Java version matches the table below.**
-
 ---
 
 ## Version support
