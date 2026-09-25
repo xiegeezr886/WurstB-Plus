@@ -584,6 +584,40 @@ Minecraft / Mixin hook
 6. `PlatformUtils` 直接调用 Forge `ModList` 和 `FMLLoader`，不包含跨加载器反射。
 7. `ClientConnectionMixin` 仅为接收方向为 `CLIENTBOUND` 的客户端连接派发 Wurst 收发包事件；单人集成服务器的 `SERVERBOUND` 连接不会进入客户端模块事件链。
 
+## 安装
+
+把 jar 放进 `.minecraft/mods/` 即可。**Java 版本必须与目标 MC 版本匹配**——1.20.x 用 17、
+1.21.x 用 21、26.x 用 25，否则加载器起不来。产物命名规则见[发布产物矩阵](#发布产物矩阵63-个重建--1-个留存)。
+
+### Forge
+
+1. 装对应版本的 Forge：1.20.1 → `47.4.10`，1.21.1 → `52.1.16`，1.21.11 → `61.2.0`，
+   26.1.2 → `64.1.0`，26.2 → `65.1.0`。
+2. 把 `WurstB+.Plus-<版本>-Forge-<mc>.jar` 放进 `.minecraft/mods/`。
+3. 用对应版本的 Java 启动。
+
+### NeoForge
+
+1. 装对应版本的 NeoForge：1.20.1 → `47.1.3`，1.21.1 → `21.1.244`，1.21.11 → `21.11.45`，
+   26.1.2 → `26.1.2.87`，26.2 → `26.2.0.53-beta`。
+2. 把 `WurstB+.Plus-<版本>-NeoForge-<mc>.jar` 放进 `.minecraft/mods/`。
+
+> **注意：** NeoForge 1.21.1 若报 `baritone.api.forge does not read module minecraft`，
+> 说明同时存在旧包或单独的 Baritone JAR；删掉它们，只留对应版本的一个 jar。
+
+### Fabric
+
+1. 装 Fabric Loader：1.20.1 / 1.21.1 → `0.16.14`，1.21.11 / 26.1.2 / 26.2 → `0.19.3`。
+2. **同时装上匹配的 [Fabric API](https://modrinth.com/mod/fabric-api)**：
+   1.20.1 → `0.92.6`，1.21.1 → `0.115.0`，1.21.11 → `0.141.6`，26.1.2 → `0.155.2`，26.2 → `0.156.0`。
+3. 把 `WurstB+.Plus-<版本>-Fabric-<mc>.jar` 放进 `.minecraft/mods/`。
+
+### Baritone
+
+部分平台把 Baritone 以 Jar-in-Jar 打包，部分把 Baritone 类合并进主模块（为规避 JPMS 模块读取错误）。
+**不要**再额外放单独的 Baritone JAR——会与内置版本冲突。各版本的具体依赖方式见下面
+[Baritone 依赖兼容性](#baritone-依赖兼容性)一节。
+
 ## 构建与运行
 
 ### Forge 1.20.1
