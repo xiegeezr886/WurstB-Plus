@@ -8,6 +8,7 @@ $script:WurstbJdkMajor = @{
     "1.21.11" = 21
     "26.1.2"  = 25
     "26.2"    = 25
+    "26.3"    = 25
 }
 
 $script:WurstbJdkEnv = @{
@@ -122,10 +123,16 @@ function Get-WurstbJdkHome {
         Select-Object -First 1
     if ($match) { return $match.JdkHome }
 
+    # Real paths measured on this machine (2026-09-25), kept in sync with
+    # JDK_FALLBACK in scripts/smoke-launch.py. Find-WurstbJdks usually finds
+    # these already; this list is only the fallback, so keep it accurate.
+    # NOTE: keep this file ASCII-only. It has no BOM, and PowerShell 5.1
+    # decodes BOM-less files as the ANSI codepage, where UTF-8 Chinese can
+    # swallow the next ASCII byte and break parsing.
     $legacy = switch ($major) {
-        17 { "C:\Program Files\Java\jdk-17" }
-        21 { "C:\Program Files\Java\jdk-21" }
-        25 { "C:\Program Files\Java\jdk-25.0.4" }
+        17 { "C:\Program Files\Microsoft\jdk-17.0.20.101-hotspot" }
+        21 { "C:\Program Files\Java\jdk-21.0.11" }
+        25 { "C:\Program Files\Microsoft\jdk-25.0.4.101-hotspot" }
     }
     if (Test-WurstbJdkHome $legacy) { return $legacy }
 
@@ -143,16 +150,19 @@ function Get-WurstbGradleProjects {
         @{ Name = "Forge 1.21.11";    Dir = "versions\1.21.11";           MC = "1.21.11"; Version = "v1.5.0"; Loader = "Forge";    Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-Forge-1.21.11.jar" }
         @{ Name = "Forge 26.1.2";     Dir = "versions\26.1.2";            MC = "26.1.2";  Version = "v1.5.0"; Loader = "Forge";    Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-Forge-26.1.2.jar" }
         @{ Name = "Forge 26.2";       Dir = "versions\26.2";              MC = "26.2";    Version = "v1.5.0"; Loader = "Forge";    Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-Forge-26.2.jar" }
+        @{ Name = "Forge 26.3";       Dir = "versions\26.3";              MC = "26.3";    Version = "v1.5.0"; Loader = "Forge";    Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-Forge-26.3.jar" }
         @{ Name = "NeoForge 1.20.1";  Dir = "neoforge";                   MC = "1.20.1";  Version = "v1.5.0"; Loader = "NeoForge"; Wrapper = "8.14.4"; Artifact = "WurstB+ Plus-v1.5.0-NeoForge-1.20.1.jar" }
         @{ Name = "NeoForge 1.21.1";  Dir = "neoforge\versions\1.21.1";   MC = "1.21.1";  Version = "v1.5.0"; Loader = "NeoForge"; Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar" }
         @{ Name = "NeoForge 1.21.11"; Dir = "neoforge\versions\1.21.11";  MC = "1.21.11"; Version = "v1.5.0"; Loader = "NeoForge"; Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-NeoForge-1.21.11.jar" }
         @{ Name = "NeoForge 26.1.2";  Dir = "neoforge\versions\26.1.2";   MC = "26.1.2";  Version = "v1.5.0"; Loader = "NeoForge"; Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar" }
         @{ Name = "NeoForge 26.2";    Dir = "neoforge\versions\26.2";     MC = "26.2";    Version = "v1.5.0"; Loader = "NeoForge"; Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-NeoForge-26.2.jar" }
+        @{ Name = "NeoForge 26.3";    Dir = "neoforge\versions\26.3";     MC = "26.3";    Version = "v1.5.0"; Loader = "NeoForge"; Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-NeoForge-26.3.jar" }
         @{ Name = "Fabric 1.20.1";    Dir = "fabric";                     MC = "1.20.1";  Version = "v1.5.0"; Loader = "Fabric";   Wrapper = "8.11";   Artifact = "WurstB+ Plus-1.5.0-Fabric-1.20.1.jar" }
         @{ Name = "Fabric 1.21.1";    Dir = "fabric\versions\1.21.1";     MC = "1.21.1";  Version = "v1.5.0"; Loader = "Fabric";   Wrapper = "8.11";   Artifact = "WurstB+ Plus-1.5.0-Fabric-1.21.1.jar" }
         @{ Name = "Fabric 1.21.11";   Dir = "fabric\versions\1.21.11";    MC = "1.21.11"; Version = "v1.5.0"; Loader = "Fabric";   Wrapper = "9.6.0";  Artifact = "WurstB+ Plus-1.5.0-Fabric-1.21.11.jar" }
         @{ Name = "Fabric 26.1.2";    Dir = "fabric\versions\26.1.2";     MC = "26.1.2";  Version = "v1.5.0"; Loader = "Fabric";   Wrapper = "9.6.0";  Artifact = "WurstB+ Plus-1.5.0-Fabric-26.1.2.jar" }
         @{ Name = "Fabric 26.2";      Dir = "fabric\versions\26.2";       MC = "26.2";    Version = "v1.5.0"; Loader = "Fabric";   Wrapper = "9.6.0";  Artifact = "WurstB+ Plus-1.5.0-Fabric-26.2.jar" }
+        @{ Name = "Fabric 26.3";      Dir = "fabric\versions\26.3";       MC = "26.3";    Version = "v1.5.0"; Loader = "Fabric";   Wrapper = "9.6.0";  Artifact = "WurstB+ Plus-1.5.0-Fabric-26.3.jar" }
     )
 }
 
