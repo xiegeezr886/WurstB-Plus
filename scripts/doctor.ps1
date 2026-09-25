@@ -25,7 +25,7 @@ if ($jdks.Count -eq 0) {
 } else {
     $jdks | ForEach-Object { Write-Host ("  Java {0,-3} {1}" -f $_.Major, $_.JdkHome) }
 }
-foreach ($mc in @("1.20.1", "1.21.1", "1.21.11", "26.1.2", "26.2", "26.3")) {
+foreach ($mc in @("1.20.1", "1.21.1", "1.21.11", "26.1.2", "26.2")) {
     $jdkForMc = Get-WurstbJdkHome $mc -Quiet
     $status = if ($jdkForMc) { $jdkForMc } else { "MISSING" }
     Write-Host ("  MC {0,-7} -> {1}" -f $mc, $status)
