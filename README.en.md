@@ -134,7 +134,7 @@ registered and never appears in game).</sub>
   jarJar, which would relocate the resource path and break native lookup) and is unpacked at
   runtime. This is also why the root project's artifact is unusually large.
 
-### New in v1.6 <sub>root Forge 1.20.1 only</sub>
+### New subsystems
 
 | Subsystem | Description |
 | --- | --- |
