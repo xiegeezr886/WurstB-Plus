@@ -1,6 +1,6 @@
 # WurstB+ Plus 移植与修复任务清单
 
-Updated: 2026-08-29
+Updated: 2026-09-26
 
 本文档记录 WurstB+ Plus 各平台工程的移植状态与修复任务。已完成任务含根因、改动与验证；待办任务含现状、方法与验证方式，供后续接手直接继续。
 
@@ -256,7 +256,7 @@ Starting WurstB+ Plus... / [nether-pathfinder] Loaded shared library
 | --- | --- | --- |
 | `neo_version_range` 漏 `-beta` 限定符 | 1.21.2、1.21.7 | **已修** |
 | 混入目标失效 `PlayerInventoryMixin`（目标 `swapPaint(D)V` 在 1.21.3+ 已从 `Inventory` 移除） | 1.21.2、1.21.4、1.21.5 | 未修，诊断完成 |
-| 混入目标失效 `PlayerMixin`（`causeExtraKnockback` 只在 1.21.11 存在） | 1.21.7、1.21.8、1.21.10 | **已修**（`require = 0`） |
+| 混入目标失效 `PlayerMixin`（`causeExtraKnockback` 在 1.21.6–1.21.10 **不存在**） | 1.21.7、1.21.8、1.21.10 | **只修了一半**——该类上有两个 `@Redirect`，上个会话只给其中一个加了 `require = 0`，另一个仍是默认 `require = 1`，**仍会崩**。详见下节「2026-09-26 / 一」 |
 | baritone 的 `MixinMinecraft` 描述符不匹配 | 1.21.3 | 未修，需与该 MC 版本匹配的 baritone 构建 |
 | 构建失败（仅有 Gradle 任务摘要，无 FATAL） | 1.20.4、1.20.6、1.21 | 未查 |
 | 首次下载资源超时（NeoForm 自下、不走镜像） | 1.20.2、1.20.3、1.20.5 | 环境耗时，非缺陷 |
@@ -331,3 +331,264 @@ LivingEntity$SwingState        (private int ticks / private float animation / is
 4. 按清单批量修：`PlayerInventoryMixin`（3 个）、baritone 的 `MixinMinecraft`（1 个）、
    `1.20.4/1.20.6/1.21` 的构建失败、以及清单暴露的其余项。
 5. 顺手回填 `scripts/common.ps1` 的 JDK 路径。
+
+---
+
+# 2026-09-26 会话：1.21.2–1.21.5 全线清零，1.21.6+ 的失效注入点定位到字节码
+
+本节接着上一节。上一节把方法论的坑挖出来了，本节把「怎么离线、可复现地按版本验证注入点」
+这件事做实，并用它把 1.21.2–1.21.5 清到 0，把 1.21.6–1.21.9 的每一条失效注入点归到了根因。
+
+## 一、先更正上一节的一处结论（重要，直接关系到「还会崩」）
+
+上一节「三、崩溃清单」里那一行「混入目标失效 `PlayerMixin`（`causeExtraKnockback` 只在
+1.21.11 存在）→ **已修**（`require = 0`）」——**只修了一半，1.21.6–1.21.10 仍然会崩。**
+
+`PlayerMixin` 在 `causeExtraKnockback` 上有**两个** `@Redirect`：
+
+| 行 | 包的是什么 | 上个会话的状态 |
+| --- | --- | --- |
+| `keepSprintMotion` | `Vec3.multiply(DDD)` | 加了 `require = 0` |
+| `keepSprintState` | `Player.setSprinting(Z)V` | **没加**，仍是默认 `require = 1` |
+
+目标方法不存在时，`require = 1` 的那一个会抛 `InvalidInjectionException`，配置又是
+`required=true` + `defaultRequire: 1`，所以照样是启动即崩。审计输出里这两行的区别一眼可见：
+一行行尾有 `[require=0]`，另一行没有。
+
+顺带把「只在 1.21.11 存在」这句也修准（javap 实测）：
+
+| 版本 | `Player.causeExtraKnockback` |
+| --- | --- |
+| 1.21.6 / 1.21.7 / 1.21.8 / 1.21.9 / 1.21.10 | **不存在** |
+| 1.21.11 / 26.1 | `(Entity, float, Vec3)V` |
+| 26.2 / 26.3 | `(Entity, float, Vec3, DamageSource, float, boolean)V` |
+
+即：1.21.11 起**重新出现**，26.2 起**又多三个参数**。所以 `versions/26.3` 的 `PlayerMixin`
+用的是 6 参描述符，而 `1.21.11`/`26.1`/`26.2` 三处写的是 2 参描述符——1.21.11 与 26.1 对得上，
+**26.2 对不上**（这一条尚未进审计清单，见第七节）。
+
+## 二、离线审计脚本：一套入口覆盖三棵树
+
+```bash
+python scripts/audit-mixin-injections.py <版本> [--tree all|forge|fabric|neoforge]
+python _smoke/disasm.py <版本> <全限定类名> [方法名]     # javap -p -c 探针
+```
+
+审计脚本做的事：把每条 `@Inject` / `@WrapOperation` / `@Redirect` / `@ModifyConstant` /
+`@ModifyExpressionValue` / `@ModifyReturnValue` 的**方法名+描述符**、以及
+`@At(target=...)` 指向的**调用点**，逐条拿去和该版本**真实 jar** 比对。jar 的取法复用
+`find_jar()`，即 `~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/
+<版本>-loom.mappings...jar`。三棵树的目录映射写死在 `TREES` 里，1.20.1 走特殊分支。
+
+几个必须知道的边界条件：
+
+1. **它会读源码里的 `require = 0`，并在结果行尾标 `[require=0]`。** 带这个标记的不是崩溃，
+   只是「这条注入静默失效了」。不带标记的才是启动即崩。
+2. **它只比对目标类自身，不回溯父类。** 从父类继承来的方法会被判成「不存在」，而 Mixin 自身
+   的查找行为未必如此。遇到明显是继承来的方法（例如某 Screen 没覆写 `render`）要人工判断。
+3. **它只打开 `src/main/resources/*.mixins.json` 的第一个匹配项。** 已确认没有任何一棵树存在
+   第二个 `*.mixins.json`（同目录下的 `mixins.baritone.json`、`fabric.mod.json`、
+   `intentionally_untranslated.json` 都不匹配该通配），所以结论有效。
+4. **`WurstMixinConfigPlugin` 是配置插件不是混入**，永远出现在「未注册的混入文件」里，无害。
+5. 输出末尾那句「另有 N 个未注册的混入文件已跳过」**不等于缺失功能**：这些绝大多数是**改名前
+   的历史同名副本**。例如 1.21.6 注册的是 `LocalPlayerMixin`，同目录下的
+   `ClientPlayerEntityMixin.java` 没注册；反过来 1.21.5 注册的是 `ClientPlayerEntityMixin`。
+   判断某功能在不在，要看 **mixins.json 里注册了什么**，不是看目录里有什么文件。
+
+⚠️ **`_smoke/` 下的旧结果别信。** `audit-rerun-1.21.3/4/5.txt`（62 / 65 / 62 条）是修复**前**
+的快照；`audit-band.txt`、`audit-injections-all.txt`、`audit-decoded.txt`、`audit-targets-all.txt`
+同理（其中 `audit-decoded.txt` 还是编码坏掉的）。**只有每版本一份的 `audit-<版本>.txt`
+（本次新扫）代表当前状态。** `_smoke/` 与 `scripts/__pycache__/` 已加进 `.gitignore`。
+
+## 三、1.21.2–1.21.5 已清零（本次已推送）
+
+四条线的**三棵树**复查全部为 `发现 0 处可疑注入点`。这四条线上实际改掉的东西：
+
+| 版本 | 改动 |
+| --- | --- |
+| 1.21.2 ×3 树 | `BackgroundRendererMixin` 对齐 1.21.2 的 `setupFog`——它变成了**静态方法并返回 `FogParameters`**（不再是写 `RenderSystem` 返回 void），故改为 `cancellable` + 返回 `FogParameters.NO_FOG`；`FluidRenderer` / `EntityRenderer` / `GameRenderer` / `LivingEntityRenderer` / `MobEntityRenderer` / `MouseMixin` / `ScreenMixin` / `ClientPlayerEntityMixin` 逐一按真实签名改写；删除已失效的 `PlayerInventoryMixin` 并从 `wurstpenguin.mixins.json` / `wurst.mixins.json` 注销 |
+| 1.21.3 forge | `LocalPlayerMixin` 整体重写。1.21.3 的口径是：`handleConfusionTransitionEffect(Z)V`（不是 1.21.5 的 `handlePortalTransitionEffect`）、字段 `spinningEffectIntensity:F`（不是 `portalEffectIntensity`）、冲刺门槛 `hasEnoughFoodToStartSprinting()Z`（不是 `hasEnoughFoodToSprint`）。NoSlowdown 的三处拦截改为按 `isUsingItem()Z` / `autoJumpTime:I` 的**真实序数**注入；`effect == MobEffects.X` 全部改为 `Holder.is()`；删掉不存在的 `liquidsRaycast`；`handleConfusionTransitionEffect` 里的 PortalGUI 改成**直接读写 `minecraft.screen` 字段**而不是 `setScreen()`。1.21.4 的目标与 1.21.3 完全一致，文件已同步成同一份（md5 相同） |
+| 1.21.3 forge | `LevelRendererMixin`：1.21.3 的 `renderLevel` 在 `GameRenderer` 与两个 `Matrix4f` 之间**多一个 `LightTexture` 形参**（1.21.4/1.21.5 没有），已补上；`ScreenEffectRendererMixin` 回到 `renderFire/renderWater(Minecraft, PoseStack)` |
+| 1.21.3 / 1.21.4 / 1.21.5 | `KeyboardHandlerMixin` 的 `keyPress` 回调签名 `(JIII)V` → **`(JIIII)V`**（这三个版本都声明 `keyPress(long,int,int,int,int)`） |
+| 1.21.4 | `ScreenEffectRendererMixin.renderFire` 去掉已不存在的 `TextureAtlasSprite` 形参，改为 `(PoseStack, MultiBufferSource)V`；`InGameOverlayRendererMixin` 同步 `MultiBufferSource` |
+| 1.21.5 ×3 树 | `handleConfusionTransitionEffect` → `handlePortalTransitionEffect`、`spinningEffectIntensity` → `portalEffectIntensity`、`hasEnoughFoodToStartSprinting` → `hasEnoughFoodToSprint`；`LightmapTextureManagerMixin` 的 `getDarknessGamma(F)F` 在 1.21.5 已并入 **`calculateDarknessScale(LivingEntity,float,float)F`**，按新签名重写；`ZoomOtf.shouldUseZoom` 从恒 `false` 恢复为真正判断变焦键 |
+
+同批还改了 `scripts/` 下若干构建与冒烟脚本。提交与推送：
+
+| 提交 | 内容 | 规模 |
+| --- | --- | --- |
+| `0939cde` | `fix(mixin): 修掉 1.21.2–1.21.5 三棵树全部运行时失效的注入点` | 130 文件 / +1648 / −3116 |
+| `12ca571` | `feat(26.3): 新增 26.3 三棵树工程、注入点审计脚本与移植交接文档` | 2721 文件 |
+
+`pictures/` 下 4 张 PNG（约 2.2MB）未被任何文档引用，**没有入库**，需要时再决定去留。
+
+## 四、1.21.6–1.21.9 的审计结果（本次扫完）
+
+| 版本 | 可疑注入点 | forge | neoforge | fabric | 未注册的混入文件 |
+| --- | --- | --- | --- | --- | --- |
+| 1.21.6 | 44 | 16 | 14 | 14 | 15 |
+| 1.21.7 | 44 | 16 | 14 | 14 | 16 |
+| 1.21.8 | 42 | 14 | 14 | 14 | 15 |
+| 1.21.9 | 35 | 12 | 12 | 11 | — |
+
+（**除 `PlayerMixin:20` 与 forge 的 `EntityMixin:37` 外，全部没有 `require = 0`，即全部是启动即崩。**）
+
+逐文件清单（同一文件三棵树基本同形，`forge` 独有项已注明）：
+
+| 位置 | 1.21.6 | 1.21.7 | 1.21.8 | 1.21.9 |
+| --- | :-: | :-: | :-: | :-: |
+| `AtmosphericFogEnvironmentMixin:29` | ✔ | ✔ | ✔ | ✔ |
+| `FogRendererMixin:37` | ✔ | ✔ | ✔ | ✔ |
+| `LocalPlayerMixin:128`（`isSlowDueToUsingItem` 不在 `aiStep`） | ✔ | ✔ | ✔ | ✔ |
+| `LocalPlayerMixin:161`（`isSlowDueToUsingItem` 不在 `canStartSprinting`） | ✔ | ✔ | ✔ | ✔ |
+| `LocalPlayerMixin:243`（`isSprintingPossible(Z)Z` 不存在） | ✔ | ✔ | ✔ | — |
+| `LocalPlayerMixin:385`（`pick(Entity;DDF)` 不存在） | ✔ | ✔ | ✔ | ✔ |
+| `PlayerMixin:20`（`[require=0]`，失效不崩） | ✔ | ✔ | ✔ | ✔ |
+| `PlayerMixin:33`（**致命**） | ✔ | ✔ | ✔ | ✔ |
+| `ScreenEffectRendererMixin:27`（`renderFire` 描述符） | ✔ | ✔ | ✔ | — |
+| `StatsScreenMixin:42`（`addToFooter` 不在 `init`） | ✔ | ✔ | ✔ | — |
+| `StatsScreenMixin:80`（`render(GuiGraphics;IIF)V` 不存在） | ✔ | ✔ | ✔ | — |
+| forge `EntityMixin:37`（`[require=0]`） | ✔ | ✔ | — | ✔（1.21.9 的形参是 `Predicate`） |
+| forge `noshieldoverlay.ItemInHandRendererMixin` | ✔ :60 | ✔ :60 | — | ✔ :56 |
+
+## 五、根因归类（每一条都用 javap 对着真实 jar 看过了）
+
+### 5.1 `AtmosphericFogEnvironment.setupFog` 在 1.21.6 换了形参，26.3 又换回去
+
+```text
+1.21.6–1.21.9 : setupFog(FogData, Entity, BlockPos, ClientLevel, float, DeltaTracker)V
+26.3          : setupFog(FogData, Camera, ClientLevel, float, DeltaTracker)V   ← 和 1.21.5 一样
+```
+
+混入里写的是 `(FogData, Camera, ClientLevel, float, DeltaTracker)`，在 1.21.6–1.21.9 上
+**参数个数对不上**（Mixin 只按名字找到方法后再校验 handler 参数个数）。修法是把中间那个
+`Camera camera` 换成 `Entity entity, BlockPos pos`。
+
+> **这一条本身就是本节最重要的一课**：`26.3` 的同一份代码是**对的**，
+> 所以「照着上一版改」和「照着最新版抄」在 1.21.6 这一跳上**两个都会错**。
+
+### 5.2 `FogRenderer` 换包，并且多了一个 boolean
+
+```text
+1.21.5 / 26.3 : net.minecraft.client.renderer.fog.FogRenderer
+                setupFog(Camera, int, DeltaTracker, float, ClientLevel)  → 26.3 返回 FogData
+1.21.6        : setupFog(Camera, int, boolean, DeltaTracker, float, ClientLevel) → Vector4f
+                ↑ 在 int 之后插了一个 boolean，返回类型也还是 Vector4f
+```
+
+那第 3 个参数被同时喂给 `getGameTimeDeltaPartialTick(Z)`、`getFogType(Camera,Z)` 与
+`computeFogColor(...,Z)`；从 `getFogType` 的字节码看，它的语义是
+「`camera.getFluidInCamera() == NONE` 时，取 `DIMENSION_OR_BOSS` 还是 `ATMOSPHERIC`」。
+（Mojang 官方映射里没有参数名，loom 缓存里的 `mappings.tiny` 一行 `p` 记录都没有，
+所以**参数名只能自己起**，Mixin 也只看类型。）`1.21.5` 的 `setupFog` 是完全另一个方法
+（`(Camera, FogMode, Vector4f, float, boolean, float) → FogParameters`）。
+
+### 5.3 `LocalPlayer`：三个目标一起消失，其中 `pick` 是**搬到了别的类**
+
+1.21.6 的 `LocalPlayer` 里：
+
+| 旧目标 | 1.21.6 的实际情况 |
+| --- | --- |
+| `isSlowDueToUsingItem()Z` | **方法没了**。1.21.6 的 `aiStep` 与 `canStartSprinting` 直接调 `isUsingItem()Z`（各只有 1 处调用点，序数 0）。`isMovingSlowly()` 在 1.21.6 是 `isCrouching() \|\| isVisuallyCrawling()`，**和物品无关**，不要拿它顶替 |
+| `isSprintingPossible(Z)Z` | **方法没了**。AutoSprint 的「饿着也能跑」应改挂 `hasEnoughFoodToSprint()Z`（1.21.5 用的就是它） |
+| `pick(Entity;DDF)HitResult` | **搬到 `GameRenderer`** 了：1.21.6 的 `GameRenderer` 有 `public void pick(float)` 与 `private HitResult pick(Entity,double,double,float)`，后者在偏移 29 处 `iconst_0` 后调 `Entity.pick(DFZ)`。所以 Liquids 的 `@WrapOperation` 要从 `LocalPlayerMixin` **挪进 `GameRendererMixin`**（`ordinal = 0` 即可），宿主方法名不变 |
+
+> `26.3` 的 `LocalPlayer` 里 `isSlowDueToUsingItem()`、`isSprintingPossible(boolean)`、`pick(...)`
+> **全都在**——再次说明不能跨版本抄。
+
+### 5.4 `Player.causeExtraKnockback` 消失，KeepSprint 的真身在 `Player.attack`
+
+1.21.6 的 `Player` 里没有 `causeExtraKnockback`，那段「冲刺时额外击退」的逻辑被**内联进了
+`public void attack(Entity)`**，而且字节码位置非常干净：
+
+```text
+attack(Lnet/minecraft/world/entity/Entity;)V
+   563: invokevirtual  LivingEntity.knockback:(DDD)V
+   612: invokevirtual  Entity.push:(DDD)V
+   627: invokevirtual  Vec3.multiply:(DDD)Lnet/minecraft/world/phys/Vec3;   ← keepSprintMotion 想要的
+   635: invokevirtual  setSprinting:(Z)V                                      ← keepSprintState 想要的
+```
+
+全方法里 `Vec3.multiply(DDD)` 与 `setSprinting(Z)` **各只出现 1 次**，所以两个 `@Redirect`
+把 `method` 改成 `attack(Lnet/minecraft/world/entity/Entity;)V`、不用写 ordinal 就能同时
+「不再崩」和「KeepSprint 真的生效」。这是**比补 `require = 0` 更好的修法**——
+补 `require = 0` 只是不崩，功能是死的。
+
+### 5.5 `ScreenEffectRenderer.renderFire` 少了第三个形参
+
+```text
+1.21.4 / 1.21.5 : renderFire(PoseStack, MultiBufferSource, TextureAtlasSprite)V
+1.21.6          : renderFire(PoseStack, MultiBufferSource)V      ← TextureAtlasSprite 没了
+```
+
+`renderWater(Minecraft, PoseStack, MultiBufferSource)V` 没变（所以那一处没报）。
+`@ModifyConstant` 的 `constant = @Constant(floatValue = -0.3F)` 本身没问题。
+
+### 5.6 `StatsScreen`：`addToFooter` 挪了方法，而且**这个类不再覆写 `render`**
+
+- `HeaderAndFooterLayout.addToFooter(LayoutElement;)LayoutElement;` 在 1.21.6 的调用点在
+  **`initButtons()`**（偏移 28），不在 `init()`。而 `1.21.5` 的 `StatsScreenMixin` 用的恰好是
+  `@Inject(at = @At("TAIL"), method = "initButtons()V")`——说明这个坑 1.21.5 时是踩对了的。
+- `render(GuiGraphics;IIF)V` 在 `StatsScreen` 上**不存在**。`Screen` 有
+  `public void render(GuiGraphics,int,int,float)`，但 `StatsScreen`（1.21.5 也是）**没有覆写**。
+  对比之下 26.1+ 的 `StatsScreen` **确实声明了** `extractRenderState(GuiGraphicsExtractor;IIF)V`，
+  所以 26.x 那一份是对的。
+  → 改这一处时要先决定：是改成 `initButtons()` + 放弃那个画 logo 的 `render` 钩子，
+  还是把 logo 钩子挂到别的、`StatsScreen` 真的覆写了的方法上。**不要指望 Mixin 的父类回溯**，
+  它即使成功也等于把回调挂到 `Screen.render` 上、对所有界面生效。
+- 附：1.21.6 的 `StatsScreenMixin` 里 `new GuiGraphicsExtractor(graphics)` 用的是本仓库自己的
+  `net.wurstclient.util.render.GuiGraphicsExtractor`（一个包了原版 `GuiGraphics` 的 26.x 兼容壳），
+  **这一处不涉及原版类，编译没问题**——别把它误当成 `net.minecraft.client.gui.GuiGraphicsExtractor`。
+
+### 5.7 forge 树独有的两条
+
+| 位置 | 情况 |
+| --- | --- |
+| `EntityMixin:37` `updateFluidHeightAndDoFluidPushing` | `[require=0]`，**不崩**。1.21.9 上的描述符已变成 `(Ljava/util/function/Predicate;)V`，语义要重做；1.21.8 上反而存在（所以 1.21.8 没报） |
+| `noshieldoverlay.ItemInHandRendererMixin` | **致命**。1.21.6/1.21.7 是 `ItemInHandRenderer.swingArm(F,PoseStack,I,HumanoidArm)V` 不在 `renderArmWithItem` 的字节码里；1.21.9 是 `ItemStack.getSwingAnimation()` 不在。注意 26.3 那一份已经改成 `FirstPersonHandsAndItemsRenderer` + `AvatarRenderState.currentSwing` 字段读取了（见 26.3 移植文档），**这正是 1.21.6+ 需要的方向** |
+
+## 六、可复用的判据：别把「版本号相邻」当成「API 相邻」
+
+本次几条反直觉的实测，建议以后遇到注入失败先查这几处：
+
+1. **同一符号的存在性在 1.21.5→1.21.6 与 1.21.9→26.3 之间会来回摆**（`AtmosphericFogEnvironment.setupFog`
+   的形参、`causeExtraKnockback` 的有无与参数个数）。**必须按版本查**，`26.3` 的正确写法不能反推 `1.21.6`。
+2. **方法「消失」常常只是「搬家」**：`LocalPlayer.pick` → `GameRenderer.pick`。看到「目标类无此描述符」
+   先去相邻类里找同名方法，再决定是改 target 还是换宿主 mixin。
+3. **逻辑「内联」会让锚点从 `INVOKE` 变成直接调用**：`causeExtraKnockback` → 内联进 `attack`。
+   这类改动的特征是**调用点数量很少且位置干净**（本次两处各 1 个），改 `method` 就能救活功能。
+4. `require = 0` 是**止血**不是修复：它让客户端能起来，但对应功能静默失效。
+   审计输出专门把 `[require=0]` 标出来，就是为了区分「还能用但没接上」和「会崩」。
+
+## 七、尚未完成 / 下一步
+
+**审计未覆盖：**
+
+- `1.21.10`：本次扫描任务在写这个文件时**中断了**（`_smoke/audit-1.21.10.txt` 是空的），需重扫。
+- `1.21.11`、`26.1`、`26.1.1`、`26.1.2`、`26.2`、`26.3`：**未扫**。
+- ⚠️ 已知 `26.2` 的 `PlayerMixin` 用的是 2 参 `causeExtraKnockback` 描述符，而 26.2 的实际签名
+  是 6 参（见第一节的表）——**这是审计扫到 26.2 时大概率会报的一条**，可以提前确认。
+
+**修复未开始：** 1.21.6 / 1.21.7 / 1.21.8 / 1.21.9 三棵树共 4 × ~14 条致命注入点，
+根因已在第五节逐条给出，但**一行代码都还没改**。
+
+**建议顺序：**
+
+1. 先把 `PlayerMixin:33` 这条补上（最小改动：`method` 改成 `attack(...)`，同时把 `:20` 的
+   `require = 0` 去掉——两处合并成一个正确修法），三棵树，编译验证。
+2. 按第五节 5.1–5.6 逐类改 1.21.6 的三棵树，改完用
+   `python scripts/audit-mixin-injections.py 1.21.6` 复查到 0，再 `./gradlew compileJava`。
+3. 1.21.6 验证通过后，把同一批改动按 `_smoke/audit-<版本>.txt` 的差异**逐版本**应用（不要盲目复制：
+   5.1/5.6 在各版本间就有差异）。
+4. 重扫 1.21.10 与 1.21.11/26.x，补完审计覆盖。
+5. 之后再回到上一节的第 1 步（冒烟判据改「主菜单出现」）与第 3 步（全量真启动）——
+   **判据升级要在注入点清完之后做，否则扫出来的崩溃清单会被这些已知项淹没。**
+
+**本次会话留下的可复现资产：**
+
+| 资产 | 说明 |
+| --- | --- |
+| `scripts/audit-mixin-injections.py` | 已入库。三棵树统一入口，按版本核对注入点 |
+| `_smoke/disasm.py` | 未入库（`_smoke/` 已 ignore）。依赖上面的脚本，用法 `<版本> <类> [方法]` |
+| `_smoke/audit-<版本>.txt` | 未入库。本次 1.20.1–1.21.9 的结果，1.21.10 为空需重扫 |
+| `_smoke/results.tsv` | 未入库。冒烟启动结果，**只有 4 行旧判据的陈旧数据**，重跑前不要引用 |
