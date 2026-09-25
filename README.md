@@ -53,53 +53,6 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 
 ---
 
-## 安装
-
-把 jar 丢进 `.minecraft/mods/` 即可。**Java 版本必须与上表一致**，否则加载器起不来。
-
-<details open>
-<summary><b>Forge</b></summary>
-
-1. 装对应版本的 Forge：1.20.1 → `47.4.10`，1.21.1 → `52.1.16`，1.21.11 → `61.2.0`，
-   26.1.2 → `64.1.0`，26.2 → `65.1.0`。
-2. 把 `WurstB+.Plus-<版本>-Forge-<mc>.jar` 放进 `.minecraft/mods/`。
-3. 用对应版本的 Java 启动。
-
-</details>
-
-<details>
-<summary><b>NeoForge</b></summary>
-
-1. 装对应版本的 NeoForge：1.20.1 → `47.1.3`，1.21.1 → `21.1.244`，1.21.11 → `21.11.45`，
-   26.1.2 → `26.1.2.87`，26.2 → `26.2.0.53-beta`。
-2. 把 `WurstB+.Plus-<版本>-NeoForge-<mc>.jar` 放进 `.minecraft/mods/`。
-
-> **注意：** NeoForge 1.21.1 若报 `baritone.api.forge does not read module minecraft`，
-> 说明同时存在旧包或单独的 Baritone JAR；删掉它们，只留对应版本的一个 jar。
-
-</details>
-
-<details>
-<summary><b>Fabric</b></summary>
-
-1. 装 Fabric Loader：1.20.1 / 1.21.1 → `0.16.14`，1.21.11 / 26.1.2 / 26.2 → `0.19.3`。
-2. **同时装上匹配的 [Fabric API](https://modrinth.com/mod/fabric-api)**：
-   1.20.1 → `0.92.6`，1.21.1 → `0.115.0`，1.21.11 → `0.141.6`，26.1.2 → `0.155.2`，26.2 → `0.156.0`。
-3. 把 `WurstB+.Plus-<版本>-Fabric-<mc>.jar` 放进 `.minecraft/mods/`。
-
-</details>
-
-<details>
-<summary><b>关于 Baritone（不要额外再放一个）</b></summary>
-
-部分平台把 Baritone 以 Jar-in-Jar 打包，部分把 Baritone 类合并进主模块（为规避 JPMS 模块读取错误）。
-**不要**再额外放单独的 Baritone JAR——会与内置版本冲突。各版本的依赖方式见
-[docs/RELEASE.md](docs/RELEASE.md) 的「Baritone 依赖兼容性」一节。
-
-</details>
-
----
-
 ## 仓库结构
 
 ```text
@@ -126,7 +79,7 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 | --- | --- |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更，含已知局限与偏差 |
 | [PROJECT_INDEX.md](PROJECT_INDEX.md) | 逐工程索引：工具链、源码文件数、入口类、产物名 |
-| [docs/RELEASE.md](docs/RELEASE.md) | **发布与维护手册**（原 README）：**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）、**构建与运行**、产物矩阵、打包校验、验证状态 |
+| [docs/RELEASE.md](docs/RELEASE.md) | **发布与维护手册**（原 README）：**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）、**安装**、**构建与运行**、产物矩阵、打包校验、验证状态 |
 | [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) | 新版本工程的移植计划与逐版本状态 |
 | [docs/PORTING-1.21.11-26.2.md](docs/PORTING-1.21.11-26.2.md) | 1.21.11 / 26.2 的渲染管线与移植说明 |
 | [PORTING_TASK.md](PORTING_TASK.md) | 移植任务与未完成项 |
