@@ -152,6 +152,105 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 ```
 
+## 相对上游 Wurst 的新增清单
+
+对比方式：用 GitHub 的 Git Trees API 拉取上游 `Wurst-Imperium/Wurst7` 的 `master` 全量文件
+清单（157 个 hack / 52 个命令 / 18 个 Other Feature），再逐类求差。结论：本仓库新增
+**14 个包、57 个 hack、7 个命令**；Other Feature 与上游数量相同（18 个），没有新增。
+14 个包中 8 个在所有工程里都有，另外 6 个只在根目录 Forge 1.20.1（v1.6.0）里实现：
+
+| 范围 | 包 | Hack | 命令 |
+| --- | ---: | ---: | ---: |
+| 所有工程都可用 | 8 | 42 | 3 |
+| 仅根目录 Forge 1.20.1（v1.6.0） | 6 | 15 | 4 |
+
+- 所有工程都有的 8 个包：`clickgui2`、`hud2`、`gui`、`addon`、`macros`、`proxy`、
+  `waypoints`、`discord`
+- 仅根工程的 6 个包：`music` + `twilight`、`render/skia`、`compose`、`perimeter`、`seed`
+- 所有工程都有的 3 个命令：`.macros`、`.proxy`、`.waypoints`
+- 仅根工程的 4 个命令：`.perimeter`、`.perimeterdig`、`.seed`、`.twilight`
+
+### 新增 Hack（57 个，分类取自 `setCategory`）
+
+**所有工程都可用（42 个）**
+
+| Hack | 分类 | 功能 |
+| --- | --- | --- |
+| `AntiBot` | Combat | 识别反作弊假人（玩家信息 / 游戏模式 / Ping / 落地 / 隐身 / UUID），并从战斗目标里过滤掉 |
+| `Anchor` | Movement | 洞内锚定：被击退时把自己拉回原位 |
+| `AntiAim` | Fun | 反瞄准：旋转 / 抖动 / 反转 / 俯视 / 倒退，可静默旋转 |
+| `AntiVoid` | Movement | 掉进虚空时自救，可限定只在下界洞里生效 |
+| `AutoCity` | Combat | 自动挖开对手的城防，可自动换工具、忽略自己的包围 |
+| `AutoTrap` | Combat | 自动用方块困住对手，可只放黑曜石 |
+| `AutoWeb` | Combat | 自动在对手身上放蜘蛛网，可只放脚部 |
+| `BaritoneClearArea` | Blocks | 调用 Baritone 清空一片区域 |
+| `BaritoneMine` | Blocks | 调用 Baritone 自动挖指定矿物，可选走回家 / 自动下线 |
+| `BaritoneTreeBot` | Blocks | 调用 Baritone 自动砍树，可自动补种 |
+| `BaritoneWalk` | Movement | 调用 Baritone 沿朝向自动行走指定距离 |
+| `BossStack` | Render | Boss 血条堆叠紧凑渲染 |
+| `Breadcrumbs` | Render | 移动轨迹线，可设最大点数与颜色 |
+| `Burrow` | Combat | 瞬间把自己埋进方块，可优先黑曜石 |
+| `CityESP` | Render | 标出可挖的城防位置，可只标玩家 / 忽略好友 |
+| `DankBobbing` | Fun | 增强视角晃动 |
+| `DelayRemover` | Combat | 去掉攻击冷却 |
+| `ElytraFly` | Movement | 鞘翅飞行：速度、垂直速度、即时起飞、入水停止 |
+| `FakeLag` | Movement | 制造假延迟（延迟开关），可设脉冲间隔 |
+| `FastUse` | Items | 加速使用物品，可只对投掷物或经验瓶生效 |
+| `Hitboxes` | Combat | 放大实体碰撞箱 |
+| `HoleESP` | Render | 标出安全洞，可只标基岩 / 黑曜石并分别设色 |
+| `HoleFiller` | Combat | 自动填洞 |
+| `KeepSprint` | Combat | 攻击后保持疾跑 |
+| `LightOverlay` | Render | 低亮度刷怪区域的覆盖层 |
+| `LogoutSpots` | Render | 标出玩家下线位置，可显示名字 |
+| `NoJumpDelay` | Movement | 去掉跳跃间隔 |
+| `NoVelocity` | Movement | 防击退，可只改水平 / 垂直并保留原动量 |
+| `Notebot` | Fun | 解析 NBS 曲谱并自动演奏音符盒 |
+| `PacketCanceller` | Other | 选择性取消数据包（Boss 事件 / 实体数据 / 移动 / 玩家信息 / 乘客） |
+| `PacketFly` | Movement | 基于数据包的飞行，可设水平 / 垂直速度与下落 |
+| `PacketLogger` | Other | 网络收发包日志（限流），可分别开关收发与数据 |
+| `PlayerHalo` | Render | 在可见玩家头顶绘制跟随主题色的光环 |
+| `PopChams` | Render | 图腾触发时的彩色升起动画 |
+| `RotationSnap` | Render | 按设定间隔快速吸附视角 |
+| `SelfTrap` | Combat | 自动用方块把自己围起来 |
+| `SpeedMine` | Blocks | 加速挖掘，可设急迫等级与冷却 |
+| `Surround` | Combat | 自动在自己周围放黑曜石，可自动居中 |
+| `TargetShader` | Render | 把当前战斗目标送进独立 FBO，统一做描边 / 脉冲 / 渐变 / 烟雾后处理 |
+| `TargetStrafe` | Combat | 围绕目标走位，可自动跳跃 |
+| `Twerk` | Fun | 快速下蹲舞蹈 |
+| `Vomit` | Fun | 快速进食 |
+
+**仅根目录 Forge 1.20.1（v1.6.0，15 个）**
+
+| Hack | 分类 | 功能 |
+| --- | --- | --- |
+| `AirJump` | Movement | 空中跳跃 / 多段跳，可设模式 |
+| `EntityCulling` | Render | 异步遮挡查询，跳过被方块完全遮挡的实体，可分组控制与延迟 |
+| `MusicPlayer` | Other | 网易云音乐播放器 |
+| `NoMissCooldown` | Combat | 去掉空挥冷却，可取消落空的攻击 |
+| `NoRotate` | Movement | 忽略服务端的视角纠正，可分别保留 yaw / pitch |
+| `PerimeterDigger` | Blocks | 周界挖掘自动化，见「v1.6 新增子系统」 |
+| `ProjectilePuncher` | Combat | 击打飞来的投射物 |
+| `RadialMenu` | Other | 长按 Tab 的圆盘菜单（未在 `HackList` 注册，游戏内不会出现） |
+| `ReverseStep` | Movement | 快速下坠，可设模式、倍率与最大下落距离 |
+| `RightClicker` | Combat | 右键连点，可设 CPS 上下限与启动延迟 |
+| `SeedOreESP` | Render | 种子矿透，见「v1.6 新增子系统」 |
+| `SeedStructureESP` | Render | 种子结构定位，见「v1.6 新增子系统」 |
+| `SuperKnockback` | Combat | 增强自己造成的击退，可设受伤时间与触发条件 |
+| `VehicleBoost` | Movement | 载具加速，可设水平 / 垂直速度 |
+| `WTap` | Combat | 自动 W 敲击以重置疾跑，可设概率与按键时序 |
+
+> 本节数字与分类均按当前源码重新核对（分类取自各类的 `setCategory(Category.X)`，
+> 功能取自其设置项与 `@SearchTags`）。注意「v1.5 新增功能」一节里把 `EntityCulling`
+> 记在 v1.5 批次、且只列了 15 个 hack，那是当时的状态；实际全工程新增为 42 个。
+
+### 上游有、本仓库没有
+
+| 类型 | 项 |
+| --- | --- |
+| Hack | `AntiKnockback`、`AttributeSwap`、`KillauraLegit`、`MaceDmg` |
+| 命令 | `ViewComp` |
+| 包 | `clickgui` 与 `navigator` 已由 `clickgui2` 取代；`analytics`（Plausible 遥测上报）未移植，本仓库另有 `NoTelemetry` / `NoChatReports` 两个 Other Feature 用于关闭遥测与聊天上报 |
+
 ## v1.6 新增子系统
 
 以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 63 个工程（已发布的 14 个平台工程 + 46 个新版本工程）均未移植。
