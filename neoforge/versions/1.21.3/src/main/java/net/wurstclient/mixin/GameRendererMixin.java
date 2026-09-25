@@ -53,10 +53,10 @@ public abstract class GameRendererMixin implements AutoCloseable
 	}
 
 	@ModifyReturnValue(at = @At("RETURN"),
-		method = "getFov(Lnet/minecraft/client/Camera;FZ)D")
-	private double onGetFov(double original)
+		method = "getFov(Lnet/minecraft/client/Camera;FZ)F")
+	private float onGetFov(float original)
 	{
-		return WurstClient.INSTANCE.getOtfs().zoomOtf
+		return (float)WurstClient.INSTANCE.getOtfs().zoomOtf
 			.changeFovBasedOnZoom(original);
 	}
 

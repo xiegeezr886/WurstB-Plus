@@ -75,7 +75,7 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	 */
 	@WrapOperation(
 		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/player/Input;hasForwardImpulse()Z",
+			target = "Lnet/minecraft/client/player/ClientInput;hasForwardImpulse()Z",
 			ordinal = 0),
 		method = "aiStep()V")
 	private boolean wrapHasForwardMovement(ClientInput input,
