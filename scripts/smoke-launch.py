@@ -152,6 +152,12 @@ def smoke(proj, version, timeout):
                 verdict = 'LAUNCHED'
                 kill_tree(proc)
                 break
+            # NeoForge 在混入注入失败时只打 FATAL 日志，进程不一定退出（实测 1.21.10
+            # 就会一直挂着）。这里一看到致命行就判崩溃并结束，既准确又不浪费时间。
+            if any(p.search(text) for p in FATAL_PATTERNS):
+                verdict = 'CRASHED'
+                kill_tree(proc)
+                break
             if time.time() - started > timeout:
                 verdict = 'TIMEOUT'
                 kill_tree(proc)
