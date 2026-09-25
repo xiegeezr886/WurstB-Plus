@@ -91,9 +91,6 @@ $JDKs = @{
     "1.21.11" = if ($env:WURSTBPLUS_JAVA21) { $env:WURSTBPLUS_JAVA21 } else { "C:\Program Files\Java\jdk-21" }
     "26.1.2" = if ($env:WURSTBPLUS_JAVA25) { $env:WURSTBPLUS_JAVA25 } else { "C:\Program Files\Java\jdk-25.0.4" }
     "26.2" = if ($env:WURSTBPLUS_JAVA25) { $env:WURSTBPLUS_JAVA25 } else { "C:\Program Files\Java\jdk-25.0.4" }
-    # The Java\ path above is what 26.1.2/26.2 assume; on this machine JDK 25 actually
-    # lives under Microsoft\, so the 26.3 entry probes it before falling back.
-    "26.3" = if ($env:WURSTBPLUS_JAVA25) { $env:WURSTBPLUS_JAVA25 } elseif (Test-Path "C:\Program Files\Microsoft\jdk-25.0.4.101-hotspot\bin\java.exe") { "C:\Program Files\Microsoft\jdk-25.0.4.101-hotspot" } else { "C:\Program Files\Java\jdk-25.0.4" }
 }
 
 function Get-Java($mcVersion) {
@@ -516,7 +513,7 @@ function Test-Version($jarPath, $instanceDir) {
 
     $j = Get-Content -LiteralPath $jsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $mcVersion = if ($name -match "^(\d+\.\d+(?:\.\d+)?)") { $Matches[1] } else { "1.20.1" }
-    $requireBaritone = $mcVersion -in @("1.21.11", "26.2", "26.3")
+    $requireBaritone = $mcVersion -in @("1.21.11", "26.2")
     $baritonePackage = Test-EmbeddedBaritone $jarPath
     if ($requireBaritone -and -not $baritonePackage.Passed) {
         return @{ Status = "FAIL"; Note = $baritonePackage.Note; Elapsed = 0 }

@@ -1,9 +1,5 @@
 pluginManagement {
     repositories {
-        // 国内镜像：国内网络下优先命中，官方仓库保留在后面兜底
-        maven { name = "AliyunPublic"; url = "https://maven.aliyun.com/repository/public" }
-        maven { name = "AliyunGradlePlugin"; url = "https://maven.aliyun.com/repository/gradle-plugin" }
-        maven { name = "AliyunCentral"; url = "https://maven.aliyun.com/repository/central" }
         gradlePluginPortal()
         maven {
             name = 'NeoForged'
