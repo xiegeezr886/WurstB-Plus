@@ -18,9 +18,6 @@
 Minecraft 客户端（utility mod）。同一套功能被移植到 **Forge / NeoForge / Fabric** 三种加载器、
 **22 个 Minecraft 版本**上，并以 64 个彼此独立的 Gradle 工程维护。
 
-> **想直接玩？** 到 [Releases](https://github.com/xiegeezr886/WurstB-Plus/releases) 按你的
-> 游戏版本和加载器下载对应 jar，然后看[安装](#安装)。**务必注意 Java 版本要匹配**（见下表）。
-
 ---
 
 ## 版本支持矩阵
