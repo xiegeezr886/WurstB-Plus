@@ -18,6 +18,8 @@ import net.wurstclient.util.KeepSprintPolicy;
 public abstract class PlayerMixin
 {
 	@Redirect(method = "causeExtraKnockback(Lnet/minecraft/world/entity/Entity;FLnet/minecraft/world/phys/Vec3;)V",
+		// 1.21.6–1.21.10 的 Player 没有 causeExtraKnockback，目标不存在只告警不致命,
+		require = 0,
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/phys/Vec3;multiply(DDD)Lnet/minecraft/world/phys/Vec3;"))
 	private Vec3 keepSprintMotion(Vec3 velocity, double x, double y, double z)
