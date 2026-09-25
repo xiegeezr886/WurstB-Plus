@@ -1,23 +1,15 @@
 <div align="center">
 
-[简体中文](README.md) · **English**
+[简体中文](README.md) · English
 
 <img src="logo.png" alt="WurstB+ Plus" width="620"/>
 
-**Wurst's code base, carried to new mod loaders and new Minecraft versions**
-
 [![Release](https://img.shields.io/github/v/release/xiegeezr886/WurstB-Plus?style=flat-square&label=release&color=007CFF)](https://github.com/xiegeezr886/WurstB-Plus/releases)
-[![Downloads](https://img.shields.io/github/downloads/xiegeezr886/WurstB-Plus/total?style=flat-square&label=downloads&color=007CFF)](https://github.com/xiegeezr886/WurstB-Plus/releases)
-[![Stars](https://img.shields.io/github/stars/xiegeezr886/WurstB-Plus?style=flat-square&label=stars&color=007CFF)](https://github.com/xiegeezr886/WurstB-Plus/stargazers)
-[![Forks](https://img.shields.io/github/forks/xiegeezr886/WurstB-Plus?style=flat-square&label=forks)](https://github.com/xiegeezr886/WurstB-Plus/forks)
-[![Last commit](https://img.shields.io/github/last-commit/xiegeezr886/WurstB-Plus?style=flat-square&label=last_commit)](https://github.com/xiegeezr886/WurstB-Plus/commits/main)
-[![Contributors](https://img.shields.io/github/contributors/xiegeezr886/WurstB-Plus?style=flat-square&label=contributors)](https://github.com/xiegeezr886/WurstB-Plus/graphs/contributors)
-
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1~26.2-3C8527?style=flat-square)](#-version-support)
-[![Loaders](https://img.shields.io/badge/Loaders-Forge%20%7C%20NeoForge%20%7C%20Fabric-6E6E6E?style=flat-square)](#-version-support)
-[![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#-version-support)
-[![Projects](https://img.shields.io/badge/Gradle_projects-64-4C1D95?style=flat-square)](#-repository-layout)
-[![Preview](https://img.shields.io/badge/preview-v1.6.0-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1~26.2-3C8527?style=flat-square)](#version-support)
+[![Loaders](https://img.shields.io/badge/Loaders-Forge%20%7C%20NeoForge%20%7C%20Fabric-6E6E6E?style=flat-square)](#version-support)
+[![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#version-support)
+[![Gradle projects](https://img.shields.io/badge/Gradle_projects-64-4C1D95?style=flat-square)](#repository-layout)
+[![preview](https://img.shields.io/badge/preview-v1.6.0-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)
 [![License](https://img.shields.io/badge/license-GPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
 
 </div>
@@ -27,25 +19,24 @@
 loaders — **Forge / NeoForge / Fabric** — and **22 Minecraft versions**, maintained as 64
 independent Gradle projects.
 
-> [!TIP]
 > **Just want to play?** Grab the jar for your game version and loader from
 > [Releases](https://github.com/xiegeezr886/WurstB-Plus/releases), then read
-> [Installation](#-installation). **Make sure your Java version matches the table below.**
+> [Installation](#installation). **Make sure your Java version matches the table below.**
 
 ---
 
-## 📦 Version support
+## Version support
 
 | Minecraft | Forge | NeoForge | Fabric | Java |
 | --- | :---: | :---: | :---: | :---: |
-| **1.20.1** | ✅ <sup>v1.6.0</sup> | ✅ | ✅ | 17 |
-| 1.20.2 · 1.20.3 · 1.20.4 | ✅ | ✅ | ✅ | 17 |
-| 1.20.5 | — | ✅ | ✅ | 17 |
-| 1.20.6 | ✅ | ✅ | ✅ | 17 |
-| 1.21 · 1.21.1 | ✅ | ✅ | ✅ | 21 |
-| 1.21.2 | — | ✅ | ✅ | 21 |
-| 1.21.3 → 1.21.11 | ✅ | ✅ | ✅ | 21 |
-| 26.1 · 26.1.1 · 26.1.2 · 26.2 | ✅ | ✅ | ✅ | 25 |
+| **1.20.1** | ✓ <sup>v1.6.0</sup> | ✓ | ✓ | 17 |
+| 1.20.2 · 1.20.3 · 1.20.4 | ✓ | ✓ | ✓ | 17 |
+| 1.20.5 | — | ✓ | ✓ | 17 |
+| 1.20.6 | ✓ | ✓ | ✓ | 17 |
+| 1.21 · 1.21.1 | ✓ | ✓ | ✓ | 21 |
+| 1.21.2 | — | ✓ | ✓ | 21 |
+| 1.21.3 → 1.21.11 | ✓ | ✓ | ✓ | 21 |
+| 26.1 · 26.1.1 · 26.1.2 · 26.2 | ✓ | ✓ | ✓ | 25 |
 
 <sub>Minecraft **1.20.5** and **1.21.2** never had an official Forge release, so those two versions
 ship NeoForge and Fabric only.</sub>
@@ -61,16 +52,15 @@ WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.0-Forge-1.21
 | [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 64 assets | The main release, covering every version |
 | [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | Prerelease, carries the new v1.6 subsystems |
 
-> [!NOTE]
-> Not all three 1.20.1 projects are v1.5: the **root Forge 1.20.1 project is v1.6.0** (the only one
-> with the v1.6 subsystems), while `fabric/` and `neoforge/` are still v1.5.0. The
+> **Note:** Not all three 1.20.1 projects are v1.5. The **root Forge 1.20.1 project is v1.6.0**
+> (the only one with the v1.6 subsystems), while `fabric/` and `neoforge/` are still v1.5.0. The
 > `WurstB+.Plus-1.5.0-Forge-1.20.1.jar` asset in the v1.5.0 release is the artifact from that
 > release (the project has since moved on, so it cannot be rebuilt byte-for-byte) and is kept
 > as-is. For a v1.6 Forge 1.20.1 build, use the v1.6.0 release.
 
 ---
 
-## 🚀 Installation
+## Installation
 
 Drop the jar into `.minecraft/mods/`. **The Java version must match the table above**, otherwise
 the loader will not start.
@@ -92,9 +82,8 @@ the loader will not start.
    26.1.2 → `26.1.2.87`, 26.2 → `26.2.0.53-beta`.
 2. Put `WurstB+.Plus-<version>-NeoForge-<mc>.jar` into `.minecraft/mods/`.
 
-> [!WARNING]
-> If NeoForge 1.21.1 fails with `baritone.api.forge does not read module minecraft`, an older
-> package or a standalone Baritone JAR is present as well; remove it and keep exactly one jar.
+> **Note:** if NeoForge 1.21.1 fails with `baritone.api.forge does not read module minecraft`, an
+> older package or a standalone Baritone JAR is present as well; remove it and keep exactly one jar.
 
 </details>
 
@@ -120,7 +109,7 @@ it will clash with the bundled version. Per-version details are in
 
 ---
 
-## 🧩 Features
+## Features
 
 Scale (measured on the root Forge 1.20.1 project):
 
@@ -149,20 +138,19 @@ registered and never appears in game).</sub>
 
 | Subsystem | Description |
 | --- | --- |
-| 🎵 **NetEase Cloud Music player** | NetEase API and account login; home / search / liked / playlists / now-playing pages; word-by-word lyric animation with an AMLL-grade visual layer (springs, masking, emphasis, line balancing) |
-| ⛏ **`PerimeterDigger`** | A native port of the community mod [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger): closed-interval rectangles and **irregular boundary detection**, liquid `avoid` / `replace` / `seal_boundary` strategies, batch limits with auto-pause on a full inventory, auto-pickup and multiple drop-off points, tool/elytra durability swapping, auto-eat and resupply, cross-dimension furnace repair, pathfinding, per-server/per-world config, Chinese and English |
-| 💎 **`SeedOreESP`** | Per-server/per-world seeds; reimplements vanilla ore generation maths in pure Java (Xoroshiro + a per-`placed_feature` rule table) to predict ore positions and draw them client-side, optionally handing them to Baritone. **No new dependencies**: no bundled Meteor, no Cubiomes or seedfinding |
-| 🏛 **`SeedStructureESP`** | Calls vanilla's public `RandomSpreadStructurePlacement#getPotentialStructureChunk`, so it matches vanilla by construction; 18 of the 19 vanilla structures are supported (strongholds use a different `concentric_rings` algorithm and are skipped) |
-| 🔑 **`seed.search` / `seed.crack`** | Reconstructs candidate seeds from structures you actually observe; the LCG hot loop and frequency reduction are compared **bit for bit** against vanilla, with a runtime self-check before searching. **Caveat**: no lattice reduction, so it cannot solve the full 2⁴⁸ space without bounds — expect several candidates that have to be narrowed down |
+| **NetEase Cloud Music player** | NetEase API and account login; home / search / liked / playlists / now-playing pages; word-by-word lyric animation with an AMLL-grade visual layer (springs, masking, emphasis, line balancing) |
+| **`PerimeterDigger`** | A native port of the community mod [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger): closed-interval rectangles and **irregular boundary detection**, liquid `avoid` / `replace` / `seal_boundary` strategies, batch limits with auto-pause on a full inventory, auto-pickup and multiple drop-off points, tool/elytra durability swapping, auto-eat and resupply, cross-dimension furnace repair, pathfinding, per-server/per-world config, Chinese and English |
+| **`SeedOreESP`** | Per-server/per-world seeds; reimplements vanilla ore generation maths in pure Java (Xoroshiro + a per-`placed_feature` rule table) to predict ore positions and draw them client-side, optionally handing them to Baritone. **No new dependencies**: no bundled Meteor, no Cubiomes or seedfinding |
+| **`SeedStructureESP`** | Calls vanilla's public `RandomSpreadStructurePlacement#getPotentialStructureChunk`, so it matches vanilla by construction; 18 of the 19 vanilla structures are supported (strongholds use a different `concentric_rings` algorithm and are skipped) |
+| **`seed.search` / `seed.crack`** | Reconstructs candidate seeds from structures you actually observe; the LCG hot loop and frequency reduction are compared **bit for bit** against vanilla, with a runtime self-check before searching. **Caveat**: no lattice reduction, so it cannot solve the full 2⁴⁸ space without bounds — expect several candidates that have to be narrowed down |
 
 14 new hacks:
 `AirJump` · `EntityCulling` · `MusicPlayer` · `NoMissCooldown` · `NoRotate` · `PerimeterDigger` ·
 `ProjectilePuncher` · `ReverseStep` · `RightClicker` · `SeedOreESP` · `SeedStructureESP` ·
 `SuperKnockback` · `VehicleBoost` · `WTap`
 
-> [!IMPORTANT]
-> Known limitations and deviations (for example, `SeedOreESP` does not filter by biome and has not
-> been verified block-by-block in a real world) are all written down in
+> **Important:** known limitations and deviations (for example, `SeedOreESP` does not filter by
+> biome and has not been verified block-by-block in a real world) are all written down in
 > [CHANGELOG.md](CHANGELOG.md) rather than hidden.
 
 ### ESP and visuals
@@ -175,7 +163,7 @@ reference implementation were fixed while porting its 28 easing curves; the proc
 
 ---
 
-## 🛠️ Building from source
+## Building from source
 
 Every project is an **independent Gradle build** with its own wrapper; there is **no shared
 source set** between them.
@@ -198,9 +186,8 @@ Artifact: `build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`.
 .\gradlew.bat test --offline --console=plain # run the unit tests
 ```
 
-> [!NOTE]
-> The first `runClient` **needs a network connection**: ForgeGradle has to fetch Minecraft assets
-> and vanilla libraries such as `commons-io`. `compileJava` / `test` run fully offline, but
+> **Note:** the first `runClient` **needs a network connection**: ForgeGradle has to fetch Minecraft
+> assets and vanilla libraries such as `commons-io`. `compileJava` / `test` run fully offline, but
 > `runClient --offline` fails in `:minecraftLibraryCopy` (`commons-io:commons-io:2.6` is not in the
 > offline cache).
 >
@@ -231,7 +218,7 @@ Per-project toolchains (JDK / Gradle / loader versions) are listed in
 
 ---
 
-## 📁 Repository layout
+## Repository layout
 
 ```text
 .
@@ -252,7 +239,7 @@ distribution resolves even offline.
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 | Document | Contents |
 | --- | --- |
@@ -269,7 +256,7 @@ distribution resolves even offline.
 
 ---
 
-## ⚖️ Credits and licence
+## Credits and licence
 
 This project builds on the work of many others:
 
@@ -283,11 +270,10 @@ This project builds on the work of many others:
 root is the LGPL 2.1 text that ships with the Forge MDK template and applies to the Minecraft Forge
 / FML parts described in it.
 
-> [!WARNING]
-> **Verification status**: only the **six 1.21.11 and 26.2 projects** have been verified by
-> **launching the game**. Every other artifact has passed compilation and **packaging
-> validation** (intact zip, loader metadata, mixin config, main class present) but has **not** been
-> launched in game. Per-version status is in [docs/RELEASE.md](docs/RELEASE.md) and
+> **Note:** only the **six 1.21.11 and 26.2 projects** have been verified by **launching the game**.
+> Every other artifact has passed compilation and **packaging validation** (intact zip, loader
+> metadata, mixin config, main class present) but has **not** been launched in game. Per-version
+> status is in [docs/RELEASE.md](docs/RELEASE.md) and
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md).
 
 <div align="center">
