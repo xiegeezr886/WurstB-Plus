@@ -1,0 +1,77 @@
+// 国内镜像配置（Gradle 初始化脚本）
+//
+// 用法：
+//   每个工程目录下执行  ./gradlew runClient --init-script ../../gradle/init-mirrors.gradle
+//   或直接用仓库自带的启动脚本 scripts/run-client.sh（Windows 用 .ps1），它已经带上这个参数。
+//   想对所有 Gradle 构建生效（不必每次传参），把本文件复制到 ~/.gradle/init.d/ 即可。
+//
+// 做了什么：
+//   1. 把阿里云镜像放到插件仓库、依赖仓库、buildscript 仓库的**最前面**，国内解析时优先命中；
+//      原有的官方仓库（gradlePluginPortal / mavenCentral / maven.minecraftforge.net /
+//      maven.fabricmc.net …）保留在后面作为兜底，所以镜像缺件时仍然能解析到。
+//   2. 给 Fabric Loom 设置 Minecraft 资源与库的 BMCLAPI 镜像（等价于在 gradle.properties 里
+//      写 loom_libraries_base 等三行，这里再设一遍，保证没写那三行的工程也走镜像）。
+//
+// 注意：Forge（FG6/FG7）与 NeoForge（NeoGradle/ModDevGradle）的插件本身**没有**镜像开关，
+// 它们的 Minecraft 资源/库下载地址是写死在插件里的，本脚本只能加速 Maven 依赖与插件解析。
+// 这些工程的 assets/libraries 若已在本地缓存（本仓库已经缓存过），可直接加 --offline 启动。
+//
+// 不想要镜像时：给构建加 -PnoMirror 即可跳过本脚本的全部注入。
+
+def mirrorsOff = gradle.startParameter.projectProperties.containsKey('noMirror')
+
+// 阿里云提供的聚合镜像；public = central + jcenter，gradle-plugin = 插件门户
+def ALIYUN = [
+	'https://maven.aliyun.com/repository/public',
+	'https://maven.aliyun.com/repository/central',
+	'https://maven.aliyun.com/repository/gradle-plugin',
+]
+
+// BMCLAPI：Minecraft 版本清单 / 依赖库 / 资源文件
+def BMCLAPI = [
+	libraries: 'https://bmclapi2.bangbang93.com/maven/',
+	resources: 'https://bmclapi2.bangbang93.com/assets/',
+	manifests: 'https://bmclapi2.bangbang93.com/mc/game/version_manifest_v2.json',
+]
+
+/**
+ * 把镜像仓库插到最前面。
+ *
+ * Gradle 的仓库容器没有 addFirst()，而重新声明一遍同名仓库会报重复，所以这里用
+ * remove + add 的方式把已有仓库整体挪到镜像之后：先记下现有仓库，清空，再按
+ * “镜像 + 原仓库”的顺序放回去。这样镜像优先，官方仓库仍然兜底。
+ */
+def prependMirrors = { handler ->
+	if(mirrorsOff)
+		return
+
+	def existing = new ArrayList(handler)
+	handler.clear()
+	ALIYUN.eachWithIndex { url, i ->
+		handler.maven { repo ->
+			repo.name = "AliyunMirror${i + 1}"
+			repo.url = url
+		}
+	}
+	existing.each { handler.add(it) }
+}
+
+if(!mirrorsOff)
+{
+	// 依赖仓库与 buildscript 仓库：在各工程的 build.gradle 求值之前放好镜像，
+	// 此时工程仓库还是空的，所以镜像是列表里的第一个，脚本自己声明的官方仓库
+	// 会自然地追加在镜像后面，既优先镜像又有官方兜底。
+	//
+	// 插件仓库（pluginManagement）**不在这里处理**：实测在 settingsEvaluated 阶段
+	// 该容器是空的、且 add() 加不回已有仓库，会把这些工程自己声明的仓库整个丢掉，
+	// 导致 ForgeGradle 这类只在官方 maven 上的插件解析失败。插件镜像改在各工程的
+	// settings.gradle 里直接声明。
+	gradle.beforeProject { project ->
+		prependMirrors(project.repositories)
+		prependMirrors(project.buildscript.repositories)
+
+		project.ext.loom_libraries_base = BMCLAPI.libraries
+		project.ext.loom_resources_base = BMCLAPI.resources
+		project.ext.loom_version_manifests = BMCLAPI.manifests
+	}
+}
