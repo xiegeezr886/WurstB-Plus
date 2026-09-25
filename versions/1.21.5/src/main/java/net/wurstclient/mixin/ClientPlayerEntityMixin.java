@@ -193,7 +193,7 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	@Inject(at = @At(value = "FIELD",
 		target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;",
 		opcode = Opcodes.GETFIELD,
-		ordinal = 0), method = "handleConfusionTransitionEffect(Z)V")
+		ordinal = 0), method = "handlePortalTransitionEffect(Z)V")
 	private void beforeUpdateNausea(boolean isConfusionPortal, CallbackInfo ci)
 	{
 		if(!WurstClient.INSTANCE.getHax().portalGuiHack.isEnabled())
@@ -208,9 +208,9 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	 * method is done looking at it.
 	 */
 	@Inject(at = @At(value = "FIELD",
-		target = "Lnet/minecraft/client/player/LocalPlayer;spinningEffectIntensity:F",
+		target = "Lnet/minecraft/client/player/LocalPlayer;portalEffectIntensity:F",
 		opcode = Opcodes.GETFIELD,
-		ordinal = 1), method = "handleConfusionTransitionEffect(Z)V")
+		ordinal = 1), method = "handlePortalTransitionEffect(Z)V")
 	private void afterUpdateNausea(boolean isConfusionPortal, CallbackInfo ci)
 	{
 		if(tempCurrentScreen == null)
@@ -224,7 +224,7 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	 * This mixin allows AutoSprint to enable sprinting even when the player is
 	 * too hungry.
 	 */
-	@Inject(at = @At("HEAD"), method = "hasEnoughFoodToStartSprinting()Z", cancellable = true)
+	@Inject(at = @At("HEAD"), method = "hasEnoughFoodToSprint()Z", cancellable = true)
 	private void onCanSprint(CallbackInfoReturnable<Boolean> cir)
 	{
 		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldSprintHungry())

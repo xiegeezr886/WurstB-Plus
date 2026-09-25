@@ -28,7 +28,7 @@ public abstract class BackgroundRendererMixin
 	 * effectively removing it.
 	 *
 	 * <p>
-	 * 1.21.5 turned {@code setupFog()} into a static method that returns the
+	 * 1.21.2 turned {@code setupFog()} into a static method that returns the
 	 * finished {@link FogParameters} instead of writing them into
 	 * {@code RenderSystem} and returning nothing, so the fog is now removed by
 	 * cancelling the method and returning {@link FogParameters#NO_FOG}.
@@ -56,8 +56,8 @@ public abstract class BackgroundRendererMixin
 	 * Makes AntiBlind remove the fog from blindness and darkness.
 	 *
 	 * <p>
-	 * {@code getPriorityFogFunction()} is private in 1.21.5 and its return type
-	 * is a private nested class, so this injection cannot reference either one
+	 * {@code getPriorityFogFunction()} is private and its return type is a
+	 * package-private nested class, so this injection cannot reference either one
 	 * from Java source and has to rely on the raw descriptor instead.
 	 */
 	@Inject(at = @At("HEAD"),

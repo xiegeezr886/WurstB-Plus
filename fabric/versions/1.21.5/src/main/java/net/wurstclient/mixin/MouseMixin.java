@@ -12,7 +12,12 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+
 import net.minecraft.client.MouseHandler;
+import net.minecraft.world.entity.player.Inventory;
+import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.MouseButtonListener.MouseButtonEvent;
 import net.wurstclient.events.MouseScrollListener.MouseScrollEvent;
@@ -48,5 +53,20 @@ public class MouseMixin
 		EventManager.fire(event);
 		accumulatedDX = event.getDeltaX();
 		accumulatedDY = event.getDeltaY();
+	}
+
+	/**
+	 * MC 1.21.5 renamed {@code Inventory.setSelectedHotbarSlot(I)V} to
+	 * {@code setSelectedSlot(I)V}, so the old {@code PlayerInventoryMixin} no
+	 * longer had a valid target. Guard the call site here instead, which keeps
+	 * the zoom feature from scrolling the hotbar.
+	 */
+	@WrapWithCondition(method = "onScroll(JDD)V",
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/world/entity/player/Inventory;setSelectedSlot(I)V"))
+	private boolean wrapOnMouseScroll(Inventory inventory, int slot)
+	{
+		return !WurstClient.INSTANCE.getOtfs().zoomOtf
+			.shouldPreventHotbarScrolling();
 	}
 }
