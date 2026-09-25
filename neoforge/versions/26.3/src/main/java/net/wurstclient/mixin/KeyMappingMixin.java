@@ -1,0 +1,61 @@
+/*
+ * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ *
+ * This source code is subject to the terms of the GNU General Public
+ * License, version 3. If a copy of the GPL was not distributed with this
+ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+ */
+package net.wurstclient.mixin;
+
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+
+import com.mojang.blaze3d.platform.InputConstants;
+
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonInfo;
+import net.wurstclient.mixinterface.IKeyMapping;
+import net.wurstclient.util.MouseUtils;
+
+@Mixin(KeyMapping.class)
+public abstract class KeyMappingMixin implements IKeyMapping
+{
+	@Shadow
+	private InputConstants.Key key;
+	
+	@Override
+	@Unique
+	@Deprecated // use IKeyMapping.isActuallyDown() instead
+	public boolean wurst_isActuallyDown()
+	{
+		int code = key.getValue();
+		
+		if(key.getType() == InputConstants.Type.MOUSE)
+			return MouseUtils.isButtonDown(code);
+		
+		return InputConstants.isKeyDown(code);
+	}
+	
+	@Override
+	@Unique
+	@Deprecated // use IKeyMapping.resetPressedState() instead
+	public void wurst_resetPressedState()
+	{
+		setDown(wurst_isActuallyDown());
+	}
+	
+	@Override
+	@Unique
+	@Deprecated // use IKeyMapping.simulatePress() instead
+	public void wurst_simulatePress(boolean pressed)
+	{
+		setDown(pressed);
+	}
+	
+	@Override
+	@Shadow
+	public abstract void setDown(boolean pressed);
+}

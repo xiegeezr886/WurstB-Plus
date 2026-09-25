@@ -1,0 +1,16 @@
+{
+  "jars": [
+    {
+      "identifier": {
+        "group": "baritone",
+        "artifact": "baritone-forge"
+      },
+      "version": {
+        "range": "[1.20.0-26.3,1.21)",
+        "artifactVersion": "1.20.0-26.3"
+      },
+      "path": "META-INF/jarjar/baritone-forge-1.20.0-26.3.jar",
+      "isObfuscated": false
+    }
+  ]
+}
