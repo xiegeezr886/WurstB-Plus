@@ -65,7 +65,6 @@
     "MouseHandlerMixin",
     "MultiplayerScreenMixin",
     "PackScreenMixin",
-    "PlayerInventoryMixin",
     "PlayerMixin",
     "PlayerEntityAccessor",
     "PlayerSkinProviderMixin",

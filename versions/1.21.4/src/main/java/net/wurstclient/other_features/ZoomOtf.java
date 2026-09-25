@@ -116,7 +116,7 @@ public final class ZoomOtf extends OtherFeature implements MouseScrollListener
 	
 	public boolean isControllingScrollEvents()
 	{
-		return false;
+		return isZoomKeyPressed() && scroll.isChecked();
 	}
 	
 	public Component getTranslatedKeybindName()
