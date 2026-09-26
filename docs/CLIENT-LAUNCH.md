@@ -1,5 +1,34 @@
 # 客户端启动环境（国内镜像）
 
+## 真实冒烟测试实例
+
+仓库的 67 个工程各需一个匹配 Minecraft 版本和加载器的真实客户端实例。以下命令会扫描
+`gradle.properties`，把缺失实例安装到 `.test/versions/`，复用 `.test/libraries/`，通过
+BMCLAPI 预取 `.test/assets/`，并用对应版本的原版服务端生成 `WurstSmokeFresh` 测试世界。
+Fabric 实例还会安装工程声明的 Fabric API；已有可用的 Fabric API 和存档不会被覆盖。
+中断后重复运行即可续装。Fabric API 优先复用 Gradle 缓存，BMCLAPI Maven 不提供对应
+构件时回退到 Fabric 官方仓库。
+
+```powershell
+py -3 scripts/provision-smoke-clients.py --all --list
+py -3 scripts/provision-smoke-clients.py --all
+py -3 scripts/provision-smoke-clients.py --all --verify
+py -3 scripts/provision-smoke-clients.py 1.21.6 --loaders fabric neoforge
+```
+
+安装完成后，使用 `run-version-tests.ps1` 启动构建好的 mod JAR。`download/` 是默认产物来源；
+`-BuildOutputs` 改为扫描各工程的 `build/libs/`。`-QuickPlayWorld` 必须见到进入世界的日志才
+算通过，适合检查只在加载世界后应用的 Mixin。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run-version-tests.ps1 -Version 1.21.6 -Loader Fabric -BuildOutputs -QuickPlayWorld WurstSmokeFresh
+```
+
+实例就绪只代表测试环境可启动；未构建的工程仍需先生成对应 mod JAR，启动结果以测试报告为准。
+1.20.2 Fabric 实例已在只加载 Fabric API 时实际进入 `WurstSmokeFresh` 世界。随后加载该
+版本工程构建的 Wurst JAR 会在内置 Baritone 的 `MixinNetworkManager` 注入点崩溃；这是
+mod 的运行时兼容问题，该版本带 mod 的冒烟测试仍未通过。
+
 本文件说明怎么在国内网络下把本仓库任意一个版本的客户端真正启动起来，包括镜像配置落在哪、
 为什么 Forge 还要多一步、以及已经实测到什么程度。
 

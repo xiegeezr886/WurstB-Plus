@@ -45,7 +45,7 @@ public enum GuiIcon
 		RenderSystem.setShaderColor((color >> 16 & 0xFF) / 255F,
 			(color >> 8 & 0xFF) / 255F, (color & 0xFF) / 255F,
 			(color >>> 24) / 255F);
-		graphics.blit(RenderType::guiTextured, texture, x, y, size, size, 0, 0, TEXTURE_SIZE,
+		graphics.blit(RenderType::guiTextured, texture, x, y, 0, 0, size, size, TEXTURE_SIZE,
 			TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
