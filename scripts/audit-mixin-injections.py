@@ -31,6 +31,7 @@ import argparse
 import glob
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -235,9 +236,7 @@ def string_values(text, key):
 class Jar:
     def __init__(self, path, javap):
         self.path = path
-        self.win = subprocess.run(['cygpath', '-w', path],
-                                  capture_output=True, text=True).stdout.strip() \
-            or path
+        self.win = os.path.abspath(path) if os.name == 'nt' else path
         self.javap = javap
         self._sig = {}
         self._code = {}
@@ -553,13 +552,19 @@ def main():
 
     javap = args.javap
     if not javap:
-        for base in (r'C:\Program Files\Microsoft\jdk-25.0.4.101-hotspot',
+        for base in (os.environ.get('JAVA_HOME', ''),
+                     r'C:\Program Files\Java\jdk-25.0.4',
+                     r'C:\Program Files\Java\jdk-21',
+                     r'C:\Program Files\Java\jdk-17',
+                     r'C:\Program Files\Microsoft\jdk-25.0.4.101-hotspot',
                      r'C:\Program Files\Java\jdk-21.0.11',
                      r'C:\Program Files\Microsoft\jdk-17.0.20.101-hotspot'):
             cand = os.path.join(base, 'bin', 'javap.exe')
             if os.path.isfile(cand):
                 javap = cand
                 break
+    if not javap:
+        javap = shutil.which('javap')
     if not javap:
         raise SystemExit('找不到 javap')
 
