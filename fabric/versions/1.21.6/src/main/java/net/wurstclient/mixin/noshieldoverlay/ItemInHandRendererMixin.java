@@ -25,22 +25,19 @@ import net.wurstclient.WurstClient;
 @Mixin(ItemInHandRenderer.class)
 public abstract class ItemInHandRendererMixin
 {
-	private static final String RENDER_ARM_WITH_ITEM =
-		"renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
-	
 	/**
 	 * Lowers the shield (including custom shield items from datapacks) when
 	 * blocking if NoShieldOverlay is enabled.
 	 */
 	@Inject(
-		method = RENDER_ARM_WITH_ITEM,
+		method = "renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;applyItemArmTransform(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/entity/HumanoidArm;F)V",
 			ordinal = 4))
 	private void onRenderArmWithItemBlocking(AbstractClientPlayer player,
 		float tickProgress, float pitch, InteractionHand hand,
 		float swingProgress, ItemStack item, float equipProgress,
-		PoseStack matrices, MultiBufferSource.BufferSource buffers, int light,
+		PoseStack matrices, MultiBufferSource buffers, int light,
 		CallbackInfo ci)
 	{
 		// Check if item has block animation component
@@ -57,14 +54,14 @@ public abstract class ItemInHandRendererMixin
 	 * NOT blocking if NoShieldOverlay is enabled.
 	 */
 	@Inject(
-		method = RENDER_ARM_WITH_ITEM,
+		method = "renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;applyItemArmAttackTransform(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/entity/HumanoidArm;F)V",
-			ordinal = 1))
+			target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;swingArm(FFLcom/mojang/blaze3d/vertex/PoseStack;ILnet/minecraft/world/entity/HumanoidArm;)V",
+			ordinal = 2))
 	private void onRenderArmWithItemNotBlocking(AbstractClientPlayer player,
 		float tickProgress, float pitch, InteractionHand hand,
 		float swingProgress, ItemStack item, float equipProgress,
-		PoseStack matrices, MultiBufferSource.BufferSource buffers, int light,
+		PoseStack matrices, MultiBufferSource buffers, int light,
 		CallbackInfo ci)
 	{
 		// Check if item has block animation component

@@ -53,8 +53,10 @@ public class ChatHudMixin
 		}
 		
 		message = event.getComponent();
-		indicator = WurstClient.INSTANCE.getOtfs().noChatReportsOtf
-			.modifyIndicator(message, signature, indicator);
+		var otfs = WurstClient.INSTANCE.getOtfs();
+		if(otfs != null)
+			indicator = otfs.noChatReportsOtf.modifyIndicator(message,
+				signature, indicator);
 		
 		GuiMessage guiMessage = new GuiMessage(minecraft.gui.getGuiTicks(),
 			message, signature, indicator);

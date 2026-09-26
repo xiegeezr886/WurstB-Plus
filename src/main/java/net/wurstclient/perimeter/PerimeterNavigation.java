@@ -7,11 +7,15 @@
  */
 package net.wurstclient.perimeter;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import baritone.api.pathing.goals.Goal;
+import baritone.api.process.IBaritoneProcess;
 import baritone.api.process.ICustomGoalProcess;
-import baritone.api.process.IElytraProcess;
 import net.minecraft.core.BlockPos;
 
 /**
@@ -23,7 +27,7 @@ import net.minecraft.core.BlockPos;
 public final class PerimeterNavigation
 {
 	private ICustomGoalProcess walking;
-	private IElytraProcess flight;
+	private IBaritoneProcess flight;
 	private Boolean savedAllowBreak;
 	private Boolean savedAllowPlace;
 	private Boolean savedPlaceInFluidSource;
@@ -42,7 +46,9 @@ public final class PerimeterNavigation
 		{
 			IBaritone baritone = BaritoneAPI.getProvider().getPrimaryBaritone();
 			walking = baritone.getCustomGoalProcess();
-			flight = baritone.getElytraProcess();
+			Object candidate = baritone.getClass().getMethod("getElytraProcess")
+				.invoke(baritone);
+			flight = candidate instanceof IBaritoneProcess process ? process : null;
 			available = walking != null && flight != null;
 		}catch(Exception | LinkageError e)
 		{
@@ -84,7 +90,7 @@ public final class PerimeterNavigation
 				"Navigation is not bound to Baritone.");
 		
 		acceptElytraTerms();
-		flight.pathTo(target);
+		invokeFlight("pathTo", new Class<?>[]{BlockPos.class}, target);
 	}
 	
 	public boolean isWalking()
@@ -99,17 +105,17 @@ public final class PerimeterNavigation
 	
 	public boolean isFlightLoaded()
 	{
-		return flight != null && flight.isLoaded();
+		return flight != null && Boolean.TRUE.equals(invokeFlight("isLoaded"));
 	}
 	
 	public boolean isFlightSafeToCancel()
 	{
-		return flight != null && flight.isSafeToCancel();
+		return flight != null && Boolean.TRUE.equals(invokeFlight("isSafeToCancel"));
 	}
 	
 	public BlockPos flightDestination()
 	{
-		return flight == null ? null : flight.currentDestination();
+		return flight == null ? null : (BlockPos)invokeFlight("currentDestination");
 	}
 	
 	public void resetFlight()
@@ -117,7 +123,7 @@ public final class PerimeterNavigation
 		if(flight != null)
 			try
 			{
-				flight.resetState();
+				invokeFlight("resetState");
 			}catch(Exception e)
 			{
 				e.printStackTrace();
@@ -169,8 +175,11 @@ public final class PerimeterNavigation
 	public void enablePlacementInFluids()
 	{
 		saveSettings();
-		BaritoneAPI.getSettings().allowPlaceInFluidsSource.value = true;
-		BaritoneAPI.getSettings().allowPlaceInFluidsFlow.value = true;
+		if(savedPlaceInFluidSource == null || savedPlaceInFluidFlow == null)
+			throw new IllegalStateException(
+				"This Baritone version cannot place blocks in fluids.");
+		setOptionalBooleanSetting("allowPlaceInFluidsSource", true);
+		setOptionalBooleanSetting("allowPlaceInFluidsFlow", true);
 	}
 	
 	private void saveSettings()
@@ -183,11 +192,11 @@ public final class PerimeterNavigation
 		
 		if(savedPlaceInFluidSource == null)
 			savedPlaceInFluidSource =
-				BaritoneAPI.getSettings().allowPlaceInFluidsSource.value;
+				getOptionalBooleanSetting("allowPlaceInFluidsSource");
 		
 		if(savedPlaceInFluidFlow == null)
 			savedPlaceInFluidFlow =
-				BaritoneAPI.getSettings().allowPlaceInFluidsFlow.value;
+				getOptionalBooleanSetting("allowPlaceInFluidsFlow");
 	}
 	
 	public void restoreDestinationSettings()
@@ -201,16 +210,16 @@ public final class PerimeterNavigation
 				BaritoneAPI.getSettings().allowPlace.value = savedAllowPlace;
 			
 			if(savedPlaceInFluidSource != null)
-				BaritoneAPI.getSettings().allowPlaceInFluidsSource.value =
-					savedPlaceInFluidSource;
+				setOptionalBooleanSetting("allowPlaceInFluidsSource",
+					savedPlaceInFluidSource);
 			
 			if(savedPlaceInFluidFlow != null)
-				BaritoneAPI.getSettings().allowPlaceInFluidsFlow.value =
-					savedPlaceInFluidFlow;
+				setOptionalBooleanSetting("allowPlaceInFluidsFlow",
+					savedPlaceInFluidFlow);
 			
 			if(savedElytraTermsAccepted != null)
-				BaritoneAPI.getSettings().elytraTermsAccepted.value =
-					savedElytraTermsAccepted;
+				setOptionalBooleanSetting("elytraTermsAccepted",
+					savedElytraTermsAccepted);
 		}catch(Exception | LinkageError e)
 		{
 			// Baritone went away; nothing left to restore
@@ -227,8 +236,60 @@ public final class PerimeterNavigation
 	{
 		if(savedElytraTermsAccepted == null)
 			savedElytraTermsAccepted =
-				BaritoneAPI.getSettings().elytraTermsAccepted.value;
+				getOptionalBooleanSetting("elytraTermsAccepted");
 		
-		BaritoneAPI.getSettings().elytraTermsAccepted.value = true;
+		setOptionalBooleanSetting("elytraTermsAccepted", true);
+	}
+
+	private Boolean getOptionalBooleanSetting(String name)
+	{
+		try
+		{
+			Object setting = BaritoneAPI.getSettings().getClass().getField(name)
+				.get(BaritoneAPI.getSettings());
+			return (Boolean)setting.getClass().getField("value").get(setting);
+		}catch(NoSuchFieldException e)
+		{
+			return null;
+		}catch(ReflectiveOperationException e)
+		{
+			throw new IllegalStateException("Cannot read Baritone setting: " + name,
+				e);
+		}
+	}
+
+	private void setOptionalBooleanSetting(String name, boolean value)
+	{
+		try
+		{
+			Field field = BaritoneAPI.getSettings().getClass().getField(name);
+			Object setting = field.get(BaritoneAPI.getSettings());
+			setting.getClass().getField("value").set(setting, value);
+		}catch(ReflectiveOperationException e)
+		{
+			throw new IllegalStateException("Cannot set Baritone setting: " + name,
+				e);
+		}
+	}
+
+	private Object invokeFlight(String method)
+	{
+		return invokeFlight(method, new Class<?>[0]);
+	}
+
+	private Object invokeFlight(String method, Class<?>[] parameterTypes,
+		Object... arguments)
+	{
+		try
+		{
+			Method target = flight.getClass().getMethod(method, parameterTypes);
+			return target.invoke(flight, arguments);
+		}catch(ReflectiveOperationException e)
+		{
+			Throwable cause = e instanceof InvocationTargetException
+				? ((InvocationTargetException)e).getCause() : e;
+			throw new IllegalStateException("Baritone Elytra process failed: " + method,
+				cause);
+		}
 	}
 }

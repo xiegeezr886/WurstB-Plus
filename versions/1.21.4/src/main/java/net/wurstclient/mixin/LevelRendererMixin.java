@@ -13,7 +13,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -33,8 +32,7 @@ public class LevelRendererMixin
 	private void onRender(GraphicsResourceAllocator allocator,
 		DeltaTracker tickCounter, boolean renderBlockOutline, Camera camera,
 		GameRenderer gameRenderer, Matrix4f projectionMatrix,
-		Matrix4f viewMatrix, CallbackInfo ci,
-		@Local(argsOnly = true) Matrix4f frustumMatrix)
+		Matrix4f viewMatrix, CallbackInfo ci)
 	{
 		PoseStack matrixStack = new PoseStack();
 		matrixStack.mulPose(viewMatrix);

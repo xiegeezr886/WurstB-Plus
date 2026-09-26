@@ -28,6 +28,9 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
+sourceSets.main.output.resourcesDir =
+    sourceSets.main.java.destinationDirectory.get().asFile
+
 sourceSets {
     main {
         java {
@@ -62,6 +65,10 @@ minecraft {
 
 repositories {
     maven {
+        name = "BundledBaritone"
+        url = uri("../../baritone-maven")
+    }
+    maven {
         name = "Sponge"
         url = "https://repo.spongepowered.org/repository/maven-public/"
     }
@@ -86,9 +93,9 @@ dependencies {
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
     implementation "io.netty:netty-codec-socks:4.1.82.Final"
     implementation "io.netty:netty-handler-proxy:4.1.82.Final"
-    implementation fg.deobf("baritone:baritone-api-forge:1.20.1")
-    jarJar(group: "baritone", name: "baritone-api-forge",
-        version: "[1.20.1,1.20.2)")
+    implementation fg.deobf("baritone:baritone-forge:1.10.7-1.20.3")
+    jarJar(group: "baritone", name: "baritone-forge",
+        version: "[1.10.7-1.20.3]")
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 }
 

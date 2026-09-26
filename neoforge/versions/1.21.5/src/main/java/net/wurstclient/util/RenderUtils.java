@@ -51,6 +51,12 @@ public enum RenderUtils
 	 * the main render target. Replaces the 1.21.4
 	 * {@code BufferUploader.drawWithShader(MeshData)} call, which no
 	 * longer exists in 1.21.5.
+	 *
+	 * <p>
+	 * The buffer returned by {@code uploadImmediateVertexBuffer} belongs to
+	 * the {@code VertexFormat} and is reused across draws; closing it here
+	 * would make every later user of the same format throw
+	 * "Buffer already closed".
 	 */
 	public static void drawGuiMesh(MeshData mesh)
 	{
@@ -81,9 +87,6 @@ public enum RenderUtils
 					shapeIndexBuffer.type());
 				renderPass.drawIndexed(0, drawParams.indexCount());
 			}
-		}finally
-		{
-			vertexBuffer.close();
 		}
 	}
 	

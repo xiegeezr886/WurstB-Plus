@@ -10,8 +10,6 @@ package net.wurstclient.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -39,7 +37,7 @@ public abstract class StatsScreenMixin extends Screen
 		super(title);
 	}
 	
-	@WrapOperation(method = "init()V",
+	@WrapOperation(method = "initButtons()V",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/client/gui/layouts/HeaderAndFooterLayout;addToFooter(Lnet/minecraft/client/gui/layouts/LayoutElement;)Lnet/minecraft/client/gui/layouts/LayoutElement;",
 			ordinal = 0))
@@ -77,12 +75,11 @@ public abstract class StatsScreenMixin extends Screen
 		return original.call(layout, vLayout);
 	}
 	
-	@Inject(
-		method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
-		at = @At("TAIL"))
-	private void onRender(GuiGraphics graphics, int mouseX, int mouseY,
-		float partialTicks, CallbackInfo ci)
+	@Override
+	public void render(GuiGraphics graphics, int mouseX, int mouseY,
+		float partialTicks)
 	{
+		super.render(graphics, mouseX, mouseY, partialTicks);
 		WurstClient.INSTANCE.getOtfs().wurstOptionsOtf
 			.drawWurstLogoOnButton(new GuiGraphicsExtractor(graphics),
 				wurstOptionsButton);

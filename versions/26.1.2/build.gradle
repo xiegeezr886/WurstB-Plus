@@ -100,6 +100,9 @@ processResources {
     filesMatching("META-INF/mods.toml") {
         expand(version: displayVersion)
     }
+    from("../../baritone-maven/baritone/baritone-forge/1.18.0/baritone-forge-1.18.0.jar") {
+        into "META-INF/jarjar"
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {

@@ -12,11 +12,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.fog.environment.AtmosphericFogEnvironment;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
 import net.wurstclient.WurstClient;
 
 @Mixin(AtmosphericFogEnvironment.class)
@@ -27,8 +28,8 @@ public class AtmosphericFogEnvironmentMixin
 	 * NoFog is enabled.
 	 */
 	@Inject(method = "setupFog", at = @At("TAIL"), cancellable = true)
-	private void onApplyStartEndModifier(FogData data, Camera camera,
-		ClientLevel world, float viewDistance, DeltaTracker tickCounter,
+	private void onApplyStartEndModifier(FogData data, Entity entity,
+		BlockPos pos, ClientLevel world, float viewDistance, DeltaTracker tickCounter,
 		CallbackInfo ci)
 	{
 		if(!WurstClient.INSTANCE.getHax().noFogHack.isEnabled())

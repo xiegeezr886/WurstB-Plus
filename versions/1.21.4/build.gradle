@@ -16,6 +16,8 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 // Include generated resources
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+sourceSets.main.output.resourcesDir =
+    sourceSets.main.java.destinationDirectory.get().asFile
 
 configurations {
     allJarEmbed
@@ -44,7 +46,9 @@ minecraft {
             }
         }
 
-        register('client')
+        register('client') {
+            args '--mixin.config', 'wurst.mixins.json'
+        }
 
         register('server') {
             args '--nogui'
@@ -85,9 +89,9 @@ dependencies {
     compileOnly "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
-    implementation "io.netty:netty-codec-socks:4.2.7.Final"
-    implementation "io.netty:netty-handler-proxy:4.2.7.Final"
-    implementation "baritone:baritone-forge:1.17.0-1.21.11-mc1.21.4"
+    implementation "io.netty:netty-codec-socks:4.1.118.Final"
+    implementation "io.netty:netty-handler-proxy:4.1.118.Final"
+    implementation "baritone:baritone-forge:1.13.1-1.21.4"
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     // NOTE: eventbus-validator:7.0.5 needs the EventBus 7 API, which does not
     // exist on the Forge 54.x (MC 1.21.4) line. It aborts the build with
@@ -167,7 +171,7 @@ tasks.register('allJar', Jar) {
             dependency.isDirectory() ? dependency : zipTree(dependency)
         }
     }
-    from("../../baritone-maven/baritone/baritone-forge/1.17.0-1.21.11-mc1.21.4/baritone-forge-1.17.0-1.21.11-mc1.21.4.jar") {
+    from("../../baritone-maven/baritone/baritone-forge/1.13.1-1.21.4/baritone-forge-1.13.1-1.21.4.jar") {
         into "META-INF/jarjar"
     }
     exclude 'net/minecraft/**', 'net/minecraftforge/**'

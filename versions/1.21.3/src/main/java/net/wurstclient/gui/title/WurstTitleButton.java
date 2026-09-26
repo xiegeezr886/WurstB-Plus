@@ -63,7 +63,7 @@ final class WurstTitleButton extends AbstractButton
 		int iconSize = ICON_SIZE;
 		int iconX = x1 + (compact ? 9 : 12);
 		int iconY = y1 + (getHeight() - iconSize) / 2;
-		graphics.blit(RenderType::guiTextured, icon, iconX, iconY, iconSize, iconSize, 0, 0,
+		graphics.blit(RenderType::guiTextured, icon, iconX, iconY, 0, 0, iconSize, iconSize,
 			TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
 
 		int color = active ? TEXT_COLOR : 0xFF707A7B;

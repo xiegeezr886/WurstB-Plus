@@ -30,9 +30,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.InputFaker;
 import net.wurstclient.InputFaker.TempRealInput;
@@ -127,7 +125,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	 */
 	@WrapOperation(method = "aiStep()V",
 		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/player/LocalPlayer;isSlowDueToUsingItem()Z",
+			target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z",
 			ordinal = 0))
 	private boolean wrapTickMovementItemUse(LocalPlayer instance,
 		Operation<Boolean> original)
@@ -160,7 +158,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	 */
 	@WrapOperation(method = "canStartSprinting()Z",
 		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/player/LocalPlayer;isSlowDueToUsingItem()Z",
+			target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z",
 			ordinal = 0))
 	private boolean wrapCanStartSprintingItemUse(LocalPlayer instance,
 		Operation<Boolean> original)
@@ -240,11 +238,10 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	 * This mixin allows AutoSprint to enable sprinting even when the player is
 	 * too hungry.
 	 */
-	@Inject(method = "isSprintingPossible(Z)Z",
+	@Inject(method = "hasEnoughFoodToSprint()Z",
 		at = @At("HEAD"),
 		cancellable = true)
-	private void onCanSprint(boolean allowTouchingWater,
-		CallbackInfoReturnable<Boolean> cir)
+	private void onCanSprint(CallbackInfoReturnable<Boolean> cir)
 	{
 		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldSprintHungry())
 			cir.setReturnValue(true);
@@ -379,21 +376,4 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		return hax.reachHack.getReachDistance();
 	}
 	
-	/**
-	 * This is the part that makes Liquids work.
-	 */
-	@WrapOperation(
-		method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/entity/Entity;pick(DFZ)Lnet/minecraft/world/phys/HitResult;",
-			ordinal = 0))
-	private static HitResult liquidsRaycast(Entity instance, double maxDistance,
-		float tickDelta, boolean includeFluids, Operation<HitResult> original)
-	{
-		if(!WurstClient.INSTANCE.getHax().liquidsHack.isEnabled())
-			return original.call(instance, maxDistance, tickDelta,
-				includeFluids);
-		
-		return original.call(instance, maxDistance, tickDelta, true);
-	}
 }

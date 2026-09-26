@@ -283,10 +283,10 @@ public final class TargetHudElement extends HudElement
 			RenderSystem.setShaderColor(1, 1, 1, opacity);
 			try
 			{
-				graphics.blit(RenderType.GUI_TEXTURED, skin, x + 2, y + 2, size - 4, size - 4,
-					8, 8, 8, 8, 64, 64);
-				graphics.blit(RenderType.GUI_TEXTURED, skin, x + 2, y + 2, size - 4, size - 4,
-					40, 8, 8, 8, 64, 64);
+				graphics.blit(RenderType.GUI_TEXTURED, skin, x + 2, y + 2, 8, 8,
+					size - 4, size - 4, 8, 8, 64, 64);
+				graphics.blit(RenderType.GUI_TEXTURED, skin, x + 2, y + 2, 40, 8,
+					size - 4, size - 4, 8, 8, 64, 64);
 			}finally
 			{
 				RenderSystem.setShaderColor(1, 1, 1, 1);

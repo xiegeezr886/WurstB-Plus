@@ -106,7 +106,7 @@ public abstract class GameRendererMixin implements AutoCloseable
 	@Inject(at = @At("HEAD"),
 		method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;")
 	private void onHitResultRayTrace(net.minecraft.world.entity.Entity entity,
-		double maxDistance, float tickDelta, boolean includeFluids,
+		double maxDistance, double entityDistance, float tickDelta,
 		CallbackInfoReturnable<HitResult> cir)
 	{
 		HitResultRayTraceEvent event = new HitResultRayTraceEvent(tickDelta);

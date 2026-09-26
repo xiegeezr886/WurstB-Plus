@@ -2,6 +2,7 @@ param(
 	[string]$ProjectRoot = "",
 	[switch]$WhatIf,
 	[switch]$SelfTest,
+	[string[]]$Versions = @(),
 	# A fresh clone legitimately has no baritone-maven/ (it is gitignored), so the
 	# caller can choose to treat "unresolved" as a warning instead of an error.
 	[switch]$AllowUnresolved
@@ -10,17 +11,14 @@ param(
 # Makes every bundled Baritone declare the Minecraft version of the project that
 # ships it.
 #
-# Why: one Baritone build is shared across a whole MC line (e.g. the 1.21.11 jar
-# is reused by 1.21.3...1.21.11). The loader validates the nested mod's own
-# `minecraft` dependency, so on 1.21.8 a Baritone declaring "[1.21.11]" is
-# rejected before the game starts. Each project therefore needs a Baritone whose
-# declaration admits that project's own MC version.
+# The loader validates the nested mod's own `minecraft` dependency. A matching
+# declaration is necessary, but cannot make an incompatible binary work on a
+# different Minecraft version. Missing version-specific jars must be built from
+# matching sources, not manufactured by copying another version's jar.
 #
-# A source jar that already admits the target MC is left untouched. Otherwise:
-#   * private jar (one project)  -> patched in place
-#   * shared jar (many projects) -> copied to "<version>-mc<MC>" in the same local
-#     Maven repo, and every reference is repointed (build.gradle coordinate,
-#     hardcoded from(...) path, checked-in jarjar/metadata.json).
+# A jar that already admits the target MC is left untouched. Existing private
+# version-specific jars can have their declaration corrected. Missing jars are
+# reported as errors; this script never creates cross-version binary copies.
 #
 # Idempotent: re-running changes nothing.
 
@@ -251,6 +249,7 @@ foreach ($tree in $trees) {
 		$mcMatch = [regex]::Match($gradleProps, '(?m)^\s*minecraft_version\s*=\s*(.+?)\s*$')
 		if (-not $mcMatch.Success) { continue }
 		$mc = $mcMatch.Groups[1].Value.Trim()
+		if ($Versions.Count -gt 0 -and $mc -notin $Versions) { continue }
 		$text = Read-Text $buildGradle
 
 		$maven = [regex]::Match($text, '["'']baritone:([a-z\-]+):([^"'']+)["'']')
@@ -279,7 +278,9 @@ foreach ($tree in $trees) {
 		if (-not $srcJar -and $maven.Success) {
 			foreach ($candidate in @(
 					(Join-Path $proj.FullName ("{0}-{1}.jar" -f $artifact, $version)),
-					(Join-Path $proj.FullName ("libs\{0}-{1}.jar" -f $artifact, $version)))) {
+					(Join-Path $proj.FullName ("libs\{0}-{1}.jar" -f $artifact, $version)),
+					(Join-Path $ProjectRoot ("{0}-{1}.jar" -f $artifact, $version)),
+					(Join-Path $ProjectRoot ("{0}-{1}.jar" -f $artifact, ($version -replace '-mc\d[\d.]*$', ''))))) {
 				if (Test-Path -LiteralPath $candidate) { $srcJar = $candidate; $style = "flatdir"; $repoRoot = $null; break }
 			}
 		}
@@ -343,7 +344,7 @@ foreach ($e in $entries) {
 		# jar is never modified, so basing the decision on ITS declaration is stable
 		# across runs: a project keeps the shared base artifact if that artifact
 		# already admits its MC version, and otherwise gets a private per-MC copy.
-		$baseVersion = if ($e.RepoRoot) { $e.Version -replace '-mc\d[\d.]*$', '' } else { $e.Version }
+		$baseVersion = $e.Version -replace '-mc\d[\d.]*$', ''
 		$newVersion = $e.Version
 		$targetJar = $e.SrcJar
 		if ($e.RepoRoot) {
@@ -357,24 +358,33 @@ foreach ($e in $entries) {
 				$newVersion = "$baseVersion-mc$($e.Mc)"
 				$targetJar = Join-Path $e.RepoRoot ("baritone\{0}\{1}\{0}-{1}.jar" -f $e.Artifact, $newVersion)
 			}
+		} elseif ($e.Style -eq 'flatdir' -and $e.Loader -eq 'forge') {
+			# FlatDir artifacts may live in project libs/ rather than the root.
+			$baseJar = Join-Path (Split-Path -Parent $e.SrcJar) ("{0}-{1}.jar" -f $e.Artifact, $baseVersion)
+			if (-not (Test-Path -LiteralPath $baseJar)) { throw "flatDir base jar is missing: $baseJar" }
+			$baseAdmits = Test-McAdmitted (Get-McSpec (Get-JarEntryText $baseJar $e.EntryName) $e.EntryName) $e.Mc $e.Loader
+			$newVersion = if ($baseAdmits) { $baseVersion } else { "$baseVersion-mc$($e.Mc)" }
+			$targetJar = if ($baseAdmits) { $baseJar } else {
+				Join-Path (Split-Path -Parent $baseJar) ("{0}-{1}.jar" -f $e.Artifact, $newVersion)
+			}
 		}
 
 		$needsCopy = -not (Test-Path -LiteralPath $targetJar)
-
-		# $targetJar may not exist yet (fresh clone, or a deleted per-MC copy), so
-		# treat "missing" as "needs the declaration written" and read only if present.
-		$needsDecl = $true
-		if (-not $needsCopy) {
-			$declaredNow = Get-McSpec (Get-JarEntryText $targetJar $e.EntryName) $e.EntryName
-			$needsDecl = -not (Test-McAdmitted $declaredNow $e.Mc $e.Loader)
+		if ($needsCopy) {
+			throw "missing $targetJar; build a Baritone jar for Minecraft $($e.Mc) instead of copying a different version's binary"
 		}
+
+		$declaredNow = Get-McSpec (Get-JarEntryText $targetJar $e.EntryName) $e.EntryName
+		$needsDecl = -not (Test-McAdmitted $declaredNow $e.Mc $e.Loader)
 
 		# A stale reference is anything that does not already name the intended
 		# version (build script coordinate, hardcoded copy path, jarjar manifest).
 		$needsRef = $false
-		if ($e.RepoRoot) {
+		if ($e.RepoRoot -or ($e.Style -eq 'flatdir' -and $e.Loader -eq 'forge')) {
 			$bgNow = [System.IO.File]::ReadAllText($e.BuildGradle)
 			if ($bgNow -notmatch [regex]::Escape("baritone:$($e.Artifact):$newVersion")) { $needsRef = $true }
+			if ($e.Style -eq 'flatdir' -and $newVersion -ne $baseVersion -and
+				$bgNow -notmatch [regex]::Escape('version: "[' + $newVersion + ']"')) { $needsRef = $true }
 			$jjNow = Join-Path $e.Proj "src\main\resources\META-INF\jarjar\metadata.json"
 			if (Test-Path -LiteralPath $jjNow) {
 				$jjText = [System.IO.File]::ReadAllText($jjNow)
@@ -383,7 +393,7 @@ foreach ($e in $entries) {
 		}
 
 		if ($WhatIf) {
-			if ($needsDecl -or $needsRef -or $needsCopy) {
+			if ($needsDecl -or $needsRef) {
 				Write-Host ("[{0}] WOULD declare minecraft=[{1}] in {2} -> {3}" -f $e.Rel, $e.Mc, $e.EntryName, (Split-Path -Leaf $targetJar))
 				$updated++
 			} else { $skipped++ }
@@ -391,25 +401,6 @@ foreach ($e in $entries) {
 		}
 
 		$changed = $false
-
-		if ($needsCopy) {
-			# Materialise the per-MC copy from the canonical base jar, falling back
-			# to whatever jar this project currently resolves.
-			if (-not $e.RepoRoot) { throw "bundled jar is missing and cannot be recreated" }
-			$oldDir = Join-Path $e.RepoRoot ("baritone\{0}\{1}" -f $e.Artifact, $baseVersion)
-			$newDir = Join-Path $e.RepoRoot ("baritone\{0}\{1}" -f $e.Artifact, $newVersion)
-			New-Item -ItemType Directory -Path $newDir -Force | Out-Null
-			$sourceJar = Join-Path $oldDir ("{0}-{1}.jar" -f $e.Artifact, $baseVersion)
-			if (-not (Test-Path -LiteralPath $sourceJar)) { $sourceJar = $e.SrcJar }
-			Copy-Item -LiteralPath $sourceJar -Destination $targetJar -Force
-			$targetPom = Join-Path $newDir ("{0}-{1}.pom" -f $e.Artifact, $newVersion)
-			$sourcePom = Join-Path $oldDir ("{0}-{1}.pom" -f $e.Artifact, $baseVersion)
-			if ((Test-Path -LiteralPath $sourcePom) -and -not (Test-Path -LiteralPath $targetPom)) {
-				$pom = ([System.IO.File]::ReadAllText($sourcePom)).Replace("<version>$baseVersion</version>", "<version>$newVersion</version>")
-				[System.IO.File]::WriteAllText($targetPom, $pom, $utf8)
-			}
-			$changed = $true
-		}
 
 		if ($needsDecl) {
 			$current = Get-JarEntryText $targetJar $e.EntryName
@@ -423,6 +414,9 @@ foreach ($e in $entries) {
 		if ($needsRef) {
 			$bg = [System.IO.File]::ReadAllText($e.BuildGradle)
 			$bg = $bg.Replace("baritone:$($e.Artifact):$($e.Version)", "baritone:$($e.Artifact):$newVersion")
+			if ($e.Style -eq 'flatdir' -and $newVersion -ne $baseVersion) {
+				$bg = [regex]::Replace($bg, '(?s)(jarJar\(group:\s*"baritone",\s*name:\s*"' + [regex]::Escape($e.Artifact) + '"\s*,\s*version:\s*)"[^"]+"', ('$1"[' + $newVersion + ']"'))
+			}
 			if ($e.FromPath) {
 				$newRel = $e.FromPath -replace [regex]::Escape($e.Version), $newVersion
 				$bg = $bg.Replace($e.FromPath, $newRel)
