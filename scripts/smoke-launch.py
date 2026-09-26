@@ -32,6 +32,7 @@ r"""冒烟启动：把每个工程的客户端真启动一遍，自动分类「�
 结果 TSV 每判完一个工程就 append 一行：`工程 <TAB> 版本 <TAB> 判定 <TAB> 秒 <TAB> 详情`。
 """
 import argparse
+import glob
 import os
 import re
 import subprocess
@@ -73,9 +74,9 @@ def jdk_home(version):
     这不是可有可无的：老工程的 Gradle 8.x 跑在 JDK 25 上会直接死在
     `Unsupported class file major version 69`，与模组本身无关。
     """
-    if version.startswith('1.20'):
+    if version in ('1.20.1', '1.20.2', '1.20.3', '1.20.4'):
         want = 17
-    elif version.startswith('1.21'):
+    elif version.startswith(('1.20', '1.21')):
         want = 21
     else:
         want = 25
@@ -90,12 +91,15 @@ def jdk_home(version):
 
 def projects(version=None, loaders=None):
     out = []
-    for dirpath, dirs, files in os.walk(ROOT):
-        dirs[:] = [d for d in dirs if d not in ('build', '.gradle', '_smoke')]
-        if 'gradle.properties' not in files:
-            continue
-        rel = os.path.relpath(dirpath, ROOT).replace(os.sep, '/')
-        if rel.startswith('_tools') or rel.startswith('baritone-maven'):
+    paths = ['.', 'fabric', 'neoforge']
+    for prefix in ('versions', 'fabric/versions', 'neoforge/versions'):
+        parent = os.path.join(ROOT, prefix)
+        if os.path.isdir(parent):
+            paths.extend(prefix + '/' + name for name in os.listdir(parent)
+                         if os.path.isdir(os.path.join(parent, name)))
+    for rel in paths:
+        dirpath = os.path.join(ROOT, rel)
+        if not os.path.isfile(os.path.join(dirpath, 'gradle.properties')):
             continue
         try:
             text = open(os.path.join(dirpath, 'gradle.properties'),
@@ -132,6 +136,32 @@ def kill_tree(proc):
         proc.kill()
 
 
+def gradle_command(path):
+    wrapper = os.path.join(path, 'gradle', 'wrapper', 'gradle-wrapper.jar')
+    if os.path.isfile(wrapper):
+        return os.path.join(path, 'gradlew.bat') if os.name == 'nt' \
+            else os.path.join(path, 'gradlew')
+
+    props = os.path.join(path, 'gradle', 'wrapper',
+                         'gradle-wrapper.properties')
+    if not os.path.isfile(props):
+        raise FileNotFoundError('Gradle wrapper 配置不存在: ' + props)
+    data = open(props, encoding='utf-8').read()
+    match = re.search(r'gradle-([\d.]+)-bin\.zip', data)
+    if not match:
+        raise RuntimeError('无法识别 Gradle 版本: ' + props)
+    version = match.group(1)
+    home = os.environ.get('GRADLE_USER_HOME',
+                          os.path.join(os.path.expanduser('~'), '.gradle'))
+    binary = 'gradle.bat' if os.name == 'nt' else 'gradle'
+    candidates = glob.glob(os.path.join(home, 'wrapper', 'dists',
+                                         'gradle-' + version + '-bin', '*',
+                                         'gradle-' + version, 'bin', binary))
+    if not candidates:
+        raise FileNotFoundError('缺少 Gradle %s 本地发行版' % version)
+    return sorted(candidates)[0]
+
+
 def smoke(proj, version, timeout, settle):
     path = os.path.join(ROOT, proj)
     log = os.path.join(LOGDIR, proj.replace('/', '__') + '.log')
@@ -140,11 +170,10 @@ def smoke(proj, version, timeout, settle):
     want, home = jdk_home(version)
     if home:
         env['JAVA_HOME'] = home
-    args = ['./gradlew' if os.path.exists(os.path.join(path, 'gradlew'))
-            else 'gradlew.bat', 'runClient', '--init-script', INIT,
+    args = [gradle_command(path), 'runClient', '--init-script', INIT,
             '--console=plain']
-    if os.name == 'nt':
-        args[0] = os.path.join(path, 'gradlew.bat')
+    if proj.startswith('fabric/'):
+        args.append('-Ploom_libraries_base=https://libraries.minecraft.net/')
     with open(log, 'w', encoding='utf-8', errors='replace') as fh:
         proc = subprocess.Popen(args, cwd=path, stdout=fh,
                                 stderr=subprocess.STDOUT, env=env,

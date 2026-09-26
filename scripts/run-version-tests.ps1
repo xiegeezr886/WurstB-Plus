@@ -21,6 +21,7 @@ param(
     [int]$SettleSeconds = 20,
     [string]$QuickPlayWorld = "",
     [string]$BaritoneCommand = "",
+    [switch]$BuildOutputs,
     [switch]$KeepOldJars,
     [switch]$Quiet
 )
@@ -85,23 +86,18 @@ function Get-BaritoneResponsePattern($command) {
 }
 
 # ---------- JDK selection ----------
-$JDKs = @{
-    "1.20.1" = if ($env:WURSTBPLUS_JAVA17) { $env:WURSTBPLUS_JAVA17 } else { "C:\Program Files\Java\jdk-17" }
-    "1.21.1" = if ($env:WURSTBPLUS_JAVA21) { $env:WURSTBPLUS_JAVA21 } else { "C:\Program Files\Java\jdk-21" }
-    "1.21.11" = if ($env:WURSTBPLUS_JAVA21) { $env:WURSTBPLUS_JAVA21 } else { "C:\Program Files\Java\jdk-21" }
-    "26.1.2" = if ($env:WURSTBPLUS_JAVA25) { $env:WURSTBPLUS_JAVA25 } else { "C:\Program Files\Java\jdk-25.0.4" }
-    "26.2" = if ($env:WURSTBPLUS_JAVA25) { $env:WURSTBPLUS_JAVA25 } else { "C:\Program Files\Java\jdk-25.0.4" }
-    # The Java\ path above is what 26.1.2/26.2 assume; on this machine JDK 25 actually
-    # lives under Microsoft\, so the 26.3 entry probes it before falling back.
-    "26.3" = if ($env:WURSTBPLUS_JAVA25) { $env:WURSTBPLUS_JAVA25 } elseif (Test-Path "C:\Program Files\Microsoft\jdk-25.0.4.101-hotspot\bin\java.exe") { "C:\Program Files\Microsoft\jdk-25.0.4.101-hotspot" } else { "C:\Program Files\Java\jdk-25.0.4" }
-}
-
 function Get-Java($mcVersion) {
-    $dir = $JDKs[$mcVersion]
-    if (-not $dir) { throw "Unknown MC version $mcVersion" }
-    $java = Join-Path $dir "bin\java.exe"
-    if (-not (Test-Path $java)) { throw "JDK not found: $java" }
-    return $java
+    $major = if ($mcVersion -in @('1.20.1', '1.20.2', '1.20.3', '1.20.4')) { 17 } elseif ($mcVersion -like '1.20.*' -or $mcVersion -like '1.21*') { 21 } else { 25 }
+    $override = [Environment]::GetEnvironmentVariable("WURSTBPLUS_JAVA$major")
+    $candidates = @($override, "C:\Program Files\Java\jdk-$major")
+    if ($major -eq 25) { $candidates += "C:\Program Files\Java\jdk-25.0.4" }
+    $candidates += "C:\Program Files\Microsoft\jdk-$major.0.4.101-hotspot"
+    foreach ($dir in $candidates) {
+        if ($dir -and (Test-Path (Join-Path $dir 'bin\java.exe'))) {
+            return Join-Path $dir 'bin\java.exe'
+        }
+    }
+    throw "JDK $major not found for MC $mcVersion; set WURSTBPLUS_JAVA$major"
 }
 
 # ---------- match download jar to test instance ----------
@@ -118,9 +114,9 @@ function Find-InstanceDir($mc, $loader) {
     $dirs = Get-ChildItem -LiteralPath $VersionsRoot -Directory
     foreach ($d in $dirs) {
         if ($d.Name -notmatch "^$([regex]::Escape($mc))-") { continue }
-        if ($loader -eq "NeoForge" -and $d.Name -notmatch "NeoForge") { continue }
-        if ($loader -eq "Fabric" -and $d.Name -notmatch "Fabric") { continue }
-        if ($loader -eq "Forge" -and $d.Name -notmatch "Forge_") { continue }
+        if ($loader -eq "NeoForge" -and $d.Name -notmatch "(?i)^$([regex]::Escape($mc))-neoforge[-_]") { continue }
+        if ($loader -eq "Fabric" -and $d.Name -notmatch "(?i)^$([regex]::Escape($mc))-fabric[ _-]") { continue }
+        if ($loader -eq "Forge" -and $d.Name -notmatch "(?i)^$([regex]::Escape($mc))-forge[-_]") { continue }
         return $d.FullName
     }
     return $null
@@ -512,9 +508,23 @@ function Test-Version($jarPath, $instanceDir) {
     $clientJar = Join-Path $instanceDir "$name.jar"
 
     if (-not (Test-Path $jsonPath)) { return @{ Status = "ERROR"; Note = "missing $name.json" } }
-    if (-not (Test-Path $clientJar)) { return @{ Status = "ERROR"; Note = "missing client $name.jar" } }
-
     $j = Get-Content -LiteralPath $jsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($j.inheritsFrom) {
+        $baseName = [string]$j.inheritsFrom
+        $baseDir = Join-Path $VersionsRoot $baseName
+        $baseJson = Join-Path $baseDir "$baseName.json"
+        if (-not (Test-Path $baseJson)) { return @{ Status = "ERROR"; Note = "missing inherited $baseJson" } }
+        $base = Get-Content -LiteralPath $baseJson -Raw -Encoding UTF8 | ConvertFrom-Json
+        $clientJar = Join-Path $baseDir "$baseName.jar"
+        if (-not $j.assetIndex) { $j | Add-Member -NotePropertyName assetIndex -NotePropertyValue $base.assetIndex -Force }
+        if (-not $j.arguments) { $j | Add-Member -NotePropertyName arguments -NotePropertyValue ([pscustomobject]@{}) -Force }
+        $gameArgs = @($base.arguments.game | Where-Object { $null -ne $_ }) + @($j.arguments.game | Where-Object { $null -ne $_ })
+        $jvmArgs = @($base.arguments.jvm | Where-Object { $null -ne $_ }) + @($j.arguments.jvm | Where-Object { $null -ne $_ })
+        $j.arguments | Add-Member -NotePropertyName game -NotePropertyValue $gameArgs -Force
+        $j.arguments | Add-Member -NotePropertyName jvm -NotePropertyValue $jvmArgs -Force
+        $j.libraries = @($base.libraries | Where-Object { $null -ne $_ }) + @($j.libraries | Where-Object { $null -ne $_ })
+    }
+    if (-not (Test-Path $clientJar)) { return @{ Status = "ERROR"; Note = "missing client $clientJar" } }
     $mcVersion = if ($name -match "^(\d+\.\d+(?:\.\d+)?)") { $Matches[1] } else { "1.20.1" }
     $requireBaritone = $mcVersion -in @("1.21.11", "26.2", "26.3")
     $baritonePackage = Test-EmbeddedBaritone $jarPath
@@ -716,10 +726,6 @@ function Test-Version($jarPath, $instanceDir) {
     Ensure-WurstTestWindow
 
     while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $TimeoutSeconds)) {
-        if ($p.HasExited) {
-            $result = @{ Status = "FAIL"; Note = "process exited early, code $($p.ExitCode)" }
-            break
-        }
         # 周期压制：MC 窗口若自行弹出前台会 grab 鼠标，
         # 每轮强制最小化，保证测试期间系统操作不被接管。
         if ($p.MainWindowHandle -ne [IntPtr]::Zero) {
@@ -735,6 +741,10 @@ function Test-Version($jarPath, $instanceDir) {
                 if ($desc) { $note += " | " + (($desc | Select-Object -First 2) -join " ") }
             }
             $result = @{ Status = "FAIL"; Note = $note }
+            break
+        }
+        if ($p.HasExited) {
+            $result = @{ Status = "FAIL"; Note = "process exited early, code $($p.ExitCode)" }
             break
         }
         if ((Test-Path $latestLog) -or (Test-Path $stdout)) {
@@ -833,10 +843,25 @@ function Test-Version($jarPath, $instanceDir) {
 # ---------- main ----------
 Write-Info "========== WurstB+ batch version test =========="
 $report = @()
-$jars = @(Get-ChildItem -LiteralPath $DownloadDir -Filter "*.jar" | Where-Object { Get-JarVersionInfo $_.Name })
+$jars = if ($BuildOutputs) {
+    $projects = @($ProjectRoot, (Join-Path $ProjectRoot 'fabric'), (Join-Path $ProjectRoot 'neoforge'))
+    foreach ($branch in @('versions', 'fabric\versions', 'neoforge\versions')) {
+        $projects += @(Get-ChildItem -LiteralPath (Join-Path $ProjectRoot $branch) -Directory | Select-Object -ExpandProperty FullName)
+    }
+    @($projects | ForEach-Object {
+        $libs = Join-Path $_ 'build\libs'
+        if (Test-Path $libs) {
+            Get-ChildItem -LiteralPath $libs -Filter '*.jar' -File |
+                Where-Object { Get-JarVersionInfo $_.Name }
+        }
+    })
+} else {
+    @(Get-ChildItem -LiteralPath $DownloadDir -Filter "*.jar" -File |
+        Where-Object { Get-JarVersionInfo $_.Name })
+}
 
 if ($jars.Count -eq 0) {
-    Write-Host "no testable jars in download/"
+    Write-Host "no testable jars in selected source"
     exit 1
 }
 

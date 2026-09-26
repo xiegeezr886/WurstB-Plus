@@ -67,6 +67,11 @@ repositories {
 
 jarJar.enable()
 
+// ModLauncher requires the jopt.simple module; 6.0-alpha-3 exposes joptsimple.
+configurations.configureEach {
+	resolutionStrategy.force "net.sf.jopt-simple:jopt-simple:5.0.4"
+}
+
 dependencies {
 	minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
 
