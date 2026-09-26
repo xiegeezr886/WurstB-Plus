@@ -2,7 +2,7 @@
 
 > 本文件是 WurstB+ Plus 的**维护与发布手册**：早期由原来的根 README 搬移而来，之后持续更新，
 > 现在同时承担**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）与
-> **维护者 / 发布文档**（64 个工程的产物矩阵、构建与运行、打包校验、逐版本移植状态、
+> **维护者 / 发布文档**（67 个工程的产物矩阵、构建与运行、打包校验、逐版本移植状态、
 > Baritone 依赖兼容性、验证状态）。
 > 面向用户的介绍、下载与安装请看根目录 [README.md](../README.md)。
 
@@ -12,42 +12,42 @@
 
 ## 项目概览
 
-WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **64 个独立 Gradle 构建工程**，全部已有打包产物：
+WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **67 个独立 Gradle 构建工程**，全部已有打包产物：
 
-- **61 个版本工程**：`versions/` 19（Forge）+ `fabric/versions/` 21 + `neoforge/versions/` 21，覆盖 MC 1.20.2–1.20.6、1.21–1.21.11、26.1、26.1.1、26.1.2、26.2（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）；
+- **64 个版本工程**：`versions/` 20（Forge）+ `fabric/versions/` 22 + `neoforge/versions/` 22，覆盖 MC 1.20.2–1.20.6、1.21–1.21.11、26.1、26.1.1、26.1.2、26.2、26.3（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）；
 - **3 个 1.20.1 根工程**：根目录 Forge（**v1.6.0**）、`fabric/` 与 `neoforge/`（后两个是 **v1.5.0**）。
 
-**64 个工程中，63 个的 v1.5.0 产物已按当前源码重新构建**，并与留存的原 1.20.1 Forge 产物一起发布在 GitHub Release
-[**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（**共 64 个资产**，命名统一为
+**67 个工程中，66 个的 v1.5.0 产物已按当前源码重新构建**，并与留存的原 1.20.1 Forge 产物一起发布在 GitHub Release
+[**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（**共 67 个资产**，命名统一为
 `WurstB+.Plus-<版本>-<加载器>-<mc>.jar`）。每个 jar 都做过打包校验（zip 完好、含加载器元数据与 Mixin 配置、含主类），
 但**除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证**——详见[多版本平行移植](#多版本平行移植)与[验证状态](#验证状态)。
 
-> 计数口径：**61 个工程目录** = `versions/` 19（Forge）+ `fabric/versions/` 21 + `neoforge/versions/` 21。加上 3 个 1.20.1 根工程（根目录 Forge、`neoforge/`、`fabric/`）合计 **64 个独立 Gradle 构建**，与「多加载器目录」一节的 64 一致。
+> 计数口径：**64 个工程目录** = `versions/` 20（Forge）+ `fabric/versions/` 22 + `neoforge/versions/` 22。加上 3 个 1.20.1 根工程（根目录 Forge、`neoforge/`、`fabric/`）合计 **67 个独立 Gradle 构建**，与「多加载器目录」一节的 67 一致。
 
 详细文件索引见 [PROJECT_INDEX.md](../PROJECT_INDEX.md)，版本变更见 [CHANGELOG.md](../CHANGELOG.md)，移植计划与逐版本状态见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)。
 
 > **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
-> 其余 **63 个工程均为 v1.5.0 形态**，v1.6 子系统尚未移植，见「v1.6 新增子系统」。
+> 其余 **66 个工程均为 v1.5.0 形态**，v1.6 子系统尚未移植，见「v1.6 新增子系统」。
 
-## 发布产物矩阵（63 个重建 + 1 个留存）
+## 发布产物矩阵（66 个重建 + 1 个留存）
 
 下表是 GitHub Release **v1.5.0** 的资产清单，文件名规则为
 `WurstB+.Plus-<版本>-<加载器>-<mc>.jar`（本地文件名用空格，见下）。
 
 | 加载器 | 覆盖的 MC 版本 | 工程数 | 生产任务 |
 | --- | --- | --- | --- |
-| Forge | 1.20.2–1.20.4、1.20.6、1.21、1.21.1、1.21.3–1.21.11、26.1、26.1.1、26.1.2、26.2 | 19 | `jarJar`（1.20.2–1.21.1）/ `allJar`（1.21.3+） |
-| Fabric | 1.20.2–1.20.6、1.21、1.21.1、1.21.2–1.21.11、26.1、26.1.1、26.1.2、26.2 | 21 | `remapJar`（26.x：`jar`） |
-| NeoForge | 1.20.2–1.20.6、1.21、1.21.1、1.21.2–1.21.11、26.1、26.1.1、26.1.2、26.2 | 21 | `jar` |
+| Forge | 1.20.2–1.20.4、1.20.6、1.21、1.21.1、1.21.3–1.21.11、26.1、26.1.1、26.1.2、26.2、26.3 | 20 | `jarJar`（1.20.2–1.21.1）/ `allJar`（1.21.3+） |
+| Fabric | 1.20.2–1.20.6、1.21、1.21.1、1.21.2–1.21.11、26.1、26.1.1、26.1.2、26.2、26.3 | 22 | `remapJar`（26.x：`jar`） |
+| NeoForge | 1.20.2–1.20.6、1.21、1.21.1、1.21.2–1.21.11、26.1、26.1.1、26.1.2、26.2、26.3 | 22 | `jar` |
 
 Forge 无官方 1.20.5 与 1.21.2，故这两个版本只有 Fabric / NeoForge。
 
-> **Release 里 64 个资产 = 本轮重建的 63 个 + 留存的 1 个**（`WurstB+.Plus-1.5.0-Forge-1.20.1.jar`，
+> **Release 里 67 个资产 = 本轮重建的 66 个 + 留存的 1 个**（`WurstB+.Plus-1.5.0-Forge-1.20.1.jar`，
 > 命名未改）。三个 1.20.1 工程里**只有根目录 Forge 是 v1.6.0 形态**，无法再逐字节重建 1.5.0 的它，
 > 故保留发布当时的产物；`fabric/` 与 `neoforge/` 仍是 v1.5.0，本轮按当前源码重建并替换了同名旧资产。
-> 计数口径：上表 **61 个版本工程**（`versions/` 19 + `fabric/versions/` 21 + `neoforge/versions/` 21）
-> 全部重建，再加 `fabric/`、`neoforge/` 两个 1.20.1 根工程，共 **63 个重建**；加上留存的根 Forge 产物，
-> Release 合计 **64 个资产**。
+> 计数口径：上表 **64 个版本工程**（`versions/` 20 + `fabric/versions/` 22 + `neoforge/versions/` 22）
+> 全部重建，再加 `fabric/`、`neoforge/` 两个 1.20.1 根工程，共 **66 个重建**；加上留存的根 Forge 产物，
+> Release 合计 **67 个资产**（其中 26.3 的三个为本轮新增，此前未发布）。
 
 ### 本地构建路径
 
@@ -136,7 +136,7 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组 ID | `wurstpenguin` |
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
-| 构建状态 | **64 个工程全部产出打包 jar**，其中 63 个按当前源码重建并已上传 v1.5.0 Release（另 1 个是留存的根 Forge 1.20.1 产物）；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证（详见 [PORTING_TASK.md](../PORTING_TASK.md) 与 [PROJECT_INDEX.md](../PROJECT_INDEX.md)） |
+| 构建状态 | **67 个工程全部产出打包 jar**，其中 66 个按当前源码重建并已上传 v1.5.0 Release（另 1 个是留存的根 Forge 1.20.1 产物）；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证（详见 [PORTING_TASK.md](../PORTING_TASK.md) 与 [PROJECT_INDEX.md](../PROJECT_INDEX.md)） |
 | 注册 Hack | **209** 个（根工程 v1.6.0；`hacks/` 下声明 `extends Hack` 的类共 210 个，其中 `RadialMenuHack` 未注册） |
 | 注册命令 | **57** |
 | Other Feature | **18** |
@@ -148,7 +148,7 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 
 ### Gradle wrapper
 
-64 个工程全部含完整的 `gradle-wrapper.jar`（43,764 bytes，含 `Main-Class: org.gradle.wrapper.GradleWrapperMain`）。
+67 个工程全部含完整的 `gradle-wrapper.jar`（43,764 bytes，含 `Main-Class: org.gradle.wrapper.GradleWrapperMain`）。
 四种发行版（8.11 / 8.14.4 / 9.4.1 / 9.6.0）可用 `scripts/seed-gradle-wrapper.ps1` 从工作区 `tools/` 播种到 `~/.gradle/wrapper/dists/`，因此 `gradlew.bat` 在离线环境下可直接解析发行版，无需联网下载。
 `scripts/doctor.ps1` 检查 JDK、wrapper 发行版和 v1.6 基准测试是否齐全；它依据 `scripts/common.ps1` 的工程表工作，目前只覆盖已发布的 15 个工程，新版本工程需手工指定 JDK。根工程单测用：
 
@@ -257,7 +257,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 
 ## v1.6 新增子系统
 
-以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 63 个工程（61 个版本工程，外加 `fabric/` 与 `neoforge/` 两个 1.20.1 根工程）均未移植。
+以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 66 个工程（64 个版本工程，外加 `fabric/` 与 `neoforge/` 两个 1.20.1 根工程）均未移植。
 
 ### 源码包（152 个 Java 文件）
 
@@ -358,7 +358,7 @@ gradle/ 与 ~/.gradle/wrapper/dists/     Gradle 8.11 / 8.14.4 / 9.4.1 / 9.6.0 �
 download/                              可选发布聚合目录，仅在 build-all.ps1 -PublishToDownload 时创建
 ```
 
-按 MC 版本统计：Forge 19 个（1.20.5 与 1.21.2 无官方 Forge）、Fabric 21 个、NeoForge 21 个，加上 3 个 1.20.1 根工程，合计 **64 个工程**。每个工程拥有独立的 `build.gradle`、`settings.gradle`、gradle wrapper 与**完整复制的源码树**，不存在共享 sourceSet。
+按 MC 版本统计：Forge 20 个（1.20.5 与 1.21.2 无官方 Forge）、Fabric 22 个、NeoForge 22 个，加上 3 个 1.20.1 根工程，合计 **67 个工程**。每个工程拥有独立的 `build.gradle`、`settings.gradle`、gradle wrapper 与**完整复制的源码树**，不存在共享 sourceSet。
 
 各加载器工程拥有独立的构建脚本、Mixin 配置和平台适配层。不要把 Fabric JAR、Forge JAR 或 NeoForge JAR 混放到同一个实例中。
 
