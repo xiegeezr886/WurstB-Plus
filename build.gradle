@@ -338,12 +338,10 @@ tasks.register("copyJarToTestMods") {
 //  用 -PnoRelocate 可关闭。
 def RELOCATE_PREFIXES = [
 	// —— 第一批：实测崩溃日志点名的三个 ——
-	"kotlin/"                       : "net/wurstclient/shaded/kotlin/",
-	"kotlinx/coroutines/"           : "net/wurstclient/shaded/kotlinx/coroutines/",
+	// kotlin / kotlinx.coroutines / _COROUTINE **不在**这里：skiko 的原生初始化
+	// 必须看到原包名，重定位会让游戏一碰 Skia 就硬崩。这三项改由 SkikoModules
+	// 的 module-info 做限定导出隔离，见下方「Skiko / Kotlin 的模块隔离」。
 	"javazoom/"                     : "net/wurstclient/shaded/javazoom/",
-	// kotlinx-coroutines 的根级包，不在 kotlinx/coroutines/ 下，第一版漏掉过，
-	// 结果自动模块导出它、与 KotlinForForge 撞在 _COROUTINE 上又崩一次。
-	"_COROUTINE/"                   : "net/wurstclient/shaded/_COROUTINE/",
 	// —— 第二批：整合包里同样有其它 mod 提供（modid 重复）的纯 Java 库 ——
 	// 一次性全部重定位，避免逐个试错（每次试错都要用户启动一次游戏）。
 	"com/google/zxing/"             : "net/wurstclient/shaded/com/google/zxing/",
@@ -425,17 +423,95 @@ def remapEntryName = { String path ->
 	return path
 }
 
-def rewriteNestedJar = { byte[] jarBytes ->
+// ---- Skiko / Kotlin 的模块隔离 ----
+// 背景（2026-09-26 实测）：skiko 是 Kotlin 写的，它的原生初始化 `_nAfterLoad`
+// 必须能看到**原包名**的 kotlin.*。把 kotlin 重定位成 net.wurstclient.shaded.kotlin
+// 之后，一碰 Skia 就 JVM 硬崩（EXCEPTION_ACCESS_VIOLATION，三份 hs_err 逐行相同）；
+// 只把 kotlin/kotlinx/_COROUTINE 三项移出重定位、其余库照旧，Skiko 立刻恢复正常。
+// 但 kotlin 又不能以「自动模块导出 kotlin 包」的形式出现，否则与 KotlinForForge
+// 那类整合包冲突——这正是当初加重定位的原因。
+//
+// 解法：给这三个内嵌 jar 各生成一个 module-info，让 kotlin 只**限定导出**给 skiko：
+//   * 自动模块（本模组、其它 mod）看不到被限定导出的 kotlin → 不再 split package
+//   * skiko 是本工程自己的具名模块，只 requires kotlin.stdlib → 也只看到这一份
+// 于是「保留原名」与「不导出 kotlin」同时成立，不必重定位 Kotlin 一个字节。
+def SkikoModules = [
+	"kotlin-stdlib-"              : [name: "kotlin.stdlib",
+	                                  req: ["java.base"],
+	                                  export: [], qualify: true],
+	"kotlinx-coroutines-core-jvm-": [name: "kotlinx.coroutines",
+	                                  req: ["java.base", "kotlin.stdlib"],
+	                                  export: [], qualify: true],
+	"skiko-awt-"                  : [name: "wurstb.skiko",
+	                                  req: ["java.base", "java.desktop",
+	                                        "kotlin.stdlib",
+	                                        "kotlinx.coroutines"],
+	                                  export: ["org.jetbrains.skia",
+	                                           "org.jetbrains.skiko"],
+	                                  qualify: false],
+]
+
+def buildModuleInfo = { String moduleName, List<String> requires,
+	List<String> exports, List<String> qualifiedPackages ->
+	def O = org.objectweb.asm.Opcodes
+	def cw = new org.objectweb.asm.ClassWriter(0)
+	cw.visit(O.V9, O.ACC_MODULE, "module-info", null, null, null)
+	def mv = cw.visitModule(moduleName, 0, null)
+	requires.each { mv.visitRequire(it, 0, null) }
+	exports.each { mv.visitExport(it, 0, (String[])null) }
+	// 限定导出：只对 wurstb.skiko 可见
+	qualifiedPackages.each { mv.visitExport(it, 0, (String[])["wurstb.skiko"]) }
+	mv.visitEnd()
+	cw.visitEnd()
+	return cw.toByteArray()
+}
+
+def rewriteNestedJar = { byte[] jarBytes, String jarName ->
+	// 先全部读进来：生成 module-info 需要先知道这个 jar 里有哪些包
+	def entries = new LinkedHashMap<String, byte[]>()
+	def times = new HashMap<String, Long>()
 	def zin = new java.util.zip.ZipInputStream(new ByteArrayInputStream(jarBytes))
-	def bout = new ByteArrayOutputStream()
-	def zout = new java.util.zip.ZipOutputStream(bout)
 	def entry
 	while((entry = zin.getNextEntry()) != null)
 	{
-		String name = entry.name
-		if(name.endsWith("module-info.class"))
-			continue	// 必须丢弃，见上面的说明
-		byte[] data = zin.readAllBytes()
+		if(!entry.name.endsWith("module-info.class"))
+		{
+			entries.put(entry.name, zin.readAllBytes())
+			times.put(entry.name, entry.time)
+		}
+	}
+	zin.close()
+
+	def skiko = SkikoModules.find { k, v -> jarName.startsWith(k) }?.value
+
+	def bout = new ByteArrayOutputStream()
+	def zout = new java.util.zip.ZipOutputStream(bout)
+	if(skiko)
+	{
+		// skiko 这条链：一个字节都不重定位，改用 module-info 做隔离
+		def packages = entries.keySet()
+			.findAll { it.endsWith(".class") && !it.contains("META-INF") }
+			.collect { it.substring(0, it.lastIndexOf('/')) }
+			.unique()
+			.sort()
+		byte[] mi = buildModuleInfo(skiko.name, skiko.req, skiko.export,
+			skiko.qualify ? packages : [])
+		def e = new java.util.zip.ZipEntry("module-info.class")
+		zout.putNextEntry(e)
+		zout.write(mi)
+		zout.closeEntry()
+		entries.each { n, data ->
+			def e2 = new java.util.zip.ZipEntry(n)
+			if(times[n]) e2.time = times[n]
+			zout.putNextEntry(e2)
+			zout.write(data)
+			zout.closeEntry()
+		}
+		zout.close()
+		return bout.toByteArray()
+	}
+
+	entries.each { name, data ->
 		if(name.endsWith(".class"))
 		{
 			try
@@ -456,12 +532,11 @@ def rewriteNestedJar = { byte[] jarBytes ->
 		if(!outName.equals(name))
 			relocStats.renamed++
 		def ne = new java.util.zip.ZipEntry(outName)
-		ne.time = entry.time
+		if(times[name]) ne.time = times[name]
 		zout.putNextEntry(ne)
 		zout.write(data)
 		zout.closeEntry()
 	}
-	zin.close()
 	zout.close()
 	return bout.toByteArray()
 }
@@ -487,7 +562,8 @@ def relocateNestedJars = { File jarFile ->
 			if(name.startsWith("META-INF/jarjar/")
 				&& name.endsWith(".jar"))
 			{
-				data = rewriteNestedJar(data)
+				data = rewriteNestedJar(data,
+					name.substring("META-INF/jarjar/".length()))
 				count++
 			}
 			else if(name.endsWith(".class"))
