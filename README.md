@@ -5,10 +5,10 @@
 <img src="logo.png" alt="WurstB+ Plus" width="620"/>
 
 [![Release](https://img.shields.io/github/v/release/xiegeezr886/WurstB-Plus?style=flat-square&label=release&color=007CFF)](https://github.com/xiegeezr886/WurstB-Plus/releases)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1~26.2-3C8527?style=flat-square)](#版本支持矩阵)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1~26.3-3C8527?style=flat-square)](#版本支持矩阵)
 [![Loaders](https://img.shields.io/badge/Loaders-Forge%20%7C%20NeoForge%20%7C%20Fabric-6E6E6E?style=flat-square)](#版本支持矩阵)
 [![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#版本支持矩阵)
-[![Gradle projects](https://img.shields.io/badge/Gradle_projects-64-4C1D95?style=flat-square)](#仓库结构)
+[![Gradle projects](https://img.shields.io/badge/Gradle_projects-67-4C1D95?style=flat-square)](#仓库结构)
 [![preview](https://img.shields.io/badge/preview-v1.6.0-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)
 [![License](https://img.shields.io/badge/license-GPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
 
@@ -16,7 +16,7 @@
 
 **WurstB+ Plus** 是一个基于 [Wurst](https://github.com/Wurst-Imperium/Wurst7) 代码结构扩展的
 Minecraft 客户端（utility mod）。同一套功能被移植到 **Forge / NeoForge / Fabric** 三种加载器、
-**22 个 Minecraft 版本**上，并以 64 个彼此独立的 Gradle 工程维护。
+**23 个 Minecraft 版本**上，并以 67 个彼此独立的 Gradle 工程维护。
 
 ---
 
@@ -31,7 +31,7 @@ Minecraft 客户端（utility mod）。同一套功能被移植到 **Forge / Neo
 | 1.21 · 1.21.1 | ✓ | ✓ | ✓ | 21 |
 | 1.21.2 | — | ✓ | ✓ | 21 |
 | 1.21.3 → 1.21.11 | ✓ | ✓ | ✓ | 21 |
-| 26.1 · 26.1.1 · 26.1.2 · 26.2 | ✓ | ✓ | ✓ | 25 |
+| 26.1 · 26.1.1 · 26.1.2 · 26.2 · 26.3 | ✓ | ✓ | ✓ | 25 |
 
 <sub>Minecraft **1.20.5** 与 **1.21.2** 没有官方 Forge，故这两个版本只有 NeoForge 与 Fabric。</sub>
 
@@ -43,7 +43,7 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 
 | Release | 内容 | 说明 |
 | --- | --- | --- |
-| [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 64 个资产 | 全部版本的主力发布 |
+| [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 个资产 | 全部版本的主力发布 |
 | [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | 预发布（prerelease），含 v1.6 新子系统 |
 
 > **说明：** 1.20.1 的三个工程并不都是 v1.5。**根目录 Forge 1.20.1 是 v1.6.0**（唯一带 v1.6 新子系统的
