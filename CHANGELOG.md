@@ -54,6 +54,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 - 音乐播放链：`java-stream-player`、`mp3spi`、`jlayer`、`jflac-codec`、`vorbis-support`、`tritonus-all`、`jorbis`、`jaudiotagger`
 - Skiko 原生库（`skiko-windows-x64.dll` 16.5 MB、`icudtl.dat` 10.0 MB）**不 jarJar**——jarJar 会重定位资源路径导致 Skiko 无法在 jar 内定位原生库。改为随 mod 资源打包到 `assets/wurst/skiko/`，运行时由 `SkikoNatives` 解压到 gameDir，并通过 `skiko.library.path` / `skiko.data.path` 系统属性显式加载。
 - 根工程 jarJar 共内嵌 19 个依赖 jar；产物体积由 v1.5 的约 29 MB 增至 **68.1 MB**（主要来自 Skiko 原生库）。
+- **内嵌库重定位与 Skiko 的冲突（已修）**：为解决整合包里的 JPMS split package，构建会把部分内嵌库改名到 `net/wurstclient.shaded.*`。但 `kotlin/` **不能改**——Skiko 的原生初始化 `Library._nAfterLoad` 需要原包名的 `kotlin.*`，改名后一碰 Skia 就让 JVM 直接硬崩（`EXCEPTION_ACCESS_VIOLATION`，**不写 crash-report**，只在实例目录留 `hs_err_pid*.log`）。现改为给 `kotlin-stdlib` / `kotlinx-coroutines` / `skiko-awt` 打包时生成 `module-info`，用**限定导出**（`exports kotlin to wurstb.skiko`）做隔离：Skiko 看得到原包名，其它模块看不到 `kotlin`，与 KotlinForForge 那类整合包的冲突不再发生；其余内嵌库照旧重定位。
 
 ### 结构定位与结构 ESP（SeedStructureESP，新增 4 个文件）
 
