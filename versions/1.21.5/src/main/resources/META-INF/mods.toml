@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[56,)"
+loaderVersion="[55,)"
 license="GPL-3.0-or-later"
 clientSideOnly=true
 
@@ -17,7 +17,7 @@ WurstB+ Plus for Minecraft 1.21.5.
 [[dependencies.wurstpenguin]]
 modId="forge"
 mandatory=true
-versionRange="[56.0.9,57)"
+versionRange="[55.1.0,56)"
 ordering="NONE"
 side="CLIENT"
 

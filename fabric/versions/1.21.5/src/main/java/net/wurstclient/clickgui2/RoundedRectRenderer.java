@@ -46,7 +46,7 @@ final class RoundedRectRenderer
 
 		RenderState state = begin(graphics);
 		BufferBuilder buffer = Tesselator.getInstance().begin(
-			VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
+			VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 		Matrix4f pose = graphics.pose().last().pose();
 		addSolidFan(buffer, pose, 0, segments, color);
 		addColorStrip(buffer, pose, 0, 1, segments, color,
@@ -72,17 +72,22 @@ final class RoundedRectRenderer
 
 		RenderState state = begin(graphics);
 		BufferBuilder buffer = Tesselator.getInstance().begin(
-			VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
+			VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 		Matrix4f pose = graphics.pose().last().pose();
 		int transparent = color & 0xFFFFFF;
-		addColorStrip(buffer, pose, 0, 1, segments, transparent, color);
-		addColorStrip(buffer, pose, 1, 2, segments, color, transparent);
+		// addColorStrip 要求第一个轮廓在几何上位于第二个之内（见 draw() 的说明），
+		// 而描边这里 0 在最外、2 在最内，因此按由内向外的顺序传参。
+		addColorStrip(buffer, pose, 1, 0, segments, color, transparent);
+		addColorStrip(buffer, pose, 2, 1, segments, transparent, color);
 		draw(buffer.buildOrThrow());
 		state.restore();
 	}
 
 	private static void draw(MeshData mesh)
 	{
+		// RenderPipelines.GUI 开启背面剔除，绕序反了会整块被丢弃。POINT_X/Y 沿
+		// 圆角矩形是顺时针遍历，所以下面每个面片都要按反序提交顶点，并且网格
+		// 必须是 QUADS（与管线声明一致）。
 		net.wurstclient.util.RenderUtils.drawGuiMesh(mesh);
 	}
 	
@@ -113,10 +118,12 @@ final class RoundedRectRenderer
 		{
 			int next = (i + 1) % points;
 			addColorVertex(buffer, pose, centerX, centerY, color);
-			addColorVertex(buffer, pose, POINT_X[contour][i],
-				POINT_Y[contour][i], color);
 			addColorVertex(buffer, pose, POINT_X[contour][next],
 				POINT_Y[contour][next], color);
+			addColorVertex(buffer, pose, POINT_X[contour][i],
+				POINT_Y[contour][i], color);
+			addColorVertex(buffer, pose, POINT_X[contour][i],
+				POINT_Y[contour][i], color);
 		}
 	}
 
@@ -129,16 +136,12 @@ final class RoundedRectRenderer
 			int next = (i + 1) % points;
 			addColorVertex(buffer, pose, POINT_X[inner][i], POINT_Y[inner][i],
 				innerColor);
-			addColorVertex(buffer, pose, POINT_X[outer][i], POINT_Y[outer][i],
-				outerColor);
-			addColorVertex(buffer, pose, POINT_X[outer][next],
-				POINT_Y[outer][next], outerColor);
-			addColorVertex(buffer, pose, POINT_X[inner][i], POINT_Y[inner][i],
-				innerColor);
-			addColorVertex(buffer, pose, POINT_X[outer][next],
-				POINT_Y[outer][next], outerColor);
 			addColorVertex(buffer, pose, POINT_X[inner][next],
 				POINT_Y[inner][next], innerColor);
+			addColorVertex(buffer, pose, POINT_X[outer][next],
+				POINT_Y[outer][next], outerColor);
+			addColorVertex(buffer, pose, POINT_X[outer][i], POINT_Y[outer][i],
+				outerColor);
 		}
 	}
 

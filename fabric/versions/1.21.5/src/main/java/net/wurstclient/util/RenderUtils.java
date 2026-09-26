@@ -81,9 +81,6 @@ public enum RenderUtils
 					shapeIndexBuffer.type());
 				renderPass.drawIndexed(0, drawParams.indexCount());
 			}
-		}finally
-		{
-			vertexBuffer.close();
 		}
 	}
 	
