@@ -25,16 +25,19 @@
 | `versions/1.21.11/` | Forge 61.2.0 / 1.21.11 | JDK 21 · Gradle 9.4.1 · ForgeGradle 7.x | 748 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-1.21.11.jar` |
 | `versions/26.1.2/` | Forge 64.1.0 / 26.1.2 | JDK 25 · Gradle 9.4.1 · ForgeGradle 7.x | 790 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-26.1.2.jar` |
 | `versions/26.2/` | Forge 65.1.0 / 26.2 | JDK 25 · Gradle 9.4.1 · ForgeGradle 7.x | 791 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-26.2.jar` |
+| `versions/26.3/` | Forge 66.0.3 / 26.3 | JDK 25 · Gradle 9.4.1 · ForgeGradle 7.x | 794 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-26.3.jar` |
 | `neoforge/` | NeoForge 47.1.3 / 1.20.1 | JDK 17 · Gradle 8.14.4 | 738 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-NeoForge-1.20.1.jar` |
 | `neoforge/versions/1.21.1/` | NeoForge 21.1.244 / 1.21.1 | JDK 21 · Gradle 9.4.1 · ModDevGradle | 741 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar` |
 | `neoforge/versions/1.21.11/` | NeoForge 21.11.45 / 1.21.11 | JDK 21 · Gradle 9.4.1 · ModDevGradle | 749 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-NeoForge-1.21.11.jar` |
 | `neoforge/versions/26.1.2/` | NeoForge 26.1.2.87 / 26.1.2 | JDK 25 · Gradle 9.4.1 · ModDevGradle | 790 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar` |
 | `neoforge/versions/26.2/` | NeoForge 26.2.0.53-beta / 26.2 | JDK 25 · Gradle 9.4.1 · ModDevGradle | 792 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-NeoForge-26.2.jar` |
+| `neoforge/versions/26.3/` | NeoForge 26.3.0.16-beta / 26.3 | JDK 25 · Gradle 9.4.1 · ModDevGradle | 795 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-NeoForge-26.3.jar` |
 | `fabric/` | Fabric Loader 0.16.14 / 1.20.1 | JDK 17 · Gradle 8.11 · Loom | 766 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-1.20.1.jar` |
 | `fabric/versions/1.21.1/` | Fabric Loader 0.16.14 / 1.21.1 | JDK 21 · Gradle 8.11 · Loom | 777 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-1.21.1.jar` |
 | `fabric/versions/1.21.11/` | Fabric Loader 0.19.3 / 1.21.11 | JDK 21 · Gradle 9.6.0 · Loom | 748 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-1.21.11.jar` |
 | `fabric/versions/26.1.2/` | Fabric Loader 0.19.3 / 26.1.2 | JDK 25 · Gradle 9.6.0 · Loom | 791 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-26.1.2.jar` |
 | `fabric/versions/26.2/` | Fabric Loader 0.19.3 / 26.2 | JDK 25 · Gradle 9.6.0 · Loom | 792 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-26.2.jar` |
+| `fabric/versions/26.3/` | Fabric Loader 0.19.5 / 26.3 | JDK 25 · Gradle 9.6.0 · Loom | 795 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-26.3.jar` |
 
 合计 **11,685 个 Java 源文件**。全部 15 个工程的 `build/libs/` 均存在已构建产物（除根目录为本轮实际重建外，其余为工作区导入时的既有产物，未在本轮重新验证）。
 
