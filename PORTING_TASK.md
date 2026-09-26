@@ -878,3 +878,62 @@ FlatRenderer.fillRoundedRect(graphics, 120, 10, 160, 50, 7, 0xFF00FF00); // 我�
 
 **仍未做运行期视觉验证的**：`GuiIcon`（需打开 ClickGUI）与 `TargetHudElement`（需进世界对准实体）——
 这两处只有 `compileJava` + 启动通过，**没有截图像素证据**，与标题界面那几处不同等看待。
+
+# 2026-09-26 会话：v1.5 发布矩阵重建与发布
+
+## 一、构建工具已丢失，本次重建
+
+`docs/RELEASE.md` 记录的权威脚本 `D:\WurstB\tmp-recon\build-v1.5-release.py` 在仓库外
+（`tmp-recon/` 不随仓库分发），该机器已不存在，`build/release-v1.5/` 也是空的。
+本次按 RELEASE.md 的规则重写了一套**入库**的工具：
+
+| 脚本 | 作用 |
+| --- | --- |
+| `scripts/build-v1.5-release.py` | 重建矩阵：66 个工程 → `build/release-v1.5/`，支持 `--jobs N` 并发与 `--plan` |
+| `scripts/validate-release-jars.py` | 打包校验：zip 完好 / 加载器元数据 / Mixin 配置 / 含 `.class` |
+| `scripts/upload-release-assets.py` | 上传到 Release；`--dry-run`、`--body-only`、`--add-263-to-body` |
+
+**任务映射**（来自 RELEASE.md 的矩阵表）：Forge ≤1.21.1 → `jarJar`，≥1.21.3 → `allJar`；
+**Fabric → `remapJar`**；NeoForge → `build`。JDK 沿用仓库口径（1.20.1–1.20.4→17、1.20.5/1.21.x→21、26.x→25）。
+
+## 二、Fabric 为什么不能用 `build`
+
+`build` 会顺带跑 `validateAccessWidener` 与单元测试，这两件事在部分工程上本来就失败，与发布产物无关：
+
+- `fabric/versions/1.20.5`、`1.20.6`：`wurstpenguin.accesswidener` 里
+  `accessible field net/minecraft/world/entity/Entity maxUpStep F` 是**陈旧声明**——
+  该字段在这两个版本已不存在。`validateAccessWidener` 因此失败。
+- `fabric/versions/1.21.3`、`1.21.4`、`1.21.5`：`HudRenderHookTest.guiRenderEventUsesTheVanillaHudLayer()`
+  去读 `src/main/java/net/wurstclient/mixin/GuiMixin.java`，而该文件在这几棵树里已改名，
+  抛 `NoSuchFileException`。
+- `fabric/versions/1.21.2`：`remapJar` 下载 `com.mojang:jtracy:1.0.29` 原生库超时（网络），重试即过。
+
+**这三类都是既有问题，本次没有修**（改 AW 声明或测试源码属于源码改动，需要单独验证）。
+`remapJar` 不跑这些检查，且产物与 `build` 里的 `remapJar` 是同一个 jar，所以发布用它是正确的。
+
+## 三、⚠️ GitHub 资产名里的 `+`（踩过的坑，务必记住）
+
+**用 Release 资产上传 API 时，`?name=` 参数必须百分号编码。**
+`WurstB+.Plus-...` 里的 `+` 若是原样放进查询串，会被解析成**空格**，
+GitHub 落盘时把空格再变成 `.`，于是资产名变成 `WurstB.Plus-...`——
+看起来只差一个字符，但会把正确命名的资产**替换成错名的**。
+
+正确写法：`urllib.parse.quote(name, safe='')` → `WurstB%2B.Plus-...`。
+（`PATCH /releases/assets/{id}` 改名走 JSON，但若目标名与已存在资产冲突会报
+`already_exists`，不能用来兜底。）
+
+排查时的有效判据：**下载量/资产数突然只减不增**、以及**同一版本同时存在 `WurstB+.Plus-` 与
+`WurstB.Plus-` 两个命名**。恢复靠本地 `build/release-v1.5/` 重传，产物不会丢。
+
+## 四、本次发布结果（2026-09-26）
+
+- 重建 **66 个工程**（原 64 个矩阵 + 26.3 三棵树），`validate-release-jars.py` **66/66 合格**。
+  根目录 Forge 1.20.1 是 v1.6.0 形态，按文档保留旧产物不动。
+- Release `v1.5.0`（id 359748087，标题「WurstB+ Plus 1.5.0-Navy」）资产由 64 → **67**
+  （66 个替换/新增 + 1 个留存），命名全部为 `WurstB+.Plus-<版本>-<加载器>-<mc>.jar`，
+  逐个核对了与本地产物的体积。
+- Release 简介的「覆盖范围」三行版本表末尾各补 `26.3`，**标题与其余简介内容未动**。
+- 开发文档同步：`docs/RELEASE.md`（计数 64→67、三行版本表加 26.3、资产口径 66+1）、
+  `README.md`（徽章、23 个 MC 版本、67 个工程、v1.5.0 资产数）、`PROJECT_INDEX.md`（补 26.3 三行）。
+  **注意 `PROJECT_INDEX.md` 整体仍停留在 15 工程时代**（标题写「15 个独立构建工程」、
+  表里只列 15 个），本次只按 26.3 的要求补行，未做整体翻新。
