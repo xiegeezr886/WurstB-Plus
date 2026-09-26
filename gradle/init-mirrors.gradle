@@ -70,8 +70,11 @@ if(!mirrorsOff)
 		prependMirrors(project.repositories)
 		prependMirrors(project.buildscript.repositories)
 
-		project.ext.loom_libraries_base = BMCLAPI.libraries
-		project.ext.loom_resources_base = BMCLAPI.resources
-		project.ext.loom_version_manifests = BMCLAPI.manifests
+		if(!gradle.startParameter.projectProperties.containsKey('loom_libraries_base'))
+			project.ext.loom_libraries_base = BMCLAPI.libraries
+		if(!gradle.startParameter.projectProperties.containsKey('loom_resources_base'))
+			project.ext.loom_resources_base = BMCLAPI.resources
+		if(!gradle.startParameter.projectProperties.containsKey('loom_version_manifests'))
+			project.ext.loom_version_manifests = BMCLAPI.manifests
 	}
 }
