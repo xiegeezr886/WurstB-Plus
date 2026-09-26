@@ -73,8 +73,8 @@ public abstract class HeldItemRendererMixin
 	}
 	
 	@Inject(at = {@At(value = "INVOKE",
-		target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;applyItemArmAttackTransform(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/entity/HumanoidArm;F)V",
-		ordinal = 1)}, method = "renderArmWithItem")
+		target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;swingArm(FFLcom/mojang/blaze3d/vertex/PoseStack;ILnet/minecraft/world/entity/HumanoidArm;)V",
+		ordinal = 2)}, method = "renderArmWithItem")
 	private void onApplySwingOffsetNotBlocking(
 		AbstractClientPlayer player, float tickDelta, float pitch,
 		InteractionHand hand, float swingProgress, ItemStack item, float equipProgress,
