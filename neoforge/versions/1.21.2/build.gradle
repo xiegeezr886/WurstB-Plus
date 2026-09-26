@@ -20,6 +20,10 @@ sourceSets.main.resources {
 
 repositories {
     maven {
+        name = "BundledBaritone"
+        url = uri("../../../baritone-maven")
+    }
+    maven {
         name = 'Sponge'
         url = 'https://repo.spongepowered.org/repository/maven-public/'
     }
@@ -80,7 +84,9 @@ dependencies {
 		transitive = false
 	}
 
-	implementation files("baritone-api-forge-1.21.1.jar")
+	jarJar(implementation("baritone:baritone-neoforge:1.12.0-1.21.2")) {
+		transitive = false
+	}
 
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 
@@ -130,7 +136,7 @@ java {
 jar {
     manifest {
         attributes(
-            "MixinConfigs": "wurst.mixins.json,mixins.baritone.json",
+            "MixinConfigs": "wurst.mixins.json",
             "Specification-Title": project.mod_id,
             "Specification-Vendor": project.mod_authors,
             "Specification-Version": "1",
@@ -143,7 +149,6 @@ jar {
     }
 	zip64 = true
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-	from { zipTree(file("baritone-api-forge-1.21.1.jar")) }
 	exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/mods.toml', 'module-info.class'
     exclude "intentionally_untranslated.json"
 }
