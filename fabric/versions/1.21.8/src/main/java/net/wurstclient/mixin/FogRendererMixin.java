@@ -35,12 +35,12 @@ public class FogRendererMixin
 	 * it.
 	 */
 	@Inject(
-		method = "setupFog(Lnet/minecraft/client/Camera;ILnet/minecraft/client/DeltaTracker;FLnet/minecraft/client/multiplayer/ClientLevel;)Lorg/joml/Vector4f;",
+		method = "setupFog(Lnet/minecraft/client/Camera;IZLnet/minecraft/client/DeltaTracker;FLnet/minecraft/client/multiplayer/ClientLevel;)Lorg/joml/Vector4f;",
 		at = @At(value = "FIELD",
 			target = "Lnet/minecraft/client/renderer/fog/FogData;renderDistanceEnd:F",
 			opcode = Opcodes.PUTFIELD,
 			shift = At.Shift.AFTER))
-	private void modifyFogData(Camera camera, int renderDistanceInChunks,
+	private void modifyFogData(Camera camera, int renderDistanceInChunks, boolean atmospheric,
 		DeltaTracker deltaTracker, float darkenWorldAmount, ClientLevel level,
 		CallbackInfoReturnable<Vector4f> cir, @Local FogData fog)
 	{
