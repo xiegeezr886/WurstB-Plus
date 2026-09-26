@@ -937,3 +937,71 @@ GitHub 落盘时把空格再变成 `.`，于是资产名变成 `WurstB.Plus-...`
   `README.md`（徽章、23 个 MC 版本、67 个工程、v1.5.0 资产数）、`PROJECT_INDEX.md`（补 26.3 三行）。
   **注意 `PROJECT_INDEX.md` 整体仍停留在 15 工程时代**（标题写「15 个独立构建工程」、
   表里只列 15 个），本次只按 26.3 的要求补行，未做整体翻新。
+
+## 十三、2026-09-26：Skiko 原生库加载导致 JVM 硬崩（v1.6，已修复）
+
+**现象**：根 Forge 1.20.1（唯一带 v1.6 Skia 子系统的工程）一用到 Skia 就**整个进程消失**——
+没有 crash-report、`latest.log` 也干净，只有 `hs_err_pid*.log`。三份 hs_err（同日 12:56 / 17:13 / 17:23）
+**逐行相同**，是确定性崩溃：
+
+```text
+EXCEPTION_ACCESS_VIOLATION (0xc0000005), reading address 0x0000000000000000
+Java frames:
+j  org.jetbrains.skia.impl.Library._nAfterLoad()      skiko.awt@0.8.19
+j  org.jetbrains.skiko.Library.load()                 skiko.awt@0.8.19
+j  org.jetbrains.skia.Surface.<clinit>()
+```
+
+`Event: 120.791 Loaded shared library ...\skiko\skiko-windows-x64.dll` → 崩溃在 120.83s：
+**原生库加载成功之后、进 `_nAfterLoad` 立刻崩**。
+
+> **教训**：JVM 级硬崩**不写 crash-report**。以后遇到「游戏直接没了、日志却干净」，
+> 先看 `.test/versions/<实例>/hs_err_pid*.log`，不要只翻 `latest.log` / `debug.log`。
+
+**根因**：`c6f77e5`（2026-09-22）的构建侧重定位把 `kotlin/` 改名为 `net/wurstclient.shaded.kotlin/`
+（kotlin-stdlib 1030 个条目全部改名），并**改写了内嵌 skiko 的 734 个类**。Skiko 是 Kotlin 写的，
+它的原生初始化需要**原包名**的 `kotlin.*`；改名后原生按原名找类拿到 NULL → 读 0 → AV。
+
+**排除项**（都实测过，别再重复走）：
+
+| 怀疑 | 结论 |
+| --- | --- |
+| 原生库版本不对 | 我们那两份文件与官方 `skiko-awt-runtime-windows-x64:0.8.19` **字节一致** |
+| 解压残留旧 DLL | 实例 `skiko/` 里的文件与仓库一致 |
+| Java 版本（实例跑 25）| 脱离 MC 单独加载，JDK 17 与 25 **均正常** |
+| `-XX:+UseCompactObjectHeaders` | 加上也正常 |
+| jarJar 重定位了 skiko 类名 | 未重定位（752 条目全在 `org/jetbrains/` 下） |
+| 模块路径 | 把重定位后的 jar 放 `--module-path` 上跑，仍正常 |
+
+**解法（不是回退重定位）**：`kotlin-stdlib` / `kotlinx-coroutines` / `skiko-awt` 三条链
+**不再重定位**，改为打包时给它们各生成一个 `module-info`，用**限定导出**做隔离：
+
+```java
+// kotlin.stdlib / kotlinx.coroutines：只对 skiko 可见
+exports kotlin to wurstb.skiko;
+// wurstb.skiko（skiko 本体）
+requires kotlin.stdlib, kotlinx.coroutines, java.desktop;
+exports org.jetbrains.skia, org.jetbrains.skiko;
+```
+
+这样「Skiko 看到原包名」与「kotlin 在模块层不对外导出」同时成立：自动模块（本模组、其它 mod）
+**看不到**被限定导出的 `kotlin`，因此与 KotlinForForge 那类整合包的 split package 冲突不再发生；
+其余 14 个内嵌库（javazoom / zxing / netty-proxy / …）**照旧重定位**，`c6f77e5` 的成果一个没丢。
+`rewriteNestedJar` 相应改成两遍处理（要先读全部条目才能枚举包名）。
+
+**验证**（真启动，同一实例 + `scripts/run-version-tests.ps1`，四次对照）：
+
+| 构建 | 结果 |
+| --- | --- |
+| 原始（重定位 kotlin） | `SkikoNatives.ensure()=true` → **AV 硬崩**，复现上述 hs_err |
+| `-PnoRelocate` | PASS（排除环境因素） |
+| 只停 kotlin 三项重定位 | PASS（锁定到 kotlin） |
+| **模块隔离方案** | **PASS**，`Surface <clinit> ok`，无新增 hs_err |
+
+**范围**：重定位代码与 skiko **都只存在于根 `build.gradle`**（已核对），其余 66 棵树不受影响。
+
+**顺带留下的诊断手法**（以后遇到「静默硬崩」可复用）：
+`_smoke/mc-shot.ps1`（聚焦窗口 + 发按键 + 截图，`SetForegroundWindow` 会被系统拒绝，
+要先模拟一次 ALT 解除限制）；以及在 `WurstForgeInitializer.onClientSetup` 里临时插一行
+`Class.forName("org.jetbrains.skia.Surface")` 强制触发原生加载，这样**无需任何窗口交互**
+就能复现——本次就是靠它把四组对照跑完的。
