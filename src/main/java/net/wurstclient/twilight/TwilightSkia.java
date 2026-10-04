@@ -21,6 +21,7 @@ import org.jetbrains.skia.Shader;
 import org.jetbrains.skia.Typeface;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.render.skia.SkiaFontManager;
 import net.wurstclient.render.skia.SkiaRegionRenderer;
 
@@ -309,6 +310,38 @@ public final class TwilightSkia
 
 		Shader shader = Shader.Companion.makeRadialGradient(
 			new Point(centerX, centerY), glowRadius, new int[]{inner, outer});
+
+		Paint brush = paint();
+		brush.setMode(PaintMode.FILL);
+		brush.setShader(shader);
+		brush.setColor(0xFFFFFFFF);
+		canvas.drawRRect(rrect(x, y, width, height, radius), brush);
+		brush.setShader(null);
+	}
+
+	/**
+	 * The horizontal gradient the reference uses for the progress fill
+	 * ({@code linear-gradient(90deg, accent, #0d9488)}). The vanilla fallback
+	 * has no gradient primitive of its own beyond the vertical one, so it goes
+	 * through {@code FlatRenderer}, which does its own vertex colour
+	 * interpolation.
+	 */
+	public static void fillHorizontalGradient(float x, float y, float width,
+		float height, float radius, int left, int right)
+	{
+		if(vanilla)
+		{
+			FlatRenderer.fillRoundedRectHorizontalGradient(vanillaGraphics, x,
+				y, x + width, y + height, radius, left, right);
+			return;
+		}
+
+		if(canvas == null || width <= 0 || height <= 0)
+			return;
+
+		Shader shader = Shader.Companion.makeLinearGradient(
+			new Point(x, y), new Point(x + width, y),
+			new int[]{left, right});
 
 		Paint brush = paint();
 		brush.setMode(PaintMode.FILL);

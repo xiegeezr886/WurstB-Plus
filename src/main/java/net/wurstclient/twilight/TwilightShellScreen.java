@@ -830,9 +830,10 @@ public final class TwilightShellScreen extends Screen
 			? Math.max(0F, Math.min(1F, positionMs / (float)durationMs)) : 0F;
 		float width = Math.max(frame.px(2), progress.width() * ratio);
 
-		FlatRenderer.fillRoundedRect(graphics, Math.round(progress.x()),
-			Math.round(progress.y()), Math.round(progress.x() + width),
-			Math.round(progress.bottom()), 999, palette.accent);
+		FlatRenderer.fillRoundedRectHorizontalGradient(graphics,
+			Math.round(progress.x()), Math.round(progress.y()),
+			Math.round(progress.x() + width), Math.round(progress.bottom()),
+			999, palette.accent, TwilightTheme.PLAYER_PROGRESS_FILL_END);
 	}
 	
 	// ------------------------------------------------------------------
@@ -2003,9 +2004,10 @@ public final class TwilightShellScreen extends Screen
 			? Math.max(0F, Math.min(1F, positionMs / (float)durationMs)) : 0F;
 		
 		if(!paintingCache)
-			TwilightSkia.fillRoundRect(progress.x(), progress.y(),
+			TwilightSkia.fillHorizontalGradient(progress.x(), progress.y(),
 				Math.max(frame.px(2), progress.width() * ratio),
-				progress.height(), 999F, accent);
+				progress.height(), 999F, accent,
+				TwilightTheme.PLAYER_PROGRESS_FILL_END);
 		
 		String times = NeteaseMusicPlayer.formatTime(positionMs) + " / "
 			+ NeteaseMusicPlayer.formatTime(durationMs);
@@ -2629,9 +2631,10 @@ public final class TwilightShellScreen extends Screen
 			? Math.max(0F, Math.min(1F, positionMs / (float)durationMs)) : 0F;
 		
 		if(!paintingCache)
-			TwilightSkia.fillRoundRect(progress.x(), progress.y(),
+			TwilightSkia.fillHorizontalGradient(progress.x(), progress.y(),
 				Math.max(frame.px(2), progress.width() * ratio),
-				progress.height(), 999F, accent);
+				progress.height(), 999F, accent,
+				TwilightTheme.PLAYER_PROGRESS_FILL_END);
 		
 		String times = NeteaseMusicPlayer.formatTime(positionMs) + " / "
 			+ NeteaseMusicPlayer.formatTime(durationMs);

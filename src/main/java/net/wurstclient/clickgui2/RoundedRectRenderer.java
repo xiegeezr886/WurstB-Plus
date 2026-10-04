@@ -16,6 +16,8 @@ final class RoundedRectRenderer
 {
 	private static final int MAX_SEGMENTS = 16;
 	private static final int MAX_POINTS = MAX_SEGMENTS * 4;
+	/** 直角横向渐变的竖条上限（圆角那条路用不着分段）。 */
+	private static final int MAX_GRADIENT_BANDS = 48;
 	private static final float[][] POINT_X = new float[4][MAX_POINTS];
 	private static final float[][] POINT_Y = new float[4][MAX_POINTS];
 
@@ -192,21 +194,136 @@ final class RoundedRectRenderer
 		state.restore();
 	}
 
+	/**
+	 * 每角独立半径、且按 x 从左到右渐变的填充。几何与
+	 * {@link #fillCornersVerticalGradient} 完全一样，只是顶点色沿 x 插值——
+	 * 参考实现的播放进度条是 {@code linear-gradient(90deg, accent, #0d9488)}，
+	 * 也就是同一根圆角条左蓝右青。原版只有纵向的 {@code fillGradient}，所以
+	 * 这一块必须自己做顶点色。
+	 */
+	public static void fillCornersHorizontalGradient(GuiGraphics graphics,
+		float x1, float y1, float x2, float y2, float[] radii, int leftColor,
+		int rightColor)
+	{
+		if(x2 <= x1 || y2 <= y1)
+			return;
+		if((leftColor >>> 24 == 0) && (rightColor >>> 24 == 0))
+			return;
+
+		float maxRadius = maxRadius(x1, y1, x2, y2, radii);
+
+		if(maxRadius < 0.5F)
+		{
+			fillHorizontalBands(graphics, x1, y1, x2, y2, leftColor,
+				rightColor);
+			return;
+		}
+
+		int segments = segmentsFor(maxRadius);
+		prepareCornerContour(0, x1 + 0.5F, y1 + 0.5F, x2 - 0.5F, y2 - 0.5F,
+			shrink(radii, 0.5F), segments);
+		prepareCornerContour(1, x1 - 0.5F, y1 - 0.5F, x2 + 0.5F, y2 + 0.5F,
+			grow(radii, 0.5F), segments);
+
+		RenderState state = begin(graphics);
+		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+		buffer.begin(VertexFormat.Mode.TRIANGLES,
+			DefaultVertexFormat.POSITION_COLOR);
+		Matrix4f pose = graphics.pose().last().pose();
+		float left = Math.min(x1, x2);
+		float right = Math.max(x1, x2);
+		addHorizontalGradientStrip(buffer, pose, 1, segments, left, right,
+			leftColor, rightColor);
+		addHorizontalGradientFan(buffer, pose, 0, segments, left, right,
+			leftColor, rightColor);
+		Tesselator.getInstance().end();
+		state.restore();
+	}
+
+	/**
+	 * 没有圆角可裁时的横向渐变：切成若干竖条，每条取中点颜色铺一色。原版
+	 * {@code fillGradient} 只沿 y 插值，直角矩形这条退化路上用不了。
+	 */
+	private static void fillHorizontalBands(GuiGraphics graphics, float x1,
+		float y1, float x2, float y2, int leftColor, int rightColor)
+	{
+		int left = Math.round(Math.min(x1, x2));
+		int right = Math.round(Math.max(x1, x2));
+		int top = Math.round(Math.min(y1, y2));
+		int bottom = Math.round(Math.max(y1, y2));
+		int width = right - left;
+
+		if(width <= 0 || bottom <= top)
+			return;
+
+		int bands = Math.min(width, MAX_GRADIENT_BANDS);
+
+		for(int i = 0; i < bands; i++)
+		{
+			int bandLeft = left + width * i / bands;
+			int bandRight = left + width * (i + 1) / bands;
+
+			if(bandRight <= bandLeft)
+				continue;
+
+			graphics.fill(bandLeft, top, bandRight, bottom,
+				lerpByX((bandLeft + bandRight) / 2F, left, right, leftColor,
+					rightColor));
+		}
+	}
+
 	/** 按 y 线性插值两个颜色。 */
 	private static int lerpByY(float y, float top, float bottom, int topColor,
 		int bottomColor)
 	{
-		float span = bottom - top;
-		float t = span <= 0.0001F ? 0 : (y - top) / span;
-		t = Math.max(0, Math.min(1, t));
-		int a = Math.round(((topColor >>> 24) + ((bottomColor >>> 24)
-			- (topColor >>> 24)) * t));
-		int r = Math.round((((topColor >> 16) & 0xFF)
-			+ (((bottomColor >> 16) & 0xFF) - ((topColor >> 16) & 0xFF)) * t));
-		int g = Math.round((((topColor >> 8) & 0xFF)
-			+ (((bottomColor >> 8) & 0xFF) - ((topColor >> 8) & 0xFF)) * t));
-		int b = Math.round(((topColor & 0xFF)
-			+ ((bottomColor & 0xFF) - (topColor & 0xFF)) * t));
+		return lerpColor(topColor, bottomColor,
+			axisRatio(y, top, bottom));
+	}
+
+	/** 按 x 线性插值两个颜色。 */
+	private static int lerpByX(float x, float left, float right, int leftColor,
+		int rightColor)
+	{
+		return lerpColor(leftColor, rightColor, axisRatio(x, left, right));
+	}
+
+	/**
+	 * {@code value} 落在 {@code from..to} 里的比例，夹在 {@code 0..1}。区间退化
+	 * （或方向反了）时返回 0，与渐变填充原有行为一致。
+	 *
+	 * <p>
+	 * 无 GL、无 Skia 类型，单独放出来是为了能单测：顶点色插值的比例算错，颜色
+	 * 就会在条子中间跳变。</p>
+	 */
+	static float axisRatio(float value, float from, float to)
+	{
+		float span = to - from;
+
+		if(span <= 0.0001F)
+			return 0;
+
+		return Math.max(0F, Math.min(1F, (value - from) / span));
+	}
+
+	/**
+	 * 两个 ARGB 颜色按 {@code t}（已夹在 0..1）逐通道插值，四个通道各自取整。
+	 *
+	 * <p>
+	 * 纯函数，可单测：像素里 0xFF2563EB 与 0xFF0D9488 的中点是
+	 * 0xFF197CBA，四个通道各自取整。</p>
+	 */
+	static int lerpColor(int from, int to, float t)
+	{
+		float clamped = Math.max(0F, Math.min(1F, t));
+		int a = Math.round(((from >>> 24)
+			+ ((to >>> 24) - (from >>> 24)) * clamped));
+		int r = Math.round((((from >> 16) & 0xFF)
+			+ (((to >> 16) & 0xFF) - ((from >> 16) & 0xFF)) * clamped));
+		int g = Math.round((((from >> 8) & 0xFF)
+			+ (((to >> 8) & 0xFF) - ((from >> 8) & 0xFF)) * clamped));
+		int b = Math.round(((from & 0xFF)
+			+ ((to & 0xFF) - (from & 0xFF)) * clamped));
 		return a << 24 | r << 16 | g << 8 | b;
 	}
 
@@ -256,6 +373,59 @@ final class RoundedRectRenderer
 				POINT_Y[contour][next],
 				lerpByY(POINT_Y[contour][next], top, bottom, topColor,
 					bottomColor));
+		}
+	}
+
+	private static void addHorizontalGradientStrip(BufferBuilder buffer,
+		Matrix4f pose, int contour, int segments, float left, float right,
+		int leftColor, int rightColor)
+	{
+		int points = segments * 4;
+		for(int i = 0; i < points; i++)
+		{
+			int next = (i + 1) % points;
+			addColorVertex(buffer, pose, POINT_X[contour][i],
+				POINT_Y[contour][i],
+				lerpByX(POINT_X[contour][i], left, right, leftColor,
+					rightColor));
+			addColorVertex(buffer, pose, POINT_X[contour][next],
+				POINT_Y[contour][next],
+				lerpByX(POINT_X[contour][next], left, right, leftColor,
+					rightColor));
+		}
+	}
+
+	private static void addHorizontalGradientFan(BufferBuilder buffer,
+		Matrix4f pose, int contour, int segments, float left, float right,
+		int leftColor, int rightColor)
+	{
+		int points = segments * 4;
+		float centerX = 0;
+		float centerY = 0;
+
+		for(int i = 0; i < points; i++)
+		{
+			centerX += POINT_X[contour][i];
+			centerY += POINT_Y[contour][i];
+		}
+
+		centerX /= points;
+		centerY /= points;
+		int centerColor =
+			lerpByX(centerX, left, right, leftColor, rightColor);
+
+		for(int i = 0; i < points; i++)
+		{
+			int next = (i + 1) % points;
+			addColorVertex(buffer, pose, centerX, centerY, centerColor);
+			addColorVertex(buffer, pose, POINT_X[contour][i],
+				POINT_Y[contour][i],
+				lerpByX(POINT_X[contour][i], left, right, leftColor,
+					rightColor));
+			addColorVertex(buffer, pose, POINT_X[contour][next],
+				POINT_Y[contour][next],
+				lerpByX(POINT_X[contour][next], left, right, leftColor,
+					rightColor));
 		}
 	}
 

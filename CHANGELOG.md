@@ -164,6 +164,16 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 - **扫码登录**：`/login/qr/key` → `/login/qr/create?qrimg=true` → 每 40 帧 `/login/qr/check`；二维码直接画服务返回的 base64 PNG，成功后把 cookie 交给 `NeteaseMusicPlayer.loginWithCookie(cookie)`，让直连与本地服务登录到同一账号。
 - **未做 / 已知局限（如实说明）**：① 搜索框没有中文输入法**预编辑**显示（1.20.1 没有 IME 预编辑 API；已提交的中文经 `charTyped` 进入搜索串，并由 PingFang 矢量字体渲染）；② 只做扫码登录，没有手机验证码 / 邮箱登录；③ 歌单详情缺简介与创建者——`NeteasePlaylist` 只有 `id / name / coverUrl / playCount`，要补须先扩数据层。
 
+### 播放进度条改横向渐变（补上 fidelity-map 里唯一「能做但没做」的缺口）
+
+参考实现的进度条填充是 `linear-gradient(90deg, var(--accent-color, #2563eb), #0d9488)`（`PlayerBar.css:1382`，见 [docs/twilight-echo-port/spec-player-and-lyrics.md](docs/twilight-echo-port/spec-player-and-lyrics.md) §1.6）。原版 `GuiGraphics.fillGradient` **只沿 y 插值**，所以这条横向渐变一直没做。本轮补上：
+
+- `RoundedRectRenderer.fillCornersHorizontalGradient`：与既有的 `fillCornersVerticalGradient` 同一套几何（圆角由轮廓裁出，渐变由顶点色插值），只是每个顶点的颜色按 **x** 插值——圆角条上的横向渐变因此也是对的，不需要 Skia。
+- `FlatRenderer.fillRoundedRectHorizontalGradient` / `fillRoundedRectCornersHorizontalGradient` 是它的调用入口；直角退化时切成 ≤48 条竖带自行插值（原版没有横向 `fillGradient` 可用）。
+- `TwilightSkia.fillHorizontalGradient`：Skia 侧走真的 `Shader.makeLinearGradient`，原版回退分支转调上面的 `FlatRenderer`。
+- 三个进度条填充点全部改用它：播放条常驻层（`drawLiveProgress`）、播放条 Skia 实时层、沉浸播放页。终点色是 `TwilightTheme.PLAYER_PROGRESS_FILL_END = 0xFF0D9488`——参考实现把它写死在 CSS 里，**不跟主题**，第一个色标才跟。
+- 新增 `RoundedRectRendererTest`：插值比例 `axisRatio`（边界、越界、退化与反区间）与逐通道颜色插值 `lerpColor`（两端、越界、中点 `#197cba`、alpha 通道）。
+
 ### 标题界面自定义背景与 Wallpaper Engine 导入
 
 新增 `net.wurstclient.background`（13 个类）+ `gui/title/BackgroundSelectScreen`，主菜单齿轮菜单里的「背景」进入：

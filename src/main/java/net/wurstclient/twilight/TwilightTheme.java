@@ -405,6 +405,13 @@ public final class TwilightTheme
 	public static final float PLAYER_CONTROL_BORDER_WIDTH = 0F;
 	/** {@code --te-player-progress-height: 6px}，行 142。 */
 	public static final float PLAYER_PROGRESS_HEIGHT = 6F;
+	/**
+	 * 进度条填充的第二个色标，写死在
+	 * {@code PlayerBar.css:1382} 的
+	 * {@code linear-gradient(90deg, var(--accent-color, #2563eb), #0d9488)} 里：
+	 * 第一个色标跟主题走，这一个不跟。
+	 */
+	public static final int PLAYER_PROGRESS_FILL_END = 0xFF0D9488;
 	/** {@code --te-player-progress-thumb-size: 12px}，行 144。 */
 	public static final float PLAYER_PROGRESS_THUMB_SIZE = 12F;
 	/** {@code --te-player-time-radius: 8px}，行 146。 */
