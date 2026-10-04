@@ -1,0 +1,168 @@
+# 标题主界面（v1.6 根工程 Forge 1.20.1）
+
+> 范围：Minecraft 标题界面（主菜单）的整体版式。代码在
+> `net.wurstclient.gui.title`：`WurstTitleMenu`（画）+ `WurstTitleButton`（控件）
+> + `TitleMenuLayout`（几何）+ `BackgroundSelectScreen`（背景选择）。
+> 背景子系统本身见 [title-background.md](title-background.md)。
+
+## 1. 版式来源
+
+![实机截图](title-menu-ingame.png)
+
+> 上图是**实机截图**（dev 客户端 + 游戏自己的 F2），版式与参考帧同尺寸
+> （1297×672）。齿轮菜单展开的样子见第 6 节。
+
+![版式 mock](title-menu-mock.png)
+
+> 上图是**用 PIL 按 `TitleMenuLayout` 同一套算式画的 mock**（上：齿轮菜单收起；
+> 下：点开），版式与配色示意用。实机截图见第 6 节。
+
+用户给了一张参考主界面截图（1296×672 物理像素）。版式不是照着感觉调的，而是
+**先在截图上量像素，再折成比例**，见 `TitleMenuLayout` 里的 `*_RATIO` 常量。
+量到的数字：
+
+| 元素 | 参考图上的物理像素 |
+| --- | --- |
+| 账号胶囊 | 左上角 `(16, 15)` 起，`218×70`，圆角约 10；头像 42×42 |
+| 账号名 / 副标题 | 名 `Eatgrapes` 约 24px 高、白色；`Welcome back` 约 13px、灰 |
+| 齿轮 | 右上角 `(1244, 16)` 起，`36×36`，右边距 16 |
+| 动作条底板 | `x 20..920`（宽 904）、`y 579..646`（高 67），约 50% 黑 |
+| 动作条按钮 | 4 个 `208×48`、间隔 16，约 82% 黑，圆角约 12；图标约 20px |
+| 左下角标题 | `x 28..213`、`y 506..547`（字高 41） |
+
+**为什么用比例而不是像素**：屏幕上的物理尺寸 = 比例 × 逻辑尺寸 × guiScale，
+而 guiScale = 物理高度 / 逻辑高度，两者相乘把 guiScale 约掉。所以同一套比例在
+任何分辨率、任何 GUI scale 下都落在同一个物理位置。`TitleMenuLayoutTest`
+的第一条用例就是把「逻辑值 ×2」拿回 1296×672 的参考帧上对数（GUI scale 2 下
+逻辑画布是 648×336），容差 4 物理像素。
+
+文字是唯一的例外：Minecraft 的字体固定 9 逻辑像素高，不随屏幕缩放。所以各处
+的 `*_MIN` / `*_MAX` 钳制是按「9 像素的字还放得下」定的，而不是按参考图定的
+（`CHIP_HEIGHT_MAX` / `RAIL_HEIGHT_MAX` 的注释写了理由）。
+
+## 2. 画面结构
+
+从下往上：
+
+1. **壁纸**：`BackgroundManager.render()`，没选或还没解码好时退回内置网格
+   （`VisualRenderer.gridBackground`）。
+2. **整体压暗** `0x33000000`，壁纸再亮白字也读得出来。
+3. **底部渐变压暗**：从 45% 高度处 `0x00000000` → 屏幕底部 `0x66000000`
+   （`GuiGraphics.fillGradient`，一个 quad）。
+4. **账号胶囊**：50% 黑圆角块 + 皮肤头像（`PlayerFaceRenderer`）+ 账号名 +
+   「欢迎回来」（`0xB3FFFFFF`）。
+5. **左下角白色字标**：`assets/wurst/textures/gui/wurstb_logo_white.png`
+   （700×195，v1.6 那张彩色手写体转成全白，做法见下）。
+6. **动作条底板**：50% 黑圆角块，4 个按钮是控件，画在它上面。
+7. **控件层**（原版 `Screen.render` 画）：4 个动作按钮、右上角齿轮、齿轮菜单的
+   3 行（`visible` 开关）。
+
+### 字标是怎么从彩色手写体变成白色干净的
+
+`logo.png`（仓库根目录，1463×430）直接转白会踩两个坑，两个都是实测踩出来的：
+
+1. **字母内部有填充**：原图字母的"孔"不是透明区域，而是**不透明的白色填充**（t 的
+   内三角、b 的圈里都是白块）。只拿 alpha 当遮罩，那些白块会被一起刷成白色，
+   于是字标变成一坨。正确做法是遮罩 = `alpha × 非纯白`，纯白判定用三通道同时
+   > 232（彩色笔画即使很浅也至少有一个通道明显低于它）。
+2. **边缘锯齿 / 笔画断**：不要做任何"加粗"（3×3 最大值滤波会把 s、b 的圈糊死，
+   边缘也会变硬）。也不要把素材出得比实际绘制尺寸大很多——GL_LINEAR 缩小只做
+   2×2 采样，缩 4 倍以上会漏掉笔画像素。出图 700×195，而实际绘制宽度是
+   337（1296 帧）~666（2560 帧）物理像素，正好落在 1:1 ~ 2 倍缩小之间
+   （2 倍缩小时 2×2 采样恰好等价于盒滤波）。
+
+## 3. 交互
+
+- **动作条**：`单人游戏` / `多人游戏` / `游戏设置` / `退出游戏`，分别走
+  `ScreenRegistry.WORLD_SELECTION` / `MULTIPLAYER` / `OPTIONS`、`Minecraft::stop`。
+  **Minecraft Realms 的入口去掉了**（用户选择）。
+- **右上角齿轮**：点开一个下拉卡片，里面 3 行：`背景`（`BackgroundSelectScreen`）、
+  `账号`（`AltManagerScreen`）、`模组`（Forge `ModListScreen`）。菜单用
+  `AbstractWidget.visible` 开关，不动态增删控件——渲染途中改控件表会
+  `ConcurrentModificationException`。
+- 点击空白处**不会**关掉齿轮菜单（要再点一次齿轮）。原因是「点外面关掉」需要在
+  `Screen.mouseClicked` 上注入，而那是所有界面共用的方法，代价比收益大。
+- 悬停动画沿用 `clickgui2.animation.HoverAnimation`（20 帧）。
+
+## 4. 文案与 i18n
+
+界面文案全部走 `Component.translatable`，键在
+`assets/wurst/lang/en_us.json` 与 `zh_cn.json`（**新建**，这个仓库此前没有任何
+语言文件）：
+
+| 键 | en_us | zh_cn |
+| --- | --- | --- |
+| `wurst.title.singleplayer` | Singleplayer | 单人游戏 |
+| `wurst.title.multiplayer` | Multiplayer | 多人游戏 |
+| `wurst.title.settings` | Settings | 游戏设置 |
+| `wurst.title.quit` | Quit | 退出游戏 |
+| `wurst.title.accounts` | Accounts | 账号 |
+| `wurst.title.mods` | Mods | 模组 |
+| `wurst.title.background` | Background | 背景 |
+| `wurst.title.menu` | Menu | 菜单 |
+| `wurst.title.welcome` | Welcome back | 欢迎回来 |
+
+语言跟随 Minecraft 的语言设置（`Component` 在渲染时按当前 `LanguageManager`
+解析）。**字体用原版那套**（即 `GuiPreferences` 里的内置项 `CozyUI`：选中它时
+`applyFont` 直接返回原组件、不做任何字体覆盖），理由是清晰度——苹方 provider 的
+图集只有 9px×2 oversample = 18px，GUI scale 4 时字被放大到 36 物理像素，必然发
+虚；原版位图字体在任何 GUI scale 下都是整数倍像素放大。中文交给原版的 unicode
+位图字体，同样清晰。
+
+`BackgroundSelectScreen` 用的是同一套机制，键在 `wurst.background.*`（标题、
+扫描按钮与状态、默认卡片、导入卡、视频徽章与说明、导入/删除的结果提示，带
+`%s` 的用 `Component.translatable(key, args).getString()` 解析）。两边的键与
+`%s` 数量由 `TitleLangFilesTest` 看着：少一个键在另一种语言里就会把键名本身画
+到屏幕上。
+
+## 5. 与参考图的差异（如实说明）
+
+1. **头像是圆角方块，不是正圆。** Minecraft 的 GUI 只有矩形裁剪
+   （`enableScissor`），没有纹理圆形遮罩；皮肤脸部贴图只有 8×8 像素，按列切片
+   拼圆的粒度太粗（每片 1 个源像素）。参考图那种正圆需要 Skia 路径或预生成
+   遮罩贴图，本版没做。
+2. **图标用的是仓库原有的 Wurst 实心图标**（`textures/gui/fdp/`），参考图那套是
+   细描边线性图标。额外只生成了一个 `fdp/power.png`（电源符号，参考图的「退出」
+   用它，仓库里没有）。
+3. **图标素材是 88×88，实际画到约 20–40 物理像素**，双线性缩小时会略软
+   （Minecraft 的纹理没有 mipmap）。
+4. **左下角没有版本号/Forge 版本那一行**（参考图上没有）。旧版主界面右下角有
+   `WurstB+ Plus`、左下角有 `Minecraft x / Forge y`，这次都去掉了。
+5. **只有 4 个主按钮**：参考图是 4 个，Realms 与旧的「账号 / 模组」两个小按钮
+   合并进了齿轮菜单。
+6. **文字尺寸不随屏幕缩放**：GUI scale 越低，文字相对版式越小（这是原版字体的
+   限制，见第 1 节）。
+7. **字标是位图素材**，不是矢量：按屏宽的 26% 画（337~666 物理像素），素材
+   700×195。再放大就会开始发虚。
+7. **`BackgroundSelectScreen` 的版式还是旧的**（标题 + 右上 ✕ + 卡片网格 +「扫描
+   Steam 库」「运动」两个按钮），只有文案跟上了 i18n（`wurst.background.*`）；参考图
+   那个对话框的样式（卡片底部标签条、虚线加号卡）还没做。
+8. **其他 14 个平台工程还是旧主界面**：`fabric/`、`neoforge/` 与
+   `versions/*/gui/title/` 下各有一份 `WurstTitleMenu` / `WurstTitleButton` 的
+   拷贝，这次只改了根工程（1.20.1 Forge）。移植时要一起带过去，否则主界面会
+   按平台分成两套。
+
+## 6. 验证状态
+
+![实机：主菜单](title-menu-ingame.png)
+
+![实机：齿轮菜单](title-menu-ingame-gear.png)
+
+上面两张是**实机截图**，不是 mock：dev 客户端（`gradlew runClient`）跑起来、窗口
+调到 864×448（帧缓冲 1297×672，正好和参考帧同尺寸），再用**游戏自己的 F2 截图**
+（`Screenshot.grab` 读帧缓冲）拿到的。第二张里的齿轮菜单是临时把 `menuOpen` 强制
+置真后拍的。
+
+- 通过：`gradlew test`（`TitleMenuLayoutTest`：参考帧对数、4 个按钮等宽、动作条
+  底边距、胶囊与齿轮共用上边距、胶囊宽度随账号名增长并有上限、菜单挂在齿轮下方
+  且不压动作条、9 种画布尺寸下各区域互不重叠且不出屏、比例缩放、退化画布不产生
+  零/负尺寸、文字垂直居中；`TitleLangFilesTest`：两种语言键集合、空值、`%s` 数量、
+  源码用到的键都存在）。
+- 实机确认过的：网格背景、账号胶囊（皮肤头像 + 账号名 + 欢迎回来）、齿轮与它的
+  下拉菜单（背景/账号/模组三行，含悬停高亮）、左下角白色字标、动作条与 4 个按钮
+  （图标 + 文字）、原版字体在任何 GUI scale 下的清晰度。
+- **一个踩过的坑记在这里**：`PrintWindow`（抓窗口自身内容）对 OpenGL 窗口会返回
+  **残缺/陈旧的帧**——它曾经让我以为"只有背景和胶囊画出来了、动作条和字标没渲染"，
+  为此白跑了两轮诊断。要判定 Minecraft 界面的真实内容，只能用游戏自己的 F2 截图。
+  另外 `SetForegroundWindow` 会被 Windows 前台锁拒绝，需要
+  `AttachThreadInput` + `BringWindowToTop` 才拿得到焦点（F2 才送得进游戏）。
