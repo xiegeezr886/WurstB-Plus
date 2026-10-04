@@ -1046,9 +1046,20 @@ public final class TwilightShellScreen extends Screen
 		TwilightSkia.softShadow(hero.x(), hero.y() + frame.px(6), hero.width(),
 			hero.height(), radius, 22F, TwilightTheme.withAlpha(0xFF0F172A,
 				0.08F));
-		TwilightSkia.fillVerticalGradient(hero.x(), hero.y(), hero.width(),
-			hero.height(), radius, TwilightAccent.mix(0xFFFFFFFF, accent, 0.10F),
-			TwilightAccent.mix(0xFFFFFFFF, accent, 0.03F));
+
+		/*
+		 * 参考的 .music-hero 是「底色 + radial-gradient(ellipse at 84% 30%,
+		 * color-mix(accent 42%, surface-deep), transparent 75%)」：底色近乎白，
+		 * 强调色的光晕落在右侧偏上。早先这里是一条竖向线性渐变，观感完全不同。
+		 */
+		int heroSurface = TwilightAccent.mix(0xFFFFFFFF, accent, 0.03F);
+		TwilightSkia.fillRoundRect(hero.x(), hero.y(), hero.width(),
+			hero.height(), radius, heroSurface);
+		TwilightSkia.fillRadialGradient(hero.x(), hero.y(), hero.width(),
+			hero.height(), radius, hero.x() + hero.width() * 0.84F,
+			hero.y() + hero.height() * 0.30F, hero.width() * 0.75F,
+			TwilightAccent.mix(accent, heroSurface, 0.42F), 0x00FFFFFF);
+
 		TwilightSkia.strokeRoundRect(hero.x(), hero.y(), hero.width(),
 			hero.height(), radius, 1F, line);
 		

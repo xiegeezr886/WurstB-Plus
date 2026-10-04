@@ -284,6 +284,41 @@ public final class TwilightSkia
 	// ------------------------------------------------------------------
 	
 	/**
+	 * A radial glow inside a rounded rectangle, e.g. the accent bloom the
+	 * reference puts at 84% / 30% of its hero card
+	 * ({@code radial-gradient(ellipse at 84% 30%, …)}).
+	 *
+	 * <p>
+	 * The vanilla fallback has no radial primitive, so it degrades to the
+	 * linear gradient: the card keeps its tint, only the position of the glow is
+	 * lost.
+	 */
+	public static void fillRadialGradient(float x, float y, float width,
+		float height, float radius, float centerX, float centerY,
+		float glowRadius, int inner, int outer)
+	{
+		if(vanilla)
+		{
+			TwilightVanilla.fillVerticalGradient(vanillaGraphics, x, y, width,
+				height, radius, inner, outer);
+			return;
+		}
+
+		if(canvas == null || width <= 0 || height <= 0 || glowRadius <= 0)
+			return;
+
+		Shader shader = Shader.Companion.makeRadialGradient(
+			new Point(centerX, centerY), glowRadius, new int[]{inner, outer});
+
+		Paint brush = paint();
+		brush.setMode(PaintMode.FILL);
+		brush.setShader(shader);
+		brush.setColor(0xFFFFFFFF);
+		canvas.drawRRect(rrect(x, y, width, height, radius), brush);
+		brush.setShader(null);
+	}
+
+	/**
 	 * The vertical gradient the reference uses for page backgrounds and hero
 	 * cards. Skia also has radial and sweep gradients, the vanilla fallback does
 	 * not, so only the linear one is exposed for now.
