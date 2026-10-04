@@ -194,8 +194,8 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 - **版式**：全屏壁纸 + 底部渐变压暗；左上角账号胶囊（皮肤头像 + 账号名 + 「欢迎回来」）；右上角齿轮；左下角 v1.6 白色字标 `wurstb_plus_logo.png`（先按 50% 黑偏移 `+1,+2` 画一遍当投影）；底部一整条动作条，里面 4 个等宽按钮：单人游戏 / 多人游戏 / 游戏设置 / 退出游戏。
 - **几何**：新增 `TitleMenuLayout`，每个尺寸都是「屏幕尺寸 × 参考图比例」。用比例而不是固定像素，是因为物理尺寸 = 比例 × 逻辑尺寸 × guiScale，而 guiScale = 物理高 / 逻辑高，相乘正好约掉——同一套比例在任何分辨率、任何 GUI scale 下都落在同一个物理位置。`TitleMenuLayoutTest` 第一条用例就是把逻辑值 ×2 拿回参考帧（1296×672）对数，容差 4 物理像素。
 - **齿轮菜单**：背景 / 账号 / 模组三行挂在齿轮下方，用 `AbstractWidget.visible` 开关，不动态增删控件（渲染途中改控件表会 `ConcurrentModificationException`）；**Minecraft Realms 入口去掉**。
-- **i18n**：新增 `assets/wurst/lang/en_us.json` 与 `zh_cn.json`（本仓库此前没有任何语言文件），主界面文案全部走 `Component.translatable`，跟随 Minecraft 语言设置；文字用仓库自带苹方 TTF 的三个字重，中英文都是矢量字形。
-- **如实说明**：① 头像是圆角方块而不是正圆——原版 GUI 只有矩形裁剪，皮肤脸部贴图只有 8×8 像素，按列切片拼圆的粒度太粗；② 图标沿用仓库原有的实心图标，只新生成一个 `fdp/power.png`（参考图的「退出」用电源符号）；③ 旧的版本号 / Forge 版本角标去掉（参考图上没有）；④ `BackgroundSelectScreen` 仍是纯中文；⑤ 其他 14 个平台工程的 `gui/title/` 拷贝未同步。
+- **i18n**：新增 `assets/wurst/lang/en_us.json` 与 `zh_cn.json`（本仓库此前没有任何语言文件），主界面与背景选择屏的文案全部走 `Component.translatable`，跟随 Minecraft 语言设置；文字用仓库自带苹方 TTF 的三个字重，中英文都是矢量字形。新增 `TitleLangFilesTest`：两种语言的键集合、空值、`%s` 占位符数量对齐，以及「标题界面源码里用到的键两种语言都得有」（键写错时原版会把键名本身画到屏幕上）。
+- **如实说明**：① 头像是圆角方块而不是正圆——原版 GUI 只有矩形裁剪，皮肤脸部贴图只有 8×8 像素，按列切片拼圆的粒度太粗；② 图标沿用仓库原有的实心图标，只新生成一个 `fdp/power.png`（参考图的「退出」用电源符号）；③ 旧的版本号 / Forge 版本角标去掉（参考图上没有）；④ `BackgroundSelectScreen` 的版式仍是旧的（文案已跟上 i18n）；⑤ 其他 14 个平台工程的 `gui/title/` 拷贝未同步。
 
 ### Skia 区域上传加固（防 GL 驱动崩溃）
 

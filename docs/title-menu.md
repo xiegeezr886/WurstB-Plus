@@ -89,6 +89,12 @@
 解析）。字体用仓库自带的苹方 TTF（`PingFangFont` 的三个字重），所以中英文都是
 矢量字形，不是位图字体放大。
 
+`BackgroundSelectScreen` 用的是同一套机制，键在 `wurst.background.*`（标题、
+扫描按钮与状态、默认卡片、导入卡、视频徽章与说明、导入/删除的结果提示，带
+`%s` 的用 `Component.translatable(key, args).getString()` 解析）。两边的键与
+`%s` 数量由 `TitleLangFilesTest` 看着：少一个键在另一种语言里就会把键名本身画
+到屏幕上。
+
 ## 5. 与参考图的差异（如实说明）
 
 1. **头像是圆角方块，不是正圆。** Minecraft 的 GUI 只有矩形裁剪
@@ -106,8 +112,9 @@
    合并进了齿轮菜单。
 6. **文字尺寸不随屏幕缩放**：GUI scale 越低，文字相对版式越小（这是原版字体的
    限制，见第 1 节）。
-7. **`BackgroundSelectScreen` 仍然只有中文**，没有跟着 i18n 一起改（它的字符串
-   多且带格式化参数，属于另一件事）。
+7. **`BackgroundSelectScreen` 的版式还是旧的**（标题 + 右上 ✕ + 卡片网格 +「扫描
+   Steam 库」「运动」两个按钮），只有文案跟上了 i18n（`wurst.background.*`）；参考图
+   那个对话框的样式（卡片底部标签条、虚线加号卡）还没做。
 8. **其他 14 个平台工程还是旧主界面**：`fabric/`、`neoforge/` 与
    `versions/*/gui/title/` 下各有一份 `WurstTitleMenu` / `WurstTitleButton` 的
    拷贝，这次只改了根工程（1.20.1 Forge）。移植时要一起带过去，否则主界面会

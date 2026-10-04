@@ -69,8 +69,17 @@ public final class BackgroundSelectScreen extends Screen
 
 	public BackgroundSelectScreen(Screen parent)
 	{
-		super(Component.literal("选择背景"));
+		super(Component.translatable("wurst.background.title"));
 		this.parent = parent;
+	}
+
+	/**
+	 * 文案按当前语言解析。这个界面是模态的、每帧画的字符串也就十来个，所以不
+	 * 缓存——语言在设置里一改就该立刻生效。
+	 */
+	private static String tr(String key, Object... args)
+	{
+		return Component.translatable(key, args).getString();
 	}
 
 	@Override
@@ -113,8 +122,8 @@ public final class BackgroundSelectScreen extends Screen
 	private void drawHeader(GuiGraphics graphics, Rect panel, int mouseX,
 		int mouseY)
 	{
-		graphics.drawString(font, "选择背景", panel.x + PADDING,
-			panel.y + 16, TEXT, false);
+		graphics.drawString(font, tr("wurst.background.title"),
+			panel.x + PADDING, panel.y + 16, TEXT, false);
 
 		// close
 		Rect close = closeButton(panel);
@@ -127,7 +136,9 @@ public final class BackgroundSelectScreen extends Screen
 		boolean scanHovered = scan.contains(mouseX, mouseY);
 		graphics.fill(scan.x, scan.y, scan.right(), scan.bottom(),
 			scanHovered ? CARD_HOVER : CARD_BG);
-		graphics.drawString(font, busy ? "扫描中…" : "扫描 Steam 库",
+		graphics.drawString(font,
+			busy ? tr("wurst.background.scanning")
+				: tr("wurst.background.scan_steam"),
 			scan.x + 8, scan.y + 6, scanHovered ? TEXT : MUTED, false);
 
 		// motion picker: cycles, which is enough for four options
@@ -135,7 +146,8 @@ public final class BackgroundSelectScreen extends Screen
 		boolean motionHovered = motion.contains(mouseX, mouseY);
 		graphics.fill(motion.x, motion.y, motion.right(), motion.bottom(),
 			motionHovered ? CARD_HOVER : CARD_BG);
-		String label = "运动：" + BackgroundManager.get().motion();
+		String label = tr("wurst.background.motion",
+			BackgroundManager.get().motion());
 		graphics.drawString(font, label, motion.x + 8, motion.y + 6,
 			motionHovered ? TEXT : MUTED, false);
 	}
@@ -201,7 +213,8 @@ public final class BackgroundSelectScreen extends Screen
 				0x22FFFFFF);
 		for(int y = card.y + 8; y < card.y + CARD_HEIGHT - 26; y += 12)
 			graphics.fill(card.x + 8, y, card.right() - 8, y + 1, 0x22FFFFFF);
-		drawCardLabel(graphics, card, "默认背景", "内置");
+		drawCardLabel(graphics, card, tr("wurst.background.default"),
+			tr("wurst.background.builtin"));
 	}
 
 	private void drawImportCard(GuiGraphics graphics, Rect card, int mouseX,
@@ -217,7 +230,7 @@ public final class BackgroundSelectScreen extends Screen
 			hovered ? ACCENT : MUTED);
 		graphics.fill(centerX - 1, centerY - 9, centerX + 1, centerY + 11,
 			hovered ? ACCENT : MUTED);
-		graphics.drawString(font, "导入图片 / GIF", card.x + 22,
+		graphics.drawString(font, tr("wurst.background.import"), card.x + 22,
 			card.bottom() - 18, hovered ? TEXT : MUTED, false);
 	}
 
@@ -241,7 +254,7 @@ public final class BackgroundSelectScreen extends Screen
 		if(entry.kind() == BackgroundKind.VIDEO)
 			// the badge says what the click would otherwise have to: this one
 			// may be imported, but it cannot be played
-			drawBadge(graphics, card, "视频 · 不能播放");
+			drawBadge(graphics, card, tr("wurst.background.video_badge"));
 		else if(entry.kind() == BackgroundKind.GIF)
 			drawBadge(graphics, card, "GIF");
 
@@ -333,7 +346,7 @@ public final class BackgroundSelectScreen extends Screen
 			if(button == 1)
 				delete(entry);
 			else if(!entry.kind().canPlay())
-				status = "视频壁纸本版不能播放（没有 H.264 解码器），只能看预览图";
+				status = tr("wurst.background.video_unsupported");
 			else
 				BackgroundManager.get().select(entry.id());
 		}
@@ -394,7 +407,8 @@ public final class BackgroundSelectScreen extends Screen
 
 			if(kind == null)
 			{
-				status = "不支持的文件格式：" + path.getFileName();
+				status = tr("wurst.background.unsupported_format",
+					path.getFileName());
 				return;
 			}
 
@@ -416,12 +430,14 @@ public final class BackgroundSelectScreen extends Screen
 
 				minecraft.execute(() -> {
 					if(id == null)
-						status = "导入失败：" + path.getFileName();
+						status = tr("wurst.background.import_failed",
+							path.getFileName());
 					else
 					{
 						BackgroundManager.get().select(id);
 						entries = BackgroundManager.get().entries();
-						status = "已导入 " + path.getFileName();
+						status = tr("wurst.background.imported",
+							path.getFileName());
 					}
 				});
 			}, "WurstB-BackgroundImport");
@@ -433,7 +449,7 @@ public final class BackgroundSelectScreen extends Screen
 	private void scanSteamLibrary()
 	{
 		busy = true;
-		status = "正在扫描 Steam 库…";
+		status = tr("wurst.background.scan_started");
 
 		Thread worker = new Thread(() -> {
 			int imported = 0;
@@ -477,8 +493,8 @@ public final class BackgroundSelectScreen extends Screen
 			minecraft.execute(() -> {
 				busy = false;
 				entries = BackgroundManager.get().entries();
-				status = "导入完成：可播放 " + importedCount + " 张，仅预览 "
-					+ previewCount + " 张，跳过 " + skippedCount + " 张";
+				status = tr("wurst.background.scan_done", importedCount,
+					previewCount, skippedCount);
 			});
 		}, "WurstB-WallpaperScan");
 
@@ -495,9 +511,9 @@ public final class BackgroundSelectScreen extends Screen
 
 			BackgroundManager.get().forget();
 			entries = BackgroundManager.get().entries();
-			status = "已删除 " + entry.title();
+			status = tr("wurst.background.deleted", entry.title());
 		}else
-			status = "删除失败：" + entry.title();
+			status = tr("wurst.background.delete_failed", entry.title());
 	}
 
 	private void cycleMotion()

@@ -7,5 +7,21 @@
   "wurst.title.mods": "Mods",
   "wurst.title.background": "Background",
   "wurst.title.menu": "Menu",
-  "wurst.title.welcome": "Welcome back"
+  "wurst.title.welcome": "Welcome back",
+  "wurst.background.title": "Select Background",
+  "wurst.background.scan_steam": "Scan Steam library",
+  "wurst.background.scanning": "Scanning...",
+  "wurst.background.motion": "Motion: %s",
+  "wurst.background.default": "Default",
+  "wurst.background.builtin": "Built-in",
+  "wurst.background.import": "Import image / GIF",
+  "wurst.background.video_badge": "Video - cannot play",
+  "wurst.background.video_unsupported": "This build cannot play video wallpapers (no H.264 decoder), only the preview is shown",
+  "wurst.background.unsupported_format": "Unsupported file format: %s",
+  "wurst.background.imported": "Imported %s",
+  "wurst.background.import_failed": "Import failed: %s",
+  "wurst.background.scan_started": "Scanning the Steam library...",
+  "wurst.background.scan_done": "Import finished: %s playable, %s preview only, %s skipped",
+  "wurst.background.deleted": "Deleted %s",
+  "wurst.background.delete_failed": "Delete failed: %s"
 }
