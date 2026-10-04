@@ -53,7 +53,7 @@ public final class TwilightShellLayout
 	 * {@code clamp(180px, 18vw, 216px)} comes from {@code SideMenu.vue}; the
 	 * library token {@code --te-menu-width} starts at 132px instead.
 	 */
-	public static final int SIDEBAR_MIN = 180;
+	public static final int SIDEBAR_MIN = 132;
 	
 	/** Canvas widths at which the sidebar switches to a narrower state. */
 	public static final int COMPACT_BELOW = 1100;
@@ -63,15 +63,15 @@ public final class TwilightShellLayout
 	
 	/** {@code .menu-items { padding: 22px 13px }}. */
 	public static final int NAV_PADDING_TOP = 22;
-	public static final int NAV_PADDING_RIGHT = 13;
+	public static final int NAV_PADDING_RIGHT = 12;
 	public static final int NAV_PADDING_BOTTOM = 22;
-	public static final int NAV_PADDING_LEFT = 13;
+	public static final int NAV_PADDING_LEFT = 16;
 	
 	/** {@code .menu-nav { gap: 5px }} - measured row pitch is 50px. */
 	public static final int NAV_GAP = 5;
 	
 	/** {@code .menu-item { height: 45px }}. */
-	public static final int NAV_ITEM_HEIGHT = 45;
+	public static final int NAV_ITEM_HEIGHT = 40;
 
 	/**
 	 * {@code .streaming-sidebar-title { font-size: calc(14px * 0.92857) }}——侧栏在
@@ -85,8 +85,8 @@ public final class TwilightShellLayout
 	/** {@code width: calc(100% - 8px)} of {@code SideMenu.vue}, not overridden. */
 	public static final int NAV_ITEM_RIGHT_INSET = 8;
 	
-	/** {@code .menu-item { border-radius: 13px }}. */
-	public static final int RADIUS_ITEM = 13;
+	/** {@code .menu-item { border-radius: 10px }}（{@code --te-radius-global}）。 */
+	public static final int RADIUS_ITEM = 10;
 	
 	/** {@code .menu-item:hover { transform: translateX(3px) }}. */
 	public static final int NAV_HOVER_TRANSLATE_X = 3;
@@ -160,17 +160,20 @@ public final class TwilightShellLayout
 	// ---- 播放条 ----
 
 	/**
-	 * 高度与左右边距取**截图实测**：条在 796..865（约 70px），左边到内容区 +13px。
-	 * 组件 CSS（{@code PlayerBar.css}）另有一套值——72px、两侧 18px、
-	 * {@code max-width: 1180px} 居中——但两者冲突，而这一版是按参考截图量的，
-	 * 一致性测试也是照它写的，所以以实测为准。**若要改用组件那套，需要先有一张
-	 * 能分辨 70 与 72 的截图作为依据，不能凭 CSS 单方面推翻。**
+	 * 高度与左右边距现在取**参考组件 CSS**：{@code .player-bar-shell} 是 72px 高、
+	 * 两侧 18px、{@code max-width: 1180px} 居中（{@code PlayerBar.css:822-835}，
+	 * 见 {@code docs/twilight-echo-port/spec-player-and-lyrics.md}）。早先这一版按
+	 * 参考截图量成 70/13，是因为当时的快照里没有 {@code PlayerBar.css}；现在源码
+	 * 就在 {@code source/Twilight_Echo}，以组件为准。
 	 */
-	public static final int PLAYER_BAR_HEIGHT = 70;
+	public static final int PLAYER_BAR_HEIGHT = 72;
 	public static final int PLAYER_BAR_BOTTOM_MARGIN = 14;
 
-	/** Measured left inset inside the content area: 229 - 216 = 13. */
-	public static final int PLAYER_BAR_SIDE_MARGIN = 13;
+	/** {@code .player-bar-shell { left/right: 18px }}. */
+	public static final int PLAYER_BAR_SIDE_MARGIN = 18;
+
+	/** {@code .player-bar-shell { max-width: 1180px; margin: 0 auto }}. */
+	public static final int PLAYER_BAR_MAX_WIDTH = 1180;
 
 	/** {@code .player-cover { width: 48px; height: 48px }}——这一条两侧没有冲突。 */
 	public static final int PLAYER_COVER = 48;
@@ -381,10 +384,11 @@ public final class TwilightShellLayout
 				content.width(),
 				Math.max(0, barY - px(PLAYER_BAR_SIDE_MARGIN)
 					- contentHeader.bottom()));
-			playerBar = new Rect(
-				content.x() + px(PLAYER_BAR_SIDE_MARGIN), barY,
+			int barWidth = Math.min(px(PLAYER_BAR_MAX_WIDTH),
 				Math.max(0,
-					content.width() - px(PLAYER_BAR_SIDE_MARGIN) * 2),
+					content.width() - px(PLAYER_BAR_SIDE_MARGIN) * 2));
+			playerBar = new Rect(
+				content.x() + (content.width() - barWidth) / 2, barY, barWidth,
 				barHeight);
 		}
 		

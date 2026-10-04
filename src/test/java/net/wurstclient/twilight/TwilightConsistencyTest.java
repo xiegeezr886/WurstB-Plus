@@ -119,14 +119,15 @@ final class TwilightConsistencyTest
 	void theLayoutFollowsTheEffectivePaperLightBlock()
 	{
 		// paper-light.css lines 115-169, the block that overrides the first one
-		assertEquals(13, TwilightShellLayout.RADIUS_ITEM);
+		// 这些值现在以参考组件源码为准（source/Twilight_Echo）
+		assertEquals(10, TwilightShellLayout.RADIUS_ITEM);
 		assertEquals(22, TwilightShellLayout.RADIUS_HERO);
-		assertEquals(45, TwilightShellLayout.NAV_ITEM_HEIGHT);
+		assertEquals(40, TwilightShellLayout.NAV_ITEM_HEIGHT);
 		assertEquals(5, TwilightShellLayout.NAV_GAP);
 		assertEquals(26, TwilightShellLayout.SIDEBAR_RADIUS_RIGHT);
 		assertEquals(22, TwilightShellLayout.PANEL_INSET_Y);
-		// measured in the screenshot: the bar is 796..865, not the title bar 54
-		assertEquals(70, TwilightShellLayout.PLAYER_BAR_HEIGHT);
+		// .player-bar-shell: 72px high, 14px above the bottom edge
+		assertEquals(72, TwilightShellLayout.PLAYER_BAR_HEIGHT);
 		assertEquals(14, TwilightShellLayout.PLAYER_BAR_BOTTOM_MARGIN);
 		assertEquals(36, TwilightShellLayout.TOOL_BUTTON);
 	}

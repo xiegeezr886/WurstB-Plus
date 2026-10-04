@@ -109,12 +109,12 @@ final class TwilightShellLayoutTest
 	@Test
 	void theSidebarWidthIsClampedLikeTheReference()
 	{
-		// clamp(180px, 18vw, 216px)
+		// clamp(132px, 18vw, 216px)
 		assertEquals(216, TwilightShellLayout.sidebarWidth(WIDTH,
 			SidebarMode.EXPANDED, 1F));
 		assertEquals(180, TwilightShellLayout.sidebarWidth(1000,
 			SidebarMode.EXPANDED, 1F));
-		assertEquals(180, TwilightShellLayout.sidebarWidth(700,
+		assertEquals(132, TwilightShellLayout.sidebarWidth(700,
 			SidebarMode.EXPANDED, 1F));
 		assertEquals(164,
 			TwilightShellLayout.sidebarWidth(900, SidebarMode.COMPACT, 1F));
@@ -135,12 +135,15 @@ final class TwilightShellLayoutTest
 		assertEquals(frame.sidebar.right(), frame.content.x());
 		assertEquals(0, frame.content.y());
 		
-		// the player bar floats over the content, right of the sidebar,
-		// measured at 796..865 in the reference screenshot
-		assertEquals(frame.content.x() + 13, frame.playerBar.x());
-		assertEquals(70, frame.playerBar.height());
-		assertEquals(796, frame.playerBar.y());
+		// the player bar floats over the content, centred and capped at 1180px
+		// like .player-bar-shell (left/right 18px, max-width 1180px)
+		assertEquals(frame.content.x()
+			+ (frame.content.width() - frame.playerBar.width()) / 2,
+			frame.playerBar.x());
+		assertEquals(72, frame.playerBar.height());
+		assertEquals(HEIGHT - 14 - 72, frame.playerBar.y());
 		assertEquals(HEIGHT - 14, frame.playerBar.bottom());
+		assertTrue(frame.playerBar.width() <= 1180);
 		assertTrue(frame.playerBar.width() < frame.content.width());
 	}
 	
@@ -183,13 +186,13 @@ final class TwilightShellLayoutTest
 		assertNotNull(first);
 		assertNotNull(second);
 		
-		// 45px high, 22px below the brand row, 5px apart (row pitch 50px)
-		assertEquals(45, first.height());
+		// 40px high（参考 .menu-item），22px below the brand row, 5px apart
+		assertEquals(40, first.height());
 		assertEquals(frame.nav.y() + 22, first.y());
 		assertEquals(second.y() - first.bottom(), 5);
-		assertEquals(frame.nav.x() + 13, first.x());
-		assertEquals(frame.sidebar.right() - 13 - 8, first.right());
-		assertEquals(50, second.y() - first.y());
+		assertEquals(frame.nav.x() + 16, first.x());
+		assertEquals(frame.sidebar.right() - 12 - 8, first.right());
+		assertEquals(45, second.y() - first.y());
 	}
 	
 	@Test

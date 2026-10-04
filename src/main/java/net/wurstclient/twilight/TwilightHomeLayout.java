@@ -36,13 +36,17 @@ public final class TwilightHomeLayout
 	
 	/**
 	 * {@code .hero-inner { grid-template-columns: 1.1fr 1fr; min-height: 328px }}.
-	 * The reference sets no maximum - it only drops to 310px inside a container
-	 * narrower than 560px - so the ceiling here exists purely to stop a very tall
-	 * window from turning the hero into a wall.
+	 *
+	 * <p>
+	 * The reference's 328px is an absolute height for its own window; this shell
+	 * is a 1500x880 design canvas that also has to fit the duo row and the first
+	 * section below the hero, so the height stays proportional (34% of the
+	 * canvas, which is what 470px in the reference's 1326px window amounts to)
+	 * and only the bounds are kept as a floor and a ceiling.
 	 */
 	public static final int HERO_GAP = 24;
-	public static final float HERO_MIN_HEIGHT = 328F;
-	public static final float HERO_MAX_HEIGHT = 560F;
+	public static final float HERO_MIN_HEIGHT = 280F;
+	public static final float HERO_MAX_HEIGHT = 480F;
 	public static final float HERO_HEIGHT_RATIO = 0.34F;
 	
 	/** {@code .hero-copy { padding: 38px 0 26px 38px }}. */

@@ -96,7 +96,7 @@ public final class TwilightShellScreen extends Screen
 	private static final String NOW_TITLE = "Bismuth";
 	private static final String NOW_ARTIST = "Ludicin";
 	
-	private static final float RADIUS_BAR = 14F;
+	private static final float RADIUS_BAR = 22F;
 	private static final float RADIUS_COVER = 6F;
 
 	/** 窗口之外压暗游戏画面的遮罩。 */
@@ -923,8 +923,8 @@ public final class TwilightShellScreen extends Screen
 					item.y(), item.width(), item.height(), itemRadius,
 					TwilightTheme.withAlpha(0xFF0F172A, 0.04F));
 			
-			float labelSize = frame.px(13);
-			TwilightSkia.text(NAV_LABELS[i], item.x() + frame.px(14),
+			float labelSize = frame.px(14);
+			TwilightSkia.text(NAV_LABELS[i], item.x() + frame.px(16),
 				item.centerY() - TwilightSkia.textHeight(labelSize,
 					TwilightSkia.Weight.REGULAR) / 2F,
 				labelSize, active ? TwilightSkia.Weight.SEMIBOLD
@@ -1430,17 +1430,25 @@ public final class TwilightShellScreen extends Screen
 	private Rect[] playlistGrid()
 	{
 		Rect area = frame.contentBody;
-		int columns = 2;
-		int gap = (int)frame.px(20);
+
+		/*
+		 * 参考的推荐歌单是固定 6 列的 grid（{@code repeat(6, minmax(0,1fr))}，
+		 * 间距 {@code 24px 18px}），容器变窄时降为 4 列 / 3 列；卡片本身是
+		 * 1:1 封面 + 标题 + 副标题，不随悬停位移或缩放。
+		 */
+		int columns = area.width() >= frame.px(800) ? 6
+			: area.width() >= frame.px(560) ? 4 : 3;
+		int gapX = (int)frame.px(18);
+		int gapY = (int)frame.px(24);
 		int width = Math.max(0,
-			(int)((area.width() - gap * (columns - 1)) / columns));
-		int height = (int)frame.px(158);
+			(area.width() - gapX * (columns - 1)) / columns);
+		int height = width + (int)frame.px(56);
 		Rect[] cards = new Rect[6];
-		
+
 		for(int i = 0; i < cards.length; i++)
-			cards[i] = new Rect(area.x() + i % columns * (width + gap),
-				area.y() + i / columns * (height + gap), width, height);
-		
+			cards[i] = new Rect(area.x() + i % columns * (width + gapX),
+				area.y() + i / columns * (height + gapY), width, height);
+
 		return cards;
 	}
 	
@@ -1707,7 +1715,7 @@ public final class TwilightShellScreen extends Screen
 			int inset = (int)frame.px(12);
 			float coverHeight = card.height() - frame.px(56);
 			TwilightSkia.fillRoundRect(card.x() + inset, card.y() + inset,
-				card.width() - inset * 2, coverHeight, frame.px(12),
+				card.width() - inset * 2, coverHeight, frame.px(11),
 				TwilightTheme.withAlpha(accent, 0.35F));
 			
 			TwilightSkia.text(playlist.name(), card.x() + inset,
@@ -1799,8 +1807,7 @@ public final class TwilightShellScreen extends Screen
 				drawCover(graphics, playlists.get(i).coverUrl(),
 					card.x() + inset, card.y() + inset,
 					card.width() - inset * 2,
-					card.height() - (int)frame.px(56),
-					(int)frame.px(TwilightListLayout.COVER_RADIUS));
+					card.height() - (int)frame.px(56), (int)frame.px(11));
 			}
 			return;
 		}
