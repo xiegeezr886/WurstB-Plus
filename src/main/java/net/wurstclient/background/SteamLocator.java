@@ -148,6 +148,30 @@ public final class SteamLocator
 		return folders;
 	}
 
+	/**
+	 * 某个工坊条目所在的文件夹，找不到返回 {@code null}。
+	 *
+	 * <p>
+	 * 内置默认场景壁纸用它来确认那件作品确实装在本地——包里没有它的许可，
+	 * 装了就照着本地文件渲染，没装就退回内置的静态底图。
+	 * </p>
+	 */
+	public static Path workshopFolder(String id)
+	{
+		if(id == null || id.isBlank())
+			return null;
+
+		for(Path folder : wallpaperFolders())
+		{
+			Path item = folder.resolve(id);
+
+			if(Files.isDirectory(item))
+				return item;
+		}
+
+		return null;
+	}
+
 	private static void collectLibraryPaths(Map<String, Object> document,
 		LinkedHashSet<Path> roots)
 	{

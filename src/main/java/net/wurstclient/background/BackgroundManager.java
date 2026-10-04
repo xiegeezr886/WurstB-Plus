@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import com.mojang.blaze3d.platform.NativeImage;
 
@@ -73,6 +74,11 @@ public final class BackgroundManager
 
 	private CompletableFuture<BackgroundClip> clipPending;
 
+	/** The Wallpaper Engine scene that is playing, or null. */
+	private WeSceneWallpaper scene;
+
+	private CompletableFuture<WeSceneWallpaper.Decoded> scenePending;
+
 	private BackgroundManager()
 	{
 	}
@@ -99,18 +105,47 @@ public final class BackgroundManager
 
 	/**
 	 * 仓库里带的那张默认主界面壁纸：Wallpaper Engine 工坊 2359043440「Persica」
-	 * 的原图（5712x3214）。这个工坊条目是 Scene 类型，场景本体（scene.pkg +
-	 * .dxs 着色器）本项目渲染不了，所以内置的是它的高清底图。
+	 * 的原图（5712x3214）。
+	 *
+	 * <p>
+	 * 这件作品是 Scene 类型，本机会优先渲染它的 {@code scene.pkg}（见
+	 * {@link #BUNDLED_SCENE_ID}）；内置的这张高清底图是没有装那件作品时的
+	 * 退路，也是场景卡片的缩略图。</p>
+	 *
+	 * <p>
+	 * 命名空间是 {@code "wurst"} 而不是 {@link WurstClient#MOD_ID}：资源真的放在
+	 * {@code assets/wurst/} 下（全仓库一致，见 {@code WurstTitleMenu.LOGO}），
+	 * 用 mod id（{@code wurstpenguin}）去找会 FileNotFoundException。这个异常
+	 * 原来被静默吞掉，所以内置壁纸一次都没导入成功过——直到在真实客户端里查
+	 * 才暴露出来。</p>
 	 */
 	private static final ResourceLocation BUNDLED_DEFAULT =
-		new ResourceLocation(WurstClient.MOD_ID, "background/default.jpg");
+		new ResourceLocation("wurst", "background/default.jpg");
 	private static final String BUNDLED_TITLE = "Persica";
+
+	/**
+	 * 「Persica」在 Steam 工坊里的 id。
+	 *
+	 * <p>
+	 * 包里没有这件作品的许可，所以场景本体不进仓库：装了就读本地那份
+	 * {@code scene.pkg} 并按图层渲染，没装就退回内置底图。</p>
+	 */
+	private static final String BUNDLED_SCENE_ID = "2359043440";
+
 	private boolean bundledDefaultStarted;
+
+	/** 场景那一次导入单独走一遍，见 {@link #importBundledScene()}。 */
+	private boolean bundledSceneStarted;
 
 	/**
 	 * 首次启动时把内置壁纸导入到背景库并选中它，之后动效、运镜、选择屏的卡片
 	 * 全都直接复用既有管线。只做一次：{@code GuiPreferences} 里记了
 	 * {@code bundledDefaultImported}，用户自己删掉之后不会再自动重建。
+	 *
+	 * <p>
+	 * 本机装了「Persica」的 {@code scene.pkg} 时这次导入会被跳过，改由
+	 * {@link #importBundledScene()} 导入场景本身；等哪天那件作品被卸掉，内置
+	 * 底图会在这条路径上补进来。</p>
 	 */
 	private void importBundledDefault()
 	{
@@ -124,6 +159,11 @@ public final class BackgroundManager
 			return;
 
 		Thread worker = new Thread(() -> {
+			// 本机装着场景就交给 importBundledScene：两者只会有一个真的导入，
+			// 免得选择屏上出现两张同名卡片
+			if(bundledScenePackage() != null)
+				return;
+
 			Path temp = null;
 
 			try
@@ -135,6 +175,7 @@ public final class BackgroundManager
 
 				byte[] thumbnail = BackgroundThumbnail.create(temp,
 					BackgroundThumbnail.MAX_SIZE);
+
 				String id = storage().importFile(temp, BackgroundKind.IMAGE,
 					BUNDLED_TITLE, "Wallpaper Engine", thumbnail);
 
@@ -149,7 +190,9 @@ public final class BackgroundManager
 				});
 			}catch(IOException | RuntimeException e)
 			{
-				// 导入失败就维持内置网格背景，不打扰用户
+				// 导入失败就维持内置网格背景，但要在日志里留下痕迹：这里曾经
+				// 静默吞掉过一次资源路径写错，代价是内置壁纸一个版本没生效
+				System.out.println("[Background] 内置壁纸导入失败：" + e);
 			}finally
 			{
 				if(temp != null)
@@ -164,6 +207,107 @@ public final class BackgroundManager
 
 		worker.setDaemon(true);
 		worker.start();
+	}
+
+	/** 本机装着的「Persica」场景包，没装返回 null。 */
+	private static Path bundledScenePackage()
+	{
+		Path folder = SteamLocator.workshopFolder(BUNDLED_SCENE_ID);
+
+		if(folder == null)
+			return null;
+
+		Path pkg = folder.resolve("scene.pkg");
+		return Files.isRegularFile(pkg) ? pkg : null;
+	}
+
+	/**
+	 * 本机装了「Persica」就把场景导进库并选中它。
+	 *
+	 * <p>
+	 * 单独一个标记（{@code bundledSceneImported}）：内置底图那次导入早就标记
+	 * 过了，共用标记的话老用户永远等不到这一次。而且只有真的导入成功才置位，
+	 * 所以之后装了那件作品，下一次启动仍然会补上；用户自己选过别的壁纸则不会
+	 * 被顶掉——只有当前选中项是内置默认、或还是那张旧的 Persica 底图时才切换。
+	 * </p>
+	 */
+	private void importBundledScene()
+	{
+		if(bundledSceneStarted)
+			return;
+
+		bundledSceneStarted = true;
+
+		if(WurstClient.INSTANCE.getGuiPreferences().isBundledSceneImported())
+			return;
+
+		Thread worker = new Thread(() -> {
+			Path pkg = bundledScenePackage();
+
+			if(pkg == null)
+				return;
+
+			Path temp = null;
+
+			try
+			{
+				byte[] bytes = Minecraft.getInstance().getResourceManager()
+					.open(BUNDLED_DEFAULT).readAllBytes();
+				temp = Files.createTempFile("wurstb-scene-thumb-", ".jpg");
+				Files.write(temp, bytes);
+
+				byte[] thumbnail = BackgroundThumbnail.create(temp,
+					BackgroundThumbnail.MAX_SIZE);
+
+				String id = storage().importFile(pkg, BackgroundKind.SCENE,
+					BUNDLED_TITLE, "Wallpaper Engine", thumbnail);
+
+				if(id == null)
+				{
+					System.out.println(
+						"[Background] 内置场景导入失败了，下次启动再试");
+					return;
+				}
+
+				Minecraft.getInstance().execute(() -> {
+					WurstClient.INSTANCE.getGuiPreferences()
+						.setBundledSceneImported(true);
+
+					if(shouldSwitchToBundledScene())
+						select(id);
+
+					forget();
+				});
+
+			}catch(IOException | RuntimeException e)
+			{
+				// 装不了就算了，下次启动再试；这里一定要留下痕迹，
+				// 上一轮的静默失败就是被这个 catch 藏了整整一个版本
+				System.out.println("[Background] 内置场景导入失败：" + e);
+			}finally
+			{
+				if(temp != null)
+					try
+					{
+						Files.deleteIfExists(temp);
+					}catch(IOException e)
+					{
+					}
+			}
+		}, "WurstB-BundledScene");
+
+		worker.setDaemon(true);
+		worker.start();
+	}
+
+	/** 用户没自己挑过别的壁纸时，才把选中项换到内置场景上。 */
+	private boolean shouldSwitchToBundledScene()
+	{
+		if(isDefaultSelected())
+			return true;
+
+		BackgroundEntry selected = storage().read(selectedId());
+		return selected != null && BUNDLED_TITLE.equals(selected.title());
 	}
 
 	/** Every stored background, newest first. The built-in default is not part
@@ -213,6 +357,19 @@ public final class BackgroundManager
 			clipPending = null;
 		}
 
+		if(scenePending != null)
+		{
+			// 解码结果可能已经好了但还没回来，交给回调自己关掉
+			scenePending.cancel(true);
+			scenePending = null;
+		}
+
+		if(scene != null)
+		{
+			scene.close();
+			scene = null;
+		}
+
 		if(loadedTexture != null)
 		{
 			Minecraft.getInstance().getTextureManager().release(LOCATION);
@@ -243,11 +400,23 @@ public final class BackgroundManager
 		if(screenWidth <= 0 || screenHeight <= 0)
 			return false;
 
+		// 这两件事必须在「选中项是内置默认」的早退之前做：全新配置下选中项
+		// 就是默认背景，放在 ensureLoaded() 里等于永远不导入
+		importBundledDefault();
+		importBundledScene();
+
 		if(isDefaultSelected())
 			return false;
 
 		if(!ensureLoaded())
 			return false;
+
+		// 场景自己管一组纹理，不共用单张纹理那条路
+		WeSceneWallpaper playing = scene;
+
+		if(playing != null)
+			return playing.render(graphics, screenWidth, screenHeight, mouseX,
+				mouseY);
 
 		DynamicTexture texture = currentTexture();
 
@@ -320,8 +489,6 @@ public final class BackgroundManager
 	 */
 	private boolean ensureLoaded()
 	{
-		importBundledDefault();
-
 		String id = selectedId();
 
 		if(id.equals(failedId))
@@ -330,7 +497,10 @@ public final class BackgroundManager
 		if(id.equals(loadedId) && loadedTexture != null)
 			return true;
 
-		if(pending != null || clipPending != null)
+		if(scene != null && id.equals(loadedId))
+			return true;
+
+		if(pending != null || clipPending != null || scenePending != null)
 			return false;
 
 		BackgroundEntry entry = storage().read(id);
@@ -359,10 +529,86 @@ public final class BackgroundManager
 
 		if(entry.kind() == BackgroundKind.GIF)
 			startClip(id, media);
+		else if(entry.kind() == BackgroundKind.SCENE)
+			startScene(id, media);
 		else
 			startStill(id, media);
 
 		return false;
+	}
+
+	/**
+	 * 场景包在后台线程里读+解码，纹理上传与其它路径一样回到客户端线程做。
+	 */
+	private void startScene(String id, Path media)
+	{
+		CompletableFuture<WeSceneWallpaper.Decoded> future =
+			CompletableFuture.supplyAsync(() -> {
+				try
+				{
+					return WeSceneWallpaper.decode(media);
+				}catch(IOException e)
+				{
+					throw new CompletionException(e);
+				}
+			});
+
+		scenePending = future;
+
+		future.whenComplete((decoded, error) -> Minecraft.getInstance()
+			.execute(() -> finishScene(id, future, decoded, error)));
+	}
+
+	/** Runs on the client thread once the scene has been decoded. */
+	private void finishScene(String id,
+		CompletableFuture<WeSceneWallpaper.Decoded> future,
+		WeSceneWallpaper.Decoded decoded, Throwable error)
+	{
+		if(scenePending != future)
+		{
+			// forgotten, or replaced by another selection, while decoding
+			closeQuietly(decoded);
+			return;
+		}
+
+		scenePending = null;
+
+		if(!id.equals(selectedId()))
+		{
+			closeQuietly(decoded);
+			return;
+		}
+
+		if(error != null || decoded == null)
+		{
+			closeQuietly(decoded);
+			System.out.println("[Background] Cannot draw scene " + id + ": "
+				+ (error == null ? "no layers" : error.getMessage()));
+			failedId = id;
+			return;
+		}
+
+		WeSceneWallpaper bound = WeSceneWallpaper.bind(decoded);
+
+		// bind 已经把 NativeImage 交给了纹理，失败时纹理那边负责关
+		if(bound == null)
+		{
+			closeQuietly(decoded);
+			failedId = id;
+			return;
+		}
+
+		scene = bound;
+		loadedId = id;
+		System.out.println("[Background] Scene " + id + ": "
+			+ bound.layerCount() + " layers, canvas " + bound.scene().width()
+			+ "x" + bound.scene().height());
+	}
+
+	private static void closeQuietly(WeSceneWallpaper.Decoded decoded)
+	{
+		if(decoded != null)
+			decoded.close();
 	}
 
 	private void startStill(String id, Path media)

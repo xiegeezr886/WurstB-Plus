@@ -53,16 +53,16 @@ final class WallpaperEngineImporterTest
 	}
 
 	/**
-	 * A scene wallpaper needs Wallpaper Engine's runtime, so we take its preview
-	 * and say why.
+	 * A scene imports its package now that we can draw one, and takes its
+	 * thumbnail from the preview because a {@code .pkg} is not an image.
 	 */
 	@Test
-	void fallsBackToThePreviewForScenes() throws Exception
+	void importsScenesWithTheirPreviewAsThumbnail() throws Exception
 	{
-		wallpaper("222", """
+		Path media = wallpaper("222", """
 			{"type":"scene","file":"scene.pkg","title":"Aurora",
 			 "preview":"preview.jpg"}
-			""", "preview.jpg");
+			""", "scene.pkg", "preview.jpg");
 
 		List<Candidate> candidates = WallpaperEngineImporter.scan(
 			List.of(library));
@@ -70,10 +70,29 @@ final class WallpaperEngineImporterTest
 		assertEquals(1, candidates.size());
 
 		Candidate candidate = candidates.get(0);
-		assertFalse(candidate.playable());
-		assertEquals(BackgroundKind.IMAGE, candidate.kind());
-		assertTrue(candidate.media().toString().endsWith("preview.jpg"));
-		assertTrue(candidate.note().contains("Wallpaper Engine"));
+		assertTrue(candidate.playable());
+		assertEquals(BackgroundKind.SCENE, candidate.kind());
+		assertEquals(media, candidate.media());
+		assertTrue(candidate.thumbnail().toString().endsWith("preview.jpg"));
+	}
+
+	/** 场景包不在（只剩预览图）时才退回预览。 */
+	@Test
+	void fallsBackToThePreviewWhenTheScenePackageIsMissing() throws Exception
+	{
+		wallpaper("223", """
+			{"type":"scene","file":"scene.pkg","title":"Gone",
+			 "preview":"preview.jpg"}
+			""", "preview.jpg");
+
+		List<Candidate> candidates = WallpaperEngineImporter.scan(
+			List.of(library));
+
+		assertEquals(1, candidates.size());
+		assertFalse(candidates.get(0).playable());
+		assertEquals(BackgroundKind.IMAGE, candidates.get(0).kind());
+		assertTrue(candidates.get(0).media().toString().endsWith("preview.jpg"));
+		assertTrue(candidates.get(0).note().contains("场景"));
 	}
 
 	/** webm has no decoder behind it here, so it falls back to the preview. */
@@ -97,7 +116,7 @@ final class WallpaperEngineImporterTest
 	void sortsPlayableFirst() throws Exception
 	{
 		wallpaper("aaa", """
-			{"type":"scene","file":"s.pkg","title":"Zzz Scene",
+			{"type":"web","file":"index.html","title":"Zzz Web",
 			 "preview":"preview.jpg"}
 			""", "preview.jpg");
 		wallpaper("bbb", """
@@ -153,8 +172,18 @@ final class WallpaperEngineImporterTest
 
 		ProjectJson scene =
 			ProjectJson.parse("{\"type\":\"scene\",\"file\":\"a.pkg\"}");
-		assertFalse(scene.isPlayableMedia());
-		assertTrue(scene.unplayableReason().contains("场景"));
+		// 场景包现在能画了，所以它是可播放的
+		assertTrue(scene.isPlayableMedia());
+
+		// 场景包不在时才退回预览，理由也要说得对
+		ProjectJson missingScene =
+			ProjectJson.parse("{\"type\":\"scene\",\"file\":\"a.pkg\"}");
+		assertTrue(missingScene.unplayableReason().contains("场景"));
+
+		// web 仍然只能看预览
+		ProjectJson web =
+			ProjectJson.parse("{\"type\":\"web\",\"file\":\"a.html\"}");
+		assertFalse(web.isPlayableMedia());
 
 		assertTrue(ProjectJson.parse("not json") == null);
 		assertTrue(ProjectJson.parse(null) == null);

@@ -24,7 +24,18 @@ public enum BackgroundKind
 	GIF,
 
 	/** An mp4/H.264 video, played frame by frame. */
-	VIDEO;
+	VIDEO,
+
+	/**
+	 * A Wallpaper Engine {@code scene.pkg}, drawn as its own layer tree.
+	 *
+	 * <p>
+	 * Only the static part of a scene is drawn: the image layers, in order, with
+	 * their parallax. Particle layers, the clock, and the GLSL post effects
+	 * (godrays, blur, film grain, water waves) are not implemented.
+	 * </p>
+	 */
+	SCENE;
 
 	/**
 	 * @return the kind a file name belongs to, or null when the extension is not
@@ -39,6 +50,9 @@ public enum BackgroundKind
 
 		if(lower.endsWith(".gif"))
 			return GIF;
+
+		if(lower.endsWith(".pkg"))
+			return SCENE;
 
 		if(lower.endsWith(".mp4") || lower.endsWith(".m4v"))
 			return VIDEO;
@@ -59,7 +73,8 @@ public enum BackgroundKind
 	 * Whether this client can actually show that kind.
 	 *
 	 * <p>
-	 * Images and GIFs are decoded with the JDK's own readers; an mp4 needs an
+	 * Images and GIFs are decoded with the JDK's own readers, and a scene is
+	 * drawn from its own package ({@link WeSceneWallpaper}). An mp4 needs an
 	 * H.264 decoder, which is a dependency this project deliberately does not
 	 * ship. Video wallpapers therefore stay preview-only, and the picker says so
 	 * instead of letting the selection fail silently.
@@ -76,6 +91,7 @@ public enum BackgroundKind
 		{
 			case GIF -> ".gif";
 			case VIDEO -> ".mp4";
+			case SCENE -> ".pkg";
 			case IMAGE -> ".png";
 		};
 	}

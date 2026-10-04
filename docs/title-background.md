@@ -18,6 +18,7 @@
 | `BackgroundMotion` / `BackgroundPose` | 静图运镜：`NONE` / `KEN_BURNS` / `PARALLAX` / `DRIFT`，姿态是**时间、鼠标与视口的纯函数**（不依赖帧计数），所以掉帧时依然平滑，也能单测 |
 | `BackgroundFilePicker` / `BackgroundFileChooser` | 跨平台文件选择（AWT `FileDialog` / `JFileChooser` 兜底） |
 | `WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson` | Wallpaper Engine 导入：定位 Steam 库、解析 `libraryfolders.vdf` 与各壁纸的 `project.json`，产出候选列表（上限 500，可播放的排在前面） |
+| `WePackage` / `WeTexture` / `WeScene` / `WeSceneLayout` / `WeSceneWallpaper` | Wallpaper Engine **场景包**的读取与绘制：包目录 → `.tex` 头部 → 图层树 → 画布到屏幕的换算 → 逐层上传与绘制。格式推导与边界见 [`wallpaper-engine-scene.md`](wallpaper-engine-scene.md) |
 | `BackgroundSelectScreen` | 选择界面：默认背景卡片、已导入卡片（缩略图 / 标题 / 来源 / 类型徽章）、导入、Wallpaper Engine 导入、删除、运镜切换 |
 
 ## 2. 绘制路径
@@ -72,8 +73,10 @@
    H.264 解码器，那是本项目刻意不引入的依赖。这类卡片带「视频 · 不能播放」徽章，
    点击只会在状态栏说明原因，不会静默失败。
 2. **没有裁剪与对焦点设置**：构图完全由 `cover` 决定，长图只能看到中间那条。
-3. **Wallpaper Engine 的场景 / 网页 / 应用型壁纸**只导入其**预览图**并在卡片上注明原因
-   （`Candidate.note`）。
+3. **Wallpaper Engine 的网页 / 应用型壁纸**只导入其**预览图**并在卡片上注明原因
+   （`Candidate.note`）。Scene 型壁纸不再是这一类：它的场景包会被导入并按图层画出来
+   （见 [`wallpaper-engine-scene.md`](wallpaper-engine-scene.md)），但**只画静态
+   图层**——效果着色器、粒子、时钟与音频都还没有。
 4. **动图只有整个界面可见时才推进**：标题界面不显示时不会后台跑帧，重进界面会按
    挂钟时间直接跳到该显示的那一帧（不做补帧）。
 5. **没有「打开背景文件夹」入口**，删库只能靠文件管理器。
@@ -93,3 +96,7 @@
 - **从未在真实的 Wallpaper Engine 库上跑过**：`libraryfolders.vdf` 与 `project.json`
   的字段按公开格式与 `WallpaperEngineImporterTest` 的样例解析，真实库的字段差异可能让
   某些壁纸被判为不可导入。
+
+场景那部分（`WePackage` / `WeTexture` / `WeScene`）**已经在真实的 14 MB 场景包上跑通**
+（`WeSceneRealFileTest`），格式推导过程与仍未实现的部分单独记在
+[`wallpaper-engine-scene.md`](wallpaper-engine-scene.md)。

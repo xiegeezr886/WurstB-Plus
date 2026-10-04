@@ -50,6 +50,10 @@ _tools/
 _smoke/
 scripts/__pycache__/
 
+# Wallpaper Engine reverse-engineering scratch space (extracted scene art and
+# the probe scripts); the findings live in docs/wallpaper-engine-scene.md
+.recon/
+
 # Minecraft runtime config written when the client is launched from the repo root
 /config/
 

@@ -45,6 +45,7 @@ public final class GuiPreferences
 	private int vapeLayoutVersion;
 	private String selectedFont = BUILTIN_FONT;
 	private boolean bundledDefaultImported;
+	private boolean bundledSceneImported;
 	private boolean targetPlayers = true;
 	private boolean targetMonsters = true;
 	private boolean targetAnimals = true;
@@ -87,6 +88,9 @@ public final class GuiPreferences
 			if(json.has("bundledDefaultImported"))
 				bundledDefaultImported =
 					json.get("bundledDefaultImported").getAsBoolean();
+			if(json.has("bundledSceneImported"))
+				bundledSceneImported =
+					json.get("bundledSceneImported").getAsBoolean();
 			if(json.has("targetPlayers"))
 				targetPlayers = json.get("targetPlayers").getAsBoolean();
 			if(json.has("targetMonsters"))
@@ -144,6 +148,7 @@ public final class GuiPreferences
 		json.addProperty("vapeLayoutVersion", vapeLayoutVersion);
 		json.addProperty("selectedFont", selectedFont);
 		json.addProperty("bundledDefaultImported", bundledDefaultImported);
+		json.addProperty("bundledSceneImported", bundledSceneImported);
 		json.addProperty("targetPlayers", targetPlayers);
 		json.addProperty("targetMonsters", targetMonsters);
 		json.addProperty("targetAnimals", targetAnimals);
@@ -199,6 +204,25 @@ public final class GuiPreferences
 	public void setBundledDefaultImported(boolean imported)
 	{
 		this.bundledDefaultImported = imported;
+		save();
+	}
+
+	/**
+	 * 本机装着的「Persica」场景是否已经导进库过。
+	 *
+	 * <p>
+	 * 与 {@link #isBundledDefaultImported()} 分开记：内置底图那个标记早就置位
+	 * 了，共用一个标记的话老用户永远等不到场景那一次导入。
+	 * </p>
+	 */
+	public boolean isBundledSceneImported()
+	{
+		return bundledSceneImported;
+	}
+
+	public void setBundledSceneImported(boolean imported)
+	{
+		this.bundledSceneImported = imported;
 		save();
 	}
 

@@ -19,10 +19,10 @@ import java.util.stream.Stream;
  * Turns a Wallpaper Engine library into a list of things we can import.
  *
  * <p>
- * Video and image wallpapers import their own media. Scene, web and application
- * wallpapers need Wallpaper Engine's runtime, so they import their preview
- * image instead and carry a note saying so - pretending they play would be a lie
- * the user only discovers at the title screen.
+ * Video and image wallpapers import their own media, and a scene imports its
+ * {@code scene.pkg} now that {@link WeSceneWallpaper} can draw one. Web and
+ * application wallpapers still need Wallpaper Engine's runtime, so they import
+ * their preview image instead and carry a note.
  *
  * <p>
  * Takes the folders as arguments rather than finding them, which is what makes
@@ -44,9 +44,13 @@ public final class WallpaperEngineImporter
 	 *            the name to show
 	 * @param note
 	 *            null when the wallpaper plays as-is, otherwise why it does not
+	 * @param thumbnail
+	 *            a file the thumbnail can be decoded from, or null when there is
+	 *            nothing readable to decode - a scene ships a package rather
+	 *            than an image, so it falls back to its preview
 	 */
 	public record Candidate(Path media, BackgroundKind kind, String title,
-		String note)
+		String note, Path thumbnail)
 	{
 		public boolean playable()
 		{
@@ -123,7 +127,7 @@ public final class WallpaperEngineImporter
 			{
 				candidates.add(new Candidate(media,
 					BackgroundKind.fromFileName(media.getFileName().toString()),
-					title, null));
+					title, null, resolveThumbnail(wallpaper, project, media)));
 				return;
 			}
 
@@ -132,11 +136,32 @@ public final class WallpaperEngineImporter
 
 			if(preview != null)
 				candidates.add(new Candidate(preview, BackgroundKind.IMAGE,
-					title, project.unplayableReason()));
+					title, project.unplayableReason(), preview));
 		}catch(IOException e)
 		{
 			// a wallpaper we cannot read is skipped
 		}
+	}
+
+	/**
+	 * What the thumbnail should be decoded from.
+	 *
+	 * <p>
+	 * An image or GIF is its own thumbnail. Anything else - a scene package, a
+	 * video - is not something the decoder can read, so it uses the project's
+	 * preview image, and shows a placeholder if it ships none.
+	 * </p>
+	 */
+	private static Path resolveThumbnail(Path wallpaper, ProjectJson project,
+		Path media)
+	{
+		BackgroundKind kind =
+			BackgroundKind.fromFileName(media.getFileName().toString());
+
+		if(kind == BackgroundKind.IMAGE || kind == BackgroundKind.GIF)
+			return media;
+
+		return resolvePreview(wallpaper, project);
 	}
 
 	/** The wallpaper's own media, when we can decode it. */

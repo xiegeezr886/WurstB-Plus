@@ -14,36 +14,50 @@ import java.nio.file.Path;
 /**
  * Wallpaper Engine {@code .tex} 的头部解析（纯 Java，可单测）。
  *
+ * <p>
+ * 格式是<b>对着工坊 2359043440 的 scene.pkg 五张贴图逐字节核对出来的</b>
+ * （2026-10）：</p>
+ *
  * <pre>
- * [int32 长度]["TEXV0005"]
- * [int32 长度]["TEXI0001"]
- * [int32 format][int32 flags][int32 纹理宽][int32 纹理高][int32 图宽][int32 图高][int32 未知]
- * [int32 长度]["TEXB000x"]   ← 之后是 mipmap 数量与各层数据
+ * "TEXV0005\0"                      9 字节，NUL 结尾
+ * "TEXI0001\0"                      9 字节，NUL 结尾
+ * int32 format                      RGBA8888 时为 0
+ * int32 flags                       实测 2
+ * int32 textureWidth                显存里的 2 的幂尺寸（4000 -&gt; 4096）
+ * int32 textureHeight
+ * int32 imageWidth                  真实像素尺寸
+ * int32 imageHeight
+ * int32 校验字段                     高字节 ff，低三字节随文件而变
+ * "TEXB0003\0"                      9 字节，NUL 结尾
+ * int32 x8                          x[3]=宽 x[4]=高，x[7]=载荷长度
+ * 载荷                              x[7] 字节，正好到文件末尾
  * </pre>
  *
  * <p>
- * 这里只把头部与容器起点解析出来，像素数据交给调用方：DXT 块可以直接用
- * {@code GL_COMPRESSED_*_S3TC_*} 上传，不必在 CPU 解压。</p>
+ * <b>字符串是 NUL 结尾而不是长度前缀</b>——这一点上一轮判断反了，结果去搜
+ * 「TEXV」时什么都没搜到，还误以为新版 WE 换了容器。判别办法很简单：版本串
+ * 后面紧跟的那个 0x00 就是终止符。</p>
  *
  * <p>
- * <b>2026-10 实测修正（重要）</b>：拿工坊 2359043440 的 {@code scene.pkg}
- * （PKGV0013）核对后发现，那五张 {@code .tex} 的数据段<b>并不以
- * TEXV0005 / TEXI0001 开头</b>——整个 14 MB 文件里搜不到 {@code TEXV} 这个串。
- * 条目表本身已经核对无误（偏移相对表尾、各条目首尾相接），所以差异出在贴图
- * 数据这一层的包装上：可能是新版 WE 换了容器，也可能这一段是压缩过的。</p>
+ * 更要紧的是：五张贴图的载荷<b>全都是完整的 PNG / JPEG 流</b>（PNG 魔数
+ * {@code 89 50 4E 47}、JPEG 魔数 {@code FF D8}），{@code dataSize} 与「文件
+ * 长度减去载荷起点」严格相等，Pillow 解出来的尺寸正好等于头部的
+ * {@code imageWidth x imageHeight}。所以 {@code format == 0} 时不需要 DXT
+ * 解压，直接当图片读即可——{@link #isStandardImage()} 就是按魔数判断这件事，
+ * 而不是去信 {@code format} 的取值表。</p>
  *
  * <p>
- * 因此<b>下面这套头部布局属于未证实</b>，在拿真实数据把头部重新推出来之前不要
- * 用它去解析线上文件；{@link #parse(byte[])} 只保证对「TEXV/TEXI 开头」的旧式
- * 数据成立（单测里的夹具就是照那个写的）。</p>
+ * 未证实的部分：{@code format} 其它取值（社区资料里 DXT1/3/5 之类）没有真实
+ * 样本，所以这里只保留实测到的 {@link #FORMAT_RGBA8888}；{@code TEXB0003}
+ * 之外的容器版本布局也不同，一律拒绝而不是猜。</p>
  */
 public final class WeTexture
 {
+	/** 实测到的唯一格式值：载荷是一张标准图片。 */
 	public static final int FORMAT_RGBA8888 = 0;
-	public static final int FORMAT_DXT5 = 4;
-	public static final int FORMAT_DXT3 = 6;
-	public static final int FORMAT_DXT1 = 7;
-	public static final int FORMAT_R8 = 9;
+
+	/** 尺寸上限，用来挡住解析出来的离谱数字。 */
+	private static final int MAX_DIMENSION = 65536;
 
 	private final String version;
 	private final String infoVersion;
@@ -53,12 +67,15 @@ public final class WeTexture
 	private final int textureHeight;
 	private final int imageWidth;
 	private final int imageHeight;
+	private final int checksum;
 	private final String container;
 	private final int dataOffset;
+	private final int dataSize;
+	private final byte[] payload;
 
 	private WeTexture(String version, String infoVersion, int format, int flags,
 		int textureWidth, int textureHeight, int imageWidth, int imageHeight,
-		String container, int dataOffset)
+		int checksum, String container, int dataOffset, byte[] payload)
 	{
 		this.version = version;
 		this.infoVersion = infoVersion;
@@ -68,8 +85,11 @@ public final class WeTexture
 		this.textureHeight = textureHeight;
 		this.imageWidth = imageWidth;
 		this.imageHeight = imageHeight;
+		this.checksum = checksum;
 		this.container = container;
 		this.dataOffset = dataOffset;
+		this.dataSize = payload.length;
+		this.payload = payload;
 	}
 
 	public static WeTexture read(Path file) throws IOException
@@ -80,13 +100,12 @@ public final class WeTexture
 	static WeTexture parse(byte[] data) throws IOException
 	{
 		Cursor cursor = new Cursor(data);
-		String version = cursor.string();
 
+		String version = cursor.cstring();
 		if(!version.startsWith("TEXV"))
 			throw new IOException("不是 Wallpaper Engine 贴图：" + version);
 
-		String infoVersion = cursor.string();
-
+		String infoVersion = cursor.cstring();
 		if(!infoVersion.startsWith("TEXI"))
 			throw new IOException("贴图信息段异常：" + infoVersion);
 
@@ -96,21 +115,45 @@ public final class WeTexture
 		int textureHeight = cursor.int32();
 		int imageWidth = cursor.int32();
 		int imageHeight = cursor.int32();
-		cursor.int32(); // 未知字段，公开实现里一直被忽略
+		int checksum = cursor.int32();
 
 		if(textureWidth <= 0 || textureHeight <= 0 || imageWidth <= 0
 			|| imageHeight <= 0)
 			throw new IOException("贴图尺寸不合理：" + textureWidth + "x"
 				+ textureHeight + " / " + imageWidth + "x" + imageHeight);
 
-		String container = cursor.string();
+		if(textureWidth > MAX_DIMENSION || textureHeight > MAX_DIMENSION
+			|| imageWidth > MAX_DIMENSION || imageHeight > MAX_DIMENSION)
+			throw new IOException("贴图尺寸离谱：" + textureWidth + "x"
+				+ textureHeight + " / " + imageWidth + "x" + imageHeight);
+
+		String container = cursor.cstring();
 
 		if(!container.startsWith("TEXB"))
 			throw new IOException("找不到贴图数据段：" + container);
 
+		if(!container.startsWith("TEXB0003"))
+			throw new IOException("暂不支持的贴图容器：" + container
+				+ "（只核对过 TEXB0003 的布局）");
+
+		// TEXB0003 头：8 个 int32，末一个是载荷长度
+		int[] fields = new int[8];
+		for(int i = 0; i < fields.length; i++)
+			fields[i] = cursor.int32();
+
+		int offset = cursor.position();
+		int available = data.length - offset;
+
+		// 末字段与剩余字节核对：实测严格相等，对不上就退回读到底，别把数据截断
+		int size = fields[7] > 0 && fields[7] <= available ? fields[7]
+			: available;
+
+		byte[] payload = new byte[size];
+		System.arraycopy(data, offset, payload, 0, size);
+
 		return new WeTexture(version, infoVersion, format, flags, textureWidth,
-			textureHeight, imageWidth, imageHeight, container,
-			cursor.position());
+			textureHeight, imageWidth, imageHeight, checksum, container, offset,
+			payload);
 	}
 
 	public String version()
@@ -123,7 +166,7 @@ public final class WeTexture
 		return infoVersion;
 	}
 
-	/** 原样暴露，见类注释里那句"尚未核对"。 */
+	/** 实测到的取值见 {@link #FORMAT_RGBA8888}；其它取值未核对。 */
 	public int format()
 	{
 		return format;
@@ -134,6 +177,7 @@ public final class WeTexture
 		return flags;
 	}
 
+	/** 显存里的尺寸，2 的幂，通常比 {@link #imageWidth()} 大一点。 */
 	public int textureWidth()
 	{
 		return textureWidth;
@@ -154,27 +198,75 @@ public final class WeTexture
 		return imageHeight;
 	}
 
+	/** 头部里那个没解释清楚的字段：高字节恒为 ff，低三字节随文件而变。 */
+	public int checksum()
+	{
+		return checksum;
+	}
+
 	public String container()
 	{
 		return container;
 	}
 
-	/** mipmap 数量字段所在的偏移。 */
+	/** 载荷在原文件里的起点，便于对照十六进制。 */
 	public int dataOffset()
 	{
 		return dataOffset;
 	}
 
-	/** 按通行对照表判断是否 DXT 块压缩（同样待真实文件核对）。 */
-	public boolean isDxt()
+	/** 载荷长度：实测正好是「文件长度减去载荷起点」。 */
+	public int dataSize()
 	{
-		return format == FORMAT_DXT5 || format == FORMAT_DXT3
-			|| format == FORMAT_DXT1;
+		return dataSize;
 	}
 
-	/** 小端游标；越界抛 {@link IOException}。 */
+	/** 载荷本身（PNG/JPEG 流，或未核对过的压缩块）。 */
+	public byte[] payload()
+	{
+		return payload;
+	}
+
+	/** 载荷是不是一张标准图片：按 PNG/JPEG 魔数判断，不看 {@code format}。 */
+	public boolean isStandardImage()
+	{
+		return isPng() || isJpeg();
+	}
+
+	public boolean isPng()
+	{
+		return startsWith(0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A);
+	}
+
+	public boolean isJpeg()
+	{
+		return startsWith(0xFF, 0xD8, 0xFF);
+	}
+
+	private boolean startsWith(int... magic)
+	{
+		if(payload.length < magic.length)
+			return false;
+
+		for(int i = 0; i < magic.length; i++)
+			if((payload[i] & 0xFF) != (magic[i] & 0xFF))
+				return false;
+
+		return true;
+	}
+
+	/**
+	 * 小端游标；越界一律抛 {@link IOException}，不返回半截数据。
+	 *
+	 * <p>
+	 * 字符串按 NUL 结尾读，长度上限 {@link #MAX_STRING} 用来防止在损坏文件里
+	 * 一路扫到内存尽头。
+	 * </p>
+	 */
 	private static final class Cursor
 	{
+		private static final int MAX_STRING = 64;
+
 		private final byte[] data;
 		private int position;
 
@@ -200,16 +292,23 @@ public final class WeTexture
 			return value;
 		}
 
-		String string() throws IOException
+		String cstring() throws IOException
 		{
-			int length = int32();
+			int start = position;
+			int end = start;
 
-			if(length < 0 || position + length > data.length)
-				throw new IOException("字符串长度不合理：" + length);
+			while(end < data.length && data[end] != 0)
+				end++;
 
-			String value = new String(data, position, length,
+			if(end >= data.length)
+				throw new IOException("贴图在 " + start + " 处的字符串没有结束符");
+
+			if(end - start > MAX_STRING)
+				throw new IOException("贴图在 " + start + " 处的字符串过长");
+
+			String value = new String(data, start, end - start,
 				java.nio.charset.StandardCharsets.UTF_8);
-			position += length;
+			position = end + 1;
 			return value;
 		}
 	}

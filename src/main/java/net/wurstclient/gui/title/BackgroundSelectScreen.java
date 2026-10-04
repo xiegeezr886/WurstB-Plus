@@ -446,6 +446,28 @@ public final class BackgroundSelectScreen extends Screen
 		});
 	}
 
+	/**
+	 * 从候选自带的缩略图来源生成缩略图。场景包的 {@code thumbnail} 指向它的
+	 * 预览图而不是包本身——解码器读不了 {@code .pkg}。
+	 */
+	private static byte[] createThumbnail(
+		WallpaperEngineImporter.Candidate candidate)
+	{
+		Path source = candidate.thumbnail();
+
+		if(source == null)
+			return null;
+
+		boolean animated = source.equals(candidate.media())
+			&& candidate.kind() == BackgroundKind.GIF;
+
+		return animated
+			? BackgroundThumbnail.createAnimated(source,
+				BackgroundThumbnail.MAX_SIZE)
+			: BackgroundThumbnail.create(source,
+				BackgroundThumbnail.MAX_SIZE);
+	}
+
 	private void scanSteamLibrary()
 	{
 		busy = true;
@@ -464,11 +486,7 @@ public final class BackgroundSelectScreen extends Screen
 
 				for(WallpaperEngineImporter.Candidate candidate : candidates)
 				{
-					byte[] thumbnail = candidate.kind() == BackgroundKind.GIF
-						? BackgroundThumbnail.createAnimated(candidate.media(),
-							BackgroundThumbnail.MAX_SIZE)
-						: BackgroundThumbnail.create(candidate.media(),
-							BackgroundThumbnail.MAX_SIZE);
+					byte[] thumbnail = createThumbnail(candidate);
 
 					String id = BackgroundManager.get().storage().importFile(
 						candidate.media(), candidate.kind(), candidate.title(),

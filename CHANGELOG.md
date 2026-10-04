@@ -187,6 +187,18 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 - **视频壁纸（如实说明）**：`BackgroundKind.canPlay()` 对 `VIDEO` 返回 false——mp4 需要 H.264 解码器，本项目不引入该依赖。这类卡片带「视频 · 不能播放」徽章，点击只在状态栏说明原因，不再静默回退到默认背景。
 - **未做 / 已知局限**：只支持静态图片与 GIF；没有裁剪与对焦点设置，构图完全由 `cover` 决定。
 
+### Wallpaper Engine 场景壁纸（自研 `scene.pkg` 渲染）
+
+Scene 型壁纸此前只能导入预览图。本轮把格式读通并**在游戏里画出来了**（格式推导、逐字节核对与未实现部分见 [docs/wallpaper-engine-scene.md](docs/wallpaper-engine-scene.md)）：
+
+- **包与贴图**：新增 `WePackage`（PKGV0013，条目偏移**相对条目表尾**成基准）、`WeTexture`（`TEXV0005` / `TEXI0001` 是 **NUL 结尾**而不是长度前缀；`TEXB0003` 头八个 int32，末一个是载荷长度）。五张真实贴图的载荷**全是完整的 PNG / JPEG**（`dataSize` 与「文件长度 − 载荷起点」严格相等），所以不需要 DXT 解压，直接交给 `NativeImage.read`；`isStandardImage()` 按魔数判断而不是信 `format` 表。
+- **图层树**：`WeScene` 读 `scene.json`——画布来自 `general.orthogonalprojection`（Persica 是作者在 4K 上摆的 3840×2160）、`zoom` 1.0、`cameraparallax*`，每个对象按 `image → models → materials → passes[].textures[0]` 解析出 `materials/<名字>.tex`。Persica 的 20 个对象里只有 3 层真的要画，其余是分隔层、粒子层、时钟文字层与音频。
+- **绘制**：`WeSceneLayout` 做画布到屏幕的换算（cover 缩放 + 视差位移），`WeSceneWallpaper` 在后台解包解码、回客户端线程上传，逐层 `blit`。
+- **顺滑**：视差做了两件必要的事——① **亚像素定位**（位置取整后把小数部分交给模型矩阵）：视差系数只有 0.025～0.045，直接 `Math.round` 会变成「攒够一格才跳一次」，也就是用户反馈的"不够流畅"；② **按帧时间的指数阻尼跟随**，时间常数取自场景的 `cameraparallaxdelay`（Persica 0.5 → 0.125 秒），并做了帧率无关处理（一帧拆两半与整帧结果一致，有单测）。
+- **有意不做**：不套用场景里记录的相机机位（照它平移会让底图偏出画布、边缘露出 clearcolor）；不跑 godrays / 模糊 / 胶片颗粒 / 水波这些 GLSL 后期；粒子、时钟与音频都不实现。所以画面比 Wallpaper Engine 里淡一些。
+- **内置默认壁纸**：本机装了工坊 2359043440「Persica」就导入并渲染场景本身，没装才退回内置底图（`Candidate.thumbnail` 让场景卡片用预览图当缩略图）。修掉两个此前一直藏着的问题：① 内置资源的命名空间写成了 `WurstClient.MOD_ID`（`wurstpenguin`）而资源实际在 `assets/wurst/` 下，**异常被静默吞掉，内置壁纸一个版本都没导入成功过**；② 两个一次性导入原本放在 `ensureLoaded()` 里，而 `render()` 在"选中项是内置默认"时就早退了，全新配置下**永远走不到**——现在移到了早退之前。
+- **实机验证**：dev 客户端实机截图确认场景渲染成功（日志 `[Background] Scene persica: 3 layers, canvas 3840x2160`），并核对了图层随鼠标的错动与图层的相对深度关系。
+
 ### 标题主界面按参考图重做（版式 / i18n / 齿轮菜单）
 
 主菜单不再是屏幕中间一列卡片，而是按用户给的参考截图重排（量到的像素、版式表与全部差异见 [docs/title-menu.md](docs/title-menu.md)）：
@@ -211,7 +223,8 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 ### 待办
 
 - 将 v1.6 子系统移植到其余 14 个平台工程（1.21.1 / 1.21.11 / 26.1.2 / 26.2 × Forge/NeoForge/Fabric）。
-- 实机验证：v1.6 的 GUI / 音乐 / Skia / 标题背景**至今没有一项在游戏内跑过**（见 [docs/ingame-verification-checklist.md](docs/ingame-verification-checklist.md)）。
+- 实机验证：v1.6 的 GUI / 音乐 / Skia 子系统仍未在游戏内跑过（见 [docs/ingame-verification-checklist.md](docs/ingame-verification-checklist.md)）；标题主界面与 Wallpaper Engine 场景背景**已经实机跑通**（F2 截图见 [docs/title-menu.md](docs/title-menu.md) 与 [docs/wallpaper-engine-scene.md](docs/wallpaper-engine-scene.md)）。
+- 场景壁纸剩下的部分：`TEXB0003` 之外的容器版本、粒子层、时钟文字层、音频，以及 godrays / 模糊 / 颗粒 / 水波这几个 GLSL 后期。
 
 ---
 

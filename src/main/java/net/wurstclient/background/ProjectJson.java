@@ -84,8 +84,12 @@ public record ProjectJson(String type, String file, String title,
 	}
 
 	/**
-	 * Whether the wallpaper's own media can be shown in game. Scene, web and
-	 * application wallpapers cannot: they need Wallpaper Engine to run.
+	 * Whether the wallpaper's own media can be shown in game.
+	 *
+	 * <p>
+	 * Images, GIFs, mp4s and - since {@link WeSceneWallpaper} learned to draw
+	 * one - scene packages are all media we can open. Web and application
+	 * wallpapers cannot: they need Wallpaper Engine itself.
 	 */
 	public boolean isPlayableMedia()
 	{
@@ -100,7 +104,8 @@ public record ProjectJson(String type, String file, String title,
 	{
 		return switch(type)
 		{
-			case TYPE_SCENE -> "场景壁纸需要 Wallpaper Engine 运行，已导入预览图";
+			// 场景本来能画，走到这里说明包缺失或读不出来
+			case TYPE_SCENE -> "场景包读不出来，已导入预览图";
 			case TYPE_WEB -> "网页壁纸需要 Wallpaper Engine 运行，已导入预览图";
 			case TYPE_APPLICATION -> "应用壁纸需要 Wallpaper Engine 运行，已导入预览图";
 			default -> "该格式无法在游戏内播放，已导入预览图";
