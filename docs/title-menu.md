@@ -7,6 +7,12 @@
 
 ## 1. 版式来源
 
+![版式 mock](title-menu-mock.png)
+
+> 上图是**用 PIL 按 `TitleMenuLayout` 同一套算式画的 mock**，不是实机截图（上：齿轮菜单
+> 收起；下：点开）。它用真实素材：`wurstb_plus_logo.png`、`fdp/` 图标、原版
+> steve 皮肤的脸部贴图、仓库自带的苹方 TTF。壁纸是示意用的渐变。
+
 用户给了一张参考主界面截图（1296×672 物理像素）。版式不是照着感觉调的，而是
 **先在截图上量像素，再折成比例**，见 `TitleMenuLayout` 里的 `*_RATIO` 常量。
 量到的数字：
@@ -113,6 +119,8 @@
   4 个按钮等宽、动作条底边距、胶囊与齿轮共用上边距、胶囊宽度随账号名增长并有上
   限、菜单挂在齿轮下方且不压动作条、9 种画布尺寸下各区域互不重叠且不出屏、
   比例缩放、退化画布不产生零/负尺寸、文字垂直居中）。
-- **没有在游戏里看过。** 所有绘制调用（`fillRoundedRect`、`fillGradient`、
-  `blit`、`PlayerFaceRenderer.draw`、`setColor` 投影）都只做过签名核对与编译验证；
-  实际观感、皮肤是否已加载、齿轮菜单的命中范围都还没有实机截图。
+- **只做过 mock，没有在游戏里看过。** `docs/title-menu-mock.png` 是用 PIL 按同一套
+  算式重画的预览，它能证明几何，但证明不了 Minecraft 那侧的绘制：所有绘制调用
+  （`fillRoundedRect`、`fillGradient`、`blit`、`PlayerFaceRenderer.draw`、
+  `setColor` 投影）都只做过签名核对与编译验证，实际观感、皮肤是否已加载、齿轮
+  菜单的命中范围都还没有实机截图。
