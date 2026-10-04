@@ -9,8 +9,7 @@ public final class VisualScreenMotion
 {
 	private static final Set<String> SELF_ANIMATED_SCREENS = Set.of(
 		"net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen",
-		"net.wurstclient.clickgui2.NavigatorScreen",
-		"net.wurstclient.clickgui2.screens.NeteaseMusicScreen");
+		"net.wurstclient.clickgui2.NavigatorScreen");
 
 	public static final int DURATION_MS = 220;
 	private static final float START_SCALE = 0.965F;

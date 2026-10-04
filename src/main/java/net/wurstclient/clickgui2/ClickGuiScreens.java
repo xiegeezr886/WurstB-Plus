@@ -19,6 +19,13 @@ public final class ClickGuiScreens
 
 	public static Screen create(Screen parent)
 	{
+		// 图标纹理默认是最近邻过滤：不按原始尺寸（64px）绘制就会发糊、边缘锯齿。
+		// 以前只有 SuperSoftClickGuiScreen.init() 里调过 configureFiltering，
+		// 所以 Epsilon / Vape 两个风格的图标一直是像素化的。这里在三种风格共用的
+		// 入口统一打开线性过滤。
+		if(WurstClient.MC != null)
+			GuiIcon.configureFiltering(WurstClient.MC);
+
 		return switch(WurstClient.INSTANCE.getGuiPreferences()
 			.getClickGuiStyle())
 		{

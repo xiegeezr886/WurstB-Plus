@@ -9,7 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Style;
-import net.wurstclient.clickgui2.PingFangFont;
+import net.wurstclient.clickgui2.RiseFont;
 import net.wurstclient.music.LyricLine;
 import net.wurstclient.music.LyricRuby;
 import net.wurstclient.music.LyricWord;
@@ -546,12 +546,12 @@ public final class AppleLyricPlayer
 	private Style styleFor(int index, boolean active)
 	{
 		if(backgrounds[index])
-			return PingFangFont.LIGHT_STYLE;
+			return RiseFont.STYLE;
 		if(active)
-			return PingFangFont.SEMIBOLD_STYLE;
+			return RiseFont.STYLE.withBold(true);
 		boolean blurred = enableBlur && index < renders.length
 			&& renders[index].blurLevel >= 3;
-		return blurred ? PingFangFont.LIGHT_STYLE : PingFangFont.REGULAR_STYLE;
+		return blurred ? RiseFont.STYLE : RiseFont.STYLE;
 	}
 
 	/** 用 {@link AmlLineBalancer} 求换行点；整体不超宽时返回空数组。 */
@@ -570,7 +570,7 @@ public final class AppleLyricPlayer
 			boolean cjkBoundary = !text.isEmpty()
 				&& LyricWordSplitter.isCJK(text.charAt(0));
 			tokens[w] = new AmlLineBalancer.Token(text,
-				PingFangFont.width(font, text, weight) * scale, space,
+				RiseFont.width(font, text, weight) * scale, space,
 				cjkBoundary);
 		}
 		return AmlLineBalancer.breaks(tokens, maxWidth);
@@ -595,7 +595,7 @@ public final class AppleLyricPlayer
 				x = 0;
 				breakCursor++;
 			}
-			double width = PingFangFont.width(font, lineWords[w].text(), weight)
+			double width = RiseFont.width(font, lineWords[w].text(), weight)
 				* scale;
 			// 平衡器没给出断点（例如单个词就超宽）时退化为贪心换行
 			if(breaks.length == 0 && x > 0 && x + width > maxWidth)
@@ -712,7 +712,8 @@ public final class AppleLyricPlayer
 			r.opacity = AmlVisual.opacity(inViewport, highlighted, nonDynamic,
 				hidePassedLines, playing, i, passedBoundary);
 			r.blurLevel = AmlVisual.blurLevel(i, active, inViewport,
-				touchScrolled, enableBlur, scrollTo, latest, narrow);
+				touchScrolled, enableBlur, scrollTo, latest, narrow)
+				* AmlVisual.viewportBlurScale(contentWidth);
 
 			double targetMainScale = enableScale
 				? AmlVisual.mainScale(active, playing) : 100;
@@ -882,13 +883,13 @@ public final class AppleLyricPlayer
 		// AMLL 的子行顺序：翻译行在前、音译行在后
 		if(!r.translation.isBlank())
 		{
-			drawTextAt(graphics, font, r.translation, PingFangFont.LIGHT_STYLE,
+			drawTextAt(graphics, font, r.translation, RiseFont.STYLE,
 				subX, subY, subFontSize() / MC_GLYPH,
 				alphaColor(subAlpha), null, 0);
 			subY += subFontSize() * 1.5;
 		}
 		if(!r.romanization.isBlank())
-			drawTextAt(graphics, font, r.romanization, PingFangFont.LIGHT_STYLE,
+			drawTextAt(graphics, font, r.romanization, RiseFont.STYLE,
 				subX, subY, subFontSize() / MC_GLYPH, alphaColor(subAlpha), null,
 				0);
 	}
@@ -921,7 +922,7 @@ public final class AppleLyricPlayer
 		{
 			LyricWord word = lineWords[w];
 			AmlEmphasize.Word anim = anims[w];
-			double wordWidth = PingFangFont.width(font, word.text(), weight)
+			double wordWidth = RiseFont.width(font, word.text(), weight)
 				* scale;
 			if(w > 0 && breakCursor < breaks.length && breaks[breakCursor] == w)
 			{
@@ -968,10 +969,10 @@ public final class AppleLyricPlayer
 			return;
 		double rubySize = size * AmlVisual.SUB_LINE_SCALE;
 		double rubyScale = rubySize / MC_GLYPH;
-		double wordWidth = PingFangFont.width(font, word.text(), weight) * scale;
-		double rubyWidth = PingFangFont.width(font, joined.toString(),
-			PingFangFont.LIGHT_STYLE) * rubyScale;
-		drawTextAt(graphics, font, joined.toString(), PingFangFont.LIGHT_STYLE,
+		double wordWidth = RiseFont.width(font, word.text(), weight) * scale;
+		double rubyWidth = RiseFont.width(font, joined.toString(),
+			RiseFont.STYLE) * rubyScale;
+		drawTextAt(graphics, font, joined.toString(), RiseFont.STYLE,
 			wordX + Math.max(0, (wordWidth - rubyWidth) / 2),
 			wordY - rubySize, rubyScale, alphaColor(opacity * 0.5), null, 0);
 	}
@@ -981,7 +982,7 @@ public final class AppleLyricPlayer
 		Style weight, double x, double y, double scale, double size,
 		double opacity, double progress, double bright, double dark)
 	{
-		double width = PingFangFont.width(font, text, weight) * scale;
+		double width = RiseFont.width(font, text, weight) * scale;
 		double fadeWidth = size * ROW_LEADING * AmlVisual.WORD_FADE_WIDTH;
 		drawMasked(graphics, font, text, weight, x, y, scale, size, opacity,
 			progress, width, fadeWidth, bright, dark);
@@ -1005,7 +1006,7 @@ public final class AppleLyricPlayer
 			String glyph = new String(Character.toChars(codePoint));
 			offset += Character.charCount(codePoint);
 
-			double glyphWidth = PingFangFont.width(font, glyph, weight) * scale;
+			double glyphWidth = RiseFont.width(font, glyph, weight) * scale;
 			AmlEmphasize.Frame frame = AmlEmphasize.evaluate(anim, index,
 				lineRelative);
 
@@ -1170,7 +1171,7 @@ public final class AppleLyricPlayer
 		graphics.pose().pushPose();
 		graphics.pose().translate(x, y, 0);
 		graphics.pose().scale((float)scale, (float)scale, 1);
-		graphics.drawString(font, PingFangFont.text(text, weight), 0, 0, color,
+		graphics.drawString(font, RiseFont.text(text, weight), 0, 0, color,
 			false);
 		graphics.pose().popPose();
 		if(scissor != null)

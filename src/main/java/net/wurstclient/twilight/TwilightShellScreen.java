@@ -9,12 +9,14 @@ package net.wurstclient.twilight;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.lwjgl.glfw.GLFW;
+import org.jetbrains.skia.Canvas;
 
 import com.mojang.blaze3d.platform.NativeImage;
 
@@ -24,6 +26,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.music.LyricLine;
 import net.wurstclient.music.NeteaseMusicPlayer;
 import net.wurstclient.music.NeteasePlaylist;
@@ -58,7 +61,12 @@ public final class TwilightShellScreen extends Screen
 		"最近播放", "Bilibili"};
 	
 	private static final String PAGE_SUBTITLE = "下午好，继续享受音乐";
-	private static final String SEARCH_HINT = "搜索歌曲、歌手、歌单";
+	/** 参考里搜索框的占位文案是「搜索音乐、歌手、专辑」。 */
+	private static final String SEARCH_HINT = "搜索音乐、歌手、专辑";
+
+	/** 侧栏标题与它的颜色，取自参考的 {@code .streaming-sidebar-title}。 */
+	private static final String SIDEBAR_TITLE = "流媒体";
+	private static final int SIDEBAR_TITLE_COLOR = 0xFF6B7280;
 	
 	/**
 	 * Cover rounding, in the reference's CSS pixels. Small covers keep the list
@@ -68,31 +76,31 @@ public final class TwilightShellScreen extends Screen
 	private static final int BAR_COVER_RADIUS = 10;
 	private static final int IMMERSIVE_COVER_RADIUS = 24;
 	
-	private static final String HERO_DAY = "31";
-	private static final String HERO_DATE = "7月31日 · 周五";
-	private static final String HERO_UPDATE = "每日 06:00 更新";
-	private static final String HERO_TITLE = "每日推荐";
-	private static final String HERO_TITLE_EN = "DAILY MIX";
-	private static final String HERO_DESC_1 = "从你的听歌足迹里长出来的今日歌单，";
-	private static final String HERO_DESC_2 = "每一首都有它出现的理由。";
-	private static final String HERO_PLAY = "播放全部";
-	private static final String HERO_OPEN = "查看全部";
-	
-	private static final String DUO_LEFT_NAME = "私人漫游";
-	private static final String DUO_LEFT_SUB = "Roaming FM · 随心而行的电台";
-	private static final String DUO_RIGHT_NAME = "私人雷达";
-	private static final String DUO_RIGHT_SUB = "Private Radar · 捕捉你错过的好歌";
-	
-	private static final String SECTION_TITLE = "今日为你精选";
-	private static final String SECTION_SUB = "点一首开始播放，队列会自动接上整份每日推荐";
-	private static final String SECTION_MORE = "完整歌单";
+	private static final String HERO_TITLE = TwilightHomeCopy.HERO_TITLE;
+	private static final String HERO_TITLE_EN = TwilightHomeCopy.HERO_TITLE_EN;
+	// 参考图那句拆成两行画
+	private static final String HERO_DESC_1 = "来自 网易云音乐的个性化内容，";
+	private static final String HERO_DESC_2 = "随你的收听偏好持续更新。";
+	private static final String HERO_PLAY = TwilightHomeCopy.HERO_PLAY;
+	private static final String HERO_OPEN = TwilightHomeCopy.HERO_OPEN;
+
+	private static final String DUO_LEFT_NAME = TwilightHomeCopy.DUO_LEFT_NAME;
+	private static final String DUO_LEFT_SUB = TwilightHomeCopy.DUO_LEFT_SUB;
+	private static final String DUO_RIGHT_NAME = TwilightHomeCopy.DUO_RIGHT_NAME;
+	private static final String DUO_RIGHT_SUB = TwilightHomeCopy.DUO_RIGHT_SUB;
+
+	private static final String SECTION_TITLE = TwilightHomeCopy.SECTION_TITLE;
+	private static final String SECTION_SUB = TwilightHomeCopy.SECTION_SUB;
+	private static final String SECTION_MORE = TwilightHomeCopy.SECTION_MORE;
 	
 	private static final String NOW_TITLE = "Bismuth";
 	private static final String NOW_ARTIST = "Ludicin";
 	
-	private static final float RADIUS_BAR = 14F;
+	private static final float RADIUS_BAR = 22F;
 	private static final float RADIUS_COVER = 6F;
-	private static final float[] COLLAGE_ROTATION = {-3F, 5F, -7F};
+
+	/** 窗口之外压暗游戏画面的遮罩。 */
+	private static final int BACKDROP = 0x66000000;
 	
 	private final TwilightTheme theme = TwilightTheme.light();
 	
@@ -114,6 +122,28 @@ public final class TwilightShellScreen extends Screen
 	private Home home;
 	private int activeNav;
 	private int hoverNav = -1;
+
+	/** 指针不在窗口内时的取值。 */
+	private static final int POINTER_NONE = -1;
+
+	/** 本帧的指针位置（GUI 坐标），拼贴的悬停判定要用。 */
+	private int pointerX = POINTER_NONE;
+	private int pointerY = POINTER_NONE;
+
+	/** 本帧的画布。Skia 时代绘制不需要它，换成原版图元后贴封面要用。 */
+	private GuiGraphics frameGraphics;
+
+	/** 播放条上循环模式按钮的矩形，绘制时算好、命中测试复用。 */
+	private Rect playModeButton;
+
+	/**
+	 * 本帧的浮动窗口在游戏画布里的位置。外壳是 1500:880 设计稿的一个窗口，不是
+	 * 满屏界面：所有布局都按窗口尺寸算，指针坐标要减掉这个原点。
+	 */
+	private int winX;
+	private int winY;
+	private int winW;
+	private int winH;
 	
 	private TwilightCoverCache covers;
 	private List<NeteaseSong> homeSongs;
@@ -130,6 +160,26 @@ public final class TwilightShellScreen extends Screen
 	private Rect[] playlistCards;
 	private int hoverPageRow = -1;
 	private int hoverPlaylist = -1;
+
+	/**
+	 * The cached static layer. Skia gives the real rounded corners, gradients
+	 * and vector text, but rasterising the window every frame costs tens of
+	 * milliseconds and uploads megabytes, so the layer is repainted only when
+	 * something in it actually changes.
+	 */
+	private TwilightSurface layer;
+
+	/** Everything that changes the cached layer; a change repaints it. */
+	private String layerSignature = "";
+
+	/** True while the cached layer is painted, so per-frame visuals (hover
+	 * rings, the playback progress) can be left to {@link #drawLiveLayer}. */
+	private boolean paintingCache;
+
+	/** Whether the pointer is over the hero collage or a duo card, both of which
+	 * move on hover and are therefore part of {@link #layerSignature()}. */
+	private boolean hoverStage;
+	private boolean hoverDuoCard;
 	
 	/**
 	 * Scrolling steps whole rows: the rectangles stay where they are and the
@@ -286,6 +336,14 @@ public final class TwilightShellScreen extends Screen
 		{
 			service.close();
 			service = null;
+		}
+		
+		// 关界面就把缓存层连同它的纹理一起放掉，别把几十兆留在显存里
+		if(layer != null)
+		{
+			layer.close();
+			layer = null;
+			layerSignature = "";
 		}
 		
 		clearQrTexture();
@@ -492,9 +550,28 @@ public final class TwilightShellScreen extends Screen
 	public void render(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTick)
 	{
-		frame = TwilightShellLayout.layout(width, height, false);
+		TwilightShellLayout.Window app =
+			TwilightShellLayout.window(width, height);
+		winX = app.x;
+		winY = app.y;
+		winW = app.width;
+		winH = app.height;
+
+		/*
+		 * 界面是浮在游戏画面上的窗口，指针换算到窗口坐标；窗口之外不命中任何
+		 * 区域，否则点到窗口外也会高亮。
+		 */
+		double localX = mouseX - winX;
+		double localY = mouseY - winY;
+		pointerX = (int)Math.round(localX);
+		pointerY = (int)Math.round(localY);
+		frameGraphics = graphics;
+		boolean inside = localX >= 0 && localY >= 0 && localX < winW
+			&& localY < winH;
+
+		frame = TwilightShellLayout.layout(winW, winH, app.scale, false);
 		home = TwilightHomeLayout.layout(frame);
-		hoverNav = frame.navItemAt(mouseX, mouseY);
+		hoverNav = inside ? frame.navItemAt(localX, localY) : -1;
 		refreshAccent();
 		
 		chartRows = TwilightListLayout.chartRows(frame, chartArea());
@@ -502,8 +579,9 @@ public final class TwilightShellScreen extends Screen
 		 * 行是按原矩形上移 scrollOffset() 画出来的，所以判断悬停时要把鼠标
 		 * 坐标加回去，否则高亮会比内容慢半行。
 		 */
-		hoverChart = homeSongs == null ? -1 : TwilightListLayout.rowAt(frame,
-			chartRows, mouseX, mouseY + scrollOffset());
+		hoverChart = !inside || homeSongs == null ? -1
+			: TwilightListLayout.rowAt(frame, chartRows, localX,
+				localY + scrollOffset());
 		
 		if(homeSongs != null && hoverChart >= homeSongs.size())
 			hoverChart = -1;
@@ -514,14 +592,24 @@ public final class TwilightShellScreen extends Screen
 		
 		List<NeteaseSong> pageList =
 			activeNav == 0 && !searchMode ? null : pageSongs();
-		hoverPageRow = pageList == null ? -1 : TwilightListLayout.rowAt(frame,
-			pageRows, mouseX, mouseY + scrollOffset());
+		hoverPageRow = !inside || pageList == null ? -1
+			: TwilightListLayout.rowAt(frame, pageRows, localX,
+				localY + scrollOffset());
 		
 		if(pageList != null && hoverPageRow >= pageList.size())
 			hoverPageRow = -1;
 		
-		hoverPlaylist = activeNav == 1 && openedPlaylist == null
-			? playlistAt(mouseX, mouseY) : -1;
+		hoverPlaylist = inside && activeNav == 1 && openedPlaylist == null
+			? playlistAt(localX, localY) : -1;
+
+		/*
+		 * 这两个悬停会改变元素自身的姿态（hero 拼图与 duo 卡），所以记进缓存
+		 * 层的签名：布尔量只在进出时翻转，不会随鼠标移动每帧重画。
+		 */
+		hoverStage = inside && home.heroStage.contains(pointerX, pointerY);
+		hoverDuoCard = inside
+			&& (home.duoCardLeft.contains(pointerX, pointerY)
+				|| home.duoCardRight.contains(pointerX, pointerY));
 		
 		if(immersive)
 		{
@@ -534,22 +622,218 @@ public final class TwilightShellScreen extends Screen
 		if(loginOverlay)
 			tickLoginOverlay();
 		
-		if(TwilightSkia.begin(graphics, 0, 0, width, height))
+		// 窗口之外把游戏画面压暗，界面才不像糊在世界上
+		graphics.fill(0, 0, width, height, BACKDROP);
+
+		/*
+		 * 三层：缓存层（圆角/渐变/矢量的静态界面，只在内容变化时重画一次）、
+		 * 每帧层（悬停环与播放进度），以及本来就在外面的封面/歌词/登录弹层。
+		 * 缓存层是这套界面既好看又不卡的关键：Skia 保证矢量观感，缓存保证每帧
+		 * 只剩一个带纹理的四边形。
+		 */
+		if(layer == null)
+			layer = new TwilightSurface("shell");
+
+		String signature = layerSignature();
+
+		if(!signature.equals(this.layerSignature))
 		{
+			this.layerSignature = signature;
+			layer.invalidate();
+		}
+
+		Canvas cache = layer.begin(winW, winH);
+
+		if(cache != null)
+		{
+			paintingCache = true;
+			TwilightSkia.bindCanvas(cache);
+
+			try
+			{
+				if(immersive)
+					drawImmersive();
+				else
+					renderSkia();
+			}finally
+			{
+				TwilightSkia.unbindCanvas();
+				paintingCache = false;
+			}
+
+			layer.commit();
+		}
+
+		if(layer.isReady())
+		{
+			layer.blit(graphics, winX, winY, winW, winH);
+			drawLiveLayer(graphics);
+
+		}else if(TwilightSkia.begin(graphics, winX, winY, winW, winH, true))
+		{
+			// Skia 用不了（原生库缺失或初始化失败）：退回原版图元，圆角与字体
+			// 是近似的，但界面还在
 			if(immersive)
 				drawImmersive();
 			else
 				renderSkia();
-			
+
 			TwilightSkia.end(graphics);
-		}else
-			renderFallback(graphics);
-		
+		}
+
+		// 封面走原版 blit，偏移用 pose 施加；下面各处的 enableScissor 不吃 pose，
+		// 所以那里的坐标要自己加窗口原点。
+		graphics.pose().pushPose();
+		graphics.pose().translate(winX, winY, 0);
 		drawCovers(graphics);
+		graphics.pose().popPose();
 		drawImmersiveLyrics(graphics);
 		
 		super.render(graphics, mouseX, mouseY, partialTick);
 		drawLoginOverlay(graphics);
+	}
+
+	/**
+	 * Everything that changes the cached layer's content. Hovering is part of it
+	 * on purpose: a hovered sidebar entry changes its label colour, and the hero
+	 * collage and the duo cards move when the pointer enters them, so those are
+	 * discrete changes the layer can be repainted for. The row and playlist
+	 * hovers are deliberately *not* here - they are drawn per frame instead,
+	 * because the pointer sweeps them dozens of times a second.
+	 */
+	private String layerSignature()
+	{
+		StringBuilder signature = new StringBuilder(96);
+		NeteaseSong current = PLAYER.getCurrentSong();
+
+		signature.append(winW).append('x').append(winH).append('|')
+			.append(activeNav).append('|').append(searchMode).append('|')
+			.append(immersive).append('|').append(loginOverlay).append('|')
+			.append(openedPlaylist == null ? "" : openedPlaylist.id())
+			.append('|').append(palette.accent).append('|')
+			.append(nowTitle()).append('|').append(nowArtist()).append('|')
+			.append(isPlaying()).append('|')
+			.append(PLAYER.getPlaybackMode().ordinal()).append('|')
+			.append(scrollRows).append(':').append(scrollSub).append('|')
+			.append(positionMs / 1000L).append('|').append(search).append('|')
+			.append(statusLine).append('|').append(pageStatus).append('|')
+			.append(hoverNav).append('|').append(hoverStage).append('|')
+			.append(hoverDuoCard).append('|')
+			.append(homeSongs == null ? -1 : homeSongs.size()).append('|')
+			.append(pageSongs() == null ? -1 : pageSongs().size()).append('|')
+			.append(searchResults == null ? -1 : searchResults.size())
+			.append('|')
+			.append(playlists == null ? -1 : playlists.size()).append('|')
+			.append(playlistCards == null ? -1 : playlistCards.length)
+			.append('|').append(current == null ? -1L : current.id());
+
+		return signature.toString();
+	}
+
+	/**
+	 * The per-frame layer: the parts that move continuously or with the pointer,
+	 * so caching them would mean repainting the whole window on every mouse move
+	 * and on every tick of the progress bar.
+	 */
+	private void drawLiveLayer(GuiGraphics graphics)
+	{
+		if(!layer.isReady() || immersive)
+			return;
+
+		graphics.pose().pushPose();
+		graphics.pose().translate(winX, winY, 0);
+
+		try
+		{
+			drawRowHover(graphics);
+			drawPlaylistHover(graphics);
+			drawLiveProgress(graphics);
+		}finally
+		{
+			graphics.pose().popPose();
+		}
+	}
+
+	/**
+	 * The song-row hover: the reference draws a 1px inset outline rather than a
+	 * filled row, which is cheap enough to draw every frame.
+	 */
+	private void drawRowHover(GuiGraphics graphics)
+	{
+		if(hoverChart >= 0 && chartRows != null && homeSongs != null
+			&& hoverChart < chartRows.length)
+			drawHoverRing(graphics, shifted(chartRows)[hoverChart],
+				TwilightListLayout.ROW_RADIUS, frame.contentBody);
+
+		if(hoverPageRow >= 0 && pageRows != null
+			&& hoverPageRow < pageRows.length)
+			drawHoverRing(graphics, shifted(pageRows)[hoverPageRow],
+				TwilightListLayout.ROW_RADIUS,
+				openedPlaylist == null ? frame.contentBody : detailListArea());
+	}
+
+	private void drawHoverRing(GuiGraphics graphics, Rect row, int radius,
+		Rect clip)
+	{
+		if(row == null || row.height() <= 0)
+			return;
+
+		graphics.enableScissor(clip.x() + winX, clip.y() + winY,
+			clip.right() + winX, clip.bottom() + winY);
+
+		try
+		{
+			FlatRenderer.drawRoundedOutline(graphics, Math.round(row.x()),
+				Math.round(row.y()), Math.round(row.right()),
+				Math.round(row.bottom()), Math.round(frame.px(radius)),
+				TwilightTheme.withAlpha(palette.accent, 0.30F));
+		}finally
+		{
+			graphics.disableScissor();
+		}
+	}
+
+	/**
+	 * The playlist-card hover. The reference does not move or scale the card -
+	 * only a play button appears at its bottom-right corner - so this is two
+	 * cheap primitives per frame instead of a layer repaint.
+	 */
+	private void drawPlaylistHover(GuiGraphics graphics)
+	{
+		if(activeNav != 1 || openedPlaylist != null || playlistCards == null
+			|| hoverPlaylist < 0 || hoverPlaylist >= playlistCards.length)
+			return;
+
+		Rect card = playlistCards[hoverPlaylist];
+		float size = frame.px(29);
+		float x = card.right() - frame.px(10) - size;
+		float y = card.bottom() - frame.px(10) - size;
+
+		FlatRenderer.fillRoundedRect(graphics, Math.round(x), Math.round(y),
+			Math.round(x + size), Math.round(y + size),
+			Math.round(size / 2F), palette.accent);
+		TwilightVanilla.playGlyph(graphics, x + size / 2F, y + size / 2F,
+			frame.px(12), 0xFFFFFFFF);
+	}
+
+	/**
+	 * The playback progress fill, which advances continuously and therefore
+	 * cannot live in the cached layer. The rail behind it and the time labels
+	 * do: the labels only change once a second, which is part of
+	 * {@link #layerSignature()}.
+	 */
+	private void drawLiveProgress(GuiGraphics graphics)
+	{
+		Rect progress = frame.progressBar(
+			TwilightShellLayout.PLAYER_BAR_SIDE_MARGIN);
+		float ratio = durationMs > 0
+			? Math.max(0F, Math.min(1F, positionMs / (float)durationMs)) : 0F;
+		float width = Math.max(frame.px(2), progress.width() * ratio);
+
+		FlatRenderer.fillRoundedRectHorizontalGradient(graphics,
+			Math.round(progress.x()), Math.round(progress.y()),
+			Math.round(progress.x() + width), Math.round(progress.bottom()),
+			999, palette.accent, TwilightTheme.PLAYER_PROGRESS_FILL_END);
 	}
 	
 	// ------------------------------------------------------------------
@@ -563,7 +847,7 @@ public final class TwilightShellScreen extends Screen
 		int muted = theme.mutedText();
 		int line = theme.shellLine();
 		
-		TwilightSkia.fillRect(0, 0, width, height, PAGE_BG);
+		TwilightSkia.fillRect(0, 0, winW, winH, PAGE_BG);
 		drawSidebar(accent, text, muted, line);
 		drawHeader(accent, text, muted, line);
 		drawHome(accent, text, muted, line);
@@ -598,7 +882,18 @@ public final class TwilightShellScreen extends Screen
 				button.height(), toolRadius, 1F,
 				TwilightTheme.withAlpha(text, 0.10F));
 		}
-		
+
+		/*
+		 * 参考侧栏在图标行与导航之间有一个「流媒体」标题。主题没有给它留额外
+		 * 高度（浮动面板的 top 只有 22px），所以画在导航区顶部的留白带里，
+		 * 不推动任何已有元素。
+		 */
+		TwilightSkia.text(SIDEBAR_TITLE,
+			frame.nav.x() + frame.px(TwilightShellLayout.SIDEBAR_TITLE_LEFT),
+			frame.nav.y() + frame.px(TwilightShellLayout.SIDEBAR_TITLE_TOP),
+			frame.px(TwilightShellLayout.SIDEBAR_TITLE_SIZE),
+			TwilightSkia.Weight.SEMIBOLD, SIDEBAR_TITLE_COLOR);
+
 		for(int i = 0; i < NAV_LABELS.length; i++)
 		{
 			Rect item = frame.navItem(i);
@@ -629,8 +924,8 @@ public final class TwilightShellScreen extends Screen
 					item.y(), item.width(), item.height(), itemRadius,
 					TwilightTheme.withAlpha(0xFF0F172A, 0.04F));
 			
-			float labelSize = frame.px(13);
-			TwilightSkia.text(NAV_LABELS[i], item.x() + frame.px(14),
+			float labelSize = frame.px(14);
+			TwilightSkia.text(NAV_LABELS[i], item.x() + frame.px(16),
 				item.centerY() - TwilightSkia.textHeight(labelSize,
 					TwilightSkia.Weight.REGULAR) / 2F,
 				labelSize, active ? TwilightSkia.Weight.SEMIBOLD
@@ -642,31 +937,52 @@ public final class TwilightShellScreen extends Screen
 	private void drawHeader(int accent, int text, int muted, int line)
 	{
 		Rect header = frame.contentHeader;
-		float titleSize = frame.px(26);
-		float subtitleSize = frame.px(13);
-		int margin = frame.px(TwilightShellLayout.CONTENT_MARGIN);
+		int margin = TwilightShellLayout.headerMarginX(frame.canvasWidth,
+			frame.scale);
 		float left = header.x() + margin;
-		float top = header.y() + frame.px(18);
-		
+
+		float titleSize = frame.px(Math.round(
+			TwilightShellLayout.HEADER_BODY_SIZE
+				* TwilightShellLayout.HEADER_TITLE_EM));
+		float subtitleSize = frame.px(Math.round(
+			TwilightShellLayout.HEADER_BODY_SIZE
+				* TwilightShellLayout.HEADER_SUBTITLE_EM));
+		float titleHeight =
+			TwilightSkia.textHeight(titleSize, TwilightSkia.Weight.SEMIBOLD);
+		float subtitleHeight =
+			TwilightSkia.textHeight(subtitleSize, TwilightSkia.Weight.REGULAR);
+		float gap = frame.px(TwilightShellLayout.HEADER_SUBTITLE_GAP);
+		float copyHeight = titleHeight + gap + subtitleHeight;
+
+		/*
+		 * 参考的头部是 align-items: center：上边距 52、内边距 12，然后在
+		 * min-height 64 的框里把标题与副标题整体垂直居中；右侧控件与这一块
+		 * 同心中对齐。
+		 */
+		float boxTop = header.y()
+			+ frame.px(TwilightShellLayout.HEADER_MARGIN_TOP)
+			+ frame.px(12);
+		float top = boxTop
+			+ Math.max(0, (frame.px(64) - copyHeight) / 2F);
+
 		TwilightSkia.text(pageTitle(), left, top, titleSize,
 			TwilightSkia.Weight.SEMIBOLD, text);
-		TwilightSkia.text(pageSubtitle(), left,
-			top + TwilightSkia.textHeight(titleSize,
-				TwilightSkia.Weight.SEMIBOLD) + frame.px(2),
+		TwilightSkia.text(pageSubtitle(), left, top + titleHeight + gap,
 			subtitleSize, TwilightSkia.Weight.REGULAR, muted);
-		
+
 		float pillWidth = frame.px(220);
-		float pillHeight = frame.px(32);
+		float pillHeight = frame.px(TwilightShellLayout.HEADER_SEARCH_HEIGHT);
 		float pillX = header.right() - margin - pillWidth;
-		float pillY = header.y() + frame.px(22);
-		
+		float pillY = top + copyHeight / 2F - pillHeight / 2F;
+
 		TwilightSkia.fillRoundRect(pillX, pillY, pillWidth, pillHeight, 999F,
 			0xFFFFFFFF);
 		TwilightSkia.strokeRoundRect(pillX, pillY, pillWidth, pillHeight, 999F,
 			1F, line);
 		boolean empty = search.length() == 0;
 		TwilightSkia.text(empty && !searchFocused ? SEARCH_HINT
-			: search + (searchFocused ? "_" : ""), pillX + frame.px(16),
+			: search + (searchFocused ? "_" : ""),
+			pillX + frame.px(TwilightShellLayout.HEADER_SEARCH_PADDING),
 			pillY + (pillHeight - TwilightSkia.textHeight(frame.px(12),
 				TwilightSkia.Weight.REGULAR)) / 2F,
 			frame.px(12), TwilightSkia.Weight.REGULAR,
@@ -708,6 +1024,21 @@ public final class TwilightShellScreen extends Screen
 		drawChart(accent, text, muted, line);
 	}
 	
+	/**
+	 * 拼贴第 {@code index} 张用的封面。
+	 *
+	 * <p>
+	 * 参考里的拼贴取的是每日推荐那批歌的封面，所以这里同样取主页歌曲的前三首；
+	 * 歌单还没加载出来时返回空串，由调用方降级成占位块。
+	 */
+	private String collageCoverUrl(int index)
+	{
+		if(homeSongs == null || index < 0 || index >= homeSongs.size())
+			return "";
+
+		return homeSongs.get(index).coverUrl();
+	}
+
 	private void drawHero(int accent, int text, int muted, int line)
 	{
 		Rect hero = home.hero;
@@ -716,75 +1047,106 @@ public final class TwilightShellScreen extends Screen
 		TwilightSkia.softShadow(hero.x(), hero.y() + frame.px(6), hero.width(),
 			hero.height(), radius, 22F, TwilightTheme.withAlpha(0xFF0F172A,
 				0.08F));
-		TwilightSkia.fillVerticalGradient(hero.x(), hero.y(), hero.width(),
-			hero.height(), radius, TwilightAccent.mix(0xFFFFFFFF, accent, 0.10F),
-			TwilightAccent.mix(0xFFFFFFFF, accent, 0.03F));
+
+		/*
+		 * 参考的 .music-hero 是「底色 + radial-gradient(ellipse at 84% 30%,
+		 * color-mix(accent 42%, surface-deep), transparent 75%)」：底色近乎白，
+		 * 强调色的光晕落在右侧偏上。早先这里是一条竖向线性渐变，观感完全不同。
+		 */
+		int heroSurface = TwilightAccent.mix(0xFFFFFFFF, accent, 0.03F);
+		TwilightSkia.fillRoundRect(hero.x(), hero.y(), hero.width(),
+			hero.height(), radius, heroSurface);
+		TwilightSkia.fillRadialGradient(hero.x(), hero.y(), hero.width(),
+			hero.height(), radius, hero.x() + hero.width() * 0.84F,
+			hero.y() + hero.height() * 0.30F, hero.width() * 0.75F,
+			TwilightAccent.mix(accent, heroSurface, 0.42F), 0x00FFFFFF);
+
 		TwilightSkia.strokeRoundRect(hero.x(), hero.y(), hero.width(),
 			hero.height(), radius, 1F, line);
 		
 		// the collage on the right, behind the copy
 		Rect[] covers = home.collage(frame);
-		
+		boolean hoveringStage = hoverStage;
+		long nowMs = System.currentTimeMillis();
+
 		for(int i = covers.length - 1; i >= 0; i--)
 		{
 			Rect cover = covers[i];
 			float coverRadius = frame.px(TwilightHomeLayout.COLLAGE_RADIUS);
-			float tint = i == 0 ? 0.45F : i == 1 ? 0.32F : 0.26F;
-			
+			float opacity = TwilightHomeLayout.COLLAGE_OPACITY[i];
+			float[] pose = TwilightHomeLayout.collageTransform(i,
+				cover.height(), nowMs, hoveringStage);
+
 			TwilightSkia.save();
-			TwilightSkia.rotate(COLLAGE_ROTATION[i], cover.centerX(),
-				cover.centerY());
-			TwilightSkia.softShadow(cover.x() + frame.px(4),
-				cover.y() + frame.px(10), cover.width(), cover.height(),
-				coverRadius, 12F, 0x3D0F172A);
-			TwilightSkia.fillRoundRect(cover.x(), cover.y(), cover.width(),
-				cover.height(), coverRadius,
-				TwilightAccent.mix(accent, 0xFF1F2937, 0.25F + tint * 0.4F));
+			TwilightSkia.rotate(pose[0], cover.centerX(), cover.centerY());
+
+			// 缩放以卡片中心为基准，和 CSS 的 transform-origin 居中一致
+			float size = cover.width() * pose[2];
+			float x = cover.x() - (size - cover.width()) / 2F;
+			float y = cover.y() + pose[1] - (size - cover.height()) / 2F;
+
+			TwilightSkia.softShadow(x + frame.px(4), y + frame.px(10), size,
+				size, coverRadius, 12F, 0x3D0F172A);
+
+			String url = collageCoverUrl(i);
+
+			if(url != null && !url.isBlank())
+			{
+				// 真封面。参考里后两张略透明，这里用顶点色带上 alpha 实现
+				frameGraphics.setColor(1F, 1F, 1F, opacity);
+				drawCover(frameGraphics, url, Math.round(x), Math.round(y),
+					Math.round(size), Math.round(size),
+					Math.round(coverRadius));
+				frameGraphics.setColor(1F, 1F, 1F, 1F);
+			}else
+				// 没有封面时的占位块，参考图也是这个降级
+				TwilightSkia.fillRoundRect(x, y, size, size, coverRadius,
+					TwilightAccent.mix(accent, 0xFF1F2937,
+						0.25F + i * 0.08F));
+
 			TwilightSkia.restore();
 		}
 		
-		// the copy column
+		// the copy column：每一行的 y 都由布局算好（整块在 hero 里垂直居中）
+		LocalDate today = LocalDate.now();
 		float padding = home.copyPadding;
 		float left = home.heroCopy.x() + padding;
-		float y = home.heroCopy.y() + padding;
+		float y = home.kickerY;
 		float badge = frame.px(TwilightHomeLayout.DAY_BADGE);
 		
 		TwilightSkia.fillRoundRect(left, y, badge, badge,
 			frame.px(TwilightHomeLayout.DAY_BADGE_RADIUS),
 			TwilightTheme.withAlpha(text, 0.92F));
-		TwilightSkia.textCentered(HERO_DAY, left + badge / 2F,
+		TwilightSkia.textCentered(TwilightHomeCopy.dayBadge(today),
+			left + badge / 2F,
 			y + (badge - TwilightSkia.textHeight(frame.px(20),
 				TwilightSkia.Weight.SEMIBOLD)) / 2F,
 			frame.px(20), TwilightSkia.Weight.SEMIBOLD, 0xFFFFFFFF);
-		
+
 		float metaX = left + badge + frame.px(12);
 		float metaSize = frame.px(13);
-		
-		TwilightSkia.text(HERO_DATE, metaX,
+
+		TwilightSkia.text(TwilightHomeCopy.dateLine(today), metaX,
 			y + frame.px(4), metaSize, TwilightSkia.Weight.SEMIBOLD, text);
-		TwilightSkia.text(HERO_UPDATE, metaX, y + frame.px(24),
-			frame.px(11), TwilightSkia.Weight.LIGHT, muted);
+		TwilightSkia.text(TwilightHomeCopy.REFRESH_LINE, metaX,
+			y + frame.px(24), frame.px(11), TwilightSkia.Weight.LIGHT, muted);
 		
-		y += badge + frame.px(TwilightHomeLayout.TITLE_MARGIN);
+		// 每一行的 y 都来自布局（整块在 hero 里垂直居中），绘制与命中测试共用
 		float titleSize = home.titleSize;
-		
-		TwilightSkia.text(HERO_TITLE, left, y, titleSize,
+
+		TwilightSkia.text(HERO_TITLE, left, home.titleY, titleSize,
 			TwilightSkia.Weight.SEMIBOLD, text);
-		y += TwilightSkia.textHeight(titleSize, TwilightSkia.Weight.SEMIBOLD)
-			+ frame.px(TwilightHomeLayout.TITLE_EN_MARGIN);
-		
-		drawSpacedText(HERO_TITLE_EN, left, y, frame.px(14),
+
+		drawSpacedText(HERO_TITLE_EN, left, home.titleEnY, frame.px(14),
 			TwilightHomeLayout.TITLE_EN_SPACING,
 			TwilightAccent.mix(accent, text, 0.22F));
-		y += TwilightSkia.textHeight(frame.px(14), TwilightSkia.Weight.SEMIBOLD)
-			+ frame.px(TwilightHomeLayout.DESC_MARGIN);
-		
-		float descSize = frame.px(14);
-		TwilightSkia.text(HERO_DESC_1, left, y, descSize,
+
+		float descSize = frame.px(TwilightHomeLayout.DESC_SIZE);
+		float descLineHeight = descSize * TwilightHomeLayout.DESC_LINE_HEIGHT;
+		TwilightSkia.text(HERO_DESC_1, left, home.descY, descSize,
 			TwilightSkia.Weight.REGULAR, muted);
-		TwilightSkia.text(HERO_DESC_2, left,
-			y + descSize * TwilightHomeLayout.DESC_LINE_HEIGHT, descSize,
-			TwilightSkia.Weight.REGULAR, muted);
+		TwilightSkia.text(HERO_DESC_2, left, home.descY + descLineHeight,
+			descSize, TwilightSkia.Weight.REGULAR, muted);
 		
 		// the two pills, anchored to the copy padding at the bottom
 		Rect primary = home.primaryCta;
@@ -826,30 +1188,48 @@ public final class TwilightShellScreen extends Screen
 		
 		Rect[] covers = TwilightHomeLayout.duoCovers(frame, card);
 		float coverRadius = frame.px(TwilightHomeLayout.DUO_COVER_RADIUS);
-		int[] coverTint = {0x000000, 0x000000, 0x000000};
-		
+		boolean hoveredCard = hoverDuoCard;
+
 		for(int i = 0; i < covers.length; i++)
-			TwilightSkia.fillRoundRect(covers[i].x(), covers[i].y(),
-				covers[i].width(), covers[i].height(), coverRadius,
-				TwilightAccent.mix(accent, 0xFF374151,
-					0.3F + i * 0.12F + coverTint[i]));
-		
-		float nameSize = frame.px(19);
-		float subSize = frame.px(12);
+		{
+			Rect cover = covers[i];
+			float[] pose = hoveredCard
+				? TwilightHomeLayout.duoCoverHoverTransform(i)
+				: TwilightHomeLayout.duoCoverTransform(i);
+			float rotation = pose[0];
+			float scale = pose[1];
+			// 悬停姿态多一个抬起量；非悬停时数组只有前两项
+			float lift = hoveredCard ? pose[2] : 0F;
+			float size = cover.width() * scale;
+			float cx = cover.centerX();
+			float cy = cover.centerY() + lift;
+
+			TwilightSkia.save();
+			TwilightSkia.rotate(rotation, cx, cy);
+			TwilightSkia.fillRoundRect(cx - size / 2F, cy - size / 2F, size,
+				size, coverRadius,
+				TwilightAccent.mix(accent, 0xFF374151, 0.3F + i * 0.12F));
+			TwilightSkia.restore();
+		}
+
+		float nameSize = frame.px(TwilightHomeLayout.DUO_NAME_SIZE);
+		float subSize = frame.px(TwilightHomeLayout.DUO_SUB_SIZE);
 		float textX = card.x() + frame.px(TwilightHomeLayout.DUO_PADDING_X);
-		
+
 		TwilightSkia.text(name, textX,
 			card.centerY() - TwilightSkia.textHeight(nameSize,
 				TwilightSkia.Weight.SEMIBOLD) - frame.px(2),
 			nameSize, TwilightSkia.Weight.SEMIBOLD, text);
-		TwilightSkia.text(sub, textX, card.centerY() + frame.px(2), subSize,
-			TwilightSkia.Weight.REGULAR, muted);
-		
+		// 副标题带字距（letter-spacing: 0.04em）
+		drawSpacedText(sub, textX, card.centerY() + frame.px(2), subSize,
+			TwilightHomeLayout.DUO_SUB_SPACING, muted);
+
 		Rect arrow = TwilightHomeLayout.duoArrow(frame, card);
 		TwilightSkia.strokeRoundRect(arrow.x(), arrow.y(), arrow.width(),
 			arrow.height(), 999F, 1F, TwilightTheme.withAlpha(text, 0.14F));
-		TwilightSkia.skipGlyph(arrow.centerX(), arrow.centerY(),
-			frame.px(10), true, text);
+		// 参考这里是箭头图标，不是跳转曲目图标
+		TwilightSkia.arrowRightGlyph(arrow.centerX(), arrow.centerY(),
+			frame.px(14), text);
 	}
 	
 	private void drawSectionHead(int text, int muted, int line)
@@ -929,10 +1309,33 @@ public final class TwilightShellScreen extends Screen
 			
 			NeteaseSong song = homeSongs.get(first + i);
 			
-			if(i == hoverChart)
+			// 悬停在每帧层画成 1px 内描边，缓存层不画，扫列表才不会一直重画
+			if(i == hoverChart && !paintingCache)
 				TwilightSkia.fillRoundRect(row.x(), row.y(), row.width(),
-					row.height(), frame.px(12),
+					row.height(), frame.px(TwilightListLayout.ROW_RADIUS),
 					TwilightTheme.withAlpha(accent, 0.1F));
+
+			// 序号列：20px / 字重 800 / 很淡（参考是 22% 不透明度），
+			// 正在播放的那一行用强调色
+			float indexSize = frame.px(TwilightListLayout.INDEX_SIZE);
+			Rect index = TwilightListLayout.rowIndex(frame, row);
+			boolean playingRow = PLAYER.getCurrentSong() != null
+				&& PLAYER.getCurrentSong().id() == song.id();
+			TwilightSkia.text(String.format("%02d", first + i + 1), index.x(),
+				index.centerY() - TwilightSkia.textHeight(indexSize,
+					TwilightSkia.Weight.SEMIBOLD) / 2F,
+				indexSize, TwilightSkia.Weight.SEMIBOLD,
+				playingRow ? accent : TwilightTheme.withAlpha(text, 0.22F));
+
+			// 时长列：右对齐到行内边距
+			float durationSize = frame.px(12);
+			Rect duration = TwilightListLayout.rowDuration(frame, row);
+			String time = NeteaseMusicPlayer.formatTime(song.durationMs());
+			TwilightSkia.text(time, duration.right() - TwilightSkia.textWidth(
+				time, durationSize, TwilightSkia.Weight.REGULAR),
+				duration.centerY() - TwilightSkia.textHeight(durationSize,
+					TwilightSkia.Weight.REGULAR) / 2F,
+				durationSize, TwilightSkia.Weight.REGULAR, muted);
 			
 			Rect cover = TwilightListLayout.rowCover(frame, row, true);
 			TwilightSkia.fillRoundRect(cover.x(), cover.y(), cover.width(),
@@ -1039,17 +1442,25 @@ public final class TwilightShellScreen extends Screen
 	private Rect[] playlistGrid()
 	{
 		Rect area = frame.contentBody;
-		int columns = 2;
-		int gap = (int)frame.px(20);
+
+		/*
+		 * 参考的推荐歌单是固定 6 列的 grid（{@code repeat(6, minmax(0,1fr))}，
+		 * 间距 {@code 24px 18px}），容器变窄时降为 4 列 / 3 列；卡片本身是
+		 * 1:1 封面 + 标题 + 副标题，不随悬停位移或缩放。
+		 */
+		int columns = area.width() >= frame.px(800) ? 6
+			: area.width() >= frame.px(560) ? 4 : 3;
+		int gapX = (int)frame.px(18);
+		int gapY = (int)frame.px(24);
 		int width = Math.max(0,
-			(int)((area.width() - gap * (columns - 1)) / columns));
-		int height = (int)frame.px(158);
+			(area.width() - gapX * (columns - 1)) / columns);
+		int height = width + (int)frame.px(56);
 		Rect[] cards = new Rect[6];
-		
+
 		for(int i = 0; i < cards.length; i++)
-			cards[i] = new Rect(area.x() + i % columns * (width + gap),
-				area.y() + i / columns * (height + gap), width, height);
-		
+			cards[i] = new Rect(area.x() + i % columns * (width + gapX),
+				area.y() + i / columns * (height + gapY), width, height);
+
 		return cards;
 	}
 	
@@ -1260,7 +1671,7 @@ public final class TwilightShellScreen extends Screen
 			
 			NeteaseSong song = songs.get(first + i);
 			
-			if(i == hoverPageRow)
+			if(i == hoverPageRow && !paintingCache)
 				TwilightSkia.fillRoundRect(row.x(), row.y(), row.width(),
 					row.height(), frame.px(12),
 					TwilightTheme.withAlpha(accent, 0.1F));
@@ -1307,15 +1718,16 @@ public final class TwilightShellScreen extends Screen
 			if(card.y() + card.height() > area.bottom())
 				continue;
 			
+			// 卡片悬停不位移也不缩放，只在右下角浮出播放按钮（每帧层负责）
 			TwilightSkia.fillRoundRect(card.x(), card.y(), card.width(),
 				card.height(), frame.px(16),
-				i == hoverPlaylist ? TwilightTheme.withAlpha(accent, 0.18F)
-					: 0xFFFFFFFF);
+				i == hoverPlaylist && !paintingCache
+					? TwilightTheme.withAlpha(accent, 0.18F) : 0xFFFFFFFF);
 			
 			int inset = (int)frame.px(12);
 			float coverHeight = card.height() - frame.px(56);
 			TwilightSkia.fillRoundRect(card.x() + inset, card.y() + inset,
-				card.width() - inset * 2, coverHeight, frame.px(12),
+				card.width() - inset * 2, coverHeight, frame.px(11),
 				TwilightTheme.withAlpha(accent, 0.35F));
 			
 			TwilightSkia.text(playlist.name(), card.x() + inset,
@@ -1351,7 +1763,7 @@ public final class TwilightShellScreen extends Screen
 		}
 		
 		Rect bar = frame.playerBar;
-		float size = frame.px(44);
+		float size = frame.px(TwilightShellLayout.PLAYER_COVER);
 		float coverX = bar.x() + frame.px(13);
 		float coverY = bar.centerY() - size / 2F;
 		drawCover(graphics, PLAYER.getCurrentSong(), (int)coverX, (int)coverY,
@@ -1369,8 +1781,8 @@ public final class TwilightShellScreen extends Screen
 			Rect clip = frame.contentBody;
 			
 			// 封面是原版 blit，Skia 的裁剪够不到，这里用矩形裁剪兜住
-			graphics.enableScissor(clip.x(), clip.y(), clip.right(),
-				clip.bottom());
+			graphics.enableScissor(clip.x() + winX, clip.y() + winY,
+				clip.right() + winX, clip.bottom() + winY);
 			
 			for(int i = 0; i < limit; i++)
 			{
@@ -1407,8 +1819,7 @@ public final class TwilightShellScreen extends Screen
 				drawCover(graphics, playlists.get(i).coverUrl(),
 					card.x() + inset, card.y() + inset,
 					card.width() - inset * 2,
-					card.height() - (int)frame.px(56),
-					(int)frame.px(TwilightListLayout.COVER_RADIUS));
+					card.height() - (int)frame.px(56), (int)frame.px(11));
 			}
 			return;
 		}
@@ -1423,8 +1834,8 @@ public final class TwilightShellScreen extends Screen
 		int limit = Math.min(songs.size() - first, rows.length);
 		Rect clip = frame.contentBody;
 		
-		graphics.enableScissor(clip.x(), clip.y(), clip.right(),
-			clip.bottom());
+		graphics.enableScissor(clip.x() + winX, clip.y() + winY,
+			clip.right() + winX, clip.bottom() + winY);
 		
 		for(int i = 0; i < limit; i++)
 		{
@@ -1484,15 +1895,15 @@ public final class TwilightShellScreen extends Screen
 	{
 		int size = (int)frame.px(300);
 		int x = (int)frame.px(72);
-		return new Rect(x, (height - size) / 2 - (int)frame.px(24), size, size);
+		return new Rect(x, (winH - size) / 2 - (int)frame.px(24), size, size);
 	}
-	
+
 	private Rect immersiveLyrics()
 	{
 		int left = immersiveCover().right() + (int)frame.px(48);
-		int right = width - (int)frame.px(72);
+		int right = winW - (int)frame.px(72);
 		int top = (int)frame.px(96);
-		int bottom = height - (int)frame.px(190);
+		int bottom = winH - (int)frame.px(190);
 		return new Rect(left, top, Math.max(0, right - left),
 			Math.max(0, bottom - top));
 	}
@@ -1507,23 +1918,23 @@ public final class TwilightShellScreen extends Screen
 	private Rect immersivePlayButton()
 	{
 		int size = (int)frame.px(56);
-		return new Rect(width / 2 - size / 2, height - (int)frame.px(124), size,
+		return new Rect(winW / 2 - size / 2, winH - (int)frame.px(124), size,
 			size);
 	}
-	
+
 	private Rect immersiveTransport(int direction)
 	{
 		int size = (int)frame.px(40);
-		int centreX = width / 2 + direction * (int)frame.px(80);
-		return new Rect(centreX - size / 2, height - (int)frame.px(116), size,
+		int centreX = winW / 2 + direction * (int)frame.px(80);
+		return new Rect(centreX - size / 2, winH - (int)frame.px(116), size,
 			size);
 	}
-	
+
 	private Rect immersiveProgress()
 	{
 		int margin = (int)frame.px(160);
-		return new Rect(margin, height - (int)frame.px(58),
-			Math.max(0, width - margin * 2), (int)frame.px(4));
+		return new Rect(margin, winH - (int)frame.px(58),
+			Math.max(0, winW - margin * 2), (int)frame.px(4));
 	}
 	
 	/**
@@ -1537,7 +1948,7 @@ public final class TwilightShellScreen extends Screen
 		int text = theme.bodyText();
 		int muted = theme.mutedText();
 		
-		TwilightSkia.fillVerticalGradient(0, 0, width, height, 0F,
+		TwilightSkia.fillVerticalGradient(0, 0, winW, winH, 0F,
 			TwilightAccent.mix(palette.heroFrom, 0xFF0B1220, 0.45F), PAGE_BG);
 		
 		Rect cover = immersiveCover();
@@ -1592,9 +2003,11 @@ public final class TwilightShellScreen extends Screen
 		float ratio = durationMs > 0
 			? Math.max(0F, Math.min(1F, positionMs / (float)durationMs)) : 0F;
 		
-		TwilightSkia.fillRoundRect(progress.x(), progress.y(),
-			Math.max(frame.px(2), progress.width() * ratio), progress.height(),
-			999F, accent);
+		if(!paintingCache)
+			TwilightSkia.fillHorizontalGradient(progress.x(), progress.y(),
+				Math.max(frame.px(2), progress.width() * ratio),
+				progress.height(), 999F, accent,
+				TwilightTheme.PLAYER_PROGRESS_FILL_END);
 		
 		String times = NeteaseMusicPlayer.formatTime(positionMs) + " / "
 			+ NeteaseMusicPlayer.formatTime(durationMs);
@@ -1639,15 +2052,11 @@ public final class TwilightShellScreen extends Screen
 		appleLyrics.setCurrentTime(PLAYER.getAdjustedLyricPositionMs(), false);
 		appleLyrics.update();
 		
-		graphics.enableScissor(area.x(), area.y(), area.right(), area.bottom());
-		try
-		{
-			appleLyrics.render(graphics, area.x(), area.y(), area.right(),
-				area.bottom());
-		}finally
-		{
-			graphics.disableScissor();
-		}
+		// 歌词播放器按传入的矩形自己裁剪（AppleLyricPlayer:837）并以该矩形的左上角
+		// 为绘制原点，所以直接把窗口原点加进它拿到的坐标即可，不必在外层再套
+		// pose 或 scissor——外面套 scissor 反而会和它内部的裁剪打架。
+		appleLyrics.render(graphics, area.x() + winX, area.y() + winY,
+			area.right() + winX, area.bottom() + winY);
 	}
 	
 	/** The immersive page swallows every click so nothing behind it reacts. */
@@ -1749,7 +2158,10 @@ public final class TwilightShellScreen extends Screen
 	{
 		if(immersive || loginOverlay || frame == null || delta == 0)
 			return super.mouseScrolled(mouseX, mouseY, delta);
-		
+
+		mouseX -= winX;
+		mouseY -= winY;
+
 		int rowHeight = Math.max(1,
 			(int)frame.px(TwilightListLayout.ROW_HEIGHT));
 		int total;
@@ -2179,7 +2591,7 @@ public final class TwilightShellScreen extends Screen
 		TwilightSkia.fillRoundRect(coverX, coverY, coverSize, coverSize,
 			frame.px(RADIUS_COVER), TwilightTheme.withAlpha(accent, 0.35F));
 		
-		float titleSize = frame.px(13);
+		float titleSize = frame.px(TwilightShellLayout.PLAYER_TITLE_SIZE);
 		float artistSize = frame.px(11);
 		float textX = coverX + coverSize + frame.px(12);
 		
@@ -2218,20 +2630,36 @@ public final class TwilightShellScreen extends Screen
 		float ratio = durationMs > 0
 			? Math.max(0F, Math.min(1F, positionMs / (float)durationMs)) : 0F;
 		
-		TwilightSkia.fillRoundRect(progress.x(), progress.y(),
-			Math.max(frame.px(2), progress.width() * ratio), progress.height(),
-			999F, accent);
+		if(!paintingCache)
+			TwilightSkia.fillHorizontalGradient(progress.x(), progress.y(),
+				Math.max(frame.px(2), progress.width() * ratio),
+				progress.height(), 999F, accent,
+				TwilightTheme.PLAYER_PROGRESS_FILL_END);
 		
+		String times = NeteaseMusicPlayer.formatTime(positionMs) + " / "
+			+ NeteaseMusicPlayer.formatTime(durationMs);
+		float timeSize = frame.px(11);
+		float timeWidth =
+			TwilightSkia.textWidth(times, timeSize, TwilightSkia.Weight.REGULAR);
+		float timeX = bar.right() - frame.px(16) - timeWidth;
+
 		if(durationMs > 0)
-			TwilightSkia.text(NeteaseMusicPlayer.formatTime(positionMs) + " / "
-				+ NeteaseMusicPlayer.formatTime(durationMs),
-				bar.right() - frame.px(16) - TwilightSkia.textWidth(
-					NeteaseMusicPlayer.formatTime(positionMs) + " / "
-						+ NeteaseMusicPlayer.formatTime(durationMs),
-					frame.px(11), TwilightSkia.Weight.REGULAR),
-				bar.centerY() - TwilightSkia.textHeight(frame.px(11),
+			TwilightSkia.text(times, timeX,
+				bar.centerY() - TwilightSkia.textHeight(timeSize,
 					TwilightSkia.Weight.REGULAR) / 2F,
-				frame.px(11), TwilightSkia.Weight.REGULAR, muted);
+				timeSize, TwilightSkia.Weight.REGULAR, muted);
+
+		/*
+		 * 循环模式按钮。参考的右簇顺序是 favorite / playMode / volume / queue，这里
+		 * 先做功能确实存在的 playMode（cyclePlaybackMode），放在时间读数左侧。
+		 */
+		float modeSize = frame.px(TwilightShellLayout.TRANSPORT_BUTTON);
+		playModeButton = new Rect(Math.round(timeX - frame.px(12) - modeSize),
+			Math.round(bar.centerY() - modeSize / 2F), Math.round(modeSize),
+			Math.round(modeSize));
+		TwilightSkia.playModeGlyph(playModeButton.centerX(),
+			playModeButton.centerY(), frame.px(18),
+			PLAYER.getPlaybackMode().ordinal(), muted);
 	}
 	
 	// ------------------------------------------------------------------
@@ -2240,12 +2668,20 @@ public final class TwilightShellScreen extends Screen
 	
 	private void renderFallback(GuiGraphics graphics)
 	{
+		graphics.pose().pushPose();
+		graphics.pose().translate(winX, winY, 0);
+		paintFallback(graphics);
+		graphics.pose().popPose();
+	}
+
+	private void paintFallback(GuiGraphics graphics)
+	{
 		int accent = palette.accent;
 		int text = theme.bodyText();
 		int muted = theme.mutedText();
 		Minecraft mc = Minecraft.getInstance();
 		
-		graphics.fill(0, 0, width, height, PAGE_BG);
+		graphics.fill(0, 0, winW, winH, PAGE_BG);
 		
 		Rect panel = frame.sidebar;
 		graphics.fill(panel.x(), panel.y(), panel.right(), panel.bottom(),
@@ -2328,14 +2764,21 @@ public final class TwilightShellScreen extends Screen
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
+		TwilightShellLayout.Window app =
+			TwilightShellLayout.window(width, height);
+		winX = app.x;
+		winY = app.y;
+		winW = app.width;
+		winH = app.height;
+
 		if(frame == null)
 		{
-			frame = TwilightShellLayout.layout(width, height, false);
+			frame = TwilightShellLayout.layout(winW, winH, app.scale, false);
 			home = TwilightHomeLayout.layout(frame);
 		}
-		
+
 		if(immersive)
-			return handleImmersiveClick(mouseX, mouseY);
+			return handleImmersiveClick(mouseX - winX, mouseY - winY);
 		
 		if(loginOverlay)
 		{
@@ -2358,6 +2801,10 @@ public final class TwilightShellScreen extends Screen
 			return true;
 		}
 		
+		// 模态弹层铺满整屏、用屏幕坐标；下面其余命中区都在窗口坐标里
+		mouseX -= winX;
+		mouseY -= winY;
+
 		if(loginPill().contains(mouseX, mouseY))
 		{
 			openLogin();
@@ -2404,14 +2851,21 @@ public final class TwilightShellScreen extends Screen
 	private boolean handlePlayerClick(double mouseX, double mouseY)
 	{
 		Rect bar = frame.playerBar;
-		float coverSize = frame.px(44);
+		float coverSize = frame.px(TwilightShellLayout.PLAYER_COVER);
 		float coverX = bar.x() + frame.px(13);
 		float coverY = bar.centerY() - coverSize / 2F;
-		
+
 		if(mouseX >= coverX && mouseX <= coverX + coverSize
 			&& mouseY >= coverY && mouseY <= coverY + coverSize)
 		{
 			immersive = true;
+			return true;
+		}
+
+		// 模式按钮的矩形来自绘制那一趟，避免命中与绘制各算一套
+		if(playModeButton != null && playModeButton.contains(mouseX, mouseY))
+		{
+			PLAYER.cyclePlaybackMode();
 			return true;
 		}
 		

@@ -162,6 +162,29 @@ public final class AmlVisual
 		return Math.min(MAX_BLUR_PX, level);
 	}
 
+	/** 模糊折减的下限，避免小视口里模糊完全消失得不自然。 */
+	public static final double MIN_BLUR_SCALE = 0.15;
+
+	/**
+	 * 视口越窄，同样等级的模糊在屏幕上占的比例越大。
+	 *
+	 * <p>
+	 * AMLL 的 {@code NARROW_VIEWPORT_BLUR_SCALE} 是个固定折减（0.8），那是按
+	 * 桌面播放器那个尺寸定的。搬到 HUD 元素这种 280×92 的小框里，0.8 折减等于
+	 * 没折减：24px 的字配上 3~5px 的模糊会糊得读不出来。所以这里改成按视口宽度
+	 * 正比折减——宽视口仍是 1.0，小框自然收敛到几乎不模糊。
+	 *
+	 * @return {@code 0.15 ~ 1.0} 之间的折减系数
+	 */
+	public static double viewportBlurScale(double viewportWidth)
+	{
+		if(viewportWidth <= 0)
+			return MIN_BLUR_SCALE;
+
+		return Math.max(MIN_BLUR_SCALE,
+			Math.min(1, viewportWidth / NARROW_VIEWPORT_WIDTH));
+	}
+
 	/**
 	 * {@code setLineTransformations}：主歌词非激活 97、背景人声非激活 75，
 	 * 暂停或激活时为 100。

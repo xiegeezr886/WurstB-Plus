@@ -33,6 +33,9 @@ public final class SkiaRegionRenderer
 		new ResourceLocation("wurst", "skia_region");
 	private static final long REGION_IDLE_TIMEOUT_MS = 5_000L;
 
+	/** Skia surfaces here are always RGBA_8888. */
+	private static final int BYTES_PER_PIXEL = 4;
+
 	private static SkiaRegionRenderer instance;
 
 	public static SkiaRegionRenderer get()
@@ -83,19 +86,8 @@ public final class SkiaRegionRenderer
 		if(regionSurface == null || regionTexture == null
 			|| regionPixelW > regionCapacityPixelW
 			|| regionPixelH > regionCapacityPixelH)
-		{
-			int newPixelW = Math.max(regionPixelW, regionCapacityPixelW);
-			int newPixelH = Math.max(regionPixelH, regionCapacityPixelH);
-			destroyRegionSurface();
-			regionSurface = Surface.Companion.makeRaster(
-				new ImageInfo(new ColorInfo(ColorType.RGBA_8888,
-					ColorAlphaType.UNPREMUL, null), newPixelW, newPixelH));
-			regionTexture = new DynamicTexture(newPixelW, newPixelH, false);
-			Minecraft.getInstance().getTextureManager()
-				.register(REGION_TEXTURE_ID, regionTexture);
-			regionCapacityPixelW = newPixelW;
-			regionCapacityPixelH = newPixelH;
-		}
+			createRegionResources(Math.max(regionPixelW, regionCapacityPixelW),
+				Math.max(regionPixelH, regionCapacityPixelH));
 
 		Canvas canvas = regionSurface.getCanvas();
 		canvas.restoreToCount(1);
@@ -129,29 +121,153 @@ public final class SkiaRegionRenderer
 		}
 	}
 
+	/**
+	 * Uploads the region into the GL texture.
+	 *
+	 * <p>
+	 * Every failure path here returns false rather than calling into the driver
+	 * with data it cannot trust: this method is what crashed the NVIDIA OpenGL
+	 * driver once already (an access violation inside
+	 * {@code glTexSubImage2D}), and a frame that is skipped is always better
+	 * than a driver crash.
+	 */
 	private boolean uploadRegion()
 	{
 		Pixmap pixmap = new Pixmap();
+		boolean packed = false;
+		ByteBuffer buffer = null;
 		try
 		{
 			if(!regionSurface.peekPixels(pixmap))
 				return false;
-			long addr = pixmap.getAddr();
+
+			long address = pixmap.getAddr();
 			int rowBytes = pixmap.getRowBytes();
-			ByteBuffer buf = MemoryUtil.memByteBuffer(addr,
-				rowBytes * regionCapacityPixelH);
-			// 先绑定一次以触发纹理存储分配，再按行距上传 Skia 像素
-			regionTexture.bind();
-			RenderSystem.pixelStore(3314, rowBytes / 4); // GL_UNPACK_ROW_LENGTH
-			GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0,
-				regionCapacityPixelW, regionCapacityPixelH, GL11.GL_RGBA,
-				GL11.GL_UNSIGNED_BYTE, buf);
-			RenderSystem.pixelStore(3314, 0);
+			int rowPixels = rowBytes / BYTES_PER_PIXEL;
+
+			if(address == 0 || rowBytes <= 0
+				|| rowPixels < regionCapacityPixelW)
+				return false;
+
+			int rowLength;
+
+			if(rowBytes % BYTES_PER_PIXEL == 0)
+			{
+				buffer = MemoryUtil.memByteBuffer(address,
+					rowBytes * regionCapacityPixelH);
+				rowLength = rowPixels;
+			}else
+			{
+				// GL_UNPACK_ROW_LENGTH counts pixels, so Skia's byte padding
+				// cannot be expressed through it. Copy into tight rows instead,
+				// which also lets us upload with the row length turned off.
+				buffer = packRows(address, rowBytes, regionCapacityPixelW,
+					regionCapacityPixelH);
+				packed = true;
+				rowLength = 0;
+			}
+
+			bindRegionTexture();
+
+			// MC tracks pixel store state, so it has to be set through it, and
+			// every field that could still hold a stale value is reset here.
+			RenderSystem.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, rowLength);
+			RenderSystem.pixelStore(GL11.GL_UNPACK_ALIGNMENT,
+				BYTES_PER_PIXEL);
+			RenderSystem.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, 0);
+			RenderSystem.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, 0);
+
+			try
+			{
+				GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0,
+					regionCapacityPixelW, regionCapacityPixelH, GL11.GL_RGBA,
+					GL11.GL_UNSIGNED_BYTE, buffer);
+			}finally
+			{
+				RenderSystem.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, 0);
+			}
+
 			return true;
+
+		}catch(RuntimeException e)
+		{
+			return false;
+
 		}finally
 		{
+			if(packed && buffer != null)
+				MemoryUtil.memFree(buffer);
+
 			pixmap.close();
 		}
+	}
+
+	/**
+	 * Copies pixels into a contiguous block of {@code width * 4} byte rows,
+	 * ignoring whatever padding sits between the source rows.
+	 *
+	 * <p>
+	 * Package private and free of GL and Skia types so the packing can be unit
+	 * tested: getting it wrong is what feeds the driver a bad row pitch.
+	 *
+	 * @return a newly allocated buffer the caller must free.
+	 */
+	static ByteBuffer packRows(long address, int rowBytes, int width,
+		int height)
+	{
+		int packedRowBytes = width * BYTES_PER_PIXEL;
+		ByteBuffer packedBuffer =
+			MemoryUtil.memAlloc(packedRowBytes * height);
+		ByteBuffer source = MemoryUtil.memByteBuffer(address,
+			rowBytes * height);
+
+		for(int row = 0; row < height; row++)
+		{
+			int start = row * rowBytes;
+			source.limit(start + packedRowBytes).position(start);
+			packedBuffer.put(source);
+		}
+
+		return packedBuffer.flip();
+	}
+
+	/**
+	 * Binds the region texture, recreating it when the texture manager no longer
+	 * holds it - a resource reload releases every registered texture, and
+	 * uploading into one that has been released is another way to hand the
+	 * driver a dead texture name.
+	 */
+	private void bindRegionTexture()
+	{
+		if(Minecraft.getInstance().getTextureManager()
+			.getTexture(REGION_TEXTURE_ID) != regionTexture)
+			recreateRegionTexture();
+
+		regionTexture.bind();
+	}
+
+	/** Creates the raster surface and its matching GL texture. */
+	private void createRegionResources(int pixelW, int pixelH)
+	{
+		destroyRegionSurface();
+		regionSurface = Surface.Companion.makeRaster(
+			new ImageInfo(new ColorInfo(ColorType.RGBA_8888,
+				ColorAlphaType.UNPREMUL, null), pixelW, pixelH));
+		regionCapacityPixelW = pixelW;
+		regionCapacityPixelH = pixelH;
+		recreateRegionTexture();
+	}
+
+	/**
+	 * Creates only the texture, leaving the surface alone - the surface holds
+	 * the frame that is being uploaded and must never be dropped here.
+	 */
+	private void recreateRegionTexture()
+	{
+		regionTexture = new DynamicTexture(regionCapacityPixelW,
+			regionCapacityPixelH, false);
+		Minecraft.getInstance().getTextureManager().register(REGION_TEXTURE_ID,
+			regionTexture);
 	}
 
 	private void pruneIdle()

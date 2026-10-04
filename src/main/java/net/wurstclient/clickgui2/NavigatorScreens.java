@@ -33,6 +33,11 @@ public final class NavigatorScreens
 	
 	public static Screen create(Screen parent)
 	{
+		// 与 ClickGuiScreens.create 同理：导航器里的图标也要线性过滤，
+		// 否则在非原始尺寸下是像素化的。
+		if(WurstClient.MC != null)
+			GuiIcon.configureFiltering(WurstClient.MC);
+
 		return WurstClient.INSTANCE.getGuiPreferences().isRiseMode()
 			? new NavigatorScreen() : new EpsilonPanelNavigatorScreen();
 	}

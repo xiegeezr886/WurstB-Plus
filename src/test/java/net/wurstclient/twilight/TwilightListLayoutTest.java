@@ -51,8 +51,10 @@ final class TwilightListLayoutTest
 		Rect[] right = TwilightListLayout.chartColumn(frame, area, 1);
 		
 		assertEquals(left[0].width(), right[0].width());
-		assertEquals(left[0].right() + frame.px(TwilightListLayout.CHART_COLUMN_GAP),
-			right[0].x());
+		// 参考的 grid 用分数列宽，整数落地后间距允许 1px 取整差
+		assertTrue(Math.abs(right[0].x() - left[0].right()
+			- frame.px(TwilightListLayout.CHART_COLUMN_GAP)) <= 1,
+			"两列之间应留出参考的间距");
 		assertEquals(area.right(), right[0].right());
 		assertFalse(left[0].intersects(right[0]));
 	}
@@ -125,7 +127,7 @@ final class TwilightListLayoutTest
 		Rect index = TwilightListLayout.rowIndex(frame, row);
 		Rect cover = TwilightListLayout.rowCover(frame, row, false);
 		
-		assertEquals(row.x() + frame.px(TwilightListLayout.ROW_PADDING),
+		assertEquals(row.x() + frame.px(TwilightListLayout.ROW_PADDING_X),
 			index.x());
 		assertTrue(index.right() <= cover.x());
 	}

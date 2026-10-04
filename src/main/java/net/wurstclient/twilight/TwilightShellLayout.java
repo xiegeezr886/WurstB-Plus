@@ -53,7 +53,7 @@ public final class TwilightShellLayout
 	 * {@code clamp(180px, 18vw, 216px)} comes from {@code SideMenu.vue}; the
 	 * library token {@code --te-menu-width} starts at 132px instead.
 	 */
-	public static final int SIDEBAR_MIN = 180;
+	public static final int SIDEBAR_MIN = 132;
 	
 	/** Canvas widths at which the sidebar switches to a narrower state. */
 	public static final int COMPACT_BELOW = 1100;
@@ -63,21 +63,30 @@ public final class TwilightShellLayout
 	
 	/** {@code .menu-items { padding: 22px 13px }}. */
 	public static final int NAV_PADDING_TOP = 22;
-	public static final int NAV_PADDING_RIGHT = 13;
+	public static final int NAV_PADDING_RIGHT = 12;
 	public static final int NAV_PADDING_BOTTOM = 22;
-	public static final int NAV_PADDING_LEFT = 13;
+	public static final int NAV_PADDING_LEFT = 16;
 	
 	/** {@code .menu-nav { gap: 5px }} - measured row pitch is 50px. */
 	public static final int NAV_GAP = 5;
 	
 	/** {@code .menu-item { height: 45px }}. */
-	public static final int NAV_ITEM_HEIGHT = 45;
+	public static final int NAV_ITEM_HEIGHT = 40;
+
+	/**
+	 * {@code .streaming-sidebar-title { font-size: calc(14px * 0.92857) }}——侧栏在
+	 * 图标行与导航之间有一个「流媒体」标题，颜色 {@code #6b7280}，左边距取
+	 * {@code .streaming-sidebar-header} 的 18px。
+	 */
+	public static final int SIDEBAR_TITLE_SIZE = 13;
+	public static final int SIDEBAR_TITLE_LEFT = 18;
+	public static final int SIDEBAR_TITLE_TOP = 2;
 	
 	/** {@code width: calc(100% - 8px)} of {@code SideMenu.vue}, not overridden. */
 	public static final int NAV_ITEM_RIGHT_INSET = 8;
 	
-	/** {@code .menu-item { border-radius: 13px }}. */
-	public static final int RADIUS_ITEM = 13;
+	/** {@code .menu-item { border-radius: 10px }}（{@code --te-radius-global}）。 */
+	public static final int RADIUS_ITEM = 10;
 	
 	/** {@code .menu-item:hover { transform: translateX(3px) }}. */
 	public static final int NAV_HOVER_TRANSLATE_X = 3;
@@ -102,6 +111,43 @@ public final class TwilightShellLayout
 	
 	/** Height of the page header inside the content area. */
 	public static final int CONTENT_HEADER_HEIGHT = 96;
+
+	// ---- 内容头（StreamingContentHeader.css）----
+
+	/** 基准正文字号，参考用 {@code --te-font-size-body} 的 14px 换算标题与副标题。 */
+	public static final int HEADER_BODY_SIZE = 14;
+
+	/** {@code font-size: calc(14px * 1.28571)}。 */
+	public static final float HEADER_TITLE_EM = 1.28571F;
+
+	/** {@code font-size: calc(14px * 0.85714)}。 */
+	public static final float HEADER_SUBTITLE_EM = 0.85714F;
+
+	/** {@code .streaming-content-subtitle { margin: 4px 0 0 }}。 */
+	public static final int HEADER_SUBTITLE_GAP = 4;
+
+	/**
+	 * {@code margin: calc(32px + 20px) clamp(36px, 6vw, 84px) 0}：上边距固定
+	 * 52px，左右随视口在 36~84 之间——设计宽 1500 下取到上限 84px。早先这里用
+	 * 内容区的 24px，标题几乎贴着窗口边，和参考的留白差了三倍多。
+	 */
+	public static final int HEADER_MARGIN_TOP = 52;
+	public static final int HEADER_MARGIN_X_MIN = 36;
+	public static final int HEADER_MARGIN_X_MAX = 84;
+	public static final float HEADER_MARGIN_X_VW = 0.06F;
+
+	/** {@code .streaming-search-box { height: 32px; padding: 0 16px }}。 */
+	public static final int HEADER_SEARCH_HEIGHT = 32;
+	public static final int HEADER_SEARCH_PADDING = 16;
+
+	/** 左右外边距在给定画布宽度下的取值。 */
+	public static int headerMarginX(int canvasWidth, float scale)
+	{
+		int value = Math.round(Math.max(HEADER_MARGIN_X_MIN,
+			Math.min(HEADER_MARGIN_X_MAX,
+				canvasWidth * HEADER_MARGIN_X_VW)) * scale);
+		return Math.max(0, value);
+	}
 	
 	/** Outer margin of the page content and the gap between cards. */
 	public static final int CONTENT_MARGIN = 24;
@@ -111,14 +157,30 @@ public final class TwilightShellLayout
 	public static final int RADIUS_HERO = 22;
 	public static final int RADIUS_CARD = 18;
 	
-	// ---- 播放条（实测 796..865，底部留空 14）----
-	
-	public static final int PLAYER_BAR_HEIGHT = 70;
+	// ---- 播放条 ----
+
+	/**
+	 * 高度与左右边距现在取**参考组件 CSS**：{@code .player-bar-shell} 是 72px 高、
+	 * 两侧 18px、{@code max-width: 1180px} 居中（{@code PlayerBar.css:822-835}，
+	 * 见 {@code docs/twilight-echo-port/spec-player-and-lyrics.md}）。早先这一版按
+	 * 参考截图量成 70/13，是因为当时的快照里没有 {@code PlayerBar.css}；现在源码
+	 * 就在 {@code source/Twilight_Echo}，以组件为准。
+	 */
+	public static final int PLAYER_BAR_HEIGHT = 72;
 	public static final int PLAYER_BAR_BOTTOM_MARGIN = 14;
-	
-	/** Measured left inset inside the content area: 229 - 216 = 13. */
-	public static final int PLAYER_BAR_SIDE_MARGIN = 13;
-	
+
+	/** {@code .player-bar-shell { left/right: 18px }}. */
+	public static final int PLAYER_BAR_SIDE_MARGIN = 18;
+
+	/** {@code .player-bar-shell { max-width: 1180px; margin: 0 auto }}. */
+	public static final int PLAYER_BAR_MAX_WIDTH = 1180;
+
+	/** {@code .player-cover { width: 48px; height: 48px }}——这一条两侧没有冲突。 */
+	public static final int PLAYER_COVER = 48;
+
+	/** {@code .player-title { font-size: calc(14px * 16 / 14) }}。 */
+	public static final int PLAYER_TITLE_SIZE = 16;
+
 	/** The reference snapshot leaves ~138px on the right for its scrollbar rail. */
 	public static final int PLAYER_BAR_SCROLLBAR_RAIL = 138;
 	
@@ -148,22 +210,81 @@ public final class TwilightShellLayout
 	/**
 	 * Scales the desktop design to the available canvas.
 	 *
+	 * <p>
+	 * Note this is the <b>preferred</b> scale, not the one the floating window
+	 * uses: it stops at {@code 0.7} so that the interface never shrinks into
+	 * illegibility, which on a small canvas makes the design taller and wider
+	 * than the canvas itself. {@link #window} instead derives its scale from the
+	 * exact fit, so nothing overflows.
+	 *
 	 * @return a factor between 0.7 and 1.6.
 	 */
 	public static float designScale(int canvasWidth, int canvasHeight)
 	{
 		if(canvasWidth <= 0 || canvasHeight <= 0)
 			return 0.7F;
-		
+
 		float byWidth = canvasWidth / (float)DESIGN_WIDTH;
 		float byHeight = canvasHeight / (float)DESIGN_HEIGHT;
 		float scale = Math.min(byWidth, byHeight);
-		
+
 		if(scale < 0.7F)
 			return 0.7F;
 		if(scale > 1.6F)
 			return 1.6F;
 		return scale;
+	}
+
+	/** Gap between the floating window and the edge of the game canvas. */
+	public static final int WINDOW_MARGIN = 12;
+
+	/**
+	 * Lower bound of the window scale. Below this the interface is unreadable, so
+	 * the window simply overflows the canvas rather than shrinking further.
+	 */
+	public static final float MIN_WINDOW_SCALE = 0.35F;
+
+	/**
+	 * The floating application window inside the game canvas: the largest
+	 * rectangle of the design's aspect ratio that fits, centred, never larger
+	 * than the design itself.
+	 */
+	public static final class Window
+	{
+		public final int x;
+		public final int y;
+		public final int width;
+		public final int height;
+		public final float scale;
+
+		private Window(int x, int y, int width, int height, float scale)
+		{
+			this.x = x;
+			this.y = y;
+			this.width = width;
+			this.height = height;
+			this.scale = scale;
+		}
+	}
+
+	/**
+	 * Computes the floating window for a game canvas of the given size. The
+	 * scale is the exact fit of the design into the available area, capped at
+	 * {@code 1} so a large canvas still shows a window instead of a wall to wall
+	 * interface.
+	 */
+	public static Window window(int canvasWidth, int canvasHeight)
+	{
+		int availableWidth = Math.max(1, canvasWidth - WINDOW_MARGIN * 2);
+		int availableHeight = Math.max(1, canvasHeight - WINDOW_MARGIN * 2);
+		float fit = Math.min(availableWidth / (float)DESIGN_WIDTH,
+			availableHeight / (float)DESIGN_HEIGHT);
+		float scale = Math.max(MIN_WINDOW_SCALE, Math.min(1F, fit));
+		int width = Math.round(DESIGN_WIDTH * scale);
+		int height = Math.round(DESIGN_HEIGHT * scale);
+
+		return new Window(Math.max(0, (canvasWidth - width) / 2),
+			Math.max(0, (canvasHeight - height) / 2), width, height, scale);
 	}
 	
 	public static SidebarMode sidebarMode(int canvasWidth)
@@ -263,10 +384,11 @@ public final class TwilightShellLayout
 				content.width(),
 				Math.max(0, barY - px(PLAYER_BAR_SIDE_MARGIN)
 					- contentHeader.bottom()));
-			playerBar = new Rect(
-				content.x() + px(PLAYER_BAR_SIDE_MARGIN), barY,
+			int barWidth = Math.min(px(PLAYER_BAR_MAX_WIDTH),
 				Math.max(0,
-					content.width() - px(PLAYER_BAR_SIDE_MARGIN) * 2),
+					content.width() - px(PLAYER_BAR_SIDE_MARGIN) * 2));
+			playerBar = new Rect(
+				content.x() + (content.width() - barWidth) / 2, barY, barWidth,
 				barHeight);
 		}
 		
@@ -415,8 +537,19 @@ public final class TwilightShellLayout
 	public static Frame layout(int canvasWidth, int canvasHeight,
 		boolean logoVisible)
 	{
-		return new Frame(canvasWidth, canvasHeight,
-			designScale(canvasWidth, canvasHeight),
+		return layout(canvasWidth, canvasHeight,
+			designScale(canvasWidth, canvasHeight), logoVisible);
+	}
+
+	/**
+	 * A layout at an explicit scale, used by the floating window so that the
+	 * scale matches the window size exactly instead of the clamped preference of
+	 * {@link #designScale}.
+	 */
+	public static Frame layout(int canvasWidth, int canvasHeight, float scale,
+		boolean logoVisible)
+	{
+		return new Frame(canvasWidth, canvasHeight, scale,
 			sidebarMode(canvasWidth), logoVisible);
 	}
 	

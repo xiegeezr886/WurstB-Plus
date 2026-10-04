@@ -21,6 +21,7 @@ import org.jetbrains.skia.Shader;
 import org.jetbrains.skia.Typeface;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.render.skia.SkiaFontManager;
 import net.wurstclient.render.skia.SkiaRegionRenderer;
 
@@ -70,6 +71,21 @@ public final class TwilightSkia
 	
 	private static Canvas canvas;
 	private static Paint paint;
+
+	/** 是否走原版图元后端，由带 {@code useVanilla} 的 {@link #begin} 设定。 */
+	private static boolean vanilla;
+	private static GuiGraphics vanillaGraphics;
+
+	/** 原版后端下窗口原点在屏幕上的位置：scissor 不吃 pose，裁剪得自己加上它。 */
+	private static int vanillaOffsetX;
+	private static int vanillaOffsetY;
+
+	/** 原版后端下当前是否有矩形裁剪生效。 */
+	private static boolean vanillaClipActive;
+
+	/** {@link #save()} 时记下当时是否有矩形裁剪，好让 {@link #restore()} 对应地关掉。 */
+	private static final java.util.ArrayDeque<Boolean> clipStack =
+		new java.util.ArrayDeque<>();
 	
 	private TwilightSkia()
 	{
@@ -84,32 +100,104 @@ public final class TwilightSkia
 	public static boolean begin(GuiGraphics graphics, int x, int y, int width,
 		int height)
 	{
+		vanilla = false;
+		vanillaGraphics = null;
+
 		if(width <= 0 || height <= 0)
 			return false;
-		
+
 		Canvas started =
 			SkiaRegionRenderer.get().beginRegion(x, y, width, height);
-		
+
 		if(started == null)
 		{
 			canvas = null;
 			return false;
 		}
-		
+
 		canvas = started;
 		return true;
 	}
-	
+
+	/**
+	 * 开始绘制，并选择用哪套后端。
+	 *
+	 * <p>
+	 * 原版后端不再建立 Skia 表面：它把传入的窗口原点压进 pose 栈，于是调用方
+	 * 仍然用 0 起算的局部坐标绘制，和区域路径的坐标语义一致。
+	 *
+	 * @param useVanilla
+	 *            true 走原版图元，false 与旧的重载等价（ESP 仍在用 Skia）。
+	 */
+	public static boolean begin(GuiGraphics graphics, int x, int y, int width,
+		int height, boolean useVanilla)
+	{
+		if(!useVanilla)
+			return begin(graphics, x, y, width, height);
+
+		if(width <= 0 || height <= 0)
+			return false;
+
+		vanilla = true;
+		vanillaGraphics = graphics;
+		vanillaOffsetX = x;
+		vanillaOffsetY = y;
+		vanillaClipActive = false;
+		clipStack.clear();
+		graphics.pose().pushPose();
+		graphics.pose().translate(x, y, 0);
+		return true;
+	}
+
+	/**
+	 * Draws into a caller-owned Skia canvas instead of the per-frame region
+	 * pipeline.
+	 *
+	 * <p>
+	 * This is what lets the Twilight shell paint a cached layer: the caller
+	 * rasterises the layer only when its content changes, uploads it once, and
+	 * blits the texture on every other frame. The coordinates are the same GUI
+	 * coordinates the region path uses, because the caller has already applied
+	 * the scale and the window translation to its canvas.
+	 */
+	public static void bindCanvas(Canvas target)
+	{
+		vanilla = false;
+		vanillaGraphics = null;
+		canvas = target;
+	}
+
+	/** Stops drawing into a canvas bound with {@link #bindCanvas}. */
+	public static void unbindCanvas()
+	{
+		canvas = null;
+	}
+
+	/** Whether a canvas bound with {@link #bindCanvas} is still in use. */
+	public static boolean isCanvasBound()
+	{
+		return !vanilla && canvas != null;
+	}
+
 	/** Uploads the region and blits it back into the GUI. */
 	public static void end(GuiGraphics graphics)
 	{
+		if(vanilla)
+		{
+			graphics.pose().popPose();
+			vanilla = false;
+			vanillaGraphics = null;
+			clipStack.clear();
+			return;
+		}
+
 		canvas = null;
 		SkiaRegionRenderer.get().endRegion(graphics);
 	}
-	
+
 	public static boolean isActive()
 	{
-		return canvas != null;
+		return vanilla ? vanillaGraphics != null : canvas != null;
 	}
 	
 	// ------------------------------------------------------------------
@@ -119,6 +207,13 @@ public final class TwilightSkia
 	public static void fillRect(float x, float y, float width, float height,
 		int color)
 	{
+		if(vanilla)
+		{
+			TwilightVanilla.fillRect(vanillaGraphics, x, y, width, height,
+				color);
+			return;
+		}
+
 		if(canvas == null || width <= 0 || height <= 0)
 			return;
 		
@@ -129,6 +224,13 @@ public final class TwilightSkia
 	public static void fillRoundRect(float x, float y, float width,
 		float height, float radius, int color)
 	{
+		if(vanilla)
+		{
+			TwilightVanilla.fillRoundRect(vanillaGraphics, x, y, width, height,
+				radius, color);
+			return;
+		}
+
 		if(canvas == null || width <= 0 || height <= 0)
 			return;
 		
@@ -142,6 +244,13 @@ public final class TwilightSkia
 	public static void fillRoundRectCorners(float x, float y, float width,
 		float height, float[] radii, int color)
 	{
+		if(vanilla)
+		{
+			TwilightVanilla.fillRoundRectCorners(vanillaGraphics, x, y, width,
+				height, radii, color);
+			return;
+		}
+
 		if(canvas == null || width <= 0 || height <= 0)
 			return;
 		
@@ -152,6 +261,13 @@ public final class TwilightSkia
 	public static void strokeRoundRect(float x, float y, float width,
 		float height, float radius, float strokeWidth, int color)
 	{
+		if(vanilla)
+		{
+			TwilightVanilla.strokeRoundRect(vanillaGraphics, x, y, width,
+				height, radius, color);
+			return;
+		}
+
 		if(canvas == null || width <= 0 || height <= 0)
 			return;
 		
@@ -169,6 +285,73 @@ public final class TwilightSkia
 	// ------------------------------------------------------------------
 	
 	/**
+	 * A radial glow inside a rounded rectangle, e.g. the accent bloom the
+	 * reference puts at 84% / 30% of its hero card
+	 * ({@code radial-gradient(ellipse at 84% 30%, …)}).
+	 *
+	 * <p>
+	 * The vanilla fallback has no radial primitive, so it degrades to the
+	 * linear gradient: the card keeps its tint, only the position of the glow is
+	 * lost.
+	 */
+	public static void fillRadialGradient(float x, float y, float width,
+		float height, float radius, float centerX, float centerY,
+		float glowRadius, int inner, int outer)
+	{
+		if(vanilla)
+		{
+			TwilightVanilla.fillVerticalGradient(vanillaGraphics, x, y, width,
+				height, radius, inner, outer);
+			return;
+		}
+
+		if(canvas == null || width <= 0 || height <= 0 || glowRadius <= 0)
+			return;
+
+		Shader shader = Shader.Companion.makeRadialGradient(
+			new Point(centerX, centerY), glowRadius, new int[]{inner, outer});
+
+		Paint brush = paint();
+		brush.setMode(PaintMode.FILL);
+		brush.setShader(shader);
+		brush.setColor(0xFFFFFFFF);
+		canvas.drawRRect(rrect(x, y, width, height, radius), brush);
+		brush.setShader(null);
+	}
+
+	/**
+	 * The horizontal gradient the reference uses for the progress fill
+	 * ({@code linear-gradient(90deg, accent, #0d9488)}). The vanilla fallback
+	 * has no gradient primitive of its own beyond the vertical one, so it goes
+	 * through {@code FlatRenderer}, which does its own vertex colour
+	 * interpolation.
+	 */
+	public static void fillHorizontalGradient(float x, float y, float width,
+		float height, float radius, int left, int right)
+	{
+		if(vanilla)
+		{
+			FlatRenderer.fillRoundedRectHorizontalGradient(vanillaGraphics, x,
+				y, x + width, y + height, radius, left, right);
+			return;
+		}
+
+		if(canvas == null || width <= 0 || height <= 0)
+			return;
+
+		Shader shader = Shader.Companion.makeLinearGradient(
+			new Point(x, y), new Point(x + width, y),
+			new int[]{left, right});
+
+		Paint brush = paint();
+		brush.setMode(PaintMode.FILL);
+		brush.setShader(shader);
+		brush.setColor(0xFFFFFFFF);
+		canvas.drawRRect(rrect(x, y, width, height, radius), brush);
+		brush.setShader(null);
+	}
+
+	/**
 	 * The vertical gradient the reference uses for page backgrounds and hero
 	 * cards. Skia also has radial and sweep gradients, the vanilla fallback does
 	 * not, so only the linear one is exposed for now.
@@ -176,6 +359,13 @@ public final class TwilightSkia
 	public static void fillVerticalGradient(float x, float y, float width,
 		float height, float radius, int top, int bottom)
 	{
+		if(vanilla)
+		{
+			TwilightVanilla.fillVerticalGradient(vanillaGraphics, x, y, width,
+				height, radius, top, bottom);
+			return;
+		}
+
 		if(canvas == null || width <= 0 || height <= 0)
 			return;
 		
@@ -199,6 +389,13 @@ public final class TwilightSkia
 	public static void softShadow(float x, float y, float width, float height,
 		float radius, float spread, int color)
 	{
+		if(vanilla)
+		{
+			TwilightVanilla.softShadow(vanillaGraphics, x, y, width, height,
+				radius, spread, color, SHADOW_LAYERS);
+			return;
+		}
+
 		if(canvas == null || width <= 0 || height <= 0 || spread <= 0)
 			return;
 		
@@ -228,6 +425,18 @@ public final class TwilightSkia
 	public static void clipRoundRect(float x, float y, float width,
 		float height, float radius)
 	{
+		if(vanilla)
+		{
+			// 原版只有矩形裁剪，圆角裁剪退化成矩形裁剪
+			vanillaGraphics.enableScissor(
+				Math.round(vanillaOffsetX + x),
+				Math.round(vanillaOffsetY + y),
+				Math.round(vanillaOffsetX + x + width),
+				Math.round(vanillaOffsetY + y + height));
+			vanillaClipActive = true;
+			return;
+		}
+
 		if(canvas == null)
 			return;
 		
@@ -238,26 +447,60 @@ public final class TwilightSkia
 	/** Saves the canvas state; pair it with {@link #restore()}. */
 	public static void save()
 	{
+		if(vanilla)
+		{
+			vanillaGraphics.pose().pushPose();
+			clipStack.push(vanillaClipActive);
+			return;
+		}
+
 		if(canvas == null)
 			return;
-		
+
 		canvas.save();
 	}
 	
 	/** Rotates around a pivot, used by the tilted hero covers. */
 	public static void rotate(float degrees, float pivotX, float pivotY)
 	{
+		if(vanilla)
+		{
+			TwilightVanilla.rotate(vanillaGraphics, degrees, pivotX, pivotY);
+			return;
+		}
+
 		if(canvas == null)
 			return;
-		
+
 		canvas.rotate(degrees, pivotX, pivotY);
 	}
 	
 	public static void restore()
 	{
+		if(vanilla)
+		{
+			// 没有配对的 save 就不动 pose，否则会把 begin 压进去的窗口原点弹掉
+			if(clipStack.isEmpty())
+				return;
+
+			clipStack.pop();
+
+			// scissor 不属于 pose 栈，裁剪要在这里显式收掉。判据必须是**当前**
+			// 状态而不是 save 当时的状态：save 常常发生在裁剪之前，照当时的
+			// 状态判断就永远关不掉，后面整屏都会被裁黑。
+			if(vanillaClipActive)
+			{
+				vanillaGraphics.disableScissor();
+				vanillaClipActive = false;
+			}
+
+			vanillaGraphics.pose().popPose();
+			return;
+		}
+
 		if(canvas == null)
 			return;
-		
+
 		canvas.restore();
 	}
 	
@@ -268,6 +511,13 @@ public final class TwilightSkia
 	public static void fillTriangle(float x1, float y1, float x2, float y2,
 		float x3, float y3, int color)
 	{
+		if(vanilla)
+		{
+			TwilightVanilla.fillTriangle(vanillaGraphics, x1, y1, x2, y2, x3,
+				y3, color);
+			return;
+		}
+
 		if(canvas == null)
 			return;
 		
@@ -314,14 +564,86 @@ public final class TwilightSkia
 	{
 		float half = size / 2F;
 		float direction = forward ? 1F : -1F;
-		
+
 		fillTriangle(centerX - direction * half, centerY - half,
 			centerX + direction * half * 0.2F, centerY,
 			centerX - direction * half, centerY + half, color);
 		fillRect(forward ? centerX + half * 0.35F : centerX - half * 0.75F,
 			centerY - half, Math.max(1.5F, size * 0.18F), size, color);
 	}
+
+	/**
+	 * 一个右箭头。参考的 {@code .duo-arrow} 用的是箭头图标，而不是跳转曲目图标。
+	 *
+	 * <p>
+	 * 由矩形与三角形拼出来，因此两条后端都自动可用（它们本来就分别路由
+	 * {@link #fillRect} 与 {@link #fillTriangle}）。
+	 */
+	public static void arrowRightGlyph(float centerX, float centerY, float size,
+		int color)
+	{
+		float half = size / 2F;
+		float shaftHeight = Math.max(1.5F, size * 0.14F);
+		float headSize = size * 0.5F;
+
+		fillRect(centerX - half, centerY - shaftHeight / 2F,
+			size - headSize * 0.4F, shaftHeight, color);
+		fillTriangle(centerX + half - headSize, centerY - headSize / 2F,
+			centerX + half, centerY, centerX + half - headSize,
+			centerY + headSize / 2F, color);
+	}
 	
+	/**
+	 * 播放模式图标：列表循环 / 单曲循环 / 随机。
+	 *
+	 * <p>
+	 * 参考的这三个图标来自图标字体，我们没有字形，就用圆环描边加中心记号拼出来：
+	 * 列表循环是环内三角、单曲循环是环内竖杠、随机是环内交叉线，三者一眼可分。
+	 * 全部由 {@link #strokeRoundRect}、{@link #fillRect} 与 {@link #fillTriangle}
+	 * 组成，所以两条后端都自动可用。
+	 *
+	 * @param modeOrdinal
+	 *            {@code NeteaseMusicPlayer.PlaybackMode} 的序数
+	 */
+	public static void playModeGlyph(float centerX, float centerY, float size,
+		int modeOrdinal, int color)
+	{
+		float half = size / 2F;
+		float thickness = Math.max(1.2F, size * 0.09F);
+
+		strokeRoundRect(centerX - half, centerY - half, size, size,
+			half * 0.55F, thickness, color);
+
+		switch(modeOrdinal)
+		{
+			case 1 ->
+			// 单曲循环：环内一根竖杠
+			fillRect(centerX - thickness / 2F, centerY - half * 0.45F,
+				thickness, half * 0.9F, color);
+
+			case 2 ->
+			// 随机：环内交叉线
+			{
+				save();
+				rotate(45F, centerX, centerY);
+				fillRect(centerX - half * 0.45F, centerY - thickness / 2F,
+					half * 0.9F, thickness, color);
+				restore();
+				save();
+				rotate(-45F, centerX, centerY);
+				fillRect(centerX - half * 0.45F, centerY - thickness / 2F,
+					half * 0.9F, thickness, color);
+				restore();
+			}
+
+			default ->
+			// 列表循环：环内一个小三角
+			fillTriangle(centerX - half * 0.3F, centerY - half * 0.4F,
+				centerX + half * 0.4F, centerY,
+				centerX - half * 0.3F, centerY + half * 0.4F, color);
+		}
+	}
+
 	// ------------------------------------------------------------------
 	// 文字
 	// ------------------------------------------------------------------
@@ -333,14 +655,32 @@ public final class TwilightSkia
 	public static void text(String text, float x, float topY, float size,
 		Weight weight, int color)
 	{
-		if(canvas == null || text == null || text.isEmpty())
+		if(text == null || text.isEmpty())
 			return;
-		
-		Font font = font(size, weight);
-		FontMetrics metrics = font.getMetrics();
-		
+
+		if(vanilla)
+		{
+			TwilightVanilla.text(vanillaGraphics, text, x, topY, size, weight,
+				color);
+			return;
+		}
+
+		if(canvas == null)
+			return;
+
 		Paint brush = fill(color);
-		canvas.drawString(text, x, topY - metrics.getAscent(), font, brush);
+		float cursor = x;
+
+		for(int i = 0; i < text.length();)
+		{
+			int end = runEnd(text, i);
+			String run = text.substring(i, end);
+			Font font = font(size, weight, run);
+			canvas.drawString(run, cursor,
+				topY - font.getMetrics().getAscent(), font, brush);
+			cursor += font.measureTextWidth(run);
+			i = end;
+		}
 	}
 	
 	public static void textCentered(String text, float centerX, float topY,
@@ -354,13 +694,66 @@ public final class TwilightSkia
 	{
 		if(text == null || text.isEmpty())
 			return 0;
-		
-		return font(size, weight).measureTextWidth(text);
+
+		if(vanilla)
+			return TwilightVanilla.textWidth(text, size, weight);
+
+		float total = 0;
+
+		for(int i = 0; i < text.length();)
+		{
+			int end = runEnd(text, i);
+			total += font(size, weight, text.substring(i, end))
+				.measureTextWidth(text.substring(i, end));
+			i = end;
+		}
+
+		return total;
 	}
-	
+
 	public static float textHeight(float size, Weight weight)
 	{
-		return font(size, weight).getMetrics().getHeight();
+		if(vanilla)
+			return TwilightVanilla.textHeight(size, weight);
+
+		/*
+		 * 行高按字号算，不取字体度量：hero 那类竖排块是用 textHeight 累加出
+		 * 每一行的 y 的，取度量的话换一次字面（拉丁 SF Pro / 汉字系统字体）
+		 * 整块高度就变，标题、描述、按钮会互相压上。
+		 */
+		return size;
+	}
+
+	/**
+	 * 拉丁与汉字要分别选字面（SF Pro Rounded 没有汉字），所以先把字符串切成
+	 * 「同一字面能覆盖」的连续段：汉字一段、其余一段。
+	 */
+	private static int runEnd(String text, int start)
+	{
+		int codePoint = text.codePointAt(start);
+		boolean cjk = needsCjkFace(codePoint);
+		int i = start + Character.charCount(codePoint);
+
+		while(i < text.length())
+		{
+			int next = text.codePointAt(i);
+
+			if(needsCjkFace(next) != cjk)
+				break;
+
+			i += Character.charCount(next);
+		}
+
+		return i;
+	}
+
+	/** 汉字、假名、谚文与全角标点归到有中文字形的那一档。 */
+	private static boolean needsCjkFace(int codePoint)
+	{
+		return codePoint >= 0x2E80 && codePoint <= 0x9FFF
+			|| codePoint >= 0xAC00 && codePoint <= 0xD7AF
+			|| codePoint >= 0xF900 && codePoint <= 0xFAFF
+			|| codePoint >= 0xFF00 && codePoint <= 0xFF60;
 	}
 	
 	// ------------------------------------------------------------------
@@ -391,10 +784,20 @@ public final class TwilightSkia
 		return brush;
 	}
 	
-	private static Font font(float size, Weight weight)
+	private static Font font(float size, Weight weight, String text)
+	{
+		return font(size, weight, needsCjkFace(text.codePointAt(0)));
+	}
+
+	/**
+	 * @param cjk
+	 *            这一段是否含汉字：含则用苹方（有中文字形），否则用 SF Pro
+	 *            Rounded
+	 */
+	private static Font font(float size, Weight weight, boolean cjk)
 	{
 		float rounded = Math.round(size * 2F) / 2F;
-		String key = weight + "@" + rounded;
+		String key = weight + "@" + rounded + (cjk ? "#cjk" : "#latin");
 		Font cached = FONTS.get(key);
 		
 		if(cached != null)
@@ -402,23 +805,25 @@ public final class TwilightSkia
 		
 		SkiaFontManager fonts = SkiaFontManager.get();
 		Typeface typeface;
-		
-		switch(weight)
+		boolean embolden = false;
+
+		if(!cjk)
 		{
-			case LIGHT:
-			typeface = fonts.light();
-			break;
-			
-			case SEMIBOLD:
-			typeface = fonts.semibold();
-			break;
-			
-			default:
-			typeface = fonts.regular();
-			break;
+			// 拉丁用 SF Pro Rounded：只有一个字重，半粗用 Skia 的合成加粗顶
+			typeface = fonts.latin();
+			embolden = weight == Weight.SEMIBOLD;
+		}else
+		{
+			// 汉字用系统字体（Windows 是微软雅黑），同样只有一个字重
+			typeface = fonts.cjk();
+			embolden = weight == Weight.SEMIBOLD;
 		}
-		
+
 		Font font = new Font(typeface, rounded);
+
+		if(embolden)
+			font.setEmboldened(true);
+
 		FONTS.put(key, font);
 		return font;
 	}

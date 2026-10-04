@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
 import net.wurstclient.altmanager.AltManager;
 import net.wurstclient.altmanager.Encryption;
+import net.wurstclient.background.BackgroundManager;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.clickgui2.ClickGuiStyle;
 import net.wurstclient.clickgui2.GuiPreferences;
@@ -214,6 +215,7 @@ public enum WurstClient
 			inventoryActionQueue.stop();
 		NeteaseMusicPlayer.INSTANCE.shutdown();
 		AsyncTextureLoader.shutdown();
+		BackgroundManager.shutdown();
 	}
 	
 	private Path createWurstFolder()
