@@ -9,17 +9,19 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 ## v1.6.0 - 根目录 Forge 1.20.1（仅此工程）
 
-### 新增子系统（152 个 Java 文件，14 个平台工程中不存在）
+### 新增子系统（188 个 Java 文件，14 个平台工程中不存在）
 
 | 包 | 文件数 | 说明 |
 | --- | ---: | --- |
 | `clickgui2/component` | 27 | VAPE 风格组件层：`VapeClickGuiScreen`、`SuperSoftClickGuiScreen` / `SuperSoftRowsWindow` / `SuperSoftSettingsWindow`、`ModuleCardComponent`、`InlineSettingComponents`、`CategoryPanelComponent`、`VapeTextInputComponent` 等 |
 | `music` + `music/apple` | 17 | 网易云音乐：`NeteaseCloudApi`、`NeteaseMusicPlayer`、`MusicAccountManager`、`LyricParser`；`apple/` 提供逐字歌词动画（`AppleLyricPlayer`、`AppleTimeline`、`AppleLayout`、`LyricWordSplitter`、`Spring`） |
-| `clickgui2/music` | 13 | 音乐 GUI 页面：`HomePage`、`SearchPage`、`LikedPage`、`PlaylistDetailPage`、`LoginPage`、`PlayerDetailOverlay`、`BottomPlayerBar`、`StarRiverBackground`、`MusicRegion`、`NeteaseImageCache`、`CoverParticleSystem`、`CoverRippleSystem`、`MusicContext` |
+| `twilight` | 17 | Twilight Echo 音乐界面（已替换旧网易云 GUI）：`TwilightShellScreen`（外壳 + 主页 + 内容页 + 沉浸播放页）、`TwilightShellLayout` / `TwilightHomeLayout` / `TwilightListLayout`（几何）、`TwilightSkia`（Skia 绘制）、`TwilightTheme` / `TwilightAccent` / `TwilightEasing` / `TwilightGeometry`、`TwilightMusicService` + `TwilightApiEndpoint`（本地增强服务）、`TwilightCoverCache` / `TwilightCornerMask` / `TwilightCoverFit` / `CoverBlur`、`TwilightVanilla` / `TwilightHomeCopy` |
+| `background` + `gui/title/BackgroundSelectScreen` | 14 | 标题界面自定义背景：`BackgroundManager`（单例、异步解码、原版 `blit` 绘制）、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`（Ken Burns 等运动）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`（Wallpaper Engine 导入）、`BackgroundFilePicker` / `BackgroundFileChooser` |
+| `clickgui2/music` | 1 | 仅剩 `NeteaseImageCache`（封面下载 / 解码 / 取色），由 Twilight 界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用 |
 | `compose` | 11 | 声明式 UI 布局树：`UiNode` / `UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer`，配合 `AnimFloat`、`FlowingGradient`、`ModuleColors` |
-| `clickgui2/epsilon` | 5 | Epsilon 风格下拉式 GUI：`EpsilonDropdownScreen`、`EpsilonDropdownPanel`、`EpsilonDropdownTheme`、`EpsilonModuleButton`、`EpsilonCategoryPanel` |
+| `clickgui2/epsilon` | 8 | Epsilon 风格下拉式 GUI：`EpsilonDropdownScreen`、`EpsilonDropdownPanel`、`EpsilonDropdownTheme`、`EpsilonModuleButton`、`EpsilonCategoryPanel`，以及面板布局版 `EpsilonPanelLayout` / `EpsilonPanelNavigatorScreen` / `EpsilonPanelTheme` |
 | `clickgui2/supersoft` | 5 | `EpsilonMd3Theme`（Material Design 3 TonalSpot 暗色调色板）、`SuperSoftTheme`、`SuperSoftRenderer`、`UiMotion`、`UiTween` |
-| `render/skia` | 4 | Skiko 矢量渲染：`SkikoNatives`（解压并加载原生库）、`SkiaGlBackend`、`SkiaFontManager`、`SkiaRegionRenderer` |
+| `render/skia` | 6 | Skiko 矢量渲染：`SkikoNatives`（解压并加载原生库）、`SkiaGlBackend`、`SkiaFontManager`、`SkiaRegionRenderer`，以及 ESP 用的 `EspSkia` / `EspIndicatorGlyphs` |
 | `gui/visual` | 3 | `VisualTheme`（语义色 token）、`VisualRenderer`、`VisualScreenMotion` |
 | `hud2/render` | 2 | `RiseFrostedGlass`（磨砂玻璃）、`RiseHudFont` |
 | `perimeter` | 35 | 周界挖掘全套：区域模型与游标、液体策略与边界封闭、方块限制与批次、导航 / 交互 / 装备 / 补给策略、28 状态自动化编排、双语文本 |
@@ -35,7 +37,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 `AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SeedOreESP`、`SeedStructureESP`、`SuperKnockback`、`VehicleBoost`、`WTap`。
 
-`MusicPlayer`（OTHER 分类）打开 `NeteaseMusicScreen`，自身带 `@DontSaveState` / `@DontBlock`。
+`MusicPlayer`（OTHER 分类）打开 `TwilightShellScreen`，自身带 `@DontSaveState` / `@DontBlock`。
 
 ### 种子矿透（SeedOreESP，新增 10 个文件）
 
@@ -78,7 +80,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 - **未实现 / 已知局限**：① 不做格基归约（LLL），因此**不能**在 2^48 全域内无范围反解，只能确认候选或搜索给定范围；② 观测需玩家手动提供（客户端拿不到服务端结构数据）；③ 未在真实存档中验证反解结果；④ `exclusion_zone` 与要塞（同心环）仍不参与。
 
 
-- 根工程 `test` 通过：112 个测试类、545 项、0 失败（含种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、格基替代解法的闭环还原、结构扫描器 28 例；含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析、周界挖掘的区域几何与进度/ETA）。
+- 根工程 `test` 通过（2026-10-04 实测）：**174 个测试类、1090 项、0 失败**（含种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、格基替代解法的闭环还原、结构扫描器 28 例；含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析、周界挖掘的区域几何与进度/ETA、Twilight 外壳与主页/列表几何、封面圆角蒙版与模糊、标题背景的存储/运动/壁纸引擎导入）。
 - 产物：`build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（约 68 MB）。
 - 仅验证构建与单元测试；v1.6 新子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透 / 结构定位）**未经游戏内运行验证**。
 - 开发工具：`scripts/doctor.ps1`、`scripts/run-unit-tests.ps1`、`scripts/seed-gradle-wrapper.ps1`；`build-all.ps1` 根工程产物已对齐 v1.6.0。
@@ -133,13 +135,13 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 - **进度统计**：`PerimeterCursor` 按「顶层优先（Y 递减）→ Z 递增 → X 递增」零分配遍历，`PerimeterProgress` 负责总数/剩余/百分比/耗时/ETA；计数按每 tick 8192 格预算分摊，超大周界不会卡住客户端。
 - **安全暂停**：背包无空位时自动暂停（自动卸货尚未实现）；挖掘器自行停止时最多自动重启 3 次，之后进入 `STALLED` 等待 `resume`。
 - **液体**：沿用 `BlockUtils.canBeClicked`（按方块轮廓形状判定），流体没有可点击轮廓，所以**默认不会被挖掘**；封闭与替换液体尚未实现。
-- **未实现（后续里程碑）**：不规则区域检测（`detect`）、液体封闭/替换、卸货点与背包管理、工具耐久与补给点、跨维度修复、鞘翅寻路与自动睡觉。
+- **里程碑 1 的实现范围**：矩形规划（闭区间）、启停控制、按 Y 自顶向下开挖、零分配进度遍历、背包满自动暂停。
+- **里程碑 2 已实现**（本节初稿写于里程碑 1 完成时）：不规则区域检测、液体 avoid / replace / seal_boundary、自动拾取与多卸货点卸货、工具 / 鞘翅耐久替换、自动进食 / 补给 / 睡觉、跨维度熔炉修复、行走与鞘翅寻路、按服务器·存档分存配置、中英双语文本与 `/perimeterdig`，详见下方「周界挖掘里程碑 2」。
 - 新增 `PerimeterDigger` Hack（Blocks 分类，`@DontSaveState`）与 `.perimeter` 命令；v1.6 源码包 98 → **134**，测试类 94 → **103**、用例 352 → **436**。
 
-### 待办
+### 周界挖掘里程碑 2（原生等价移植，已完成）
 
-- 将 v1.6 子系统移植到其余 14 个平台工程（1.21.1 / 1.21.11 / 26.1.2 / 26.2 × Forge/NeoForge/Fabric）。
-- **完整移植（里程碑 2，等价全部移植）**：不规则区域检测、液体 avoid/replace/seal_boundary、自动拾取与卸货点、工具/鞘翅耐久替换、自动进食/补给/睡觉、跨维度 XP 炉修复、行走与鞘翅寻路、按服务器·存档分存配置、中英双语文本与 `/perimeterdig`（含 Tab 补全）。
+不规则区域检测、液体 avoid/replace/seal_boundary、自动拾取与多卸货点卸货、工具/鞘翅耐久替换、自动进食/补给/睡觉、跨维度熔炉修复、行走与鞘翅寻路、按服务器·存档分存配置、中英双语文本与 `/perimeterdig`（含 Tab 补全）均已实现：
   - **区域**：`/perimeterdig area detect <block> <y>` 用与原模组同源的扫描算法（8 邻接连通分量 + 奇偶遍历 + 外边界判定）识别任意形状边界，输出逐 Z 扫描线；`PerimeterRegion` / `PerimeterColumnArea` 支持游程合并与二分查找。
   - **液体**：`PerimeterMiningSchematic` 逐格复刻原模组 `AreaMiningSchematic` 的判定（区域内 / 边界外沿 / `touchesSideOrTopBoundary`），`AVOID` 额外跳过与流体相邻的方块；封堵方块取配置列表中第一个可放置者。
   - **背包与批次**：`PerimeterMiningJob` 统计区域内「实心变空气」的方块、按空槽位计算批次上限、达上限自动暂停并记录原因；`PerimeterInventoryPolicy` 决定何时卸货、哪些槽位可丢。
@@ -148,6 +150,45 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
   - **配置**：`PerimeterConfigStore` 按「服务器地址 / 单人存档路径 / 本地维度」生成稳定 UUID 文件名，写盘用临时文件 + `ATOMIC_MOVE`；`PerimeterConfigMigration` 负责 schema 版本迁移。
   - **文本与命令**：`PerimeterText` 内置英文与简体中文两套文案（跟随游戏语言），`PerimeterTextTest` 校验两套键集完全一致，`PerimeterSourceTextCoverageTest` 直接扫描自动化 / 命令 / Hack 源码，任何未配中文的新文案都会让测试失败；`/perimeterdig` 为 Brigadier 命令树，子命令/键名/取值全部有 Tab 补全。
 - **与参考实现的偏差（如实说明）**：原模组依赖 HackerRouter 的修改版 Baritone（`IAreaMineProcess`、`MovementHelper.avoidBreakingDueToLiquid`、边界封堵优先放置通道、`sourceLiquids`/`areaInteriorNeighbors` 目标等）。本移植改为：(1) 把区域挖掘语义放进本项目自己的 `PerimeterMiningSchematic`（`AbstractSchematic` 子类）交给**官方 Baritone** 的 `BuilderProcess.build(...)`；(2) 用 `inSchematic` 内的「流体相邻即跳过」守卫代替 `avoidBreakingDueToLiquid`；(3) 批次上限、已挖计数与暂停原因在本项目内实现；(4) 补给/维修/睡觉为同状态、同导航、同容器点击方式的功能等价实现，而非逐行移植；(5) 文本使用本项目自带中英对照表而非 Minecraft 语言文件。
+
+### Twilight Echo 音乐界面（替换旧网易云 GUI）
+
+参考项目 `Px-asen/Twilight_Echo` v1.2.1（Apache-2.0）移植的音乐界面，**已整体替换**原 `NeteaseMusicScreen`。接线细节见 [docs/twilight-echo-port/wiring-status.md](docs/twilight-echo-port/wiring-status.md)。
+
+- **旧界面删除**：`clickgui2/screens/NeteaseMusicScreen.java`，`clickgui2/music/` 下除 `NeteaseImageCache` 以外的全部子组件（15 个类），`clickgui2/music/PlayerDetailLayoutTest`，以及只被它们引用的 `assets/wurst/textures/gui/netease/` 贴图。`NeteaseImageCache` 保留——它现在由新界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用。
+- **入口 3/3 替换**：`MusicPlayerHack`、`SuperSoftClickGuiScreen`、`EpsilonDropdownScreen` 三处均改为 `new TwilightShellScreen(...)`（带父界面，ESC 返回）；`.twilight` 命令同样打开新界面。`VisualScreenMotion` 的 `SELF_ANIMATED_SCREENS` 保留通用淡入，新界面没有自绘转场。
+- **界面能力**：应用外壳 + 主页 + 内容页（每日推荐 / 推荐歌单 / 我喜欢 / 搜索 / 私人漫游）、歌单详情页、沉浸播放页、底部播放条（封面 / 曲名 / 歌手 / 进度点击跳转）。播放控制、侧栏切页、歌曲行与歌单卡片点击均可用。
+- **封面**：真图走原版 `GuiGraphics.blit`，裁剪按 CSS `object-fit: cover`（`TwilightCoverFit.sourceRect`）；圆角**烘进纹理的 alpha**（`TwilightCornerMask`，4×4 超采样抗锯齿），而不是靠裁剪——Skia `clipRoundRect` 只在 region 内有效、原版 scissor 只能裁矩形。蒙版按源分辨率生成、半径随绘制尺寸缩放，一屏小封面共用一张蒙版纹理。
+- **沉浸播放页**：自绘渐变背景 + 300px 大封面 + 曲名 / 歌手 + 返回 / 上一首 / 播放 / 下一首 / 进度 / 时间；ESC 先退出沉浸页再关界面。**歌词复用现有 `AppleLyricPlayer`**（AMLL 一比一），驱动方式与 `MusicLyricsHudElement` 一致。
+- **数据层**：新增 `TwilightMusicService` + `TwilightApiEndpoint`，说 **NeteaseCloudMusicApiEnhanced** 的 REST 协议（本地增强服务）；**服务不可达或返回空时回退**到原 `NeteaseCloudApi` 直连，未装本地服务的玩家行为不变，状态栏标出本次数据来源。
+- **扫码登录**：`/login/qr/key` → `/login/qr/create?qrimg=true` → 每 40 帧 `/login/qr/check`；二维码直接画服务返回的 base64 PNG，成功后把 cookie 交给 `NeteaseMusicPlayer.loginWithCookie(cookie)`，让直连与本地服务登录到同一账号。
+- **未做 / 已知局限（如实说明）**：① 搜索框没有中文输入法**预编辑**显示（1.20.1 没有 IME 预编辑 API；已提交的中文经 `charTyped` 进入搜索串，并由 PingFang 矢量字体渲染）；② 只做扫码登录，没有手机验证码 / 邮箱登录；③ 歌单详情缺简介与创建者——`NeteasePlaylist` 只有 `id / name / coverUrl / playCount`，要补须先扩数据层。
+
+### 标题界面自定义背景与 Wallpaper Engine 导入
+
+新增 `net.wurstclient.background`（13 个类）+ `gui/title/BackgroundSelectScreen`，主菜单右上角按钮进入：
+
+- **绘制**：全程只用原版 `GuiGraphics.blit`，在 Skia 通道之前完成——与有状态的 Skia GL 后端混用没有收益。`BackgroundManager` 是客户端级单例（选择要在界面之间存续），用固定纹理 id 复用同一个注册槽位，切换不会泄漏纹理。
+- **存储**：`BackgroundStorage` 把每个背景存成 `<wurst 文件夹>/backgrounds/<id>/`（媒体 + 缩略图 + 元数据），`BackgroundEntry` / `BackgroundThumbnail` 负责列表与预览。
+- **运动**：`BackgroundMotion` 提供 Ken Burns 等运镜，`BackgroundPose` 输出额外的缩放与平移；因为裁切已按屏幕比例做过 `cover`，运镜只是在其之上再放大，所以平移不会露出边缘。强度可在界面里调。
+- **导入**：`BackgroundFilePicker` / `BackgroundFileChooser` 选本地图片；`WallpaperEngineImporter` + `SteamLocator` + `VdfParser` + `ProjectJson` 直接扫描 Steam 创意工坊的 Wallpaper Engine 库（解析 `libraryfolders.vdf` 与各壁纸的 `project.json`），把找到的候选批量导入。
+- **持久化**：选择、运动方式与强度写进 `GuiPreferences`，随 GUI 偏好一起存盘。
+- **未做 / 已知局限**：只支持静态图片（Wallpaper Engine 的视频 / 场景型壁纸不做）；没有裁剪与对焦点设置，构图完全由 `cover` 决定。
+
+### Skia 区域上传加固（防 GL 驱动崩溃）
+
+`SkiaRegionRenderer.uploadRegion()` 曾把 Skia 像素按 `GL_UNPACK_ROW_LENGTH` 直接丢给 `glTexSubImage2D`，**这套用法已经让 NVIDIA OpenGL 驱动崩过一次**（访问冲突，进程直接消失）。本轮重写：
+
+- 上传前校验 `Pixmap` 的地址、行字节数与行像素数，任何一项不可信就**跳过这一帧**而不是调用驱动——跳一帧永远好过崩驱动。
+- 行距不能整除 4 字节时 `GL_UNPACK_ROW_LENGTH`（以像素计）无法表达 Skia 的字节填充，改为 `packRows()` 拷进紧凑行再上传；该方法不含 GL 与 Skia 类型，可单测（`SkiaRegionRendererTest`）。
+- 通过 `RenderSystem.pixelStore` 显式重置 `UNPACK_ALIGNMENT` / `SKIP_ROWS` / `SKIP_PIXELS` / `ROW_LENGTH`，不再假设它们是干净的。
+- 资源重载会释放已注册纹理，`bindRegionTexture()` 发现纹理管理器不再持有它时**只重建纹理**（`recreateRegionTexture`），绝不动持有当前帧的 surface。
+- 单位测试新增 `SkiaRegionRendererTest`（行打包的边界与填充场景）。
+
+### 待办
+
+- 将 v1.6 子系统移植到其余 14 个平台工程（1.21.1 / 1.21.11 / 26.1.2 / 26.2 × Forge/NeoForge/Fabric）。
+- 实机验证：v1.6 的 GUI / 音乐 / Skia / 标题背景**至今没有一项在游戏内跑过**（见 [docs/ingame-verification-checklist.md](docs/ingame-verification-checklist.md)）。
 
 ---
 

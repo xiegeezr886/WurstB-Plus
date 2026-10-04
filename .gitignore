@@ -49,3 +49,10 @@ _tools/
 # Local smoke-test scratch space (launch logs, javap dumps, audit output)
 _smoke/
 scripts/__pycache__/
+
+# Minecraft runtime config written when the client is launched from the repo root
+/config/
+
+# Agent tool state (the tool dirs keep their own .gitignore as well)
+.reasonix/
+reasonix.toml

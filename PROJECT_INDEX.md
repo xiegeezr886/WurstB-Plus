@@ -3,7 +3,7 @@
 本文档记录当前工作区的实际结构。统计基于各工程自身的 `src/main`，不包含根目录参考压缩包中的源码文件。
 
 > **当前状态（重要）**：根目录工程已推进到 **v1.6.0**，其余 14 个平台工程仍停留在 **v1.5.0**。
-> v1.6 新增的 18 个源码包（152 个 Java 文件）**只存在于根目录 Forge 1.20.1 工程**，尚未移植。
+> v1.6 新增的 19 项源码包（188 个 Java 文件）**只存在于根目录 Forge 1.20.1 工程**，尚未移植。
 > 详见「v1.6 新增子系统」与 [CHANGELOG.md](CHANGELOG.md)。
 >
 > 本文件的下表只覆盖上述 **15 个已发布工程**。工作区另有 **46 个新版本工程**
@@ -20,7 +20,7 @@
 
 | 工程（构建目录） | 平台 / 游戏版本 | 工具链 | 源码文件数 | 版本 | 入口类 | 发布产物（build/libs/） |
 | --- | --- | --- | ---: | --- | --- | --- |
-| `.`（根） | Forge 47.4.10 / 1.20.1 | JDK 17 · Gradle 8.11 · ForgeGradle 6.0 | **952** | **v1.6.0** | `WurstForgeInitializer` | `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB） |
+| `.`（根） | Forge 47.4.10 / 1.20.1 | JDK 17 · Gradle 8.11 · ForgeGradle 6.0 | **1043** | **v1.6.0** | `WurstForgeInitializer` | `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB） |
 | `versions/1.21.1/` | Forge 52.1.16 / 1.21.1 | JDK 21 · Gradle 8.11 · ForgeGradle 6.0 | 741 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-1.21.1.jar` |
 | `versions/1.21.11/` | Forge 61.2.0 / 1.21.11 | JDK 21 · Gradle 9.4.1 · ForgeGradle 7.x | 748 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-1.21.11.jar` |
 | `versions/26.1.2/` | Forge 64.1.0 / 26.1.2 | JDK 25 · Gradle 9.4.1 · ForgeGradle 7.x | 790 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-26.1.2.jar` |
@@ -39,7 +39,7 @@
 | `fabric/versions/26.2/` | Fabric Loader 0.19.3 / 26.2 | JDK 25 · Gradle 9.6.0 · Loom | 792 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-26.2.jar` |
 | `fabric/versions/26.3/` | Fabric Loader 0.19.5 / 26.3 | JDK 25 · Gradle 9.6.0 · Loom | 795 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-26.3.jar` |
 
-合计 **11,685 个 Java 源文件**。全部 15 个工程的 `build/libs/` 均存在已构建产物（除根目录为本轮实际重建外，其余为工作区导入时的既有产物，未在本轮重新验证）。
+合计 **11,776 个 Java 源文件**。全部 15 个工程的 `build/libs/` 均存在已构建产物（除根目录为本轮实际重建外，其余为工作区导入时的既有产物，未在本轮重新验证）。
 
 配套目录：
 
@@ -54,17 +54,19 @@
 
 ## v1.6 新增子系统（仅根目录 Forge 1.20.1）
 
-以下 18 个源码包在 14 个平台工程中**完全不存在**，合计 152 个 Java 文件：
+以下 19 项源码包在 14 个平台工程中**完全不存在**，合计 188 个 Java 文件：
 
 | 包 | 文件数 | 职责 |
 | --- | ---: | --- |
 | `clickgui2/component` | 27 | VAPE 风格 GUI 组件层（`VapeClickGuiScreen`、`SuperSoft*` 窗口、`ModuleCardComponent`、`InlineSettingComponents` 等） |
 | `music` + `music/apple` | 28 | 网易云 API（`NeteaseCloudApi`）、播放器（`NeteaseMusicPlayer`）、账号（`MusicAccountManager`）、逐字歌词动画（`AppleLyricPlayer` / `AppleTimeline` / `AppleLayout` / `Spring` / `LyricWordSplitter`）、AMLL 一比一视觉层（`AmlEasing` 缓动 / `AmlVisual` 透明度·模糊·缩放公式 / `AmlEmphasize` 逐字强调 / `AmlOptimize` 歌词优化流水线 / `AmlLayoutReason` 排版策略表 / `AmlTween` CSS 过渡 / `AmlLineBalancer` 断行平衡 / `AmlMask` 不雅词掩码） |
-| `clickgui2/music` | 13 | 音乐 GUI 页面：`HomePage` / `SearchPage` / `LikedPage` / `PlaylistDetailPage` / `LoginPage` / `PlayerDetailOverlay` / `BottomPlayerBar` / `StarRiverBackground` + 封面粒子与涟漪 |
+| `twilight` | 17 | Twilight Echo 音乐界面（已替换旧网易云 GUI）：`TwilightShellScreen`（外壳 / 主页 / 内容页 / 沉浸播放页）、`TwilightShellLayout` / `TwilightHomeLayout` / `TwilightListLayout`、`TwilightSkia`、`TwilightTheme` / `TwilightAccent` / `TwilightEasing` / `TwilightGeometry`、`TwilightMusicService` + `TwilightApiEndpoint`、`TwilightCoverCache` / `TwilightCornerMask` / `TwilightCoverFit` / `CoverBlur`、`TwilightVanilla` / `TwilightHomeCopy` |
+| `background` + `gui/title/BackgroundSelectScreen` | 14 | 标题界面自定义背景：`BackgroundManager`、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`、`BackgroundFilePicker` / `BackgroundFileChooser` |
+| `clickgui2/music` | 1 | 仅剩 `NeteaseImageCache`（封面下载 / 解码 / 取色），由 Twilight 界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用 |
 | `compose` | 11 | 声明式 UI 布局树（`UiNode` / `UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer`）、`AnimFloat`、`FlowingGradient`、`ModuleColors` |
-| `clickgui2/epsilon` | 5 | Epsilon 风格下拉式 GUI（`EpsilonDropdownScreen` / `Panel` / `ModuleButton` / `Theme` / `CategoryPanel`） |
+| `clickgui2/epsilon` | 8 | Epsilon 风格下拉式 GUI（`EpsilonDropdownScreen` / `Panel` / `ModuleButton` / `Theme` / `CategoryPanel` + 面板布局版 `EpsilonPanelLayout` / `EpsilonPanelNavigatorScreen` / `EpsilonPanelTheme`） |
 | `clickgui2/supersoft` | 5 | SuperSoft 体系：`EpsilonMd3Theme`（MD3 TonalSpot 调色）、`SuperSoftTheme` / `SuperSoftRenderer` / `UiMotion` / `UiTween` |
-| `render/skia` | 4 | Skiko 矢量渲染：`SkikoNatives`（解压并加载原生库）、`SkiaGlBackend`、`SkiaFontManager`、`SkiaRegionRenderer` |
+| `render/skia` | 6 | Skiko 矢量渲染：`SkikoNatives`（解压并加载原生库）、`SkiaGlBackend`、`SkiaFontManager`、`SkiaRegionRenderer` + ESP 的 `EspSkia` / `EspIndicatorGlyphs` |
 | `gui/visual` | 3 | `VisualTheme`（语义色 token）、`VisualRenderer`、`VisualScreenMotion` |
 | `hud2/render` | 2 | `RiseFrostedGlass`（磨砂玻璃）、`RiseHudFont` |
 | `perimeter` | 35 | 周界挖掘全套：区域模型与游标、液体策略与边界封闭、方块限制与批次、导航 / 交互 / 装备 / 补给策略、28 状态自动化编排、双语文本 |
@@ -76,7 +78,7 @@
 | `seed.crack` | 2 | 无范围反解：位块分解 + 陪集求交（`LatticeCracker`） |
 | `seed.scan` | 1 | 自动观测：方块特征结构识别（`StructureScanner`） |
 
-对应资源：`assets/wurst/skiko/`（`skiko-windows-x64.dll` 16.5 MB + `icudtl.dat` 10.0 MB，随 mod 资源打包而非 jarJar）、`assets/wurst/textures/gui/netease/`（音乐 UI 图标）。
+对应资源：`assets/wurst/skiko/`（`skiko-windows-x64.dll` 16.5 MB + `icudtl.dat` 10.0 MB，随 mod 资源打包而非 jarJar）。原 `assets/wurst/textures/gui/netease/` 音乐 UI 图标已随旧界面一并删除。
 
 **v1.6 新增 Hack（14 个，不存在于平台工程）**：`AirJumpHack`、`EntityCullingHack`、`MusicPlayerHack`、`NoMissCooldownHack`、`NoRotateHack`、`PerimeterDiggerHack`、`ProjectilePuncherHack`、`ReverseStepHack`、`RightClickerHack`、`SeedOreEspHack`、`SeedStructureEspHack`、`SuperKnockbackHack`、`VehicleBoostHack`、`WTapHack`。
 
@@ -90,9 +92,9 @@
 | `gradle.properties` | Minecraft、Forge、MixinExtras 与项目版本（`mod_version=v1.6.0-Forge-1.20.1`） |
 | `settings.gradle` | ForgeGradle 插件仓库配置 |
 | `gradle/` | Gradle 8.11 wrapper |
-| `src/main/java/` | 纯 Forge/Mojmap Java 源码，共 952 个文件 |
+| `src/main/java/` | 纯 Forge/Mojmap Java 源码，共 1043 个文件 |
 | `src/main/resources/` | Mixin、Access Transformer、Forge 元数据、字体、shader、Skiko 原生库与翻译资源 |
-| `src/test/java/` | 根工程单元测试（含 v1.6 音乐解析、歌词时间轴、Compose 动画、MD3 主题、周界挖掘与种子矿透） |
+| `src/test/java/` | 根工程单元测试，共 174 个测试类（含 v1.6 音乐解析、AMLL 歌词流水线、Twilight 外壳 / 主页 / 列表几何、封面圆角蒙版与模糊、标题背景存储 / 运动 / 壁纸引擎导入、Compose 动画、MD3 主题、周界挖掘与种子矿透） |
 | `LICENSE.txt` | GPL-3.0 许可证 |
 | `README.md` | 项目架构与状态说明（含 15 工程布局与新版本工程） |
 | `CHANGELOG.md` | 版本变更记录 |
@@ -106,14 +108,15 @@
 | `net.wurstclient.addon` | 2 | Addon 扩展系统（WurstAddon、AddonManager） |
 | `net.wurstclient.ai` | 8 | 路径搜索、Spider 垂直节点规划和路径执行 |
 | `net.wurstclient.altmanager` | 25 | 账号、登录、系统原生凭据主密钥和账号管理界面 |
-| `net.wurstclient.clickgui2` | 107 | 双 GUI、VAPE/SuperSoft/Epsilon 组件层、音乐界面、实心主题、字体偏好、窗口与控件 |
+| `net.wurstclient.clickgui2` | 97 | 双 GUI、VAPE/SuperSoft/Epsilon 组件层、音乐封面缓存、实心主题、字体偏好、窗口与控件 |
+| `net.wurstclient.background` | 13 | 标题界面自定义背景：选择与持久化、异步纹理、运镜、Wallpaper Engine 导入（v1.6 新增） |
 | `net.wurstclient.command` | 7 | 命令基础设施、BrigadierCommand 和处理器 |
 | `net.wurstclient.commands` | 57 | 具体命令实现（含 `.macros` `.waypoints` `.proxy` `.perimeter` `.seed`、Brigadier `/perimeterdig`） |
 | `net.wurstclient.compose` | 11 | 声明式 UI 布局树（v1.6 新增） |
 | `net.wurstclient.discord` | 2 | Discord RPC IPC 客户端和管理器 |
 | `net.wurstclient.event` | 6 | EventManager、WurstSubscriber（LambdaMetafactory）、注解 |
 | `net.wurstclient.events` | 38 | 输入、移动、网络、渲染等事件接口 |
-| `net.wurstclient.gui` | 5 | 标题界面（`title/`）与视觉 token/渲染（`visual/`，v1.6 新增） |
+| `net.wurstclient.gui` | 6 | 标题界面（`title/`，含背景选择屏）与视觉 token/渲染（`visual/`，v1.6 新增） |
 | `net.wurstclient.hack` | 7 | Hack 基类、注册表、冲突和生命周期 |
 | `net.wurstclient.hacks` | 210 | Hack 实现及其内部辅助类 |
 | `net.wurstclient.hud` | 4 | HUD 和 TabGUI 渲染 |
@@ -131,12 +134,13 @@
 | `net.wurstclient.perimeter.config` | 11 | 分存配置模型、迁移与存储（v1.6 新增） |
 | `net.wurstclient.perimeter.detect` | 2 | 不规则区域边界检测（v1.6 新增） |
 | `net.wurstclient.proxy` | 2 | ProxyConfig 和 ProxyManager |
-| `net.wurstclient.render.skia` | 4 | Skiko 矢量渲染管线（v1.6 新增） |
+| `net.wurstclient.render.skia` | 6 | Skiko 矢量渲染管线（含 ESP 的 Skia 通道，v1.6 新增） |
 | `net.wurstclient.seed` | 8 | 种子矿透核心：种子存储、纯 Java 矿物预测、Baritone 目标挖掘作业（v1.6 新增） |
 | `net.wurstclient.seed.structure` | 3 | 结构定位与频率削减（v1.6 新增） |
 | `net.wurstclient.seed.search` | 4 | 种子反解搜索与零分配 LCG（v1.6 新增） |
 | `net.wurstclient.seed.crack` | 2 | 无范围反解求解器（v1.6 新增） |
 | `net.wurstclient.seed.scan` | 1 | 自动结构观测扫描器（v1.6 新增） |
+| `net.wurstclient.twilight` | 17 | Twilight Echo 音乐界面：外壳与布局几何、Skia 绘制、主题 / 强调色 / 缓动、本地增强服务、封面缓存与圆角蒙版（v1.6 新增） |
 | `net.wurstclient.serverfinder` | 3 | 服务器扫描和清理界面 |
 | `net.wurstclient.settings` | 55 | 设置类型、过滤器和配置文件 |
 | `net.wurstclient.update` | 3 | 更新与资源包问题检测 |
@@ -182,6 +186,8 @@ v1.6 新增 14 个 Hack：见「v1.6 新增子系统」。其中 `SeedOreESP`（
 | 视觉 token | `src/main/java/net/wurstclient/gui/visual/VisualTheme.java` |
 | 声明式 UI | `src/main/java/net/wurstclient/compose/UiNode.java` |
 | 网易云客户端 | `src/main/java/net/wurstclient/music/NeteaseCloudApi.java`、`NeteaseMusicPlayer.java` |
+| Twilight 音乐界面 | `src/main/java/net/wurstclient/twilight/TwilightShellScreen.java`、`TwilightShellLayout.java` |
+| 标题界面背景 | `src/main/java/net/wurstclient/background/BackgroundManager.java`、`gui/title/BackgroundSelectScreen.java` |
 | Skiko 原生库加载 | `src/main/java/net/wurstclient/render/skia/SkikoNatives.java` |
 | Navigator 主屏幕 | `src/main/java/net/wurstclient/clickgui2/NavigatorScreen.java` |
 | ClickGUI 窗口管理 | `src/main/java/net/wurstclient/clickgui2/ClickGui.java` |
@@ -217,6 +223,8 @@ v1.6 新增 14 个 Hack：见「v1.6 新增子系统」。其中 `SeedOreESP`（
 | `clickgui2/component/*` | VAPE 风格组件层（v1.6） | VAPE |
 | `compose/*` | 声明式布局树（v1.6） | 项目自研 |
 | `music/*` | 网易云 API/播放器/歌词动画（v1.6） | 项目自研 |
+| `twilight/*` | Twilight Echo 音乐界面：外壳/几何/Skia 绘制/本地增强服务（v1.6） | [Twilight_Echo](https://github.com/Px-asen/Twilight_Echo) v1.2.1（Apache-2.0） |
+| `background/*` | 标题界面自定义背景与 Wallpaper Engine 导入（v1.6） | 项目自研 |
 | `render/skia/*` | Skiko 矢量渲染（v1.6） | Skiko |
 | `util/EntitySnapshotManager.java` | 客户端线程每 Tick 发布不可变实体分类快照 | FrogClient |
 | `util/RotationQueue.java` + `RotationFaker.java` | 多模块静默旋转优先级仲裁与本地相机分离 | LiquidBounce RotationManager 等价架构 |
@@ -281,7 +289,7 @@ v1.6 新增 14 个 Hack：见「v1.6 新增子系统」。其中 `SeedOreESP`（
 | `clickgui2/FlatRenderer.java`、`FlatUiRenderer.java`、`theme/FlatTheme.java` | 实心面板、控件、圆角与阴影绘制 |
 | `clickgui2/Window.java`、`SettingsWindow.java`、`SettingTreeLayout.java` | 浮窗设置稳定绑定与缩进布局 |
 | `hacks/RadarHack.java` + `clickgui2/components/RadarComponent.java` | 雷达快照、范围/旋转设置与固定窗口 |
-| `gui/title/WurstTitleMenu.java` | 原版全景上的响应式实心深色主菜单 |
+| `gui/title/WurstTitleMenu.java`、`BackgroundSelectScreen.java` | 原版全景上的响应式实心深色主菜单，以及自定义背景选择屏 |
 | `mixin/ClientConnectionMixin.java` + `util/ClientConnectionPolicy.java` | 仅在客户端 `CLIENTBOUND` 连接派发收发包事件 |
 
 ### 设置
@@ -303,7 +311,6 @@ v1.6 新增 14 个 Hack：见「v1.6 新增子系统」。其中 `SeedOreESP`（
 | `src/main/resources/assets/wurst/skiko/` | Skiko 原生库（`skiko-windows-x64.dll`、`icudtl.dat`），运行时解压到 gameDir |
 | `src/main/resources/assets/wurst/shaders/core/` | 液态玻璃顶点、片元和 shader 描述资源 |
 | `src/main/resources/assets/wurst/shaders/program/` | LSD 视觉功能使用的 PostPass shader |
-| `src/main/resources/assets/wurst/textures/gui/netease/` | 网易云音乐 UI 图标（v1.6） |
 | `src/main/resources/assets/wurst/translations/` | 16 个语言 JSON、WurstCN 原始名称表和中文功能名资源 |
 | `src/main/resources/assets/minecraft/font/` | CozyUI+ 位图字体定义 |
 | `src/main/resources/assets/minecraft/textures/font/` | 字体图集 |
@@ -318,7 +325,7 @@ v1.6 新增 14 个 Hack：见「v1.6 新增子系统」。其中 `SeedOreESP`（
 3. **已完成**：TPS、速度、服务器、时间与坐标换算均为可独立拖动的 HUD2 元素。
 4. **已完成**：每 Tick 不可变实体快照供 PlayerESP、MobESP、ItemESP 使用。
 5. **已完成**：`TargetShader` 使用原生 Forge/Mojmap FBO 与 PostChain，不依赖 Satin。
-6. **已完成**：v1.6 引入 87 个文件的 GUI/音乐/Skia 子系统（仅根工程）。
+6. **已完成**：v1.6 引入 19 项源码包 / 188 个文件的 GUI（VAPE / SuperSoft / Epsilon / Twilight）、音乐、Skia、标题背景、周界挖掘与种子矿透子系统（仅根工程）。
 7. **待办**：将 v1.6 子系统移植到其余 14 个平台工程。
 8. **排除**：Satin/Sodium/Fabric 依赖、玻璃 GUI 模糊、无限自旋后台线程和反编译代码直接复制。
 
@@ -339,7 +346,7 @@ v1.6 新增 14 个 Hack：见「v1.6 新增子系统」。其中 `SeedOreESP`（
 项目版本为 `1.6.0`，Minecraft 1.20.1，Forge 47.4.10，Java 17，Gradle 8.11。
 
 - `gradlew.bat compileJava` 通过。
-- `gradlew.bat test` 通过：**112 个测试类、545 项测试、0 失败**（含周界挖掘的区域几何、游标遍历顺序、进度/ETA、列式区域、边界检测、液体策略、批次/背包策略、状态机、中英文本一致性，直接扫描源码的「文案必须双语」检查，以及种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、无范围反解还原、结构扫描器）。
+- `gradlew.bat test` 通过（2026-10-04 实测）：**174 个测试类、1090 项测试、0 失败**（含 Twilight 外壳 / 主页 / 列表几何、封面圆角蒙版与模糊、标题背景的存储 / 运动 / 壁纸引擎导入，以及周界挖掘的区域几何、游标遍历顺序、进度/ETA、列式区域、边界检测、液体策略、批次/背包策略、状态机、中英文本一致性，直接扫描源码的「文案必须双语」检查，以及种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、无范围反解还原、结构扫描器）。
 - 发布产物 `build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB）含全部 v1.6 子系统、`assets/wurst/skiko/` 原生库及 19 个内嵌 jarJar 依赖。
 
 其余 14 个平台工程在 v1.5.0 状态下各自包含 `build/libs/` 产物；其构建与启动验证结果见 [PORTING_TASK.md](PORTING_TASK.md) 与 `docs/PORTING-1.21.11-26.2.md`（记录 1.21.11 / 26.2 六工程的构建、进世界与 Baritone `#goto` 冒烟结果）。
