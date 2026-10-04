@@ -44,6 +44,7 @@ public final class GuiPreferences
 	private boolean riseMode;
 	private int vapeLayoutVersion;
 	private String selectedFont = BUILTIN_FONT;
+	private boolean bundledDefaultImported;
 	private boolean targetPlayers = true;
 	private boolean targetMonsters = true;
 	private boolean targetAnimals = true;
@@ -83,6 +84,9 @@ public final class GuiPreferences
 				vapeLayoutVersion = json.get("vapeLayoutVersion").getAsInt();
 			if(json.has("selectedFont"))
 				selectedFont = json.get("selectedFont").getAsString();
+			if(json.has("bundledDefaultImported"))
+				bundledDefaultImported =
+					json.get("bundledDefaultImported").getAsBoolean();
 			if(json.has("targetPlayers"))
 				targetPlayers = json.get("targetPlayers").getAsBoolean();
 			if(json.has("targetMonsters"))
@@ -139,6 +143,7 @@ public final class GuiPreferences
 		json.addProperty("riseMode", riseMode);
 		json.addProperty("vapeLayoutVersion", vapeLayoutVersion);
 		json.addProperty("selectedFont", selectedFont);
+		json.addProperty("bundledDefaultImported", bundledDefaultImported);
 		json.addProperty("targetPlayers", targetPlayers);
 		json.addProperty("targetMonsters", targetMonsters);
 		json.addProperty("targetAnimals", targetAnimals);
@@ -183,6 +188,18 @@ public final class GuiPreferences
 	public boolean isFontEnabled()
 	{
 		return fontEnabled;
+	}
+
+	/** 仓库自带的那张默认壁纸是否已经导进库过一次。 */
+	public boolean isBundledDefaultImported()
+	{
+		return bundledDefaultImported;
+	}
+
+	public void setBundledDefaultImported(boolean imported)
+	{
+		this.bundledDefaultImported = imported;
+		save();
 	}
 
 	public void setFontEnabled(boolean fontEnabled)

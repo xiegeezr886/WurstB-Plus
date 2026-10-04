@@ -7,6 +7,8 @@
  */
 package net.wurstclient.background;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -93,6 +95,75 @@ public final class BackgroundManager
 				.getWurstFolder().resolve("backgrounds"));
 
 		return storage;
+	}
+
+	/**
+	 * 仓库里带的那张默认主界面壁纸：Wallpaper Engine 工坊 2359043440「Persica」
+	 * 的原图（5712x3214）。这个工坊条目是 Scene 类型，场景本体（scene.pkg +
+	 * .dxs 着色器）本项目渲染不了，所以内置的是它的高清底图。
+	 */
+	private static final ResourceLocation BUNDLED_DEFAULT =
+		new ResourceLocation(WurstClient.MOD_ID, "background/default.jpg");
+	private static final String BUNDLED_TITLE = "Persica";
+	private boolean bundledDefaultStarted;
+
+	/**
+	 * 首次启动时把内置壁纸导入到背景库并选中它，之后动效、运镜、选择屏的卡片
+	 * 全都直接复用既有管线。只做一次：{@code GuiPreferences} 里记了
+	 * {@code bundledDefaultImported}，用户自己删掉之后不会再自动重建。
+	 */
+	private void importBundledDefault()
+	{
+		if(bundledDefaultStarted)
+			return;
+
+		bundledDefaultStarted = true;
+
+		if(WurstClient.INSTANCE.getGuiPreferences()
+			.isBundledDefaultImported())
+			return;
+
+		Thread worker = new Thread(() -> {
+			Path temp = null;
+
+			try
+			{
+				byte[] bytes = Minecraft.getInstance().getResourceManager()
+					.open(BUNDLED_DEFAULT).readAllBytes();
+				temp = Files.createTempFile("wurstb-default-", ".jpg");
+				Files.write(temp, bytes);
+
+				byte[] thumbnail = BackgroundThumbnail.create(temp,
+					BackgroundThumbnail.MAX_SIZE);
+				String id = storage().importFile(temp, BackgroundKind.IMAGE,
+					BUNDLED_TITLE, "Wallpaper Engine", thumbnail);
+
+				Minecraft.getInstance().execute(() -> {
+					WurstClient.INSTANCE.getGuiPreferences()
+						.setBundledDefaultImported(true);
+
+					if(id != null && isDefaultSelected())
+						select(id);
+
+					forget();
+				});
+			}catch(IOException | RuntimeException e)
+			{
+				// 导入失败就维持内置网格背景，不打扰用户
+			}finally
+			{
+				if(temp != null)
+					try
+					{
+						Files.deleteIfExists(temp);
+					}catch(IOException e)
+					{
+					}
+			}
+		}, "WurstB-BundledDefault");
+
+		worker.setDaemon(true);
+		worker.start();
 	}
 
 	/** Every stored background, newest first. The built-in default is not part
@@ -249,6 +320,8 @@ public final class BackgroundManager
 	 */
 	private boolean ensureLoaded()
 	{
+		importBundledDefault();
+
 		String id = selectedId();
 
 		if(id.equals(failedId))
