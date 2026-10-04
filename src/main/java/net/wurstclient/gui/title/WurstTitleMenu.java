@@ -4,55 +4,77 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.mojang.realmsclient.RealmsMainScreen;
-import net.minecraft.SharedConstants;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.PlayerFaceRenderer;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.ModListScreen;
-import net.minecraftforge.versions.forge.ForgeVersion;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
 import net.wurstclient.background.BackgroundManager;
-import net.wurstclient.gui.visual.VisualTheme;
+import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.clickgui2.PingFangFont;
+import net.wurstclient.gui.title.TitleMenuLayout.Rect;
+import net.wurstclient.gui.title.WurstTitleButton.Style;
 import net.wurstclient.gui.visual.VisualRenderer;
+import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.util.ScreenRegistry;
 
+/**
+ * 标题主界面的内容，由 {@code TitleScreenMixin} 在标题界面上调用。
+ *
+ * <p>
+ * 版式按用户给的参考图（{@code docs/title-menu.md} 记了量到的像素）：全屏壁纸 +
+ * 底部渐变压暗，左上角账号胶囊，右上角齿轮，左下角白色字标，底部一整条动作条，
+ * 里面 4 个等宽按钮。几何全部在 {@link TitleMenuLayout} 里算，这里只管画。</p>
+ *
+ * <p>
+ * 交互元素仍然是原版控件（{@code AbstractButton} 的子类），所以输入、悬停、
+ * 旁白都是原版那一套；弹出的齿轮菜单用 {@code visible} 开关，不动态增删控件，
+ * 免得在渲染中途改控件表。</p>
+ */
 public final class WurstTitleMenu
 {
-	private static final int ICON_TEXTURE_SIZE = 88;
-	private static final int ACCENT = VisualTheme.ACCENT;
-	private static final int TEXT = VisualTheme.TEXT;
-	private static final int MUTED_TEXT = VisualTheme.TEXT_DIMMED;
-	private static final int DIM_TEXT = VisualTheme.TEXT_MUTED;
+	private static final ResourceLocation SINGLEPLAYER = fdp("singleplayer");
+	private static final ResourceLocation MULTIPLAYER = fdp("multiplayer");
+	private static final ResourceLocation OPTIONS = fdp("options");
+	private static final ResourceLocation POWER = fdp("power");
+	private static final ResourceLocation USER = fdp("user");
+	private static final ResourceLocation INFO = fdp("info");
+	private static final ResourceLocation SETTINGS = icon("settings");
+	private static final ResourceLocation RENDER = icon("render");
+	private static final ResourceLocation LOGO = new ResourceLocation("wurst",
+		"textures/gui/wurstb_plus_logo.png");
 
-	/** Dims a custom background so the menu stays readable over any picture. */
-	private static final int BACKGROUND_SCRIM = 0x4D000000;
+	private static final int LOGO_WIDTH = 716;
+	private static final int LOGO_HEIGHT = 80;
 
-	private static final ResourceLocation SINGLEPLAYER = icon("singleplayer");
-	private static final ResourceLocation MULTIPLAYER = icon("multiplayer");
-	private static final ResourceLocation REALMS = icon("realms");
-	private static final ResourceLocation OPTIONS = icon("options");
-	private static final ResourceLocation USER = icon("user");
-	private static final ResourceLocation INFO = icon("info");
-	private static final ResourceLocation EXIT = icon("exit");
+	/** 壁纸整体压暗，保证白字在任何壁纸上都读得出来。 */
+	private static final int BACKGROUND_SCRIM = 0x33000000;
+	/** 底部渐变压暗，参考图上动作条那一段明显比上方暗。 */
+	private static final int BOTTOM_SCRIM = 0x66000000;
+	private static final float BOTTOM_SCRIM_START = 0.45F;
+
+	/** 参考图上按 50% 黑压出来的胶囊与动作条底色。 */
+	private static final int CHIP_FILL = 0x80000000;
+	private static final int RAIL_FILL = 0x80000000;
+	private static final int MENU_FILL = 0xF01B1E24;
+	private static final int TEXT_MUTED = 0xB3FFFFFF;
 
 	private final Screen parent;
-	private final List<WurstTitleButton> buttons = new ArrayList<>();
+	private final List<WurstTitleButton> menuRows = new ArrayList<>();
 
 	private Minecraft minecraft;
-	private int margin;
-	private int cardX;
-	private int cardY;
-	private int cardWidth;
-	private int cardHeight;
-	private int cardGap;
-	private int utilityY;
+	private TitleMenuLayout layout;
+	private Component playerName;
+	private Component welcome;
+	private ResourceLocation skin;
+	private boolean menuOpen;
 
 	public WurstTitleMenu(Screen parent)
 	{
@@ -63,139 +85,199 @@ public final class WurstTitleMenu
 		Consumer<AbstractWidget> addWidget)
 	{
 		this.minecraft = minecraft;
-		configureIconFiltering();
-		buttons.clear();
-		updateLayout(screenWidth, screenHeight);
+		menuRows.clear();
+		menuOpen = false;
 
-		int y = cardY;
-		addButton(addWidget, cardX, y, cardWidth, cardHeight, "单人游戏",
-			SINGLEPLAYER, () -> ScreenRegistry.WORLD_SELECTION.open(parent),
-			false, false);
-		y += cardHeight + cardGap;
-		addButton(addWidget, cardX, y, cardWidth, cardHeight, "多人游戏",
-			MULTIPLAYER,
-			() -> ScreenRegistry.MULTIPLAYER.open(parent), false,
-			false);
-		y += cardHeight + cardGap;
-		addButton(addWidget, cardX, y, cardWidth, cardHeight, "Minecraft Realms",
-			REALMS, () -> minecraft.setScreen(new RealmsMainScreen(parent)), false,
-			false);
-		y += cardHeight + cardGap;
-		addButton(addWidget, cardX, y, cardWidth, cardHeight, "游戏设置",
-			OPTIONS, () -> ScreenRegistry.OPTIONS.open(parent), false, false);
+		playerName = Component.literal(minecraft.getUser().getName())
+			.withStyle(PingFangFont.SEMIBOLD_STYLE);
+		welcome = Component.translatable("wurst.title.welcome")
+			.withStyle(PingFangFont.LIGHT_STYLE);
+		skin = resolveSkin(minecraft);
+		configureTextures(minecraft);
 
-		int compactGap = 7;
-		int compactWidth = (cardWidth - compactGap * 2) / 3;
-		int compactHeight = 30;
-		addButton(addWidget, cardX, utilityY, compactWidth, compactHeight,
-			"账号", USER, () -> minecraft.setScreen(new AltManagerScreen(parent,
-				WurstClient.INSTANCE.getAltManager())), true, false);
-		addButton(addWidget, cardX + compactWidth + compactGap, utilityY,
-			compactWidth, compactHeight, "模组", INFO,
-			() -> minecraft.setScreen(new ModListScreen(parent)), true, false);
-		addButton(addWidget, cardX + (compactWidth + compactGap) * 2, utilityY,
-			cardWidth - (compactWidth + compactGap) * 2, compactHeight,
-			"退出", EXIT, minecraft::stop, true, true);
+		Font font = minecraft.font;
+		int chipTextWidth = Math.max(font.width(playerName),
+			font.width(welcome));
+		layout = new TitleMenuLayout(screenWidth, screenHeight, chipTextWidth);
 
-		// the background picker sits in the top right corner, where the
-		// reference puts its palette button
-		int backgroundWidth = 76;
-		int backgroundHeight = 24;
-		addButton(addWidget, screenWidth - margin - backgroundWidth, margin,
-			backgroundWidth, backgroundHeight, "背景", OPTIONS,
-			() -> minecraft.setScreen(new BackgroundSelectScreen(parent)), true,
-			false);
+		// 底部动作条
+		addWidget.accept(action(0, "wurst.title.singleplayer", SINGLEPLAYER,
+			() -> ScreenRegistry.WORLD_SELECTION.open(parent)));
+		addWidget.accept(action(1, "wurst.title.multiplayer", MULTIPLAYER,
+			() -> ScreenRegistry.MULTIPLAYER.open(parent)));
+		addWidget.accept(action(2, "wurst.title.settings", OPTIONS,
+			() -> ScreenRegistry.OPTIONS.open(parent)));
+		addWidget.accept(action(3, "wurst.title.quit", POWER, minecraft::stop));
+
+		// 右上角齿轮
+		Rect gear = layout.gear();
+		addWidget.accept(new WurstTitleButton(gear.x(), gear.y(),
+			gear.width(), gear.height(),
+			Component.translatable("wurst.title.menu"), SETTINGS,
+			this::toggleMenu, Style.ICON, layout.gearRadius(),
+			layout.gearIconSize()));
+
+		// 齿轮菜单：默认收起来，靠 visible 开关
+		addMenuRow(addWidget, 0, "wurst.title.background", RENDER,
+			() -> minecraft.setScreen(new BackgroundSelectScreen(parent)));
+		addMenuRow(addWidget, 1, "wurst.title.accounts", USER,
+			() -> minecraft.setScreen(new AltManagerScreen(parent,
+				WurstClient.INSTANCE.getAltManager())));
+		addMenuRow(addWidget, 2, "wurst.title.mods", INFO,
+			() -> minecraft.setScreen(new ModListScreen(parent)));
 	}
 
-	private void addButton(Consumer<AbstractWidget> addWidget, int x, int y,
-		int width, int height, String text, ResourceLocation icon,
-		Runnable action, boolean compact, boolean dangerous)
+	private WurstTitleButton action(int index, String translationKey,
+		ResourceLocation icon, Runnable run)
 	{
-		WurstTitleButton button = new WurstTitleButton(x, y, width, height,
-			Component.literal(text), icon, action, compact, dangerous);
-		buttons.add(button);
-		addWidget.accept(button);
+		Rect rect = layout.action(index);
+		return new WurstTitleButton(rect.x(), rect.y(), rect.width(),
+			rect.height(), Component.translatable(translationKey), icon, run,
+			Style.ACTION, layout.buttonRadius(), layout.actionIconSize());
+	}
+
+	private void addMenuRow(Consumer<AbstractWidget> addWidget, int index,
+		String translationKey, ResourceLocation icon, Runnable run)
+	{
+		Rect rect = layout.menuRows().get(index);
+		WurstTitleButton row = new WurstTitleButton(rect.x(), rect.y(),
+			rect.width(), rect.height(), Component.translatable(translationKey),
+			icon, run, Style.ROW, layout.menuRadius(),
+			layout.menuIconSize());
+		row.visible = false;
+		menuRows.add(row);
+		addWidget.accept(row);
+	}
+
+	private void toggleMenu()
+	{
+		menuOpen = !menuOpen;
+
+		for(WurstTitleButton row : menuRows)
+			row.visible = menuOpen;
 	}
 
 	public void render(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks, int screenWidth, int screenHeight)
 	{
-		drawBackground(graphics, mouseX, mouseY, screenWidth, screenHeight);
-		drawBrand(graphics, screenWidth);
-		drawFooter(graphics, screenWidth, screenHeight);
-	}
+		if(layout == null)
+			return;
 
-	private void updateLayout(int screenWidth, int screenHeight)
-	{
-		margin = Mth.clamp(screenWidth / 35, 14, 30);
-		cardWidth = Mth.clamp(Math.round(screenWidth * 0.29F), 260, 340);
-		cardHeight = screenHeight < 280 ? 34 : 46;
-		cardGap = screenHeight < 280 ? 5 : 9;
-		cardX = (screenWidth - cardWidth) / 2;
-		int cardsHeight = cardHeight * 4 + cardGap * 3;
-		cardY = Math.max(screenHeight < 280 ? 44 : 70,
-			(screenHeight - cardsHeight - 36) / 2);
-		utilityY = cardY + cardsHeight + (screenHeight < 280 ? 6 : 12);
+		drawBackground(graphics, mouseX, mouseY, screenWidth, screenHeight);
+		drawChip(graphics);
+		drawLogo(graphics);
+		drawRail(graphics);
+
+		if(menuOpen)
+			drawMenu(graphics);
 	}
 
 	/**
-	 * The user's background when one is selected and ready, and the built-in
-	 * grid otherwise. A custom image is dimmed so the menu stays readable over
-	 * whatever picture was picked.
+	 * 用户选的壁纸；没选或还没解码好时退回内置网格。两种都要压暗，菜单才在
+	 * 任何背景上都读得出来。
 	 */
 	private void drawBackground(GuiGraphics graphics, int mouseX, int mouseY,
 		int screenWidth, int screenHeight)
 	{
 		if(BackgroundManager.get().render(graphics, screenWidth, screenHeight,
 			mouseX, mouseY))
-		{
 			graphics.fill(0, 0, screenWidth, screenHeight, BACKGROUND_SCRIM);
-			return;
+		else
+			VisualRenderer.gridBackground(graphics, screenWidth, screenHeight);
+
+		graphics.fillGradient(0,
+			Math.round(screenHeight * BOTTOM_SCRIM_START), screenWidth,
+			screenHeight, 0x00000000, BOTTOM_SCRIM);
+	}
+
+	private void drawChip(GuiGraphics graphics)
+	{
+		Rect chip = layout.chip();
+		FlatRenderer.fillRoundedRect(graphics, chip.x(), chip.y(), chip.right(),
+			chip.bottom(), layout.chipRadius(), CHIP_FILL);
+
+		Rect avatar = layout.avatar();
+		if(skin != null)
+			PlayerFaceRenderer.draw(graphics, skin, avatar.x(), avatar.y(),
+				avatar.width());
+		else
+			FlatRenderer.fillRoundedRect(graphics, avatar.x(), avatar.y(),
+				avatar.right(), avatar.bottom(), avatar.width() / 2,
+				0x40FFFFFF);
+
+		Font font = minecraft.font;
+		graphics.drawString(font, playerName, layout.chipTextX(),
+			layout.chipNameY(), VisualTheme.TEXT, false);
+		graphics.drawString(font, welcome, layout.chipTextX(),
+			layout.chipSubtitleY(), TEXT_MUTED, false);
+	}
+
+	/**
+	 * 左下角的白色字标。先按 50% 黑、偏移 1x2 画一遍当投影，否则壁纸一亮白字
+	 * 就糊在背景里了。
+	 */
+	private void drawLogo(GuiGraphics graphics)
+	{
+		Rect logo = layout.logo();
+
+		graphics.setColor(0F, 0F, 0F, 0.5F);
+		graphics.blit(LOGO, logo.x() + 1, logo.y() + 2, logo.width(),
+			logo.height(), 0F, 0F, LOGO_WIDTH, LOGO_HEIGHT, LOGO_WIDTH,
+			LOGO_HEIGHT);
+		graphics.setColor(1F, 1F, 1F, 1F);
+		graphics.blit(LOGO, logo.x(), logo.y(), logo.width(), logo.height(),
+			0F, 0F, LOGO_WIDTH, LOGO_HEIGHT, LOGO_WIDTH, LOGO_HEIGHT);
+	}
+
+	/** 动作条的底板；4 个按钮是控件，画在这上面。 */
+	private void drawRail(GuiGraphics graphics)
+	{
+		Rect rail = layout.rail();
+		FlatRenderer.fillRoundedRect(graphics, rail.x(), rail.y(), rail.right(),
+			rail.bottom(), layout.railRadius(), RAIL_FILL);
+	}
+
+	private void drawMenu(GuiGraphics graphics)
+	{
+		Rect menu = layout.menu();
+		FlatRenderer.fillRoundedRect(graphics, menu.x(), menu.y(), menu.right(),
+			menu.bottom(), layout.menuRadius(), MENU_FILL);
+	}
+
+	/**
+	 * 玩家皮肤：本地账号的皮肤在登录时就写进了 profile 的 textures 属性，
+	 * {@code getInsecureSkinLocation} 只是把它登记成贴图，不会发网络请求，也
+	 * 不会返回 null（认不出来时给默认皮肤）。
+	 */
+	private static ResourceLocation resolveSkin(Minecraft minecraft)
+	{
+		try
+		{
+			GameProfile profile = minecraft.getUser().getGameProfile();
+			return minecraft.getSkinManager().getInsecureSkinLocation(profile);
+		}catch(RuntimeException e)
+		{
+			return null;
 		}
-
-		VisualRenderer.gridBackground(graphics, screenWidth, screenHeight);
 	}
 
-	private void drawBrand(GuiGraphics graphics, int screenWidth)
+	private static void configureTextures(Minecraft minecraft)
 	{
-		Font font = minecraft.font;
-		String prefix = "WurstB+ ";
-		float scale = 1.65F;
-		int x = cardX;
-		int y = 35;
-		graphics.pose().pushPose();
-		graphics.pose().translate(x, y, 0);
-		graphics.pose().scale(scale, scale, 1);
-		graphics.drawString(font, prefix, 0, 0, TEXT, false);
-		graphics.drawString(font, "Plus", font.width(prefix), 0, ACCENT, false);
-		graphics.pose().popPose();
+		for(ResourceLocation location : List.of(SINGLEPLAYER, MULTIPLAYER,
+			OPTIONS, POWER, USER, INFO, SETTINGS, RENDER, LOGO))
+			minecraft.getTextureManager().getTexture(location)
+				.setFilter(true, false);
 	}
 
-	private void drawFooter(GuiGraphics graphics, int screenWidth,
-		int screenHeight)
+	private static ResourceLocation fdp(String name)
 	{
-		Font font = minecraft.font;
-		String runtime = "Minecraft "
-			+ SharedConstants.getCurrentVersion().getName() + "  /  Forge "
-			+ ForgeVersion.getVersion();
-		graphics.drawString(font, runtime, margin, screenHeight - 18,
-			MUTED_TEXT, false);
-		String brand = "WurstB+ Plus";
-		graphics.drawString(font, brand,
-			screenWidth - margin - font.width(brand),
-			screenHeight - 18, DIM_TEXT, false);
+		return new ResourceLocation("wurst",
+			"textures/gui/fdp/" + name + ".png");
 	}
 
 	private static ResourceLocation icon(String name)
 	{
-		return new ResourceLocation("wurst", "textures/gui/fdp/" + name
-			+ ".png");
-	}
-
-	private void configureIconFiltering()
-	{
-		for(ResourceLocation icon : List.of(SINGLEPLAYER, MULTIPLAYER, REALMS,
-			OPTIONS, USER, INFO, EXIT))
-			minecraft.getTextureManager().getTexture(icon).setFilter(true, false);
+		return new ResourceLocation("wurst",
+			"textures/gui/icons/" + name + ".png");
 	}
 }

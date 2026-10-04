@@ -61,7 +61,7 @@
 | `clickgui2/component` | 27 | VAPE 风格 GUI 组件层（`VapeClickGuiScreen`、`SuperSoft*` 窗口、`ModuleCardComponent`、`InlineSettingComponents` 等） |
 | `music` + `music/apple` | 28 | 网易云 API（`NeteaseCloudApi`）、播放器（`NeteaseMusicPlayer`）、账号（`MusicAccountManager`）、逐字歌词动画（`AppleLyricPlayer` / `AppleTimeline` / `AppleLayout` / `Spring` / `LyricWordSplitter`）、AMLL 一比一视觉层（`AmlEasing` 缓动 / `AmlVisual` 透明度·模糊·缩放公式 / `AmlEmphasize` 逐字强调 / `AmlOptimize` 歌词优化流水线 / `AmlLayoutReason` 排版策略表 / `AmlTween` CSS 过渡 / `AmlLineBalancer` 断行平衡 / `AmlMask` 不雅词掩码） |
 | `twilight` | 17 | Twilight Echo 音乐界面（已替换旧网易云 GUI）：`TwilightShellScreen`（外壳 / 主页 / 内容页 / 沉浸播放页）、`TwilightShellLayout` / `TwilightHomeLayout` / `TwilightListLayout`、`TwilightSkia`、`TwilightTheme` / `TwilightAccent` / `TwilightEasing` / `TwilightGeometry`、`TwilightMusicService` + `TwilightApiEndpoint`、`TwilightCoverCache` / `TwilightCornerMask` / `TwilightCoverFit` / `CoverBlur`、`TwilightVanilla` / `TwilightHomeCopy` |
-| `background` + `gui/title/BackgroundSelectScreen` | 17 | 标题界面自定义背景：`BackgroundManager`、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`、`GifFrames` / `BackgroundAnimation` / `BackgroundClip`（GIF 解码、合成与逐帧上传）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`、`BackgroundFilePicker` / `BackgroundFileChooser` |
+| `background` + `gui/title` | 18 | 标题界面自定义背景：`BackgroundManager`、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`、`GifFrames` / `BackgroundAnimation` / `BackgroundClip`（GIF 解码、合成与逐帧上传）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`、`BackgroundFilePicker` / `BackgroundFileChooser`；主界面本身是 `WurstTitleMenu` / `WurstTitleButton` / `TitleMenuLayout`（几何）+ `BackgroundSelectScreen` |
 | `clickgui2/music` | 1 | 仅剩 `NeteaseImageCache`（封面下载 / 解码 / 取色），由 Twilight 界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用 |
 | `compose` | 11 | 声明式 UI 布局树（`UiNode` / `UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer`）、`AnimFloat`、`FlowingGradient`、`ModuleColors` |
 | `clickgui2/epsilon` | 8 | Epsilon 风格下拉式 GUI（`EpsilonDropdownScreen` / `Panel` / `ModuleButton` / `Theme` / `CategoryPanel` + 面板布局版 `EpsilonPanelLayout` / `EpsilonPanelNavigatorScreen` / `EpsilonPanelTheme`） |
@@ -289,7 +289,7 @@ v1.6 新增 14 个 Hack：见「v1.6 新增子系统」。其中 `SeedOreESP`（
 | `clickgui2/FlatRenderer.java`、`FlatUiRenderer.java`、`theme/FlatTheme.java` | 实心面板、控件、圆角与阴影绘制 |
 | `clickgui2/Window.java`、`SettingsWindow.java`、`SettingTreeLayout.java` | 浮窗设置稳定绑定与缩进布局 |
 | `hacks/RadarHack.java` + `clickgui2/components/RadarComponent.java` | 雷达快照、范围/旋转设置与固定窗口 |
-| `gui/title/WurstTitleMenu.java`、`BackgroundSelectScreen.java` | 原版全景上的响应式实心深色主菜单，以及自定义背景选择屏 |
+| `gui/title/WurstTitleMenu.java`、`WurstTitleButton.java`、`TitleMenuLayout.java`、`BackgroundSelectScreen.java` | 按参考图重排的主界面（账号胶囊 / 齿轮菜单 / 白色字标 / 底部动作条，几何按比例算，见 [docs/title-menu.md](docs/title-menu.md)），以及自定义背景选择屏 |
 | `mixin/ClientConnectionMixin.java` + `util/ClientConnectionPolicy.java` | 仅在客户端 `CLIENTBOUND` 连接派发收发包事件 |
 
 ### 设置
