@@ -141,5 +141,16 @@ Persica 的 20 个对象里只有 **3 个真的要画**（`Blossom backdrop`、`
 （250x250，方形中心裁切）对照，取景一致；两者的差异主要来自缩略图带的效果与相机
 机位，没有把缩略图当作像素级基准。
 
+**已经在游戏里跑通**：dev 客户端（`gradlew runClient`）主菜单实际渲染出该场景，日志
+`[Background] Scene persica: 3 layers, canvas 3840x2160`，配色与构图与上面的 CPU 合成
+一致，见 [wallpaper-engine-scene-ingame.png](wallpaper-engine-scene-ingame.png)（游戏自己的
+F2 截图，缩放到 1296x672）。
+
+**视差的「手感」没有客观测到**：自动化截图期间这台机器上有人在用鼠标，游戏窗口一拿到
+焦点，鼠标事件就进了游戏，于是「鼠标不动连拍两张」的基线本身就有几十像素的位移，
+所有基于静止帧的测量都被污染了。所以亚像素定位与阻尼只有单元测试（帧率无关性、收敛、
+长时间卡顿截断）与机制层面的依据（`GuiGraphics.blit` 走模型矩阵，仓库里
+`GuiIcon.drawRotated` 就是「小数 translate + blit」的现成先例），最终手感要靠人眼确认。
+
 **没有在 Wallpaper Engine 里逐帧对照过**，也没有实现效果层，所以「像不像原版」这件事
 只能说到「构图层对得上」。
