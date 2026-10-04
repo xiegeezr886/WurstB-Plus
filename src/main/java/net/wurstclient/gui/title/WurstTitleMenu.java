@@ -18,6 +18,7 @@ import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.versions.forge.ForgeVersion;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
+import net.wurstclient.background.BackgroundManager;
 import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.gui.visual.VisualRenderer;
 import net.wurstclient.util.ScreenRegistry;
@@ -29,6 +30,9 @@ public final class WurstTitleMenu
 	private static final int TEXT = VisualTheme.TEXT;
 	private static final int MUTED_TEXT = VisualTheme.TEXT_DIMMED;
 	private static final int DIM_TEXT = VisualTheme.TEXT_MUTED;
+
+	/** Dims a custom background so the menu stays readable over any picture. */
+	private static final int BACKGROUND_SCRIM = 0x4D000000;
 
 	private static final ResourceLocation SINGLEPLAYER = icon("singleplayer");
 	private static final ResourceLocation MULTIPLAYER = icon("multiplayer");
@@ -92,6 +96,15 @@ public final class WurstTitleMenu
 		addButton(addWidget, cardX + (compactWidth + compactGap) * 2, utilityY,
 			cardWidth - (compactWidth + compactGap) * 2, compactHeight,
 			"退出", EXIT, minecraft::stop, true, true);
+
+		// the background picker sits in the top right corner, where the
+		// reference puts its palette button
+		int backgroundWidth = 76;
+		int backgroundHeight = 24;
+		addButton(addWidget, screenWidth - margin - backgroundWidth, margin,
+			backgroundWidth, backgroundHeight, "背景", OPTIONS,
+			() -> minecraft.setScreen(new BackgroundSelectScreen(parent)), true,
+			false);
 	}
 
 	private void addButton(Consumer<AbstractWidget> addWidget, int x, int y,
@@ -107,7 +120,7 @@ public final class WurstTitleMenu
 	public void render(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks, int screenWidth, int screenHeight)
 	{
-		drawBackground(graphics, screenWidth, screenHeight);
+		drawBackground(graphics, mouseX, mouseY, screenWidth, screenHeight);
 		drawBrand(graphics, screenWidth);
 		drawFooter(graphics, screenWidth, screenHeight);
 	}
@@ -125,9 +138,21 @@ public final class WurstTitleMenu
 		utilityY = cardY + cardsHeight + (screenHeight < 280 ? 6 : 12);
 	}
 
-	private void drawBackground(GuiGraphics graphics, int screenWidth,
-		int screenHeight)
+	/**
+	 * The user's background when one is selected and ready, and the built-in
+	 * grid otherwise. A custom image is dimmed so the menu stays readable over
+	 * whatever picture was picked.
+	 */
+	private void drawBackground(GuiGraphics graphics, int mouseX, int mouseY,
+		int screenWidth, int screenHeight)
 	{
+		if(BackgroundManager.get().render(graphics, screenWidth, screenHeight,
+			mouseX, mouseY))
+		{
+			graphics.fill(0, 0, screenWidth, screenHeight, BACKGROUND_SCRIM);
+			return;
+		}
+
 		VisualRenderer.gridBackground(graphics, screenWidth, screenHeight);
 	}
 

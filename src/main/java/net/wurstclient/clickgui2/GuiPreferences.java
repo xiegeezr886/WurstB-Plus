@@ -22,6 +22,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.wurstclient.WurstClient;
+import net.wurstclient.background.BackgroundMotion;
+import net.wurstclient.background.BackgroundStorage;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
 
@@ -47,6 +49,9 @@ public final class GuiPreferences
 	private boolean targetAnimals = true;
 	private boolean targetTeams = true;
 	private boolean targetVillagers = true;
+	private String selectedBackground = BackgroundStorage.DEFAULT_ID;
+	private BackgroundMotion backgroundMotion = BackgroundMotion.KEN_BURNS;
+	private float backgroundMotionStrength = 1F;
 	private final Map<String, VapeFrameState> vapeFrames = new HashMap<>();
 	private final Set<String> vapeFavorites = new LinkedHashSet<>();
 	private final Set<String> vapeHiddenModules = new LinkedHashSet<>();
@@ -88,6 +93,15 @@ public final class GuiPreferences
 				targetTeams = json.get("targetTeams").getAsBoolean();
 			if(json.has("targetVillagers"))
 				targetVillagers = json.get("targetVillagers").getAsBoolean();
+			if(json.has("selectedBackground"))
+				selectedBackground = sanitizeBackgroundId(
+					json.get("selectedBackground").getAsString());
+			if(json.has("backgroundMotion"))
+				backgroundMotion = parseMotion(
+					json.get("backgroundMotion").getAsString());
+			if(json.has("backgroundMotionStrength"))
+				backgroundMotionStrength =
+					json.get("backgroundMotionStrength").getAsFloat();
 			if(json.has("vapeFrames") && json.get("vapeFrames").isJsonObject())
 			{
 				JsonObject frames = json.getAsJsonObject("vapeFrames");
@@ -130,6 +144,9 @@ public final class GuiPreferences
 		json.addProperty("targetAnimals", targetAnimals);
 		json.addProperty("targetTeams", targetTeams);
 		json.addProperty("targetVillagers", targetVillagers);
+		json.addProperty("selectedBackground", selectedBackground);
+		json.addProperty("backgroundMotion", backgroundMotion.name());
+		json.addProperty("backgroundMotionStrength", backgroundMotionStrength);
 		JsonObject frames = new JsonObject();
 		for(var entry : vapeFrames.entrySet())
 		{
@@ -172,6 +189,69 @@ public final class GuiPreferences
 	{
 		this.fontEnabled = fontEnabled;
 		save();
+	}
+
+	public String getSelectedBackground()
+	{
+		return selectedBackground;
+	}
+
+	public void setSelectedBackground(String id)
+	{
+		this.selectedBackground = sanitizeBackgroundId(id);
+		save();
+	}
+
+	public BackgroundMotion getBackgroundMotion()
+	{
+		return backgroundMotion;
+	}
+
+	public void setBackgroundMotion(BackgroundMotion motion)
+	{
+		if(motion != null)
+			this.backgroundMotion = motion;
+		save();
+	}
+
+	public float getBackgroundMotionStrength()
+	{
+		return backgroundMotionStrength;
+	}
+
+	public void setBackgroundMotionStrength(float strength)
+	{
+		this.backgroundMotionStrength = Math.max(0F, Math.min(1F, strength));
+		save();
+	}
+
+	/**
+	 * The built-in background is the fallback, and anything else has to be a
+	 * name we would be willing to resolve into a folder. Rejecting a path here
+	 * means a hand-edited preferences file can never point outside the
+	 * background library.
+	 */
+	private static String sanitizeBackgroundId(String id)
+	{
+		if(id == null || id.isBlank()
+			|| BackgroundStorage.DEFAULT_ID.equals(id))
+			return BackgroundStorage.DEFAULT_ID;
+
+		return BackgroundStorage.isValidId(id) ? id
+			: BackgroundStorage.DEFAULT_ID;
+	}
+
+	/** An unknown motion name - from another build, or a hand edit - falls back
+	 * to the default instead of failing the whole load. */
+	private static BackgroundMotion parseMotion(String name)
+	{
+		try
+		{
+			return BackgroundMotion.valueOf(name);
+		}catch(RuntimeException e)
+		{
+			return BackgroundMotion.KEN_BURNS;
+		}
 	}
 
 	public boolean isVapeMode()
