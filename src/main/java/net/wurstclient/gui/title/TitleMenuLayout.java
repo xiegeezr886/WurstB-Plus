@@ -108,16 +108,15 @@ public final class TitleMenuLayout
 	// 左下角 logo
 	// ----------------------------------------------------------------
 
-	/** wurstb_plus_logo.png 的宽高比。 */
-	public static final float LOGO_ASPECT = 716F / 80F;
+	/** wurstb_logo_white.png 的宽高比（v1.6 手写体，已按 alpha 裁边并去掉白色内块）。 */
+	public static final float LOGO_ASPECT = 700F / 195F;
 	/**
-	 * 参考图的标题字高是 41/672，但那是 6 个字母的窄标题；我们用的是一整条
-	 * 716×80 的白色字标，同样的字高会横到屏宽的 28%。取 39/672 让字标的
-	 * 高度接近参考、宽度不至于铺满半屏。
+	 * 参考图的标题宽 185/1296 = 14.3%，我们的字标取 26%（337/1296）——手写体的
+	 * 笔画细，按参考图那个尺寸缩下去发丝只剩 1 像素，整条字标会糊成一团。
 	 */
-	public static final float LOGO_HEIGHT_RATIO = 39F / REFERENCE_HEIGHT;
-	public static final int LOGO_HEIGHT_MIN = 10;
-	public static final int LOGO_HEIGHT_MAX = 34;
+	public static final float LOGO_WIDTH_RATIO = 337F / REFERENCE_WIDTH;
+	/** 屏宽再窄也留一条能认出来的字标。 */
+	public static final int LOGO_WIDTH_MIN = 40;
 	public static final float LOGO_INDENT_RATIO = 12F / REFERENCE_WIDTH;
 	public static final float LOGO_GAP_RATIO = 32F / REFERENCE_HEIGHT;
 	public static final int LOGO_GAP_MIN = 2;
@@ -229,19 +228,18 @@ public final class TitleMenuLayout
 		// ---- 左下角 logo ----
 		int logoGap = Math.max(LOGO_GAP_MIN, round(height * LOGO_GAP_RATIO));
 		int logoIndent = round(width * LOGO_INDENT_RATIO);
-		int logoHeight = clamp(round(height * LOGO_HEIGHT_RATIO),
-			LOGO_HEIGHT_MIN, LOGO_HEIGHT_MAX);
+		int logoWidth = Math.max(1, clamp(round(width * LOGO_WIDTH_RATIO),
+			LOGO_WIDTH_MIN, width - margin * 2 - logoIndent));
+		int logoHeight = Math.max(1, round(logoWidth / LOGO_ASPECT));
 		// 屏幕太矮时先压字标，免得它顶到胶囊上
 		int logoRoom = rail.y - logoGap - chip.bottom() - 2;
-		logoHeight = Math.max(1, Math.min(logoHeight, logoRoom));
-		int logoWidth = Math.max(1, round(logoHeight * LOGO_ASPECT));
-		int logoMaxWidth = Math.max(1,
-			width - margin * 2 - logoIndent);
-		if(logoWidth > logoMaxWidth)
+
+		if(logoHeight > logoRoom)
 		{
-			logoWidth = logoMaxWidth;
-			logoHeight = Math.max(1, round(logoWidth / LOGO_ASPECT));
+			logoHeight = Math.max(1, logoRoom);
+			logoWidth = Math.max(1, round(logoHeight * LOGO_ASPECT));
 		}
+
 		logo = new Rect(margin + logoIndent, rail.y - logoGap - logoHeight,
 			logoWidth, logoHeight);
 

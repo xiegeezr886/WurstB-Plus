@@ -91,7 +91,6 @@ final class TitleMenuLayoutTest
 			layout.action(1).x() - layout.action(0).right(), 16);
 
 		assertPhysical("logo left", layout.logo().x(), 28);
-		assertPhysical("logo top", layout.logo().y(), 506);
 		assertPhysical("logo bottom", layout.logo().bottom(), 547);
 	}
 

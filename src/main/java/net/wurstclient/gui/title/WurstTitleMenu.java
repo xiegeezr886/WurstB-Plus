@@ -18,7 +18,6 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
 import net.wurstclient.background.BackgroundManager;
 import net.wurstclient.clickgui2.FlatRenderer;
-import net.wurstclient.clickgui2.PingFangFont;
 import net.wurstclient.gui.title.TitleMenuLayout.Rect;
 import net.wurstclient.gui.title.WurstTitleButton.Style;
 import net.wurstclient.gui.visual.VisualRenderer;
@@ -49,10 +48,10 @@ public final class WurstTitleMenu
 	private static final ResourceLocation SETTINGS = icon("settings");
 	private static final ResourceLocation RENDER = icon("render");
 	private static final ResourceLocation LOGO = new ResourceLocation("wurst",
-		"textures/gui/wurstb_plus_logo.png");
+		"textures/gui/wurstb_logo_white.png");
 
-	private static final int LOGO_WIDTH = 716;
-	private static final int LOGO_HEIGHT = 80;
+	private static final int LOGO_WIDTH = 700;
+	private static final int LOGO_HEIGHT = 195;
 
 	/** 壁纸整体压暗，保证白字在任何壁纸上都读得出来。 */
 	private static final int BACKGROUND_SCRIM = 0x33000000;
@@ -88,10 +87,8 @@ public final class WurstTitleMenu
 		menuRows.clear();
 		menuOpen = false;
 
-		playerName = Component.literal(minecraft.getUser().getName())
-			.withStyle(PingFangFont.SEMIBOLD_STYLE);
-		welcome = Component.translatable("wurst.title.welcome")
-			.withStyle(PingFangFont.LIGHT_STYLE);
+		playerName = Component.literal(minecraft.getUser().getName());
+		welcome = Component.translatable("wurst.title.welcome");
 		skin = resolveSkin(minecraft);
 		configureTextures(minecraft);
 
@@ -213,20 +210,16 @@ public final class WurstTitleMenu
 	}
 
 	/**
-	 * 左下角的白色字标。先按 50% 黑、偏移 1x2 画一遍当投影，否则壁纸一亮白字
-	 * 就糊在背景里了。
+	 * 左下角的 v1.6 白色字标（彩色手写体转成全白，见
+	 * {@code wurstb_logo_white.png}）。原版 {@code GuiGraphics.setColor} 改的是
+	 * <b>全局 shader 颜色</b>，会给整帧后面的东西染色，所以这里不画投影，只画
+	 * 一遍本体。
 	 */
 	private void drawLogo(GuiGraphics graphics)
 	{
 		Rect logo = layout.logo();
-
-		graphics.setColor(0F, 0F, 0F, 0.5F);
-		graphics.blit(LOGO, logo.x() + 1, logo.y() + 2, logo.width(),
-			logo.height(), 0F, 0F, LOGO_WIDTH, LOGO_HEIGHT, LOGO_WIDTH,
-			LOGO_HEIGHT);
-		graphics.setColor(1F, 1F, 1F, 1F);
-		graphics.blit(LOGO, logo.x(), logo.y(), logo.width(), logo.height(),
-			0F, 0F, LOGO_WIDTH, LOGO_HEIGHT, LOGO_WIDTH, LOGO_HEIGHT);
+		graphics.blit(LOGO, logo.x(), logo.y(), logo.width(), logo.height(), 0F,
+			0F, LOGO_WIDTH, LOGO_HEIGHT, LOGO_WIDTH, LOGO_HEIGHT);
 	}
 
 	/** 动作条的底板；4 个按钮是控件，画在这上面。 */

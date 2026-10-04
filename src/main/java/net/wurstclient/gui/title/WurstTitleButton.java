@@ -94,7 +94,7 @@ final class WurstTitleButton extends AbstractButton
 			VisualTheme.mix(ACTION_FILL, ACTION_FILL_HOVER, hover));
 
 		Font font = Minecraft.getInstance().font;
-		Component text = label();
+		Component text = getMessage();
 		int textWidth = font.width(text);
 		int gap = Math.max(3, iconSize / 2);
 		// 按钮窄到放不下图标时只留文字，免得两者叠在一起
@@ -134,7 +134,7 @@ final class WurstTitleButton extends AbstractButton
 		int pad = Math.max(3, (getHeight() - iconSize) / 2);
 		blitIcon(graphics, x1 + pad, y1 + (getHeight() - iconSize) / 2,
 			iconSize);
-		graphics.drawString(font, label(), x1 + pad + iconSize + pad,
+		graphics.drawString(font, getMessage(), x1 + pad + iconSize + pad,
 			TitleMenuLayout.centerTextY(y1, getHeight()),
 			VisualTheme.mix(VisualTheme.TEXT_DIMMED, VisualTheme.TEXT, hover),
 			false);
@@ -147,14 +147,6 @@ final class WurstTitleButton extends AbstractButton
 
 		graphics.blit(icon, x, y, size, size, 0, 0, TEXTURE_SIZE,
 			TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
-	}
-
-	private Component label()
-	{
-		if(label == null)
-			label = getMessage().copy().withStyle(PingFangFont.REGULAR_STYLE);
-
-		return label;
 	}
 
 	@Override
