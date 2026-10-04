@@ -108,8 +108,8 @@ public final class TitleMenuLayout
 	// 左下角 logo
 	// ----------------------------------------------------------------
 
-	/** wurstb_logo_white.png 的宽高比（v1.6 手写体，已按 alpha 裁边并去掉白色内块）。 */
-	public static final float LOGO_ASPECT = 700F / 195F;
+	/** wurstb_logo_white.png 的宽高比（烘焙后的贴图 768x229）。 */
+	public static final float LOGO_ASPECT = 768F / 229F;
 	/**
 	 * 参考图的标题宽 185/1296 = 14.3%，我们的字标取 26%（337/1296）——手写体的
 	 * 笔画细，按参考图那个尺寸缩下去发丝只剩 1 像素，整条字标会糊成一团。
