@@ -47,31 +47,69 @@ public final class BackgroundThumbnail
 		try(InputStream in = Files.newInputStream(media);
 			NativeImage source = NativeImage.read(in))
 		{
-			int width = source.getWidth();
-			int height = source.getHeight();
+			return create(source, maxSize);
 
-			if(width <= 0 || height <= 0)
+		}catch(IOException | RuntimeException e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * The preview of an animated file, taken from its first composited frame.
+	 *
+	 * <p>
+	 * {@code NativeImage} cannot read a GIF at all, so without this every
+	 * imported GIF would sit in the picker as a blank card - which reads as a
+	 * broken import rather than as a moving wallpaper.
+	 */
+	public static byte[] createAnimated(Path media, int maxSize)
+	{
+		if(media == null || !Files.isRegularFile(media))
+			return null;
+
+		try
+		{
+			GifFrames.Clip clip = GifFrames.decode(media);
+
+			if(clip.frames().isEmpty())
 				return null;
 
-			int limit = Math.max(16, maxSize);
-			float scale = Math.min(1F,
-				limit / (float)Math.max(width, height));
-			int targetWidth = Math.max(1, Math.round(width * scale));
-			int targetHeight = Math.max(1, Math.round(height * scale));
-
-			if(targetWidth == width && targetHeight == height)
-				return encode(source);
-
-			try(NativeImage thumbnail =
-				new NativeImage(targetWidth, targetHeight, false))
+			try(NativeImage source = BackgroundClip.toImage(
+				clip.frames().get(0).argb(), clip.width(), clip.height()))
 			{
-				// the vanilla bitmap font atlas uses this same call to rescale
-				source.resizeSubRectTo(0, 0, width, height, thumbnail);
-				return encode(thumbnail);
+				return create(source, maxSize);
 			}
 		}catch(IOException | RuntimeException e)
 		{
 			return null;
+		}
+	}
+
+	/** Rescales and encodes an image that is already decoded. */
+	private static byte[] create(NativeImage source, int maxSize)
+		throws IOException
+	{
+		int width = source.getWidth();
+		int height = source.getHeight();
+
+		if(width <= 0 || height <= 0)
+			return null;
+
+		int limit = Math.max(16, maxSize);
+		float scale = Math.min(1F, limit / (float)Math.max(width, height));
+		int targetWidth = Math.max(1, Math.round(width * scale));
+		int targetHeight = Math.max(1, Math.round(height * scale));
+
+		if(targetWidth == width && targetHeight == height)
+			return encode(source);
+
+		try(NativeImage thumbnail =
+			new NativeImage(targetWidth, targetHeight, false))
+		{
+			// the vanilla bitmap font atlas uses this same call to rescale
+			source.resizeSubRectTo(0, 0, width, height, thumbnail);
+			return encode(thumbnail);
 		}
 	}
 

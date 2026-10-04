@@ -238,9 +238,12 @@ public final class BackgroundSelectScreen extends Screen
 			graphics.fill(card.x + 4, card.y + 4, card.right() - 4, previewBottom,
 				0x22FFFFFF);
 
-		if(entry.kind().isAnimated())
-			drawBadge(graphics, card, entry.kind() == BackgroundKind.GIF
-				? "GIF" : "视频");
+		if(entry.kind() == BackgroundKind.VIDEO)
+			// the badge says what the click would otherwise have to: this one
+			// may be imported, but it cannot be played
+			drawBadge(graphics, card, "视频 · 不能播放");
+		else if(entry.kind() == BackgroundKind.GIF)
+			drawBadge(graphics, card, "GIF");
 
 		drawCardLabel(graphics, card, entry.title(), entry.origin());
 	}
@@ -329,6 +332,8 @@ public final class BackgroundSelectScreen extends Screen
 
 			if(button == 1)
 				delete(entry);
+			else if(!entry.kind().canPlay())
+				status = "视频壁纸本版不能播放（没有 H.264 解码器），只能看预览图";
 			else
 				BackgroundManager.get().select(entry.id());
 		}
@@ -400,8 +405,11 @@ public final class BackgroundSelectScreen extends Screen
 			// decoding the thumbnail is slow, so it happens off the client
 			// thread and the import follows it
 			Thread worker = new Thread(() -> {
-				byte[] thumbnail = BackgroundThumbnail.create(path,
-					BackgroundThumbnail.MAX_SIZE);
+				byte[] thumbnail = kind == BackgroundKind.GIF
+					? BackgroundThumbnail.createAnimated(path,
+						BackgroundThumbnail.MAX_SIZE)
+					: BackgroundThumbnail.create(path,
+						BackgroundThumbnail.MAX_SIZE);
 				String id = BackgroundManager.get().storage().importFile(path,
 					kind, path.getFileName().toString(), path.getFileName()
 						.toString(), thumbnail);
@@ -440,8 +448,11 @@ public final class BackgroundSelectScreen extends Screen
 
 				for(WallpaperEngineImporter.Candidate candidate : candidates)
 				{
-					byte[] thumbnail = BackgroundThumbnail.create(
-						candidate.media(), BackgroundThumbnail.MAX_SIZE);
+					byte[] thumbnail = candidate.kind() == BackgroundKind.GIF
+						? BackgroundThumbnail.createAnimated(candidate.media(),
+							BackgroundThumbnail.MAX_SIZE)
+						: BackgroundThumbnail.create(candidate.media(),
+							BackgroundThumbnail.MAX_SIZE);
 
 					String id = BackgroundManager.get().storage().importFile(
 						candidate.media(), candidate.kind(), candidate.title(),

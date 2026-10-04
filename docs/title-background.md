@@ -10,8 +10,11 @@
 | --- | --- |
 | `BackgroundManager` | 客户端级单例。持有选择、纹理与加载状态，负责整屏绘制。用**一个固定纹理 id**（`wurst:title_background`）复用同一个注册槽位，切换背景不会泄漏纹理注册 |
 | `BackgroundStorage` | 磁盘库：`<wurst 文件夹>/backgrounds/<id>/media.<ext>` + `thumbnail.png` + `meta.json`。刻意不含 Minecraft 类型，可对临时目录单测 |
-| `BackgroundEntry` / `BackgroundKind` | 列表条目与媒体类型（`IMAGE` / `GIF` / `VIDEO`，按扩展名判定）；内置默认背景是**虚拟条目**，从不落盘 |
-| `BackgroundThumbnail` | 列表卡片的预览图 |
+| `BackgroundEntry` / `BackgroundKind` | 列表条目与媒体类型（`IMAGE` / `GIF` / `VIDEO`，按扩展名判定）；内置默认背景是**虚拟条目**，从不落盘。`canPlay()` 是「本版能不能真的放出来」的唯一真值来源 |
+| `BackgroundThumbnail` | 列表卡片的预览图；动图取**第一帧**（`NativeImage` 根本读不了 GIF） |
+| `GifFrames` | 动图解码：ImageIO 读帧 + **逐帧合成**（帧矩形、处置方式、透明混合），并施加解码预算。纯 JDK，无 Minecraft 类型 |
+| `BackgroundAnimation` | 帧时钟：由每帧延迟推出「此刻该显示第几帧」，含浏览器对 0/10 ms 延迟的 100 ms 规则。纯算术，可单测 |
+| `BackgroundClip` | 解码结果（`NativeImage[]` + 帧时钟）与它自己的解码线程；`DynamicTexture` 会关掉交给它的图像，所以纹理与帧各持一份 |
 | `BackgroundMotion` / `BackgroundPose` | 静图运镜：`NONE` / `KEN_BURNS` / `PARALLAX` / `DRIFT`，姿态是**时间、鼠标与视口的纯函数**（不依赖帧计数），所以掉帧时依然平滑，也能单测 |
 | `BackgroundFilePicker` / `BackgroundFileChooser` | 跨平台文件选择（AWT `FileDialog` / `JFileChooser` 兜底） |
 | `WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson` | Wallpaper Engine 导入：定位 Steam 库、解析 `libraryfolders.vdf` 与各壁纸的 `project.json`，产出候选列表（上限 500，可播放的排在前面） |
@@ -37,15 +40,56 @@
 
 `BackgroundStorage.isValidId()` 只接受「字母 / 数字 / `-` / `_`」且长度 ≤ 48、不含 `..`、不等于 `default`——这是防止**存盘里的 id 走出库目录**的那道闸门。`slugify()` 生成 id 时保留任意文字（中文标题照样得到可读的文件夹名），只是把其余字符折成 `-`。
 
+## 4. 动图（GIF）播放
+
+静图只是把一张图贴上去；GIF 要解码、要合成、要按帧上传，这三件事都不在
+`GuiGraphics.blit` 的射程内，所以单独走一条路。
+
+- **合成**：GIF 的每一帧不是一张完整的图，而是一个要画到画布上的矩形，而且上一帧
+  可以要求「把这个矩形清掉」或「把整块画布倒回去」。`GifFrames` 按
+  `none` / `doNotDispose` / `restoreToBackgroundColor` / `restoreToPrevious`
+  逐帧合成，透明像素做 source-over 混合。**不做这一步，每一张局部帧看上去都会像
+  花屏。**
+- **预算**：一个 1080p、60 帧的 GIF 是 1.24 亿像素，光 int 数组就 500 MB。所以
+  解码时按预算缩小：单边不超过 1600px、总像素不超过 1200 万、最多 150 帧；被缩小
+  或截断时会在日志里写一行 `[Background] … decoded to WxH, N frames`。
+- **上传**：`BackgroundAnimation` 用帧延迟算出当前该显示第几帧，**只有帧号变化时**
+  才把该帧拷进纹理自己的图像并 `upload()`。浏览器对 0/10 ms 的延迟按 100 ms 处理，
+  这里沿用同一规则——否则一个零延迟的两帧 GIF 会变成每帧一次全屏上传。
+- **所有权**：`DynamicTexture` 的构造与 `setPixels` 都会**关掉**交给它的
+  `NativeImage`，所以纹理自己持有一张图像、帧留在 `BackgroundClip` 里，每帧用
+  `copyFrom` 拷过去。直接把帧交给纹理会把整个动画的第一帧之外全部关成空指针。
+- **颜色通道**：`NativeImage` 的整数像素接口是 **ABGR**，从标准 ARGB 转换时必须
+  交换红蓝。写错了就是一张颜色反过来的壁纸。
+- **缩略图**：`NativeImage` 读不了 GIF，动图的卡片预览改用第一帧生成，否则每张导入
+  的 GIF 都是一张空白卡片。
+- **线程**：解码在 `WurstB-BackgroundClip` 守护线程上跑，完成后回到客户端线程建纹理；
+  期间发生的切换/删除会让这次解码结果被直接丢弃并释放。
+
 ## 5. 还没做的（如实说明）
 
-1. **GIF / 视频背景不能播放。** `BackgroundKind` 认 `GIF` 与 `VIDEO`，导入流程会接受它们，选择界面还会给这类卡片打上「GIF」/「视频」徽章；但绘制路径只有 `NativeImage.read`（stb_image，只认 PNG/JPEG/BMP/TGA）。选中这类背景的结果是解码失败 → 记进 `failedId` → **回退到内置默认背景**，并且不会重试。这是当前最明显的缺口，先记在这里，不要当成已实现。
+1. **视频背景不能播放。** `BackgroundKind.canPlay()` 对 `VIDEO` 返回 false：mp4 需要
+   H.264 解码器，那是本项目刻意不引入的依赖。这类卡片带「视频 · 不能播放」徽章，
+   点击只会在状态栏说明原因，不会静默失败。
 2. **没有裁剪与对焦点设置**：构图完全由 `cover` 决定，长图只能看到中间那条。
-3. **Wallpaper Engine 的场景 / 网页 / 应用型壁纸**只导入其**预览图**并在卡片上注明原因（`Candidate.note`）；视频型壁纸导入 `project.json` 里的视频文件，但同样受第 1 条限制。
-4. **没有「打开背景文件夹」入口**，删库只能靠文件管理器。
+3. **Wallpaper Engine 的场景 / 网页 / 应用型壁纸**只导入其**预览图**并在卡片上注明原因
+   （`Candidate.note`）。
+4. **动图只有整个界面可见时才推进**：标题界面不显示时不会后台跑帧，重进界面会按
+   挂钟时间直接跳到该显示的那一帧（不做补帧）。
+5. **没有「打开背景文件夹」入口**，删库只能靠文件管理器。
 
 ## 6. 验证状态（诚实声明）
 
-- 只做了编译与单元测试：`BackgroundMotionTest`（四种运镜的姿态、边界与 `strengthFor` 缩放）、`BackgroundStorageTest`（导入 / 列举 / 读回 / id 安全 / 删除，针对临时目录）、`VdfParserTest`、`WallpaperEngineImporterTest`（视频 / 图片 / 场景型壁纸、畸形 `project.json`、上限与排序）。全部**不依赖 Minecraft 运行时**，也不联网。
-- **从未在游戏里看过**：`blit` 的裁剪参数、`NativeImage` / `DynamicTexture` / `TextureManager` 的用法、以及标题界面上的实际排版都只做过签名核对与编译验证。`BackgroundSelectScreen` 的按钮命中、滚动与卡片布局同样没有实机验证。
-- **从未在真实的 Wallpaper Engine 库上跑过**：`libraryfolders.vdf` 与 `project.json` 的字段按公开格式与 `WallpaperEngineImporterTest` 的样例解析，真实库的字段差异可能让某些壁纸被判为不可导入。
+- 只做了编译与单元测试：`BackgroundMotionTest`（四种运镜的姿态、边界与 `strengthFor`
+  缩放）、`BackgroundAnimationTest`（帧时钟的边界、循环、有限次循环后停在末帧、
+  退化延迟规则）、`GifFramesTest`（**处置方式与透明混合逐条**、帧矩形裁剪、解码预算
+  的缩放公式、以及用 ImageIO 现写一个带动画 GIF 再读回的端到端用例，含 Netscape
+  循环次数）、`BackgroundStorageTest`（导入 / 列举 / 读回 / id 安全 / 删除）、
+  `VdfParserTest`、`WallpaperEngineImporterTest`（视频 / 图片 / 场景型壁纸、畸形
+  `project.json`、上限与排序）。全部**不依赖 Minecraft 运行时**，也不联网。
+- **从未在游戏里看过**：`blit` 的裁剪参数、`DynamicTexture` / `NativeImage.copyFrom` /
+  `upload` 的用法、动图的实际上传节奏与颜色，以及标题界面上的排版都只做过签名核对与
+  编译验证。`BackgroundSelectScreen` 的按钮命中、滚动与卡片布局同样没有实机验证。
+- **从未在真实的 Wallpaper Engine 库上跑过**：`libraryfolders.vdf` 与 `project.json`
+  的字段按公开格式与 `WallpaperEngineImporterTest` 的样例解析，真实库的字段差异可能让
+  某些壁纸被判为不可导入。

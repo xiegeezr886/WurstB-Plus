@@ -3,7 +3,7 @@
 本文档记录当前工作区的实际结构。统计基于各工程自身的 `src/main`，不包含根目录参考压缩包中的源码文件。
 
 > **当前状态（重要）**：根目录工程已推进到 **v1.6.0**，其余 14 个平台工程仍停留在 **v1.5.0**。
-> v1.6 新增的 19 项源码包（188 个 Java 文件）**只存在于根目录 Forge 1.20.1 工程**，尚未移植。
+> v1.6 新增的 19 项源码包（191 个 Java 文件）**只存在于根目录 Forge 1.20.1 工程**，尚未移植。
 > 详见「v1.6 新增子系统」与 [CHANGELOG.md](CHANGELOG.md)。
 >
 > 本文件的下表只覆盖上述 **15 个已发布工程**。工作区另有 **46 个新版本工程**
@@ -20,7 +20,7 @@
 
 | 工程（构建目录） | 平台 / 游戏版本 | 工具链 | 源码文件数 | 版本 | 入口类 | 发布产物（build/libs/） |
 | --- | --- | --- | ---: | --- | --- | --- |
-| `.`（根） | Forge 47.4.10 / 1.20.1 | JDK 17 · Gradle 8.11 · ForgeGradle 6.0 | **1043** | **v1.6.0** | `WurstForgeInitializer` | `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB） |
+| `.`（根） | Forge 47.4.10 / 1.20.1 | JDK 17 · Gradle 8.11 · ForgeGradle 6.0 | **1046** | **v1.6.0** | `WurstForgeInitializer` | `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB） |
 | `versions/1.21.1/` | Forge 52.1.16 / 1.21.1 | JDK 21 · Gradle 8.11 · ForgeGradle 6.0 | 741 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-1.21.1.jar` |
 | `versions/1.21.11/` | Forge 61.2.0 / 1.21.11 | JDK 21 · Gradle 9.4.1 · ForgeGradle 7.x | 748 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-1.21.11.jar` |
 | `versions/26.1.2/` | Forge 64.1.0 / 26.1.2 | JDK 25 · Gradle 9.4.1 · ForgeGradle 7.x | 790 | v1.5.0 | `WurstForgeInitializer` | `WurstB+ Plus-v1.5.0-Forge-26.1.2.jar` |
@@ -39,7 +39,7 @@
 | `fabric/versions/26.2/` | Fabric Loader 0.19.3 / 26.2 | JDK 25 · Gradle 9.6.0 · Loom | 792 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-26.2.jar` |
 | `fabric/versions/26.3/` | Fabric Loader 0.19.5 / 26.3 | JDK 25 · Gradle 9.6.0 · Loom | 795 | v1.5.0 | `WurstInitializer` | `WurstB+ Plus-1.5.0-Fabric-26.3.jar` |
 
-合计 **11,776 个 Java 源文件**。全部 15 个工程的 `build/libs/` 均存在已构建产物（除根目录为本轮实际重建外，其余为工作区导入时的既有产物，未在本轮重新验证）。
+合计 **11,779 个 Java 源文件**。全部 15 个工程的 `build/libs/` 均存在已构建产物（除根目录为本轮实际重建外，其余为工作区导入时的既有产物，未在本轮重新验证）。
 
 配套目录：
 
@@ -54,14 +54,14 @@
 
 ## v1.6 新增子系统（仅根目录 Forge 1.20.1）
 
-以下 19 项源码包在 14 个平台工程中**完全不存在**，合计 188 个 Java 文件：
+以下 19 项源码包在 14 个平台工程中**完全不存在**，合计 191 个 Java 文件：
 
 | 包 | 文件数 | 职责 |
 | --- | ---: | --- |
 | `clickgui2/component` | 27 | VAPE 风格 GUI 组件层（`VapeClickGuiScreen`、`SuperSoft*` 窗口、`ModuleCardComponent`、`InlineSettingComponents` 等） |
 | `music` + `music/apple` | 28 | 网易云 API（`NeteaseCloudApi`）、播放器（`NeteaseMusicPlayer`）、账号（`MusicAccountManager`）、逐字歌词动画（`AppleLyricPlayer` / `AppleTimeline` / `AppleLayout` / `Spring` / `LyricWordSplitter`）、AMLL 一比一视觉层（`AmlEasing` 缓动 / `AmlVisual` 透明度·模糊·缩放公式 / `AmlEmphasize` 逐字强调 / `AmlOptimize` 歌词优化流水线 / `AmlLayoutReason` 排版策略表 / `AmlTween` CSS 过渡 / `AmlLineBalancer` 断行平衡 / `AmlMask` 不雅词掩码） |
 | `twilight` | 17 | Twilight Echo 音乐界面（已替换旧网易云 GUI）：`TwilightShellScreen`（外壳 / 主页 / 内容页 / 沉浸播放页）、`TwilightShellLayout` / `TwilightHomeLayout` / `TwilightListLayout`、`TwilightSkia`、`TwilightTheme` / `TwilightAccent` / `TwilightEasing` / `TwilightGeometry`、`TwilightMusicService` + `TwilightApiEndpoint`、`TwilightCoverCache` / `TwilightCornerMask` / `TwilightCoverFit` / `CoverBlur`、`TwilightVanilla` / `TwilightHomeCopy` |
-| `background` + `gui/title/BackgroundSelectScreen` | 14 | 标题界面自定义背景：`BackgroundManager`、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`、`BackgroundFilePicker` / `BackgroundFileChooser` |
+| `background` + `gui/title/BackgroundSelectScreen` | 17 | 标题界面自定义背景：`BackgroundManager`、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`、`GifFrames` / `BackgroundAnimation` / `BackgroundClip`（GIF 解码、合成与逐帧上传）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`、`BackgroundFilePicker` / `BackgroundFileChooser` |
 | `clickgui2/music` | 1 | 仅剩 `NeteaseImageCache`（封面下载 / 解码 / 取色），由 Twilight 界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用 |
 | `compose` | 11 | 声明式 UI 布局树（`UiNode` / `UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer`）、`AnimFloat`、`FlowingGradient`、`ModuleColors` |
 | `clickgui2/epsilon` | 8 | Epsilon 风格下拉式 GUI（`EpsilonDropdownScreen` / `Panel` / `ModuleButton` / `Theme` / `CategoryPanel` + 面板布局版 `EpsilonPanelLayout` / `EpsilonPanelNavigatorScreen` / `EpsilonPanelTheme`） |
@@ -92,9 +92,9 @@
 | `gradle.properties` | Minecraft、Forge、MixinExtras 与项目版本（`mod_version=v1.6.0-Forge-1.20.1`） |
 | `settings.gradle` | ForgeGradle 插件仓库配置 |
 | `gradle/` | Gradle 8.11 wrapper |
-| `src/main/java/` | 纯 Forge/Mojmap Java 源码，共 1043 个文件 |
+| `src/main/java/` | 纯 Forge/Mojmap Java 源码，共 1046 个文件 |
 | `src/main/resources/` | Mixin、Access Transformer、Forge 元数据、字体、shader、Skiko 原生库与翻译资源 |
-| `src/test/java/` | 根工程单元测试，共 174 个测试类（含 v1.6 音乐解析、AMLL 歌词流水线、Twilight 外壳 / 主页 / 列表几何、封面圆角蒙版与模糊、标题背景存储 / 运动 / 壁纸引擎导入、Compose 动画、MD3 主题、周界挖掘与种子矿透） |
+| `src/test/java/` | 根工程单元测试，共 176 个测试类（含 v1.6 音乐解析、AMLL 歌词流水线、Twilight 外壳 / 主页 / 列表几何、封面圆角蒙版与模糊、标题背景存储 / 运动 / 壁纸引擎导入 / GIF 合成与帧时钟、Compose 动画、MD3 主题、周界挖掘与种子矿透） |
 | `LICENSE.txt` | GPL-3.0 许可证 |
 | `README.md` | 项目架构与状态说明（含 15 工程布局与新版本工程） |
 | `CHANGELOG.md` | 版本变更记录 |
@@ -109,7 +109,7 @@
 | `net.wurstclient.ai` | 8 | 路径搜索、Spider 垂直节点规划和路径执行 |
 | `net.wurstclient.altmanager` | 25 | 账号、登录、系统原生凭据主密钥和账号管理界面 |
 | `net.wurstclient.clickgui2` | 97 | 双 GUI、VAPE/SuperSoft/Epsilon 组件层、音乐封面缓存、实心主题、字体偏好、窗口与控件 |
-| `net.wurstclient.background` | 13 | 标题界面自定义背景：选择与持久化、异步纹理、运镜、Wallpaper Engine 导入（v1.6 新增） |
+| `net.wurstclient.background` | 16 | 标题界面自定义背景：选择与持久化、异步纹理、静图运镜、GIF 解码与帧时钟、Wallpaper Engine 导入（v1.6 新增） |
 | `net.wurstclient.command` | 7 | 命令基础设施、BrigadierCommand 和处理器 |
 | `net.wurstclient.commands` | 57 | 具体命令实现（含 `.macros` `.waypoints` `.proxy` `.perimeter` `.seed`、Brigadier `/perimeterdig`） |
 | `net.wurstclient.compose` | 11 | 声明式 UI 布局树（v1.6 新增） |
@@ -346,7 +346,7 @@ v1.6 新增 14 个 Hack：见「v1.6 新增子系统」。其中 `SeedOreESP`（
 项目版本为 `1.6.0`，Minecraft 1.20.1，Forge 47.4.10，Java 17，Gradle 8.11。
 
 - `gradlew.bat compileJava` 通过。
-- `gradlew.bat test` 通过（2026-10-04 实测）：**174 个测试类、1090 项测试、0 失败**（含 Twilight 外壳 / 主页 / 列表几何、封面圆角蒙版与模糊、标题背景的存储 / 运动 / 壁纸引擎导入，以及周界挖掘的区域几何、游标遍历顺序、进度/ETA、列式区域、边界检测、液体策略、批次/背包策略、状态机、中英文本一致性，直接扫描源码的「文案必须双语」检查，以及种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、无范围反解还原、结构扫描器）。
+- `gradlew.bat test` 通过（2026-10-04 实测）：**176 个测试类、1114 项测试、0 失败**（含 Twilight 外壳 / 主页 / 列表几何、封面圆角蒙版与模糊、标题背景的存储 / 运动 / 壁纸引擎导入 / GIF 处置方式与透明混合 / 解码预算 / 帧时钟，以及周界挖掘的区域几何、游标遍历顺序、进度/ETA、列式区域、边界检测、液体策略、批次/背包策略、状态机、中英文本一致性，直接扫描源码的「文案必须双语」检查，以及种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、无范围反解还原、结构扫描器）。
 - 发布产物 `build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（68.1 MB）含全部 v1.6 子系统、`assets/wurst/skiko/` 原生库及 19 个内嵌 jarJar 依赖。
 
 其余 14 个平台工程在 v1.5.0 状态下各自包含 `build/libs/` 产物；其构建与启动验证结果见 [PORTING_TASK.md](PORTING_TASK.md) 与 `docs/PORTING-1.21.11-26.2.md`（记录 1.21.11 / 26.2 六工程的构建、进世界与 Baritone `#goto` 冒烟结果）。

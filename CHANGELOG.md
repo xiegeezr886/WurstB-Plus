@@ -9,14 +9,14 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 ## v1.6.0 - 根目录 Forge 1.20.1（仅此工程）
 
-### 新增子系统（188 个 Java 文件，14 个平台工程中不存在）
+### 新增子系统（191 个 Java 文件，14 个平台工程中不存在）
 
 | 包 | 文件数 | 说明 |
 | --- | ---: | --- |
 | `clickgui2/component` | 27 | VAPE 风格组件层：`VapeClickGuiScreen`、`SuperSoftClickGuiScreen` / `SuperSoftRowsWindow` / `SuperSoftSettingsWindow`、`ModuleCardComponent`、`InlineSettingComponents`、`CategoryPanelComponent`、`VapeTextInputComponent` 等 |
 | `music` + `music/apple` | 17 | 网易云音乐：`NeteaseCloudApi`、`NeteaseMusicPlayer`、`MusicAccountManager`、`LyricParser`；`apple/` 提供逐字歌词动画（`AppleLyricPlayer`、`AppleTimeline`、`AppleLayout`、`LyricWordSplitter`、`Spring`） |
 | `twilight` | 17 | Twilight Echo 音乐界面（已替换旧网易云 GUI）：`TwilightShellScreen`（外壳 + 主页 + 内容页 + 沉浸播放页）、`TwilightShellLayout` / `TwilightHomeLayout` / `TwilightListLayout`（几何）、`TwilightSkia`（Skia 绘制）、`TwilightTheme` / `TwilightAccent` / `TwilightEasing` / `TwilightGeometry`、`TwilightMusicService` + `TwilightApiEndpoint`（本地增强服务）、`TwilightCoverCache` / `TwilightCornerMask` / `TwilightCoverFit` / `CoverBlur`、`TwilightVanilla` / `TwilightHomeCopy` |
-| `background` + `gui/title/BackgroundSelectScreen` | 14 | 标题界面自定义背景：`BackgroundManager`（单例、异步解码、原版 `blit` 绘制）、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`（Ken Burns 等运动）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`（Wallpaper Engine 导入）、`BackgroundFilePicker` / `BackgroundFileChooser` |
+| `background` + `gui/title/BackgroundSelectScreen` | 17 | 标题界面自定义背景：`BackgroundManager`（单例、异步解码、原版 `blit` 绘制）、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`（Ken Burns 等运动）、`GifFrames` / `BackgroundAnimation` / `BackgroundClip`（动图解码、帧时钟与上传）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`（Wallpaper Engine 导入）、`BackgroundFilePicker` / `BackgroundFileChooser` |
 | `clickgui2/music` | 1 | 仅剩 `NeteaseImageCache`（封面下载 / 解码 / 取色），由 Twilight 界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用 |
 | `compose` | 11 | 声明式 UI 布局树：`UiNode` / `UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer`，配合 `AnimFloat`、`FlowingGradient`、`ModuleColors` |
 | `clickgui2/epsilon` | 8 | Epsilon 风格下拉式 GUI：`EpsilonDropdownScreen`、`EpsilonDropdownPanel`、`EpsilonDropdownTheme`、`EpsilonModuleButton`、`EpsilonCategoryPanel`，以及面板布局版 `EpsilonPanelLayout` / `EpsilonPanelNavigatorScreen` / `EpsilonPanelTheme` |
@@ -80,7 +80,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 - **未实现 / 已知局限**：① 不做格基归约（LLL），因此**不能**在 2^48 全域内无范围反解，只能确认候选或搜索给定范围；② 观测需玩家手动提供（客户端拿不到服务端结构数据）；③ 未在真实存档中验证反解结果；④ `exclusion_zone` 与要塞（同心环）仍不参与。
 
 
-- 根工程 `test` 通过（2026-10-04 实测）：**174 个测试类、1090 项、0 失败**（含种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、格基替代解法的闭环还原、结构扫描器 28 例；含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析、周界挖掘的区域几何与进度/ETA、Twilight 外壳与主页/列表几何、封面圆角蒙版与模糊、标题背景的存储/运动/壁纸引擎导入）。
+- 根工程 `test` 通过（2026-10-04 实测）：**176 个测试类、1114 项、0 失败**（含种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、格基替代解法的闭环还原、结构扫描器 28 例；含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析、周界挖掘的区域几何与进度/ETA、Twilight 外壳与主页/列表几何、封面圆角蒙版与模糊、标题背景的存储/运动/壁纸引擎导入与 GIF 合成/预算/帧时钟）。
 - 产物：`build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（约 68 MB）。
 - 仅验证构建与单元测试；v1.6 新子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透 / 结构定位）**未经游戏内运行验证**。
 - 开发工具：`scripts/doctor.ps1`、`scripts/run-unit-tests.ps1`、`scripts/seed-gradle-wrapper.ps1`；`build-all.ps1` 根工程产物已对齐 v1.6.0。
@@ -173,7 +173,9 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 - **运动**：`BackgroundMotion` 提供 Ken Burns 等运镜，`BackgroundPose` 输出额外的缩放与平移；因为裁切已按屏幕比例做过 `cover`，运镜只是在其之上再放大，所以平移不会露出边缘。强度可在界面里调。
 - **导入**：`BackgroundFilePicker` / `BackgroundFileChooser` 选本地图片；`WallpaperEngineImporter` + `SteamLocator` + `VdfParser` + `ProjectJson` 直接扫描 Steam 创意工坊的 Wallpaper Engine 库（解析 `libraryfolders.vdf` 与各壁纸的 `project.json`），把找到的候选批量导入。
 - **持久化**：选择、运动方式与强度写进 `GuiPreferences`，随 GUI 偏好一起存盘。
-- **未做 / 已知局限**：只支持静态图片（Wallpaper Engine 的视频 / 场景型壁纸不做）；没有裁剪与对焦点设置，构图完全由 `cover` 决定。
+- **动图（GIF）**：`GifFrames` 用 ImageIO 解码并**逐帧合成**——GIF 的每帧是要画到画布上的矩形，上一帧还可以要求清掉该矩形或把画布倒回（`none` / `doNotDispose` / `restoreToBackgroundColor` / `restoreToPrevious`），不做这一步局部帧会像花屏。解码按预算缩小（单边 ≤ 1600px、总像素 ≤ 1200 万、≤ 150 帧），`BackgroundAnimation` 用帧延迟决定当前该显示第几帧并沿用浏览器对 0/10 ms 延迟的 100 ms 规则，`BackgroundManager` **只在帧号变化时**把该帧拷进纹理自己的图像再 `upload()`（`DynamicTexture` 会关掉交给它的 `NativeImage`，所以纹理与帧各持一份）。动图卡片预览改用第一帧生成（`NativeImage` 读不了 GIF），颜色转换时交换红蓝（`NativeImage` 的整数像素接口是 ABGR）。
+- **视频壁纸（如实说明）**：`BackgroundKind.canPlay()` 对 `VIDEO` 返回 false——mp4 需要 H.264 解码器，本项目不引入该依赖。这类卡片带「视频 · 不能播放」徽章，点击只在状态栏说明原因，不再静默回退到默认背景。
+- **未做 / 已知局限**：只支持静态图片与 GIF；没有裁剪与对焦点设置，构图完全由 `cover` 决定。
 
 ### Skia 区域上传加固（防 GL 驱动崩溃）
 

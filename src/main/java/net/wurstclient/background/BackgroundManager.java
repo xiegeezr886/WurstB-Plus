@@ -59,6 +59,18 @@ public final class BackgroundManager
 
 	private CompletableFuture<ResourceLocation> pending;
 
+	/** The animated background that is playing, or null for a still image. */
+	private BackgroundClip clip;
+
+	/** Which of the clip's frames the texture currently holds. */
+	private int clipFrame = -1;
+
+	/** When the clip started playing, which is what its clock is measured
+	 * from. */
+	private long clipStartedAt;
+
+	private CompletableFuture<BackgroundClip> clipPending;
+
 	private BackgroundManager()
 	{
 	}
@@ -66,6 +78,12 @@ public final class BackgroundManager
 	public static BackgroundManager get()
 	{
 		return INSTANCE;
+	}
+
+	/** Stops the clip decoder, called when the client shuts down. */
+	public static void shutdown()
+	{
+		BackgroundClip.shutdown();
 	}
 
 	public BackgroundStorage storage()
@@ -118,12 +136,25 @@ public final class BackgroundManager
 			pending = null;
 		}
 
+		if(clipPending != null)
+		{
+			clipPending.cancel(true);
+			clipPending = null;
+		}
+
 		if(loadedTexture != null)
 		{
 			Minecraft.getInstance().getTextureManager().release(LOCATION);
 			loadedTexture = null;
 		}
 
+		if(clip != null)
+		{
+			clip.close();
+			clip = null;
+		}
+
+		clipFrame = -1;
 		loadedId = null;
 		failedId = null;
 	}
@@ -151,6 +182,8 @@ public final class BackgroundManager
 
 		if(texture == null)
 			return false;
+
+		advanceClip(texture);
 
 		NativeImage pixels = texture.getPixels();
 
@@ -224,8 +257,22 @@ public final class BackgroundManager
 		if(id.equals(loadedId) && loadedTexture != null)
 			return true;
 
-		if(pending != null)
+		if(pending != null || clipPending != null)
 			return false;
+
+		BackgroundEntry entry = storage().read(id);
+
+		if(entry == null || !entry.kind().canPlay())
+		{
+			// a folder that was deleted, a half-copied entry or a video
+			// wallpaper: fall back to the built-in background and stop asking
+			if(entry != null)
+				System.out.println("[Background] Cannot play " + id + " ("
+					+ entry.kind() + "), using the default instead");
+
+			failedId = id;
+			return false;
+		}
 
 		Path media = storage().mediaPath(id);
 
@@ -237,6 +284,16 @@ public final class BackgroundManager
 			return false;
 		}
 
+		if(entry.kind() == BackgroundKind.GIF)
+			startClip(id, media);
+		else
+			startStill(id, media);
+
+		return false;
+	}
+
+	private void startStill(String id, Path media)
+	{
 		pending = AsyncTextureLoader.load(media, LOCATION);
 
 		pending.whenComplete((location, error) -> {
@@ -260,7 +317,108 @@ public final class BackgroundManager
 			}else
 				failedId = id;
 		});
+	}
 
-		return id.equals(loadedId) && loadedTexture != null;
+	private void startClip(String id, Path media)
+	{
+		CompletableFuture<BackgroundClip> future = BackgroundClip.decode(media);
+		clipPending = future;
+
+		future.whenComplete((decoded, error) -> Minecraft.getInstance()
+			.execute(() -> finishClip(id, future, decoded, error)));
+	}
+
+	/** Runs on the client thread once the frames have been decoded. */
+	private void finishClip(String id, CompletableFuture<BackgroundClip> future,
+		BackgroundClip decoded, Throwable error)
+	{
+		if(clipPending != future)
+		{
+			// forgotten, or replaced by another selection, while decoding
+			closeQuietly(decoded);
+			return;
+		}
+
+		clipPending = null;
+
+		if(!id.equals(selectedId()))
+		{
+			// the selection moved on: not a failure of this background
+			closeQuietly(decoded);
+			return;
+		}
+
+		if(error != null || decoded == null)
+		{
+			closeQuietly(decoded);
+			failedId = id;
+			return;
+		}
+
+		try
+		{
+			// the texture owns its own image: a DynamicTexture closes whatever
+			// it is handed, and the frames have to stay with the clip
+			NativeImage pixels = new NativeImage(NativeImage.Format.RGBA,
+				decoded.width(), decoded.height(), false);
+			pixels.copyFrom(decoded.frame(0));
+
+			DynamicTexture texture = new DynamicTexture(pixels);
+			texture.setFilter(true, false);
+			Minecraft.getInstance().getTextureManager().register(LOCATION,
+				texture);
+
+			clip = decoded;
+			clipFrame = 0;
+			clipStartedAt = System.currentTimeMillis();
+			loadedTexture = texture;
+			loadedId = id;
+
+			if(decoded.wasScaled() || decoded.wasTruncated())
+				System.out.println("[Background] " + id + " decoded to "
+					+ decoded.width() + "x" + decoded.height() + ", "
+					+ decoded.frameCount() + " frames"
+					+ (decoded.wasScaled() ? " (scaled to fit)" : "")
+					+ (decoded.wasTruncated() ? " (frame limit reached)" : ""));
+
+		}catch(RuntimeException | Error e)
+		{
+			closeQuietly(decoded);
+			failedId = id;
+		}
+	}
+
+	/**
+	 * Uploads the frame the clock has reached, and only then: a GIF with a 20 ms
+	 * delay would otherwise ask for an upload every frame it is drawn.
+	 */
+	private void advanceClip(DynamicTexture texture)
+	{
+		BackgroundClip playing = clip;
+
+		if(playing == null)
+			return;
+
+		int index = playing.animation()
+			.frameIndexAt(System.currentTimeMillis() - clipStartedAt);
+
+		if(index == clipFrame)
+			return;
+
+		NativeImage pixels = texture.getPixels();
+
+		if(pixels == null || pixels.getWidth() != playing.width()
+			|| pixels.getHeight() != playing.height())
+			return;
+
+		clipFrame = index;
+		pixels.copyFrom(playing.frame(index));
+		texture.upload();
+	}
+
+	private static void closeQuietly(BackgroundClip clip)
+	{
+		if(clip != null)
+			clip.close();
 	}
 }

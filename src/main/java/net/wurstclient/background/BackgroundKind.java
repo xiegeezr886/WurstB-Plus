@@ -55,6 +55,20 @@ public enum BackgroundKind
 		return this != IMAGE;
 	}
 
+	/**
+	 * Whether this client can actually show that kind.
+	 *
+	 * <p>
+	 * Images and GIFs are decoded with the JDK's own readers; an mp4 needs an
+	 * H.264 decoder, which is a dependency this project deliberately does not
+	 * ship. Video wallpapers therefore stay preview-only, and the picker says so
+	 * instead of letting the selection fail silently.
+	 */
+	public boolean canPlay()
+	{
+		return this != VIDEO;
+	}
+
 	/** The extension used when the media is copied into the data folder. */
 	public String preferredExtension()
 	{
