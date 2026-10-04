@@ -25,8 +25,8 @@ import net.wurstclient.twilight.TwilightShellLayout.Rect;
  */
 public final class TwilightHomeLayout
 {
-	/** {@code .home-flow { gap: 44px }}. */
-	public static final int SECTION_GAP = 44;
+	/** {@code .home-flow > * + * { margin-top: 34px }}. */
+	public static final int SECTION_GAP = 34;
 	
 	/** {@code --home-radius-lg: 22px}. */
 	public static final int RADIUS_LARGE = 22;
@@ -34,27 +34,32 @@ public final class TwilightHomeLayout
 	/** {@code --home-radius-md: 14px}. */
 	public static final int RADIUS_MEDIUM = 14;
 	
-	/** {@code .hero-inner { gap: 24px; min-height: clamp(280px, 30vw, 340px) }}. */
+	/**
+	 * {@code .hero-inner { grid-template-columns: 1.1fr 1fr; min-height: 328px }}.
+	 * The reference sets no maximum - it only drops to 310px inside a container
+	 * narrower than 560px - so the ceiling here exists purely to stop a very tall
+	 * window from turning the hero into a wall.
+	 */
 	public static final int HERO_GAP = 24;
-	public static final float HERO_MIN_HEIGHT = 280F;
-	public static final float HERO_MAX_HEIGHT = 340F;
-	public static final float HERO_HEIGHT_RATIO = 0.30F;
+	public static final float HERO_MIN_HEIGHT = 328F;
+	public static final float HERO_MAX_HEIGHT = 560F;
+	public static final float HERO_HEIGHT_RATIO = 0.34F;
 	
-	/** {@code .hero-copy { flex: 1 1 52%; padding: clamp(28px, 3.6vw, 48px) }}. */
-	public static final float HERO_COPY_SHARE = 0.52F;
-	public static final float COPY_PADDING_MIN = 28F;
-	public static final float COPY_PADDING_MAX = 48F;
-	public static final float COPY_PADDING_RATIO = 0.036F;
+	/** {@code .hero-copy { padding: 38px 0 26px 38px }}. */
+	public static final float HERO_COPY_SHARE = 1.1F / 2.1F;
+	public static final float COPY_PADDING_LEFT = 38F;
+	public static final float COPY_PADDING_TOP = 38F;
+	public static final float COPY_PADDING_BOTTOM = 26F;
 	
 	/** {@code .hero-kicker-day}: 46x46, radius 13. */
 	public static final int DAY_BADGE = 46;
 	public static final int DAY_BADGE_RADIUS = 13;
 	
-	/** {@code .hero-title}: margin-top 22, font-size clamp(40px, 5vw, 62px). */
+	/** {@code .hero-title}: font-size clamp(34px, 5.7cqw, 61px), weight 700. */
 	public static final int TITLE_MARGIN = 22;
-	public static final float TITLE_MIN_SIZE = 40F;
-	public static final float TITLE_MAX_SIZE = 62F;
-	public static final float TITLE_SIZE_RATIO = 0.05F;
+	public static final float TITLE_MIN_SIZE = 34F;
+	public static final float TITLE_MAX_SIZE = 61F;
+	public static final float TITLE_SIZE_RATIO = 0.057F;
 	
 	/** {@code .hero-title-en}: margin-top 6, letter-spacing .42em. */
 	public static final int TITLE_EN_MARGIN = 6;
@@ -78,8 +83,8 @@ public final class TwilightHomeLayout
 	/** 行高的近似比例，与字体渲染保持一致。 */
 	public static final float LINE_HEIGHT_RATIO = 1.2F;
 	
-	/** Both call to action pills are 46px high. */
-	public static final int CTA_HEIGHT = 46;
+	/** Both call to action pills are 44px high, radius 24. */
+	public static final int CTA_HEIGHT = 44;
 	public static final int CTA_PRIMARY_PADDING = 24;
 	public static final int CTA_SECONDARY_PADDING = 20;
 	
@@ -257,8 +262,8 @@ public final class TwilightHomeLayout
 		float heroHeight = clamp(viewport * HERO_HEIGHT_RATIO, HERO_MIN_HEIGHT,
 			HERO_MAX_HEIGHT) * scale;
 
-		float copyPadding = clamp(viewport * COPY_PADDING_RATIO,
-			COPY_PADDING_MIN, COPY_PADDING_MAX) * scale;
+		// 参考的 .hero-copy 是固定的 38px 左/上、26px 下内边距
+		float copyPadding = COPY_PADDING_LEFT * scale;
 
 		// 文案块的度量。要在 hero 之前算出来：参考里 .hero-inner 是 min-height，
 		// flex 容器会随内容长高，所以 hero 的实际高度是「最小高」与「文案块 +

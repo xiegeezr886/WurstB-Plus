@@ -79,17 +79,15 @@ final class TwilightHomeLayoutTest
 	}
 	
 	@Test
-	void theCopyPaddingFollowsTheReferenceClamp()
+	void theCopyPaddingIsTheReferenceFixedInset()
 	{
 		Frame frame = TwilightShellLayout.layout(WIDTH, HEIGHT);
 		Home home = TwilightHomeLayout.layout(frame);
-		float expected = Math.min(TwilightHomeLayout.COPY_PADDING_MAX,
-			TwilightHomeLayout.COPY_PADDING_MIN);
 		
-		// a 1140px content area is wide enough for the 48px maximum
-		assertEquals(TwilightHomeLayout.COPY_PADDING_MAX,
+		// .hero-copy { padding: 38px 0 26px 38px } - the left/top inset is fixed
+		assertEquals(TwilightHomeLayout.COPY_PADDING_LEFT,
 			home.copyPadding / frame.scale, 0.01F);
-		assertTrue(home.copyPadding >= expected);
+		assertTrue(home.copyPadding > 0);
 	}
 	
 	@Test

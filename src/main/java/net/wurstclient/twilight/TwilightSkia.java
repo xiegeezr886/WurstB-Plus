@@ -148,6 +148,36 @@ public final class TwilightSkia
 		return true;
 	}
 
+	/**
+	 * Draws into a caller-owned Skia canvas instead of the per-frame region
+	 * pipeline.
+	 *
+	 * <p>
+	 * This is what lets the Twilight shell paint a cached layer: the caller
+	 * rasterises the layer only when its content changes, uploads it once, and
+	 * blits the texture on every other frame. The coordinates are the same GUI
+	 * coordinates the region path uses, because the caller has already applied
+	 * the scale and the window translation to its canvas.
+	 */
+	public static void bindCanvas(Canvas target)
+	{
+		vanilla = false;
+		vanillaGraphics = null;
+		canvas = target;
+	}
+
+	/** Stops drawing into a canvas bound with {@link #bindCanvas}. */
+	public static void unbindCanvas()
+	{
+		canvas = null;
+	}
+
+	/** Whether a canvas bound with {@link #bindCanvas} is still in use. */
+	public static boolean isCanvasBound()
+	{
+		return !vanilla && canvas != null;
+	}
+
 	/** Uploads the region and blits it back into the GUI. */
 	public static void end(GuiGraphics graphics)
 	{

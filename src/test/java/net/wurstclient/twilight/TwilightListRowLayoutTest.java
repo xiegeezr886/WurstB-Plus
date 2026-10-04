@@ -55,13 +55,13 @@ final class TwilightListRowLayoutTest
 			duration.right());
 	}
 
-	/** 行高要装得下 48px 封面加上下 9px 内边距。 */
+	/** 行高要装得下 48px 封面加上下 10px 内边距（参考的 .chart-row）。 */
 	@Test
 	void theRowIsTallEnoughForTheCover()
 	{
 		Frame frame = frame();
 		int needed = frame.px(TwilightListLayout.CHART_COVER
-			+ TwilightListLayout.ROW_PADDING_Y * 2);
+			+ TwilightListLayout.CHART_PADDING_Y * 2);
 
 		assertEquals(needed, frame.px(TwilightListLayout.ROW_HEIGHT),
 			"行高应与封面加内边距一致");

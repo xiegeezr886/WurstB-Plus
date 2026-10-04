@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.lwjgl.glfw.GLFW;
+import org.jetbrains.skia.Canvas;
 
 import com.mojang.blaze3d.platform.NativeImage;
 
@@ -25,6 +26,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.music.LyricLine;
 import net.wurstclient.music.NeteaseMusicPlayer;
 import net.wurstclient.music.NeteasePlaylist;
@@ -158,6 +160,26 @@ public final class TwilightShellScreen extends Screen
 	private Rect[] playlistCards;
 	private int hoverPageRow = -1;
 	private int hoverPlaylist = -1;
+
+	/**
+	 * The cached static layer. Skia gives the real rounded corners, gradients
+	 * and vector text, but rasterising the window every frame costs tens of
+	 * milliseconds and uploads megabytes, so the layer is repainted only when
+	 * something in it actually changes.
+	 */
+	private TwilightSurface layer;
+
+	/** Everything that changes the cached layer; a change repaints it. */
+	private String layerSignature = "";
+
+	/** True while the cached layer is painted, so per-frame visuals (hover
+	 * rings, the playback progress) can be left to {@link #drawLiveLayer}. */
+	private boolean paintingCache;
+
+	/** Whether the pointer is over the hero collage or a duo card, both of which
+	 * move on hover and are therefore part of {@link #layerSignature()}. */
+	private boolean hoverStage;
+	private boolean hoverDuoCard;
 	
 	/**
 	 * Scrolling steps whole rows: the rectangles stay where they are and the
@@ -314,6 +336,14 @@ public final class TwilightShellScreen extends Screen
 		{
 			service.close();
 			service = null;
+		}
+		
+		// 关界面就把缓存层连同它的纹理一起放掉，别把几十兆留在显存里
+		if(layer != null)
+		{
+			layer.close();
+			layer = null;
+			layerSignature = "";
 		}
 		
 		clearQrTexture();
@@ -571,6 +601,15 @@ public final class TwilightShellScreen extends Screen
 		
 		hoverPlaylist = inside && activeNav == 1 && openedPlaylist == null
 			? playlistAt(localX, localY) : -1;
+
+		/*
+		 * 这两个悬停会改变元素自身的姿态（hero 拼图与 duo 卡），所以记进缓存
+		 * 层的签名：布尔量只在进出时翻转，不会随鼠标移动每帧重画。
+		 */
+		hoverStage = inside && home.heroStage.contains(pointerX, pointerY);
+		hoverDuoCard = inside
+			&& (home.duoCardLeft.contains(pointerX, pointerY)
+				|| home.duoCardRight.contains(pointerX, pointerY));
 		
 		if(immersive)
 		{
@@ -586,19 +625,62 @@ public final class TwilightShellScreen extends Screen
 		// 窗口之外把游戏画面压暗，界面才不像糊在世界上
 		graphics.fill(0, 0, width, height, BACKDROP);
 
-		// 原版图元后端：不再每帧把整块窗口做 CPU 光栅化再上传，观感一致而代价
-		// 塌下来（ESP 仍在用 Skia，见 TwilightSkia 的重载）
-		if(TwilightSkia.begin(graphics, winX, winY, winW, winH, true))
+		/*
+		 * 三层：缓存层（圆角/渐变/矢量的静态界面，只在内容变化时重画一次）、
+		 * 每帧层（悬停环与播放进度），以及本来就在外面的封面/歌词/登录弹层。
+		 * 缓存层是这套界面既好看又不卡的关键：Skia 保证矢量观感，缓存保证每帧
+		 * 只剩一个带纹理的四边形。
+		 */
+		if(layer == null)
+			layer = new TwilightSurface("shell");
+
+		String signature = layerSignature();
+
+		if(!signature.equals(this.layerSignature))
 		{
+			this.layerSignature = signature;
+			layer.invalidate();
+		}
+
+		Canvas cache = layer.begin(winW, winH);
+
+		if(cache != null)
+		{
+			paintingCache = true;
+			TwilightSkia.bindCanvas(cache);
+
+			try
+			{
+				if(immersive)
+					drawImmersive();
+				else
+					renderSkia();
+			}finally
+			{
+				TwilightSkia.unbindCanvas();
+				paintingCache = false;
+			}
+
+			layer.commit();
+		}
+
+		if(layer.isReady())
+		{
+			layer.blit(graphics, winX, winY, winW, winH);
+			drawLiveLayer(graphics);
+
+		}else if(TwilightSkia.begin(graphics, winX, winY, winW, winH, true))
+		{
+			// Skia 用不了（原生库缺失或初始化失败）：退回原版图元，圆角与字体
+			// 是近似的，但界面还在
 			if(immersive)
 				drawImmersive();
 			else
 				renderSkia();
-			
+
 			TwilightSkia.end(graphics);
-		}else
-			renderFallback(graphics);
-		
+		}
+
 		// 封面走原版 blit，偏移用 pose 施加；下面各处的 enableScissor 不吃 pose，
 		// 所以那里的坐标要自己加窗口原点。
 		graphics.pose().pushPose();
@@ -609,6 +691,148 @@ public final class TwilightShellScreen extends Screen
 		
 		super.render(graphics, mouseX, mouseY, partialTick);
 		drawLoginOverlay(graphics);
+	}
+
+	/**
+	 * Everything that changes the cached layer's content. Hovering is part of it
+	 * on purpose: a hovered sidebar entry changes its label colour, and the hero
+	 * collage and the duo cards move when the pointer enters them, so those are
+	 * discrete changes the layer can be repainted for. The row and playlist
+	 * hovers are deliberately *not* here - they are drawn per frame instead,
+	 * because the pointer sweeps them dozens of times a second.
+	 */
+	private String layerSignature()
+	{
+		StringBuilder signature = new StringBuilder(96);
+		NeteaseSong current = PLAYER.getCurrentSong();
+
+		signature.append(winW).append('x').append(winH).append('|')
+			.append(activeNav).append('|').append(searchMode).append('|')
+			.append(immersive).append('|').append(loginOverlay).append('|')
+			.append(openedPlaylist == null ? "" : openedPlaylist.id())
+			.append('|').append(palette.accent).append('|')
+			.append(nowTitle()).append('|').append(nowArtist()).append('|')
+			.append(isPlaying()).append('|')
+			.append(PLAYER.getPlaybackMode().ordinal()).append('|')
+			.append(scrollRows).append(':').append(scrollSub).append('|')
+			.append(positionMs / 1000L).append('|').append(search).append('|')
+			.append(statusLine).append('|').append(pageStatus).append('|')
+			.append(hoverNav).append('|').append(hoverStage).append('|')
+			.append(hoverDuoCard).append('|')
+			.append(homeSongs == null ? -1 : homeSongs.size()).append('|')
+			.append(pageSongs() == null ? -1 : pageSongs().size()).append('|')
+			.append(searchResults == null ? -1 : searchResults.size())
+			.append('|')
+			.append(playlists == null ? -1 : playlists.size()).append('|')
+			.append(playlistCards == null ? -1 : playlistCards.length)
+			.append('|').append(current == null ? -1L : current.id());
+
+		return signature.toString();
+	}
+
+	/**
+	 * The per-frame layer: the parts that move continuously or with the pointer,
+	 * so caching them would mean repainting the whole window on every mouse move
+	 * and on every tick of the progress bar.
+	 */
+	private void drawLiveLayer(GuiGraphics graphics)
+	{
+		if(!layer.isReady() || immersive)
+			return;
+
+		graphics.pose().pushPose();
+		graphics.pose().translate(winX, winY, 0);
+
+		try
+		{
+			drawRowHover(graphics);
+			drawPlaylistHover(graphics);
+			drawLiveProgress(graphics);
+		}finally
+		{
+			graphics.pose().popPose();
+		}
+	}
+
+	/**
+	 * The song-row hover: the reference draws a 1px inset outline rather than a
+	 * filled row, which is cheap enough to draw every frame.
+	 */
+	private void drawRowHover(GuiGraphics graphics)
+	{
+		if(hoverChart >= 0 && chartRows != null && homeSongs != null
+			&& hoverChart < chartRows.length)
+			drawHoverRing(graphics, shifted(chartRows)[hoverChart],
+				TwilightListLayout.ROW_RADIUS, frame.contentBody);
+
+		if(hoverPageRow >= 0 && pageRows != null
+			&& hoverPageRow < pageRows.length)
+			drawHoverRing(graphics, shifted(pageRows)[hoverPageRow],
+				TwilightListLayout.ROW_RADIUS,
+				openedPlaylist == null ? frame.contentBody : detailListArea());
+	}
+
+	private void drawHoverRing(GuiGraphics graphics, Rect row, int radius,
+		Rect clip)
+	{
+		if(row == null || row.height() <= 0)
+			return;
+
+		graphics.enableScissor(clip.x() + winX, clip.y() + winY,
+			clip.right() + winX, clip.bottom() + winY);
+
+		try
+		{
+			FlatRenderer.drawRoundedOutline(graphics, Math.round(row.x()),
+				Math.round(row.y()), Math.round(row.right()),
+				Math.round(row.bottom()), Math.round(frame.px(radius)),
+				TwilightTheme.withAlpha(palette.accent, 0.30F));
+		}finally
+		{
+			graphics.disableScissor();
+		}
+	}
+
+	/**
+	 * The playlist-card hover. The reference does not move or scale the card -
+	 * only a play button appears at its bottom-right corner - so this is two
+	 * cheap primitives per frame instead of a layer repaint.
+	 */
+	private void drawPlaylistHover(GuiGraphics graphics)
+	{
+		if(activeNav != 1 || openedPlaylist != null || playlistCards == null
+			|| hoverPlaylist < 0 || hoverPlaylist >= playlistCards.length)
+			return;
+
+		Rect card = playlistCards[hoverPlaylist];
+		float size = frame.px(29);
+		float x = card.right() - frame.px(10) - size;
+		float y = card.bottom() - frame.px(10) - size;
+
+		FlatRenderer.fillRoundedRect(graphics, Math.round(x), Math.round(y),
+			Math.round(x + size), Math.round(y + size),
+			Math.round(size / 2F), palette.accent);
+		TwilightVanilla.playGlyph(graphics, x + size / 2F, y + size / 2F,
+			frame.px(12), 0xFFFFFFFF);
+	}
+
+	/**
+	 * The playback progress fill, which advances continuously and therefore
+	 * cannot live in the cached layer. The rail behind it and the time labels
+	 * do: the labels only change once a second, which is part of
+	 * {@link #layerSignature()}.
+	 */
+	private void drawLiveProgress(GuiGraphics graphics)
+	{
+		Rect progress = frame.progressBar(
+			TwilightShellLayout.PLAYER_BAR_SIDE_MARGIN);
+		float ratio = durationMs > 0
+			? Math.max(0F, Math.min(1F, positionMs / (float)durationMs)) : 0F;
+		float width = Math.max(frame.px(2), progress.width() * ratio);
+
+		FlatRenderer.fillRoundedRect(graphics, Math.round(progress.x()),
+			Math.round(progress.y()), Math.round(progress.x() + width),
+			Math.round(progress.bottom()), 999, palette.accent);
 	}
 	
 	// ------------------------------------------------------------------
@@ -830,7 +1054,7 @@ public final class TwilightShellScreen extends Screen
 		
 		// the collage on the right, behind the copy
 		Rect[] covers = home.collage(frame);
-		boolean hoveringStage = home.heroStage.contains(pointerX, pointerY);
+		boolean hoveringStage = hoverStage;
 		long nowMs = System.currentTimeMillis();
 
 		for(int i = covers.length - 1; i >= 0; i--)
@@ -952,7 +1176,7 @@ public final class TwilightShellScreen extends Screen
 		
 		Rect[] covers = TwilightHomeLayout.duoCovers(frame, card);
 		float coverRadius = frame.px(TwilightHomeLayout.DUO_COVER_RADIUS);
-		boolean hoveredCard = card.contains(pointerX, pointerY);
+		boolean hoveredCard = hoverDuoCard;
 
 		for(int i = 0; i < covers.length; i++)
 		{
@@ -1073,7 +1297,8 @@ public final class TwilightShellScreen extends Screen
 			
 			NeteaseSong song = homeSongs.get(first + i);
 			
-			if(i == hoverChart)
+			// 悬停在每帧层画成 1px 内描边，缓存层不画，扫列表才不会一直重画
+			if(i == hoverChart && !paintingCache)
 				TwilightSkia.fillRoundRect(row.x(), row.y(), row.width(),
 					row.height(), frame.px(TwilightListLayout.ROW_RADIUS),
 					TwilightTheme.withAlpha(accent, 0.1F));
@@ -1426,7 +1651,7 @@ public final class TwilightShellScreen extends Screen
 			
 			NeteaseSong song = songs.get(first + i);
 			
-			if(i == hoverPageRow)
+			if(i == hoverPageRow && !paintingCache)
 				TwilightSkia.fillRoundRect(row.x(), row.y(), row.width(),
 					row.height(), frame.px(12),
 					TwilightTheme.withAlpha(accent, 0.1F));
@@ -1473,10 +1698,11 @@ public final class TwilightShellScreen extends Screen
 			if(card.y() + card.height() > area.bottom())
 				continue;
 			
+			// 卡片悬停不位移也不缩放，只在右下角浮出播放按钮（每帧层负责）
 			TwilightSkia.fillRoundRect(card.x(), card.y(), card.width(),
 				card.height(), frame.px(16),
-				i == hoverPlaylist ? TwilightTheme.withAlpha(accent, 0.18F)
-					: 0xFFFFFFFF);
+				i == hoverPlaylist && !paintingCache
+					? TwilightTheme.withAlpha(accent, 0.18F) : 0xFFFFFFFF);
 			
 			int inset = (int)frame.px(12);
 			float coverHeight = card.height() - frame.px(56);
@@ -1758,9 +1984,10 @@ public final class TwilightShellScreen extends Screen
 		float ratio = durationMs > 0
 			? Math.max(0F, Math.min(1F, positionMs / (float)durationMs)) : 0F;
 		
-		TwilightSkia.fillRoundRect(progress.x(), progress.y(),
-			Math.max(frame.px(2), progress.width() * ratio), progress.height(),
-			999F, accent);
+		if(!paintingCache)
+			TwilightSkia.fillRoundRect(progress.x(), progress.y(),
+				Math.max(frame.px(2), progress.width() * ratio),
+				progress.height(), 999F, accent);
 		
 		String times = NeteaseMusicPlayer.formatTime(positionMs) + " / "
 			+ NeteaseMusicPlayer.formatTime(durationMs);
@@ -2383,9 +2610,10 @@ public final class TwilightShellScreen extends Screen
 		float ratio = durationMs > 0
 			? Math.max(0F, Math.min(1F, positionMs / (float)durationMs)) : 0F;
 		
-		TwilightSkia.fillRoundRect(progress.x(), progress.y(),
-			Math.max(frame.px(2), progress.width() * ratio), progress.height(),
-			999F, accent);
+		if(!paintingCache)
+			TwilightSkia.fillRoundRect(progress.x(), progress.y(),
+				Math.max(frame.px(2), progress.width() * ratio),
+				progress.height(), 999F, accent);
 		
 		String times = NeteaseMusicPlayer.formatTime(positionMs) + " / "
 			+ NeteaseMusicPlayer.formatTime(durationMs);
