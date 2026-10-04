@@ -68,9 +68,14 @@
 - `net/wurstclient/clickgui2/epsilon/EpsilonDropdownScreen.java`
 
 三处均改为 `new TwilightShellScreen(...)`（带父界面，ESC 返回）。`.twilight`
-命令同样打开新界面。旧类 `clickgui2/screens/NeteaseMusicScreen.java` 仍在仓库中，
-但已无入口引用，所以退出登录改由新界面的账号弹层承担（已登录时弹层就是账号面板，
-里面有「退出登录」，退出后立刻换一张新二维码）。
+命令同样打开新界面。旧的网易云音乐界面**已整体删除**：`clickgui2/screens/NeteaseMusicScreen.java`
+与 `clickgui2/music/` 下除 `NeteaseImageCache` 以外的全部子组件（共 15 个类）、
+`clickgui2/music/PlayerDetailLayoutTest`，以及只被它们引用的
+`assets/wurst/textures/gui/netease/` 贴图。`NeteaseImageCache` 保留——它现在由
+本界面、`hud2/elements/MusicIslandHudElement` 与 `TwilightCoverCache` 共用。
+`gui/visual/VisualScreenMotion` 的 `SELF_ANIMATED_SCREENS` 里那一项也一并移除。
+退出登录由新界面的账号弹层承担（已登录时弹层就是账号面板，里面有「退出登录」，
+退出后立刻换一张新二维码）。
 
 `gui/visual/VisualScreenMotion` 的 `SELF_ANIMATED_SCREENS` **故意不改**：新界面
 没有自绘转场，交给通用淡入即可。
