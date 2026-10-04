@@ -37,15 +37,24 @@ final class TwilightHomeLayoutTest
 	{
 		Frame frame = TwilightShellLayout.layout(WIDTH, HEIGHT);
 		Home home = TwilightHomeLayout.layout(frame);
-		
-		// 30% of the content width is 385px, so the 340px maximum wins
-		assertEquals(340, home.hero.height());
-		
+
+		// 30% of the content width is 450px, so the 340px cap is the floor…
+		assertTrue(home.hero.height() >= 340,
+			"不应低于 CSS 的最小高，实为 " + home.hero.height());
+
+		// …but .hero-inner 是 min-height 的 flex 容器：文案块加上下内边距比这个
+		// 下限还高时，它会随之长高。写死下限会把文案压出卡片。
+		assertTrue(home.primaryCta.bottom() <= home.hero.bottom(),
+			"文案块必须装得进 hero");
+		assertTrue(home.dayBadge.y() >= home.hero.y());
+		assertTrue(home.primaryCta.y() > home.dayBadge.bottom(),
+			"按钮应在日期徽章之下");
+
 		// below 880px the reference stacks the hero, so the stage adds its
 		// own 240px band to the copy
 		Frame narrow = TwilightShellLayout.layout(800, HEIGHT);
 		Home narrowHome = TwilightHomeLayout.layout(narrow);
-		
+
 		assertTrue(narrowHome.heroStage.y() >= narrowHome.heroCopy.bottom());
 		assertTrue(narrowHome.hero.height() >= 240F * narrow.scale);
 		assertEquals(240, Math.round(narrowHome.heroStage.height()

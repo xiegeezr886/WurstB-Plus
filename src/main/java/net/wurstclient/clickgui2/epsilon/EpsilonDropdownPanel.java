@@ -100,8 +100,12 @@ public abstract class EpsilonDropdownPanel
 		float clipH = visibleHeight * expand;
 		if(clipH > 0.5F)
 		{
+			// enableScissor 收的是**角点** (x1,y1,x2,y2)：原版内部会算
+			// new ScreenRectangle(x1, y1, x2 - x1, y2 - y1)。这里原先传的是
+			// (x, clipY, width, clipH)，于是宽度被算成 width - x（面板 x 通常远大于
+			// 面板宽度 → 负数）→ 裁剪区为空 → 浮窗内容（设置项文字）整块被裁掉。
 			graphics.enableScissor(Math.round(x), Math.round(clipY),
-				Math.round(width), Math.round(clipH));
+				Math.round(x + width), Math.round(clipY + clipH));
 			drawPanelContent(graphics, mouseX, mouseY, visibleHeight);
 			graphics.disableScissor();
 			drawScrollbar(graphics, contentHeight, visibleHeight, clipY,

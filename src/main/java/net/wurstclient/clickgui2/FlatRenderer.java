@@ -78,6 +78,31 @@ public final class FlatRenderer
 		RoundedRectRenderer.outline(context, x1, y1, x2, y2, radius, color);
 	}
 
+	/**
+	 * 每角独立半径的填充。
+	 *
+	 * @param radii
+	 *            按 CSS {@code border-radius} 的顺序：{@code {左上, 右上, 右下,
+	 *            左下}}；{@code null} 表示四角皆方。
+	 */
+	public static void fillRoundedRectCorners(GuiGraphics context, float x1,
+		float y1, float x2, float y2, float[] radii, int color)
+	{
+		RoundedRectRenderer.fillCorners(context, x1, y1, x2, y2, radii, color);
+	}
+
+	/**
+	 * 每角独立半径、且从上到下渐变的填充。渐变由顶点色插值完成，所以在圆角上
+	 * 也成立，可以替代 Skia 的「圆角 + 渐变」填充。
+	 */
+	public static void fillRoundedRectCornersGradient(GuiGraphics context,
+		float x1, float y1, float x2, float y2, float[] radii, int topColor,
+		int bottomColor)
+	{
+		RoundedRectRenderer.fillCornersVerticalGradient(context, x1, y1, x2,
+			y2, radii, topColor, bottomColor);
+	}
+
 	public static int mixColor(float[] base, float[] accent, float weight,
 		float opacity)
 	{

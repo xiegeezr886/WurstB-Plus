@@ -233,4 +233,35 @@ final class AmlVisualTest
 		assertEquals(dark, AmlVisual.maskAlphaAt(999, 50, 20, bright, dark),
 			1e-9);
 	}
+
+	/**
+	 * 模糊必须随视口缩小——AMLL 那个固定 0.8 折减是按桌面播放器定的，搬到 HUD
+	 * 那种小框里，等于让 24px 的字配 4px 模糊，糊得读不出来。
+	 */
+	@Test
+	void blurShrinksWithTheViewport()
+	{
+		// 桌面播放器尺寸：不折减
+		assertEquals(1.0, AmlVisual.viewportBlurScale(1280), 1e-9);
+		assertEquals(1.0, AmlVisual.viewportBlurScale(1024), 1e-9);
+
+		// HUD 歌词元素那种小框：折到四分之一上下
+		assertEquals(0.266, AmlVisual.viewportBlurScale(272), 0.01);
+		assertTrue(AmlVisual.viewportBlurScale(200) < 0.25);
+
+		// 退化输入取到下限，而不是 0 或 NaN
+		assertEquals(AmlVisual.MIN_BLUR_SCALE,
+			AmlVisual.viewportBlurScale(0), 1e-9);
+		assertEquals(AmlVisual.MIN_BLUR_SCALE,
+			AmlVisual.viewportBlurScale(-5), 1e-9);
+
+		// 合成效果：非当前行在 HUD 框里的实际模糊要远低于 5px 上限
+		double far = AmlVisual.blurLevel(4, false, true, false, true, 0, 0,
+			true);
+		double blurPx =
+			AmlVisual.blurPx(far * AmlVisual.viewportBlurScale(272));
+
+		assertTrue(blurPx <= 1.5, "HUD 框里最远的行也应只糊 1px 上下，实得 "
+			+ blurPx);
+	}
 }

@@ -65,9 +65,18 @@ public final class TwilightHomeLayout
 	public static final int DESC_MARGIN = 18;
 	public static final float DESC_LINE_HEIGHT = 1.7F;
 	
-	/** {@code .hero-actions { gap: 12px; margin-top: 28px }}. */
+	/** {@code .hero-kicker { gap: 12px }} 与 {@code .hero-actions { gap: 12px; margin-top: 28px }}。 */
 	public static final int ACTIONS_GAP = 12;
+	public static final int KICKER_GAP = 12;
 	public static final int ACTIONS_MARGIN = 28;
+
+	/** 文案块各行的字号（{@code frame.px}），布局要用它们算整块高度。 */
+	public static final int META_SIZE = 13;
+	public static final int EN_SIZE = 14;
+	public static final int DESC_SIZE = 14;
+
+	/** 行高的近似比例，与字体渲染保持一致。 */
+	public static final float LINE_HEIGHT_RATIO = 1.2F;
 	
 	/** Both call to action pills are 46px high. */
 	public static final int CTA_HEIGHT = 46;
@@ -80,9 +89,69 @@ public final class TwilightHomeLayout
 	public static final float[] COLLAGE_RATIO = {0.155F, 0.105F, 0.085F};
 	public static final float[] COLLAGE_RIGHT = {0.24F, 0.07F, 0.12F};
 	public static final int COLLAGE_RADIUS = 18;
-	
+
+	// ---- .hero-collage-card-0/1/2（取自 StreamingHome.vue 的样式）----
+
+	/** 静态倾斜，对应 {@code rotate(-3deg) / rotate(5deg) / rotate(-7deg)}。 */
+	public static final float[] COLLAGE_ROTATION_DEG = {-3F, 5F, -7F};
+
+	/** 浮动周期，对应 {@code collage-float-a 7s / b 8.5s / c 9.5s}。 */
+	public static final float[] COLLAGE_FLOAT_PERIOD_MS = {7000F, 8500F, 9500F};
+
+	/**
+	 * 浮动抬起的幅度。第 0 张的 keyframes 用的是自身高度的 4%
+	 * （{@code translateY(-54%) → -58%}），另外两张是固定的 8px 与 6px。
+	 */
+	public static final float COLLAGE_LIFT_RATIO = 0.04F;
+	public static final float[] COLLAGE_LIFT_PX = {0F, 8F, 6F};
+
+	/** 浮动同时的旋转振幅：{@code -3↔-2}、{@code 5↔6}、{@code -7↔-8.5}。 */
+	public static final float[] COLLAGE_FLOAT_ROTATION_DEG = {1F, 1F, 1.5F};
+
+	/** 后两张略微透明，对应 {@code opacity: .96 / .92}。 */
+	public static final float[] COLLAGE_OPACITY = {1F, 0.96F, 0.92F};
+
+	/** 悬停第 0 张时的姿态：{@code scale(1.03) rotate(-1.5deg)}。 */
+	public static final float COLLAGE_HOVER_SCALE = 1.03F;
+	public static final float COLLAGE_HOVER_ROTATION_DEG = -1.5F;
+
 	/** The reference stacks the hero and the duo row below 880px. */
 	public static final int STACK_BELOW = 880;
+
+	/**
+	 * 一张拼贴卡在某一刻的姿态（浮动动画 + 悬停）。
+	 *
+	 * <p>
+	 * keyframes 是 {@code 0%→100%→50%} 的往返：{@code t=0} 与 {@code t=周期}
+	 * 在起点、{@code t=半个周期} 在最高点，所以用半个正弦正好对上。悬停时按参考
+	 * 只改第 0 张，其余保持。
+	 *
+	 * @return {@code {rotationDeg, offsetY, scale}}
+	 */
+	public static float[] collageTransform(int index, float cardHeight,
+		long nowMs, boolean hovered)
+	{
+		float rotation = COLLAGE_ROTATION_DEG[index];
+		float offsetY = 0;
+		float scale = 1F;
+
+		if(index == 0 && hovered)
+			return new float[]{COLLAGE_HOVER_ROTATION_DEG, 0,
+				COLLAGE_HOVER_SCALE};
+
+		float period = COLLAGE_FLOAT_PERIOD_MS[index];
+		double phase = period <= 0 ? 0
+			: (nowMs % (long)period) / period * Math.PI * 2;
+		// keyframes 是 0%→50%→100% 的往返，t=0 与 t=周期都在起点、半个周期在最高点，
+		// 所以用 (1-cos)/2：两端为 0、中间为 1
+		float wave = (float)((1D - Math.cos(phase)) * 0.5D);
+
+		float lift = index == 0 ? cardHeight * COLLAGE_LIFT_RATIO
+			: COLLAGE_LIFT_PX[index];
+		offsetY = -lift * wave;
+		rotation += COLLAGE_FLOAT_ROTATION_DEG[index] * wave;
+		return new float[]{rotation, offsetY, scale};
+	}
 	
 	/** {@code .hero-stage { height: 240px }} in the stacked layout. */
 	public static final float STAGE_STACKED_HEIGHT = 240F;
@@ -130,11 +199,18 @@ public final class TwilightHomeLayout
 		public final Rect sectionMore;
 		public final float copyPadding;
 		public final float titleSize;
-		
+
+		/** 文案块每一行的 y。绘制与命中测试共用这一套，避免各算各的。 */
+		public final int kickerY;
+		public final int titleY;
+		public final int titleEnY;
+		public final int descY;
+
 		private Home(Rect hero, Rect heroCopy, Rect heroStage, Rect dayBadge,
 			Rect primaryCta, Rect secondaryCta, Rect collageArea, Rect duoRow,
 			Rect duoCardLeft, Rect duoCardRight, Rect sectionHead,
-			Rect sectionMore, float copyPadding, float titleSize)
+			Rect sectionMore, float copyPadding, float titleSize, int kickerY,
+			int titleY, int titleEnY, int descY)
 		{
 			this.hero = hero;
 			this.heroCopy = heroCopy;
@@ -150,6 +226,10 @@ public final class TwilightHomeLayout
 			this.sectionMore = sectionMore;
 			this.copyPadding = copyPadding;
 			this.titleSize = titleSize;
+			this.kickerY = kickerY;
+			this.titleY = titleY;
+			this.titleEnY = titleEnY;
+			this.descY = descY;
 		}
 		
 		/** The three floating covers, in reference order (0 is the big one). */
@@ -176,19 +256,45 @@ public final class TwilightHomeLayout
 		boolean stacked = viewport < STACK_BELOW;
 		float heroHeight = clamp(viewport * HERO_HEIGHT_RATIO, HERO_MIN_HEIGHT,
 			HERO_MAX_HEIGHT) * scale;
-		
+
+		float copyPadding = clamp(viewport * COPY_PADDING_RATIO,
+			COPY_PADDING_MIN, COPY_PADDING_MAX) * scale;
+
+		// 文案块的度量。要在 hero 之前算出来：参考里 .hero-inner 是 min-height，
+		// flex 容器会随内容长高，所以 hero 的实际高度是「最小高」与「文案块 +
+		// 上下内边距」的较大者。写死最小高会把文案压出卡片。
+		int badge = frame.px(DAY_BADGE);
+		float titleSize = clamp(viewport * TITLE_SIZE_RATIO, TITLE_MIN_SIZE,
+			TITLE_MAX_SIZE) * scale;
+		int ctaHeight = frame.px(CTA_HEIGHT);
+		int primaryWidth =
+			frame.px(CTA_PRIMARY_PADDING * 2) + Math.round(titleSize * 2.4F);
+		int secondaryWidth =
+			frame.px(CTA_SECONDARY_PADDING * 2) + Math.round(titleSize * 1.6F);
+		int metaSize = frame.px(META_SIZE);
+		int enSize = frame.px(EN_SIZE);
+		int descSize = frame.px(DESC_SIZE);
+		int titleHeight = Math.round(titleSize * LINE_HEIGHT_RATIO);
+		int enHeight = Math.round(enSize * LINE_HEIGHT_RATIO);
+		int descHeight = Math.round(descSize * DESC_LINE_HEIGHT * 2);
+		int blockHeight = badge + frame.px(TITLE_MARGIN) + titleHeight
+			+ frame.px(TITLE_EN_MARGIN) + enHeight + frame.px(DESC_MARGIN)
+			+ descHeight + frame.px(ACTIONS_MARGIN) + ctaHeight;
+
+		if(!stacked)
+			heroHeight = Math.max(heroHeight,
+				blockHeight + copyPadding * 2F);
+
 		if(stacked)
 			heroHeight += STAGE_STACKED_HEIGHT * scale;
-		
+
 		Rect hero = new Rect(left, top, width, Math.round(heroHeight));
-		
+
 		// .hero-inner: two flexible halves with a 24px gap, a column below 880px
 		int innerGap = frame.px(HERO_GAP);
 		int innerWidth = Math.max(0, hero.width() - innerGap);
 		int copyWidth = stacked ? hero.width()
 			: Math.round(innerWidth * HERO_COPY_SHARE);
-		float copyPadding = clamp(viewport * COPY_PADDING_RATIO,
-			COPY_PADDING_MIN, COPY_PADDING_MAX) * scale;
 		Rect heroCopy = new Rect(hero.x(), hero.y(), copyWidth,
 			stacked ? Math.max(0, hero.height() - Math.round(
 				STAGE_STACKED_HEIGHT * scale)) : hero.height());
@@ -198,19 +304,39 @@ public final class TwilightHomeLayout
 			: new Rect(heroCopy.right() + innerGap, hero.y(),
 				Math.max(0, innerWidth - copyWidth), hero.height());
 		
-		// the date badge and the two call to action pills
-		int badge = frame.px(DAY_BADGE);
+		/*
+		 * .hero-copy 是 justify-content: center 的竖排块——日期、标题、英文副题、
+		 * 描述、按钮依次排下来，整块在 hero 里垂直居中，按钮紧跟在描述之后。
+		 * 早先的实现是标题从顶部往下堆、按钮却锚在 hero 底部，中间会空出一大块，
+		 * 和参考图的观感完全不同。度量在上面已算好，这里只落每一行的 y。
+		 */
+		int actionsY = 0;
+		int kickerY = 0;
+		int titleY = 0;
+		int enY = 0;
+		int descY = 0;
+
+		if(!stacked)
+		{
+			int blockTop = heroCopy.y()
+				+ Math.max(Math.round(copyPadding),
+					(heroCopy.height() - blockHeight) / 2);
+			kickerY = blockTop;
+			titleY = kickerY + badge + frame.px(TITLE_MARGIN);
+			enY = titleY + titleHeight + frame.px(TITLE_EN_MARGIN);
+			descY = enY + enHeight + frame.px(DESC_MARGIN);
+			actionsY = descY + descHeight + frame.px(ACTIONS_MARGIN);
+		}else
+		{
+			kickerY = heroCopy.y() + Math.round(copyPadding);
+			titleY = kickerY + badge + frame.px(TITLE_MARGIN);
+			enY = titleY + titleHeight + frame.px(TITLE_EN_MARGIN);
+			descY = enY + enHeight + frame.px(DESC_MARGIN);
+			actionsY = Math.round(heroCopy.bottom() - copyPadding) - ctaHeight;
+		}
+
 		Rect dayBadge = new Rect(Math.round(heroCopy.x() + copyPadding),
-			Math.round(heroCopy.y() + copyPadding), badge, badge);
-		
-		float titleSize = clamp(viewport * TITLE_SIZE_RATIO, TITLE_MIN_SIZE,
-			TITLE_MAX_SIZE) * scale;
-		int ctaHeight = frame.px(CTA_HEIGHT);
-		int primaryWidth =
-			frame.px(CTA_PRIMARY_PADDING * 2) + Math.round(titleSize * 2.4F);
-		int secondaryWidth =
-			frame.px(CTA_SECONDARY_PADDING * 2) + Math.round(titleSize * 1.6F);
-		int actionsY = Math.round(hero.bottom() - copyPadding) - ctaHeight;
+			kickerY, badge, badge);
 		Rect primaryCta =
 			new Rect(dayBadge.x(), actionsY, primaryWidth, ctaHeight);
 		Rect secondaryCta = new Rect(primaryCta.right() + frame.px(ACTIONS_GAP),
@@ -248,7 +374,8 @@ public final class TwilightHomeLayout
 		
 		return new Home(hero, heroCopy, heroStage, dayBadge, primaryCta,
 			secondaryCta, collageArea, duoRow, duoCardLeft, duoCardRight,
-			sectionHead, sectionMore, copyPadding, titleSize);
+			sectionHead, sectionMore, copyPadding, titleSize, kickerY, titleY,
+			enY, descY);
 	}
 	
 	/**
@@ -300,13 +427,48 @@ public final class TwilightHomeLayout
 			- frame.px(DUO_STACK_WIDTH);
 		int stackTop = card.y() + (card.height() - frame.px(DUO_STACK_HEIGHT)) / 2;
 		int[][] offsets = {{0, 6}, {22, 0}, {42, 10}};
-		
+
 		for(int i = 0; i < 3; i++)
 			rects[i] = new Rect(stackLeft + frame.px(offsets[i][0]),
 				stackTop + frame.px(offsets[i][1]), px, px);
-		
+
 		return rects;
 	}
+
+	/**
+	 * 叠放封面的旋转与缩放（{@code .duo-stack-cover-0/1/2}）：
+	 * 第 0 张不转不缩，第 1 张 {@code rotate(5deg) scale(0.94)}，第 2 张
+	 * {@code rotate(-6deg) scale(0.88)}。所以三张封面看起来并不是等大的——
+	 * 早先三张都按 60px 画，叠出来是一叠同样大的方块。
+	 *
+	 * @return {@code {rotationDeg, scale}}
+	 */
+	public static float[] duoCoverTransform(int index)
+	{
+		return switch(index)
+		{
+			case 1 -> new float[]{5F, 0.94F};
+			case 2 -> new float[]{-6F, 0.88F};
+			default -> new float[]{0F, 1F};
+		};
+	}
+
+	/** 悬停时叠放封面的姿态（{@code .duo-card:hover .duo-stack-cover-n}）。 */
+	public static float[] duoCoverHoverTransform(int index)
+	{
+		return switch(index)
+		{
+			case 0 -> new float[]{-4F, 1F, -2F};
+			case 1 -> new float[]{8F, 0.94F, -3F};
+			default -> new float[]{duoCoverTransform(index)[0], 1F, 0F};
+		};
+	}
+
+	/** {@code .duo-name { font-size: calc(14px * 19 / 14) }}。 */
+	public static final int DUO_NAME_SIZE = 19;
+	/** {@code .duo-sub { font-size: calc(14px * 12 / 14); letter-spacing: .04em }}。 */
+	public static final int DUO_SUB_SIZE = 12;
+	public static final float DUO_SUB_SPACING = 0.04F;
 	
 	/** The round arrow button of a duo card. */
 	public static Rect duoArrow(Frame frame, Rect card)

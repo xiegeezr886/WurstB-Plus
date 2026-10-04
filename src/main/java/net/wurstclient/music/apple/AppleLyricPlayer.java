@@ -712,7 +712,8 @@ public final class AppleLyricPlayer
 			r.opacity = AmlVisual.opacity(inViewport, highlighted, nonDynamic,
 				hidePassedLines, playing, i, passedBoundary);
 			r.blurLevel = AmlVisual.blurLevel(i, active, inViewport,
-				touchScrolled, enableBlur, scrollTo, latest, narrow);
+				touchScrolled, enableBlur, scrollTo, latest, narrow)
+				* AmlVisual.viewportBlurScale(contentWidth);
 
 			double targetMainScale = enableScale
 				? AmlVisual.mainScale(active, playing) : 100;

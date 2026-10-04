@@ -45,15 +45,30 @@ public final class NeteaseImageCache implements AutoCloseable
 			.timeout(Duration.ofSeconds(15)).header("User-Agent",
 				"Mozilla/5.0 WurstBPlus/1.6 NeteaseMusic").GET().build();
 		HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
-			.thenAccept(response -> decode(entry, response)).exceptionally(error -> null);
+			.thenAccept(response -> decode(entry, response)).exceptionally(error -> {
+				System.err.println("[WurstB+] 封面请求异常 " + url + " → "
+					+ error);
+				return null;
+			});
 		return entry;
 	}
 
 	private void decode(Entry entry, HttpResponse<byte[]> response)
 	{
 		byte[] bytes = response.body();
-		if(response.statusCode() / 100 != 2 || bytes == null || bytes.length == 0
-			|| bytes.length > MAX_IMAGE_BYTES || closed)
+		int status = response.statusCode();
+
+		if(status / 100 != 2)
+		{
+			// 失败一定要留下痕迹：静默丢弃时，界面上只会永远停在占位块，
+			// 完全看不出是网络、状态码还是格式的问题
+			System.err.println("[WurstB+] 封面下载失败 HTTP " + status + " → "
+				+ entry.location);
+			return;
+		}
+
+		if(bytes == null || bytes.length == 0 || bytes.length > MAX_IMAGE_BYTES
+			|| closed)
 			return;
 		try
 		{
@@ -71,8 +86,11 @@ public final class NeteaseImageCache implements AutoCloseable
 				entry.texture = new Texture(entry.location, image.getWidth(),
 					image.getHeight(), sampleAccent(image));
 			});
-		}catch(Exception ignored)
-		{}
+		}catch(Exception e)
+		{
+			System.err.println("[WurstB+] 封面解码失败 " + entry.location + " → "
+				+ e);
+		}
 	}
 
 	private static final int DEFAULT_ACCENT = 0xFF007CFF;

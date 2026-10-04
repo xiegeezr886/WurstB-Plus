@@ -32,19 +32,32 @@ public final class TwilightListLayout
 	public static final int CHART_ROWS = CHART_LIMIT / CHART_COLUMNS;
 	
 	/** Measured in the reference screenshot. */
-	public static final int ROW_HEIGHT = 64;
-	
-	/** The gap between the two chart columns, {@code .chart { gap }}. */
-	public static final int CHART_COLUMN_GAP = 24;
-	
-	/** The cover of a row: 46px in the chart, 40px in a dense list. */
-	public static final int CHART_COVER = 46;
+	public static final int ROW_HEIGHT = 66;
+
+	/** The gap between the two chart columns, {@code .chart-grid { gap: 6px 28px }}. */
+	public static final int CHART_COLUMN_GAP = 28;
+
+	/** {@code .chart-row { gap: 14px; padding: 9px 12px }}。 */
+	public static final int ROW_PADDING_X = 12;
+	public static final int ROW_PADDING_Y = 9;
+
+	/** The cover of a row: 48px in the chart, 40px in a dense list. */
+	public static final int CHART_COVER = 48;
 	public static final int LIST_COVER = 40;
 	public static final int COVER_RADIUS = 10;
-	
+
 	/** Text insets inside a row. */
-	public static final int ROW_PADDING = 10;
-	public static final int TEXT_GAP = 12;
+	public static final int TEXT_GAP = 14;
+
+	/**
+	 * {@code .chart-row { grid-template-columns: 34px 48px minmax(0,1fr) auto }}：
+	 * 序号列固定 34px，封面 48px，文字占剩余，时长靠右。
+	 */
+	public static final int INDEX_WIDTH = 34;
+	public static final int ROW_RADIUS = 14;
+
+	/** {@code .chart-index { font-size: calc(14px * 20 / 14) }}。 */
+	public static final int INDEX_SIZE = 20;
 	
 	private TwilightListLayout()
 	{
@@ -111,44 +124,55 @@ public final class TwilightListLayout
 		return rows;
 	}
 	
-	/** Width of the leading index / playing indicator column. */
-	public static final int INDEX_WIDTH = 18;
-	
 	/**
 	 * The cover box of a row, vertically centred.
 	 *
 	 * <p>
-	 * A chart row starts right after the padding; a list row leaves the
-	 * {@link #INDEX_WIDTH} leading slot free for the index column the reference
-	 * draws in front of it.
+	 * {@code .chart-row} 的栅格是 {@code 34px 48px minmax(0,1fr) auto}：序号列
+	 * 固定 34px 在前，封面 48px 紧随其后。
 	 */
 	public static Rect rowCover(Frame frame, Rect row, boolean chart)
 	{
 		int size = frame.px(chart ? CHART_COVER : LIST_COVER);
-		int inset = ROW_PADDING + (chart ? 0 : INDEX_WIDTH);
+		int inset = ROW_PADDING_X + INDEX_WIDTH;
 		return new Rect(row.x() + frame.px(inset), row.centerY() - size / 2,
 			size, size);
 	}
-	
+
 	/**
-	 * The title of a row, left aligned next to its cover.
+	 * 时长列的带宽。参考用的是 {@code auto}（由文本撑开），这里按 12px 字号下
+	 * 「4:08」这类文本给一个固定带宽，右对齐到行的内边距。
+	 */
+	public static final int DURATION_WIDTH = 42;
+
+	/** 时长列。 */
+	public static Rect rowDuration(Frame frame, Rect row)
+	{
+		int width = frame.px(DURATION_WIDTH);
+		return new Rect(row.right() - frame.px(ROW_PADDING_X) - width, row.y(),
+			width, row.height());
+	}
+
+	/**
+	 * The title of a row, left aligned next to its cover and stopping before the
+	 * duration column the reference keeps on the right.
 	 */
 	public static Rect rowTitle(Frame frame, Rect row, boolean chart)
 	{
 		Rect cover = rowCover(frame, row, chart);
-		return new Rect(cover.right() + frame.px(TEXT_GAP), row.y(),
-			Math.max(0, row.right() - cover.right() - frame.px(TEXT_GAP)
-				- frame.px(ROW_PADDING)),
+		int left = cover.right() + frame.px(TEXT_GAP);
+		int right = rowDuration(frame, row).x() - frame.px(TEXT_GAP);
+		return new Rect(left, row.y(), Math.max(0, right - left),
 			row.height());
 	}
-	
+
 	/**
 	 * The playing indicator / index column that the reference puts in front of a
 	 * list row.
 	 */
 	public static Rect rowIndex(Frame frame, Rect row)
 	{
-		return new Rect(row.x() + frame.px(ROW_PADDING), row.y(),
+		return new Rect(row.x() + frame.px(ROW_PADDING_X), row.y(),
 			frame.px(INDEX_WIDTH), row.height());
 	}
 	

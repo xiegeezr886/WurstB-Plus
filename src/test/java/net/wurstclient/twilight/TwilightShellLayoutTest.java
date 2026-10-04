@@ -53,6 +53,43 @@ final class TwilightShellLayoutTest
 		assertEquals(1.5F,
 			TwilightShellLayout.designScale(3000, 1320), 0.001F);
 	}
+
+	/**
+	 * The floating window keeps the design's aspect ratio, never leaves the
+	 * canvas and never grows past the design itself, so the interface stays a
+	 * window instead of a wall to wall layout. Canvases below
+	 * {@link TwilightShellLayout#MIN_WINDOW_SCALE} are deliberately excluded:
+	 * there the window overflows rather than shrinking into illegibility.
+	 */
+	@Test
+	void theWindowKeepsTheDesignAspectRatioAndFitsTheCanvas()
+	{
+		int[][] canvases = {{1500, 880}, {960, 540}, {2560, 1440}, {640, 360},
+			{1920, 1080}, {1280, 720}};
+
+		for(int[] canvas : canvases)
+		{
+			TwilightShellLayout.Window window =
+				TwilightShellLayout.window(canvas[0], canvas[1]);
+			String at = canvas[0] + "x" + canvas[1];
+
+			assertTrue(window.x >= 0 && window.y >= 0, "原点非负 " + at);
+			assertTrue(window.x + window.width <= canvas[0],
+				"宽度未超出画布 " + at);
+			assertTrue(window.y + window.height <= canvas[1],
+				"高度未超出画布 " + at);
+
+			// 1500 / 880 = 1.7045, within a pixel of rounding
+			assertEquals(1500F / 880F,
+				window.width / (float)window.height, 0.01F,
+				"宽高比应等于设计稿 " + at);
+
+			assertTrue(window.scale <= 1F, "不应放大超过设计稿 " + at);
+			assertTrue(window.width <= TwilightShellLayout.DESIGN_WIDTH
+				&& window.height <= TwilightShellLayout.DESIGN_HEIGHT,
+				"窗口不应大于设计稿 " + at);
+		}
+	}
 	
 	@Test
 	void theSidebarModeFollowsTheCanvasWidth()

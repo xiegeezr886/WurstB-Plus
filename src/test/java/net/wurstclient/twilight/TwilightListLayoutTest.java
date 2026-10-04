@@ -125,7 +125,7 @@ final class TwilightListLayoutTest
 		Rect index = TwilightListLayout.rowIndex(frame, row);
 		Rect cover = TwilightListLayout.rowCover(frame, row, false);
 		
-		assertEquals(row.x() + frame.px(TwilightListLayout.ROW_PADDING),
+		assertEquals(row.x() + frame.px(TwilightListLayout.ROW_PADDING_X),
 			index.x());
 		assertTrue(index.right() <= cover.x());
 	}
