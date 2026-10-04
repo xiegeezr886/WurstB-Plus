@@ -141,8 +141,8 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 注册命令 | **57** |
 | Other Feature | **18** |
 | Forge Mixin | 74 (1.20.1 根工程，见 `wurst.mixins.json`) |
-| Java 文件 | **1040**（根 1.20.1 `src/main/java`，含 v1.6 子系统） |
-| 单元测试 | **162 个测试类 / 1040 项 / 0 失败**（根工程 1.20.1，2026-09-25 以 Java 17 跑 `gradlew test --offline`），覆盖 v1.6 音乐解析、AMLL 歌词流水线与布局、Compose 动画、MD3 主题、周界挖掘全套（区域几何、边界检测、液体策略、配置迁移、双语文本）、种子矿透（抽样契约、预测确定性、种子存储）、结构定位（区域扫描、频率削减速率）、种子反解（LCG 逐位一致性、搜索闭环、无范围反解还原）与结构扫描器 |
+| Java 文件 | **1046**（根 1.20.1 `src/main/java`，含 v1.6 子系统） |
+| 单元测试 | **176 个测试类 / 1114 项 / 0 失败**（根工程 1.20.1，2026-10-04 以 Java 17 跑 `gradlew test --offline`），覆盖 v1.6 音乐解析、AMLL 歌词流水线与布局、Twilight 外壳/主页/列表几何与封面蒙版、标题背景存储/运动/壁纸引擎导入/GIF 合成与帧时钟、Compose 动画、MD3 主题、周界挖掘全套（区域几何、边界检测、液体策略、配置迁移、双语文本）、种子矿透（抽样契约、预测确定性、种子存储）、结构定位（区域扫描、频率削减速率）、种子反解（LCG 逐位一致性、搜索闭环、无范围反解还原）与结构扫描器 |
 
 > 根目录是 Forge 1.20.1-47.4.10 工程；`neoforge/`、`versions/` 和 `fabric/` 是独立版本工程，不共享加载器运行时。Forge/NeoForge 使用 Mojang 官方映射，Fabric 使用 Fabric Loom + 官方映射；Fabric 版本通过 Access Widener 和 Fabric API 适配，不代表根工程是 Fabric 项目。
 
@@ -170,7 +170,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 
 - 所有工程都有的 8 个包：`clickgui2`、`hud2`、`gui`、`addon`、`macros`、`proxy`、
   `waypoints`、`discord`
-- 仅根工程的 6 个包：`music` + `twilight`、`render/skia`、`compose`、`perimeter`、`seed`
+- 仅根工程的 6 个包：`music` + `twilight`、`background`、`render/skia`、`compose`、`perimeter`、`seed`
 - 所有工程都有的 3 个命令：`.macros`、`.proxy`、`.waypoints`
 - 仅根工程的 4 个命令：`.perimeter`、`.perimeterdig`、`.seed`、`.twilight`
 
@@ -259,17 +259,19 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 
 以下内容**只存在于根目录 Forge 1.20.1 工程**，其余 66 个工程（64 个版本工程，外加 `fabric/` 与 `neoforge/` 两个 1.20.1 根工程）均未移植。
 
-### 源码包（152 个 Java 文件）
+### 源码包（191 个 Java 文件）
 
 | 包 | 文件数 | 说明 |
 | --- | ---: | --- |
 | `clickgui2/component` | 27 | VAPE 风格组件层 + `SuperSoft*` 窗口与卡片 |
 | `music` + `music/apple` | 28 | 网易云 API、播放器、账号、逐字歌词动画（`AppleLyricPlayer` / `AppleTimeline` / `AppleLayout` / `Spring`）与 AMLL 一比一视觉层（`AmlEasing` / `AmlVisual` / `AmlEmphasize` / `AmlOptimize` / `AmlLayoutReason` / `AmlTween` / `AmlLineBalancer` / `AmlMask`） |
-| `clickgui2/music` | 13 | 音乐页面：主页 / 搜索 / 我喜欢 / 歌单 / 登录 / 播放详情 / 底部播放条 / 星河背景 / 封面粒子与涟漪 |
+| `twilight` | 17 | Twilight Echo 音乐界面（已替换旧网易云 GUI）：外壳 / 主页 / 内容页 / 沉浸播放页、布局几何、Skia 绘制、主题与缓动、本地增强服务、封面缓存与圆角蒙版 |
+| `background` + `gui/title/BackgroundSelectScreen` | 17 | 标题界面自定义背景：单例管理器、分存与缩略图、静图运镜、GIF 解码与逐帧上传、Wallpaper Engine / Steam 创意工坊导入、跨平台文件选择 |
+| `clickgui2/music` | 1 | 仅剩 `NeteaseImageCache`（封面下载 / 解码 / 取色），由 Twilight 界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用 |
 | `compose` | 11 | 声明式 UI 布局树（`UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer`、`AnimFloat`、`FlowingGradient`） |
-| `clickgui2/epsilon` | 5 | Epsilon 拉式下拉 GUI |
+| `clickgui2/epsilon` | 8 | Epsilon 拉式下拉 GUI + 面板布局版（`EpsilonPanelLayout` / `EpsilonPanelNavigatorScreen` / `EpsilonPanelTheme`） |
 | `clickgui2/supersoft` | 5 | MD3 TonalSpot 调色板（`EpsilonMd3Theme`）、`SuperSoftTheme` / `SuperSoftRenderer` / `UiMotion` / `UiTween` |
-| `render/skia` | 4 | Skiko 矢量渲染（`SkikoNatives` / `SkiaGlBackend` / `SkiaFontManager` / `SkiaRegionRenderer`） |
+| `render/skia` | 6 | Skiko 矢量渲染（`SkikoNatives` / `SkiaGlBackend` / `SkiaFontManager` / `SkiaRegionRenderer` + ESP 的 `EspSkia` / `EspIndicatorGlyphs`） |
 | `gui/visual` | 3 | `VisualTheme` 语义色 token、`VisualRenderer`、`VisualScreenMotion` |
 | `hud2/render` | 2 | `RiseFrostedGlass` 磨砂玻璃、`RiseHudFont` |
 | `perimeter` | 35 | 周界挖掘全套：区域模型与游标、液体策略与边界封闭、方块限制与批次、导航 / 交互 / 装备 / 补给策略、28 状态自动化编排、双语文本 |
