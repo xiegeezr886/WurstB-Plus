@@ -667,12 +667,20 @@ public final class TwilightSkia
 
 		if(canvas == null)
 			return;
-		
-		Font font = font(size, weight);
-		FontMetrics metrics = font.getMetrics();
-		
+
 		Paint brush = fill(color);
-		canvas.drawString(text, x, topY - metrics.getAscent(), font, brush);
+		float cursor = x;
+
+		for(int i = 0; i < text.length();)
+		{
+			int end = runEnd(text, i);
+			String run = text.substring(i, end);
+			Font font = font(size, weight, run);
+			canvas.drawString(run, cursor,
+				topY - font.getMetrics().getAscent(), font, brush);
+			cursor += font.measureTextWidth(run);
+			i = end;
+		}
 	}
 	
 	public static void textCentered(String text, float centerX, float topY,
@@ -690,7 +698,17 @@ public final class TwilightSkia
 		if(vanilla)
 			return TwilightVanilla.textWidth(text, size, weight);
 
-		return font(size, weight).measureTextWidth(text);
+		float total = 0;
+
+		for(int i = 0; i < text.length();)
+		{
+			int end = runEnd(text, i);
+			total += font(size, weight, text.substring(i, end))
+				.measureTextWidth(text.substring(i, end));
+			i = end;
+		}
+
+		return total;
 	}
 
 	public static float textHeight(float size, Weight weight)
@@ -698,7 +716,44 @@ public final class TwilightSkia
 		if(vanilla)
 			return TwilightVanilla.textHeight(size, weight);
 
-		return font(size, weight).getMetrics().getHeight();
+		/*
+		 * 行高按字号算，不取字体度量：hero 那类竖排块是用 textHeight 累加出
+		 * 每一行的 y 的，取度量的话换一次字面（拉丁 SF Pro / 汉字系统字体）
+		 * 整块高度就变，标题、描述、按钮会互相压上。
+		 */
+		return size;
+	}
+
+	/**
+	 * 拉丁与汉字要分别选字面（SF Pro Rounded 没有汉字），所以先把字符串切成
+	 * 「同一字面能覆盖」的连续段：汉字一段、其余一段。
+	 */
+	private static int runEnd(String text, int start)
+	{
+		int codePoint = text.codePointAt(start);
+		boolean cjk = needsCjkFace(codePoint);
+		int i = start + Character.charCount(codePoint);
+
+		while(i < text.length())
+		{
+			int next = text.codePointAt(i);
+
+			if(needsCjkFace(next) != cjk)
+				break;
+
+			i += Character.charCount(next);
+		}
+
+		return i;
+	}
+
+	/** 汉字、假名、谚文与全角标点归到有中文字形的那一档。 */
+	private static boolean needsCjkFace(int codePoint)
+	{
+		return codePoint >= 0x2E80 && codePoint <= 0x9FFF
+			|| codePoint >= 0xAC00 && codePoint <= 0xD7AF
+			|| codePoint >= 0xF900 && codePoint <= 0xFAFF
+			|| codePoint >= 0xFF00 && codePoint <= 0xFF60;
 	}
 	
 	// ------------------------------------------------------------------
@@ -729,10 +784,20 @@ public final class TwilightSkia
 		return brush;
 	}
 	
-	private static Font font(float size, Weight weight)
+	private static Font font(float size, Weight weight, String text)
+	{
+		return font(size, weight, needsCjkFace(text.codePointAt(0)));
+	}
+
+	/**
+	 * @param cjk
+	 *            这一段是否含汉字：含则用苹方（有中文字形），否则用 SF Pro
+	 *            Rounded
+	 */
+	private static Font font(float size, Weight weight, boolean cjk)
 	{
 		float rounded = Math.round(size * 2F) / 2F;
-		String key = weight + "@" + rounded;
+		String key = weight + "@" + rounded + (cjk ? "#cjk" : "#latin");
 		Font cached = FONTS.get(key);
 		
 		if(cached != null)
@@ -740,23 +805,25 @@ public final class TwilightSkia
 		
 		SkiaFontManager fonts = SkiaFontManager.get();
 		Typeface typeface;
-		
-		switch(weight)
+		boolean embolden = false;
+
+		if(!cjk)
 		{
-			case LIGHT:
-			typeface = fonts.light();
-			break;
-			
-			case SEMIBOLD:
-			typeface = fonts.semibold();
-			break;
-			
-			default:
-			typeface = fonts.regular();
-			break;
+			// 拉丁用 SF Pro Rounded：只有一个字重，半粗用 Skia 的合成加粗顶
+			typeface = fonts.latin();
+			embolden = weight == Weight.SEMIBOLD;
+		}else
+		{
+			// 汉字用系统字体（Windows 是微软雅黑），同样只有一个字重
+			typeface = fonts.cjk();
+			embolden = weight == Weight.SEMIBOLD;
 		}
-		
+
 		Font font = new Font(typeface, rounded);
+
+		if(embolden)
+			font.setEmboldened(true);
+
 		FONTS.put(key, font);
 		return font;
 	}

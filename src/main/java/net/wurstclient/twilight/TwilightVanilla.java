@@ -14,7 +14,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Style;
 import net.wurstclient.clickgui2.FlatRenderer;
-import net.wurstclient.clickgui2.PingFangFont;
+import net.wurstclient.clickgui2.RiseFont;
 
 /**
  * {@link TwilightSkia} 的原版图元后端：用 {@code GuiGraphics} 的矩形、顶点色
@@ -247,7 +247,7 @@ final class TwilightVanilla
 		graphics.pose().pushPose();
 		graphics.pose().translate(x, topY, 0);
 		graphics.pose().scale(scale, scale, 1);
-		graphics.drawString(font, PingFangFont.text(value, style), 0, 0, color,
+		graphics.drawString(font, RiseFont.text(value, style), 0, 0, color,
 			false);
 		graphics.pose().popPose();
 	}
@@ -266,7 +266,7 @@ final class TwilightVanilla
 			return 0;
 
 		Font font = Minecraft.getInstance().font;
-		return PingFangFont.width(font, value, styleFor(weight))
+		return RiseFont.width(font, value, styleFor(weight))
 			* scaleFor(font, size);
 	}
 
@@ -283,11 +283,11 @@ final class TwilightVanilla
 
 	private static Style styleFor(TwilightSkia.Weight weight)
 	{
-		return switch(weight)
-		{
-			case LIGHT -> PingFangFont.LIGHT_STYLE;
-			case SEMIBOLD -> PingFangFont.SEMIBOLD_STYLE;
-			default -> PingFangFont.REGULAR_STYLE;
-		};
+		// wurst:rise（SF Pro Rounded）只有一个字重，provider 里带了
+		// minecraft:default 回落，汉字因此落到默认字体上；半粗用原版合成加粗
+		if(weight == TwilightSkia.Weight.SEMIBOLD)
+			return RiseFont.STYLE.withBold(true);
+
+		return RiseFont.STYLE;
 	}
 }

@@ -20,7 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
-import net.wurstclient.clickgui2.PingFangFont;
+import net.wurstclient.clickgui2.RiseFont;
 import net.wurstclient.clickgui2.music.NeteaseImageCache;
 import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.hud2.HudElement;
@@ -186,7 +186,7 @@ public final class MusicIslandHudElement extends HudElement
 		String compactText = compactText(mc, playing, hasSong);
 		
 		// 紧凑宽度按内容自适应（规格 §5.1）：文字宽 + 左右缩进，两端由状态机夹住
-		int textWidth = PingFangFont.width(font, compactText);
+		int textWidth = RiseFont.width(font, compactText);
 		int contentWidth = COMPACT_PADDING * 2 + COMPACT_COVER + COMPACT_PADDING
 			+ textWidth + COMPACT_VISUAL_GAP + COMPACT_VISUAL_WIDTH;
 		compactContentWidth =
