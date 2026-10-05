@@ -50,9 +50,6 @@ public final class WurstTitleMenu
 	private static final ResourceLocation LOGO = new ResourceLocation("wurst",
 		"textures/gui/wurstb_logo_white.png");
 
-	/** 字标贴图的像素尺寸，与资源文件一一对应（原分辨率，未缩放）。 */
-	private static final int LOGO_WIDTH = 768;
-	private static final int LOGO_HEIGHT = 229;
 
 	/** 壁纸整体压暗，保证白字在任何壁纸上都读得出来。 */
 	private static final int BACKGROUND_SCRIM = 0x33000000;
@@ -68,6 +65,7 @@ public final class WurstTitleMenu
 
 	private final Screen parent;
 	private final List<WurstTitleButton> menuRows = new ArrayList<>();
+	private final TitleLogoVector logoTexture = new TitleLogoVector();
 
 	private Minecraft minecraft;
 	private TitleMenuLayout layout;
@@ -214,13 +212,13 @@ public final class WurstTitleMenu
 	 * 左下角的白色字标。
 	 *
 	 * <p>
-	 * 素材是用户给的白色 + 透明图，按<b>绘制尺寸</b>离线烘到 768×229（Lanczos）后
-	 * 嵌进资源。为什么必须烘、而且必须烘到接近绘制尺寸：字标在屏幕上只占
-	 * 337（小窗）～1000（4K）物理像素，原图是 2101 宽——直接 blit 会缩 4 倍，
-	 * GPU 的双线性每次只取 2×2 纹素，<b>四分之三的纹素根本采不到</b>：1～2 像素宽
-	 * 的连笔会整根消失，原图的 WebP 噪点会变成一圈白点（实机对比见
-	 * {@code docs/title-menu.md}）。烘到 768 之后只缩 1.5 倍左右，正是双线性能应付的
-	 * 范围。</p>
+	 * 贴图由 {@link TitleLogoVector} 按**实际绘制像素数**光栅化：资源里是描摹出来的
+	 * 矢量路径，任何窗口尺寸都是等尺寸渲染，所以不存在位图缩小被 GPU 的 2×2 采样
+	 * 啃掉发丝的问题（那条坑的实机对比见 {@code docs/title-logo-native-vs-baked.png}）。</p>
+	 *
+	 * <p>
+	 * 这里刻意不设 {@code setFilter}：等尺寸采样用不到过滤，而资源贴图的过滤在
+	 * 懒加载时会被 MC 按默认值重置，写了反而容易误以为它生效。</p>
 	 *
 	 * <p>
 	 * 原版 {@code GuiGraphics.setColor} 改的是<b>全局 shader 颜色</b>，会给整帧
@@ -229,8 +227,13 @@ public final class WurstTitleMenu
 	private void drawLogo(GuiGraphics graphics)
 	{
 		Rect logo = layout.logo();
-		graphics.blit(LOGO, logo.x(), logo.y(), logo.width(), logo.height(), 0F,
-			0F, LOGO_WIDTH, LOGO_HEIGHT, LOGO_WIDTH, LOGO_HEIGHT);
+		int pixels = TitleLogoVector.physicalWidth(logo.width(),
+			minecraft.getWindow().getGuiScale());
+		TitleLogoVector.Bound bound = logoTexture.bind(pixels);
+
+		graphics.blit(bound.location(), logo.x(), logo.y(), logo.width(),
+			logo.height(), 0F, 0F, bound.width(), bound.height(), bound.width(),
+			bound.height());
 	}
 
 
