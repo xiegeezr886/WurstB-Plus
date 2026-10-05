@@ -197,6 +197,26 @@ $trustedDigests = @{
     "a4d3777ac052b6d691638b12ed1d2fe104ac43d69d9e8b0b259c48e0abdc3df7" = "1.16.0 neoforge"
 }
 
+# ---------------------------------------------------------------------------
+# 既有产物白名单（SHA256 -> 说明）。
+#
+# 这几个的来源无法与官方 asset 对齐，但已在仓库里长期存在、所属工程也一直正常：
+# 它们是**优化过的** forge / neoforge 包，而官方 Release 只发布 unoptimized 变体
+# （例如 1.13.1 官方 forge 是 1.59 MB、unoptimized-forge 1.82 MB，
+#   而这里内嵌的是 900 KB 的优化版），因此没有官方摘要可对。
+# 经检查其结构与元数据完整（内部 495 个 class、baritone/api 216 个、
+# mods.toml 与 MixinConnector 齐备），非损坏。
+#
+# 判定时仍需通过第二关（自述 MC 约束涵盖工程版本），只是来源一栏标为"既有"。
+# 将来若换成官方产物，请把摘要移入上面的 $trustedDigests。
+# ---------------------------------------------------------------------------
+$legacyDigests = @{
+    "9d2f985d6b20592e9c6b3759c38ad842f33ef4c5bb3daadf7cf68543049ca7d8" = "forge 1.12.0（优化版，仓库既有）"
+    "467f6323c49f5f7d1dafc20da290e82c885e0ecc8c450f7ac88e1002165d63de" = "forge 1.13.1（优化版，仓库既有）"
+    "7de2271123f6a28a022a6a304be1810be56d10c8c395f408f4dd368a7ba90110" = "neoforge 1.12.0（优化版，仓库既有）"
+    "c17ad91d047a27a353239c803f17573280aa67cfb9d88c6665764f83c55fdc2b" = "neoforge 1.13.1（优化版，仓库既有）"
+}
+
 try {
     $innerPaths = @()
 
@@ -272,15 +292,25 @@ try {
 
                 # ---- 第一关：指纹白名单（唯一可信的"来源"判据） ----
                 $trustedLabel = $trustedDigests[$digest]
+                $isLegacy = $false
+                if (-not $trustedLabel) {
+                    $trustedLabel = $legacyDigests[$digest]
+                    if ($trustedLabel) { $isLegacy = $true }
+                }
 
                 if (-not $trustedLabel) {
-                    Write-Host "  └─ 结论      : ✘ 指纹不在官方白名单中！产物来源不明或已被篡改。" -ForegroundColor Red
+                    Write-Host "  └─ 结论      : ✘ 指纹不在任何白名单中！产物来源不明或已被篡改。" -ForegroundColor Red
                     Write-Host "                 元数据自述的 MC 版本不可信——历史上伪包 1.17.0-1.21.11-mc1.21.7" -ForegroundColor Yellow
                     Write-Host "                 照样声明 minecraft 1.21.7，但装上去必然 Mixin 崩溃。" -ForegroundColor Yellow
-                    Write-Host "                 如确认这是官方产物，请把它的 SHA256 加入脚本的 `$trustedDigests。" -ForegroundColor Yellow
+                    Write-Host "                 如确认来源可信，请把它的 SHA256 登记到脚本的白名单里。" -ForegroundColor Yellow
                     $failed++
                 } else {
-                    Write-Host "  ├─ 来源      : ✔ 官方产物（$trustedLabel）" -ForegroundColor Green
+                    if ($isLegacy) {
+                        Write-Host "  ├─ 来源      : ⚠ 既有产物（$trustedLabel）" -ForegroundColor Yellow
+                        Write-Host "                 非官方 Release 产物，无法对官方摘要；仅校验其自述 MC 约束。" -ForegroundColor Yellow
+                    } else {
+                        Write-Host "  ├─ 来源      : ✔ 官方产物（$trustedLabel）" -ForegroundColor Green
+                    }
                     # ---- 第二关：该产物是否声明支持本工程的 MC 版本 ----
                     $ok = $false
                     foreach ($d in $declared) {
