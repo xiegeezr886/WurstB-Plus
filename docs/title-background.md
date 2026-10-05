@@ -90,12 +90,15 @@
   循环次数）、`BackgroundStorageTest`（导入 / 列举 / 读回 / id 安全 / 删除）、
   `VdfParserTest`、`WallpaperEngineImporterTest`（视频 / 图片 / 场景型壁纸、畸形
   `project.json`、上限与排序）。全部**不依赖 Minecraft 运行时**，也不联网。
-- **从未在游戏里看过**：`blit` 的裁剪参数、`DynamicTexture` / `NativeImage.copyFrom` /
-  `upload` 的用法、动图的实际上传节奏与颜色，以及标题界面上的排版都只做过签名核对与
-  编译验证。`BackgroundSelectScreen` 的按钮命中、滚动与卡片布局同样没有实机验证。
-- **从未在真实的 Wallpaper Engine 库上跑过**：`libraryfolders.vdf` 与 `project.json`
-  的字段按公开格式与 `WallpaperEngineImporterTest` 的样例解析，真实库的字段差异可能让
-  某些壁纸被判为不可导入。
+- **标题界面与选择界面已经在实机验证过**：场景壁纸渲染、缩略图卡片、圆角对话框与
+  cover 裁切都跑通了（[background-select-ingame.png](background-select-ingame.png)）。
+  滚动条、删除与导入这些交互仍只做过签名核对。
+- **真实 Wallpaper Engine 库已经跑过一次**：在用户这台机器上扫描 Steam 库并导入了
+  多个工坊条目（含中文标题的），其中暴露并修掉了一个崩溃——工坊条目 id 由标题派生，
+  中文标题会让 `ResourceLocation` 抛异常把客户端崩掉（
+  `crash-2026-10-05_15.15.30`），现在贴图名会先洗字符再加哈希
+  （`BackgroundSelectScreen.thumbnailTextureName`，回归测试
+  `BackgroundThumbnailNameTest`）。
 
 场景那部分（`WePackage` / `WeTexture` / `WeScene`）**已经在真实的 14 MB 场景包上跑通**
 （`WeSceneRealFileTest`），格式推导过程与仍未实现的部分单独记在
