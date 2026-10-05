@@ -56,6 +56,7 @@ final class WeSceneTest
 				 "visible": true},
 				{"name": "Snow flat", "particle": "particles/presets/snowflat.json",
 				 "origin": "1920.00000 1080.00000 0.00000",
+				 "parallaxDepth": "0.07000 0.07000",
 				 "visible": {"user": "snow", "value": true}},
 				{"name": "Clock", "origin": "960.00000 1035.00000 0.00000",
 				 "size": "626.00000 366.00000",
@@ -111,6 +112,25 @@ final class WeSceneTest
 		assertEquals(2, scene.layers().size());
 		assertEquals("Blossom backdrop", scene.layers().get(0).name());
 		assertEquals("Branch", scene.layers().get(1).name());
+	}
+
+	/**
+	 * 粒子层单独收，并记住它插在第几个图像图层之前——Persica 的两层雪分处树枝
+	 * 前后，顺序丢了近处那层就不会盖住树枝。
+	 */
+	@Test
+	void itKeepsParticleLayersInSceneOrder() throws IOException
+	{
+		WeScene scene = parse();
+
+		assertEquals(1, scene.particles().size());
+
+		WeScene.ParticleLayer snow = scene.particles().get(0);
+		assertEquals("Snow flat", snow.name());
+		assertEquals("particles/presets/snowflat.json", snow.preset());
+		// 夹具里它在 Blossom backdrop 之后，所以插在第 1 个图层之前
+		assertEquals(1, snow.layerIndex());
+		assertEquals(0.07F, snow.parallaxX(), EPSILON);
 	}
 
 	@Test

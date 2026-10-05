@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.lwjgl.opengl.GL11;
+
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -37,15 +39,21 @@ import net.wurstclient.WurstClient;
  * <p>
  * 画的时候只用 {@code GuiGraphics.blit}，位置由 {@link WeSceneLayout} 算：
  * 画布按 cover 缩放铺满屏幕，每层再按 {@code parallaxDepth} 跟着鼠标轻微错动。
- * 视差本身做了两件让画面顺滑的事：目标位移按帧时间做指数阻尼跟随（时间常数来自
- * 场景的 {@code cameraparallaxdelay}），画的时候再把位置的小数部分交给模型矩阵，
- * 而不是取整——浅视差的图层每帧只该动零点零几像素，取整会变成台阶。</p>
+ * 视差做了两件让画面顺滑的事：目标位移按帧时间做指数阻尼跟随（时间常数来自场景的
+ * {@code cameraparallaxdelay}），画的时候再把位置的小数部分交给模型矩阵，而不是
+ * 取整——浅视差的图层每帧只该动零点零几像素，取整会变成台阶。</p>
+ *
+ * <p>
+ * 粒子层（雪）按场景顺序插在图像图层之间：Persica 有一层雪在树枝<b>后面</b>、
+ * 一层在<b>前面</b>，顺序丢了近处那层就不会盖住树枝。粒子用加性混合画成柔光点，
+ * 贴图是运行时生成的——预设引用的 {@code particle/chromaticdot} 是 Wallpaper
+ * Engine 的内置资源，包里没有。</p>
  *
  * <p>
  * 有意没做的两件事：一是场景里记录的相机机位（Persica 里是 -213.6, -20.9），
  * 那是编辑器里的取景，照它平移会让画面偏出画布、边上露出 clearcolor；二是
  * godrays / blurprecise / filmgrain / waterwaves 这些 GLSL 后期效果，所以亮度
- * 与光晕会比 Wallpaper Engine 里淡一些。</p>
+ * 与光晕会比 Wallpaper Engine 里淡一些。时钟与日期文字层同样不画。</p>
  */
 public final class WeSceneWallpaper implements AutoCloseable
 {
@@ -55,8 +63,21 @@ public final class WeSceneWallpaper implements AutoCloseable
 	/** 图层数上限，正常场景个位数。 */
 	private static final int MAX_LAYERS = 64;
 
+	/** 粒子层数上限。 */
+	private static final int MAX_PARTICLE_LAYERS = 8;
+
+	/** 一帧最多按这么长时间推进，卡顿之后不会一次补出成百上千个粒子。 */
+	private static final float MAX_FRAME_SECONDS = 0.1F;
+
+	/** 运行时生成的粒子贴图边长（柔光点）。 */
+	private static final int DOT_SIZE = 64;
+
+	private static final ResourceLocation DOT =
+		new ResourceLocation(WurstClient.MOD_ID, "we_particle_dot");
+
 	private final WeScene scene;
 	private final List<Bound> layers;
+	private final List<BoundParticles> particleLayers;
 	private boolean closed;
 
 	/** 平滑后的鼠标偏移（屏幕像素），视差跟随它而不是直接跟鼠标。 */
@@ -67,15 +88,24 @@ public final class WeSceneWallpaper implements AutoCloseable
 	/** 上一帧的时间戳，用来算与帧率无关的阻尼。 */
 	private long lastFrameNanos;
 
-	private WeSceneWallpaper(WeScene scene, List<Bound> layers)
+	private DynamicTexture dot;
+
+	private WeSceneWallpaper(WeScene scene, List<Bound> layers,
+		List<BoundParticles> particleLayers)
 	{
 		this.scene = scene;
 		this.layers = layers;
+		this.particleLayers = particleLayers;
 	}
 
 	/** 一张已经上传的贴图，连同它属于哪一层。 */
 	private record Bound(WeScene.Layer layer, ResourceLocation location,
 		DynamicTexture texture, int width, int height)
+	{}
+
+	/** 一套跑起来的粒子，以及它插在第几个图层之前。 */
+	private record BoundParticles(WeScene.ParticleLayer layer,
+		WeParticles system, int layerIndex)
 	{}
 
 	/**
@@ -92,11 +122,14 @@ public final class WeSceneWallpaper implements AutoCloseable
 	{
 		private final WeScene scene;
 		private final List<DecodedLayer> remaining;
+		private final List<DecodedParticles> particles;
 
-		Decoded(WeScene scene, List<DecodedLayer> layers)
+		Decoded(WeScene scene, List<DecodedLayer> layers,
+			List<DecodedParticles> particles)
 		{
 			this.scene = scene;
 			this.remaining = new ArrayList<>(layers);
+			this.particles = particles;
 		}
 
 		public WeScene scene()
@@ -108,6 +141,11 @@ public final class WeSceneWallpaper implements AutoCloseable
 		public int pending()
 		{
 			return remaining.size();
+		}
+
+		public int particleLayers()
+		{
+			return particles.size();
 		}
 
 		@Override
@@ -124,7 +162,12 @@ public final class WeSceneWallpaper implements AutoCloseable
 	public record DecodedLayer(WeScene.Layer layer, NativeImage image)
 	{}
 
-	/** 后台线程：读包、解析、解码所有图层贴图。 */
+	/** 一个已经解析、还没跑起来的粒子层。 */
+	public record DecodedParticles(WeScene.ParticleLayer layer,
+		WeParticlePreset preset)
+	{}
+
+	/** 后台线程：读包、解析、解码所有图层贴图与粒子预设。 */
 	public static Decoded decode(byte[] packageBytes) throws IOException
 	{
 		WePackage pkg = WePackage.parse(packageBytes);
@@ -179,12 +222,47 @@ public final class WeSceneWallpaper implements AutoCloseable
 		if(decoded.isEmpty())
 			throw new IOException("场景里没有可画的图层");
 
-		return new Decoded(scene, List.copyOf(decoded));
+		return new Decoded(scene, List.copyOf(decoded),
+			decodeParticles(pkg, scene));
 	}
 
 	public static Decoded decode(Path pkgFile) throws IOException
 	{
 		return decode(Files.readAllBytes(pkgFile));
+	}
+
+	/** 粒子预设读不出来不算致命：那一层跳过，剩下的照画。 */
+	private static List<DecodedParticles> decodeParticles(WePackage pkg,
+		WeScene scene)
+	{
+		List<DecodedParticles> out = new ArrayList<>();
+
+		for(WeScene.ParticleLayer layer : scene.particles())
+		{
+			if(out.size() >= MAX_PARTICLE_LAYERS)
+				break;
+
+			String json = text(pkg, layer.preset());
+
+			if(json == null)
+			{
+				System.out
+					.println("[Background] 粒子预设不在包里：" + layer.preset());
+				continue;
+			}
+
+			try
+			{
+				out.add(
+					new DecodedParticles(layer, WeParticlePreset.parse(json)));
+			}catch(IOException | RuntimeException e)
+			{
+				System.out.println("[Background] 跳过粒子层 " + layer.name()
+					+ "：" + e.getMessage());
+			}
+		}
+
+		return List.copyOf(out);
 	}
 
 	private static DecodedLayer decodeLayer(WeScene.Layer layer, byte[] bytes)
@@ -254,7 +332,20 @@ public final class WeSceneWallpaper implements AutoCloseable
 			}
 		}
 
-		return new WeSceneWallpaper(decoded.scene(), List.copyOf(bound));
+		List<BoundParticles> particles = new ArrayList<>();
+
+		for(int i = 0; i < decoded.particles.size(); i++)
+		{
+			DecodedParticles layer = decoded.particles.get(i);
+
+			// 每个粒子层用自己的种子：两层雪的分布不该一模一样
+			particles.add(new BoundParticles(layer.layer(),
+				new WeParticles(layer.preset(), 0x5EED0000L + i),
+				Math.min(layer.layer().layerIndex(), bound.size())));
+		}
+
+		return new WeSceneWallpaper(decoded.scene(), List.copyOf(bound),
+			List.copyOf(particles));
 	}
 
 	/** 场景的画布宽高，日志与测试用。 */
@@ -266,6 +357,11 @@ public final class WeSceneWallpaper implements AutoCloseable
 	public int layerCount()
 	{
 		return layers.size();
+	}
+
+	public int particleLayerCount()
+	{
+		return particleLayers.size();
 	}
 
 	/**
@@ -290,49 +386,172 @@ public final class WeSceneWallpaper implements AutoCloseable
 		float influence = scene.parallax() ? 1 : 0;
 		float targetX = mouseX - screenWidth / 2F;
 		float targetY = mouseY - screenHeight / 2F;
-		advanceParallax(targetX, targetY);
+		float delta = advanceParallax(targetX, targetY);
 
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 
 		boolean drew = false;
+		int particleIndex = 0;
 
-		for(Bound layer : layers)
+		for(int i = 0; i < layers.size(); i++)
 		{
-			WeScene.Layer definition = layer.layer();
+			// 场景顺序：插在第 i 层之前的粒子先画
+			while(particleIndex < particleLayers.size()
+				&& particleLayers.get(particleIndex).layerIndex() <= i)
+				drew |= renderParticles(graphics,
+					particleLayers.get(particleIndex++), scale, screenWidth,
+					screenHeight, influence, delta);
 
-			WeSceneLayout.Rect rect = WeSceneLayout.rect(definition, scale,
-				scene.width(), scene.height(), screenWidth, screenHeight,
-				layer.width(), layer.height(),
-				WeSceneLayout.parallaxOffset(definition.parallaxX(),
-					scene.parallaxAmount(), influence, smoothOffsetX),
-				WeSceneLayout.parallaxOffset(definition.parallaxY(),
-					scene.parallaxAmount(), influence, smoothOffsetY));
-
-			if(rect.isEmpty())
-				continue;
-
-			graphics.setColor(definition.colorR(), definition.colorG(),
-				definition.colorB(), definition.alpha());
-
-			// 亚像素定位：位置取整后把小数部分交给模型矩阵。直接 Math.round
-			// 会让浅视差的图层变成「攒够一格才跳一次」，也就是一顿一顿的
-			int x = (int)Math.floor(rect.x());
-			int y = (int)Math.floor(rect.y());
-
-			graphics.pose().pushPose();
-			graphics.pose().translate(rect.x() - x, rect.y() - y, 0);
-
-			graphics.blit(layer.location(), x, y,
-				Math.round(rect.width()), Math.round(rect.height()), 0, 0,
-				layer.width(), layer.height(), layer.width(), layer.height());
-
-			graphics.pose().popPose();
-			drew = true;
+			drew |= renderLayer(graphics, layers.get(i), scale, screenWidth,
+				screenHeight, influence);
 		}
+
+		while(particleIndex < particleLayers.size())
+			drew |= renderParticles(graphics,
+				particleLayers.get(particleIndex++), scale, screenWidth,
+				screenHeight, influence, delta);
 
 		graphics.setColor(1, 1, 1, 1);
 		return drew;
+	}
+
+	private boolean renderLayer(GuiGraphics graphics, Bound layer, float scale,
+		int screenWidth, int screenHeight, float influence)
+	{
+		WeScene.Layer definition = layer.layer();
+
+		WeSceneLayout.Rect rect = WeSceneLayout.rect(definition, scale,
+			scene.width(), scene.height(), screenWidth, screenHeight,
+			layer.width(), layer.height(),
+			WeSceneLayout.parallaxOffset(definition.parallaxX(),
+				scene.parallaxAmount(), influence, smoothOffsetX),
+			WeSceneLayout.parallaxOffset(definition.parallaxY(),
+				scene.parallaxAmount(), influence, smoothOffsetY));
+
+		if(rect.isEmpty())
+			return false;
+
+		graphics.setColor(definition.colorR(), definition.colorG(),
+			definition.colorB(), definition.alpha());
+
+		// 亚像素定位：位置取整后把小数部分交给模型矩阵。直接 Math.round
+		// 会让浅视差的图层变成「攒够一格才跳一次」，也就是一顿一顿的
+		int x = (int)Math.floor(rect.x());
+		int y = (int)Math.floor(rect.y());
+
+		graphics.pose().pushPose();
+		graphics.pose().translate(rect.x() - x, rect.y() - y, 0);
+
+		graphics.blit(layer.location(), x, y, Math.round(rect.width()),
+			Math.round(rect.height()), 0, 0, layer.width(), layer.height(),
+			layer.width(), layer.height());
+
+		graphics.pose().popPose();
+		return true;
+	}
+
+	/** 一个粒子层：先按帧时间推进，再逐颗画成加性混合的柔光点。 */
+	private boolean renderParticles(GuiGraphics graphics, BoundParticles group,
+		float scale, int screenWidth, int screenHeight, float influence,
+		float delta)
+	{
+		group.system().advance(delta);
+
+		if(dotTexture() == null)
+			return false;
+
+		WeScene.ParticleLayer layer = group.layer();
+		float offsetX = WeSceneLayout.parallaxOffset(layer.parallaxX(),
+			scene.parallaxAmount(), influence, smoothOffsetX);
+		float offsetY = WeSceneLayout.parallaxOffset(layer.parallaxY(),
+			scene.parallaxAmount(), influence, smoothOffsetY);
+
+		// 加性混合：雪花是发光的小点，不是半透明的贴片
+		RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+
+		for(WeParticles.Particle particle : group.system().particles())
+		{
+			// y 要翻符号：预设空间是 y 向上（camera.up = "0 1 0"），雪的初速度
+			// 因此是负的＝往下落；画布坐标是 y 向下。不翻的话雪会往上飘。
+			float canvasX = layer.originX() + particle.x() + particle.swayX();
+			float canvasY =
+				layer.originY() - particle.y() - particle.swayY();
+
+			float screenX = screenWidth / 2F
+				+ (canvasX - scene.width() / 2F) * scale + offsetX;
+			float screenY = screenHeight / 2F
+				+ (canvasY - scene.height() / 2F) * scale + offsetY;
+
+			float size = Math.max(1, particle.size() * scale);
+
+			if(screenX + size < 0 || screenY + size < 0
+				|| screenX - size > screenWidth
+				|| screenY - size > screenHeight)
+				continue;
+
+			float brightness = particle.brightness();
+			graphics.setColor(brightness, brightness, brightness,
+				particle.alpha());
+
+			int left = Math.round(screenX - size / 2);
+			int top = Math.round(screenY - size / 2);
+			int side = Math.max(1, Math.round(size));
+
+			graphics.blit(DOT, left, top, side, side, 0, 0, DOT_SIZE, DOT_SIZE,
+				DOT_SIZE, DOT_SIZE);
+		}
+
+		graphics.setColor(1, 1, 1, 1);
+		RenderSystem.defaultBlendFunc();
+		return true;
+	}
+
+	/**
+	 * 柔光点贴图：中心白、向外平滑衰减到透明。
+	 *
+	 * <p>
+	 * 预设里写的是 {@code particle/chromaticdot}，那是 Wallpaper Engine 的内置
+	 * 资源，包里没有，所以自己生成一个：alpha 用 {@code (1-r)^2}，加性混合下就是
+	 * 一颗柔和的光点。</p>
+	 */
+	private DynamicTexture dotTexture()
+	{
+		if(dot != null && Minecraft.getInstance().getTextureManager()
+			.getTexture(DOT) == dot)
+			return dot;
+
+		NativeImage image =
+			new NativeImage(NativeImage.Format.RGBA, DOT_SIZE, DOT_SIZE, false);
+		float centre = (DOT_SIZE - 1) / 2F;
+
+		for(int y = 0; y < DOT_SIZE; y++)
+			for(int x = 0; x < DOT_SIZE; x++)
+			{
+				float dx = (x - centre) / centre;
+				float dy = (y - centre) / centre;
+				float distance =
+					Math.min(1, (float)Math.sqrt(dx * dx + dy * dy));
+				int alpha = Math.round(255 * (1 - distance) * (1 - distance));
+
+				// NativeImage 的整数像素接口是 ABGR，白色 + 这个 alpha
+				image.setPixelRGBA(x, y, alpha << 24 | 0xFFFFFF);
+			}
+
+		DynamicTexture texture = new DynamicTexture(image);
+		texture.setFilter(true, false);
+
+		DynamicTexture previous = dot;
+
+		if(previous != null)
+		{
+			Minecraft.getInstance().getTextureManager().release(DOT);
+			previous.close();
+		}
+
+		Minecraft.getInstance().getTextureManager().register(DOT, texture);
+		dot = texture;
+		return texture;
 	}
 
 	/**
@@ -342,25 +561,33 @@ public final class WeSceneWallpaper implements AutoCloseable
 	 * 时间常数取自场景的 {@code cameraparallaxdelay}（Persica 是 0.5）。第一帧
 	 * 直接贴上去，免得刚进主界面时所有图层从中心滑出来。
 	 * </p>
+	 *
+	 * @return 这一帧的秒数，粒子推进也用同一个值
 	 */
-	private void advanceParallax(float targetX, float targetY)
+	private float advanceParallax(float targetX, float targetY)
 	{
 		long now = System.nanoTime();
 		float delta = (now - lastFrameNanos) / 1_000_000_000F;
 		lastFrameNanos = now;
+
+		if(delta < 0)
+			delta = 0;
+		else if(delta > MAX_FRAME_SECONDS)
+			delta = MAX_FRAME_SECONDS;
 
 		if(!smoothStarted)
 		{
 			smoothStarted = true;
 			smoothOffsetX = targetX;
 			smoothOffsetY = targetY;
-			return;
+			return delta;
 		}
 
 		smoothOffsetX = WeSceneLayout.approach(smoothOffsetX, targetX, delta,
 			scene.parallaxDelay());
 		smoothOffsetY = WeSceneLayout.approach(smoothOffsetY, targetY, delta,
 			scene.parallaxDelay());
+		return delta;
 	}
 
 	/** 资源重载或换壁纸时释放纹理。 */
@@ -372,6 +599,13 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 		closed = true;
 		closeQuietly(layers);
+
+		if(dot != null)
+		{
+			Minecraft.getInstance().getTextureManager().release(DOT);
+			dot.close();
+			dot = null;
+		}
 	}
 
 	private static void closeQuietly(List<Bound> bound)
