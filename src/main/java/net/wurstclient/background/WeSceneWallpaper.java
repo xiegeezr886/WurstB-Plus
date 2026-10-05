@@ -338,9 +338,12 @@ public final class WeSceneWallpaper implements AutoCloseable
 		{
 			DecodedParticles layer = decoded.particles.get(i);
 
-			// 每个粒子层用自己的种子：两层雪的分布不该一模一样
+			// 每个粒子层用自己的种子：两层雪的分布不该一模一样；
+			// spread 把发射半径放大到覆盖画布（预设写的半径只够中间一圈）
+			float spread = WeSceneLayout.emitterSpread(decoded.scene.width(),
+				decoded.scene.height(), layer.preset().distanceMax());
 			particles.add(new BoundParticles(layer.layer(),
-				new WeParticles(layer.preset(), 0x5EED0000L + i),
+				new WeParticles(layer.preset(), 0x5EED0000L + i, spread),
 				Math.min(layer.layer().layerIndex(), bound.size())));
 		}
 
