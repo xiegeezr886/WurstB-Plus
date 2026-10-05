@@ -29,10 +29,16 @@ foreach ($plat in $Platforms) {
         $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
         $log = Join-Path $env:TEMP "build-$plat-$mc.log"
 
+        # 各平台的产物任务不同：
+        #   fabric   -> assemble（build 会跑测试，而部分工程的测试有既存失败）
+        #   forge    -> allJar（发布用 fat jar；jar 只是 dev 包）
+        #   neoforge -> build（该平台没有 allJar 任务）
         if ($plat -eq "fabric") {
             $gradleArgs = @("clean", "assemble", "--console=plain", "--no-daemon")
-        } else {
+        } elseif ($plat -eq "forge") {
             $gradleArgs = @("clean", "allJar", "--console=plain", "--no-daemon")
+        } else {
+            $gradleArgs = @("clean", "build", "--console=plain", "--no-daemon")
         }
 
         Push-Location $proj

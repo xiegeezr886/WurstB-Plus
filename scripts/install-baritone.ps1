@@ -108,10 +108,22 @@ if (-not $trusted.ContainsKey($Coordinate)) {
 # 官方版本号 = 坐标第一段，例如 1.15.0-1.21.7 -> 1.15.0
 $officialVersion = ($Coordinate -split '-')[0]
 
+# 下载用的官方 asset 名
 $artifactIds = @{
     "fabric"   = "baritone-api-fabric"
     "forge"    = "baritone-api-forge"
     "neoforge" = "baritone-api-neoforge"
+}
+
+# 本地仓库里用的坐标 artifactId —— 必须与各工程 build.gradle 请求的 group 一致：
+#   fabric   -> baritone-api-fabric
+#   neoforge -> baritone-neoforge
+#   forge    -> baritone-forge        （注意：不是 baritone-api-forge；
+#                                      历史上 1.21.7 是靠手工建的 baritone-forge 目录才对上）
+$localArtifactIds = @{
+    "fabric"   = "baritone-api-fabric"
+    "forge"    = "baritone-forge"
+    "neoforge" = "baritone-neoforge"
 }
 
 $installed = 0
@@ -135,15 +147,16 @@ foreach ($loader in $Loaders) {
     $fileName = "$artifactId-$officialVersion.jar"
     $url = "https://github.com/cabaletta/baritone/releases/download/v$officialVersion/$fileName"
 
-    $destDir = Join-Path $repoRoot "baritone-maven\baritone\$artifactId\$targetCoord"
-    $destJar = Join-Path $destDir "$artifactId-$targetCoord.jar"
+    $localId = $localArtifactIds[$loader]
+    $destDir = Join-Path $repoRoot "baritone-maven\baritone\$localId\$targetCoord"
+    $destJar = Join-Path $destDir "$localId-$targetCoord.jar"
     New-Item -ItemType Directory -Force -Path $destDir | Out-Null
 
     # 已存在且指纹正确 -> 直接通过（可离线、可重复执行）
     if (Test-Path $destJar) {
         $have = (Get-FileHash $destJar -Algorithm SHA256).Hash.ToLower()
         if ($have -eq $allowed.ToLower()) {
-            Write-Host ("[{0}] 已存在且指纹正确，跳过下载：{1}-{2}.jar" -f $loader, $artifactId, $targetCoord) -ForegroundColor Green
+            Write-Host ("[{0}] 已存在且指纹正确，跳过下载：{1}-{2}.jar" -f $loader, $localId, $targetCoord) -ForegroundColor Green
             $installed++
             continue
         }
@@ -187,12 +200,12 @@ foreach ($loader in $Loaders) {
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>baritone</groupId>
-  <artifactId>$artifactId</artifactId>
+  <artifactId>$localId</artifactId>
   <version>$targetCoord</version>
   <packaging>jar</packaging>
 </project>
 "@
-    $pomPath = Join-Path $destDir "$artifactId-$targetCoord.pom"
+    $pomPath = Join-Path $destDir "$localId-$targetCoord.pom"
     [System.IO.File]::WriteAllText($pomPath, $pom, (New-Object System.Text.UTF8Encoding($false)))
 
     Write-Host ("  已安装 -> {0}" -f ($destJar.Replace($repoRoot + "\", ""))) -ForegroundColor Green
