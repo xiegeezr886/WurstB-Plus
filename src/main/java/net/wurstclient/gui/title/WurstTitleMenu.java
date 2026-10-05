@@ -50,16 +50,7 @@ public final class WurstTitleMenu
 	private static final ResourceLocation LOGO = new ResourceLocation("wurst",
 		"textures/gui/wurstb_logo_white.png");
 
-	/**
-	 * 字标贴图的实际像素尺寸（已按屏幕上的绘制尺寸烘焙好，见
-	 * {@code wurstb_logo_white.png}）。
-	 *
-	 * <p>
-	 * 这里刻意不做运行时的缩放处理：素材是用 1863x556 的原图离线 Lanczos 压到
-	 * 768 宽的，尺寸接近实际绘制宽度（1080p 下约 500 物理像素），所以 GPU 的双线性
-	 * 只需要缩 1.5 倍左右——和之前那版一直接 blit 的做法一样。曾经试过在运行时按
-	 * 绘制尺寸重采样，反而把细笔画滤没了，得不偿失。</p>
-	 */
+	/** 字标贴图的像素尺寸，与资源文件一一对应（原分辨率，未缩放）。 */
 	private static final int LOGO_WIDTH = 768;
 	private static final int LOGO_HEIGHT = 229;
 
@@ -220,7 +211,16 @@ public final class WurstTitleMenu
 	}
 
 	/**
-	 * 左下角的白色字标（{@code wurstb_logo_white.png}，白色 + alpha）。
+	 * 左下角的白色字标。
+	 *
+	 * <p>
+	 * 素材是用户给的白色 + 透明图，按<b>绘制尺寸</b>离线烘到 768×229（Lanczos）后
+	 * 嵌进资源。为什么必须烘、而且必须烘到接近绘制尺寸：字标在屏幕上只占
+	 * 337（小窗）～1000（4K）物理像素，原图是 2101 宽——直接 blit 会缩 4 倍，
+	 * GPU 的双线性每次只取 2×2 纹素，<b>四分之三的纹素根本采不到</b>：1～2 像素宽
+	 * 的连笔会整根消失，原图的 WebP 噪点会变成一圈白点（实机对比见
+	 * {@code docs/title-menu.md}）。烘到 768 之后只缩 1.5 倍左右，正是双线性能应付的
+	 * 范围。</p>
 	 *
 	 * <p>
 	 * 原版 {@code GuiGraphics.setColor} 改的是<b>全局 shader 颜色</b>，会给整帧
