@@ -17,6 +17,7 @@ import java.util.Set;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.WurstClient;
@@ -29,8 +30,10 @@ import net.wurstclient.background.BackgroundStorage;
 import net.wurstclient.background.BackgroundThumbnail;
 import net.wurstclient.background.SteamLocator;
 import net.wurstclient.background.WallpaperEngineImporter;
+import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.gui.visual.VisualRenderer;
 import net.wurstclient.gui.visual.VisualTheme;
+import net.wurstclient.twilight.TwilightCoverFit;
 import net.wurstclient.util.render.AsyncTextureLoader;
 
 /**
@@ -57,6 +60,23 @@ public final class BackgroundSelectScreen extends Screen
 	private static final int TEXT = VisualTheme.TEXT;
 	private static final int MUTED = VisualTheme.TEXT_MUTED;
 	private static final int ACCENT = VisualTheme.ACCENT;
+
+	/** 圆角半径：面板、卡片、顶部按钮各一档（参考图就是这个观感）。 */
+	private static final int PANEL_RADIUS = 12;
+	private static final int CARD_RADIUS = 6;
+	private static final int CHIP_RADIUS = 8;
+
+	/** 缩略图往卡片内侧缩这么多，方角就落在圆角卡片里面。 */
+	private static final int PREVIEW_INSET = 3;
+
+	/** 卡片底部标题条的高度（参考图里 "Default" 那一条）；两行字要放得下。 */
+	private static final int CAPTION_HEIGHT = 28;
+	private static final int CAPTION_FILL = 0xCC12151A;
+
+	/** 面板描边，比底色亮一点点。 */
+	private static final int PANEL_BORDER = 0x33FFFFFF;
+	private static final int CARD_BORDER = 0x22FFFFFF;
+	private static final int CARD_BORDER_HOVER = 0x66FFFFFF;
 
 	private final Screen parent;
 	private final Map<String, ResourceLocation> thumbnails = new HashMap<>();
@@ -108,8 +128,10 @@ public final class BackgroundSelectScreen extends Screen
 		graphics.fill(0, 0, width, height, 0xB4000000);
 
 		Rect panel = panel();
-		graphics.fill(panel.x, panel.y, panel.right(), panel.bottom(), PANEL);
-		graphics.fill(panel.x, panel.y, panel.right(), panel.y + 1, 0x33FFFFFF);
+		FlatRenderer.fillRoundedRect(graphics, panel.x, panel.y, panel.right(),
+			panel.bottom(), PANEL_RADIUS, PANEL);
+		FlatRenderer.drawRoundedOutline(graphics, panel.x, panel.y,
+			panel.right(), panel.bottom(), PANEL_RADIUS, PANEL_BORDER);
 
 		drawHeader(graphics, panel, mouseX, mouseY);
 		drawGrid(graphics, panel, mouseX, mouseY);
@@ -134,21 +156,21 @@ public final class BackgroundSelectScreen extends Screen
 		// scan Steam library
 		Rect scan = scanButton(panel);
 		boolean scanHovered = scan.contains(mouseX, mouseY);
-		graphics.fill(scan.x, scan.y, scan.right(), scan.bottom(),
-			scanHovered ? CARD_HOVER : CARD_BG);
+		FlatRenderer.fillRoundedRect(graphics, scan.x, scan.y, scan.right(),
+			scan.bottom(), CHIP_RADIUS, scanHovered ? CARD_HOVER : CARD_BG);
 		graphics.drawString(font,
 			busy ? tr("wurst.background.scanning")
 				: tr("wurst.background.scan_steam"),
-			scan.x + 8, scan.y + 6, scanHovered ? TEXT : MUTED, false);
+			scan.x + 10, scan.y + 6, scanHovered ? TEXT : MUTED, false);
 
 		// motion picker: cycles, which is enough for four options
 		Rect motion = motionButton(panel);
 		boolean motionHovered = motion.contains(mouseX, mouseY);
-		graphics.fill(motion.x, motion.y, motion.right(), motion.bottom(),
-			motionHovered ? CARD_HOVER : CARD_BG);
+		FlatRenderer.fillRoundedRect(graphics, motion.x, motion.y, motion.right(),
+			motion.bottom(), CHIP_RADIUS, motionHovered ? CARD_HOVER : CARD_BG);
 		String label = tr("wurst.background.motion",
 			BackgroundManager.get().motion());
-		graphics.drawString(font, label, motion.x + 8, motion.y + 6,
+		graphics.drawString(font, label, motion.x + 10, motion.y + 6,
 			motionHovered ? TEXT : MUTED, false);
 	}
 
@@ -208,11 +230,13 @@ public final class BackgroundSelectScreen extends Screen
 		boolean selected = BackgroundManager.get().isDefaultSelected();
 		cardBackground(graphics, card, mouseX, mouseY, selected);
 		// a miniature of the built-in grid, so the card is not blank
-		for(int x = card.x + 8; x < card.right() - 8; x += 12)
-			graphics.fill(x, card.y + 8, x + 1, card.y + CARD_HEIGHT - 26,
-				0x22FFFFFF);
-		for(int y = card.y + 8; y < card.y + CARD_HEIGHT - 26; y += 12)
-			graphics.fill(card.x + 8, y, card.right() - 8, y + 1, 0x22FFFFFF);
+		int gridTop = card.y + PREVIEW_INSET;
+		int gridBottom = card.bottom() - CAPTION_HEIGHT;
+		for(int x = card.x + 12; x < card.right() - 12; x += 12)
+			graphics.fill(x, gridTop, x + 1, gridBottom, 0x22FFFFFF);
+		for(int y = gridTop + 4; y < gridBottom; y += 12)
+			graphics.fill(card.x + 12, y, card.right() - 12, y + 1, 0x22FFFFFF);
+		drawCaption(graphics, card);
 		drawCardLabel(graphics, card, tr("wurst.background.default"),
 			tr("wurst.background.builtin"));
 	}
@@ -221,17 +245,17 @@ public final class BackgroundSelectScreen extends Screen
 		int mouseY)
 	{
 		boolean hovered = card.contains(mouseX, mouseY);
-		graphics.fill(card.x, card.y, card.right(), card.bottom(),
-			hovered ? CARD_HOVER : 0x331B1E24);
+		FlatRenderer.fillRoundedRect(graphics, card.x, card.y, card.right(),
+			card.bottom(), CARD_RADIUS, hovered ? CARD_HOVER : 0x331B1E24);
 		outline(graphics, card, hovered ? ACCENT : 0x44FFFFFF);
 		int centerX = card.centerX();
-		int centerY = card.y + CARD_HEIGHT / 2 - 8;
-		graphics.fill(centerX - 10, centerY, centerX + 10, centerY + 2,
+		int centerY = card.y + (CARD_HEIGHT - CAPTION_HEIGHT) / 2;
+		graphics.fill(centerX - 10, centerY - 1, centerX + 10, centerY + 1,
 			hovered ? ACCENT : MUTED);
-		graphics.fill(centerX - 1, centerY - 9, centerX + 1, centerY + 11,
+		graphics.fill(centerX - 1, centerY - 10, centerX + 1, centerY + 10,
 			hovered ? ACCENT : MUTED);
-		graphics.drawString(font, tr("wurst.background.import"), card.x + 22,
-			card.bottom() - 18, hovered ? TEXT : MUTED, false);
+		drawCaption(graphics, card);
+		drawCardLabel(graphics, card, tr("wurst.background.import"), "");
 	}
 
 	private void drawEntryCard(GuiGraphics graphics, Rect card,
@@ -241,15 +265,15 @@ public final class BackgroundSelectScreen extends Screen
 		cardBackground(graphics, card, mouseX, mouseY, selected);
 
 		ResourceLocation thumbnail = thumbnail(entry);
-		int previewBottom = card.y + CARD_HEIGHT - 26;
+		int previewBottom = card.bottom() - CAPTION_HEIGHT;
 
 		if(thumbnail != null)
-			graphics.blit(thumbnail, card.x + 4, card.y + 4,
-				card.width - 8, previewBottom - card.y - 4, 0, 0, 256, 256,
-				256, 256);
+			drawPreview(graphics, thumbnail, card.x + PREVIEW_INSET,
+				card.y + PREVIEW_INSET, card.width - PREVIEW_INSET * 2,
+				previewBottom - card.y - PREVIEW_INSET);
 		else
-			graphics.fill(card.x + 4, card.y + 4, card.right() - 4, previewBottom,
-				0x22FFFFFF);
+			graphics.fill(card.x + PREVIEW_INSET, card.y + PREVIEW_INSET,
+				card.right() - PREVIEW_INSET, previewBottom, 0x22FFFFFF);
 
 		if(entry.kind() == BackgroundKind.VIDEO)
 			// the badge says what the click would otherwise have to: this one
@@ -258,7 +282,42 @@ public final class BackgroundSelectScreen extends Screen
 		else if(entry.kind() == BackgroundKind.GIF)
 			drawBadge(graphics, card, "GIF");
 
+		drawCaption(graphics, card);
 		drawCardLabel(graphics, card, entry.title(), entry.origin());
+	}
+
+	/**
+	 * 卡片预览：按 <b>cover</b> 裁切，不拉伸。
+	 *
+	 * <p>
+	 * 缩略图是保持原图宽高比的（{@link BackgroundThumbnail} 只按最长边缩放），而卡片
+	 * 的预览区是 140×74。之前直接把整张缩略图铺满这个框，正方形的预览图会被横向拉宽
+	 * 近两倍——工坊场景的缩略图正好是作者那张 250×250 的 {@code preview.gif}，拉得最
+	 * 明显（实机一眼就能看出来）。这里改成从缩略图里裁一块与预览框同比例的，和壁纸
+	 * 自身那条路（{@link TwilightCoverFit}）保持一致。</p>
+	 */
+	private void drawPreview(GuiGraphics graphics, ResourceLocation thumbnail,
+		int x, int y, int width, int height)
+	{
+		int textureWidth = 256;
+		int textureHeight = 256;
+
+		if(minecraft != null && minecraft.getTextureManager()
+			.getTexture(thumbnail) instanceof DynamicTexture texture
+			&& texture.getPixels() != null)
+		{
+			textureWidth = texture.getPixels().getWidth();
+			textureHeight = texture.getPixels().getHeight();
+		}
+
+		int[] crop =
+			TwilightCoverFit.sourceRect(textureWidth, textureHeight, width, height);
+
+		if(crop[2] <= 0 || crop[3] <= 0)
+			return;
+
+		graphics.blit(thumbnail, x, y, width, height, crop[0], crop[1], crop[2],
+			crop[3], textureWidth, textureHeight);
 	}
 
 	private void drawBadge(GuiGraphics graphics, Rect card, String text)
@@ -272,9 +331,10 @@ public final class BackgroundSelectScreen extends Screen
 	private void drawCardLabel(GuiGraphics graphics, Rect card, String title,
 		String subtitle)
 	{
-		graphics.drawString(font, trim(title, card.width - 12), card.x + 6,
-			card.bottom() - 22, TEXT, false);
-		graphics.drawString(font, trim(subtitle, card.width - 12), card.x + 6,
+		// 两行都压在标题条里：一行标题、一行来路（参考图只有一行，这里信息多一点）
+		graphics.drawString(font, trim(title, card.width - 14), card.x + 7,
+			card.bottom() - 20, TEXT, false);
+		graphics.drawString(font, trim(subtitle, card.width - 14), card.x + 7,
 			card.bottom() - 11, MUTED, false);
 	}
 
@@ -282,23 +342,33 @@ public final class BackgroundSelectScreen extends Screen
 		int mouseY, boolean selected)
 	{
 		boolean hovered = card.contains(mouseX, mouseY);
-		graphics.fill(card.x, card.y, card.right(), card.bottom(),
-			hovered ? CARD_HOVER : CARD_BG);
+		FlatRenderer.fillRoundedRect(graphics, card.x, card.y, card.right(),
+			card.bottom(), CARD_RADIUS, hovered ? CARD_HOVER : CARD_BG);
 
 		if(selected)
-			outline(graphics, card, ACCENT);
+			FlatRenderer.drawRoundedOutline(graphics, card.x, card.y,
+				card.right(), card.bottom(), CARD_RADIUS, ACCENT);
 		else
-			outline(graphics, card, hovered ? 0x66FFFFFF : 0x22FFFFFF);
+			FlatRenderer.drawRoundedOutline(graphics, card.x, card.y,
+				card.right(), card.bottom(), CARD_RADIUS,
+				hovered ? CARD_BORDER_HOVER : CARD_BORDER);
+	}
+
+	/** 卡片底部的标题条：参考图里 "Default" 就是压在这样一条深色带上。 */
+	private void drawCaption(GuiGraphics graphics, Rect card)
+	{
+		int top = card.bottom() - CAPTION_HEIGHT;
+		FlatRenderer.fillRoundedRect(graphics, card.x + 1, top, card.right() - 1,
+			card.bottom() - 1, CARD_RADIUS - 1, CAPTION_FILL);
+		// the top corners of the strip are square, so the seam does not curve
+		graphics.fill(card.x + 1, top, card.right() - 1, top + CARD_RADIUS - 1,
+			CAPTION_FILL);
 	}
 
 	private void outline(GuiGraphics graphics, Rect card, int color)
 	{
-		graphics.fill(card.x, card.y, card.right(), card.y + 1, color);
-		graphics.fill(card.x, card.bottom() - 1, card.right(), card.bottom(),
-			color);
-		graphics.fill(card.x, card.y, card.x + 1, card.bottom(), color);
-		graphics.fill(card.right() - 1, card.y, card.right(), card.bottom(),
-			color);
+		FlatRenderer.drawRoundedOutline(graphics, card.x, card.y, card.right(),
+			card.bottom(), CARD_RADIUS, color);
 	}
 
 	// ------------------------------------------------------------------
