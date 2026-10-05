@@ -636,7 +636,7 @@ public final class BackgroundSelectScreen extends Screen
 
 		requested.add(entry.id());
 		ResourceLocation location = new ResourceLocation(WurstClient.MOD_ID,
-			"background_thumb/" + entry.id());
+			thumbnailTextureName(entry.id()));
 
 		AsyncTextureLoader.load(file, location).whenComplete((loaded, error) -> {
 			if(error == null)
@@ -644,6 +644,38 @@ public final class BackgroundSelectScreen extends Screen
 		});
 
 		return null;
+	}
+
+	/**
+	 * 缩略图贴图名（包级可见，便于单测）。
+	 *
+	 * <p>
+	 * <b>不能直接把 {@code entry.id()} 拼进贴图名</b>：{@code ResourceLocation} 的路径
+	 * 只接受 {@code [a-z0-9/._-]}，而工坊条目的 id 是由标题派生的，可能是中文。实测
+	 * 扫到「arknights-明日方舟-阿米娅-王冠…」这个条目时，选择界面一渲染就抛
+	 * {@code ResourceLocationException} 把客户端崩掉（crash-2026-10-05_15.15.30）。
+	 * </p>
+	 *
+	 * <p>
+	 * 这里把 id 洗成合法字符（非法的换成 {@code _}，小写，最多 32 个字符）并在末尾接上
+	 * 哈希：洗字符只是为了让日志里能认出是哪张卡，哈希负责不撞名（只洗字符的话，
+	 * 两个只有非法字符不同的 id 会指向同一张贴图）。同样的做法在
+	 * {@code TwilightCoverCache} 与 {@code NeteaseImageCache} 里已经用了。</p>
+	 */
+	static String thumbnailTextureName(String id)
+	{
+		StringBuilder safe = new StringBuilder();
+
+		for(int i = 0; i < id.length() && safe.length() < 32; i++)
+		{
+			char c = Character.toLowerCase(id.charAt(i));
+			boolean legal = c >= 'a' && c <= 'z' || c >= '0' && c <= '9'
+				|| c == '.' || c == '_' || c == '-';
+			safe.append(legal ? c : '_');
+		}
+
+		return "background_thumb/" + safe + "_"
+			+ Integer.toUnsignedString(id.hashCode(), 16);
 	}
 
 	private int cardAt(Rect panel, double mouseX, double mouseY)
