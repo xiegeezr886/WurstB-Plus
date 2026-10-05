@@ -46,13 +46,28 @@ import net.wurstclient.util.json.JsonUtils;
  * <p>
  * 没有实现的部分：godrays / blurprecise / filmgrain / waterwaves 这几个效果
  * 都是 GLSL 后期，静态渲染只画基础图层，亮度与光晕会比 Wallpaper Engine 里
- * 淡一些。</p>
+ * 淡一些；时钟与日期文字层也不画。</p>
  */
 public record WeScene(int width, int height, float zoom, boolean parallax,
-	float parallaxAmount, float parallaxDelay, List<Layer> layers)
+	float parallaxAmount, float parallaxDelay, List<Layer> layers,
+	List<ParticleLayer> particles)
 {
 	/** {@code scene.json} 在包里的名字。 */
 	public static final String SCENE_JSON = "scene.json";
+
+	/**
+	 * 一个粒子层（雪这类 sprite 效果）。
+	 *
+	 * @param preset
+	 *            {@code scene.json} 里写的预设路径，例如
+	 *            {@code particles/presets/snowflat.json}
+	 * @param layerIndex
+	 *            它插在第几个图像图层<b>之前</b>。Persica 的两层雪分处树枝的前后，
+	 *            这个位置不能丢——按场景顺序画，近处那层才会盖住树枝
+	 */
+	public record ParticleLayer(String name, String preset, float originX,
+		float originY, float parallaxX, float parallaxY, int layerIndex)
+	{}
 
 	/**
 	 * 一个要画的图层。
@@ -122,6 +137,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		float parallaxDelay = (float)number(general, "cameraparallaxdelay", 0);
 
 		List<Layer> layers = new ArrayList<>();
+		List<ParticleLayer> particles = new ArrayList<>();
 		JsonArray objects = array(scene, "objects");
 
 		for(JsonElement element : objects)
@@ -129,15 +145,47 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 			if(!element.isJsonObject())
 				continue;
 
-			Layer layer = readLayer(element.getAsJsonObject(), files, width,
-				height);
+			JsonObject object = element.getAsJsonObject();
+
+			Layer layer = readLayer(object, files, width, height);
 
 			if(layer != null)
+			{
 				layers.add(layer);
+				continue;
+			}
+
+			ParticleLayer particle =
+				readParticleLayer(object, width, height, layers.size());
+
+			if(particle != null)
+				particles.add(particle);
 		}
 
 		return new WeScene(width, height, zoom, parallax, parallaxAmount,
-			parallaxDelay, List.copyOf(layers));
+			parallaxDelay, List.copyOf(layers), List.copyOf(particles));
+	}
+
+	/**
+	 * 粒子层：对象里写的是 {@code particle} 预设路径，没有 {@code image}。
+	 */
+	private static ParticleLayer readParticleLayer(JsonObject object, int width,
+		int height, int layerIndex)
+	{
+		if(!isVisible(object.get("visible")))
+			return null;
+
+		String preset = string(object, "particle", "");
+
+		if(preset.isEmpty())
+			return null;
+
+		float[] origin = numbers(object.get("origin"), width / 2F, height / 2F,
+			0);
+		float[] depth = numbers(object.get("parallaxDepth"), 0, 0, 0);
+
+		return new ParticleLayer(string(object, "name", preset), preset,
+			origin[0], origin[1], depth[0], depth[1], layerIndex);
 	}
 
 	private static Layer readLayer(JsonObject object,

@@ -93,5 +93,29 @@ final class WeSceneRealFileTest
 			assertEquals(layer.sizeX(), texture.imageWidth(), 0.0001F);
 			assertEquals(layer.sizeY(), texture.imageHeight(), 0.0001F);
 		}
+
+		// 两层雪：预设必须在包里，而且能解析出真实的参数
+		assertEquals(List.of("particles/presets/snowflat.json",
+			"particles/presets/snowperspective.json"),
+			scene.particles().stream().map(WeScene.ParticleLayer::preset)
+				.toList());
+
+		for(WeScene.ParticleLayer layer : scene.particles())
+		{
+			String json = new String(pkg.read(layer.preset()),
+				java.nio.charset.StandardCharsets.UTF_8);
+			WeParticlePreset preset = WeParticlePreset.parse(json);
+
+			// 两层雪的参数并不相同（实测一层 15/秒、一层 25/秒），所以只断言
+			// 两边都该成立的形状
+			assertTrue(preset.effectiveRate() > 0,
+				layer.name() + " 没有发射速率");
+			assertTrue(preset.lifetimeMax() >= preset.lifetimeMin());
+			assertTrue(preset.sizeMax() >= preset.sizeMin());
+			assertTrue(preset.startTime() >= 0);
+			assertTrue(preset.velocityMinY() < 0,
+				"预设空间 y 向上，雪的速度 y 必须是负的（往下落）");
+			assertTrue(preset.maxCount() >= 1000);
+		}
 	}
 }

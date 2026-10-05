@@ -50,8 +50,9 @@ public final class WurstTitleMenu
 	private static final ResourceLocation LOGO = new ResourceLocation("wurst",
 		"textures/gui/wurstb_logo_white.png");
 
-	private static final int LOGO_WIDTH = 700;
-	private static final int LOGO_HEIGHT = 195;
+	/** 字标贴图的像素尺寸，与资源文件一一对应（原分辨率，未缩放）。 */
+	private static final int LOGO_WIDTH = 768;
+	private static final int LOGO_HEIGHT = 229;
 
 	/** 壁纸整体压暗，保证白字在任何壁纸上都读得出来。 */
 	private static final int BACKGROUND_SCRIM = 0x33000000;
@@ -210,10 +211,20 @@ public final class WurstTitleMenu
 	}
 
 	/**
-	 * 左下角的 v1.6 白色字标（彩色手写体转成全白，见
-	 * {@code wurstb_logo_white.png}）。原版 {@code GuiGraphics.setColor} 改的是
-	 * <b>全局 shader 颜色</b>，会给整帧后面的东西染色，所以这里不画投影，只画
-	 * 一遍本体。
+	 * 左下角的白色字标。
+	 *
+	 * <p>
+	 * 素材是用户给的白色 + 透明图，按<b>绘制尺寸</b>离线烘到 768×229（Lanczos）后
+	 * 嵌进资源。为什么必须烘、而且必须烘到接近绘制尺寸：字标在屏幕上只占
+	 * 337（小窗）～1000（4K）物理像素，原图是 2101 宽——直接 blit 会缩 4 倍，
+	 * GPU 的双线性每次只取 2×2 纹素，<b>四分之三的纹素根本采不到</b>：1～2 像素宽
+	 * 的连笔会整根消失，原图的 WebP 噪点会变成一圈白点（实机对比见
+	 * {@code docs/title-menu.md}）。烘到 768 之后只缩 1.5 倍左右，正是双线性能应付的
+	 * 范围。</p>
+	 *
+	 * <p>
+	 * 原版 {@code GuiGraphics.setColor} 改的是<b>全局 shader 颜色</b>，会给整帧
+	 * 后面的东西染色，所以这里不画投影，只画一遍本体。</p>
 	 */
 	private void drawLogo(GuiGraphics graphics)
 	{
@@ -221,6 +232,7 @@ public final class WurstTitleMenu
 		graphics.blit(LOGO, logo.x(), logo.y(), logo.width(), logo.height(), 0F,
 			0F, LOGO_WIDTH, LOGO_HEIGHT, LOGO_WIDTH, LOGO_HEIGHT);
 	}
+
 
 	/** 动作条的底板；4 个按钮是控件，画在这上面。 */
 	private void drawRail(GuiGraphics graphics)
