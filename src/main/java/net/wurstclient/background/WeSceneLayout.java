@@ -58,6 +58,32 @@ public final class WeSceneLayout
 		}
 	}
 
+	/**
+	 * 粒子发射半径要放大多少倍才能覆盖整幅画面（纯函数，可单测）。
+	 *
+	 * <p>
+	 * 预设里 {@code sphererandom} 的 {@code distancemin/max} 是相对图层原点的半径。
+	 * Persica 的两个雪预设都写 10～1200，而画布是 3840×2160——照字面画就只是正中
+	 * 一圈，实机上就是"雪只在中间"（用户就是这么报的）。场景里这两个粒子对象既没有
+	 * {@code size} 也没有非 1 的 {@code scale}，没有别的量可以拿来换算，所以这里按
+	 * <b>画布对角线</b>补齐：最外圈半径刚好够到画面四角，雪花铺满整幅，同时保留预设
+	 * 原本的疏密分布（内外比例不变）。</p>
+	 *
+	 * <p>
+	 * 预设本身就写得够大时倍率是 1（不缩小），所以这只影响"发射范围明显小于画布"的
+	 * 预设。</p>
+	 */
+	public static float emitterSpread(float canvasWidth, float canvasHeight,
+		float distanceMax)
+	{
+		if(canvasWidth <= 0 || canvasHeight <= 0 || distanceMax <= 0)
+			return 1;
+
+		float halfDiagonal =
+			(float)(Math.hypot(canvasWidth, canvasHeight) / 2.0);
+		return Math.max(1, halfDiagonal / distanceMax);
+	}
+
 	private WeSceneLayout()
 	{
 	}
