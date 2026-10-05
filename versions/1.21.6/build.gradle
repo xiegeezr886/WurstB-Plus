@@ -90,7 +90,7 @@ dependencies {
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
     implementation "io.netty:netty-codec-socks:4.1.118.Final"
     implementation "io.netty:netty-handler-proxy:4.1.118.Final"
-    implementation "baritone:baritone-forge:1.17.0-1.21.11-mc1.21.6"
+    implementation "baritone:baritone-forge:${project.baritone_version}"
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
@@ -156,6 +156,8 @@ tasks.register('allJar', Jar) {
     from sourceSets.main.output
     from("src/main/resources/META-INF/jarjar/metadata.json") {
         into "META-INF/jarjar"
+        expand(baritone_version: project.baritone_version,
+               baritone_version_next: baritoneUpperBound(project.baritone_version))
     }
     from {
         (configurations.runtimeClasspath.files + configurations.allJarEmbed.files).findAll { dependency ->
@@ -167,9 +169,21 @@ tasks.register('allJar', Jar) {
             dependency.isDirectory() ? dependency : zipTree(dependency)
         }
     }
-    from("../../baritone-maven/baritone/baritone-forge/1.17.0-1.21.11-mc1.21.6/baritone-forge-1.17.0-1.21.11-mc1.21.6.jar") {
+    from("../../baritone-maven/baritone/baritone-forge/${project.baritone_version}/baritone-forge-${project.baritone_version}.jar") {
         into "META-INF/jarjar"
     }
     exclude 'net/minecraft/**', 'net/minecraftforge/**'
     exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'module-info.class'
+}
+
+/**
+ * 由内嵌 Baritone 坐标（形如 1.15.0-1.21.7）推导 JarJar 版本区间的上界，
+ * 例如 1.15.0-1.21.7 -> 1.16，得到区间 [1.15.0-1.21.7,1.16)。
+ * 只取坐标里第一段数字作为官方版本号。
+ */
+def baritoneUpperBound(String coord) {
+    def m = (coord =~ /^(\d+)\.(\d+)(?:\.(\d+))?/)
+    if (!m.find())
+        throw new GradleException("baritone_version 格式无法解析: ${coord}")
+    return "${m.group(1)}.${(m.group(2) as int) + 1}"
 }

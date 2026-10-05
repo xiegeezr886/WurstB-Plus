@@ -157,24 +157,44 @@ $failed = 0
 $warned = 0
 
 # ---------------------------------------------------------------------------
-# 官方 Baritone 发布版指纹白名单。
+# 官方 Baritone 产物指纹白名单（SHA256 -> 说明）。
 #
 # 为什么必须有这一层：内嵌 jar 自己声明的 minecraft 版本 **不可信**。
 # 本项目历史上就吃过这个亏——`1.17.0-1.21.11-mc1.21.7` 那个包里，
 # fabric.mod.json 照样写着 "minecraft": ["1.21.7"]，但代码是按 1.21.11 编译的，
 # 于是任何只比对元数据的检查都会放它过去，而游戏启动时必然 Mixin 崩溃。
 #
-# 因此：只有指纹命中白名单才算通过；不在白名单里的产物一律视为"来源不明"并报错。
-# 新增版本时，请从对应 GitHub Release 的 checksums.txt 取官方 SHA256 填进来。
+# 因此判定分两关：
+#   第一关——摘要必须命中本表（唯一可信的"来源"判据）
+#   第二关——该产物自述的 MC 约束必须涵盖工程的 minecraft_version
+#
+# 摘要取自各 Release 页面的 asset digest；同一份产物可在多个坐标下复用
+# （1.15.0 同时供 1.21.6/1.21.7/1.21.8），所以这里按摘要而不是按版本号索引。
 # ---------------------------------------------------------------------------
-$trustedBaritone = @{
-    # 版本号 => 允许的 SHA256 列表（大小写不敏感）
-    "1.15.0" = @(
-        # https://github.com/cabaletta/baritone/releases/tag/v1.15.0
-        # 官方声明支持 Minecraft 1.21.6 / 1.21.7 / 1.21.8
-        "c58ef35a133b6ffce96a74682138ac2ee818cbc063b7c62671db9f9d7d783ebb", # baritone-api-fabric-1.15.0.jar
-        "82b360a295c4ca12ea18750b75cf818b1250f76951f31c18f7fe2f0b4952649c"  # baritone-api-forge-1.15.0.jar
-    )
+$trustedDigests = @{
+    # --- Baritone 1.12.0（官方支持 1.21.2 / 1.21.3）---
+    "b3b36aa3d74c4df053d147ee9254b70c15f4d1e5e11a2766141a146eea3bd60b" = "1.12.0 fabric"
+    "159d83fa657c87a513aecddc4fb6b4d12ce7809a6b1cf6072056974b63e8dca0" = "1.12.0 forge"
+    "2c2fdc342bfe6ba5bd5fe9656188e27e3ea89371c77163f05050807e59ee443c" = "1.12.0 neoforge"
+    # --- Baritone 1.13.1（官方支持 1.21.4）---
+    "bfb79c3cdb8fe1f7697999b1f9c7f08ea29775f3b69d48ad90c387690ee67b05" = "1.13.1 fabric"
+    "f919658fe5315de8119d66a0418d63d7a08f5a57d23cd3756154ed8b2b7239e5" = "1.13.1 forge"
+    "9ca745e381afe034b8d65d1dfbfdbb5ea9f7af8ce648010bb0b5ed0f4aaecc66" = "1.13.1 neoforge"
+
+    # --- Baritone 1.14.0（官方支持 1.21.5）---
+    "e7c84733fa7c86d15743866cdd46e46eb27ce8285b1a21fbc95113c6a4d0b9d8" = "1.14.0 fabric"
+    "4566178acf08c5fe636b1999ef2f7d08fcf1436b6783412d0dd4363c183203e9" = "1.14.0 forge"
+    "6f8e3dd3fb38136ad62983459a905d7d4bf560e384c4f94ebeae591a82e87584" = "1.14.0 neoforge"
+
+    # --- Baritone 1.15.0（官方支持 1.21.6 / 1.21.7 / 1.21.8）---
+    "c58ef35a133b6ffce96a74682138ac2ee818cbc063b7c62671db9f9d7d783ebb" = "1.15.0 fabric"
+    "82b360a295c4ca12ea18750b75cf818b1250f76951f31c18f7fe2f0b4952649c" = "1.15.0 forge"
+    "3485b8a51d791a27a142d4a1fa21699433e210385ae48445b507f8dadaf29425" = "1.15.0 neoforge"
+
+    # --- Baritone 1.16.0（官方支持 1.21.9 / 1.21.10）---
+    "7a8c2d08fb6e66b2bc32dd6d78570c798186eed114e6e88f692af4e3742a2b46" = "1.16.0 fabric"
+    "da20fb533e355f702aabe23d2fd6ea6e6eff6b1bc330bb89422cd6b282afa475" = "1.16.0 forge"
+    "a4d3777ac052b6d691638b12ed1d2fe104ac43d69d9e8b0b259c48e0abdc3df7" = "1.16.0 neoforge"
 }
 
 try {
@@ -250,23 +270,18 @@ try {
                 Write-Host "  ├─ 声明 MC   : $declaredText"
                 Write-Host "  ├─ SHA-256   : $digest"
 
-                # ---- 第一关：指纹白名单（唯一可信的依据） ----
-                $trusted = $trustedBaritone[$modVer]
-                $trustedHit = $false
-                if ($trusted) {
-                    foreach ($d in $trusted) { if ($digest -eq $d.ToLower()) { $trustedHit = $true } }
-                }
+                # ---- 第一关：指纹白名单（唯一可信的"来源"判据） ----
+                $trustedLabel = $trustedDigests[$digest]
 
-                if ($trusted -and -not $trustedHit) {
-                    Write-Host "  └─ 结论      : ✘ 指纹与官方 $modVer 不符！产物可能被篡改或来源不明。" -ForegroundColor Red
+                if (-not $trustedLabel) {
+                    Write-Host "  └─ 结论      : ✘ 指纹不在官方白名单中！产物来源不明或已被篡改。" -ForegroundColor Red
+                    Write-Host "                 元数据自述的 MC 版本不可信——历史上伪包 1.17.0-1.21.11-mc1.21.7" -ForegroundColor Yellow
+                    Write-Host "                 照样声明 minecraft 1.21.7，但装上去必然 Mixin 崩溃。" -ForegroundColor Yellow
+                    Write-Host "                 如确认这是官方产物，请把它的 SHA256 加入脚本的 `$trustedDigests。" -ForegroundColor Yellow
                     $failed++
-                } elseif (-not $trusted) {
-                    Write-Host "  └─ 结论      : ⚠ 该版本不在指纹白名单中，来源未经验证。" -ForegroundColor Yellow
-                    Write-Host "                 元数据自述的 MC 版本不可信——历史上伪包照样声明 1.21.7。" -ForegroundColor Yellow
-                    Write-Host "                 如确认可信，请把它的 SHA256 加入脚本的 `$trustedBaritone。" -ForegroundColor Yellow
-                    $warned++
                 } else {
-                    # ---- 第二关：声明版本与工程一致（白名单已通过才做） ----
+                    Write-Host "  ├─ 来源      : ✔ 官方产物（$trustedLabel）" -ForegroundColor Green
+                    # ---- 第二关：该产物是否声明支持本工程的 MC 版本 ----
                     $ok = $false
                     foreach ($d in $declared) {
                         if (Test-McDeclared -Declared $d -Target $projectMc) { $ok = $true }
@@ -286,12 +301,8 @@ try {
 } finally { $outer.Dispose() }
 
 if ($failed -gt 0) {
-    Fail "有 $failed 个内嵌 Baritone 未通过校验（指纹不符 / 未声明支持本工程 MC 版本）。这会导致 Mixin 注入失败、游戏在启动时崩溃，构建被拒绝。"
+    Fail "有 $failed 个内嵌 Baritone 未通过校验（指纹不在官方白名单 / 未声明支持本工程 MC 版本）。这会导致 Mixin 注入失败、游戏在启动时崩溃，构建被拒绝。"
 }
 
-if ($warned -gt 0) {
-    Write-Host "校验通过（带 $warned 条警告）：$checked 个内嵌 Baritone 处理完毕，其中 $warned 个来源未验证。" -ForegroundColor Yellow
-} else {
-    Write-Host "校验通过：$checked 个内嵌 Baritone 均为官方产物且声明支持工程 MC 版本（$projectMc）。" -ForegroundColor Green
-}
+Write-Host "校验通过：$checked 个内嵌 Baritone 均为官方产物且声明支持工程 MC 版本（$projectMc）。" -ForegroundColor Green
 exit 0
