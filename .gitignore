@@ -38,13 +38,28 @@ GameRenderer_bytecode.txt
 *.bak
 
 # Local test environment (PCL instances, logs, natives, reports)
-# 注意：baritone-maven/ 曾经被整目录忽略，导致任何 clone 仓库的人
-# 都构建不了内嵌了 Baritone 的工程（本地仓库里没有依赖）。
-# 现在改为用 scripts/install-baritone.ps1 从官方 Release 按校验值拉取，
-# 目录本身仍然不入库（积压产物可达数百 MB）。
 .test/
-baritone-maven/
 fabric/baritone-maven/
+
+# baritone-maven/：各平台工程内嵌 Baritone 所需的本地 Maven 仓库。
+#
+# 历史上这里被整目录忽略，导致任何 clone 仓库的人都构建不了内嵌 Baritone 的
+# 工程（本地仓库里没有依赖），而 1.21.7 那个启动崩溃正是"依赖只在作者机器上"
+# 衍生出来的问题。现在把各工程**实际引用**的产物入库，clone 后即可直接构建。
+#
+# 只登记 1.21.x 线（见 scripts/stage-baritone-for-git.ps1），
+# 26.x 线、1.17.0-1.21.11-mc*.rejected（伪版本）、
+# *.pre-26.2-compat / *.bak-JAVA25 等本地备份都不入库。
+#
+# 注意：不能写 `baritone-maven/`（带尾斜杠会排除整个目录，
+# 之后再用 !baritone-maven/**/*.jar 也救不回来——父目录被排除时无法重新包含）。
+# 所以这里只针对后缀排除，jar 与 pom 默认放行。
+# 另需一条 jar 否定：上面的 `*.jar` 在本文件更靠后，会盖掉这条之前的规则。
+!baritone-maven/**/*.jar
+baritone-maven/**/*.rejected/**
+baritone-maven/**/*.pre-26.2-compat
+baritone-maven/**/*.bak-JAVA25
+baritone-maven/**/*.disabled
 
 # Stale porting artifacts and baritone tool workspaces
 _porting_stale/
