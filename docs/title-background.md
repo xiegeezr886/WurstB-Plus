@@ -19,7 +19,7 @@
 | `BackgroundFilePicker` / `BackgroundFileChooser` | 跨平台文件选择（AWT `FileDialog` / `JFileChooser` 兜底） |
 | `WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson` | Wallpaper Engine 导入：定位 Steam 库、解析 `libraryfolders.vdf` 与各壁纸的 `project.json`，产出候选列表（上限 500，可播放的排在前面） |
 | `WePackage` / `WeTexture` / `WeScene` / `WeSceneLayout` / `WeSceneWallpaper` | Wallpaper Engine **场景包**的读取与绘制：包目录 → `.tex` 头部 → 图层树 → 画布到屏幕的换算 → 逐层上传与绘制。格式推导与边界见 [`wallpaper-engine-scene.md`](wallpaper-engine-scene.md) |
-| `BackgroundSelectScreen` | 选择界面：默认背景卡片、已导入卡片（缩略图 / 标题 / 来源 / 类型徽章）、导入、Wallpaper Engine 导入、删除、运镜切换 |
+| `BackgroundSelectScreen` | 选择界面：默认背景卡片、已导入卡片（缩略图 / 标题 / 来源 / 类型徽章）、导入、Wallpaper Engine 导入、删除、运镜切换。圆角对话框；缩略图按 cover 裁切填满卡片预览区，不再拉伸（见 [title-menu.md](title-menu.md)，实机图 [background-select-ingame.png](background-select-ingame.png)） |
 
 ## 2. 绘制路径
 
