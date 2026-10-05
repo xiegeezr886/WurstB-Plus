@@ -28,6 +28,7 @@ import net.wurstclient.background.BackgroundManager;
 import net.wurstclient.background.BackgroundMotion;
 import net.wurstclient.background.BackgroundStorage;
 import net.wurstclient.background.BackgroundThumbnail;
+import net.wurstclient.background.BackgroundVideo;
 import net.wurstclient.background.SteamLocator;
 import net.wurstclient.background.WallpaperEngineImporter;
 import net.wurstclient.clickgui2.FlatRenderer;
@@ -81,6 +82,10 @@ public final class BackgroundSelectScreen extends Screen
 	private final Screen parent;
 	private final Map<String, ResourceLocation> thumbnails = new HashMap<>();
 	private final Set<String> requested = new HashSet<>();
+
+	/** 视频能不能放：探测一次就缓存下来，画卡片不会每帧去读文件。 */
+	private final Map<String, BackgroundVideo.Probe> videoProbes = new HashMap<>();
+	private final Set<String> videoProbesRequested = new HashSet<>();
 
 	private List<BackgroundEntry> entries = List.of();
 	private int scroll;
@@ -276,9 +281,9 @@ public final class BackgroundSelectScreen extends Screen
 				card.right() - PREVIEW_INSET, previewBottom, 0x22FFFFFF);
 
 		if(entry.kind() == BackgroundKind.VIDEO)
-			// the badge says what the click would otherwise have to: this one
-			// may be imported, but it cannot be played
-			drawBadge(graphics, card, tr("wurst.background.video_badge"));
+			// 视频的徽章跟着探测结果走：没探完是「检测中」，能放就只写「视频」，
+			// 放不了才写「不能播放」
+			drawBadge(graphics, card, videoBadge(entry));
 		else if(entry.kind() == BackgroundKind.GIF)
 			drawBadge(graphics, card, "GIF");
 
@@ -416,7 +421,10 @@ public final class BackgroundSelectScreen extends Screen
 			if(button == 1)
 				delete(entry);
 			else if(!entry.kind().canPlay())
-				status = tr("wurst.background.video_unsupported");
+				// 今天四种类型在原理上都能放，这道闸门留给以后新增的类型
+				status = tr("wurst.background.kind_unsupported");
+			else if(entry.kind() == BackgroundKind.VIDEO)
+				clickVideo(entry);
 			else
 				BackgroundManager.get().select(entry.id());
 		}
@@ -460,6 +468,109 @@ public final class BackgroundSelectScreen extends Screen
 
 		thumbnails.clear();
 		requested.clear();
+		videoProbes.clear();
+		videoProbesRequested.clear();
+	}
+
+	// ------------------------------------------------------------------
+	// 视频能不能放
+	// ------------------------------------------------------------------
+
+	/**
+	 * 视频卡片的徽章。
+	 *
+	 * <p>
+	 * 「不能播放」现在是探出来的结论而不是预设：探测（
+	 * {@link BackgroundVideo#probeAsync}）在后台线程读文件头并解一帧，结果按条目 id
+	 * 留在本界面里，所以画卡片不会每帧去读磁盘。
+	 * </p>
+	 */
+	private String videoBadge(BackgroundEntry entry)
+	{
+		BackgroundVideo.Probe probe = videoProbe(entry);
+
+		if(probe == null)
+			return tr("wurst.background.video_checking");
+
+		return probe.playable() ? tr("wurst.background.video_playable")
+			: tr("wurst.background.video_badge");
+	}
+
+	/**
+	 * @return 探测结果，还没探完返回 null；同一个条目只会发起一次探测
+	 */
+	private BackgroundVideo.Probe videoProbe(BackgroundEntry entry)
+	{
+		BackgroundVideo.Probe cached = videoProbes.get(entry.id());
+
+		if(cached != null)
+			return cached;
+
+		if(!videoProbesRequested.add(entry.id()))
+			return null;
+
+		Path media = BackgroundManager.get().storage().mediaPath(entry.id());
+
+		BackgroundVideo.probeAsync(media).whenComplete((probe, error) -> {
+			// 探测本身不抛异常，这里只是兜底：拿不到结果就按"文件不在"处理
+			BackgroundVideo.Probe result =
+				probe != null ? probe : BackgroundVideo.probe(null);
+
+			minecraft.execute(() -> {
+				videoProbes.put(entry.id(), result);
+
+				if(!result.playable())
+					System.out.println("[Background] 视频 " + entry.id()
+						+ " 不能播放：" + result.reason() + " / "
+						+ result.detail());
+			});
+		});
+
+		return null;
+	}
+
+	/**
+	 * 点视频卡片：探出来能放才允许选中。
+	 *
+	 * <p>
+	 * 探测没做完时先不选——选中一个放不出来的视频，管理器会退回内置背景，看起来
+	 * 就是"点了没反应"。宁可让用户再点一次，并且明确告诉他为什么。
+	 * </p>
+	 */
+	private void clickVideo(BackgroundEntry entry)
+	{
+		BackgroundVideo.Probe probe = videoProbe(entry);
+
+		if(probe == null)
+		{
+			status = tr("wurst.background.video_checking_status");
+			return;
+		}
+
+		if(!probe.playable())
+		{
+			status =
+				tr("wurst.background.video_unsupported", videoReason(probe));
+			return;
+		}
+
+		BackgroundManager.get().select(entry.id());
+	}
+
+	/** 放不了的原因；文案在语言文件里，编码名从探测结果里取。 */
+	private String videoReason(BackgroundVideo.Probe probe)
+	{
+		return switch(probe.reason())
+		{
+			case UNSUPPORTED_CODEC -> tr("wurst.background.video_codec",
+				BackgroundVideo.describeFourcc(probe.detail()));
+			case MISSING -> tr("wurst.background.video_missing");
+			case EMPTY_FILE -> tr("wurst.background.video_empty");
+			case NOT_MP4 -> tr("wurst.background.video_not_mp4");
+			case NO_VIDEO_TRACK -> tr("wurst.background.video_no_track");
+			case NO_FRAME, DECODE_FAILED, OK -> tr(
+				"wurst.background.video_broken");
+		};
 	}
 
 	// ------------------------------------------------------------------

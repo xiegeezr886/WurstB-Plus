@@ -190,6 +190,24 @@ dependencies {
 	jarJar("com.google.zxing:core:[3.5.3]") {
 		transitive = false
 	}
+	// ---- 视频背景（MP4 / H.264 解码）----
+	// JCodec 是纯 Java 的 H.264 解码器 + MP4 封装解析，没有原生库，正好能塞进
+	// jarJar。jcodec-javase 是同一版本的另一半：MP4 的解复用与
+	// org.jcodec.api.FrameGrabber（按帧号取帧）在那里，jcodec 本体只有编解码器与
+	// 容器模型。两个都要，缺 javase 会 NoClassDefFoundError。
+	//
+	// 为什么整个打进产物：视频背景是本模组自己的功能，用户不该为了看一张壁纸
+	// 再去装别的 mod。
+	implementation "org.jcodec:jcodec:${project.jcodec_version}"
+	implementation "org.jcodec:jcodec-javase:${project.jcodec_version}"
+	minecraftLibrary "org.jcodec:jcodec:${project.jcodec_version}"
+	minecraftLibrary "org.jcodec:jcodec-javase:${project.jcodec_version}"
+	jarJar("org.jcodec:jcodec:[${project.jcodec_version}]") {
+		transitive = false
+	}
+	jarJar("org.jcodec:jcodec-javase:[${project.jcodec_version}]") {
+		transitive = false
+	}
 	implementation fg.deobf("baritone:baritone-api-forge:1.20.1")
 	jarJar(group: "baritone", name: "baritone-api-forge",
 		version: "[1.20.1,1.21)")

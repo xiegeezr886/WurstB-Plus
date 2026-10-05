@@ -16,7 +16,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 | `clickgui2/component` | 27 | VAPE 风格组件层：`VapeClickGuiScreen`、`SuperSoftClickGuiScreen` / `SuperSoftRowsWindow` / `SuperSoftSettingsWindow`、`ModuleCardComponent`、`InlineSettingComponents`、`CategoryPanelComponent`、`VapeTextInputComponent` 等 |
 | `music` + `music/apple` | 17 | 网易云音乐：`NeteaseCloudApi`、`NeteaseMusicPlayer`、`MusicAccountManager`、`LyricParser`；`apple/` 提供逐字歌词动画（`AppleLyricPlayer`、`AppleTimeline`、`AppleLayout`、`LyricWordSplitter`、`Spring`） |
 | `twilight` | 17 | Twilight Echo 音乐界面（已替换旧网易云 GUI）：`TwilightShellScreen`（外壳 + 主页 + 内容页 + 沉浸播放页）、`TwilightShellLayout` / `TwilightHomeLayout` / `TwilightListLayout`（几何）、`TwilightSkia`（Skia 绘制）、`TwilightTheme` / `TwilightAccent` / `TwilightEasing` / `TwilightGeometry`、`TwilightMusicService` + `TwilightApiEndpoint`（本地增强服务）、`TwilightCoverCache` / `TwilightCornerMask` / `TwilightCoverFit` / `CoverBlur`、`TwilightVanilla` / `TwilightHomeCopy` |
-| `background` + `gui/title/BackgroundSelectScreen` | 17 | 标题界面自定义背景：`BackgroundManager`（单例、异步解码、原版 `blit` 绘制）、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`（Ken Burns 等运动）、`GifFrames` / `BackgroundAnimation` / `BackgroundClip`（动图解码、帧时钟与上传）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`（Wallpaper Engine 导入）、`BackgroundFilePicker` / `BackgroundFileChooser` |
+| `background` + `gui/title/BackgroundSelectScreen` | 19 | 标题界面自定义背景：`BackgroundManager`（单例、异步解码、原版 `blit` 绘制）、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`（Ken Burns 等运动）、`GifFrames` / `BackgroundAnimation` / `BackgroundClip`（动图解码、帧时钟与上传）、`BackgroundVideo` / `VideoPacing`（视频解码：JCodec 流式解 H.264，按挂钟配速与定位）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`（Wallpaper Engine 导入）、`BackgroundFilePicker` / `BackgroundFileChooser` |
 | `clickgui2/music` | 1 | 仅剩 `NeteaseImageCache`（封面下载 / 解码 / 取色），由 Twilight 界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用 |
 | `compose` | 11 | 声明式 UI 布局树：`UiNode` / `UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer`，配合 `AnimFloat`、`FlowingGradient`、`ModuleColors` |
 | `clickgui2/epsilon` | 8 | Epsilon 风格下拉式 GUI：`EpsilonDropdownScreen`、`EpsilonDropdownPanel`、`EpsilonDropdownTheme`、`EpsilonModuleButton`、`EpsilonCategoryPanel`，以及面板布局版 `EpsilonPanelLayout` / `EpsilonPanelNavigatorScreen` / `EpsilonPanelTheme` |
@@ -39,6 +39,20 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 `MusicPlayer`（OTHER 分类）打开 `TwilightShellScreen`，自身带 `@DontSaveState` / `@DontBlock`。
 
+### 视频背景播放（MP4 / H.264，新增 2 个类）
+
+标题界面的视频壁纸**从「只能导入、不能播放」变成真的会放**。此前 `BackgroundKind.canPlay()` 对 `VIDEO` 直接返回 false（卡片带「视频 · 不能播放」徽章），现在四种类型在原理上都能放，**某个视频文件**能不能放改由 `BackgroundVideo.probe(Path)` 决定。
+
+- **依赖**：`org.jcodec:jcodec:0.2.5` + `org.jcodec:jcodec-javase:0.2.5`（`implementation` + `minecraftLibrary` + `jarJar`，两个都内嵌）。纯 Java、无原生库；解码器与容器模型在 `jcodec`，MP4 解复用与 `AWTFrameGrab` 在 `jcodec-javase`。**缓存里原本没有，是联网拉到之后 `--offline` 才能构建的**（`dependencies` 任务只下元数据，jar 要靠一次在线 `compileJava`）。
+- **流式而不是全解**：10 秒 720p30 解成位图是约 1.1 GB，所以解码线程（`WurstB-BackgroundVideo`）按挂钟一次解一帧，帧在 **3 个复用缓冲**里交接给渲染线程，只有新帧才 `upload()`。渲染线程超过 1 秒不来取帧（标题界面不在了）解码线程直接停下——否则一段 1080p 的视频会在玩家游戏里一直解码白烧 CPU；重新显示时按挂钟定位。
+- **尺寸与配速**：按最长边缩到 **1280x720** 以内（保持宽高比，不放大），尺寸取解码首帧的裁剪后尺寸并考虑旋转；**帧率上限 30fps**（不足 1/30 秒的帧解但不转换、不上传）。整条时间规则集中在纯算术类 `VideoPacing`：PTS → 绝对显示时刻、丢帧边界、落后挂钟 1.5 秒就按挂钟定位（界面隐藏回来、解码跟不上实时）、坏时间戳最多等 5 秒、循环取模。
+- **失败行为（固定三条）**：退回内置默认背景、把该条目记进 `failedId` 不再每帧重试、日志留**一行** `[Background] 视频背景 <id> 不能播放：<原因>`。原因被翻译成 `Reason` 枚举（文件不在 / 0 字节 / 不是 MP4 / 没有视频轨道 / 编码不是 H.264 / 解不出第一帧 / 解码失败），**任何异常都不会漏给渲染线程**；放到一半坏掉走同一条降级路径。
+- **选择界面**：卡片渲染时按条目 id 发起一次异步探测并缓存（与缩略图同一套做法），探测期间徽章是「视频 · 检测中…」；能放才允许选中，放不了时点击在状态栏里说明具体原因（含实际编码名），不再让选择静默失败。
+- **支持范围（如实说明）**：只有 **MP4 容器 + `avc1`（8 位 H.264）**。HEVC / VP9 / VP8 / AV1 / MPEG-4 Part 2 / ProRes / Motion JPEG、`avc3`（参数集在码流里）、10 位 H.264、WebM / MKV 都放不了，卡片上会写明是哪种编码；**音轨完全忽略**。
+- **性能预期（未实测）**：JCodec 是纯 Java 解码，且解码量由**源**分辨率与帧率决定，不受 720p / 30fps 上限保护。预期 720p 以下流畅、1080p30 大致可用、**1080p60 与 4K 很可能跟不上**（表现为掉帧、慢放或周期性跳帧）。这一点**没有在实机上量过**。
+- **实测（无客户端，进程内真跑）**：`BackgroundVideoTest` 用 JCodec 自带编码器**现编** mp4（仓库里不放视频文件）再解回来——首帧颜色误差 ≤24（红蓝写反会差 160）、时间戳单调不减、元数据（`avc1` / 320x240 / 4 帧 / 133ms）正确；把播放器真的跑起来时，640x360 / 60 帧 / 30fps 的源 **3 秒收到 93 帧（≈31/s，与 30fps 上限加取整余量相符）**，循环点对得上（第 2553ms 的帧与第 556ms 的帧像素相同），`close()` 立即返回（0ms），坏文件得到 `NOT_MP4`。空闲暂停单独量过：播到第 22 帧后停止取帧 2.5 秒，帧号只走到 **53（前进 31 帧 ≈ 1 秒宽限期）**，没停的话应当前进 75 帧左右。
+- **未验证**：**没有启动过 Minecraft 客户端**——标题界面上的观感、与运镜叠加、资源重载后重新加载、切换背景时解码线程的收尾都只做过签名核对；1080p60 / 4K 的性能没有量过；视频卡片仍然**没有缩略图**（`NativeImage` 与 ImageIO 都读不了 mp4）。
+
 ### 种子矿透（SeedOreESP，新增 10 个文件）
 
 `net.wurstclient.seed`（8 个文件）+ `hacks/SeedOreEspHack` + `commands/SeedCmd`，**零新增依赖、不注入 Baritone 内部类**。
@@ -53,6 +67,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 
 - `org.jetbrains.skiko:skiko-awt:0.8.19`（jarJar）+ `kotlin-stdlib` + `kotlinx-coroutines-core-jvm`
+- 视频背景：`org.jcodec:jcodec:0.2.5` + `org.jcodec:jcodec-javase:0.2.5`（均 jarJar 内嵌）。纯 Java 的 H.264 解码器与 MP4 解复用，无原生库。**本地 Gradle 缓存里原本没有这两个坐标**：先联网解析一次，之后 `--offline` 才能构建。
 - 音乐播放链：`java-stream-player`、`mp3spi`、`jlayer`、`jflac-codec`、`vorbis-support`、`tritonus-all`、`jorbis`、`jaudiotagger`
 - Skiko 原生库（`skiko-windows-x64.dll` 16.5 MB、`icudtl.dat` 10.0 MB）**不 jarJar**——jarJar 会重定位资源路径导致 Skiko 无法在 jar 内定位原生库。改为随 mod 资源打包到 `assets/wurst/skiko/`，运行时由 `SkikoNatives` 解压到 gameDir，并通过 `skiko.library.path` / `skiko.data.path` 系统属性显式加载。
 - 根工程 jarJar 共内嵌 19 个依赖 jar；产物体积由 v1.5 的约 29 MB 增至 **68.1 MB**（主要来自 Skiko 原生库）。
@@ -81,6 +96,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 
 - 根工程 `test` 通过（2026-10-04 实测）：**176 个测试类、1114 项、0 失败**（含种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、格基替代解法的闭环还原、结构扫描器 28 例；含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析、周界挖掘的区域几何与进度/ETA、Twilight 外壳与主页/列表几何、封面圆角蒙版与模糊、标题背景的存储/运动/壁纸引擎导入与 GIF 合成/预算/帧时钟）。
+- 视频背景接入后重跑（2026-10-05 实测）：**189 个测试类、1223 项、0 失败、0 跳过**（比上一轮多 `VideoPacingTest` 13 例与 `BackgroundVideoTest` 18 例，后者含用 JCodec 现编 mp4 的端到端解码、颜色与时间戳检查，以及无客户端的播放实测）；`--offline` 构建通过。
 - 产物：`build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（约 68 MB）。
 - 仅验证构建与单元测试；v1.6 新子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透 / 结构定位）**未经游戏内运行验证**。
 - 开发工具：`scripts/doctor.ps1`、`scripts/run-unit-tests.ps1`、`scripts/seed-gradle-wrapper.ps1`；`build-all.ps1` 根工程产物已对齐 v1.6.0。

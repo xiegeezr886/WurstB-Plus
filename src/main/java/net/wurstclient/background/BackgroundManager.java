@@ -79,6 +79,17 @@ public final class BackgroundManager
 
 	private CompletableFuture<WeSceneWallpaper.Decoded> scenePending;
 
+	/**
+	 * 正在播放的视频，或 null。
+	 *
+	 * <p>
+	 * 视频与动图不一样，帧不是一次性解好的：{@link BackgroundVideo} 一边放一边解，
+	 * 所以它同时是「解码器」与「当前帧的来源」。</p>
+	 */
+	private BackgroundVideo video;
+
+	private CompletableFuture<BackgroundVideo.Opened> videoPending;
+
 	private BackgroundManager()
 	{
 	}
@@ -88,10 +99,17 @@ public final class BackgroundManager
 		return INSTANCE;
 	}
 
-	/** Stops the clip decoder, called when the client shuts down. */
+	/**
+	 * Stops the decoders, called when the client shuts down.
+	 *
+	 * <p>
+	 * 只停线程，不碰纹理：客户端退出时 GL 上下文可能已经没了。
+	 * </p>
+	 */
 	public static void shutdown()
 	{
 		BackgroundClip.shutdown();
+		INSTANCE.stopVideo();
 	}
 
 	public BackgroundStorage storage()
@@ -364,11 +382,20 @@ public final class BackgroundManager
 			scenePending = null;
 		}
 
+		if(videoPending != null)
+		{
+			// 同上：视频线程可能在 open() 里已经起来了，回调会负责关掉
+			videoPending.cancel(true);
+			videoPending = null;
+		}
+
 		if(scene != null)
 		{
 			scene.close();
 			scene = null;
 		}
+
+		stopVideo();
 
 		if(loadedTexture != null)
 		{
@@ -424,6 +451,25 @@ public final class BackgroundManager
 			return false;
 
 		advanceClip(texture);
+
+		BackgroundVideo videoPlaying = video;
+
+		if(videoPlaying != null)
+		{
+			if(videoPlaying.failed())
+			{
+				// 放到一半坏了（文件被删、样本损坏、定位不出来）：退回内置背景。
+				// 视频每帧都可能再失败一次，所以这里必须记住不要再试
+				String id = loadedId;
+				System.out.println("[Background] 视频播放中断 " + id + "："
+					+ videoPlaying.failure());
+				forget();
+				failedId = id;
+				return false;
+			}
+
+			advanceVideo(texture, videoPlaying);
+		}
 
 		NativeImage pixels = texture.getPixels();
 
@@ -500,15 +546,16 @@ public final class BackgroundManager
 		if(scene != null && id.equals(loadedId))
 			return true;
 
-		if(pending != null || clipPending != null || scenePending != null)
+		if(pending != null || clipPending != null || scenePending != null
+			|| videoPending != null)
 			return false;
 
 		BackgroundEntry entry = storage().read(id);
 
 		if(entry == null || !entry.kind().canPlay())
 		{
-			// a folder that was deleted, a half-copied entry or a video
-			// wallpaper: fall back to the built-in background and stop asking
+			// a folder that was deleted, a half-copied entry or a kind this build
+			// cannot show: fall back to the built-in background and stop asking
 			if(entry != null)
 				System.out.println("[Background] Cannot play " + id + " ("
 					+ entry.kind() + "), using the default instead");
@@ -531,6 +578,8 @@ public final class BackgroundManager
 			startClip(id, media);
 		else if(entry.kind() == BackgroundKind.SCENE)
 			startScene(id, media);
+		else if(entry.kind() == BackgroundKind.VIDEO)
+			startVideo(id, media);
 		else
 			startStill(id, media);
 
@@ -739,5 +788,177 @@ public final class BackgroundManager
 	{
 		if(clip != null)
 			clip.close();
+	}
+
+	// ------------------------------------------------------------------
+	// 视频背景
+	// ------------------------------------------------------------------
+
+	/**
+	 * 停掉视频解码线程（不碰纹理）。切换背景、删除、退出客户端时都会走到这里。
+	 */
+	private void stopVideo()
+	{
+		if(videoPending != null)
+		{
+			// 已经开出来的那个由回调负责关，见 closeQuietly(Opened)
+			videoPending.cancel(true);
+			videoPending = null;
+		}
+
+		if(video != null)
+		{
+			video.close();
+			video = null;
+		}
+	}
+
+	/**
+	 * 视频在后台探测并起解码线程，纹理与其它路径一样回到客户端线程建。
+	 *
+	 * <p>
+	 * 这里连 {@link Throwable} 一起接住，是有实测原因的：JCodec 不在类路径上时抛的是
+	 * {@link NoClassDefFoundError}，那是 {@link Error} 而不是 {@link Exception}，只
+	 * catch 异常会让它直接穿透渲染循环、把客户端崩在标题界面
+	 * （crash-2026-10-05_16.06.43，栈顶是 WurstTitleMenu.drawBackground）。链接错误是
+	 * "这个功能用不了"的另一种说法，按"放不了"降级即可，不该影响整个游戏。</p>
+	 */
+	private void startVideo(String id, Path media)
+	{
+		CompletableFuture<BackgroundVideo.Opened> future;
+
+		try
+		{
+			future = BackgroundVideo.openAsync(media);
+		}catch(Throwable t)
+		{
+			videoFailed(id, media, t);
+			return;
+		}
+
+		videoPending = future;
+
+		future.whenComplete((opened, error) -> Minecraft.getInstance()
+			.execute(() -> finishVideo(id, future, opened, error)));
+	}
+
+	/** 视频起不来时的统一出口：退回内置背景、记住这次失败、只留一行日志。 */
+	private void videoFailed(String id, Path media, Throwable error)
+	{
+		System.out.println("[Background] 视频背景不可用（" + id + "）：" + error);
+		failedId = id;
+		videoPending = null;
+		select(BackgroundStorage.DEFAULT_ID);
+	}
+
+	/** Runs on the client thread once the video has been opened. */
+	private void finishVideo(String id,
+		CompletableFuture<BackgroundVideo.Opened> future,
+		BackgroundVideo.Opened opened, Throwable error)
+	{
+		if(videoPending != future)
+		{
+			// forgotten, or replaced by another selection, while opening
+			closeQuietly(opened);
+			return;
+		}
+
+		videoPending = null;
+
+		if(!id.equals(selectedId()))
+		{
+			closeQuietly(opened);
+			return;
+		}
+
+		BackgroundVideo playing = opened == null ? null : opened.video();
+		BackgroundVideo.Probe probe = opened == null ? null : opened.probe();
+
+		if(error != null || playing == null)
+		{
+			// 放不了（编码不是 H.264、文件坏了、被删了）：退回内置背景并记住这次
+			// 选择，不要每帧重试。probe 里带的是具体原因，日志里留一行
+			System.out.println("[Background] 视频背景 " + id + " 不能播放："
+				+ (probe == null ? String.valueOf(error)
+					: probe.reason() + " / " + probe.detail()));
+
+			failedId = id;
+			return;
+		}
+
+		try
+		{
+			// 纹理自己持有一张图：视频那边按目标尺寸也持有自己的复用缓冲，
+			// 每帧用 copyFrom 拷过来（与动图那条路同一个理由）
+			NativeImage pixels = new NativeImage(NativeImage.Format.RGBA,
+				playing.width(), playing.height(), false);
+
+			DynamicTexture texture = new DynamicTexture(pixels);
+			texture.setFilter(true, false);
+			Minecraft.getInstance().getTextureManager().register(LOCATION,
+				texture);
+
+			video = playing;
+			loadedTexture = texture;
+			loadedId = id;
+
+			// 第一帧通常已经解好了，先贴上去，免得看起来像黑屏
+			if(advanceVideo(texture, playing))
+				System.out.println("[Background] Video " + id + ": "
+					+ playing.width() + "x" + playing.height() + " (源 "
+					+ probe.sourceWidth() + "x" + probe.sourceHeight() + "), "
+					+ probe.frameCount() + " 帧 / " + probe.durationMs()
+					+ "ms, 上限 " + VideoPacing.CAP_FPS + "fps");
+			else
+				System.out.println("[Background] Video " + id + ": 已打开（"
+					+ playing.width() + "x" + playing.height() + "），第一帧还没解好");
+
+		}catch(RuntimeException | Error e)
+		{
+			playing.close();
+			failedId = id;
+		}
+	}
+
+	/**
+	 * 把解好的那一帧拷进纹理，只在真的有新帧时上传。
+	 *
+	 * <p>
+	 * 上传次数由视频那边按帧率上限决定（30fps 上限下 60fps 的源会丢一半），这里
+	 * 只负责搬。拷完必须把缓冲还给解码线程，否则三个缓冲很快就会被占满。
+	 * </p>
+	 *
+	 * @return 是否真的上传了一帧
+	 */
+	private boolean advanceVideo(DynamicTexture texture,
+		BackgroundVideo playing)
+	{
+		NativeImage frame = playing.takeFrame();
+
+		if(frame == null)
+			return false;
+
+		try
+		{
+			NativeImage pixels = texture.getPixels();
+
+			if(pixels == null || pixels.getWidth() != playing.width()
+				|| pixels.getHeight() != playing.height())
+				return false;
+
+			pixels.copyFrom(frame);
+			texture.upload();
+			return true;
+
+		}finally
+		{
+			playing.recycle(frame);
+		}
+	}
+
+	private static void closeQuietly(BackgroundVideo.Opened opened)
+	{
+		if(opened != null && opened.video() != null)
+			opened.video().close();
 	}
 }
