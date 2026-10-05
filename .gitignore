@@ -38,6 +38,10 @@ GameRenderer_bytecode.txt
 *.bak
 
 # Local test environment (PCL instances, logs, natives, reports)
+# 注意：baritone-maven/ 曾经被整目录忽略，导致任何 clone 仓库的人
+# 都构建不了内嵌了 Baritone 的工程（本地仓库里没有依赖）。
+# 现在改为用 scripts/install-baritone.ps1 从官方 Release 按校验值拉取，
+# 目录本身仍然不入库（积压产物可达数百 MB）。
 .test/
 baritone-maven/
 fabric/baritone-maven/
