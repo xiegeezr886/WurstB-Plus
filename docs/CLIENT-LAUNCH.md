@@ -96,6 +96,26 @@ loom_version_manifests=https://bmclapi2.bangbang93.com/mc/game/version_manifest_
 
 ## 二、启动客户端
 
+> **前置条件：`JAVA_HOME` 要指向 JDK 17。**
+>
+> 本机 PATH 里的 `java` 是 **Java 25**（`C:\Program Files\Common Files\Oracle\Java\javapath\java.exe`），
+> 而 `JAVA_HOME` 在会话 / 用户 / 机器三级**都没有设置**。`gradlew` 在 `JAVA_HOME` 为空时就用
+> PATH 上那个，于是 Gradle 8.11 挂在：
+>
+> ```text
+> BUG! exception in phase 'semantic analysis' in source unit '_BuildScript_'
+> Unsupported class file major version 69
+> ```
+>
+> 迷惑的地方是**它只在需要编译尚未缓存过的 Groovy 脚本时才出现**：`build.gradle` 有编译缓存，
+> 所以裸跑 `gradlew runClient`（不带 `--init-script`）可能侥幸通过；而本脚本每次都带
+> `--init-script gradle/init-mirrors.gradle`，那个脚本没缓存，**必挂**。所以先设一次：
+>
+> ```powershell
+> $env:JAVA_HOME = 'C:\Program Files\Java\jdk-17'
+> .\scripts\run-client.ps1 1.20.1
+> ```
+
 ```powershell
 # Windows PowerShell
 .\scripts\run-client.ps1 26.2                 # Forge 26.2
@@ -148,13 +168,19 @@ python scripts/fetch-assets.py 1.21.9 --assets-dir D:/mc-assets
 | Loom 走 BMCLAPI | 已实测：删掉缓存清单后，Loom 从 `bmclapi2.bangbang93.com` 重新取回版本清单与 netty 等依赖 |
 | 腾讯云 Gradle 发行包 | 已实测：四个版本均返回 200 |
 | 资源预取脚本 | 已实测：按索引补齐全量对象，逐文件校验 sha1 |
-| 客户端真正开窗 | **未验证** —— 开发环境无显示器/GL，只能跑到「引擎启动、开始取资源」这一步 |
+| 客户端真正开窗 | **已实测**（2026-10-06，1.20.1 根工程即 Forge）：`run-client.ps1 1.20.1` 那条命令路径启动到主界面，日志里 `ModLauncher … java version 17.0.12`、`Starting WurstB+ Plus...`，游戏自己的 F2 截图落进 `run/screenshots/`，`BUILD SUCCESSFUL`。注意这只覆盖 1.20.1 Forge 一个工程，其余 66 个未开窗 |
 
 ## 五、注意事项
 
 - **MC 26.3 的三个工程目前只有脚手架、尚未编译通过**（见 `docs/PORTING-26.2-26.3.md`），
   镜像配置已经就位，但还不能启动。
 - 镜像只加速下载，不改变构建产物。构建脚本、依赖版本、AT/AW、混入配置都没有因此改动。
+- **`scripts/*.ps1` 必须是 UTF-8，带中文的还必须带 BOM**：25 个 `.ps1` 里 12 个带 UTF-8
+  BOM、13 个是纯 ASCII。本机唯一的 shell 是 Windows PowerShell **5.1**（没装 PowerShell 7），
+  它按系统 ANSI 码页（GBK）读**无 BOM** 的 `.ps1`，中文会把字符串终止符一起吃掉，报一堆
+  「字符串缺少终止符」的语法错误——`run-client.ps1` 原来就是这样，已补 BOM（正文一字未改）。
+  反过来**不要**给 `.sh` 加 BOM（bash 按字节读，BOM 会干扰 shebang），也**不要**给 `.bat` 加
+  （cmd 会把 BOM 字节当成第一条命令，直接报「不是内部或外部命令」）。
 - 想把镜像换成其它源，改 `settings.gradle` 的三行与 `gradle/init-mirrors.gradle` 顶部的
   `ALIYUN` 列表即可；Fabric 的三行在各自 `gradle.properties`。
 
