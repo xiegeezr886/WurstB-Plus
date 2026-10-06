@@ -97,14 +97,24 @@ REPO = repo_root()
 
 
 def run(args, env=None, inp=None, check=True):
+    # stdin has to be fed as raw bytes.  With text=True Python translates "\n"
+    # to os.linesep on write, so on Windows `git hash-object --stdin` used to
+    # hash a CRLF copy of BRANCH.md.  That made this script non-idempotent
+    # across platforms: every Windows run produced 22 spurious commits (tree
+    # differs), CI on Linux then flipped them back to LF, and the two kept
+    # ping-ponging.  Feeding bytes skips the translation entirely.
+    binary_in = isinstance(inp, str)
+    if binary_in:
+        inp = inp.encode("utf-8")
     r = subprocess.run(["git", *args], cwd=REPO, env=env, input=inp,
-                       capture_output=True, text=True, encoding="utf-8",
-                       errors="replace")
+                       capture_output=True, text=not binary_in,
+                       **({} if binary_in
+                          else {"encoding": "utf-8", "errors": "replace"}))
     if check and r.returncode != 0:
         print("GIT FAILED:", " ".join(args)[:200], file=sys.stderr)
         print(r.stdout[:800], r.stderr[:800], file=sys.stderr)
         raise SystemExit(1)
-    return r.stdout
+    return r.stdout.decode("utf-8", "replace") if binary_in else r.stdout
 
 
 def ensure_identity():
@@ -200,6 +210,13 @@ def main():
     main_sha = run(["rev-parse", f"refs/remotes/origin/{MAIN}"]).strip()
     print(f"main tip: {main_sha[:8]}")
 
+    # GitHub lists a branch's commits as "main..branch", so on a version branch the
+    # only commits it shows are this script's own sync commits -- the real work is
+    # filtered out because it is already in main.  Putting the synced commit's
+    # subject in the sync subject line makes that list self-explanatory instead of
+    # reading as 55 identical "sync with main <sha>" entries.
+    main_subject = run(["log", "-1", "--format=%s", main_sha]).strip().replace("\n", " ")
+
     entries = []  # (mode, sha, path) of the current main tree
     for line in run(["ls-tree", "-r", main_sha]).splitlines():
         if not line:
@@ -263,7 +280,10 @@ def main():
             continue
 
         parents = ["-p", old, "-p", main_sha] if old else ["-p", main_sha]
-        msg = (f"{v}: sync with main {main_sha[:8]}\n\n"
+        subject = f"{v}: sync with main {main_sha[:8]}"
+        if main_subject:
+            subject += f" — {main_subject}"
+        msg = (f"{subject}\n\n"
                f"Regenerated from main @ {main_sha[:8]} keeping only "
                f"{', '.join(roots)}.\n"
                f"Merge parents: previous {v} tip"
