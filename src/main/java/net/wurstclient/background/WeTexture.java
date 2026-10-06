@@ -304,6 +304,28 @@ public final class WeTexture
 		return isPng() || isJpeg();
 	}
 
+	/**
+	 * 载荷是不是一段 MP4。
+	 *
+	 * <p>
+	 * Wallpaper Engine 允许把视频做成贴图：mipmap 条目的 {@code compression} 是 0
+	 * （原样存放）、{@code compressedSize} 就是整段视频的长度，载荷以
+	 * {@code 00 00 00 14 "ftyp"} + {@code "isom"} 开头。实测「流萤」那个包里 60 帧的
+	 * 两层正是如此 —— 它们此前被当成"不支持的贴图载荷"报出来，属于**误报**：解析本身
+	 * 是对的，只是载荷不是静态图。
+	 * </p>
+	 *
+	 * <p>
+	 * 这里只负责认出它、别谎报；"画第几帧"是场景那边的事。
+	 * </p>
+	 */
+	public boolean isMp4()
+	{
+		// "ftyp" 落在第 4~7 字节（前面是 4 字节的 box 长度）
+		return payload.length >= 12 && startsWith(0x00, 0x00, 0x00, 0x14, 'f',
+			't', 'y', 'p');
+	}
+
 	public boolean isPng()
 	{
 		return startsWith(0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A);
