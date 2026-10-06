@@ -221,10 +221,58 @@ TEXB0002 type=0 img=1920x1080 entry=2048x2048 flag=1 uncomp=16777216 comp=376140
   （例：2048×2048×4 = 16777216 ✓，type=0 即 ARGB8888）。
 - **`TEXB0002`/`TEXB0003`/`TEXB0004` 三种容器的像素偏移都已按规范核对通过。**
 
-**压缩算法已排除 deflate**：对 226 张 `flag=1` 的条目试过**裸 deflate**（`Inflater(true)`，
-没有 zlib 头 —— 这是之前漏掉的一种）与 zlib，223 张直接失败、3 张只解出 1~3 字节。
-所以不是 deflate 族，下一步要从参考实现的源码里取（`src/WallpaperEngine/Data/` 或
-`External/`），候选是 LZ4 / Zstd 这一类无固定头或另有约定的编解码。
+### 压缩算法 = LZ4 块格式（已从参考实现源码确认）
+
+来源：`linux-wallpaperengine` 的
+[`src/WallpaperEngine/Data/Parsers/TextureParser.cpp`](https://github.com/Almamu/linux-wallpaperengine/blob/main/src/WallpaperEngine/Data/Parsers/TextureParser.cpp)。
+它 `#include <lz4.h>`，核心几行：
+
+```cpp
+result->compression      = file.nextUInt32 ();
+result->uncompressedSize = file.nextInt ();
+result->compressedSize   = file.nextInt ();
+if (result->compression == 0)
+    result->uncompressedSize = result->compressedSize;  // 未压缩：这字段其实是文件长度
+...
+if (result->compression == 1) {
+    file.next (result->compressedData.get (), result->compressedSize);
+    LZ4_decompress_safe (result->compressedData.get (),
+                         result->uncompressedData.get (),
+                         result->compressedSize, result->uncompressedSize);
+} else {
+    file.next (result->uncompressedData.get (), result->uncompressedSize);
+}
+```
+
+**所以 `CompressionFlag == 1` 的那 226 张用的是 LZ4 块压缩**（不是 deflate —— 与实测吻合），
+解压目标长度就是 `UncompressedSize`；`= 0` 时数据原样存放（那 151 张就是 PNG/JPEG）。
+
+### 容器块逐字段（与实测偏移完全一致）
+
+魔数之后读这些 int32，**数量随容器版本变**，这正是"第 9 个字段"一直读错的原因：
+
+| 容器 | int32 数 | 字段 |
+| --- | ---: | --- |
+| `TEXB0001` / `TEXB0002` | **7** | imageCount, mipmapCount, width, height, compression, uncompressedSize, compressedSize |
+| `TEXB0003` | **8** | 上面再加一个 freeImageFormat |
+| `TEXB0004` | **9** | 再加一个 `isVideoMp4` |
+
+实测像素起点与之一一对应：`TEXB0002 = 55+28 = 83`、`TEXB0003 = 55+32 = 87`、
+`TEXB0004 = 55+36 = 91`。**所以"TEXB0004 多出的那 4 字节"就是 `isVideoMp4`，它在容器块里、
+不在 mipmap 条目里。**（补充：源码在 `freeImageFormat != FIF_MP4` 时会把 TEXB0004
+**降级按 TEXB0003 解析**；只有 mp4 贴图才走每条目额外的
+`2×u32 + 以 NUL 结尾的 json 字符串 + u32` 那段。）
+
+`WeTexture` 现在跳过的 8/9 个 int32 恰好等于 容器块 + 20 字节条目头，所以它的
+`dataOffset` **本来就落在像素上**、`fields[最后一个]` **本来就是 `compressedSize`** ——
+这两点此前被我误判为"读错了"。
+
+### 仍未做
+
+1. **Java 侧还没有 LZ4 解码器** —— 这是让 `flag=1` 的 226 张能画出来的最后一块。
+   打算自己写 LZ4 块解压（算法很短，不需要引入依赖），或改用现成实现。
+2. `format` 的每像素字节要按正确映射重排（`0=ARGB8888`、`4=DXT5`、`6=DXT3`、`7=DXT1`、
+   `8=RG88`、`9=R8`）—— 现有 `DxtCodec` 的分支是按错误映射接的，必须改。
 
 **取规范的可网络通道**（这台机器上实测）：`raw.githubusercontent.com` **不通**、
 `wallpaper-engine.fandom.com` 与 `raw.githack.com` **不通**、`deepwiki.com` 返回 429、
