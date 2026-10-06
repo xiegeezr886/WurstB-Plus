@@ -8,7 +8,6 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.clickgui2.FlatRenderer;
-import net.wurstclient.clickgui2.PingFangFont;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
 import net.wurstclient.gui.visual.VisualTheme;
 

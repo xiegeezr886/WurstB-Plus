@@ -57,6 +57,15 @@ public final class EntityCullingHack extends Hack
 		EVENTS.add(WorldChangeListener.class, this);
 	}
 
+	/**
+	 * 关功能 / panic 都走这里。查询对象和单位立方体 VBO 都由
+	 * {@link EntityOcclusionCuller#close()} 释放；它不在渲染线程上时会自己排回渲染
+	 * 线程，所以这里不用关心调用线程。
+	 *
+	 * <p>{@code WurstClient.shutdown()} 故意不关 culler：那是 JVM 关服钩子的线程，
+	 * 在那里发 GL 调用不安全。功能还开着就关服时，残留的 query / VBO 会随着 GL
+	 * 上下文一起销毁——这正是这条路径的兜底，不需要额外处理。
+	 */
 	@Override
 	protected void onDisable()
 	{
@@ -68,11 +77,17 @@ public final class EntityCullingHack extends Hack
 		}
 	}
 
+	/**
+	 * 进出世界和切换维度都会触发（进世界/换维度是 non-null，退出世界是 null）。
+	 * 跨世界时实体对象会整体替换，而 culler 里的 {@code queries} 用实体做 key、是强
+	 * 引用，所以这里必须先 {@link EntityOcclusionCuller#reset()} 清干净再换新实例，
+	 * 否则旧世界的实体会一直被引用住。
+	 */
 	@Override
 	public void onWorldChange(ClientLevel world)
 	{
 		if(culler != null)
-			culler.close();
+			culler.reset();
 		culler = world == null ? null : new EntityOcclusionCuller();
 	}
 

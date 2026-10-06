@@ -35,6 +35,7 @@ import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictManager;
 import net.wurstclient.hack.HackLifecycleManager;
 import net.wurstclient.hack.HackList;
+import net.wurstclient.hacks.RadialMenuHack;
 import net.wurstclient.hud.IngameHUD;
 import net.wurstclient.hud2.HudManager;
 import net.wurstclient.hud2.ClientMetricsManager;
@@ -134,6 +135,14 @@ public enum WurstClient
 		Path enabledHacksFile = wurstFolder.resolve("enabled-hacks.json");
 		hax = new HackList(enabledHacksFile);
 		hackLifecycleManager = new HackLifecycleManager(hax, eventManager);
+
+		// 长按 Tab 的功能圆盘不在 HackList 的写死字段里，只能自己注册进 hax。
+		// 位置有讲究：必须在这里，也就是 SettingsFile 之前。SettingsFile 的构造器
+		// 会对 hax 的功能表做**一次性快照**（SettingsFile.java:43,51-53），之后 load()
+		// 与 save() 都只遍历那份快照；如果晚于快照再注册，RadialMenuHack 的 entries
+		// 设置既不会被读取也不会被写回，用户自定义的条目每次重启都会悄悄丢回默认值。
+		// 同时这也是唯一的一次性触发点，别挪回每帧的渲染路径。
+		RadialMenuHack.get();
 		
 		cmds = new CmdList();
 		
@@ -193,7 +202,7 @@ public enum WurstClient
 		Path altsFile = wurstFolder.resolve("alts.encrypted_json");
 		Path encFolder = Encryption.chooseEncryptionFolder();
 		altManager = new AltManager(altsFile, encFolder);
-
+		
 		if(!shutdownHookRegistered)
 		{
 			shutdownHookRegistered = true;

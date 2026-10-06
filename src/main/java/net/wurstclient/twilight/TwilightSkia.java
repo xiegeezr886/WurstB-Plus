@@ -57,7 +57,7 @@ import net.wurstclient.render.skia.SkiaRegionRenderer;
  */
 public final class TwilightSkia
 {
-	/** Which PingFang weight to use; the project has no other fonts. */
+	/** Which CJK weight to use; resolved from the system font, not bundled. */
 	public enum Weight
 	{
 		LIGHT,

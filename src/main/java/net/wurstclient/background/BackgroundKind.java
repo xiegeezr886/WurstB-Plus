@@ -73,15 +73,25 @@ public enum BackgroundKind
 	 * Whether this client can actually show that kind.
 	 *
 	 * <p>
-	 * Images and GIFs are decoded with the JDK's own readers, and a scene is
-	 * drawn from its own package ({@link WeSceneWallpaper}). An mp4 needs an
-	 * H.264 decoder, which is a dependency this project deliberately does not
-	 * ship. Video wallpapers therefore stay preview-only, and the picker says so
-	 * instead of letting the selection fail silently.
+	 * Images and GIFs are decoded with the JDK's own readers, a scene is drawn from
+	 * its own package ({@link WeSceneWallpaper}), and an mp4 is decoded with the
+	 * FFmpeg natives that ship with the mod ({@link BackgroundVideo}). So every
+	 * kind is playable in principle.
+	 *
+	 * <p>
+	 * Video is the one kind where "in principle" is not enough: the decoder only
+	 * has the codecs it was built with (H.264 / HEVC / VP9 / AV1 / MPEG-4 Part 2 /
+	 * Motion JPEG, and AV1 needs a GPU), so an unsupported codec or a machine
+	 * without AV1 hardware is imported and shown as a card but cannot be played.
+	 * That is a property of the file (and of the machine), not of the kind, so it
+	 * is decided by {@link BackgroundVideo#probe(java.nio.file.Path)} - the picker
+	 * asks before it lets a video be selected, and {@link BackgroundManager} falls
+	 * back to the built-in background when a stored selection turns out not to
+	 * decode.
 	 */
 	public boolean canPlay()
 	{
-		return this != VIDEO;
+		return true;
 	}
 
 	/** The extension used when the media is copied into the data folder. */

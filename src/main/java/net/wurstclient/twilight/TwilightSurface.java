@@ -34,7 +34,7 @@ import net.wurstclient.render.skia.SkikoNatives;
  *
  * <p>
  * This is what makes vector-crisp UI affordable: drawing the interface with Skia
- * gives real rounded corners, real gradients and the bundled PingFang outlines
+ * gives real rounded corners, real gradients and the system CJK outlines
  * at any size, but rasterising the whole window every frame costs tens of
  * milliseconds and uploads megabytes each time. So the caller paints into
  * {@link #begin(int, int)} only when it returns a canvas - that is, when the
@@ -93,7 +93,20 @@ final class TwilightSurface implements AutoCloseable
 		if(failed || guiWidth <= 0 || guiHeight <= 0)
 			return null;
 
-		if(!SkikoNatives.ensure())
+		try
+		{
+			// ensure() THROWS rather than returning false once it has latched a
+			// failure (see SkikoNatives' failure contract). This layer's whole job
+			// is to degrade to the vanilla renderer, so it must absorb that throw:
+			// on a platform without the bundled natives, or after any transient
+			// first-frame failure, an escaping exception would reach
+			// TwilightShellScreen.render() and take the client down.
+			if(!SkikoNatives.ensure())
+			{
+				failed = true;
+				return null;
+			}
+		}catch(Throwable t)
 		{
 			failed = true;
 			return null;
