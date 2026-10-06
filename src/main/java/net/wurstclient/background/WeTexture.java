@@ -160,6 +160,27 @@ public final class WeTexture
 		int uncompressedSize = fields[fieldCount - 2];
 		int compressedSize = fields[fieldCount - 1];
 
+		// TEXB0004 的 **mp4 贴图**：参考实现里 freeImageFormat == FIF_MP4 时容器
+		// **不降级**，于是每个 mip 条目前面会多出「2 个 u32 + 一个以 NUL 结尾的 json
+		// 字符串 + 1 个 u32」。也就是说上面那 9 个 int32 的"末三个"并不是
+		// compression/uncompressedSize/compressedSize —— 真正的条目头要跳过这段
+		// 之后再读一次。判定依据是 isVideoMp4（第 3 个字段，下标 2）非零。
+		// 非 mp4 的 TEXB0004 会降级按 TEXB0003 解析，所以实测像素点正好在 91、
+		// 且没有 json —— 两条路互不干扰。
+		if(fieldCount == 9 && fields[2] != 0)
+		{
+			cursor.int32();
+			cursor.int32();
+			cursor.cstring();
+			cursor.int32();
+
+			cursor.int32(); // 条目宽
+			cursor.int32(); // 条目高
+			compression = cursor.int32();
+			uncompressedSize = cursor.int32();
+			compressedSize = cursor.int32();
+		}
+
 		// 未压缩时 uncompressedSize 字段里装的其实是该段数据的长度
 		// （参考实现就是这么补的：compression == 0 -> uncompressedSize = compressedSize）
 		if(compression == 0)
