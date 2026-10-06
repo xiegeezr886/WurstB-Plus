@@ -8,6 +8,7 @@
 package net.wurstclient.hacks.autolibrarian;
 
 import java.util.Objects;
+import net.minecraft.ResourceLocationException;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -25,13 +26,32 @@ public record BookOffer(String id, int level, int price)
 	
 	public Enchantment getEnchantment()
 	{
-		return BuiltInRegistries.ENCHANTMENT.get(new ResourceLocation(id));
+		// id 来自设置文件：可能是 null（缺少 id 字段），也可能格式非法。
+		// new ResourceLocation(null) 抛的是 NPE，catch(ResourceLocationException) 接不住，所以先判 null。
+		if(id == null)
+			return null;
+
+		try
+		{
+			return BuiltInRegistries.ENCHANTMENT.get(new ResourceLocation(id));
+
+		}catch(ResourceLocationException e)
+		{
+			// 非法 id 以前是抛出去的：于是 isValid() 不是返回 false 而是炸掉，
+			// 而它正是在构建添加界面列表时被调的 —— 界面还没开出来就崩。
+			return null;
+		}
 	}
 	
 	public String getEnchantmentName()
 	{
 		WurstTranslator translator = WurstClient.INSTANCE.getTranslator();
 		Enchantment enchantment = getEnchantment();
+
+		// 未知附魔：退回显示原始 id，而不是在这里 NPE
+		if(enchantment == null)
+			return id;
+
 		return translator.translateMcEnglish(enchantment.getDescriptionId());
 	}
 	
@@ -39,6 +59,10 @@ public record BookOffer(String id, int level, int price)
 	{
 		WurstTranslator translator = WurstClient.INSTANCE.getTranslator();
 		Enchantment enchantment = getEnchantment();
+
+		if(enchantment == null)
+			return id;
+
 		String name =
 			translator.translateMcEnglish(enchantment.getDescriptionId());
 		

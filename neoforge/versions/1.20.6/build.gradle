@@ -26,6 +26,22 @@ sourceSets {
 	}
 }
 
+// --- Baritone is not published to any Maven repository ---------------------
+// The built Baritone jar is committed at the repository root. Resolve it by
+// walking up to the repository root (identified by gradle/wurstb-versions.properties)
+// instead of relying on a jar sitting next to this build file, so that a fresh
+// clone can configure and build this project.
+def wurstbRepoRoot = rootDir
+while (wurstbRepoRoot != null && !new File(wurstbRepoRoot, "gradle/wurstb-versions.properties").isFile()) {
+	wurstbRepoRoot = wurstbRepoRoot.parentFile
+}
+if (wurstbRepoRoot == null) {
+	throw new GradleException("Cannot locate the repository root above " + rootDir)
+}
+def baritoneJar = new File(wurstbRepoRoot, "baritone-api-forge-1.20.1.jar")
+if (!baritoneJar.isFile()) {
+	throw new GradleException("Missing bundled Baritone jar: " + baritoneJar)
+}
 repositories {
 	maven {
 		name = "Sponge"
@@ -44,7 +60,7 @@ dependencies {
 	implementation "org.java-websocket:Java-WebSocket:1.5.3"
 	implementation "io.netty:netty-codec-socks:4.1.82.Final"
 	implementation "io.netty:netty-handler-proxy:4.1.82.Final"
-	implementation files("baritone-api-forge-1.20.1.jar")
+	implementation files(baritoneJar)
 	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 }
 
@@ -101,7 +117,7 @@ jar {
 	archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
 	manifest {
 		attributes(
-			"MixinConfigs": "wurst.mixins.json",
+			"MixinConfigs": "wurst.mixins.json,mixins.baritone.json",
 			"Specification-Title": project.mod_id,
 			"Specification-Vendor": project.mod_authors,
 			"Specification-Version": "1",
@@ -112,5 +128,12 @@ jar {
 	from("LICENSE.txt") {
 		rename { "LICENSE-${project.base.archivesName.get()}.txt" }
 	}
+	// Baritone must be embedded in the artifact: this mod's own classes
+	// (BaritoneUtils, Baritone*Hack) and its mixin config reference it, and the
+	// jar is not supplied by the loader. Mirrors the working neoforge/versions/1.21.
+	zip64 = true
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	from { zipTree(baritoneJar) }
+	exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/mods.toml', 'module-info.class'
 	exclude "intentionally_untranslated.json"
 }
