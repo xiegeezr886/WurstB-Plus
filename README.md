@@ -60,16 +60,19 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 ├── src/                    根工程 · Forge 1.20.1 · v1.6.0
 ├── fabric/                 Fabric 1.20.1 · v1.5.0
 ├── neoforge/               NeoForge 1.20.1 · v1.5.0
-├── versions/               Forge 新版本工程        19 个
-├── fabric/versions/        Fabric 新版本工程       21 个
-├── neoforge/versions/      NeoForge 新版本工程     21 个
+├── versions/               Forge 新版本工程        20 个
+├── fabric/versions/        Fabric 新版本工程       22 个
+├── neoforge/versions/      NeoForge 新版本工程     22 个
 ├── docs/                   设计、移植与验证文档
 ├── scripts/                构建、测试与诊断脚本
 └── build.gradle            根工程构建配置
 ```
 
-**19 + 21 + 21 = 61 个版本工程**，再加 3 个 1.20.1 根工程，合计 **64 个独立 Gradle 构建**。
+**20 + 22 + 22 = 64 个版本工程**，再加 3 个 1.20.1 根工程，合计 **67 个独立 Gradle 构建**。
 每个工程都有完整的 `gradle-wrapper.jar`，离线环境也能解析 Gradle 发行版。
+
+> 逐工程的工具链、源码文件数、测试数、v1.6 功能缺口等**权威数字不在本文档手写**，
+> 见自动生成的 [docs/STATUS.md](docs/STATUS.md)（`scripts/generate-status.ps1`）。
 
 ---
 
@@ -77,8 +80,9 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 
 | 文档 | 内容 |
 | --- | --- |
+| [docs/STATUS.md](docs/STATUS.md) | **权威状态数字（自动生成，请勿手改）**：工程清单、工具链、测试数、v1.6 缺口 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更，含已知局限与偏差 |
-| [PROJECT_INDEX.md](PROJECT_INDEX.md) | 逐工程索引：工具链、源码文件数、入口类、产物名 |
+| [docs/PROJECT-STRUCTURE.md](docs/PROJECT-STRUCTURE.md) | 67 工程布局的由来、为何没有共享 sourceSet、如何新增 MC 版本 |
 | [docs/RELEASE.md](docs/RELEASE.md) | **发布与维护手册**（原 README）：**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）、**安装**、**构建与运行**、产物矩阵、打包校验、验证状态 |
 | [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) | 新版本工程的移植计划与逐版本状态 |
 | [docs/PORTING-1.21.11-26.2.md](docs/PORTING-1.21.11-26.2.md) | 1.21.11 / 26.2 的渲染管线与移植说明 |
@@ -87,14 +91,21 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 | [docs/CONFIG-FORMAT.md](docs/CONFIG-FORMAT.md) | 配置文件格式 |
 | [docs/COMBAT_ARCHITECTURE.md](docs/COMBAT_ARCHITECTURE.md) | 战斗链路架构 |
 | [docs/ANTICHEAT.md](docs/ANTICHEAT.md) | 反作弊相关说明 |
+| [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) | 内嵌依赖与随包资源的第三方许可与归属 |
 
 ---
 
 ## 许可
 
-**源码采用 [GPL-3.0](LICENSE.txt)（继承自 Wurst）**。
-仓库根目录的 `LICENSE.txt` 是 Forge MDK 模板带来的 LGPL 2.1 文本，适用于其中所述的
-Minecraft Forge / FML 部分。
+**源码采用 [GPL-3.0-or-later](LICENSE.txt)（继承自 Wurst）**，`LICENSE.txt` 即 GPL-3.0 全文。
+
+仓库根目录另有 [LICENSE-Forge-MDK.txt](LICENSE-Forge-MDK.txt)，是 Forge MDK 模板带来的
+LGPL 2.1 文本，适用于其中所述的 Minecraft Forge / FML 部分（含 MCP 数据的不可再分发限制）。
+
+随包分发的第三方组件（FFmpeg、Skiko、Kotlin、Baritone、字体等）的许可与归属见
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
+FFmpeg 为 LGPL-2.1 构建，其**对应源码**（构建脚本、`COPYING.*`、JNI shim 源码）
+随仓库提供于 [`native/ffmpeg/`](native/ffmpeg)。
 
 > **注意：** 只有 **1.21.11 与 26.2 的六个工程**做过**游戏内启动**验证；其余工程的产物通过的是
 > 编译与**打包校验**（zip 完好、含加载器元数据与 Mixin 配置、含主类），**没有游戏内启动验证**。
