@@ -154,13 +154,16 @@ dependencies {
 }
 
 tasks.named('jar', Jar).configure {
-	archiveFileName = "WurstB+ Plus-v${mod_version}-NeoForge-26.1.2.jar"
+	archiveFileName = "${project.base.archivesName.get()}-v${project.version}-NeoForge-${minecraft_version}.jar"
 	manifest {
 		attributes 'MixinConfigs': 'wurst.mixins.json'
 	}
 	zip64 = true
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	from sourceSets.main.output
+	from("LICENSE.txt") {
+		rename { "LICENSE-${project.base.archivesName.get()}.txt" }
+	}
 	exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/mods.toml', 'module-info.class'
 }
 
