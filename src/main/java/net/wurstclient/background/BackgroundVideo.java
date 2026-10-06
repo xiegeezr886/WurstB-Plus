@@ -138,6 +138,12 @@ public final class BackgroundVideo implements AutoCloseable
 	/** 测试用：把「绘制尺寸」钉住，见 {@link #drawnSize()}。 */
 	static volatile int[] drawnSizeOverride;
 
+	/**
+	 * 小于这个的绘制尺寸不算数：窗口最小化时帧缓冲会退化成 1x1，照它去换解码尺寸
+	 * 只会白白重解一遍、重建一次纹理，见 {@link #takeFrame()}。
+	 */
+	private static final int MIN_DRAWN_SIZE = 16;
+
 	private final Path file;
 	private final int sourceWidth;
 	private final int sourceHeight;
@@ -807,8 +813,16 @@ public final class BackgroundVideo implements AutoCloseable
 			lastTakenMs = System.currentTimeMillis();
 
 			int[] target = chooseSize(drawnSize(), sourceWidth, sourceHeight);
-			requestedWidth = target[0];
-			requestedHeight = target[1];
+
+			// 窗口最小化时帧缓冲会退化成 1x1。那不是"用户想要的尺寸"：照它换会让
+			// 视频按 1x1 重解一遍、纹理也跟着重建一次（实测规范冒烟测试会把窗口
+			// 最小化，日志里就出现 `Video <id>: 1x1 (源 3840x2160)`）。小到这个
+			// 程度就保持上一次的目标不动。
+			if(target[0] >= MIN_DRAWN_SIZE && target[1] >= MIN_DRAWN_SIZE)
+			{
+				requestedWidth = target[0];
+				requestedHeight = target[1];
+			}
 
 			NativeImage frame = published;
 			published = null;
