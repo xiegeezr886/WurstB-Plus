@@ -102,7 +102,7 @@
 | `SkikoNatives.ensure()` | 把 `assets/wurst/skiko/skiko-windows-x64.dll`（17.3 MB）与 `icudtl.dat`（10.5 MB）解压到 `gameDir/skiko/`，设置 `skiko.library.path` / `skiko.data.path` | 首次调用有 27.8 MB 落盘 IO；失败抛 `IllegalStateException` |
 | `SkiaRegionRenderer` | **当前唯一实用的 Skia 入口**：CPU raster Surface（尺寸 = GUI 区域 × guiScale）→ `peekPixels` → `glTexSubImage2D` 上传 `DynamicTexture` → `GuiGraphics.blit` 贴回 | ① 每帧一次全区域像素上传，成本 ∝ 区域面积 × guiScale²；② **一帧只能有一个区域**（`regionDrawing` 为真时 `beginRegion` 直接返回同一个 canvas）；③ 5 秒空闲才释放 surface；④ 容量只增不减 |
 | `SkiaGlBackend` | DirectContext 直绘 MC 主 framebuffer | 源码注释说明"与 PVPUtils 一样**默认不启用**，避免污染 MC 的 GL 状态" ⇒ 事实上不可用 |
-| `SkiaFontManager` | 苹方 regular / light / semibold 三字重 Typeface（`assets/wurst/font/pingfang_*.ttf`，每个 ~11 MB） | 只有这 3 个字重，且只有"苹方"一种字族；**没有 Inter / Plus Jakarta Sans / MiSans** |
+| `SkiaFontManager` | 苹方 regular / light / semibold 三字重 Typeface（`assets/wurst/font/pingfang_*.ttf`，每个 ~11 MB） | 只有这 3 个字重，且只有"苹方"一种字族；**没有 Inter / Plus Jakarta Sans / MiSans** | <br>**注（2026-10-06）：** 这三个 TTF 因授权问题（Apple 系统字体被第三方以 MIT 名义再许可，无效）已从仓库删除，`SkiaFontManager` 改为按字重取系统中文面。见 [THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md)。
 
 Skia 的价值：**任意半径的真圆弧圆角、真渐变、真阴影、逐字 SVG 级排版**——这是唯一能逼近 Twilight 观感的路径。
 代价是每帧 CPU 光栅化 + 全区域纹理上传。

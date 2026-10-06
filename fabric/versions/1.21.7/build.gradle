@@ -45,7 +45,11 @@ dependencies {
 	include implementation("io.netty:netty-codec-socks:4.1.118.Final")
 	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
 
-	include implementation("baritone:baritone-api-fabric:1.17.0-1.21.11-mc1.21.7")
+	// Baritone 必须与工程的目标 MC 版本一致:官方 v1.15.0 声明支持 1.21.6 / 1.21.7 / 1.21.8。
+	// 切勿改成高版本的 Baritone(例如为 1.21.11 构建的 1.17.0)——intermediary 方法名按版本分配,
+	// 目标方法在 1.21.7 中不存在时,Mixin 会在 APPLY 阶段直接中断游戏启动。
+	// 见 scripts/verify-embedded-baritone.ps1
+	include implementation("baritone:baritone-api-fabric:${project.baritone_version}")
 
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"
@@ -95,6 +99,6 @@ test {
 
 jar {
 	from("LICENSE") {
-		rename { "${it}_${project.archivesBaseName}" }
+		rename { "${it}_${project.base.archivesName.get()}" }
 	}
 }
