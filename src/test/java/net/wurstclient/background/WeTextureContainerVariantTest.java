@@ -164,6 +164,48 @@ final class WeTextureContainerVariantTest
 			"报错要说明是 LZ4 的问题，实际：" + error.getMessage());
 	}
 
+	/**
+	 * 视频贴图：载荷是一整段 MP4（`00 00 00 14 "ftyp"` 开头），要认出来而不是报成
+	 * "不支持的载荷" —— 实测「流萤」包里 60 帧的两层就是这样，此前属于误报。
+	 */
+	@Test
+	void recognisesMp4Payloads() throws Exception
+	{
+		byte[] mp4 = {0, 0, 0, 0x14, 'f', 't', 'y', 'p', 'i', 's', 'o', 'm', 0,
+			0, 0, 1};
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		cstring(out, "TEXV0005");
+		cstring(out, "TEXI0001");
+		int32(out, 0);
+		int32(out, 2);
+		int32(out, 64);
+		int32(out, 64);
+		int32(out, 64);
+		int32(out, 64);
+		int32(out, 0);
+		cstring(out, "TEXB0003");
+
+		// imageCount, freeImageFormat, mipmapCount, 条目宽高
+		int32(out, 1);
+		int32(out, 0);
+		int32(out, 1);
+		int32(out, 64);
+		int32(out, 64);
+		int32(out, 0); // compression = 0：原样存放
+		int32(out, 0);
+		int32(out, mp4.length);
+		out.writeBytes(mp4);
+
+		WeTexture texture = WeTexture.parse(out.toByteArray());
+
+		assertTrue(texture.isMp4(), "ftyp 开头应当被认成 mp4 贴图");
+		assertTrue(!texture.isStandardImage(), "mp4 不是标准图片");
+
+		// 对照组：PNG 载荷不该被误认成 mp4
+		assertTrue(!WeTexture.parse(texture("TEXB0003", 8, 0)).isMp4());
+	}
+
 	// ------------------------------------------------------------------
 
 	private static WeTexture parseWithLz4(byte[] stream, int uncompressedSize)

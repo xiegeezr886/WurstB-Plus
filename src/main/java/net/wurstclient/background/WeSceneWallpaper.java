@@ -290,6 +290,17 @@ public final class WeSceneWallpaper implements AutoCloseable
 				return new DecodedLayer(layer,
 					toImage(raw.rgba(), raw.width(), raw.height()));
 
+			// 视频贴图要单独说清楚：解析本身是对的，载荷就是一段 MP4，
+			// 只是还没有把它解成帧。报成"不支持的载荷"会误导排查方向
+			// （实测「流萤」包里那两层 60 帧的贴图就是这种情况）。
+			if(texture.isMp4())
+			{
+				System.out.println("[Background] 跳过 " + layer.name()
+					+ "：这是 mp4 视频贴图，尚未解成帧（" + width + "x" + height
+					+ "，" + texture.payload().length + " 字节）");
+				return null;
+			}
+
 			System.out.println("[Background] 跳过 " + layer.name()
 				+ "：暂不支持的贴图载荷（format=" + texture.format() + "，"
 				+ width + "x" + height + "，载荷 " + texture.payload().length
