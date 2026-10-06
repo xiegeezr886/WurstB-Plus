@@ -132,31 +132,74 @@ public final class WeTexture
 		if(!container.startsWith("TEXB"))
 			throw new IOException("找不到贴图数据段：" + container);
 
-		if(!container.startsWith("TEXB0003")
-			&& !container.startsWith("TEXB0004"))
-			throw new IOException("暂不支持的贴图容器：" + container
-				+ "（只核对过 TEXB0003 / TEXB0004 的布局）");
+		// 容器块：魔数之后依次是 imageCount、[freeImageFormat]、[isVideoMp4]、
+		// mipmapCount、width、height、compression、uncompressedSize、
+		// compressedSize，然后是像素。**int32 的个数随容器版本变**：
+		// TEXB0001/0002 是 7 个、TEXB0003 是 8 个、TEXB0004 是 9 个 —— 这正是
+		// 之前把"第 9 个字段"当成载荷长度而读错的原因。字段顺序与语义见
+		// linux-wallpaperengine 的 Data/Parsers/TextureParser.cpp。
+		// 实测像素起点 83 / 87 / 91 与 7 / 8 / 9 个 int32 逐一对上。
+		int fieldCount;
 
-		// 两个族的骨架相同：TEXV + TEXI + 7 个 int32 + 容器名，差别只在容器名之后
-		// 那个 int32 块的宽度——TEXB0003 是 8 个（载荷落在 +32），TEXB0004 是 9 个
-		// （载荷落在 +36）。实测依据：真实文件里 TEXB0003 的 JPEG 魔数在 87、
-		// TEXB0004 的 PNG 魔数在 91，而容器名都在 55 结束。末字段是主图字节数
-		// （后面还跟着 mipmap），所以按它截断。
-		int fieldCount = container.startsWith("TEXB0004") ? 9 : 8;
+		if(container.startsWith("TEXB0004"))
+			fieldCount = 9;
+		else if(container.startsWith("TEXB0003"))
+			fieldCount = 8;
+		else if(container.startsWith("TEXB0002")
+			|| container.startsWith("TEXB0001"))
+			fieldCount = 7;
+		else
+			throw new IOException("暂不支持的贴图容器：" + container);
+
 		int[] fields = new int[fieldCount];
 		for(int i = 0; i < fields.length; i++)
 			fields[i] = cursor.int32();
 
+		// 末三个字段：compression / uncompressedSize / compressedSize
+		int compression = fields[fieldCount - 3];
+		int uncompressedSize = fields[fieldCount - 2];
+		int compressedSize = fields[fieldCount - 1];
+
+		// 未压缩时 uncompressedSize 字段里装的其实是该段数据的长度
+		// （参考实现就是这么补的：compression == 0 -> uncompressedSize = compressedSize）
+		if(compression == 0)
+			uncompressedSize = compressedSize;
+
 		int offset = cursor.position();
 		int available = data.length - offset;
+		int stored = compressedSize > 0 && compressedSize <= available
+			? compressedSize : available;
 
-		// 末字段与剩余字节核对：对不上就退回读到底，别把数据截断
-		int size = fields[fieldCount - 1] > 0
-			&& fields[fieldCount - 1] <= available ? fields[fieldCount - 1]
-				: available;
+		byte[] payload;
 
-		byte[] payload = new byte[size];
-		System.arraycopy(data, offset, payload, 0, size);
+		if(compression == 0)
+		{
+			// 原样存放：可能是 PNG/JPEG，也可能是裸像素，由调用方按 format 判断
+			payload = new byte[stored];
+			System.arraycopy(data, offset, payload, 0, stored);
+
+		}else if(compression == 1)
+		{
+			// LZ4 块压缩（参考实现调 LZ4_decompress_safe）。解压放在这一层，
+			// 上层拿到的 payload 就永远是真正的像素/图像字节，"长度必须与
+			// 宽×高×每像素字节吻合"那条判据才真正有效。
+			if(uncompressedSize <= 0)
+				throw new IOException(
+					"压缩贴图没给出解压长度：compressedSize=" + compressedSize);
+
+			try
+			{
+				payload = Lz4Block.decompress(data, offset, stored,
+					uncompressedSize);
+
+			}catch(IllegalArgumentException e)
+			{
+				throw new IOException("LZ4 解压失败（" + stored + " -> "
+					+ uncompressedSize + "）：" + e.getMessage());
+			}
+
+		}else
+			throw new IOException("暂不支持的压缩方式：" + compression);
 
 		return new WeTexture(version, infoVersion, format, flags, textureWidth,
 			textureHeight, imageWidth, imageHeight, checksum, container, offset,
