@@ -131,3 +131,9 @@ source_archives/
 .reasonix/
 reasonix.toml
 .claude/settings.local.json
+
+# Accidental duplicate wrapper directory and stray local dependency dumps.
+# Neither is referenced by any of the 67 build.gradle files.
+gradle/gradle/
+/libs/
+/baritone-api-forge-1.20_or_1.20.1.jar

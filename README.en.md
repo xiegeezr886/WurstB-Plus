@@ -100,9 +100,17 @@ distribution resolves even offline.
 
 ## Licence
 
-**The source is [GPL-3.0](LICENSE.txt), inherited from Wurst.** The `LICENSE.txt` at the repository
-root is the LGPL 2.1 text that ships with the Forge MDK template and applies to the Minecraft Forge
-/ FML parts described in it.
+**The source is [GPL-3.0-or-later](LICENSE.txt), inherited from Wurst**; `LICENSE.txt` is the full
+GPL-3.0 text.
+
+[LICENSE-Forge-MDK.txt](LICENSE-Forge-MDK.txt) is the separate LGPL 2.1 text that ships with the
+Forge MDK template and applies to the Minecraft Forge / FML parts described in it (including the
+no-redistribution restriction on MCP data).
+
+Third-party components distributed with the mod (FFmpeg, Skiko, Kotlin, Baritone, fonts) are
+inventoried in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). FFmpeg is an LGPL-2.1 build and its
+**corresponding source** (build scripts, `COPYING.*`, the JNI shim source) ships in
+[`native/ffmpeg/`](native/ffmpeg).
 
 > **Note:** only the **six 1.21.11 and 26.2 projects** have been verified by **launching the game**.
 > Every other artifact has passed compilation and **packaging validation** (intact zip, loader
