@@ -8,16 +8,6 @@
 
                ],
     "client":  [
-                   "BlockStateBaseMixin",
-                   "IngameHudMixin",
-                   "InGameOverlayRendererMixin",
-                   "KeyboardMixin",
-                   "KeyMappingMixin",
-                   "MobEntityRendererMixin",
-                   "MultiPlayerGameModeMixin",
-                   "PauseScreenMixin",
-                   "SectionOcclusionGraphMixin",
-                   "StatusEffectInstanceMixin",
                    "AbstractSignEditScreenMixin",
                    "AllowedAddressResolverMixin",
                    "AtmosphericFogEnvironmentMixin",
