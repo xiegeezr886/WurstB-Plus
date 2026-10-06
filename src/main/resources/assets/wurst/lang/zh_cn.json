@@ -24,7 +24,7 @@
   "wurst.background.video_empty": "文件是空的",
   "wurst.background.video_not_mp4": "不是 MP4 文件（WebM / MKV 不支持）",
   "wurst.background.video_no_track": "MP4 里没有视频轨道",
-  "wurst.background.video_codec": "编码不是 H.264（实际：%s）",
+  "wurst.background.video_codec": "这个编码本版放不了（实际：%s）",
   "wurst.background.video_broken": "文件损坏，或者解不出第一帧",
   "wurst.background.kind_unsupported": "这类背景本版还不能播放",
   "wurst.background.unsupported_format": "不支持的文件格式：%s",

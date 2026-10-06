@@ -458,7 +458,7 @@ public final class BackgroundManager
 		{
 			if(videoPlaying.failed())
 			{
-				// 放到一半坏了（文件被删、样本损坏、定位不出来）：退回内置背景。
+				// 放到一半坏了（文件被删、样本损坏、解码器挂了）：退回内置背景。
 				// 视频每帧都可能再失败一次，所以这里必须记住不要再试
 				String id = loadedId;
 				System.out.println("[Background] 视频播放中断 " + id + "："
@@ -467,6 +467,15 @@ public final class BackgroundManager
 				failedId = id;
 				return false;
 			}
+
+			// 视频是按窗口尺寸解码的，窗口尺寸一变它就会换一套复用缓冲（见
+			// BackgroundVideo.takeFrame）。纹理必须跟着换：NativeImage.copyFrom
+			// 要求两张图尺寸一致，不换的话 advanceVideo 会一直返回 false，画面
+			// 停在旧的那一帧上——看起来就是「缩放窗口之后视频冻住了」
+			texture = matchVideoSize(texture, videoPlaying);
+
+			if(texture == null)
+				return false;
 
 			advanceVideo(texture, videoPlaying);
 		}
@@ -579,8 +588,18 @@ public final class BackgroundManager
 		else if(entry.kind() == BackgroundKind.SCENE)
 			startScene(id, media);
 		else if(entry.kind() == BackgroundKind.VIDEO)
+		{
+			// 加载遮罩还在时不要碰视频：那段时间 Forge 的类加载还处在早期阶段，
+			// 外部依赖（原生解码器、资源管理器）可能还没就绪，抛出来的是
+			// NoClassDefFoundError / UnsatisfiedLinkError 这类链接错误——那是
+			// "还没到时候"，不是"这个文件放不了"。这里直接不下手也不记 failedId，
+			// 等遮罩散了下一帧自然会再来一次；否则第一次的失败会被永久记住，
+			// 视频再也起不来。
+			if(Minecraft.getInstance().getOverlay() != null)
+				return false;
+
 			startVideo(id, media);
-		else
+		}else
 			startStill(id, media);
 
 		return false;
@@ -817,11 +836,13 @@ public final class BackgroundManager
 	 * 视频在后台探测并起解码线程，纹理与其它路径一样回到客户端线程建。
 	 *
 	 * <p>
-	 * 这里连 {@link Throwable} 一起接住，是有实测原因的：JCodec 不在类路径上时抛的是
-	 * {@link NoClassDefFoundError}，那是 {@link Error} 而不是 {@link Exception}，只
-	 * catch 异常会让它直接穿透渲染循环、把客户端崩在标题界面
-	 * （crash-2026-10-05_16.06.43，栈顶是 WurstTitleMenu.drawBackground）。链接错误是
-	 * "这个功能用不了"的另一种说法，按"放不了"降级即可，不该影响整个游戏。</p>
+	 * 这里连 {@link Throwable} 一起接住，是有实测原因的：外部依赖不在时抛的是
+	 * {@link NoClassDefFoundError}（当时是 JCodec 不在类路径上）或
+	 * {@link UnsatisfiedLinkError}（原生解码器的 DLL 少一个），那是 {@link Error}
+	 * 而不是 {@link Exception}，只 catch 异常会让它直接穿透渲染循环、把客户端崩在
+	 * 标题界面（crash-2026-10-05_16.06.43，栈顶是 WurstTitleMenu.drawBackground）。
+	 * 链接错误是"这个功能用不了"的另一种说法，按"放不了"降级即可，不该影响整个
+	 * 游戏。</p>
 	 */
 	private void startVideo(String id, Path media)
 	{
@@ -953,6 +974,50 @@ public final class BackgroundManager
 		}finally
 		{
 			playing.recycle(frame);
+		}
+	}
+
+	/**
+	 * 视频的解码尺寸变了就换一张同尺寸的纹理。
+	 *
+	 * <p>
+	 * 视频按窗口的帧缓冲尺寸解码（窗口变大就解大一点，这正是"模糊"那个问题的
+	 * 修法），所以拖动窗口、切全屏、改 GUI 缩放都会让它换尺寸。纹理是照着旧尺寸
+	 * 建的，不换的话 {@link #advanceVideo} 里的尺寸检查会让画面永远停在那一帧。
+	 * 同一个纹理槽位照旧复用：先让旧的走，再注册新的，与 {@link #forget()} 一样。
+	 * </p>
+	 *
+	 * @return 尺寸已经对上的纹理，建不出新的时为 null
+	 */
+	private DynamicTexture matchVideoSize(DynamicTexture texture,
+		BackgroundVideo playing)
+	{
+		NativeImage pixels = texture.getPixels();
+
+		if(pixels != null && pixels.getWidth() == playing.width()
+			&& pixels.getHeight() == playing.height())
+			return texture;
+
+		try
+		{
+			NativeImage image = new NativeImage(NativeImage.Format.RGBA,
+				playing.width(), playing.height(), false);
+			DynamicTexture replacement = new DynamicTexture(image);
+			replacement.setFilter(true, false);
+
+			Minecraft.getInstance().getTextureManager().release(LOCATION);
+			Minecraft.getInstance().getTextureManager().register(LOCATION,
+				replacement);
+
+			loadedTexture = replacement;
+			return replacement;
+
+		}catch(RuntimeException | Error e)
+		{
+			// 显存不够之类：当作这一帧画不出来，下一次再试
+			System.out.println("[Background] 视频纹理换尺寸失败（" + playing.width()
+				+ "x" + playing.height() + "）：" + e);
+			return null;
 		}
 	}
 

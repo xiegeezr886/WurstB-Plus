@@ -545,7 +545,7 @@ the bug this channel exists to fix.
 
 ## 9. Things worth knowing if you touch this
 
-Four non-obvious things cost real debugging time; all four are fixed in the
+Five non-obvious things cost real debugging time; all five are fixed in the
 current code, and they are listed here so nobody re-introduces them.
 
 1. **`get_format` is not optional.** With plain libavcodec defaults, the H.264
@@ -576,10 +576,30 @@ current code, and they are listed here so nobody re-introduces them.
    decode keeps libavcodec frame threading (all cores) — that is what makes 4K
    fast. `VF_THREADS=<n>` overrides the software thread count for experiments.
 
+5. **The cached swscale context has to be dropped when the OUTPUT size
+   changes.** `frame_to_rgba` only rebuilt it when the *source*
+   format/size changed, and `vf_set_output_size` only wrote `h->outW`/`h->outH`
+   — so after a `setOutputSize` call `sws_scale` still produced the *old*
+   number of pixels while writing with the *new* stride. The rows land in the
+   wrong place: the picture tears into what looks like two different frames
+   mixed together. When the output **shrank** it is worse than cosmetic —
+   `sws_scale` writes past the end of the caller's buffer, and that buffer is a
+   Java `byte[]` reached through `GetPrimitiveArrayCritical`, i.e. the real
+   heap object. The Java side cannot notice either failure:
+   `vf_set_output_size` *computes* `outW*outH*4` rather than measuring it, so
+   the "bytes == expected" check always passes. `vf_set_output_size` now frees
+   the context whenever the output size actually changes. Regression test:
+   `FfmpegVideoDecoderNativeTest.keepsThePictureCorrectWhenTheOutputSizeChanges`
+   (fails on the old DLL with `左上 … 实际 R=236 G=238 B=238`).
+   In the mod this showed up as "drag the window and the video turns into a
+   smear" — it cannot show up any other way, because the first
+   `setOutputSize` happens before any frame is converted, while `h->sws` is
+   still NULL.
+
 Also: libavcodec 7.1 revises the real frame size during decode (`Reinit context
 to 3840x2160`), so `width`/`height` are read from the decoder after
 `avcodec_open2`, and the swscale context is rebuilt whenever the source
-format/size changes.
+format/size changes — see item 5 for the output-size half of that.
 
 ---
 

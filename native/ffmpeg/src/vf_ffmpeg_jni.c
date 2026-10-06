@@ -727,6 +727,26 @@ static int vf_set_output_size(VFHandle *h, int outW, int outH)
 		return AVERROR(EINVAL); /* refuse absurd upscales */
 	}
 
+	/*
+	 * The cached scaler was built for the previous output size, and
+	 * frame_to_rgba only rebuilds it when the SOURCE changes. It has to be
+	 * dropped here: keeping it makes sws_scale write the old number of pixels
+	 * with the NEW stride, which lays the rows out wrong (a torn, smeared
+	 * picture - the output looks like two different frames mixed together),
+	 * and when the output shrank it writes straight past the end of the
+	 * caller's buffer. The byte count this function returns is computed, not
+	 * measured, so the Java side cannot notice either failure: it checks
+	 * "bytes == outW*outH*4" and that always matches.
+	 */
+	if(h->outW != outW || h->outH != outH)
+	{
+		if(h->sws)
+		{
+			sws_freeContext(h->sws);
+			h->sws = NULL;
+		}
+	}
+
 	h->outW = outW;
 	h->outH = outH;
 	return outW * outH * 4;

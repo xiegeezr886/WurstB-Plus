@@ -190,24 +190,20 @@ dependencies {
 	jarJar("com.google.zxing:core:[3.5.3]") {
 		transitive = false
 	}
-	// ---- 视频背景（MP4 / H.264 解码）----
-	// JCodec 是纯 Java 的 H.264 解码器 + MP4 封装解析，没有原生库，正好能塞进
-	// jarJar。jcodec-javase 是同一版本的另一半：MP4 的解复用与
-	// org.jcodec.api.FrameGrabber（按帧号取帧）在那里，jcodec 本体只有编解码器与
-	// 容器模型。两个都要，缺 javase 会 NoClassDefFoundError。
+	// ---- 视频背景（MP4 解码）----
+	// 解码走随模组发布的精简版 FFmpeg 7.1.1（LGPL、仅解码器）+ 一个 JNI shim：
+	// 7 个 DLL（7,605,466 字节）作为**普通资源**放在
+	// src/main/resources/assets/wurst/ffmpeg/ 下，运行时由 FfmpegNatives 解压到
+	// gameDir/ffmpeg/ 再按依赖顺序 System.load。同目录还有 LGPL 的许可文本
+	// （COPYING.LGPLv2.1、LICENSE.md）——LGPL 要求随分发附带。
 	//
-	// 为什么整个打进产物：视频背景是本模组自己的功能，用户不该为了看一张壁纸
-	// 再去装别的 mod。
-	implementation "org.jcodec:jcodec:${project.jcodec_version}"
-	implementation "org.jcodec:jcodec-javase:${project.jcodec_version}"
-	minecraftLibrary "org.jcodec:jcodec:${project.jcodec_version}"
-	minecraftLibrary "org.jcodec:jcodec-javase:${project.jcodec_version}"
-	jarJar("org.jcodec:jcodec:[${project.jcodec_version}]") {
-		transitive = false
-	}
-	jarJar("org.jcodec:jcodec-javase:[${project.jcodec_version}]") {
-		transitive = false
-	}
+	// 刻意不走 jarJar / minecraftLibrary：jarJar 会重定位资源路径，而 DLL 之间
+	// 是按文件名互相依赖的（avcodec 找 avutil、avformat 找 zlib1），路径一乱就
+	// 加载不起来；也不会被 Forge 放进模块路径。
+	//
+	// 构建方式（configure 行、依赖、体积）、许可义务与实测性能见
+	// native/ffmpeg/README.md；应用侧的策略（尺寸、降级、AV1 限制）见
+	// docs/title-background.md 第 6 节。
 	implementation fg.deobf("baritone:baritone-api-forge:1.20.1")
 	jarJar(group: "baritone", name: "baritone-api-forge",
 		version: "[1.20.1,1.21)")
@@ -264,6 +260,12 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.withType(Test).configureEach {
 	useJUnitPlatform()
+
+	// 视频背景的原生解码器（精简版 FFmpeg）：测试直接从仓库里那份构建产物加载。
+	// FfmpegNatives 认得这个系统属性，于是解码用例不需要 Minecraft 的资源解压
+	// 那条路也能跑；目录不在（别的机器上没构建过 natives）时用例自己跳过。
+	systemProperty "wurst.ffmpeg.dir",
+		file("native/ffmpeg/dll").absolutePath
 }
 
 java {
