@@ -5,10 +5,10 @@
 <img src="logo.png" alt="WurstB+ Plus" width="620"/>
 
 [![Release](https://img.shields.io/github/v/release/xiegeezr886/WurstB-Plus?style=flat-square&label=release&color=007CFF)](https://github.com/xiegeezr886/WurstB-Plus/releases)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1~26.2-3C8527?style=flat-square)](#version-support)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1~26.3-3C8527?style=flat-square)](#version-support)
 [![Loaders](https://img.shields.io/badge/Loaders-Forge%20%7C%20NeoForge%20%7C%20Fabric-6E6E6E?style=flat-square)](#version-support)
 [![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#version-support)
-[![Gradle projects](https://img.shields.io/badge/Gradle_projects-64-4C1D95?style=flat-square)](#repository-layout)
+[![Gradle projects](https://img.shields.io/badge/Gradle_projects-67-4C1D95?style=flat-square)](#repository-layout)
 [![preview](https://img.shields.io/badge/preview-v1.6.0-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)
 [![License](https://img.shields.io/badge/license-GPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
 
@@ -16,7 +16,7 @@
 
 **WurstB+ Plus** is a Minecraft utility mod built on the code structure of
 [Wurst](https://github.com/Wurst-Imperium/Wurst7). The same feature set is carried to three mod
-loaders — **Forge / NeoForge / Fabric** — and **22 Minecraft versions**, maintained as 64
+loaders — **Forge / NeoForge / Fabric** — and **23 Minecraft versions**, maintained as 67
 independent Gradle projects.
 
 ---
@@ -32,7 +32,7 @@ independent Gradle projects.
 | 1.21 · 1.21.1 | ✓ | ✓ | ✓ | 21 |
 | 1.21.2 | — | ✓ | ✓ | 21 |
 | 1.21.3 → 1.21.11 | ✓ | ✓ | ✓ | 21 |
-| 26.1 · 26.1.1 · 26.1.2 · 26.2 | ✓ | ✓ | ✓ | 25 |
+| 26.1 · 26.1.1 · 26.1.2 · 26.2 · 26.3 | ✓ | ✓ | ✓ | 25 |
 
 <sub>Minecraft **1.20.5** and **1.21.2** never had an official Forge release, so those two versions
 ship NeoForge and Fabric only.</sub>
@@ -45,7 +45,7 @@ WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.0-Forge-1.21
 
 | Release | Contents | Notes |
 | --- | --- | --- |
-| [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 64 assets | The main release, covering every version |
+| [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 assets | The main release, covering every version |
 | [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | Prerelease, carries the new v1.6 subsystems |
 
 > **Note:** Not all three 1.20.1 projects are v1.5. The **root Forge 1.20.1 project is v1.6.0**
@@ -63,17 +63,21 @@ WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.0-Forge-1.21
 ├── src/                    root project  · Forge 1.20.1   · v1.6.0
 ├── fabric/                 Fabric 1.20.1                  · v1.5.0
 ├── neoforge/               NeoForge 1.20.1                · v1.5.0
-├── versions/               Forge new-version projects      19
-├── fabric/versions/        Fabric new-version projects     21
-├── neoforge/versions/      NeoForge new-version projects   21
+├── versions/               Forge new-version projects      20
+├── fabric/versions/        Fabric new-version projects     22
+├── neoforge/versions/      NeoForge new-version projects   22
 ├── docs/                   design, porting and verification docs
 ├── scripts/                build, test and diagnostic scripts
 └── build.gradle            root project build config
 ```
 
-**19 + 21 + 21 = 61 version projects**, plus the 3 root 1.20.1 projects, for **64 independent
+**20 + 22 + 22 = 64 version projects**, plus the 3 root 1.20.1 projects, for **67 independent
 Gradle builds** in total. Every project carries a complete `gradle-wrapper.jar`, so the Gradle
 distribution resolves even offline.
+
+> Authoritative per-project numbers (toolchain, source/test file counts, v1.6 feature gaps) are
+> **not hand-written here** — see the generated [docs/STATUS.md](docs/STATUS.md)
+> (`scripts/generate-status.ps1`).
 
 ---
 
@@ -96,9 +100,17 @@ distribution resolves even offline.
 
 ## Licence
 
-**The source is [GPL-3.0](LICENSE.txt), inherited from Wurst.** The `LICENSE.txt` at the repository
-root is the LGPL 2.1 text that ships with the Forge MDK template and applies to the Minecraft Forge
-/ FML parts described in it.
+**The source is [GPL-3.0-or-later](LICENSE.txt), inherited from Wurst**; `LICENSE.txt` is the full
+GPL-3.0 text.
+
+[LICENSE-Forge-MDK.txt](LICENSE-Forge-MDK.txt) is the separate LGPL 2.1 text that ships with the
+Forge MDK template and applies to the Minecraft Forge / FML parts described in it (including the
+no-redistribution restriction on MCP data).
+
+Third-party components distributed with the mod (FFmpeg, Skiko, Kotlin, Baritone, fonts) are
+inventoried in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). FFmpeg is an LGPL-2.1 build and its
+**corresponding source** (build scripts, `COPYING.*`, the JNI shim source) ships in
+[`native/ffmpeg/`](native/ffmpeg).
 
 > **Note:** only the **six 1.21.11 and 26.2 projects** have been verified by **launching the game**.
 > Every other artifact has passed compilation and **packaging validation** (intact zip, loader
