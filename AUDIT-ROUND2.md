@@ -38,7 +38,7 @@
 
 | # | 缺陷 | 修法 | 验证方式 |
 | --- | --- | --- | --- |
-| 1 | `LICENSE.txt` 实为 Forge MDK 的 **LGPL-2.1**，却被徽章与 `PROJECT_INDEX.md` 当作 GPL-3.0 引用；仓库内**没有** GPL-3.0 全文 | 根 `LICENSE.txt` 换成 GPL-3.0 全文；原文本保留为 `LICENSE-Forge-MDK.txt` | 读文件确认 553 行、含 Preamble / 17 节 / `END OF TERMS AND CONDITIONS` |
+| 1 | `LICENSE.txt` 实为 Forge MDK 的 **LGPL-2.1**，却被徽章与 `PROJECT_INDEX.md` 当作 GPL-3.0 引用；仓库内**没有** GPL-3.0 全文 | 根 `LICENSE.txt` 换成 GPL-3.0 全文；原文本保留为 `LICENSE-Forge-MDK.txt` | 文件内容与 GPL-3.0 官方文本**逐字节一致**：`git hash-object` = `f288702d2fa16d3cdf0035b15a9fcbc552cd88e7`，即公认的 canonical GPL-3.0 blob（674 行）。<br>（订正：本报告初版写"553 行"，那是 `Get-Content \| Measure-Object -Line` 的计数假象；已按 blob 哈希复核，字节级一致） |
 | 2 | **33 个工程的 LICENSE 是错的许可文本**（全是 LGPL-2.1，28255/28256 字节）——其 jar 内许可与自身 `mods.toml` 声明矛盾 | 全部同步为 GPL-3.0 全文 | 逐文件 MD5 与根 `LICENSE.txt` 比对，**67/67 一致** |
 | 3 | **28 个工程 `from("LICENSE")` 指向不存在的文件**（Gradle 对缺失路径静默不报错），jar 内既无许可也无提示 | 按各 `build.gradle` 实际引用的文件名补齐（fabric 线补 `LICENSE`，其余 `LICENSE.txt`） | 补齐后复查：**0 个工程缺许可文件** |
 | 4 | **FFmpeg 的 LGPL「对应源码」从未入库**：`CHANGELOG.md:48` 声称在 `native/ffmpeg/`，实测跟踪文件数 **0**（未被 ignore，只是没提交）→ 克隆拿不到，实质违反 LGPL-2.1 §6 | 提交构建脚本、`COPYING.*`、JNI shim 源码 | `git ls-files native/ffmpeg` 非空；`native/ffmpeg/dll/`（构建产物）确认**未**被误提交 |
@@ -187,6 +187,27 @@
 ---
 
 ## 五、仍未解决的事项
+
+### ⚠ 立即需要注意：工作区里存在「提交一半就会弄坏构建」的状态
+
+这不是本轮引入的，而是**另一个并发进程正在进行的开发**（分支 `fix/baritone-1.21.7-official-v2`），
+但它是当前工作区里最危险的状态，必须写明。两组：
+
+| # | 已修改（跟踪）的文件 | 它们依赖的**未跟踪**文件 | 后果 |
+| --- | --- | --- | --- |
+| 1 | `src/main/java/net/wurstclient/background/BackgroundVideo.java`（引用新类 20 处）、根 `build.gradle` | `background/{FfmpegNatives,FfmpegVideoDecoder,Mp4Probe}.java` + 4 个测试类 + `src/test/resources/**/fixture-*.mp4`（共 11 个） | 只提交 `BackgroundVideo.java` + `build.gradle` → **根工程编译失败** |
+| 2 | 15 个工程的 `wurst*.mixins.json`（`versions/`、`fabric/versions/`、`neoforge/versions/` 下的 `1.21.{6,8,9,10,11}`） | 同目录 `mixin/{AbstractBlockStateMixin,FluidRendererMixin}.java`（共 30 个） | 只提交 mixin 配置 → 这 15 个工程 **Mixin 加载失败** |
+
+**当前 HEAD 是自洽的**：`HEAD:BackgroundVideo.java` 用的是 JCodec（0 处引用新类），
+`HEAD:versions/1.21.8/.../wurst.mixins.json` 也不含那两个条目——所以**克隆 HEAD 能编译**。
+危险只在「部分提交」时出现。
+
+> 我在本轮提交时对每个提交都用**显式 pathspec**，因此没有把这两组带进来；
+> 但 `fe3c550e` 那次（唯一一次没用 pathspec）已经把 `1.21.7` 的三个工程**连同其源码**
+> 一起提交了——那一组是自洽的，没有问题。
+
+**建议**：提交这两组工作时，务必把改动文件与它依赖的未跟踪文件放在同一个提交里；
+或者先把未跟踪文件 `git add` 进去再改配置。
 
 ### 需要构建验证（我无法在本轮完成）
 

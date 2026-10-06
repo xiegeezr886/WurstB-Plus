@@ -35,7 +35,7 @@ Java side lives in the mod source tree:
 
 For the mod to actually use these, the **7 DLLs** (not the `.exe`) are also copied
 to `src/main/resources/assets/wurst/ffmpeg/` — that is where `FfmpegNatives`
-extracts them from at runtime. **That copy exists** (7,600,438 bytes, plus the
+extracts them from at runtime. **That copy exists** (7,605,466 bytes, plus the
 LGPL texts renamed to valid lowercase resource paths:
 `copying-lgplv2.1.txt` and `license-ffmpeg.txt`), and it is kept in sync by
 `FfmpegNativesTest`.

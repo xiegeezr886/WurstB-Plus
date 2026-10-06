@@ -16,7 +16,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 | `clickgui2/component` | 27 | VAPE 风格组件层：`VapeClickGuiScreen`、`SuperSoftClickGuiScreen` / `SuperSoftRowsWindow` / `SuperSoftSettingsWindow`、`ModuleCardComponent`、`InlineSettingComponents`、`CategoryPanelComponent`、`VapeTextInputComponent` 等 |
 | `music` + `music/apple` | 17 | 网易云音乐：`NeteaseCloudApi`、`NeteaseMusicPlayer`、`MusicAccountManager`、`LyricParser`；`apple/` 提供逐字歌词动画（`AppleLyricPlayer`、`AppleTimeline`、`AppleLayout`、`LyricWordSplitter`、`Spring`） |
 | `twilight` | 17 | Twilight Echo 音乐界面（已替换旧网易云 GUI）：`TwilightShellScreen`（外壳 + 主页 + 内容页 + 沉浸播放页）、`TwilightShellLayout` / `TwilightHomeLayout` / `TwilightListLayout`（几何）、`TwilightSkia`（Skia 绘制）、`TwilightTheme` / `TwilightAccent` / `TwilightEasing` / `TwilightGeometry`、`TwilightMusicService` + `TwilightApiEndpoint`（本地增强服务）、`TwilightCoverCache` / `TwilightCornerMask` / `TwilightCoverFit` / `CoverBlur`、`TwilightVanilla` / `TwilightHomeCopy` |
-| `background` + `gui/title/BackgroundSelectScreen` | 19 | 标题界面自定义背景：`BackgroundManager`（单例、异步解码、原版 `blit` 绘制）、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`（Ken Burns 等运动）、`GifFrames` / `BackgroundAnimation` / `BackgroundClip`（动图解码、帧时钟与上传）、`BackgroundVideo` / `VideoPacing`（视频解码：JCodec 流式解 H.264，按挂钟配速与定位）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`（Wallpaper Engine 导入）、`BackgroundFilePicker` / `BackgroundFileChooser` |
+| `background` + `gui/title/BackgroundSelectScreen` | 20 | 标题界面自定义背景：`BackgroundManager`（单例、异步解码、原版 `blit` 绘制）、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`（Ken Burns 等运动）、`GifFrames` / `BackgroundAnimation` / `BackgroundClip`（动图解码、帧时钟与上传）、`BackgroundVideo` / `VideoPacing` / `Mp4Probe` / `FfmpegNatives` / `FfmpegVideoDecoder`（视频解码：自带的精简版 FFmpeg 原生解码，按挂钟配速）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`（Wallpaper Engine 导入）、`BackgroundFilePicker` / `BackgroundFileChooser` |
 | `clickgui2/music` | 1 | 仅剩 `NeteaseImageCache`（封面下载 / 解码 / 取色），由 Twilight 界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用 |
 | `compose` | 11 | 声明式 UI 布局树：`UiNode` / `UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer`，配合 `AnimFloat`、`FlowingGradient`、`ModuleColors` |
 | `clickgui2/epsilon` | 8 | Epsilon 风格下拉式 GUI：`EpsilonDropdownScreen`、`EpsilonDropdownPanel`、`EpsilonDropdownTheme`、`EpsilonModuleButton`、`EpsilonCategoryPanel`，以及面板布局版 `EpsilonPanelLayout` / `EpsilonPanelNavigatorScreen` / `EpsilonPanelTheme` |
@@ -39,19 +39,37 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 `MusicPlayer`（OTHER 分类）打开 `TwilightShellScreen`，自身带 `@DontSaveState` / `@DontBlock`。
 
-### 视频背景播放（MP4 / H.264，新增 2 个类）
+### 视频背景播放（MP4，原生 FFmpeg 解码，新增 4 个类）
 
 标题界面的视频壁纸**从「只能导入、不能播放」变成真的会放**。此前 `BackgroundKind.canPlay()` 对 `VIDEO` 直接返回 false（卡片带「视频 · 不能播放」徽章），现在四种类型在原理上都能放，**某个视频文件**能不能放改由 `BackgroundVideo.probe(Path)` 决定。
 
-- **依赖**：`org.jcodec:jcodec:0.2.5` + `org.jcodec:jcodec-javase:0.2.5`（`implementation` + `minecraftLibrary` + `jarJar`，两个都内嵌）。纯 Java、无原生库；解码器与容器模型在 `jcodec`，MP4 解复用与 `AWTFrameGrab` 在 `jcodec-javase`。**缓存里原本没有，是联网拉到之后 `--offline` 才能构建的**（`dependencies` 任务只下元数据，jar 要靠一次在线 `compileJava`）。
-- **流式而不是全解**：10 秒 720p30 解成位图是约 1.1 GB，所以解码线程（`WurstB-BackgroundVideo`）按挂钟一次解一帧，帧在 **3 个复用缓冲**里交接给渲染线程，只有新帧才 `upload()`。渲染线程超过 1 秒不来取帧（标题界面不在了）解码线程直接停下——否则一段 1080p 的视频会在玩家游戏里一直解码白烧 CPU；重新显示时按挂钟定位。
-- **尺寸与配速**：按最长边缩到 **1280x720** 以内（保持宽高比，不放大），尺寸取解码首帧的裁剪后尺寸并考虑旋转；**帧率上限 30fps**（不足 1/30 秒的帧解但不转换、不上传）。整条时间规则集中在纯算术类 `VideoPacing`：PTS → 绝对显示时刻、丢帧边界、落后挂钟 1.5 秒就按挂钟定位（界面隐藏回来、解码跟不上实时）、坏时间戳最多等 5 秒、循环取模。
-- **失败行为（固定三条）**：退回内置默认背景、把该条目记进 `failedId` 不再每帧重试、日志留**一行** `[Background] 视频背景 <id> 不能播放：<原因>`。原因被翻译成 `Reason` 枚举（文件不在 / 0 字节 / 不是 MP4 / 没有视频轨道 / 编码不是 H.264 / 解不出第一帧 / 解码失败），**任何异常都不会漏给渲染线程**；放到一半坏掉走同一条降级路径。
+- **解码器换成了随模组发布的精简版 FFmpeg 7.1.1（LGPL、仅解码器）+ 自写的 JNI shim**。上一版用的纯 Java JCodec 解同一段 4K 素材只有 **3.8 fps**，实测不可用；换成 native 之后同一段素材软解 **95~235 fps**（取决于输出尺寸，见下表）。JCodec 的两个依赖、`unpackJcodec` 解包任务与 `sourceClasses.main.output.classesDirs.from(...)` 接线**已全部删除**（`gradle.properties` 里的 `jcodec_version` 一并删掉）。
+- **native 怎么发、怎么加载**：7 个 DLL（`avcodec-61` / `avformat-61` / `avutil-59` / `swscale-8` / `zlib1` / `libwinpthread-1` / `vf_ffmpeg`，合计 **7,605,466 字节 = 7.25 MiB**）作为**普通资源**放在 `src/main/resources/assets/wurst/ffmpeg/`，运行时由 `FfmpegNatives` 解压到 `gameDir/ffmpeg/` 再按**依赖顺序**逐个 `System.load`（Windows 只从进程搜索路径解析 DLL 自己的导入，所以 `libwinpthread-1` 与 `zlib1` 必须先于 `avutil-59` / `avformat-61`）。刻意不走 jarJar：jarJar 会重定位资源路径，而 DLL 之间是按文件名互相依赖的。命令行排障可用 `-Dwurst.ffmpeg.dir=<目录>` 直接指定目录跳过解压。
+- **LGPL 义务**：这套构建是 **LGPL v2.1-or-later，没有启用任何 GPL / nonfree 组件**（`native/ffmpeg/build-ffmpeg.sh` 里有构建期闸门，`configure` 打印 `License: LGPL version 2.1 or later`）。许可文本 `COPYING.LGPLv2.1` 与 `LICENSE.md` **随模组 jar 一起分发**（在资源目录里改名为 `copying-lgplv2.1.txt` / `license-ffmpeg.txt`，内容逐字节相同——Minecraft 的资源路径只允许小写）；可复现的构建脚本 `build-ffmpeg.sh` / `build-shim.sh`、shim 源码与 configure 行都在仓库的 `native/ffmpeg/` 下（对应源码的提供方式）。FFmpeg 以**动态库**形式链接，用户可以自行替换 `avcodec-61.dll`，符合 LGPL 的「可替换」要求。
+- **上传尺寸（这次修掉的「模糊」）**：不再固定 1280x720，改成**按绘制尺寸**——壁纸铺满整屏，所以取窗口的**帧缓冲**尺寸（物理像素，不是 GUI 缩放后的逻辑尺寸），再被**源尺寸**（永不放大）与**上限 2560x1440**夹住。窗口缩放（拖窗口、切全屏、改 GUI 缩放）时解码线程会换一套复用缓冲并调 `setOutputSize`，`BackgroundManager` 跟着换同尺寸的纹理——纹理尺寸不跟着换的话 `NativeImage.copyFrom` 的尺寸检查会让画面停在旧的那一帧。**「上传尺寸变大几乎不要钱」这个说法实测不成立**：同一台机器、同一段 4K/16fps 素材，输出从 720p 加到 1440p，软解从 235 fps 掉到 95.5 fps、硬解从 115 fps 掉到 67.9 fps（缩放与显存带宽是按输出像素算的），所以上限取的是「画质够、端到端仍有 30fps 上限两倍余量」的那个点。
+- **流式而不是全解**：解码线程（`WurstB-BackgroundVideo`）按挂钟一次解一帧，帧在 **3 个复用缓冲**里交接给渲染线程，只有新帧才 `upload()`。渲染线程超过 1 秒不来取帧（标题界面不在了）解码线程直接停下——否则一段 4K 的视频会在玩家游戏里一直解码白烧 CPU。**帧率上限 30fps**（不足 1/30 秒的帧解但不转换、不上传），规则仍集中在纯算术类 `VideoPacing`，可单测。
+- **时间轴改为自己算**：shim 只交图像、不给逐帧 PTS，所以第 n 帧的显示时刻是 `n * 1000 / fps`（容器帧率，拿不到就用「帧数 / 时长」推，再没有按 30fps）。代价是可变帧率的源会累积偏差；收益是时间轴一定单调向前——旧那条路上「坏时间戳跳到几小时后」的失败模式没有了。落后挂钟 1.5 秒时**重新对齐一次**（把这一轮的起点挪到当下），因为这套 native 接口只有「回第 0 帧」、没有任意定位：这样既不跳回片头，也不会把落下的几百帧一帧帧解完。
+- **硬件解码是可选的**：先按 D3D11VA 打开（设备建不出来时 shim 自己退回软解），解到一半返回负值就用软解重开接着放。这条降级路径**实测会被走到**：320x240 的 baseline H.264 在 D3D11VA 上第一帧就返回 `AVERROR_INVALIDDATA`（-1094995529），而软解完全正常——所以解码探测也改成"硬件解不出第一帧就再用纯软件试一次"，否则一个能放的文件会被判成放不了。
+- **支持范围（如实说明）**：MP4 容器 + **H.264（`avc1` / `avc3`）、HEVC（`hvc1` / `hev1`）、VP9（`vp09`）、AV1（`av01`）、MPEG-4 Part 2（`mp4v`）、Motion JPEG（`jpeg`）**。**AV1 只有硬解**：FFmpeg 里没有软件 AV1 解码器（`av1dec` 在没有 hwaccel 时直接返回 ENOSYS），没有 AV1 硬解的机器上会落到「这个编码本版放不了（实际：AV1）」。VP8、ProRes **没有**编进这套构建，仍然放不了；WebM / MKV 容器仍然不收（扩展名只认 `.mp4` / `.m4v`）；**音轨一律忽略**；10 位 / HDR **没有测过**；手机竖拍的**旋转矩阵不再被应用**（旧的 JCodec 路径会转，现在会横过来显示，见 docs/title-background.md 第 7 节）。
+- **失败行为（固定三条不变）**：退回内置默认背景、把该条目记进 `failedId` 不再每帧重试、日志留**一行** `[Background] 视频背景 <id> 不能播放：<原因>`。原因仍然是 `Reason` 枚举（文件不在 / 0 字节 / 不是 MP4 / 没有视频轨道 / 编码放不了 / 没有帧 / 解码失败），**任何异常都不会漏给渲染线程**；放到一半坏掉走同一条降级路径。判定「没有视频轨道 / 编码放不了 / 文件坏了」的那部分改由 `Mp4Probe`（只读文件头的盒子扫描）回答，语义与旧的 JCodec 诊断一一对应。
 - **选择界面**：卡片渲染时按条目 id 发起一次异步探测并缓存（与缩略图同一套做法），探测期间徽章是「视频 · 检测中…」；能放才允许选中，放不了时点击在状态栏里说明具体原因（含实际编码名），不再让选择静默失败。
-- **支持范围（如实说明）**：只有 **MP4 容器 + `avc1`（8 位 H.264）**。HEVC / VP9 / VP8 / AV1 / MPEG-4 Part 2 / ProRes / Motion JPEG、`avc3`（参数集在码流里）、10 位 H.264、WebM / MKV 都放不了，卡片上会写明是哪种编码；**音轨完全忽略**。
-- **性能预期（未实测）**：JCodec 是纯 Java 解码，且解码量由**源**分辨率与帧率决定，不受 720p / 30fps 上限保护。预期 720p 以下流畅、1080p30 大致可用、**1080p60 与 4K 很可能跟不上**（表现为掉帧、慢放或周期性跳帧）。这一点**没有在实机上量过**。
-- **实测（无客户端，进程内真跑）**：`BackgroundVideoTest` 用 JCodec 自带编码器**现编** mp4（仓库里不放视频文件）再解回来——首帧颜色误差 ≤24（红蓝写反会差 160）、时间戳单调不减、元数据（`avc1` / 320x240 / 4 帧 / 133ms）正确；把播放器真的跑起来时，640x360 / 60 帧 / 30fps 的源 **3 秒收到 93 帧（≈31/s，与 30fps 上限加取整余量相符）**，循环点对得上（第 2553ms 的帧与第 556ms 的帧像素相同），`close()` 立即返回（0ms），坏文件得到 `NOT_MP4`。空闲暂停单独量过：播到第 22 帧后停止取帧 2.5 秒，帧号只走到 **53（前进 31 帧 ≈ 1 秒宽限期）**，没停的话应当前进 75 帧左右。
-- **未验证**：**没有启动过 Minecraft 客户端**——标题界面上的观感、与运镜叠加、资源重载后重新加载、切换背景时解码线程的收尾都只做过签名核对；1080p60 / 4K 的性能没有量过；视频卡片仍然**没有缩略图**（`NativeImage` 与 ImageIO 都读不了 mp4）。
+- **实测（无客户端，进程内真跑）**：见下面的「视频解码实测」表与 docs/title-background.md 第 6 节。端到端用例改用**随仓库发布的素材**（`src/test/resources/.../fixture-*.mp4`，四段共约 262 KB；旧版本用 JCodec 的编码器现编，换掉 JCodec 之后就编不出新素材了，因为这套构建只带解码器），四象限素材逐象限判「哪一路占优」，红蓝写反或行序翻转都会红；**第四段是 720p**（`fixture-hd.mp4`），专门用来走"硬解第一次就成功"那条分支。
+- **实机验证（2026-10-06，dev 客户端 1296x672）**：4K（3840x2160、369 帧 / 23.0 秒）的 H.264 壁纸**正常播放**，日志只有一行 `[Background] Video <id>: 1195x672 (源 3840x2160), 369 帧 / 23062ms, 上限 30fps`——上传尺寸就是窗口的帧缓冲尺寸（1195x672），不再是旧的 1280x720 上限；选择界面里视频卡片**全部**显示「视频」（可播放），没有一张「不能播放」。
+- **修掉一个让实机"所有视频都不能播放"的探测 bug**：`BackgroundVideo.probe` 里**成功那条路漏了返回**——原写法 `if(probe == null){…软解重试…}` 之后不管成败都落到 `diagnose(track, attempt.failure())`，于是"硬解第一次就成功"的文件带着**空原因**进诊断，卡片与日志一律显示 `DECODE_FAILED / avc1 / `，看起来像解码器全坏了（native 其实完全正常）。单元测试漏掉它的原因是三段素材都是 320x240，而这个尺寸的 D3D11VA 第一帧就失败，测试实际跑的是"硬解失败 → 软解重试成功"这条能正确返回的分支。已补 720p 素材与回归用例 `BackgroundVideoTest.probesAnHdFixtureThatHardwareCanDecode`（**把 bug 放回去这条用例就会红**，失败信息正好是 `DECODE_FAILED / avc1 / `）。顺带把 `libraryFailure()` 的兜底文案从「解码器打不开」改成「原因不明（解码库正常）」——旧文案会在库明明正常时写进日志，把排查方向带偏。
+- **仍未实机验证**：旋转视频、10 位 / HDR、AV1（本机 GPU 是否支持未测）、播放时的 CPU 占用、资源重载后重新加载；视频卡片仍然**没有缩略图**（`NativeImage` 与 ImageIO 都读不了 mp4）。
+
+#### 视频解码实测（本机，无客户端，走 Java 路径）
+
+素材是仓库里那段真实壁纸 `run/wurst/backgrounds/ayaka-sakura-spirit/media.mp4`（**3840x2160 H.264 High L5.1, yuv420p, 16 fps, 369 帧, 23.06 s, 39 Mbps**），测量方法是 `FfmpegVideoDecoder` 逐帧解到复用缓冲 + 逐像素写进 `NativeImage`（就是模组里真正做的那两步），每一档都跑满 369 帧，用的工具是仓库里的 `FfmpegVideoDecoderTest`（走 Java 路径，不是 ffmpeg 命令行）：
+
+| 输出尺寸 | 软解 | 硬解（d3d11va） | 每帧写 NativeImage | 端到端（软解 / 硬解） |
+| --- | ---: | ---: | ---: | ---: |
+| 1280x720 | 196.7 fps | 113.3 fps | 1.3 / 0.7 ms | 157 / 105 fps |
+| 1920x1080 | 137.1 fps | 88.6 fps | 2.3 / 1.7 ms | 104 / 77 fps |
+| **2560x1440（本版上限）** | **87.5 fps** | **65.9 fps** | **3.7 / 3.1 ms** | **66 / 55 fps** |
+| 3840x2160（源尺寸） | 224.8 fps | 53.5 fps | 8.5 / 7.1 ms | 77 / 39 fps |
+
+同一台机器重复跑有 5~10% 抖动（早几轮 720p 软解到过 235 fps、1440p 软解 95.5 fps），上表是同一轮跑齐的一组，最差一组也在 30fps 上限两倍以上。每一帧 `bytes/frame` 都等于 `宽×高×4`、alpha 恒为 255、三通道跑满 0..255，软解与硬解均值一致（1440p 都是 R=137.4 G=94.1 B=105.5）——**不是空白帧也不是乱数据**。两个反直觉但可解释的数字：① **4K 原生解码反而比缩到 1440p 快**——`swscale` 在尺寸相同时只做 YUV→RGBA 转换（SIMD 快路），一旦要缩放就要跑缩放器的多抽头滤波，`SWS_FAST_BILINEAR` 在 2160→1440 这种非整数比上比转换还贵；② 硬解随输出像素线性变慢（GPU→CPU 回读是按输出算的），所以硬解在 4K 上只剩 53 fps。选 1440p 作上限正是因为它在两端都留了 30fps 上限两倍以上的余量，而内存/显存代价是复用缓冲 3×14.7 MB（加上纹理与解码缓冲一共约 74 MB）。
 
 ### 种子矿透（SeedOreESP，新增 10 个文件）
 
@@ -67,7 +85,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 
 - `org.jetbrains.skiko:skiko-awt:0.8.19`（jarJar）+ `kotlin-stdlib` + `kotlinx-coroutines-core-jvm`
-- 视频背景：`org.jcodec:jcodec:0.2.5` + `org.jcodec:jcodec-javase:0.2.5`（均 jarJar 内嵌）。纯 Java 的 H.264 解码器与 MP4 解复用，无原生库。**本地 Gradle 缓存里原本没有这两个坐标**：先联网解析一次，之后 `--offline` 才能构建。
+- 视频背景：**自带的精简版 FFmpeg 7.1.1（LGPL，仅解码器）+ JNI shim**，7 个 DLL 共 7,605,466 字节，作为普通资源放在 `src/main/resources/assets/wurst/ffmpeg/`（**不 jarJar**——jarJar 会重定位资源路径，DLL 之间按文件名互相依赖），运行时解压到 `gameDir/ffmpeg/` 并按依赖顺序加载。原来的 `org.jcodec:jcodec:0.2.5` + `jcodec-javase` 已随这次改动删除。构建方式、许可与体积见 `native/ffmpeg/README.md`。
 - 音乐播放链：`java-stream-player`、`mp3spi`、`jlayer`、`jflac-codec`、`vorbis-support`、`tritonus-all`、`jorbis`、`jaudiotagger`
 - Skiko 原生库（`skiko-windows-x64.dll` 16.5 MB、`icudtl.dat` 10.0 MB）**不 jarJar**——jarJar 会重定位资源路径导致 Skiko 无法在 jar 内定位原生库。改为随 mod 资源打包到 `assets/wurst/skiko/`，运行时由 `SkikoNatives` 解压到 gameDir，并通过 `skiko.library.path` / `skiko.data.path` 系统属性显式加载。
 - 根工程 jarJar 共内嵌 19 个依赖 jar；产物体积由 v1.5 的约 29 MB 增至 **68.1 MB**（主要来自 Skiko 原生库）。
@@ -97,7 +115,10 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵
 
 - 根工程 `test` 通过（2026-10-04 实测）：**176 个测试类、1114 项、0 失败**（含种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、格基替代解法的闭环还原、结构扫描器 28 例；含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析、周界挖掘的区域几何与进度/ETA、Twilight 外壳与主页/列表几何、封面圆角蒙版与模糊、标题背景的存储/运动/壁纸引擎导入与 GIF 合成/预算/帧时钟）。
 - 视频背景接入后重跑（2026-10-05 实测）：**189 个测试类、1223 项、0 失败、0 跳过**（比上一轮多 `VideoPacingTest` 13 例与 `BackgroundVideoTest` 18 例，后者含用 JCodec 现编 mp4 的端到端解码、颜色与时间戳检查，以及无客户端的播放实测）；`--offline` 构建通过。
-- 产物：`build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（约 68 MB）。
+- **解码器换成原生 FFmpeg 后重跑**（2026-10-05 实测）：**192 个测试类、1248 项、0 失败、0 跳过**（`--offline`）。新增/改写的用例：`Mp4ProbeTest` 10 例（盒子扫描的编码 / 轨道 / 帧数，64 位与 0 长度字段，坏文件与全零不转圈）、`FfmpegVideoDecoderNativeTest` 6 例（真加载 natives：每帧字节数、EOF 与错误的区分、`seekToStart`、`setOutputSize`、硬件失败退回软解）、`FfmpegNativesTest` 5 例（7 个 DLL 与许可文本真的在资源目录里、文件名全是合法资源路径、加载顺序、开发工具不发布）、`BackgroundVideoTest` 22 例（尺寸策略按绘制尺寸 / 上限 / 不放大，四象限素材的颜色与行序，真实播放与 **30fps 上限**，**背景不显示时停止解码**，窗口换尺寸）；解码用例通过 `-Dwurst.ffmpeg.dir=native/ffmpeg/dll` 在无客户端下真解码，环境不满足时自跳过（本机 0 跳过）。
+- 端到端颜色与行序的判据：同一段 mp4 用旧 JCodec 路径与新的 FFmpeg 路径各解一遍、逐像素比对——**正着放的平均差是 2.6（三通道合计），上下翻转 450.8、左右翻转 461.6、红蓝互换 217.7**，四象限素材（左上红 / 右上绿 / 左下蓝 / 右下白）逐象限断言占优通道。所以新的 native 路径**不需要翻转行序、也不需要交换通道**（旧的 `argbToAbgr()` 是为了补 `BufferedImage.getRGB()` 的打包 ARGB，不是行序问题）。
+- 产物：`build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（约 68.7 MB）。体积账（以 `jar` 任务产物实测）：**加进去** 7 个 DLL 加两份许可文本 = 7,636,368 字节（7.28 MiB，其中 DLL 本身 7,605,466 = 7.25 MiB），zip 之后 2,688,654 字节；**减掉** JCodec 及其传递依赖 jaad 共 4,082,683 字节（JCodec 3,406,502 + jaad 676,153，989+95 个 class），zip 之后约 1.7 MB；**净增 589,605 字节**（68,102,772 → 68,692,377）。DLL 在 jar 里的位置是 `assets/wurst/ffmpeg/`。
+- 产物：`build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（约 68 MB，见下面解码器更换后的体积账）。
 - 仅验证构建与单元测试；v1.6 新子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透 / 结构定位）**未经游戏内运行验证**。
 - 开发工具：`scripts/doctor.ps1`、`scripts/run-unit-tests.ps1`、`scripts/seed-gradle-wrapper.ps1`；`build-all.ps1` 根工程产物已对齐 v1.6.0。
 
