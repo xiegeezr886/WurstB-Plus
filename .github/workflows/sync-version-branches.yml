@@ -1,6 +1,6 @@
 name: Sync version branches
 
-# Keeps the 22 per-version snapshot branches (1.20.1 ... 26.2) in sync with main.
+# Keeps the 23 per-version snapshot branches (1.20.1 ... 26.3) in sync with main.
 #
 # Each branch is regenerated from main, filtered down to that one MC version, and
 # committed with two parents (previous branch tip + main), so every branch stays a
