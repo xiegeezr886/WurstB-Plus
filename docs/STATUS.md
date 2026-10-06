@@ -14,9 +14,9 @@
 | 独立 Gradle 工程 | **67** |
 | Minecraft 版本 | **23** |
 | 加载器 | **Fabric / Forge / NeoForge** |
-| src/main/java 文件 | **51,677** |
-| 测试类 / 测试方法（全部工程合计） | **1,875 / 5,709** |
-| 根工程源码 / 测试类 / 测试方法 | **1,062 / 192 / 1,254** |
+| src/main/java 文件 | **51,676** |
+| 测试类 / 测试方法（全部工程合计） | **1,876 / 5,710** |
+| 根工程源码 / 测试类 / 测试方法 | **1,061 / 193 / 1,255** |
 | 含 v1.6 子系统的工程 | **1 / 67** |
 | 含 gradle-wrapper.jar 的工程 | **67 / 67** |
 | 含 LICENSE.txt 的工程 | **67 / 67** |
@@ -49,7 +49,7 @@
 | fabric\versions\26.1.2 | Fabric | 26.1.2 |  |  | 9.6.0 | 1.5.0-Fabric-26.1.2 | net.wurstpenguin | 792 | 0 | 0 | 0/13 | yes | yes |
 | fabric\versions\26.2 | Fabric | 26.2 |  |  | 9.6.0 | 1.5.0-Fabric-26.2 | net.wurstpenguin | 793 | 0 | 0 | 0/13 | yes | yes |
 | fabric\versions\26.3 | Fabric | 26.3 |  |  | 9.6.0 | 1.5.0-Fabric-26.3 | net.wurstpenguin | 795 | 0 | 0 | 0/13 | yes | yes |
-| . | Forge | 1.20.1 | 47.4.10 | 17 | 8.11 | v1.6.0-Forge-1.20.1 | net.wurstpenguin | 1062 | 192 | 1254 | 13/13 | yes | yes |
+| . | Forge | 1.20.1 | 47.4.10 | 17 | 8.11 | v1.6.0-Forge-1.20.1 | net.wurstpenguin | 1061 | 193 | 1255 | 13/13 | yes | yes |
 | versions\1.20.2 | Forge | 1.20.2 | 48.1.0 | 17 | 8.14.4 | v1.5.0-Forge-1.20.2 | net.wurstclient | 752 | 0 | 0 | 0/13 | yes | yes |
 | versions\1.20.3 | Forge | 1.20.3 | 49.0.2 | 17 | 8.11 | v1.5.0-Forge-1.20.3 | net.wurstclient | 767 | 0 | 0 | 0/13 | yes | yes |
 | versions\1.20.4 | Forge | 1.20.4 | 49.2.0 | 17 | 8.14.4 | v1.5.0-Forge-1.20.4 | net.wurstclient | 767 | 0 | 0 | 0/13 | yes | yes |

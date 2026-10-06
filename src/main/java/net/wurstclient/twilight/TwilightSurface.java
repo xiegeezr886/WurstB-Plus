@@ -34,7 +34,7 @@ import net.wurstclient.render.skia.SkikoNatives;
  *
  * <p>
  * This is what makes vector-crisp UI affordable: drawing the interface with Skia
- * gives real rounded corners, real gradients and the bundled PingFang outlines
+ * gives real rounded corners, real gradients and the system CJK outlines
  * at any size, but rasterising the whole window every frame costs tens of
  * milliseconds and uploads megabytes each time. So the caller paints into
  * {@link #begin(int, int)} only when it returns a canvas - that is, when the

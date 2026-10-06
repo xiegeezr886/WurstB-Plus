@@ -475,6 +475,8 @@ for(Field field : HackList.class.getDeclaredFields())
 **字体许可问题**
 
 - **PingFang TTFs = 31.35 MB**（`pingfang_{light,regular,semibold}.ttf`）随每个 jar 分发，**树内零归属/许可声明**。来源压缩包 `PingFangSC-main.zip` 声明 "MIT License Copyright (c) 2023 refinec"，但其自身 README 称文件为"苹果平方字体（Apple PingFang SC）"——**第三方无权对 Apple 系统字体再许可**。这是一个无法通过加声明解决的实质性风险。
+
+>  **✅ 已解决（2026-10-06）：** 这三个 TTF、三个字体 provider JSON 与从未被调用的 `clickgui2/PingFangFont.java` 已全部删除（−31.3 MB）；`SkiaFontManager` 改为按字重取系统中文面并逐级回退，不再抛异常。详见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
 - 正面例子：`src/main/resources/META-INF/licenses/cozyui/` 在 67 个工程里都正确附带 `ATTRIBUTION.txt` + `CozyUI-GPL-3.0.txt` + `FluentEmoji-MIT.txt` + `NotoSans-OFL-1.1.txt`。
 
 **内嵌依赖无许可声明**
@@ -533,7 +535,7 @@ for(Field field : HackList.class.getDeclaredFields())
 |---|---|---|---|
 | **P0** | FFmpeg 对应源码未提交（LGPL 违规）+ FFmpeg 资源未跟踪且不在产物中 | 法律风险；v1.6 视频功能无法从克隆构建或交付 | 低（提交文件） |
 | **P0** | `LICENSE.txt` 是 LGPL-2.1 但被当作 GPL-3.0 引用；5 个工程 `mod_license=All Rights Reserved` 与自身 `mods.toml` 冲突 | 法律风险；用户权利不明 | 低 |
-| **P0** | PingFang 字体（31 MB）无许可、来源声明无效 | 法律风险（Apple 字体再许可） | 中（换字体） |
+| ~~**P0**~~ | ~~PingFang 字体（31 MB）无许可、来源声明无效~~ **已删除** | ~~法律风险（Apple 字体再许可）~~ **已消除** | ✅ 2026-10-06 完成 |
 | **P0** | 新克隆无法构建 11/67 工程 | 可复现性断裂；最新提交标题与事实相反 | 中 |
 | **P0** | v1.6 功能只覆盖 1/67 工程 | README 能力声明与交付物不符 | 高 |
 | **P0** | 67 份源码副本、零共享机制 | 增长已到极限；漂移已发生（25 变体） | 高 |

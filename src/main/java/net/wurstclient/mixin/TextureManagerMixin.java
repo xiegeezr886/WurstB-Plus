@@ -17,11 +17,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.clickgui2.SmoothFontTextures;
 
 /**
- * Registers glyph atlas pages belonging to the bundled CJK custom fonts
- * (wurst:pingfang / wurst:rise) as "smooth" so that AbstractTextureMixin
- * keeps linear filtering enabled on them. This removes the hard pixel dots
- * caused by GL_NEAREST sampling of densely-stroked CJK glyphs at fractional
- * scales, without touching any other texture.
+ * Registers glyph atlas pages belonging to the bundled custom font
+ * (wurst:rise) as "smooth" so that AbstractTextureMixin keeps linear
+ * filtering enabled on them. This removes the hard pixel dots caused by
+ * GL_NEAREST sampling of densely-stroked CJK glyphs at fractional scales,
+ * without touching any other texture.
+ *
+ * <p>
+ * wurst:pingfang used to be handled here too. The bundled PingFang SC fonts
+ * were removed (Apple system font redistributed under an invalid third-party
+ * licence claim), so only the rise atlas remains.
+ * </p>
  */
 @Mixin(TextureManager.class)
 public abstract class TextureManagerMixin
@@ -35,8 +41,7 @@ public abstract class TextureManagerMixin
 			return;
 
 		String path = location.getPath();
-		if(path.equals("pingfang") || path.equals("rise")
-			|| path.startsWith("pingfang/") || path.startsWith("rise/"))
+		if(path.equals("rise") || path.startsWith("rise/"))
 			SmoothFontTextures.register(texture);
 	}
 }

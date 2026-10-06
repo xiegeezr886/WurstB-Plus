@@ -19,7 +19,7 @@ package net.wurstclient.util.esp;
  *
  * <p>
  * <b>与参考的差异</b>：参考的图标来自 {@code materialicons-regular} 图标字体，
- * 本工程没有该字体资源。图标字段因此退化为「用现有 PingFang 字体绘制的单个
+ * 本工程没有该字体资源。图标字段因此退化为「用现有系统 CJK 字体绘制的单个
  * 字形」，见 {@link EspIndicatorGlyphs}。
  *
  * <p>

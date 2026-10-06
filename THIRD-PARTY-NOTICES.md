@@ -85,24 +85,39 @@
 | **CozyUI** | **GPL-3.0** | ✅ `META-INF/licenses/cozyui/CozyUI-GPL-3.0.txt` + `ATTRIBUTION.txt`，67 个工程均附带 |
 | **FluentEmoji** | **MIT** | ✅ `FluentEmoji-MIT.txt` |
 | **Noto Sans** | **OFL-1.1** | ✅ `NotoSans-OFL-1.1.txt` |
-| **PingFang SC**（`pingfang_light/regular/semibold.ttf`，共 31.35 MB，随每个 jar 分发） | ⚠ **未解决** | ❌ 树内**零归属、零许可声明** |
+| ~~PingFang SC~~ | — | ✅ **已删除（2026-10-06）**，见下 |
+| **SF Pro Rounded**（`sf_pro_rounded_regular.otf`，2.29 MB） | ⚠ **未解决** | ❌ 同为 Apple 字体，树内零许可声明；**未删除**，见下 |
 
-### ACTION REQUIRED（法务决策，非工程问题）
+### ✅ 已解决：PingFang SC 已从仓库删除
 
-`PingFang SC`（苹果平方字体）是 **Apple 的系统字体**。其来源压缩包
-`PingFangSC-main.zip` 声明 "MIT License Copyright (c) 2023 refinec"，
-但该压缩包自己的 README 又把这些文件称作"苹果平方字体"——
-**第三方无权对 Apple 的系统字体再许可**，因此这个 MIT 声明不能作为分发依据。
+`pingfang_{light,regular,semibold}.ttf`（共 31.35 MB）、对应的三个字体 provider
+JSON，以及**从未被任何代码调用**的 `clickgui2/PingFangFont.java`，已全部删除。
 
-处理选项（建议按序评估）：
+删除理由：PingFang SC 是 **Apple 的系统字体**。其来源压缩包 `PingFangSC-main.zip`
+声明 "MIT License Copyright (c) 2023 refinec"，但该压缩包自己的 README 又把这些
+文件称作"苹果平方字体"——**第三方无权对 Apple 的系统字体再许可**，该声明无效。
 
-1. **替换为明确自由的字体**：Noto Sans SC（OFL-1.1）、思源黑体（OFL-1.1）、
-   霞鹜文楷（OFL-1.1）等。视觉上需要重新调字重与字距。
-2. **确认授权链**：如果确有 Apple 或权利人的书面许可，把许可文本放进
-   `META-INF/licenses/`，并在本文件登记。
-3. **停止随包分发**：改为运行时由用户自行提供字体文件。
+删除后的行为变化：
 
-在做出决策前，**不建议对外分发含这三个 TTF 的产物**。
+- `SkiaFontManager` 不再读随包字体。`regular()` / `light()` / `semibold()` 改为
+  按字重（400 / 300 / 600）向 Skia 要**系统已装**的中文字体，按
+  `Microsoft YaHei UI` → `Microsoft YaHei` → `PingFang SC` → `Noto Sans CJK SC` →
+  `Source Han Sans SC` → `WenQuanYi Micro Hei` → `SimHei` → `SimSun` 的顺序取第一个
+  存在的；逐级回退到 Skia 默认字面，**任何一层落空都不再抛异常**（原来加载失败会
+  抛 `IllegalStateException`，删掉文件后那会让歌词与 ESP 直接崩）。
+- 中文渲染从"随包苹方"变为"跟随系统中文面"。Windows 上是微软雅黑、macOS 上是
+  系统苹方、Linux 上通常是 Noto——这正是 `cjk()` 原本就优先选择的路径，
+  随包苹方此前只是最后的兜底。**字形会变，但不会出现豆腐块。**
+
+### ⚠ 仍未解决：SF Pro Rounded（同类问题，未在本次删除范围）
+
+`assets/wurst/font/sf_pro_rounded_regular.otf`（2.29 MB）**同样是 Apple 的字体**
+（SF Pro Rounded），由 `rise.json` 作为 `wurst:rise` provider 提供，
+经 `SkiaFontManager.latin()` 用于纯拉丁文/数字（HUD 与 Twilight 界面的非中文文本）。
+
+它与苹方属于**同一类授权问题**，本轮按指令只删了 PingFang SC。
+处理方式同理，三选一：换成 OFL 字体（如 Inter / Noto Sans 的对应字重）、
+确认授权链、或停止随包分发。**建议与苹方一并决策。**
 
 ## 五、开发期与参考材料（不随包分发）
 

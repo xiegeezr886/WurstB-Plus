@@ -13,8 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 
 /**
- * Tracks which {@link AbstractTexture}s belong to the bundled CJK custom
- * fonts (PingFang SC, Rise SF Pro). These font glyphs are rasterized at
+ * Tracks which {@link AbstractTexture}s belong to the bundled custom
+ * font (Rise SF Pro). These font glyphs are rasterized at
  * oversample and drawn with fractional matrix scales; under Minecraft's
  * default GL_NEAREST sampling that produces hard "pixel dots" on dense CJK
  * strokes. We route those textures through linear filtering instead.

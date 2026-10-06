@@ -239,7 +239,7 @@
 | 1 | 构建验证 5 个 NeoForge 工程（含新增的 Baritone 内嵌），并抽测其余加载器各 1 个 |
 | 2 | 把 `-Check`（依赖闸门）与 `generate-status.ps1 -Check`（状态闸门）接进 CI；同时加一个最小 `compileJava` job |
 | 3 | 裁决 `mixin` 版本冲突；把登记表里 7 个多版本坐标收敛到最少 |
-| 4 | 法务：PingFang 字体决策；补齐内嵌依赖的许可文本 |
+| 4 | ~~法务：PingFang 字体决策~~ **已删除（2026-10-06）**；仍需补齐内嵌依赖的许可文本，并决策同样属于 Apple 字体的 **SF Pro Rounded**（`rise.json`） |
 | 5 | 修 AutoSteal 的共享信号串台（token 配对或单 worker） |
 | 6 | 解 `Setting → clickgui2.Component` 耦合 —— 这是收敛 GUI 的前置条件 |
 | 7 | 把 683 个"零变体"文件提取为共享 sourceSet（不改逻辑、只删重复） |
