@@ -8,6 +8,7 @@
   "client": [
     "AbstractContainerScreenAccessor",
     "AbstractSignEditScreenMixin",
+    "AbstractBlockStateMixin",
     "AllowedAddressResolverMixin",
     "AtmosphericFogEnvironmentMixin",
     "BlockEntityRenderDispatcherMixin",
@@ -41,6 +42,7 @@
     "GenericContainerScreenMixin",
     "HeldItemRendererMixin",
     "FogRendererMixin",
+    "FluidRendererMixin",
     "noshieldoverlay.ItemInHandRendererMixin",
     "GuiMixin",
     "ScreenEffectRendererMixin",
