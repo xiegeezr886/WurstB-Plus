@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Generates docs/STATUS.md from the actual repository contents.
@@ -241,8 +241,11 @@ W ''
 W '| 加载器 | 版本 | 工程数 |'
 W '| --- | --- | ---: |'
 foreach ($g in $rows | Group-Object Loader, LoaderVer | Sort-Object Name) {
-    $parts = $g.Name -split ', '
-    W ("| {0} | `{1}` | {2} |" -f $parts[0], $parts[1], $g.Count)
+    # Read the values off the grouped rows rather than parsing Group-Object's
+    # composite Name: a null LoaderVer yields a Name with no second element.
+    $loader = $g.Group[0].Loader
+    $ver = $g.Group[0].LoaderVer
+    W ("| {0} | `{1}` | {2} |" -f $loader, $ver, $g.Count)
 }
 W ''
 W '### mod_version 取值分布'
@@ -257,7 +260,7 @@ W '## v1.6 功能缺口'
 W ''
 W 'v1.6 新增的 13 个源码包只存在于根工程。以下工程不含任何 v1.6 包：'
 W ''
-$missingV16 = $rows | Where-Object { $_.V16Packages -eq 0 } | Select-Object -ExpandProperty Path
+$missingV16 = @($rows | Where-Object { $_.V16Packages -eq 0 } | Select-Object -ExpandProperty Path)
 W ("共 **{0}** 个：{1}" -f $missingV16.Count, (($missingV16 | ForEach-Object { "``$_``" }) -join '、'))
 W ''
 W '> 这是当前最大的功能缺口。README 的版本矩阵宣称支持全部 23 个 MC 版本，'
