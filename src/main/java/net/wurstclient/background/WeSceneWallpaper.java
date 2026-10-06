@@ -284,10 +284,11 @@ public final class WeSceneWallpaper implements AutoCloseable
 					NativeImage.read(
 						new ByteArrayInputStream(texture.payload())));
 
-			byte[] rgba = decodeUncompressed(texture, bytes, width, height);
+			Raw raw = decodeUncompressed(texture, bytes);
 
-			if(rgba != null)
-				return new DecodedLayer(layer, toImage(rgba, width, height));
+			if(raw != null)
+				return new DecodedLayer(layer,
+					toImage(raw.rgba(), raw.width(), raw.height()));
 
 			System.out.println("[Background] 跳过 " + layer.name()
 				+ "：暂不支持的贴图载荷（format=" + texture.format() + "，"
@@ -304,40 +305,59 @@ public final class WeSceneWallpaper implements AutoCloseable
 	}
 
 	/**
-	 * 非 PNG/JPEG 的载荷：裸像素（format 0/1/2）与 DXT（3/4/5）在这里解成 RGBA。
+	 * 非 PNG/JPEG 的载荷：按 format 解成 RGBA。
 	 *
 	 * <p>
-	 * <b>两道保险，缺一不可。</b>① 长度必须与 {@code 宽×高×每像素字节} **精确吻合**：
-	 * {@code TEXB0003/0004} 里那个"载荷长度"字段的语义还没查实（见
-	 * docs/wallpaper-engine-scene.md 第 6.1 节，我早先"末字段就是长度"的推测已被自己的
-	 * 数据否掉），所以**不吻合就跳过** —— 少画一层远好过把错位的数据当像素糊上去。
-	 * ② 长度的两种解读都试：末字段给出的长度、以及从数据起点一直到文件末尾；命中哪个
-	 * 用哪个，都没命中就返回 null。
+	 * <b>两道保险。</b>① 长度必须与该格式的固定字节数**精确吻合** —— 不吻合就跳过，
+	 * 少画一层远好过把错位的数据当像素糊上去。② 尺寸要试两套：**图像尺寸**
+	 * （{@code imageWidth/Height}）与 **GPU 填充尺寸**（{@code textureWidth/Height}）。
+	 * 实测有 {@code img=1920x1080} 而 {@code uncompressedSize = 2048×2048×4} 的情况，
+	 * 那是 2 的幂填充，只按图像尺寸算会全部对不上。
 	 * </p>
 	 *
-	 * @return RGBA8888；不认识这个 format 或长度对不上时返回 null
+	 * <p>
+	 * 载荷本身可能有两种来源：未压缩（{@code compression == 0}，数据原样存放）或
+	 * LZ4 解压后的结果 —— 两者在 {@link WeTexture#parse} 里已经统一成"真正的像素
+	 * 字节"，所以这里只管按 format 解。
+	 * </p>
+	 *
+	 * @return 解出来的 RGBA 与它用的尺寸；不认识这个 format 或长度对不上返回 null
 	 */
-	private static byte[] decodeUncompressed(WeTexture texture, byte[] bytes,
-		int width, int height)
+	private static Raw decodeUncompressed(WeTexture texture, byte[] bytes)
 	{
-		if(width <= 0 || height <= 0)
-			return null;
-
 		byte[] payload = texture.payload();
-		byte[] fromPayload = decodePayload(payload, 0, payload.length,
-			texture.format(), width, height);
-
-		if(fromPayload != null)
-			return fromPayload;
-
 		int offset = texture.dataOffset();
 		int remaining = bytes.length - offset;
+		int[][] sizes = {{texture.imageWidth(), texture.imageHeight()},
+			{texture.textureWidth(), texture.textureHeight()}};
 
-		if(remaining <= payload.length)
-			return null;
+		for(int[] size : sizes)
+		{
+			if(size[0] <= 0 || size[1] <= 0)
+				continue;
 
-		return decodePayload(bytes, offset, remaining, texture.format(), width,
-			height);
+			byte[] fromPayload = decodePayload(payload, 0, payload.length,
+				texture.format(), size[0], size[1]);
+
+			if(fromPayload != null)
+				return new Raw(fromPayload, size[0], size[1]);
+
+			if(remaining <= payload.length)
+				continue;
+
+			byte[] fromFile = decodePayload(bytes, offset, remaining,
+				texture.format(), size[0], size[1]);
+
+			if(fromFile != null)
+				return new Raw(fromFile, size[0], size[1]);
+		}
+
+		return null;
+	}
+
+	/** 解出来的裸像素与它对应的尺寸。 */
+	private record Raw(byte[] rgba, int width, int height)
+	{
 	}
 
 	private static byte[] decodePayload(byte[] data, int offset, int length,
@@ -352,32 +372,28 @@ public final class WeSceneWallpaper implements AutoCloseable
 		// 画面，比少画一层糟得多。不吻合就跳过并打日志。
 		switch(format)
 		{
-			case 0: // RGBA8888
+			case 0: // ARGB8888
 			if(length != pixels * 4)
 				return null;
 
 			return Arrays.copyOfRange(data, offset, offset + length);
 
-			case 1: // R8
+			case 9: // R8
 			if(length != pixels)
 				return null;
 
 			return grey(data, offset, width, height, 1);
 
-			case 2: // RG88：取 R 那一路当灰度
+			case 8: // RG88：拿 R 那一路当灰度
 			if(length != pixels * 2)
 				return null;
 
 			return grey(data, offset, width, height, 2);
 
-			case 3: // DXT5
-			return dxt(data, offset, length, width, height, 3);
-
-			case 4: // DXT3
-			return dxt(data, offset, length, width, height, 4);
-
-			case 5: // DXT1
-			return dxt(data, offset, length, width, height, 5);
+			case 4: // DXT5
+			case 6: // DXT3
+			case 7: // DXT1
+			return dxt(data, offset, length, width, height, format);
 
 			default:
 			return null;
@@ -387,7 +403,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 	private static byte[] dxt(byte[] data, int offset, int length, int width,
 		int height, int format)
 	{
-		long needed = format == 5 ? DxtCodec.dxt1Size(width, height)
+		long needed = format == 7 ? DxtCodec.dxt1Size(width, height)
 			: DxtCodec.dxt35Size(width, height);
 
 		if(length != needed)
@@ -397,8 +413,8 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 		return switch(format)
 		{
-			case 3 -> DxtCodec.decodeDxt5(block, width, height);
-			case 4 -> DxtCodec.decodeDxt3(block, width, height);
+			case 4 -> DxtCodec.decodeDxt5(block, width, height);
+			case 6 -> DxtCodec.decodeDxt3(block, width, height);
 			default -> DxtCodec.decodeDxt1(block, width, height);
 		};
 	}

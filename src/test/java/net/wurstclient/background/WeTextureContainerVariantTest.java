@@ -10,6 +10,7 @@ package net.wurstclient.background;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,56 +19,118 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link WeTexture} 的容器族：{@code TEXB0003} 与 {@code TEXB0004}。
+ * {@link WeTexture} 的容器族：{@code TEXB0001/0002/0003/0004}。
  *
  * <p>
- * 两个族的骨架相同（{@code TEXV} + {@code TEXI} + 7 个 int32 + 容器名），差别只在
- * 容器名之后那个 int32 块的宽度：0003 是 8 个（载荷落在 +32），0004 是 **9 个**
- * （载荷落在 +36）。这不是猜的——用户库里 83 个真实场景包，第一个 {@code .tex} 的
- * 内层容器分布是 {@code TEXB0003=64 / TEXB0004=17 / TEXB0002=1}，而真实文件里 0003
- * 的 JPEG 魔数在偏移 87、0004 的 PNG 魔数在 91，容器名又都在 55 结束，正好差 4 字节。
- * 不认 0004 的话那 17 个包（约 20%）至少有一层贴图被整层跳过。
- * </p>
- *
- * <p>
- * {@code TEXB0002} 是**另一个族**：它的载荷既不是 PNG 也不是 JPEG（原始/压缩位图），
- * 所以这里只钉住「仍然明确拒绝」，而不是假装支持。
+ * 容器名之后的 int32 **个数随版本变**：0001/0002 是 7 个、0003 是 8 个（多一个
+ * freeImageFormat）、0004 是 9 个（再多一个 isVideoMp4）。字段顺序是
+ * imageCount、[freeImageFormat]、[isVideoMp4]、mipmapCount、width、height、
+ * compression、uncompressedSize、compressedSize —— 来自参考实现
+ * {@code linux-wallpaperengine} 的 {@code Data/Parsers/TextureParser.cpp}，
+ * 且实测像素起点 83/87/91 与 7/8/9 个 int32 逐一对上。
  * </p>
  */
 final class WeTextureContainerVariantTest
 {
-	/** 最小可辨认的 PNG 头，当作载荷用：尺寸字段由头部单独给，解析器不看载荷内容。 */
+	/** 最小可辨认的 PNG 头：尺寸由头部单独给，解析器不看载荷内容。 */
 	private static final byte[] PNG = {(byte)0x89, 'P', 'N', 'G', 0x0D, 0x0A,
 		0x1A, 0x0A, 1, 2, 3, 4, 5, 6, 7, 8};
 
 	@Test
-	void readsTexb0003AndTexb0004() throws Exception
+	void readsEveryContainerVersion() throws Exception
 	{
-		for(String container : new String[]{"TEXB0003", "TEXB0004"})
+		for(String container : new String[]{"TEXB0001", "TEXB0002",
+			"TEXB0003", "TEXB0004"})
 		{
-			int fieldCount = container.endsWith("0004") ? 9 : 8;
+			int fieldCount = container.endsWith("0004") ? 9
+				: container.endsWith("0003") ? 8 : 7;
 			WeTexture texture =
-				WeTexture.parse(texture(container, fieldCount));
+				WeTexture.parse(texture(container, fieldCount, 0));
 
 			assertEquals(container, texture.container());
-			assertEquals(64, texture.imageWidth());
-			assertEquals(64, texture.imageHeight());
+			assertEquals(64, texture.imageWidth(), container);
+			assertEquals(64, texture.imageHeight(), container);
 			assertArrayEquals(PNG, texture.payload(),
 				container + " 的载荷应当整段取出来");
 		}
 	}
 
-	/** 原始位图那个族仍然明确拒绝，不能悄悄当成 0003/0004 去读。 */
+	/** 没见过的容器名要明确拒绝，不能瞎猜布局。 */
 	@Test
-	void stillRefusesTheRawContainer()
+	void refusesAnUnknownContainer()
 	{
 		assertThrows(IOException.class,
-			() -> WeTexture.parse(texture("TEXB0002", 8)));
+			() -> WeTexture.parse(texture("TEXB0099", 8, 0)));
+	}
+
+	/** 压缩方式只认得 0（原样）与 1（LZ4），别的要报出来而不是当没压缩。 */
+	@Test
+	void refusesAnUnknownCompression()
+	{
+		IOException error = assertThrows(IOException.class,
+			() -> WeTexture.parse(texture("TEXB0003", 8, 2)));
+
+		assertTrue(error.getMessage().contains("压缩"),
+			"报错要说明是压缩方式的问题，实际：" + error.getMessage());
+	}
+
+	/**
+	 * {@code compression == 1} 时走 LZ4：载荷是压缩流，解出来必须恰好是
+	 * uncompressedSize 字节。
+	 */
+	@Test
+	void inflatesLz4Mipmaps() throws Exception
+	{
+		// 让输出是 10 个 'a'：字面量 1 个 'a' + 回引 offset=1、长度 9
+		byte[] stream = {(byte)0x15, 'a', 1, 0};
+
+		WeTexture texture = parseWithLz4(stream, 10);
+
+		assertEquals(10, texture.payload().length);
+		assertArrayEquals("aaaaaaaaaa".getBytes(StandardCharsets.ISO_8859_1),
+			texture.payload());
+	}
+
+	/** LZ4 流坏掉时要抛 IOException（而不是把噪声当像素交出去）。 */
+	@Test
+	void reportsBrokenLz4Streams() throws Exception
+	{
+		// 回引越界
+		IOException error = assertThrows(IOException.class,
+			() -> parseWithLz4(new byte[]{(byte)0x10, 'a', 9, 0}, 10));
+
+		assertTrue(error.getMessage().contains("LZ4"),
+			"报错要说明是 LZ4 的问题，实际：" + error.getMessage());
 	}
 
 	// ------------------------------------------------------------------
 
-	private static byte[] texture(String container, int fieldCount)
+	private static WeTexture parseWithLz4(byte[] stream, int uncompressedSize)
+		throws IOException
+	{
+		byte[] file = texture("TEXB0003", 8, 1, uncompressedSize,
+			stream.length, stream);
+		return WeTexture.parse(file);
+	}
+
+	private static byte[] texture(String container, int fieldCount,
+		int compression)
+	{
+		return texture(container, fieldCount, compression, 0, PNG.length, PNG);
+	}
+
+	/**
+	 * 搭一个最小的 .tex：头部 + 容器名 + fieldCount 个 int32 + 载荷。
+	 *
+	 * <p>
+	 * 末三个 int32 是 compression / uncompressedSize / compressedSize；前面几个
+	 * （imageCount、freeImageFormat、isVideoMp4、mipmapCount、width、height）填 0
+	 * 就行 —— 解析器不拿它们做判断。
+	 * </p>
+	 */
+	private static byte[] texture(String container, int fieldCount,
+		int compression, int uncompressedSize, int compressedSize,
+		byte[] payload)
 	{
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		cstring(out, "TEXV0005");
@@ -84,12 +147,13 @@ final class WeTextureContainerVariantTest
 
 		cstring(out, container);
 
-		for(int i = 0; i < fieldCount - 1; i++)
+		for(int i = 0; i < fieldCount - 3; i++)
 			int32(out, 0);
 
-		// 末字段是主图字节数，后面（真实文件里）还跟着 mipmap
-		int32(out, PNG.length);
-		out.writeBytes(PNG);
+		int32(out, compression);
+		int32(out, uncompressedSize);
+		int32(out, compressedSize);
+		out.writeBytes(payload);
 		return out.toByteArray();
 	}
 
