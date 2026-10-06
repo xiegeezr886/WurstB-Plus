@@ -200,6 +200,32 @@ TEXB0004 多 4 字节 → `91` ✓。也解释了为什么"8/9 个 int32 之后�
    非零时用的是什么编解码，还得看参考实现的解压代码。
 2. **TEXB0004 比 TEXB0003 多出的 4 字节**落在哪一段（容器块还是 mipmap 条目头）。
 
+### 规范已用真实包验证（2026-10-07，392 张 `.tex`）
+
+按上面的结构自己解析头部与第 0 条 mipmap 条目，结果与规范**完全吻合**：
+
+```
+TEXB0002 type=0 img=128x512   entry=128x512  flag=1 uncomp=262144   comp=64859   pixels@83
+TEXB0003 type=0 img=1600x1737 entry=1600x1737 flag=0 uncomp=0       comp=1416601 pixels@87
+TEXB0002 type=0 img=1920x1080 entry=2048x2048 flag=1 uncomp=16777216 comp=376140  pixels@83
+
+392 张：条目尺寸与头一致=341  UncompressedSize 对上=186  flag!=0=226  像素处是 PNG/JPEG=151
+```
+
+- **像素起点对上了**：`TEXB0002` 在 `55+8+20 = 83`、`TEXB0003` 在 `55+12+20 = 87`，
+  与规范逐字节一致（`TEXB0004` 多 4 字节 → 91，与实测一致）。
+- `entry.Width/Height` 有时比 `imageWidth/Height` 大（如 1920x1080 → 2048x2048），
+  那是 **GPU 用的 2 的幂尺寸**，不是解析错误。
+- `flag=0` 的条目里像素就是 **PNG/JPEG**（151 张命中魔数）—— 这正是今天能画出来的那部分。
+- `flag=1` 时 `UncompressedSize` 是解压目标，且**数值精确等于 `entry宽×entry高×每像素字节`**
+  （例：2048×2048×4 = 16777216 ✓，type=0 即 ARGB8888）。
+- **`TEXB0002`/`TEXB0003`/`TEXB0004` 三种容器的像素偏移都已按规范核对通过。**
+
+**压缩算法已排除 deflate**：对 226 张 `flag=1` 的条目试过**裸 deflate**（`Inflater(true)`，
+没有 zlib 头 —— 这是之前漏掉的一种）与 zlib，223 张直接失败、3 张只解出 1~3 字节。
+所以不是 deflate 族，下一步要从参考实现的源码里取（`src/WallpaperEngine/Data/` 或
+`External/`），候选是 LZ4 / Zstd 这一类无固定头或另有约定的编解码。
+
 **取规范的可网络通道**（这台机器上实测）：`raw.githubusercontent.com` **不通**、
 `wallpaper-engine.fandom.com` 与 `raw.githack.com` **不通**、`deepwiki.com` 返回 429、
 `cdn.jsdelivr.net` 通但返回 `application/octet-stream`（抓取工具拒收）。
