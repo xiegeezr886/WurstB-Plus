@@ -17,10 +17,10 @@
 | --- | ---: |
 | 工程总数 | 67 |
 | **登记了但没有文件**（硬错误） | **0** |
-| **有文件但没登记**（静默失效） | **582** |
-| 　└ A 类：根工程同名且已登记（最可能是真漏登记） | 174 |
+| **有文件但没登记**（静默失效） | **330** |
+| 　└ A 类：根工程同名且已登记（最可能是真漏登记） | 159 |
 | 　└ B 类：根工程同名但根工程也没登记 | 0 |
-| 　└ C 类：根工程没有该文件（版本特有，需对 jar 核注入点） | 408 |
+| 　└ C 类：根工程没有该文件（版本特有，需对 jar 核注入点） | 171 |
 | 受影响工程数 | 24 |
 
 ## 二、有文件但没登记（功能静默失效）
@@ -33,13 +33,8 @@
 | fabric\versions\26.1 | BackgroundRendererMixin |
 | fabric\versions\26.1 | ChatHudMixin |
 | fabric\versions\26.1 | ClientPlayerEntityMixin |
-| fabric\versions\26.1 | IngameHudMixin |
-| fabric\versions\26.1 | InGameOverlayRendererMixin |
-| fabric\versions\26.1 | KeyboardMixin |
-| fabric\versions\26.1 | MobEntityRendererMixin |
 | fabric\versions\26.1 | MouseMixin |
 | fabric\versions\26.1 | PlayerInventoryMixin |
-| fabric\versions\26.1 | StatusEffectInstanceMixin |
 | fabric\versions\26.1 | WorldRendererMixin |
 | fabric\versions\26.1.1 | AbstractBlockStateMixin |
 | fabric\versions\26.1.1 | BackgroundRendererMixin |
@@ -91,13 +86,8 @@
 | neoforge\versions\26.1 | BackgroundRendererMixin |
 | neoforge\versions\26.1 | ChatHudMixin |
 | neoforge\versions\26.1 | ClientPlayerEntityMixin |
-| neoforge\versions\26.1 | IngameHudMixin |
-| neoforge\versions\26.1 | InGameOverlayRendererMixin |
-| neoforge\versions\26.1 | KeyboardMixin |
-| neoforge\versions\26.1 | MobEntityRendererMixin |
 | neoforge\versions\26.1 | MouseMixin |
 | neoforge\versions\26.1 | PlayerInventoryMixin |
-| neoforge\versions\26.1 | StatusEffectInstanceMixin |
 | neoforge\versions\26.1 | WorldRendererMixin |
 | neoforge\versions\26.1.1 | AbstractBlockStateMixin |
 | neoforge\versions\26.1.1 | BackgroundRendererMixin |
@@ -149,13 +139,8 @@
 | versions\26.1 | BackgroundRendererMixin |
 | versions\26.1 | ChatHudMixin |
 | versions\26.1 | ClientPlayerEntityMixin |
-| versions\26.1 | IngameHudMixin |
-| versions\26.1 | InGameOverlayRendererMixin |
-| versions\26.1 | KeyboardMixin |
-| versions\26.1 | MobEntityRendererMixin |
 | versions\26.1 | MouseMixin |
 | versions\26.1 | PlayerInventoryMixin |
-| versions\26.1 | StatusEffectInstanceMixin |
 | versions\26.1 | WorldRendererMixin |
 | versions\26.1.1 | AbstractBlockStateMixin |
 | versions\26.1.1 | BackgroundRendererMixin |
@@ -212,30 +197,30 @@
 
 | 工程 | 未登记混入数 | 混入类 |
 | --- | ---: | --- |
-| fabric\versions\26.1 | 27 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
-| fabric\versions\26.1.1 | 27 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
-| fabric\versions\26.1.2 | 27 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
-| fabric\versions\26.2 | 26 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StringDecomposerMixin |
-| fabric\versions\26.3 | 26 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StringDecomposerMixin |
+| fabric\versions\26.1 | 22 | ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin LevelMixin MobEffectInstanceMixin OptionInstanceMixin PackSelectionScreenMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
+| fabric\versions\26.1.1 | 2 | CreativeModeInventoryScreenAccessor InventoryAccessor |
+| fabric\versions\26.1.2 | 10 | ClientLevelMixin CommandSuggestionsMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor DeltaTrackerTimerMixin InventoryAccessor LevelMixin MobEffectInstanceMixin StorageMixin StringDecomposerMixin |
+| fabric\versions\26.2 | 10 | ClientLevelMixin CommandSuggestionsMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor DeltaTrackerTimerMixin InventoryAccessor LevelMixin MobEffectInstanceMixin SectionOcclusionGraphMixin StringDecomposerMixin |
+| fabric\versions\26.3 | 10 | ClientLevelMixin CommandSuggestionsMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor DeltaTrackerTimerMixin InventoryAccessor LevelMixin MobEffectInstanceMixin SectionOcclusionGraphMixin StringDecomposerMixin |
 | neoforge\versions\1.20.2 | 1 | FogRendererAccessor |
 | neoforge\versions\1.20.3 | 1 | FogRendererAccessor |
 | neoforge\versions\1.20.4 | 1 | FogRendererAccessor |
 | neoforge\versions\1.20.5 | 1 | FogRendererAccessor |
 | neoforge\versions\1.20.6 | 1 | FogRendererAccessor |
-| neoforge\versions\26.1 | 27 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
-| neoforge\versions\26.1.1 | 27 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
-| neoforge\versions\26.1.2 | 27 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
-| neoforge\versions\26.2 | 26 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StringDecomposerMixin |
-| neoforge\versions\26.3 | 26 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StringDecomposerMixin |
+| neoforge\versions\26.1 | 22 | ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin LevelMixin MobEffectInstanceMixin OptionInstanceMixin PackSelectionScreenMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
+| neoforge\versions\26.1.1 | 2 | CreativeModeInventoryScreenAccessor InventoryAccessor |
+| neoforge\versions\26.1.2 | 10 | ClientLevelMixin CommandSuggestionsMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor DeltaTrackerTimerMixin InventoryAccessor LevelMixin MobEffectInstanceMixin StorageMixin StringDecomposerMixin |
+| neoforge\versions\26.2 | 10 | ClientLevelMixin CommandSuggestionsMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor DeltaTrackerTimerMixin InventoryAccessor LevelMixin MobEffectInstanceMixin SectionOcclusionGraphMixin StringDecomposerMixin |
+| neoforge\versions\26.3 | 10 | ClientLevelMixin CommandSuggestionsMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor DeltaTrackerTimerMixin InventoryAccessor LevelMixin MobEffectInstanceMixin SectionOcclusionGraphMixin StringDecomposerMixin |
 | versions\1.20.2 | 1 | FogRendererAccessor |
 | versions\1.20.3 | 1 | FogRendererAccessor |
 | versions\1.20.4 | 1 | FogRendererAccessor |
 | versions\1.20.6 | 1 | FogRendererAccessor |
-| versions\26.1 | 27 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
-| versions\26.1.1 | 27 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
-| versions\26.1.2 | 27 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
-| versions\26.2 | 26 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StringDecomposerMixin |
-| versions\26.3 | 26 | BlockStateBaseMixin ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin KeyMappingMixin LevelMixin MobEffectInstanceMixin MultiPlayerGameModeMixin OptionInstanceMixin PackSelectionScreenMixin PauseScreenMixin SectionOcclusionGraphMixin ServerNameResolverMixin SkinManagerMixin StringDecomposerMixin |
+| versions\26.1 | 22 | ClientCommonPacketListenerImplMixin ClientLevelMixin ClientPacketListenerMixin ClientTelemetryManagerMixin CommandSuggestionsMixin ConnectionMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor CreativeModeInventoryScreenMixin DeltaTrackerTimerMixin DirectJoinServerScreenMixin InventoryAccessor JoinMultiplayerScreenMixin KeyBindsListMixin LevelMixin MobEffectInstanceMixin OptionInstanceMixin PackSelectionScreenMixin ServerNameResolverMixin SkinManagerMixin StorageMixin StringDecomposerMixin |
+| versions\26.1.1 | 2 | CreativeModeInventoryScreenAccessor InventoryAccessor |
+| versions\26.1.2 | 10 | ClientLevelMixin CommandSuggestionsMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor DeltaTrackerTimerMixin InventoryAccessor LevelMixin MobEffectInstanceMixin StorageMixin StringDecomposerMixin |
+| versions\26.2 | 10 | ClientLevelMixin CommandSuggestionsMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor DeltaTrackerTimerMixin InventoryAccessor LevelMixin MobEffectInstanceMixin SectionOcclusionGraphMixin StringDecomposerMixin |
+| versions\26.3 | 10 | ClientLevelMixin CommandSuggestionsMixin ContainerScreenMixin CreativeModeInventoryScreenAccessor DeltaTrackerTimerMixin InventoryAccessor LevelMixin MobEffectInstanceMixin SectionOcclusionGraphMixin StringDecomposerMixin |
 
 ## 三、建议的处理顺序
 
