@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Mandatory = $true, Position = 0)]
     [string]$Version,                     # MC 版本，例如 26.2 / 1.21.9 / 1.20.1
 
