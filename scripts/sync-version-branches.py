@@ -57,6 +57,7 @@ BRANCHES = {
     "26.1.1":  ["versions/26.1.1", "fabric/versions/26.1.1", "neoforge/versions/26.1.1"],
     "26.1.2":  ["versions/26.1.2", "fabric/versions/26.1.2", "neoforge/versions/26.1.2"],
     "26.2":    ["versions/26.2", "fabric/versions/26.2", "neoforge/versions/26.2"],
+    "26.3":    ["versions/26.3", "fabric/versions/26.3", "neoforge/versions/26.3"],
 }
 
 LOADER_OF = {"versions": "Forge", "fabric": "Fabric", "neoforge": "NeoForge"}
