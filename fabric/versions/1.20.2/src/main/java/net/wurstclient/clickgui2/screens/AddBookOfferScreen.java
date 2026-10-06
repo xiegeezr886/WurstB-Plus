@@ -84,8 +84,7 @@ public final class AddBookOfferScreen extends Screen
 			if(offerToAdd == null)
 				return true;
 			
-			Enchantment enchantment = offerToAdd.getEnchantment();
-			return level <= enchantment.getMaxLevel();
+			return level <= maxLevelOf(offerToAdd);
 		});
 		levelField.setResponder(t -> {
 			if(!MathUtils.isInteger(t))
@@ -166,8 +165,7 @@ public final class AddBookOfferScreen extends Screen
 		int level = offset ? offerToAdd.level() + i : i;
 		int price = offerToAdd.price();
 		
-		Enchantment enchantment = offerToAdd.getEnchantment();
-		if(level < 1 || level > enchantment.getMaxLevel())
+		if(level < 1 || level > maxLevelOf(offerToAdd))
 			return;
 		
 		updateSelectedOffer(new BookOffer(id, level, price));
@@ -214,6 +212,16 @@ public final class AddBookOfferScreen extends Screen
 		}
 	}
 	
+	/**
+	 * 未知附魔（id 解析失败，或注册表里没有这个附魔）时把等级上限当 0，
+	 * 所有等级合法性判断都会因此判否、按钮保持禁用，而不是在这里 NPE。
+	 */
+	private static int maxLevelOf(BookOffer offer)
+	{
+		Enchantment enchantment = offer == null ? null : offer.getEnchantment();
+		return enchantment == null ? 0 : enchantment.getMaxLevel();
+	}
+
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton)
 	{
@@ -253,7 +261,7 @@ public final class AddBookOfferScreen extends Screen
 	public void tick()
 	{
 		levelPlusButton.active = offerToAdd != null
-			&& offerToAdd.level() < offerToAdd.getEnchantment().getMaxLevel();
+			&& offerToAdd.level() < maxLevelOf(offerToAdd);
 		levelMinusButton.active = offerToAdd != null && offerToAdd.level() > 1;
 		
 		pricePlusButton.active = offerToAdd != null && offerToAdd.price() < 64;
@@ -326,9 +334,7 @@ public final class AddBookOfferScreen extends Screen
 		@Override
 		public Component getNarration()
 		{
-			Enchantment enchantment = bookOffer.getEnchantment();
-			
-			int maxLevel = enchantment.getMaxLevel();
+			int maxLevel = maxLevelOf(bookOffer);
 			String levels = maxLevel + (maxLevel == 1 ? " 级" : " 级");
 			
 			return Component.translatable("narrator.select",
@@ -362,16 +368,16 @@ public final class AddBookOfferScreen extends Screen
 			RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
 			
 			Font tr = minecraft.font;
-			Enchantment enchantment = bookOffer.getEnchantment();
-			
 			String name = bookOffer.getEnchantmentName();
-			int nameColor = enchantment.isCurse() ? 0xFF5555 : 0xF0F0F0;
+			Enchantment enchantment = bookOffer.getEnchantment();
+			int nameColor = enchantment != null && enchantment.isCurse()
+				? 0xFF5555 : 0xF0F0F0;
 			context.drawString(tr, name, x + 28, y, nameColor, false);
 			
 			context.drawString(tr, bookOffer.id(), x + 28, y + 9, 0xA0A0A0,
 				false);
 			
-			int maxLevel = enchantment.getMaxLevel();
+			int maxLevel = maxLevelOf(bookOffer);
 			String levels = maxLevel + (maxLevel == 1 ? " 级" : " 级");
 			context.drawString(tr, levels, x + 28, y + 18, 0xA0A0A0, false);
 		}
