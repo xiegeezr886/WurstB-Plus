@@ -177,6 +177,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 		WeScene scene = WeScene.parse(sceneJson, name -> text(pkg, name));
 		List<DecodedLayer> decoded = new ArrayList<>();
 		long totalPixels = 0;
+		int skippedForBudget = 0;
 
 		try
 		{
@@ -209,10 +210,19 @@ public final class WeSceneWallpaper implements AutoCloseable
 					// 到预算就别再往里加了，但**别把整个场景扔掉**：图层是按顺序
 					// 排的，背景通常在最前面，丢掉后面几层远好过整幅退回内置背景
 					// （实测「绪山真寻」就是这个 64M 像素的硬上限把整个场景判死的，
-					// 而它前面几层本来完全能画）。一层都没解出来时，下面那句
-					// 「场景里没有可画的图层」仍然会照常报出来。
+					// 而它前面几层本来完全能画）。
+					//
+					// 用 continue 而不是 break：放不下的这一层跳过，**后面更小、放得下
+					// 的层仍然有机会画出来**。直接 break 会把后续所有层一并丢掉，
+					// 包括那些本来装得下的。
+					//
+					// 这里**必须留日志**：不留的话，被砍掉的层看起来就像"压根没处理"，
+					// 排查时会往贴图格式那边找 —— 实测「流萤」的 mp4 贴图就因此被误判
+					// 过一轮（那一层本身解得出来，是被预算挡掉的）。
+					totalPixels -= (long)image.getWidth() * image.getHeight();
 					image.close();
-					break;
+					skippedForBudget++;
+					continue;
 				}
 
 				decoded.add(bound);
@@ -227,6 +237,11 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 		if(decoded.isEmpty())
 			throw new IOException("场景里没有可画的图层");
+
+		if(skippedForBudget > 0)
+			System.out.println("[Background] 图层像素总量超过预算（"
+				+ MAX_PIXELS / 1_000_000 + "M），跳过 " + skippedForBudget
+				+ " 层；已画出 " + decoded.size() + " 层");
 
 		return new Decoded(scene, List.copyOf(decoded),
 			decodeParticles(pkg, scene));
@@ -290,14 +305,17 @@ public final class WeSceneWallpaper implements AutoCloseable
 				return new DecodedLayer(layer,
 					toImage(raw.rgba(), raw.width(), raw.height()));
 
-			// 视频贴图要单独说清楚：解析本身是对的，载荷就是一段 MP4，
-			// 只是还没有把它解成帧。报成"不支持的载荷"会误导排查方向
-			// （实测「流萤」包里那两层 60 帧的贴图就是这种情况）。
+			// 视频贴图：载荷就是一整段 MP4，解出第一帧当静态画面用
 			if(texture.isMp4())
 			{
+				NativeImage frame = decodeMp4Frame(texture.payload());
+
+				if(frame != null)
+					return new DecodedLayer(layer, frame);
+
 				System.out.println("[Background] 跳过 " + layer.name()
-					+ "：这是 mp4 视频贴图，尚未解成帧（" + width + "x" + height
-					+ "，" + texture.payload().length + " 字节）");
+					+ "：mp4 视频贴图解不出帧（" + width + "x" + height + "，"
+					+ texture.payload().length + " 字节）");
 				return null;
 			}
 
@@ -369,6 +387,68 @@ public final class WeSceneWallpaper implements AutoCloseable
 	/** 解出来的裸像素与它对应的尺寸。 */
 	private record Raw(byte[] rgba, int width, int height)
 	{
+	}
+
+	/**
+	 * 把一整段 MP4 解成第一帧。
+	 *
+	 * <p>
+	 * FFmpeg 那条 native 路只吃**文件路径**（没有内存入口），所以这里落一个临时文件、
+	 * 解完就删。贴图里的视频段能到十几 MB，落盘一次是可以接受的代价 —— 换来的是这类
+	 * 图层不再整层消失（实测「流萤」那个场景里 60 帧的两层就是这种情况）。
+	 * </p>
+	 *
+	 * <p>
+	 * <b>只取第一帧，所以它是静态的。</b>Wallpaper Engine 那边会把它当视频播，本项目还
+	 * 没做到那一步 —— 有画面远好过整层没有，但它不会动，这一点不含糊。
+	 * </p>
+	 *
+	 * @return 第一帧；解不出来返回 null（调用方照常跳过这一层并打日志）
+	 */
+	private static NativeImage decodeMp4Frame(byte[] mp4)
+	{
+		if(!FfmpegVideoDecoder.isAvailable())
+			return null;
+
+		Path temp = null;
+
+		try
+		{
+			temp = Files.createTempFile("wurst-we-tex-", ".mp4");
+			Files.write(temp, mp4);
+
+			FfmpegVideoDecoder decoder =
+				FfmpegVideoDecoder.open(temp.toString(), true);
+
+			try
+			{
+				if(!decoder.isOpen() || decoder.nextFrame() <= 0)
+					return null;
+
+				return toImage(decoder.frameBuffer(), decoder.width(),
+					decoder.height());
+
+			}finally
+			{
+				decoder.close();
+			}
+
+		}catch(IOException | RuntimeException e)
+		{
+			System.out.println("[Background] mp4 贴图解帧失败：" + e);
+			return null;
+
+		}finally
+		{
+			if(temp != null)
+				try
+				{
+					Files.deleteIfExists(temp);
+				}catch(IOException ignored)
+				{
+					// 临时文件删不掉不影响画面，不值得让整幅场景失败
+				}
+		}
 	}
 
 	private static byte[] decodePayload(byte[] data, int offset, int length,
