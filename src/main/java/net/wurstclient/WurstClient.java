@@ -35,6 +35,7 @@ import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictManager;
 import net.wurstclient.hack.HackLifecycleManager;
 import net.wurstclient.hack.HackList;
+import net.wurstclient.hacks.RadialMenuHack;
 import net.wurstclient.hud.IngameHUD;
 import net.wurstclient.hud2.HudManager;
 import net.wurstclient.hud2.ClientMetricsManager;
@@ -193,6 +194,10 @@ public enum WurstClient
 		Path altsFile = wurstFolder.resolve("alts.encrypted_json");
 		Path encFolder = Encryption.chooseEncryptionFolder();
 		altManager = new AltManager(altsFile, encFolder);
+		
+		// 长按 Tab 的功能圆盘不在 HackList 的写死字段里，只能自己注册进 hax。
+		// 这里是唯一的一次性触发点，别挪回每帧的渲染路径（那里有静态锁 + map 查找）。
+		RadialMenuHack.get();
 
 		if(!shutdownHookRegistered)
 		{

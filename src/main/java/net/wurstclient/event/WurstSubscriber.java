@@ -75,9 +75,13 @@ public final class WurstSubscriber
 	private static Class<?> getEvent(Method method)
 	{
 		Parameter[] parameters = method.getParameters();
-		if(parameters.length == 0)
+		// 必须是恰好一个参数：metafactory 的 instantiatedMethodType 按"这个方法只
+		// 吃一个事件对象"来生成 Consumer，多参数会在这里就直接失败，
+		// 而不是等到 metafactory 内部抛一个看不出所以然的异常。
+		if(parameters.length != 1)
 			throw new RuntimeException(
-				"Tried to create Subscriber with no parameters");
+				"Tried to create Subscriber with " + parameters.length
+					+ " parameters, expected exactly 1");
 
 		Class<?> paramType = parameters[0].getType();
 		if(!Event.class.isAssignableFrom(paramType))

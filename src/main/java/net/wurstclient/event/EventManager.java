@@ -38,6 +38,18 @@ public final class EventManager
 	private final Map<Class<?>, List<WurstSubscriber>> annotatedSubscribers =
 		new ConcurrentHashMap<>();
 	
+	/**
+	 * {@code class -> 该类（含父类）里有没有任何带 @WurstSubscribe 的方法}。
+	 *
+	 * <p>主源码里 {@code @WurstSubscribe} 出现 0 次，却每次开关功能都要沿类层次
+	 * 扫一遍 {@code getDeclaredMethods()}（KillauraHack 那种 66 个方法的类一次要
+	 * 造 80~120 个 Method 对象），全部落在客户端线程上、且注定找不到订阅者。这里
+	 * 把"这个类到底有没有注解方法"的结论按类缓存下来，于是同一个类重复开关只剩
+	 * 一次 map 查询。
+	 */
+	private final Map<Class<?>, Boolean> annotatedClassCache =
+		new ConcurrentHashMap<>();
+	
 	public EventManager(WurstClient wurst)
 	{
 		this.wurst = wurst;
@@ -94,6 +106,11 @@ public final class EventManager
 
 	private void fireAnnotated(Event<?> event)
 	{
+		// 主源码里没有任何注解订阅者，这里必须先短路：渲染类事件一 tick 要派发
+		// 很多次，原来每次都会 new 一个 ArrayList 再遍历一个永远为空的 map。
+		if(annotatedSubscribers.isEmpty())
+			return;
+
 		Class<?> eventClass = event.getClass();
 		for(Map.Entry<Class<?>, List<WurstSubscriber>> entry : new ArrayList<>(
 			annotatedSubscribers.entrySet()))
@@ -225,25 +242,69 @@ public final class EventManager
 
 	public void subscribeAnnotated(Object obj)
 	{
+		// 便宜的早退：绝大多数功能类一个注解方法都没有，查一次缓存就够了，
+		// 不必为每次开关都走一遍类层次 + getDeclaredMethods()。
+		if(!hasAnnotatedMethods(obj.getClass()))
+			return;
+
+		registerAnnotatedMethods(obj);
+	}
+
+	/**
+	 * 该类（含父类，到 Object 为止，与 {@link #registerAnnotatedMethods} 的扫描
+	 * 范围一致）有没有带 {@code @WurstSubscribe} 的方法。结论按类缓存。
+	 */
+	private boolean hasAnnotatedMethods(Class<?> type)
+	{
+		if(type == null || type == Object.class)
+			return false;
+
+		Boolean cached = annotatedClassCache.get(type);
+		if(cached != null)
+			return cached;
+
+		boolean found = false;
+
+		for(Method method : type.getDeclaredMethods())
+			if(method.isAnnotationPresent(WurstSubscribe.class))
+			{
+				found = true;
+				break;
+			}
+
+		if(!found)
+			found = hasAnnotatedMethods(type.getSuperclass());
+
+		annotatedClassCache.put(type, found);
+		return found;
+	}
+
+	/**
+	 * 真正扫描并注册。只有 {@link #hasAnnotatedMethods} 报 true 的类才会走到这里。
+	 */
+	private void registerAnnotatedMethods(Object obj)
+	{
 		for(Class<?> type = obj.getClass(); type != null && type != Object.class;
 			type = type.getSuperclass())
-		for(Method method : type.getDeclaredMethods())
 		{
-			if(!method.isAnnotationPresent(WurstSubscribe.class))
-				continue;
+			for(Method method : type.getDeclaredMethods())
+			{
+				if(!method.isAnnotationPresent(WurstSubscribe.class))
+					continue;
 
-			Class<?>[] params = method.getParameterTypes();
-			if(params.length != 1
-				|| !Event.class.isAssignableFrom(params[0]))
-				continue;
+				Class<?>[] params = method.getParameterTypes();
+				if(params.length != 1
+					|| !Event.class.isAssignableFrom(params[0]))
+					continue;
 
-			method.setAccessible(true);
-			WurstSubscriber subscriber = new WurstSubscriber(obj, method);
-			List<WurstSubscriber> subscribers = annotatedSubscribers
-				.computeIfAbsent(subscriber.getEventClass(),
-					k -> new CopyOnWriteArrayList<>());
-			if(!subscribers.contains(subscriber))
-				insertByPriority(subscribers, subscriber);
+				method.setAccessible(true);
+				WurstSubscriber subscriber = new WurstSubscriber(obj, method);
+				List<WurstSubscriber> subscribers = annotatedSubscribers
+					.computeIfAbsent(subscriber.getEventClass(),
+						k -> new CopyOnWriteArrayList<>());
+				if(!subscribers.contains(subscriber))
+					insertByPriority(subscribers, subscriber);
+			}
 		}
 	}
 
@@ -265,6 +326,10 @@ public final class EventManager
 
 	public void unsubscribeAnnotated(Object obj)
 	{
+		// 没有注解订阅者时不必去遍历 map（开关功能时同样会走到这里）
+		if(annotatedSubscribers.isEmpty())
+			return;
+
 		annotatedSubscribers.values().removeIf(v -> {
 			boolean removed = v.removeIf(s -> s.isTarget(obj));
 			return v.isEmpty();

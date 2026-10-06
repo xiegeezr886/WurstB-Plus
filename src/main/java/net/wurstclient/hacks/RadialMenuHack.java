@@ -71,6 +71,9 @@ public final class RadialMenuHack extends Hack
 	private RadialMenuState state =
 		new RadialMenuState(parseEntries(DEFAULT_ENTRIES));
 	
+	/** {@link #get()} 解析出来的唯一实例；见那里的注释。 */
+	private static volatile RadialMenuHack instance;
+	
 	private RadialMenuHack()
 	{
 		super("RadialMenu");
@@ -83,32 +86,48 @@ public final class RadialMenuHack extends Hack
 	}
 	
 	/**
-	 * 注册本功能（只做一次）。
+	 * 注册本功能（只做一次），并把结果缓存下来。
 	 *
 	 * <p>
 	 * 工程的 {@code HackList}/{@code OtfList} 用的是写死的字段，不编辑
 	 * {@code WurstClient.java} 就没法把新功能加进去；这里改用现成的
 	 * {@code HackList.registerAddonHack()} 注册，于是设置界面、enabled-hacks 和
-	 * settings.json 都会自动包含它。调用点是
-	 * {@code IngameHUD.onRenderGUI}，那时 {@code WurstClient.initialize()} 早已
-	 * 完成，重复调用也不会重复注册。
+	 * settings.json 都会自动包含它。
+	 *
+	 * <p>
+	 * 调用点是 {@code WurstClient.initialize()} 末尾（一次性初始化），不是每帧的
+	 * 渲染路径：这里既有 {@code synchronized} 静态锁、又有 {@code TreeMap} 查找，
+	 * 放在每帧调用的 {@code onRenderGUI} 里等于白交一笔锁和查找的开销。命中缓存后
+	 * 连 {@code getHax()} 都不用碰。
 	 */
-	public static synchronized RadialMenuHack get()
+	public static RadialMenuHack get()
 	{
-		WurstClient wurst = WurstClient.INSTANCE;
+		RadialMenuHack cached = instance;
+		if(cached != null)
+			return cached;
 		
-		if(wurst == null || wurst.getHax() == null)
-			return null;
-		
-		RadialMenuHack existing = (RadialMenuHack)wurst.getHax()
-			.getHackByName("RadialMenu");
-		
-		if(existing != null)
+		synchronized(RadialMenuHack.class)
+		{
+			if(instance != null)
+				return instance;
+			
+			WurstClient wurst = WurstClient.INSTANCE;
+			
+			if(wurst == null || wurst.getHax() == null)
+				return null;
+			
+			RadialMenuHack existing = (RadialMenuHack)wurst.getHax()
+				.getHackByName("RadialMenu");
+			
+			if(existing == null)
+			{
+				existing = new RadialMenuHack();
+				wurst.getHax().registerAddonHack(existing);
+			}
+			
+			instance = existing;
 			return existing;
-		
-		RadialMenuHack hack = new RadialMenuHack();
-		wurst.getHax().registerAddonHack(hack);
-		return hack;
+		}
 	}
 	
 	@Override

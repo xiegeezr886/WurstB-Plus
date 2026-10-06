@@ -1,12 +1,31 @@
+# ============================================================================
+# WurstB+ Plus — repository ignore rules
+#
+# Policy for JARs: ignore everything, then explicitly re-include the jars that
+# are genuine BUILD INPUTS. A fresh clone must be able to run `gradlew build`
+# in every one of the 67 projects without first running a helper script.
+#
+# IMPORTANT: never exclude a parent DIRECTORY that contains a re-included file
+# (e.g. do NOT write `fabric/baritone-maven/`) — git cannot re-include a file
+# whose parent directory is excluded. Exclude files/globs only.
+# ============================================================================
+
 # Gradle
 .gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
+.gradle-compose-cache/
+.kotlin/
 
 # IDE
 .idea/
 *.iml
 .vscode/
+.settings/
+.metadata
+.classpath
+.project
+bin/
+out/
 
 # OS
 .DS_Store
@@ -14,14 +33,53 @@ Thumbs.db
 
 # Runtime
 run/
+runs/
+run-data/
 logs/
 *.log
 
-# Dependencies
+# ---------------------------------------------------------------------------
+# JARs: ignored by default, re-included only where they are build inputs.
+# ---------------------------------------------------------------------------
 *.jar
-!gradle/wrapper/*.jar
+
+# Gradle wrapper — must exist in all 67 projects.
+!gradle/wrapper/gradle-wrapper.jar
+!**/gradle/wrapper/gradle-wrapper.jar
+
+# Baritone: the runtime dependency every project needs to compile.
+# Root repo (used by the root project and neoforge/ via flatDir).
+!/baritone-api-forge-*.jar
+# Checked-in local Maven repositories.
+!baritone-maven/**/*.jar
+!fabric/baritone-maven/**/*.jar
+# Project-local flatDir jars.
 !versions/*/libs/*.jar
-!newforge/*/libs/*.jar
+!fabric/libs/*.jar
+!fabric/versions/*/libs/*.jar
+!neoforge/versions/*/libs/*.jar
+!baritone-api-forge-*.jar
+
+# Keep the noisy local-only backups out of the checked-in Maven repo.
+baritone-maven/**/*.rejected/**
+baritone-maven/**/*.pre-26.2-compat
+baritone-maven/**/*.bak-JAVA25
+baritone-maven/**/*.disabled
+fabric/baritone-maven/**/*.rejected/**
+fabric/baritone-maven/**/*.pre-26.2-compat
+fabric/baritone-maven/**/*.bak-JAVA25
+fabric/baritone-maven/**/*.disabled
+
+# ---------------------------------------------------------------------------
+# native/ffmpeg — LGPL-2.1 "corresponding source" provision.
+#
+# The build scripts, licence texts and the JNI shim source MUST be tracked:
+# the mod ships FFmpeg DLLs, and LGPL-2.1 requires the corresponding source to
+# be available to whoever receives the binary. Only the compiled `dll/`
+# output is ignored (the runtime copies that actually ship live in
+# src/main/resources/assets/wurst/ffmpeg/ and are tracked).
+# ---------------------------------------------------------------------------
+native/ffmpeg/dll/
 
 # Artifacts & Temp
 _artifacts/
@@ -36,30 +94,11 @@ baritone-checksums.txt
 GameRenderer_bytecode.txt
 *.tmp
 *.bak
+*.orig
+*.rej
 
 # Local test environment (PCL instances, logs, natives, reports)
 .test/
-fabric/baritone-maven/
-
-# baritone-maven/：各平台工程内嵌 Baritone 所需的本地 Maven 仓库。
-#
-# 历史上这里被整目录忽略，导致任何 clone 仓库的人都构建不了内嵌 Baritone 的
-# 工程（本地仓库里没有依赖），而 1.21.7 那个启动崩溃正是"依赖只在作者机器上"
-# 衍生出来的问题。现在把各工程**实际引用**的产物入库，clone 后即可直接构建。
-#
-# 只登记 1.21.x 线（见 scripts/stage-baritone-for-git.ps1），
-# 26.x 线、1.17.0-1.21.11-mc*.rejected（伪版本）、
-# *.pre-26.2-compat / *.bak-JAVA25 等本地备份都不入库。
-#
-# 注意：不能写 `baritone-maven/`（带尾斜杠会排除整个目录，
-# 之后再用 !baritone-maven/**/*.jar 也救不回来——父目录被排除时无法重新包含）。
-# 所以这里只针对后缀排除，jar 与 pom 默认放行。
-# 另需一条 jar 否定：上面的 `*.jar` 在本文件更靠后，会盖掉这条之前的规则。
-!baritone-maven/**/*.jar
-baritone-maven/**/*.rejected/**
-baritone-maven/**/*.pre-26.2-compat
-baritone-maven/**/*.bak-JAVA25
-baritone-maven/**/*.disabled
 
 # Stale porting artifacts and baritone tool workspaces
 _porting_stale/
@@ -68,10 +107,22 @@ _tools/
 # Local smoke-test scratch space (launch logs, javap dumps, audit output)
 _smoke/
 scripts/__pycache__/
+__pycache__/
 
-# Wallpaper Engine reverse-engineering scratch space (extracted scene art and
-# the probe scripts); the findings live in docs/wallpaper-engine-scene.md
+# Reverse-engineering scratch spaces.
+#   .recon/  — Wallpaper Engine (findings live in docs/wallpaper-engine-scene.md)
+#   _recon/  — architecture-audit measurement scripts and evidence
 .recon/
+_recon/
+
+# Vendored / dumped reference material kept only on the author's machine.
+# None of these are build inputs — see docs/REPO-HYGIENE.md.
+official/
+free0810/
+wurstb_profiles/
+_errreport/
+forge-mdk/
+source_archives/
 
 # Minecraft runtime config written when the client is launched from the repo root
 /config/
@@ -79,3 +130,4 @@ scripts/__pycache__/
 # Agent tool state (the tool dirs keep their own .gitignore as well)
 .reasonix/
 reasonix.toml
+.claude/settings.local.json
