@@ -578,6 +578,7 @@ monitor 线程写入的 `true`（36-38 行只在 true 时排序），于是新�
 （`ClientElements.java:34-35`、`TargetInfoElement.java:60-61`、`ModuleElement.java:79`、
 `NotificationsElement.java:28-29`、`DefaultIsland.java:30-31`）。
 WurstB 现有字体：`assets/wurst/font/pingfang_{light,regular,semibold}.ttf`（`SkiaFontManager.java:36-52`）
+**（2026-10-06 订正：这三个 TTF 已因授权问题删除，SkiaFontManager 改为按字重取系统中文面。）**
 与 MC 侧 `wurst:rise`（`RiseHudFont.java:12`）。→ 所有图标字形必须替换（先例 `EspIndicatorGlyphs`）。
 
 **B6｜依赖 OpenOpal 的 Module/Property 体系。**
