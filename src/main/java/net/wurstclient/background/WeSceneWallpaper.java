@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -275,18 +276,24 @@ public final class WeSceneWallpaper implements AutoCloseable
 		try
 		{
 			WeTexture texture = WeTexture.parse(bytes);
+			int width = texture.imageWidth();
+			int height = texture.imageHeight();
 
-			if(!texture.isStandardImage())
-			{
-				System.out.println("[Background] 跳过 " + layer.name()
-					+ "：贴图载荷不是 PNG/JPEG（format=" + texture.format()
-					+ "）");
-				return null;
-			}
+			if(texture.isStandardImage())
+				return new DecodedLayer(layer,
+					NativeImage.read(
+						new ByteArrayInputStream(texture.payload())));
 
-			NativeImage image =
-				NativeImage.read(new ByteArrayInputStream(texture.payload()));
-			return new DecodedLayer(layer, image);
+			byte[] rgba = decodeUncompressed(texture, bytes, width, height);
+
+			if(rgba != null)
+				return new DecodedLayer(layer, toImage(rgba, width, height));
+
+			System.out.println("[Background] 跳过 " + layer.name()
+				+ "：暂不支持的贴图载荷（format=" + texture.format() + "，"
+				+ width + "x" + height + "，载荷 " + texture.payload().length
+				+ " 字节）");
+			return null;
 
 		}catch(IOException | RuntimeException e)
 		{
@@ -294,6 +301,152 @@ public final class WeSceneWallpaper implements AutoCloseable
 				"[Background] 跳过 " + layer.name() + "：" + e.getMessage());
 			return null;
 		}
+	}
+
+	/**
+	 * 非 PNG/JPEG 的载荷：裸像素（format 0/1/2）与 DXT（3/4/5）在这里解成 RGBA。
+	 *
+	 * <p>
+	 * <b>两道保险，缺一不可。</b>① 长度必须与 {@code 宽×高×每像素字节} **精确吻合**：
+	 * {@code TEXB0003/0004} 里那个"载荷长度"字段的语义还没查实（见
+	 * docs/wallpaper-engine-scene.md 第 6.1 节，我早先"末字段就是长度"的推测已被自己的
+	 * 数据否掉），所以**不吻合就跳过** —— 少画一层远好过把错位的数据当像素糊上去。
+	 * ② 长度的两种解读都试：末字段给出的长度、以及从数据起点一直到文件末尾；命中哪个
+	 * 用哪个，都没命中就返回 null。
+	 * </p>
+	 *
+	 * @return RGBA8888；不认识这个 format 或长度对不上时返回 null
+	 */
+	private static byte[] decodeUncompressed(WeTexture texture, byte[] bytes,
+		int width, int height)
+	{
+		if(width <= 0 || height <= 0)
+			return null;
+
+		byte[] payload = texture.payload();
+		byte[] fromPayload = decodePayload(payload, 0, payload.length,
+			texture.format(), width, height);
+
+		if(fromPayload != null)
+			return fromPayload;
+
+		int offset = texture.dataOffset();
+		int remaining = bytes.length - offset;
+
+		if(remaining <= payload.length)
+			return null;
+
+		return decodePayload(bytes, offset, remaining, texture.format(), width,
+			height);
+	}
+
+	private static byte[] decodePayload(byte[] data, int offset, int length,
+		int format, int width, int height)
+	{
+		long pixels = (long)width * height;
+
+		// 长度必须**精确等于**该格式的固定字节数。别放宽成"至少"：实测这些载荷里
+		// 有很大一部分是**压缩**的（例：512x512 的一张只有 6105 字节；1024x885 的
+		// 真实数据 447615 字节是奇数，而任何 DXT 数据的长度都必须是 8 的倍数），
+		// 放宽只会让"长度恰好够长"的压缩数据被当成裸像素画上去 —— 那样会得到垃圾
+		// 画面，比少画一层糟得多。不吻合就跳过并打日志。
+		switch(format)
+		{
+			case 0: // RGBA8888
+			if(length != pixels * 4)
+				return null;
+
+			return Arrays.copyOfRange(data, offset, offset + length);
+
+			case 1: // R8
+			if(length != pixels)
+				return null;
+
+			return grey(data, offset, width, height, 1);
+
+			case 2: // RG88：取 R 那一路当灰度
+			if(length != pixels * 2)
+				return null;
+
+			return grey(data, offset, width, height, 2);
+
+			case 3: // DXT5
+			return dxt(data, offset, length, width, height, 3);
+
+			case 4: // DXT3
+			return dxt(data, offset, length, width, height, 4);
+
+			case 5: // DXT1
+			return dxt(data, offset, length, width, height, 5);
+
+			default:
+			return null;
+		}
+	}
+
+	private static byte[] dxt(byte[] data, int offset, int length, int width,
+		int height, int format)
+	{
+		long needed = format == 5 ? DxtCodec.dxt1Size(width, height)
+			: DxtCodec.dxt35Size(width, height);
+
+		if(length != needed)
+			return null;
+
+		byte[] block = Arrays.copyOfRange(data, offset, offset + (int)needed);
+
+		return switch(format)
+		{
+			case 3 -> DxtCodec.decodeDxt5(block, width, height);
+			case 4 -> DxtCodec.decodeDxt3(block, width, height);
+			default -> DxtCodec.decodeDxt1(block, width, height);
+		};
+	}
+
+	/** 单通道/双通道的裸像素按灰度铺开。 */
+	private static byte[] grey(byte[] data, int offset, int width, int height,
+		int stride)
+	{
+		byte[] rgba = new byte[width * height * 4];
+
+		for(int i = 0; i < width * height; i++)
+		{
+			int value = data[offset + i * stride] & 0xFF;
+			rgba[i * 4] = (byte)value;
+			rgba[i * 4 + 1] = (byte)value;
+			rgba[i * 4 + 2] = (byte)value;
+			rgba[i * 4 + 3] = (byte)0xFF;
+		}
+
+		return rgba;
+	}
+
+	/**
+	 * RGBA8888 字节 -> {@link NativeImage}。
+	 *
+	 * <p>
+	 * 逐像素写：{@code NativeImage} 没有公开底层指针，而它的整数像素接口是 **ABGR**
+	 * （低字节是红），所以这里要把 R,G,B,A 重新打包。这套约定与
+	 * {@code BackgroundVideo.copyInto} 完全一致（那边是实测核对过的）。
+	 * </p>
+	 */
+	private static NativeImage toImage(byte[] rgba, int width, int height)
+	{
+		NativeImage image =
+			new NativeImage(NativeImage.Format.RGBA, width, height, false);
+
+		for(int y = 0; y < height; y++)
+			for(int x = 0; x < width; x++)
+			{
+				int i = (y * width + x) * 4;
+				int r = rgba[i] & 0xFF;
+				int g = rgba[i + 1] & 0xFF;
+				int b = rgba[i + 2] & 0xFF;
+				int a = rgba[i + 3] & 0xFF;
+				image.setPixelRGBA(x, y, a << 24 | b << 16 | g << 8 | r);
+			}
+
+		return image;
 	}
 
 	/**
