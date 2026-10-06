@@ -101,7 +101,7 @@ public final class SkikoNatives
 	private static void checkPlatform() throws IOException
 	{
 		String os = System.getProperty("os.name", "");
-		String arch = System.getProperty("os.arch", "");
+		String arch = System.getProperty("os.arch", "").toLowerCase();
 
 		if(!os.toLowerCase().contains("windows"))
 			throw new IOException(
@@ -173,7 +173,15 @@ public final class SkikoNatives
 		int read;
 
 		while((read = in.read(buffer)) >= 0)
+		{
+			// read() == 0 means nothing this time; without this guard a stream that
+			// keeps returning 0 would spin forever (the same hazard that
+			// AsyncTextureLoader guards against).
+			if(read == 0)
+				continue;
+
 			digest.update(buffer, 0, read);
+		}
 
 		StringBuilder hex = new StringBuilder(64);
 
