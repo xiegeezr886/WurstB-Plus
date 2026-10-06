@@ -509,6 +509,14 @@ NodeExecutionException: Node action for recompile failed
      其他版本的快照分支（`parts[1] == v` 判定），所以暂时不加是安全的。
    这几项应在 26.3 **编译通过并决定发布**时一并补上。
 
+   **更新（本条已执行）**：前置条件「`compileJava` 全部通过」已由本文开头的状态表确认，
+   决定发布也已做出，因此 `BRANCHES` 与 workflow 注释已补入 `26.3`（分支总数 22 → 23），
+   `docs/PROJECT-STRUCTURE.md` 中的分支计数同步改为 23。分支本身由 workflow 在下次
+   push `main` 时自动创建。
+   两个 `tmp-recon/*.py` 校验脚本**已不存在**（临时目录已清理），故无处可补——
+   上面那两条引用属过期记录，保留仅为说明当时的判断依据。
+   仍需注意：**26.3 三个工程至今没有任何游戏内验证**，本文开头也已注明。
+
 ## 输入层移植（已完成，仅 Forge 树）
 
 26.3 的 `InputConstants` 与 GLFW 的常量**名字一一对应、数值完全不同**（见上表），因此这一步
