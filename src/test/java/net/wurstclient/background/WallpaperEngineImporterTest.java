@@ -189,6 +189,32 @@ final class WallpaperEngineImporterTest
 		assertTrue(ProjectJson.parse(null) == null);
 	}
 
+	/**
+	 * 回归：目录式场景工程（{@code "file": "scene.json"}，那个文件并不存在）必须
+	 * 按同目录的 {@code scene.pkg} 导入成场景，而不是退回预览图。
+	 *
+	 * <p>
+	 * 这不是边角情况：用户 Steam 工坊里 **83 个场景壁纸全部**是这个形态，认不出
+	 * {@code scene.pkg} 的话它们会整批变成静态预览图——实机表现就是「场景壁纸除了
+	 * 内置的 Persica 都跑不起来」。
+	 * </p>
+	 */
+	@Test
+	void importsADirectoryStyleSceneAsItsPackage() throws Exception
+	{
+		wallpaper("777", """
+			{"type":"scene","file":"scene.json","title":"A Directory Scene"}
+			""", "scene.pkg");
+
+		Candidate candidate = WallpaperEngineImporter.scan(List.of(library))
+			.stream().filter(c -> "A Directory Scene".equals(c.title()))
+			.findFirst().orElseThrow();
+
+		assertTrue(candidate.playable(), "目录里有 scene.pkg 就该当成场景导入");
+		assertEquals(BackgroundKind.SCENE, candidate.kind());
+		assertEquals("scene.pkg", candidate.media().getFileName().toString());
+	}
+
 	/** Creates a wallpaper folder and the files it references. */
 	private Path wallpaper(String id, String projectJson, String... files)
 		throws Exception

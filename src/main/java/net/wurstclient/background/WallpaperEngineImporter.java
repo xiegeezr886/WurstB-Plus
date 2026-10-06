@@ -164,9 +164,31 @@ public final class WallpaperEngineImporter
 		return resolvePreview(wallpaper, project);
 	}
 
-	/** The wallpaper's own media, when we can decode it. */
+	/** 目录式场景工程里真正可读的那个包。 */
+	private static final String SCENE_PACKAGE = "scene.pkg";
+
+	/**
+	 * The wallpaper's own media, when we can decode it.
+	 *
+	 * <p>
+	 * 场景类型**优先认同目录的 {@code scene.pkg}**：新版 Wallpaper Engine 的场景
+	 * 工程是目录式布局，{@code project.json} 的 {@code "file"} 写的是
+	 * {@code scene.json}，而那个文件并不存在（场景散在文件夹里），真正能读的是
+	 * 打包好的 {@code scene.pkg}。实测用户库里 83 个场景壁纸**全部**是这种情况，
+	 * 只按扩展名判断会把它们整批降级成预览图——表现就是「场景壁纸除了内置那个都
+	 * 跑不起来」。
+	 * </p>
+	 */
 	private static Path resolveMedia(Path wallpaper, ProjectJson project)
 	{
+		if(ProjectJson.TYPE_SCENE.equals(project.type()))
+		{
+			Path pkg = existingChild(wallpaper, SCENE_PACKAGE);
+
+			if(pkg != null)
+				return pkg;
+		}
+
 		if(!project.isPlayableMedia())
 			return null;
 
