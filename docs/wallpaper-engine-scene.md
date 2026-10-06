@@ -141,6 +141,49 @@ Persica 的 20 个对象里只有 **3 个真的要画**（`Blossom backdrop`、`
 7. **场景卡片不生成缩略图**：`scene.pkg` 不是图片，导入时用它的 `preview`（
    `Candidate.thumbnail`），没有预览图就是一张空卡片。
 
+## 6.1 贴图载荷格式（当前进度，2026-10-07）
+
+**已确认的映射**（来源：RePKG 的 `MipmapFormat` 枚举，`notscuffed/repkg` 与
+`masterLazy/RePKG.Neo` 同 sha `93ca4c22`）。该枚举是 **1-based**，磁盘上 `.tex` 头里
+那个 `format` 字段的值 = 枚举值 − 1：
+
+| 磁盘 `format` | 编码 | 每像素字节 |
+| ---: | --- | ---: |
+| 0 | RGBA8888（裸像素） | 4 |
+| 1 | R8 | 1 |
+| 2 | RG88 | 2 |
+| 3 | CompressedDXT5 | 1 |
+| 4 | CompressedDXT3 | 1 |
+| 5 | CompressedDXT1 | 0.5 |
+| 6 | VideoMp4（贴图本身就是一段 mp4） | — |
+
+**已用真实文件交叉验证的一条**：Neutron Star 那个包（工坊 `1311951951`）的
+`format=0`，其头部字段给出的载荷长度是 `262144`，而它的贴图是 `128×512` →
+`128*512*4 = 262144` 完全吻合，确认 `0 = 裸 RGBA8888`。**这是最便宜的一块**：
+不需要任何解码器，按 `imageWidth×imageHeight×4` 直接当 RGBA 图用即可。
+
+**仍缺的两块（未解决，别当成已知）**：
+
+1. **`format` 7 / 8 / 9 的映射**：实测在用户库里出现过（8 出现 52 次、9 出现 82 次），
+   但上面那个枚举到 6 就结束了 —— 8/9 应该是 BC7 那一代的新格式。需要更新的来源
+   （`linux-wallpaperengine` 的 `docs/`、或 WE 自己的文档）。
+2. **`TEXB0004` 第 9 个字段的语义**：见第 3 节。**早先"末字段是载荷长度"的推测已被
+   自己的数据否掉** —— 实测那 9 个字段是 `1 13 0 6 600 250 0 0 10845`，而载荷可用
+   字节是 16921，两者不等。切载荷长度的规则必须先查实，否则解出来的像素长度是错的
+   （我曾据此错误地得出"载荷是变长压缩"的结论）。
+
+**取规范的可网络通道**（这台机器上实测）：`raw.githubusercontent.com` **不通**、
+`wallpaper-engine.fandom.com` 与 `raw.githack.com` **不通**、`deepwiki.com` 返回 429、
+`cdn.jsdelivr.net` 通但按 `application/octet-stream` 返回（抓取工具拒收）。
+**能用的是 GitHub API**：
+
+```
+https://api.github.com/repos/<owner>/<repo>/contents/<path>
+```
+
+返回 JSON + base64 内容。注意别拿它列大目录（一份根目录清单就能吃掉大量上下文），
+尽量直接指名文件。
+
 ## 7. 验证状态（诚实声明）
 
 **已经在真实文件上跑通的**（`WeSceneRealFileTest`，文件不在时自动跳过）：
