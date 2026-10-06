@@ -143,46 +143,74 @@ Persica 的 20 个对象里只有 **3 个真的要画**（`Blossom backdrop`、`
 
 ## 6.1 贴图载荷格式（当前进度，2026-10-07）
 
-**已确认的映射**（来源：RePKG 的 `MipmapFormat` 枚举，`notscuffed/repkg` 与
-`masterLazy/RePKG.Neo` 同 sha `93ca4c22`）。该枚举是 **1-based**，磁盘上 `.tex` 头里
-那个 `format` 字段的值 = 枚举值 − 1：
+**权威来源**：`linux-wallpaperengine` 的
+[`docs/textures/TEXTURE_FORMAT.md`](https://github.com/Almamu/linux-wallpaperengine/blob/main/docs/textures/TEXTURE_FORMAT.md)
+（2021 年就写下的逆向文档）。**下面这张表取代了本文件早先那版从 RePKG 推的映射 ——
+那版是错的**（它写 3/4/5 = DXT5/DXT3/DXT1，与实测出现的 format 值完全对不上）。
 
-| 磁盘 `format` | 编码 | 每像素字节 |
-| ---: | --- | ---: |
-| 0 | RGBA8888（裸像素） | 4 |
-| 1 | R8 | 1 |
-| 2 | RG88 | 2 |
-| 3 | CompressedDXT5 | 1 |
-| 4 | CompressedDXT3 | 1 |
-| 5 | CompressedDXT1 | 0.5 |
-| 6 | VideoMp4（贴图本身就是一段 mp4） | — |
+### 头部（`WeTexture` 已按这个读）
 
-**已用真实文件交叉验证的一条**：Neutron Star 那个包（工坊 `1311951951`）的
-`format=0`，其头部字段给出的载荷长度是 `262144`，而它的贴图是 `128×512` →
-`128*512*4 = 262144` 完全吻合，确认 `0 = 裸 RGBA8888`。**这是最便宜的一块**：
-不需要任何解码器，按 `imageWidth×imageHeight×4` 直接当 RGBA 图用即可。
+```
+TEXV0005\0  (9)   TEXI0001\0  (9)
+  Texture type      4   ← 见下表；偏移 18
+  Texture flags     4   （1=Interpolation, 2=ClampUVs, 4=IsGif）
+  Texture Width     4   （显存宽度）
+  Texture Height    4
+  Width             4   （图像宽度）
+  Height            4
+  Unknown           4
+  Container version 8   TEXB0003 / TEXB0002 / TEXB0001
+  \0                1   → 容器名在 46 结束于 55
+```
 
-**仍缺的两块（未解决，别当成已知）**：
+### Texture type（**权威映射**）
 
-1. **`format` 7 / 8 / 9 的映射**：实测在用户库里出现过（8 出现 52 次、9 出现 82 次），
-   但上面那个枚举到 6 就结束了 —— 8/9 应该是 BC7 那一代的新格式。需要更新的来源
-   （`linux-wallpaperengine` 的 `docs/`、或 WE 自己的文档）。
-2. **`TEXB0004` 第 9 个字段的语义**：见第 3 节。**早先"末字段是载荷长度"的推测已被
-   自己的数据否掉** —— 实测那 9 个字段是 `1 13 0 6 600 250 0 0 10845`，而载荷可用
-   字节是 16921，两者不等。切载荷长度的规则必须先查实，否则解出来的像素长度是错的
-   （我曾据此错误地得出"载荷是变长压缩"的结论）。
+| 值 | 编码 |
+|---:|---|
+| **0** | ARGB8888 |
+| **4** | DXT5 |
+| **6** | DXT3 |
+| **7** | DXT1 |
+| **8** | RG88 |
+| **9** | R8 |
+
+### 容器内容（**这才是之前一直读错的地方**）
+
+```
+TEXB0003:  Unknown(4) + FreeImageFormat(4) + MipLevels(4) + Mipmap entry × MipLevels
+TEXB0002/0001:      Unknown(4) + MipLevels(4) + Mipmap entry × MipLevels
+
+Mipmap entry:  Width(4) Height(4) CompressionFlag(4)
+               UncompressedSize(4) CompressedSize(4)  Pixels(CompressedSize)
+```
+
+**关键**：容器名之后**不是**像素，而是一张 **mipmap 条目表**，每条带 **20 字节头**。
+这一点精确解释了实测的魔数位置：`55 + 12 + 20 = 87`（TEXB0003 的 JPEG 落在 87）✓，
+TEXB0004 多 4 字节 → `91` ✓。也解释了为什么"8/9 个 int32 之后就是载荷"会读出
+`512×512` 只有 6105 字节这种荒唐结果 —— 那 6105 字节是**条目的头部与压缩数据**，
+不是未压缩像素。
+
+`CompressionFlag` 非零时 `Pixels` 是**压缩**数据，长度由 `CompressedSize` 给出、
+解开后应是 `UncompressedSize`。**压缩算法还没确认**（zlib 解不开，见下）。
+
+### 仍未解决
+
+1. **压缩算法**：实测这些载荷既不是 PNG/JPEG（全文件都没有魔数），也不是 zlib
+   （`Inflater` 解不开），头字节形如 `ff 01 00 ff 49 92 24 …`。`CompressionFlag`
+   非零时用的是什么编解码，还得看参考实现的解压代码。
+2. **TEXB0004 比 TEXB0003 多出的 4 字节**落在哪一段（容器块还是 mipmap 条目头）。
 
 **取规范的可网络通道**（这台机器上实测）：`raw.githubusercontent.com` **不通**、
 `wallpaper-engine.fandom.com` 与 `raw.githack.com` **不通**、`deepwiki.com` 返回 429、
-`cdn.jsdelivr.net` 通但按 `application/octet-stream` 返回（抓取工具拒收）。
+`cdn.jsdelivr.net` 通但返回 `application/octet-stream`（抓取工具拒收）。
 **能用的是 GitHub API**：
 
 ```
-https://api.github.com/repos/<owner>/<repo>/contents/<path>
+https://api.github.com/repos/<owner>/<repo>/contents/<path>     # JSON + base64
+https://api.github.com/repos/<owner>/<repo>/commits/<sha>        # 含 files[].patch
 ```
 
-返回 JSON + base64 内容。注意别拿它列大目录（一份根目录清单就能吃掉大量上下文），
-尽量直接指名文件。
+后者尤其省预算：一个 commit 的 diff 就能拿到关键表格。别拿它列大目录。
 
 ## 7. 验证状态（诚实声明）
 
