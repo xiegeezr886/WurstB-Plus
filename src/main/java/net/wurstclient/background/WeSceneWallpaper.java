@@ -205,13 +205,18 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 				if(totalPixels > MAX_PIXELS)
 				{
+					// 到预算就别再往里加了，但**别把整个场景扔掉**：图层是按顺序
+					// 排的，背景通常在最前面，丢掉后面几层远好过整幅退回内置背景
+					// （实测「绪山真寻」就是这个 64M 像素的硬上限把整个场景判死的，
+					// 而它前面几层本来完全能画）。一层都没解出来时，下面那句
+					// 「场景里没有可画的图层」仍然会照常报出来。
 					image.close();
-					throw new IOException("场景贴图总量过大，放弃载入");
+					break;
 				}
 
 				decoded.add(bound);
 			}
-		}catch(IOException | RuntimeException e)
+		}catch(RuntimeException e)
 		{
 			for(DecodedLayer layer : decoded)
 				layer.image().close();
