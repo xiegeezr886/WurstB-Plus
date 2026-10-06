@@ -47,7 +47,7 @@
                    "GenericContainerScreenMixin",
                    "HeldItemRendererMixin",
                    "FogRendererMixin",
-                   "freecam.ItemInHandRendererMixin",
+                   "freecam/ItemInHandRendererMixin",
                    "freecam/CameraMixin",
                    "freecam/ItemInHandRendererMixin",
                    "freecam/LocalPlayerMixin",
