@@ -91,6 +91,67 @@ final class WeTextureContainerVariantTest
 			texture.payload());
 	}
 
+	/**
+	 * TEXB0004 的 **mp4 贴图**：isVideoMp4 非零时容器不降级，每个 mip 条目前面多出
+	 * 「2 个 u32 + 以 NUL 结尾的 json 字符串 + 1 个 u32」，真正的条目头在那之后。
+	 * 这里塞一段非空 json，确认解析器按那个长度跳过去。
+	 */
+	@Test
+	void skipsTheMp4ExtraHeaderOnTexb0004() throws Exception
+	{
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		cstring(out, "TEXV0005");
+		cstring(out, "TEXI0001");
+		int32(out, 0); // format
+		int32(out, 2); // flags
+		int32(out, 64);
+		int32(out, 64);
+		int32(out, 64);
+		int32(out, 64);
+		int32(out, 0); // checksum
+		cstring(out, "TEXB0004");
+
+		int32(out, 1); // imageCount
+		int32(out, 0); // freeImageFormat
+		int32(out, 1); // isVideoMp4 <- 关键：非零才走 mp4 分支
+		int32(out, 1); // mipmapCount
+		int32(out, 0); // 这三个是"外层"的假条目头，必须被跳过
+		int32(out, 0);
+		int32(out, 0);
+
+		// mp4 额外段
+		int32(out, 7);
+		int32(out, 8);
+		cstring(out, "{\"fps\":30}");
+		int32(out, 9);
+
+		// 真正的条目头
+		int32(out, 64); // 条目宽
+		int32(out, 64); // 条目高
+		int32(out, 0); // compression = 0
+		int32(out, 0); // uncompressedSize（compression 0 时会被换成 compressedSize）
+		int32(out, PNG.length); // compressedSize
+		out.writeBytes(PNG);
+
+		WeTexture texture = WeTexture.parse(out.toByteArray());
+
+		assertEquals("TEXB0004", texture.container());
+		assertArrayEquals(PNG, texture.payload(),
+			"json 与非零 isVideoMp4 都要被正确跳过，载荷才是 PNG");
+	}
+
+	/**
+	 * 对照组：同一份数据但 isVideoMp4 为 0（非 mp4 的 TEXB0004 会降级按 TEXB0003
+	 * 解析），此时**没有**那段额外数据，末三个字段本身就是条目头。
+	 */
+	@Test
+	void doesNotSkipAnythingWhenIsVideoMp4IsZero() throws Exception
+	{
+		WeTexture texture = WeTexture.parse(texture("TEXB0004", 9, 0));
+
+		assertArrayEquals(PNG, texture.payload());
+	}
+
 	/** LZ4 流坏掉时要抛 IOException（而不是把噪声当像素交出去）。 */
 	@Test
 	void reportsBrokenLz4Streams() throws Exception
