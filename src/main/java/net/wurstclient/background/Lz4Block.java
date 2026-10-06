@@ -92,11 +92,11 @@ final class Lz4Block
 				break;
 
 			// ---- 回引段 ----
-			int offset = in.u16();
+			int matchOffset = in.u16();
 
-			if(offset == 0 || offset > out)
-				throw new IllegalArgumentException("LZ4 回引越界：offset=" + offset
-					+ " 而当前只输出了 " + out + " 字节");
+			if(matchOffset == 0 || matchOffset > out)
+				throw new IllegalArgumentException("LZ4 回引越界：offset="
+					+ matchOffset + " 而当前只输出了 " + out + " 字节");
 
 			int match = (token & 0x0F) + 4;
 
@@ -108,7 +108,7 @@ final class Lz4Block
 					+ targetLength + "（回引段还要 " + match + " 字节）");
 
 			// 逐字节拷：offset 小于 match 时源与目的重叠，这正是 LZ4 的重复展开
-			int from = out - offset;
+			int from = out - matchOffset;
 
 			for(int i = 0; i < match; i++)
 				output[out++] = output[from++];
