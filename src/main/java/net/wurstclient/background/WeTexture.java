@@ -132,21 +132,28 @@ public final class WeTexture
 		if(!container.startsWith("TEXB"))
 			throw new IOException("找不到贴图数据段：" + container);
 
-		if(!container.startsWith("TEXB0003"))
+		if(!container.startsWith("TEXB0003")
+			&& !container.startsWith("TEXB0004"))
 			throw new IOException("暂不支持的贴图容器：" + container
-				+ "（只核对过 TEXB0003 的布局）");
+				+ "（只核对过 TEXB0003 / TEXB0004 的布局）");
 
-		// TEXB0003 头：8 个 int32，末一个是载荷长度
-		int[] fields = new int[8];
+		// 两个族的骨架相同：TEXV + TEXI + 7 个 int32 + 容器名，差别只在容器名之后
+		// 那个 int32 块的宽度——TEXB0003 是 8 个（载荷落在 +32），TEXB0004 是 9 个
+		// （载荷落在 +36）。实测依据：真实文件里 TEXB0003 的 JPEG 魔数在 87、
+		// TEXB0004 的 PNG 魔数在 91，而容器名都在 55 结束。末字段是主图字节数
+		// （后面还跟着 mipmap），所以按它截断。
+		int fieldCount = container.startsWith("TEXB0004") ? 9 : 8;
+		int[] fields = new int[fieldCount];
 		for(int i = 0; i < fields.length; i++)
 			fields[i] = cursor.int32();
 
 		int offset = cursor.position();
 		int available = data.length - offset;
 
-		// 末字段与剩余字节核对：实测严格相等，对不上就退回读到底，别把数据截断
-		int size = fields[7] > 0 && fields[7] <= available ? fields[7]
-			: available;
+		// 末字段与剩余字节核对：对不上就退回读到底，别把数据截断
+		int size = fields[fieldCount - 1] > 0
+			&& fields[fieldCount - 1] <= available ? fields[fieldCount - 1]
+				: available;
 
 		byte[] payload = new byte[size];
 		System.arraycopy(data, offset, payload, 0, size);
