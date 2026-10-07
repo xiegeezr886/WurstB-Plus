@@ -199,11 +199,6 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		if(modelName.isEmpty())
 			return null;
 
-		String texture = findTexture(modelName, files);
-
-		if(texture == null)
-			return null;
-
 		float[] origin = numbers(object.get("origin"), width / 2F, height / 2F,
 			0);
 		float[] size = numbers(object.get("size"), 0, 0, 0);
@@ -212,10 +207,27 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		float[] depth = numbers(object.get("parallaxDepth"), 0, 0, 0);
 
 		float alpha = (float)number(object, "alpha", 1);
-
-		// 色键抠像：蓝幕/绿幕素材的图层会带一个 effects/colorkey 效果，
-		// 键色与阈值就写在它的常量里（不需要材质或着色器系统）
 		WeColorKey colorKey = WeColorKey.parse(object.get("effects"));
+
+		// Wallpaper Engine 的**内置工具模型**不随包发布，所以 pkg.read 一定读不到：
+		//   models/util/solidlayer.json  = 纯色矩形（用图层自己的 color/alpha 画）
+		//   models/util/composelayer.json = 分组/合成层（自身不画东西）
+		// 实测「流萤」里 Background / Progress Bar / Settings Container / Audio Bars /
+		// 纯色 等 10 个对象都指向 solidlayer —— 它们以前因为"模型文件读不到"被整个丢掉，
+		// 画面上就少了一块。用空贴图名标记成纯色层，由渲染那边铺成矩形。
+		if(modelName.contains("util/solidlayer"))
+			return new Layer(string(object, "name", modelName), "", origin[0],
+				origin[1], size[0], size[1], scale[0], scale[1], alpha,
+				color[0], color[1], color[2], depth[0], depth[1], colorKey);
+
+		// 分组层自己不产生像素；它下面的子对象才是内容（子对象的渲染尚未实现）
+		if(modelName.contains("util/composelayer"))
+			return null;
+
+		String texture = findTexture(modelName, files);
+
+		if(texture == null)
+			return null;
 
 		return new Layer(string(object, "name", modelName), texture, origin[0],
 			origin[1], size[0], size[1], scale[0], scale[1], alpha, color[0],

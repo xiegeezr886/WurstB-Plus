@@ -191,23 +191,33 @@ public final class WeSceneWallpaper implements AutoCloseable
 				if(decoded.size() >= MAX_LAYERS)
 					break;
 
-				String entry =
-					WeScene.textureEntryName(layer.texture(), pkg.names());
+				NativeImage image;
 
-				if(entry == null)
-					continue;
+				if(layer.texture().isEmpty())
+					// 纯色层（内置 solidlayer）：没有贴图，直接铺一张 1x1 的白图，
+					// renderLayer 会用图层自己的 color/alpha 去着色，正好染成目标色
+					image = solidImage();
+				else
+				{
+					String entry =
+						WeScene.textureEntryName(layer.texture(), pkg.names());
 
-				byte[] bytes = pkg.read(entry);
+					if(entry == null)
+						continue;
 
-				if(bytes == null)
-					continue;
+					byte[] bytes = pkg.read(entry);
 
-				DecodedLayer bound = decodeLayer(layer, bytes);
+					if(bytes == null)
+						continue;
 
-				if(bound == null)
-					continue;
+					DecodedLayer bound = decodeLayer(layer, bytes);
 
-				NativeImage image = bound.image();
+					if(bound == null)
+						continue;
+
+					image = bound.image();
+				}
+
 				int imageWidth = image.getWidth();
 				int imageHeight = image.getHeight();
 
@@ -350,6 +360,22 @@ public final class WeSceneWallpaper implements AutoCloseable
 		}
 
 		return List.copyOf(out);
+	}
+
+	/**
+	 * 纯色层用的 1×1 图。
+	 *
+	 * <p>
+	 * 特意是**不透明白色**：{@code renderLayer} 在贴之前会
+	 * {@code graphics.setColor(colorR, colorG, colorB, alpha)}，所以白色底图会被染成
+	 * 图层要的颜色。若这里就把颜色写进像素，就会与那次着色**相乘两次**。
+	 * </p>
+	 */
+	private static NativeImage solidImage()
+	{
+		NativeImage image = new NativeImage(NativeImage.Format.RGBA, 1, 1, false);
+		image.setPixelRGBA(0, 0, 0xFFFFFFFF);
+		return image;
 	}
 
 	/**
