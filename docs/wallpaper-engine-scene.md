@@ -558,7 +558,52 @@ Holder (hide before publish)
 **仍未做**：旋转（`angles`/`lockangle`）没有继承，`parent` 的变换矩阵只做了平移与缩放。
 作者预览里仍看得到的差异还有：脚本控制的显隐、木偶变形动画、非色键的效果。
 
+### 权威：ObjectParser.cpp 读出来的对象模型（2026-10-07）
+
+来源：`linux-wallpaperengine` 的
+[`src/WallpaperEngine/Data/Parsers/ObjectParser.cpp`](https://github.com/Almamu/linux-wallpaperengine/blob/main/src/WallpaperEngine/Data/Parsers/ObjectParser.cpp)
+（34700 字节，已完整读过）。它纠正了我几个一直靠猜的地方：
+
+```cpp
+ObjectData {
+    .id, .name, .dependencies,
+    .parent      = it.optional<int>("parent"),      // 只是个 id，组合发生别处
+    .origin      = it.user("origin", ...),          // 自身位置
+    .groupScale  = it.user("scale",  ...),          // ← scale 是「组」属性
+    .groupAngles = it.user("angles", ...),          // ← angles 也是「组」属性
+    .groupVisible= it.user("visible",...),          // ← visible 也是「组」属性
+}
+ImageData {
+    .alignment = it.optional("horizontalalign",
+                    it.optional("alignment", std::string("center"))),  // 默认 center
+    .size      = it.user("size", ...),
+    .scale     = it.user("scale", ...),   // 与 groupScale 读同一个键
+    .color, .alpha, .brightness, .parallaxDepth, .colorBlendMode, .effects…
+}
+```
+
+**结论（按对我的影响排序）**：
+
+1. **`angles` 是组属性，而我完全没继承它。** 父对象被旋转时，子对象的偏移必须跟着旋转
+   —— 这是"位置不对"剩下最可能的原因。`origin` 只做了平移累加、`scale` 做了复合，
+   旋转整条链都没做。
+2. **`Text` 是独立的对象类型**：`parseText` 会产出带 text / font / pointsize / color /
+   alpha / alignment 的文本对象。**我只处理 `image`，文本对象一律不渲染** —— 这是实打实
+   的"缺内容"。
+3. **`scale` / `angles` / `visible` 都叫 groupXxx**：它们作用于**对象连同其子对象**。
+   我的 `scale` 继承方向是对的（沿链相乘）；`visible` 若能作用于整棵子树，也是这个语义。
+4. **`alignment` 默认 `center`** —— 与我的矩形计算一致，不是问题所在。
+5. **`parent` 只是 id**：`ObjectParser` 不解析父链，组合发生在渲染侧的节点代码里 ——
+   所以**这份文件给不了我确切的组合公式**，只能给字段语义。要看公式得读渲染侧的节点。
+6. 其它对象类型：`sound`（音频）、`particle`、`light`/`shape`（参考实现自己也没实现，
+   直接报 not supported yet）、以及 `"solid": true` 的空对象（合法的、不产生像素）。
+
+**已撤回的改动**：上一轮按"作者脚本算式"推断的"父链偏移按祖先缩放复合"没有解决异位，
+但本轮权威源码确认 `scale` 确实是组属性、子对象确实继承 —— 所以**继承方向保留**，
+只是它不足以解释全部偏移，主因更可能是**没做旋转**。
+
 ### 坐标语义：下一步去读权威实现（2026-10-07 记）
+
 
 用户在截图里圈出三处（顶上两个小圆图标、横穿的细线、底部深红块），并明确说是
 **"应该在，但位置不对"** —— 也就是内容没缺，是**摆放错了**。我连着两轮靠推理改
