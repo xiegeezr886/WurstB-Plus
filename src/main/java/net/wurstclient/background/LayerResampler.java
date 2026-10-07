@@ -64,6 +64,77 @@ final class LayerResampler
 	static final long MIN_PIXELS = 65_536;
 
 	/**
+	 * 统一收紧系数的下限：最大只收到理想边长的这个比例。
+	 *
+	 * <p>
+	 * 收到 1/3 边长（约 1/9 面积）时画面已经明显发软，再往下不如不画。真遇到连这个
+	 * 都装不下的场景，后面的 {@link #fitInto} 与"跳过并打日志"仍然兜着。
+	 * </p>
+	 */
+	static final float MIN_PLAN_FACTOR = 0.34F;
+
+	/**
+	 * 预算预分配：算一个统一的收紧系数，让每一层都还能留在地板之上。
+	 *
+	 * <p>
+	 * 单层视角的"缩到刚好塞下"（{@link #fitInto}）有个先天缺陷：它动不了**已经解码
+	 * 好的前几层**。实测「流萤」就是这样 —— 最后剩不到 65k 像素，那张 4096×4096 的
+	 * 提示框要么缩成 223×223 的糊图、要么丢掉。所以改成先算总账：把"不能缩的层"与
+	 * "可缩层的理想目标"分别求和，超预算就让**所有可缩的层一起**收一点。
+	 * </p>
+	 *
+	 * @param fixedPixels
+	 *            不能缩的层占的像素（场景没声明尺寸的那些，缩了会改布局）
+	 * @param shrinkablePixels
+	 *            可缩的层按**理想目标**算出来的总像素
+	 * @param budget
+	 *            总预算
+	 * @return {@code <= 1} 的系数；装得下就返回 {@code 1}
+	 */
+	static float planFactor(long fixedPixels, long shrinkablePixels,
+		long budget)
+	{
+		if(shrinkablePixels <= 0)
+			return 1;
+
+		long room = budget - fixedPixels;
+
+		// 光是不可缩的层就吃超了：能收多少收多少，剩下的交给 fitInto/跳过
+		if(room <= 0)
+			return MIN_PLAN_FACTOR;
+
+		if(shrinkablePixels <= room)
+			return 1;
+
+		// 面积按比例收：系数 = sqrt(可容纳 / 现有)
+		float factor = (float)Math.sqrt(room / (double)shrinkablePixels);
+
+		return Math.max(MIN_PLAN_FACTOR, Math.min(1, factor));
+	}
+
+	/**
+	 * 把某个尺寸按系数收紧。
+	 *
+	 * @return {@code {宽, 高}}；系数为 1、收不动、或收完低于质量地板时返回 {@code null}
+	 */
+	static int[] tighten(int width, int height, float factor)
+	{
+		if(factor >= 1 || width <= 0 || height <= 0)
+			return null;
+
+		int targetWidth = Math.max(1, (int)Math.floor(width * factor));
+		int targetHeight = Math.max(1, (int)Math.floor(height * factor));
+
+		if(targetWidth >= width && targetHeight >= height)
+			return null;
+
+		if((long)targetWidth * targetHeight < MIN_PIXELS)
+			return null;
+
+		return new int[]{targetWidth, targetHeight};
+	}
+
+	/**
 	 * 剩余预算放不下时，算出"刚好放得下"的尺寸。
 	 *
 	 * <p>
