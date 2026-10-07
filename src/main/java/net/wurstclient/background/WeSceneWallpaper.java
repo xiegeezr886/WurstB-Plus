@@ -301,15 +301,15 @@ public final class WeSceneWallpaper implements AutoCloseable
 			int height = texture.imageHeight();
 
 			if(texture.isStandardImage())
-				return new DecodedLayer(layer,
+				return new DecodedLayer(layer, shrink(layer,
 					NativeImage.read(
-						new ByteArrayInputStream(texture.payload())));
+						new ByteArrayInputStream(texture.payload()))));
 
 			Raw raw = decodeUncompressed(texture, bytes);
 
 			if(raw != null)
-				return new DecodedLayer(layer,
-					toImage(raw.rgba(), raw.width(), raw.height()));
+				return new DecodedLayer(layer, shrink(layer,
+					toImage(raw.rgba(), raw.width(), raw.height())));
 
 			// 视频贴图：载荷就是一整段 MP4，解出第一帧当静态画面用
 			if(texture.isMp4())
@@ -317,7 +317,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 				NativeImage frame = decodeMp4Frame(texture.payload());
 
 				if(frame != null)
-					return new DecodedLayer(layer, frame);
+					return new DecodedLayer(layer, shrink(layer, frame));
 
 				System.out.println("[Background] 跳过 " + layer.name()
 					+ "：mp4 视频贴图解不出帧（" + width + "x" + height + "，"
@@ -336,6 +336,57 @@ public final class WeSceneWallpaper implements AutoCloseable
 			System.out.println(
 				"[Background] 跳过 " + layer.name() + "：" + e.getMessage());
 			return null;
+		}
+	}
+
+	/**
+	 * 按图层的**显示尺寸**把贴图缩小再上传。
+	 *
+	 * <p>
+	 * 起因是实测到的浪费：某场景给一根钟表指针用了 2000×2000 的贴图，屏幕上只有几根细针
+	 * 那么细，四层合计 20M 像素（约 80 MB 显存），把 64M 像素的预算吃光、后面的层全被挤掉。
+	 * 官方文档也承认这类浪费（建议作者导入时把图层裁剪到最小），但已发布的素材改不了，
+	 * 只能在渲染端补。
+	 * </p>
+	 *
+	 * <p>
+	 * <b>安全的依据</b>：{@code WeSceneLayout.rect} 算图层矩形时用的是
+	 * {@code layer.sizeX() > 0 ? layer.sizeX() : textureWidth} —— 只要场景声明了尺寸，
+	 * 布局就与贴图像素尺寸无关，缩小贴图不会改变图层的位置和大小；反过来，
+	 * **没声明尺寸时绝不动**（那时布局拿贴图尺寸当尺寸，缩了会把图层画小）。
+	 * 这条判断在 {@link LayerResampler#target} 里，并有单测钉住。
+	 * </p>
+	 *
+	 * <p>
+	 * 降采样失败不致命：打日志、用原图继续，别为这点优化丢一整层。
+	 * </p>
+	 */
+	private static NativeImage shrink(WeScene.Layer layer, NativeImage image)
+	{
+		int[] target = LayerResampler.target(image.getWidth(),
+			image.getHeight(), layer.sizeX(), layer.sizeY());
+
+		if(target == null)
+			return image;
+
+		try
+		{
+			NativeImage small =
+				LayerResampler.downscale(image, target[0], target[1]);
+
+			System.out.println("[Background] 「" + layer.name() + "」贴图 "
+				+ image.getWidth() + "x" + image.getHeight() + " -> " + target[0]
+				+ "x" + target[1] + "（显示尺寸 " + (int)layer.sizeX() + "x"
+				+ (int)layer.sizeY() + "）");
+
+			image.close();
+			return small;
+
+		}catch(RuntimeException e)
+		{
+			System.out.println("[Background] 「" + layer.name()
+				+ "」降采样失败，改用原图：" + e.getMessage());
+			return image;
 		}
 	}
 
