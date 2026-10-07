@@ -222,6 +222,12 @@ public final class WeSceneWallpaper implements AutoCloseable
 					totalPixels -= (long)image.getWidth() * image.getHeight();
 					image.close();
 					skippedForBudget++;
+
+					// 逐层记下来：只说"跳过了 4 层"没法判断跳掉的是不是要紧的内容
+					System.out.println("[Background]   预算不够，跳过「"
+						+ layer.name() + "」：" + image.getWidth() + "x"
+						+ image.getHeight() + "（累计已 "
+						+ totalPixels / 1_000_000 + "M 像素）");
 					continue;
 				}
 
