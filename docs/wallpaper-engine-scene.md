@@ -602,7 +602,48 @@ ImageData {
 但本轮权威源码确认 `scale` 确实是组属性、子对象确实继承 —— 所以**继承方向保留**，
 只是它不足以解释全部偏移，主因更可能是**没做旋转**。
 
+### 权威补充：`Object.h` 的字段注释（2026-10-07）
+
+来源：同仓库
+[`src/WallpaperEngine/Data/Model/Object.h`](https://github.com/Almamu/linux-wallpaperengine/blob/main/src/WallpaperEngine/Data/Model/Object.h)
+（21772 字节）。它给的是**字段语义**（不是组合公式，组合在渲染侧）：
+
+```cpp
+struct ObjectData {
+    /** The point of origin of the object */
+    UserSettingUniquePtr origin;
+    /** Transform fields for generic scene/group objects.
+        Typed objects keep their own transform fields. */
+    UserSettingUniquePtr groupScale, groupAngles, groupVisible;
+};
+struct ImageData {
+    UserSettingUniquePtr scale, angles, visible, alpha, color;
+    std::string alignment;            // left / center / right
+    /** The size of the image in pixels */
+    glm::vec2 size;
+    UserSettingUniquePtr parallaxDepth, colorBlendMode, brightness;
+};
+struct TextData {
+    text, font, pointSize, size, scale, color, alpha, visible,
+    alignment /* left/center/right */, verticalalign /* top/center/bottom */,
+    padding;
+};
+```
+
+**三条结论**：
+
+1. **`size` 的单位是"像素"** —— 与画布同标（画布本身就是 3840×2160 像素），
+   所以**我按画布单位用 `size` 是对的** ✓ 这一条排除了"size 单位搞错"的怀疑。
+2. **`alignment` 只有 left / center / right（图像）**，而我的矩形计算**一律按 center**
+   ✗ 实测「流萤」里有 4 个对象写了 `left`/`right`，这些会偏出半个宽度 —— 影响面小，
+   但确实是错。**下一步规格**：`left` ⇒ 原点即左边缘（rect.x = originX）、
+   `right` ⇒ 原点即右边缘（rect.x = originX - 宽）、`center` ⇒ 现状。
+3. **Text 是一等对象类型**：`text` / `font` / `pointSize` / `size` / `scale` /
+   `color` / `alpha` / `alignment` / `verticalalign` / `padding` 俱全。参考实现自己注明
+   "Phase 1 只支持静态文本"。**我一个文本对象都没渲染** —— 这是已知的缺内容类型。
+
 ### 坐标语义：下一步去读权威实现（2026-10-07 记）
+
 
 
 用户在截图里圈出三处（顶上两个小圆图标、横穿的细线、底部深红块），并明确说是
