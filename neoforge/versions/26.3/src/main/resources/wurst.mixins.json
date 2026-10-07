@@ -6,6 +6,7 @@
   "plugin": "net.wurstclient.mixin.WurstMixinConfigPlugin",
   "mixins": [],
   "client": [
+    "BlockStateBaseMixin",
     "OptionInstanceMixin",
     "AbstractSignEditScreenMixin",
     "AllowedAddressResolverMixin",
