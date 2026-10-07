@@ -150,7 +150,16 @@ final class WeSceneTest
 		assertEquals(0.09F, branch.parallaxX(), EPSILON);
 	}
 
-	/** 缺字段走默认值：缩放是 1、原点是画布中心，而不是 0。 */
+	/**
+	 * 缺字段走默认值：缩放是 1、**原点缺省是 (0,0) 而不是画布中心**。
+	 *
+	 * <p>
+	 * 这条以前断言的是画布中心，那是我的错误假设。参考实现的
+	 * {@code ObjectParser.cpp} 里写得很清楚：
+	 * {@code .origin = it.user("origin", project.properties, glm::vec3(0.0f))}
+	 * —— 缺省就是零，该对象在 Wallpaper Engine 里落在画布左上角。
+	 * </p>
+	 */
 	@Test
 	void missingFieldsFallBack() throws IOException
 	{
@@ -168,8 +177,8 @@ final class WeSceneTest
 
 		assertEquals(1, layer.scaleX(), EPSILON);
 		assertEquals(1, layer.alpha(), EPSILON);
-		assertEquals(1920, layer.originX(), EPSILON);
-		assertEquals(1080, layer.originY(), EPSILON);
+		assertEquals(0, layer.originX(), EPSILON);
+		assertEquals(0, layer.originY(), EPSILON);
 		// autosize：没写尺寸就交给贴图自己的大小
 		assertEquals(0, layer.sizeX(), EPSILON);
 	}
