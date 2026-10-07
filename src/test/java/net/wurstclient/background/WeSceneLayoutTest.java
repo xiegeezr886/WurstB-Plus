@@ -26,10 +26,51 @@ final class WeSceneLayoutTest
 {
 	private static final float EPSILON = 0.001F;
 
+	/**
+	 * alignment：{@code left} 表示 origin 是图层的**左边缘**、{@code right} 是
+	 * **右边缘**、{@code center}（缺省）是**中心**。
+	 *
+	 * <p>
+	 * 依据：参考实现 {@code ObjectParser.cpp} 里读的是
+	 * {@code optional("horizontalalign", optional("alignment", "center"))}，
+	 * 而 {@code ImageData.alignment} 的注释只列 left/center/right。以前我一律按
+	 * center 算，写了 left/right 的图层会偏出半个宽度。
+	 * </p>
+	 */
+	@Test
+	void shiftsTheRectAccordingToAlignment()
+	{
+		// 100x100、scale 1、画布 3840x2160、屏幕 1920x1080、cover 比例 0.5
+		// => 图层在屏幕上是 50x50，origin(1920,1080) 正好是屏幕中心
+		Rect centre = rectWithAlignment("center");
+		Rect left = rectWithAlignment("left");
+		Rect right = rectWithAlignment("right");
+
+		// center：中心落在 960，所以左边缘是 935
+		assertEquals(935, centre.x(), 0.01);
+		// left：origin 变成左边缘，整个矩形右移半个宽度
+		assertEquals(960, left.x(), 0.01);
+		// right：origin 变成右边缘，整个矩形左移半个宽度
+		assertEquals(910, right.x(), 0.01);
+
+		// 纵向不受横向对齐影响
+		assertEquals(centre.y(), left.y(), 0.01);
+		assertEquals(centre.y(), right.y(), 0.01);
+	}
+
+	private static Rect rectWithAlignment(String alignment)
+	{
+		WeScene.Layer layer = new WeScene.Layer("test", "texture", 1920, 1080,
+			100, 100, 1, 1, 1, 1, 1, 1, 0, 0, alignment, null);
+
+		return WeSceneLayout.rect(layer, 0.5F, 3840, 2160, 1920, 1080, 100, 100,
+			0, 0);
+	}
+
 	private static WeScene.Layer layer(float sizeX, float sizeY, float scale)
 	{
 		return new WeScene.Layer("test", "texture", 1920, 1080, sizeX, sizeY,
-			scale, scale, 1, 1, 1, 1, 0.05F, 0.05F, null);
+			scale, scale, 1, 1, 1, 1, 0.05F, 0.05F, "center", null);
 	}
 
 	/**
@@ -99,7 +140,7 @@ final class WeSceneLayoutTest
 	void offCentreLayersMove()
 	{
 		WeScene.Layer corner = new WeScene.Layer("test", "texture", 0, 0, 100,
-			100, 1, 1, 1, 1, 1, 1, 0, 0, null);
+			100, 1, 1, 1, 1, 1, 1, 0, 0, "center", null);
 
 		Rect rect = WeSceneLayout.rect(corner, 0.5F, 3840, 2160, 1920, 1080,
 			100, 100, 0, 0);
