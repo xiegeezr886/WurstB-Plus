@@ -128,6 +128,15 @@ public final class WeSceneLayout
 		float centreY = screenHeight / 2F
 			+ (layer.originY() - canvasHeight / 2F) * scale + offsetY;
 
+		// alignment：缺省（center）时 origin 是图层的**中心**；left 时 origin 是
+		// **左边缘**、right 时是**右边缘** —— 把中心相应推半个宽度过去。
+		// 依据：参考实现里 ImageData.alignment 只取 left/center/right，
+		// 读法是 optional("horizontalalign", optional("alignment", "center"))。
+		if("left".equals(layer.alignment()))
+			centreX += width / 2F;
+		else if("right".equals(layer.alignment()))
+			centreX -= width / 2F;
+
 		return new Rect(centreX - width / 2F, centreY - height / 2F, width,
 			height);
 	}

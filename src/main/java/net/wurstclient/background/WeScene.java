@@ -91,7 +91,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 	public record Layer(String name, String texture, float originX, float originY,
 		float sizeX, float sizeY, float scaleX, float scaleY, float alpha,
 		float colorR, float colorG, float colorB, float parallaxX,
-		float parallaxY, WeColorKey colorKey)
+		float parallaxY, String alignment, WeColorKey colorKey)
 	{}
 
 	private static final float DEFAULT_WIDTH = 1920;
@@ -233,6 +233,13 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		float alpha = (float)number(object, "alpha", 1);
 		WeColorKey colorKey = WeColorKey.parse(object.get("effects"));
 
+		// 对齐方式：参考实现读的是
+		// optional("horizontalalign", optional("alignment", "center"))
+		// —— 也就是新写法优先、老写法兜底、缺省 center。我的矩形计算只按 center
+		// 算过，所以 left/right 的图层会偏出半个宽度。
+		String alignment = string(object, "horizontalalign",
+			string(object, "alignment", "center")).toLowerCase(Locale.ROOT);
+
 		// Wallpaper Engine 的**内置工具模型**不随包发布，所以 pkg.read 一定读不到：
 		//   models/util/solidlayer.json  = 纯色矩形（用图层自己的 color/alpha 画）
 		//   models/util/composelayer.json = 分组/合成层（自身不画东西）
@@ -242,7 +249,8 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		if(modelName.contains("util/solidlayer"))
 			return new Layer(string(object, "name", modelName), "", origin[0],
 				origin[1], size[0], size[1], scale[0], scale[1], alpha,
-				color[0], color[1], color[2], depth[0], depth[1], colorKey);
+				color[0], color[1], color[2], depth[0], depth[1], alignment,
+				colorKey);
 
 		// 分组层自己不产生像素；它下面的子对象才是内容（子对象的渲染尚未实现）
 		if(modelName.contains("util/composelayer"))
@@ -255,7 +263,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 		return new Layer(string(object, "name", modelName), texture, origin[0],
 			origin[1], size[0], size[1], scale[0], scale[1], alpha, color[0],
-			color[1], color[2], depth[0], depth[1], colorKey);
+			color[1], color[2], depth[0], depth[1], alignment, colorKey);
 	}
 
 	/** 值是不是绑定了脚本（形如 {@code {script, scriptproperties, value}}）。 */
