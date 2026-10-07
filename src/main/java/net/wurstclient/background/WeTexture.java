@@ -305,6 +305,55 @@ public final class WeTexture
 	}
 
 	/**
+	 * <b>只读头部</b>拿纹理尺寸，**不解载荷**。
+	 *
+	 * <p>
+	 * 预算预分配要先遍历整个场景的图层，而 {@link #parse} 会顺带做 LZ4 解压（单张能到
+	 * 几十 MB）—— 预分配只为拿尺寸，绝不能走那条路。头部布局固定：
+	 * {@code TEXV…\0} + {@code TEXI…\0} + format, flags, textureWidth, textureHeight, …
+	 * 这里按 C 字符串逐段跳过而不是写死偏移，版本串长度变了也不会错位。
+	 * </p>
+	 *
+	 * @return {@code {textureWidth, textureHeight}}；读不出来返回 {@code null}
+	 */
+	static int[] headerDimensions(byte[] data)
+	{
+		if(data == null)
+			return null;
+
+		int at = cstringEnd(data, 0); // TEXV0005
+		at = cstringEnd(data, at); // TEXI0001
+
+		if(at < 0 || at + 16 > data.length)
+			return null;
+
+		// 跳过 format 与 flags，接下来两个才是 textureWidth / textureHeight
+		int width = int32At(data, at + 8);
+		int height = int32At(data, at + 12);
+
+		return width > 0 && height > 0 ? new int[]{width, height} : null;
+	}
+
+	private static int cstringEnd(byte[] data, int from)
+	{
+		if(from < 0 || from >= data.length)
+			return -1;
+
+		int at = from;
+
+		while(at < data.length && data[at] != 0)
+			at++;
+
+		return at >= data.length ? -1 : at + 1;
+	}
+
+	private static int int32At(byte[] data, int at)
+	{
+		return data[at] & 0xFF | (data[at + 1] & 0xFF) << 8
+			| (data[at + 2] & 0xFF) << 16 | (data[at + 3] & 0xFF) << 24;
+	}
+
+	/**
 	 * 载荷是不是一段 MP4。
 	 *
 	 * <p>

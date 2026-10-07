@@ -190,6 +190,75 @@ final class LayerResamplerTest
 		assertTrue((long)fit[0] * fit[1] <= 70_000, "又必须真的塞得下");
 	}
 
+	// ------------------------------- 预算预分配 -------------------------------
+
+	/** 装得下就不收。 */
+	@Test
+	void planFactorLeavesWhatFitsAlone()
+	{
+		assertEquals(1F, LayerResampler.planFactor(0, 100, 1000), 0.001F);
+		assertEquals(1F, LayerResampler.planFactor(0, 1000, 1000), 0.001F);
+
+		// 没有可缩的层（全是不可缩的）也没有系数可谈
+		assertEquals(1F, LayerResampler.planFactor(5000, 0, 1000), 0.001F);
+	}
+
+	/** 超一倍面积就收一半边长。 */
+	@Test
+	void planFactorShrinksBySquareRootOfTheOverflow()
+	{
+		assertEquals(0.5F, LayerResampler.planFactor(0, 4000, 1000), 0.001F);
+	}
+
+	/** 不可缩的层先占掉额度，剩下的才轮到可缩的层分。 */
+	@Test
+	void planFactorAccountsForWhatCannotShrink()
+	{
+		// 1000 的预算里不可缩的占 800，可缩的是 400 -> sqrt(200/400) = 0.707
+		assertEquals(0.7071F, LayerResampler.planFactor(800, 400, 1000), 0.001F);
+	}
+
+	/** 收得再狠也不低于下限 —— 那是"不如不画"的界线。 */
+	@Test
+	void planFactorNeverGoesBelowTheFloor()
+	{
+		// 不可缩的层已经把预算吃光
+		assertEquals(LayerResampler.MIN_PLAN_FACTOR,
+			LayerResampler.planFactor(2000, 4000, 1000), 0.001F);
+
+		// 极端超标：sqrt(100/1_000_000) 只有 0.01，仍被夹到下限
+		assertEquals(LayerResampler.MIN_PLAN_FACTOR,
+			LayerResampler.planFactor(900, 1_000_000, 1000), 0.001F);
+	}
+
+	/** 收紧：系数为 1 时什么都不做。 */
+	@Test
+	void tightenDoesNothingAtFactorOne()
+	{
+		assertNull(LayerResampler.tighten(1000, 1000, 1F));
+		assertNull(LayerResampler.tighten(1000, 1000, 1.5F));
+	}
+
+	/** 收紧按比例来，并保持长宽比。 */
+	@Test
+	void tightenScalesProportionally()
+	{
+		int[] tightened = LayerResampler.tighten(4096, 2048, 0.5F);
+
+		assertNotNull(tightened);
+		assertEquals(2048, tightened[0]);
+		assertEquals(1024, tightened[1]);
+		assertEquals(2.0, tightened[0] / (double)tightened[1], 0.01);
+	}
+
+	/** 收紧到地板以下时返回 null，交给后面的 fitInto 或直接跳过。 */
+	@Test
+	void tightenRefusesToGoBelowTheQualityFloor()
+	{
+		// 1000x1000 收 0.1 -> 100x100=10000，低于 65536
+		assertNull(LayerResampler.tighten(1000, 1000, 0.1F));
+	}
+
 	/** 面积平均：4x4 每个 2x2 块取平均。 */
 	@Test
 	void averagesEachBlock()

@@ -179,6 +179,11 @@ public final class WeSceneWallpaper implements AutoCloseable
 		long totalPixels = 0;
 		int skippedForBudget = 0;
 
+		// 先算总账再解码：单层视角的"缩到刚好塞下"动不了已经解好的前几层，
+		// 结果就是最后那几层要么被丢、要么缩成糊图。统一系数让所有可缩的层
+		// 一起收一点，质量摊得均匀。
+		float budgetFactor = planBudget(scene, pkg);
+
 		try
 		{
 			for(WeScene.Layer layer : scene.layers())
@@ -205,6 +210,33 @@ public final class WeSceneWallpaper implements AutoCloseable
 				NativeImage image = bound.image();
 				int imageWidth = image.getWidth();
 				int imageHeight = image.getHeight();
+
+				// 预分配的统一系数：让每一层一起收一点，好过最后几层被整个丢掉。
+				// 这一步和解码是解耦的 —— 只读头部就能算出系数，不必先解一堆图。
+				int[] tighten = LayerResampler.tighten(imageWidth, imageHeight,
+					budgetFactor);
+
+				if(tighten != null)
+					try
+					{
+						NativeImage smaller = LayerResampler.downscale(image,
+							tighten[0], tighten[1]);
+						image.close();
+						image = smaller;
+
+						System.out.println("[Background] 「" + layer.name()
+							+ "」为预算收紧 " + imageWidth + "x" + imageHeight
+							+ " -> " + tighten[0] + "x" + tighten[1]
+							+ "（系数 " + String.format("%.2f", budgetFactor)
+							+ "）");
+
+						imageWidth = tighten[0];
+						imageHeight = tighten[1];
+
+					}catch(RuntimeException e)
+					{
+						// 缩不了就按原尺寸往下走，后面的 fitInto 与跳过仍然兜着
+					}
 
 				// 塞不进剩余预算时**先别丢层**：按缺口把它再缩到刚好放得下。
 				// 图层是按顺序排的、背景在前，所以走到这里的通常是叠加在上面的
@@ -318,6 +350,65 @@ public final class WeSceneWallpaper implements AutoCloseable
 		}
 
 		return List.copyOf(out);
+	}
+
+	/**
+	 * 预算预分配：只读各层贴图的**头部**拿到尺寸（不解压），算出「不可缩」与
+	 * 「可缩层的理想目标」两块的总量，超预算就返回一个统一的收紧系数。
+	 *
+	 * <p>
+	 * 只读头部是关键：这里要遍历整个场景的图层，若走 {@link WeTexture#parse} 就会顺带
+	 * 做 LZ4 解压（单张能到几十 MB），几十层的场景能把内存直接吃爆。
+	 * </p>
+	 */
+	private static float planBudget(WeScene scene, WePackage pkg)
+	{
+		long fixed = 0;
+		long shrinkable = 0;
+
+		for(WeScene.Layer layer : scene.layers())
+		{
+			String entry =
+				WeScene.textureEntryName(layer.texture(), pkg.names());
+
+			if(entry == null)
+				continue;
+
+			byte[] bytes = pkg.read(entry);
+
+			if(bytes == null)
+				continue;
+
+			int[] dimensions = WeTexture.headerDimensions(bytes);
+
+			if(dimensions == null)
+				continue;
+
+			int[] ideal = LayerResampler.target(dimensions[0], dimensions[1],
+				layer.sizeX(), layer.sizeY(), layer.scaleX(), layer.scaleY());
+
+			// **分类的依据是"布局锁不锁"，不是"要不要按显示尺寸缩"** —— 这两个
+			// 一开始被我混为一谈，结果所有层都被算成"不可缩"、可缩总量为 0，
+			// 系数直接掉到下限 0.34，把 4K 背景一刀砍到 2088x1392。
+			//
+			// 没声明尺寸：WeSceneLayout.rect 拿贴图尺寸当显示尺寸，缩了会改布局 -> 不可缩
+			// 声明了尺寸：布局与贴图尺寸无关，预算紧了就还能再收一点 -> 可缩
+			if(layer.sizeX() <= 0 || layer.sizeY() <= 0)
+				fixed += (long)dimensions[0] * dimensions[1];
+			else if(ideal != null)
+				shrinkable += (long)ideal[0] * ideal[1];
+			else
+				shrinkable += (long)dimensions[0] * dimensions[1];
+		}
+
+		float factor = LayerResampler.planFactor(fixed, shrinkable, MAX_PIXELS);
+
+		System.out.println("[Background] 预算预分配：不可缩 " + fixed / 1_000_000
+			+ "M + 可缩 " + shrinkable / 1_000_000 + "M 像素，预算 "
+			+ MAX_PIXELS / 1_000_000 + "M -> 系数 "
+			+ String.format("%.2f", factor));
+
+		return factor;
 	}
 
 	private static DecodedLayer decodeLayer(WeScene.Layer layer, byte[] bytes)
