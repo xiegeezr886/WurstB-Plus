@@ -214,6 +214,16 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		if(modelName.isEmpty())
 			return null;
 
+		// origin 由脚本驱动时**跳过这一层**：存的值往往只是动画中的某一帧。
+		// 实测「流萤」的媒体信息面板就是这样 —— 存的是"滑出画布"的位置（算出来
+		// x 是负数），脚本再把它滑进来。没有 JS 运行时就算不出真实位置，而画在
+		// 存值处只会得到一条贴着画布左缘的暗红色块，那比不画更糟。
+		//
+		// 注意只跳过"自身 origin 被脚本绑定"的：没写 origin 而沿父链继承的，
+		// 以及 origin 是普通向量的（例如主角那层），都照常画。
+		if(isScriptBound(object.get("origin")))
+			return null;
+
 		float[] origin = absoluteOrigin(object, byId, width, height);
 		float[] size = numbers(object.get("size"), 0, 0, 0);
 		float[] scale = inheritedScale(object, byId);
@@ -246,6 +256,13 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		return new Layer(string(object, "name", modelName), texture, origin[0],
 			origin[1], size[0], size[1], scale[0], scale[1], alpha, color[0],
 			color[1], color[2], depth[0], depth[1], colorKey);
+	}
+
+	/** 值是不是绑定了脚本（形如 {@code {script, scriptproperties, value}}）。 */
+	private static boolean isScriptBound(JsonElement element)
+	{
+		return element != null && element.isJsonObject()
+			&& element.getAsJsonObject().has("script");
 	}
 
 	/**
