@@ -410,9 +410,25 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 	/**
 	 * 解析 {@code "x y z"} 这类以空格分隔的向量，缺的部分用兜底值补。
+	 *
+	 * <p>
+	 * 值**也可能是对象**：{@code {"script":…,"scriptproperties":…,"value":"x y z"}}
+	 * —— 那是绑定到脚本/用户属性的形式，真实数值在 {@code value} 里。实测「流萤」里
+	 * 大量 {@code origin}/{@code scale} 就是这种。以前遇到对象就退回兜底值，而兜底
+	 * 是画布中心，图层直接跳到画面正中 —— 这是位移的第二条通路。处理方式与
+	 * {@link #isVisible(JsonElement)} 对 {@code visible} 的处理保持一致。
+	 * </p>
 	 */
 	static float[] numbers(JsonElement element, float... fallback)
 	{
+		if(element != null && element.isJsonObject())
+		{
+			JsonObject object = element.getAsJsonObject();
+
+			if(object.has("value"))
+				return numbers(object.get("value"), fallback);
+		}
+
 		float[] out = fallback.clone();
 
 		if(element == null || !element.isJsonPrimitive())
