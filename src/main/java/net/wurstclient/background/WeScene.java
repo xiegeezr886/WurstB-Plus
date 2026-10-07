@@ -10,8 +10,10 @@ package net.wurstclient.background;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Function;
 
 import com.google.gson.JsonArray;
@@ -140,6 +142,18 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		List<ParticleLayer> particles = new ArrayList<>();
 		JsonArray objects = array(scene, "objects");
 
+		// 对象是一棵树：子对象的 origin 是**相对父对象**的偏移。实测「流萤」里 93 个
+		// 对象有 70 个带 parent，偏移都是小数值（Clock Container 的 (0,-182)、
+		// Background 的 (-256,0)、Rounded Corners 的 (-1206,0)…）。以前一律当绝对
+		// 坐标用，于是每个子对象都偏了位置、层级越深偏得越多。先按 id 建表，解析时
+		// 沿 parent 链把偏移累加起来。
+		Map<Integer, JsonObject> byId = new HashMap<>();
+
+		for(JsonElement element : objects)
+			if(element.isJsonObject() && element.getAsJsonObject().has("id"))
+				byId.put(element.getAsJsonObject().get("id").getAsInt(),
+					element.getAsJsonObject());
+
 		for(JsonElement element : objects)
 		{
 			if(!element.isJsonObject())
@@ -147,7 +161,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 			JsonObject object = element.getAsJsonObject();
 
-			Layer layer = readLayer(object, files, width, height);
+			Layer layer = readLayer(object, files, width, height, byId);
 
 			if(layer != null)
 			{
@@ -189,7 +203,8 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 	}
 
 	private static Layer readLayer(JsonObject object,
-		Function<String, String> files, int width, int height)
+		Function<String, String> files, int width, int height,
+		Map<Integer, JsonObject> byId)
 	{
 		if(!isVisible(object.get("visible")))
 			return null;
@@ -199,10 +214,9 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		if(modelName.isEmpty())
 			return null;
 
-		float[] origin = numbers(object.get("origin"), width / 2F, height / 2F,
-			0);
+		float[] origin = absoluteOrigin(object, byId, width, height);
 		float[] size = numbers(object.get("size"), 0, 0, 0);
-		float[] scale = numbers(object.get("scale"), 1, 1, 1);
+		float[] scale = inheritedScale(object, byId);
 		float[] color = numbers(object.get("color"), 1, 1, 1);
 		float[] depth = numbers(object.get("parallaxDepth"), 0, 0, 0);
 
@@ -232,6 +246,82 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		return new Layer(string(object, "name", modelName), texture, origin[0],
 			origin[1], size[0], size[1], scale[0], scale[1], alpha, color[0],
 			color[1], color[2], depth[0], depth[1], colorKey);
+	}
+
+	/**
+	 * 沿 {@code parent} 链把 origin 累加成画布绝对坐标。
+	 *
+	 * <p>
+	 * 子对象的 {@code origin} 是**相对父对象**的偏移。链上任何一个对象都没写 origin
+	 * 时，退回画布中心（与旧行为一致）—— 免得把本来有坐标的对象丢到左上角。
+	 * </p>
+	 *
+	 * <p>
+	 * 深度上限 32 是防环：场景文件是作者手写/编辑器导出的，父子成环会把解析卡死。
+	 * </p>
+	 */
+	private static float[] absoluteOrigin(JsonObject object,
+		Map<Integer, JsonObject> byId, int width, int height)
+	{
+		float x = 0;
+		float y = 0;
+		boolean found = false;
+		JsonObject current = object;
+
+		for(int depth = 0; current != null && depth < 32; depth++)
+		{
+			if(current.has("origin"))
+			{
+				float[] own = numbers(current.get("origin"), 0, 0, 0);
+				x += own[0];
+				y += own[1];
+				found = true;
+			}
+
+			if(!current.has("parent")
+				|| !current.get("parent").isJsonPrimitive())
+				break;
+
+			current = byId.get(current.get("parent").getAsInt());
+		}
+
+		if(!found)
+			return new float[]{width / 2F, height / 2F, 0};
+
+		return new float[]{x, y, 0};
+	}
+
+	/**
+	 * 缩放沿 {@code parent} 链相乘。
+	 *
+	 * <p>
+	 * 与位置同理：父对象被缩放时子对象跟着缩放。链上没写 scale 的按 1 处理。
+	 * </p>
+	 */
+	private static float[] inheritedScale(JsonObject object,
+		Map<Integer, JsonObject> byId)
+	{
+		float x = 1;
+		float y = 1;
+		JsonObject current = object;
+
+		for(int depth = 0; current != null && depth < 32; depth++)
+		{
+			if(current.has("scale"))
+			{
+				float[] own = numbers(current.get("scale"), 1, 1, 1);
+				x *= own[0];
+				y *= own[1];
+			}
+
+			if(!current.has("parent")
+				|| !current.get("parent").isJsonPrimitive())
+				break;
+
+			current = byId.get(current.get("parent").getAsInt());
+		}
+
+		return new float[]{x, y, 1};
 	}
 
 	/** 模型 → 材质 → 第一个贴图名；任何一步缺失都返回 null。 */
