@@ -44,28 +44,41 @@ final class LayerResampler
 	 * 安全系数：拿显示尺寸的这么多倍当目标。
 	 *
 	 * <p>
-	 * 留余量是因为图层还可能被放大 —— 窗口比画布大时 {@code scale > 1}、视差位移、
-	 * 用户缩放都会让实际显示尺寸超过画布单位下的 {@code size}。留 2 倍是保守取法，
-	 * 代价只是少省一点显存。
+	 * 显示尺寸本身是**画布单位**（{@code size × scale}），而图层最终画多大还要乘上
+	 * 画布到屏幕的缩放 —— 窗口比画布大、场景带 zoom、视差位移都会把实际显示尺寸顶上去。
+	 * 留 1.25 倍余量：屏幕尺寸等于画布时仍不小于一个像素对一个像素，只有用户额外放大
+	 * 一倍以上才会开始轻微发虚。
 	 * </p>
 	 */
-	static final float HEADROOM = 2;
+	static final float HEADROOM = 1.25F;
 
 	/**
 	 * 该不该降、降到多少。
 	 *
 	 * @param sizeX
 	 *            场景声明的图层宽度（画布单位）；{@code <= 0} 表示没声明
+	 * @param scaleX
+	 *            图层的缩放；{@code <= 0} 按 1 处理。**显示尺寸是 size × scale**
+	 *            —— 实测某场景的钟表指针 size=2000、scale=0.25，屏幕上只有 500 见方，
+	 *            漏掉 scale 就会把这种 17 倍（圆点更是 105 倍）的浪费判成"没超"。
 	 * @return {@code {宽, 高}}；不需要降采样时返回 {@code null}
 	 */
 	static int[] target(int textureWidth, int textureHeight, float sizeX,
-		float sizeY)
+		float sizeY, float scaleX, float scaleY)
 	{
-		// 没声明尺寸就别动：布局此时依赖贴图尺寸
-		if(textureWidth <= 0 || textureHeight <= 0 || sizeX <= 0 || sizeY <= 0)
+		if(textureWidth <= 0 || textureHeight <= 0)
 			return null;
 
-		float displayLongest = Math.max(sizeX, sizeY) * HEADROOM;
+		// 安全阀：场景没声明尺寸时，布局是拿贴图尺寸当显示尺寸的
+		// （WeSceneLayout.rect：sizeX > 0 ? sizeX : textureWidth），
+		// 这时缩小贴图会把图层一并画小、位置也错，所以一律不动。
+		if(sizeX <= 0 || sizeY <= 0)
+			return null;
+
+		float factorX = scaleX > 0 ? scaleX : 1;
+		float factorY = scaleY > 0 ? scaleY : 1;
+		float displayLongest =
+			Math.max(sizeX * factorX, sizeY * factorY) * HEADROOM;
 		float textureLongest = Math.max(textureWidth, textureHeight);
 
 		if(displayLongest <= 0 || textureLongest < displayLongest * MIN_FACTOR)

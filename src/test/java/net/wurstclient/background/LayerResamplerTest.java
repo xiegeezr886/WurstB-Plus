@@ -31,48 +31,73 @@ final class LayerResamplerTest
 	@Test
 	void refusesWhenTheSceneDoesNotDeclareASize()
 	{
-		assertNull(LayerResampler.target(2000, 2000, 0, 0));
-		assertNull(LayerResampler.target(2000, 2000, -1, 100));
-		assertNull(LayerResampler.target(2000, 2000, 100, 0));
+		assertNull(LayerResampler.target(2000, 2000, 0, 0, 1, 1));
+		assertNull(LayerResampler.target(2000, 2000, -1, 100, 1, 1));
+		assertNull(LayerResampler.target(2000, 2000, 100, 0, 1, 1));
+
+		// 即使 scale 很小（看起来浪费巨大）也不许动：布局这时拿贴图尺寸当尺寸
+		assertNull(LayerResampler.target(2000, 2000, 0, 0, 0.01F, 0.01F));
 	}
 
 	/** 贴图不比显示尺寸大出 MIN_FACTOR 倍就不值得降。 */
 	@Test
 	void leavesSmallTexturesAlone()
 	{
-		// 显示 500x500、安全系数 2 => 目标 1000，贴图 1000 没到 2 倍
-		assertNull(LayerResampler.target(1000, 1000, 500, 500));
+		// 显示 500、余量 1.25 => 目标 625，贴图 1000 没到 2 倍
+		assertNull(LayerResampler.target(1000, 1000, 500, 500, 1, 1));
 
 		// 贴图刚好等于显示尺寸
-		assertNull(LayerResampler.target(100, 100, 100, 100));
+		assertNull(LayerResampler.target(100, 100, 100, 100, 1, 1));
 
 		// 贴图比显示尺寸还小（会被放大画），当然不降
-		assertNull(LayerResampler.target(50, 50, 100, 100));
+		assertNull(LayerResampler.target(50, 50, 100, 100, 1, 1));
 	}
 
-	/** 那根"钟表指针用 2000x2000"的贴图：显示只有 100 画布单位。 */
+	/**
+	 * 实测的真实浪费：某场景的钟表圆点 {@code tex=2048x2048 size=2000x2000
+	 * scale=0.1}，屏幕上只有 200 见方 —— 2048 对 200，**105 倍**的浪费。
+	 *
+	 * <p>
+	 * 这个用例同时钉住"显示尺寸必须算上 scale"：只看 size 的话 2048 并不比 2000 大，
+	 * 会被判成"没超"，也就永远不会降（第一版就是这么漏掉的）。
+	 * </p>
+	 */
+	@Test
+	void shrinksTheOversizedClockDot()
+	{
+		int[] target =
+			LayerResampler.target(2048, 2048, 2000, 2000, 0.1F, 0.1F);
+
+		assertNotNull(target, "显示 200、余量 1.25 => 目标 250，2048 远超 2 倍");
+
+		// 倍率 = 2048 / 250 = 8.192
+		assertEquals(250, target[0]);
+		assertEquals(250, target[1]);
+
+		// 4.19M 像素 -> 62.5k 像素，省下 98.5%
+		assertEquals(62_500, target[0] * target[1]);
+	}
+
+	/** 同一场景的指针：{@code tex=2048x2048 size=2000x2000 scale=0.25} -> 显示 500。 */
 	@Test
 	void shrinksTheOversizedClockHand()
 	{
-		int[] target = LayerResampler.target(2000, 2000, 100, 100);
+		int[] target =
+			LayerResampler.target(2048, 2048, 2000, 2000, 0.25F, 0.25F);
 
 		assertNotNull(target);
-		// 目标边长 = 100 * 2 = 200，倍率 2000/200 = 10
-		assertEquals(200, target[0]);
-		assertEquals(200, target[1]);
-
-		// 4M 像素 -> 40k 像素，省下 99%
-		assertEquals(40_000, target[0] * target[1]);
+		assertEquals(625, target[0]);
+		assertEquals(625, target[1]);
 	}
 
 	/** 倍率有上限，再离谱的素材也不会被缩成 1x1。 */
 	@Test
 	void capsTheReductionFactor()
 	{
-		int[] target = LayerResampler.target(8000, 4000, 10, 10);
+		int[] target = LayerResampler.target(8000, 4000, 10, 10, 1, 1);
 
 		assertNotNull(target);
-		// 目标边长 20，本来要缩 400 倍，被 MAX_FACTOR=16 挡住
+		// 目标边长 12.5，本来要缩 640 倍，被 MAX_FACTOR=16 挡住
 		assertEquals(500, target[0]);
 		assertEquals(250, target[1]);
 	}
@@ -81,10 +106,17 @@ final class LayerResamplerTest
 	@Test
 	void keepsTheAspectRatio()
 	{
-		int[] target = LayerResampler.target(4096, 2048, 100, 100);
+		int[] target = LayerResampler.target(4096, 2048, 100, 100, 1, 1);
 
 		assertNotNull(target);
 		assertEquals(2.0, target[0] / (double)target[1], 0.02);
+	}
+
+	/** 正常的 4K 背景层不该被动：贴图 4096、显示 3840，只超一点点。 */
+	@Test
+	void leavesAProperlySizedBackgroundAlone()
+	{
+		assertNull(LayerResampler.target(4096, 4096, 3840, 2160, 1, 1));
 	}
 
 	/** 面积平均：4x4 每个 2x2 块取平均。 */

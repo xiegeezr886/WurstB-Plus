@@ -364,7 +364,8 @@ public final class WeSceneWallpaper implements AutoCloseable
 	private static NativeImage shrink(WeScene.Layer layer, NativeImage image)
 	{
 		int[] target = LayerResampler.target(image.getWidth(),
-			image.getHeight(), layer.sizeX(), layer.sizeY());
+			image.getHeight(), layer.sizeX(), layer.sizeY(), layer.scaleX(),
+			layer.scaleY());
 
 		if(target == null)
 			return image;
@@ -374,10 +375,20 @@ public final class WeSceneWallpaper implements AutoCloseable
 			NativeImage small =
 				LayerResampler.downscale(image, target[0], target[1]);
 
+			// 记的是**有效显示尺寸**（size × scale），不是 size —— 只打 size 的话
+			// 「2000 -> 625」看起来对不上，得让人一眼看懂为什么该缩
+			long displayWidth = Math
+				.round(layer.sizeX() * (layer.scaleX() > 0 ? layer.scaleX() : 1));
+			long displayHeight = Math
+				.round(layer.sizeY() * (layer.scaleY() > 0 ? layer.scaleY() : 1));
+			long before = (long)image.getWidth() * image.getHeight();
+			long after = (long)target[0] * target[1];
+
 			System.out.println("[Background] 「" + layer.name() + "」贴图 "
 				+ image.getWidth() + "x" + image.getHeight() + " -> " + target[0]
-				+ "x" + target[1] + "（显示尺寸 " + (int)layer.sizeX() + "x"
-				+ (int)layer.sizeY() + "）");
+				+ "x" + target[1] + "（显示 " + displayWidth + "x"
+				+ displayHeight + "，省 "
+				+ (before > 0 ? (100 - after * 100 / before) : 0) + "%）");
 
 			image.close();
 			return small;
