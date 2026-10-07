@@ -283,14 +283,10 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		// 先把链按「根 → 自身」的顺序列出来
 		List<JsonObject> chain = new ArrayList<>();
 		JsonObject current = object;
-		boolean found = false;
 
 		for(int depth = 0; current != null && depth < 32; depth++)
 		{
 			chain.add(0, current);
-
-			if(current.has("origin"))
-				found = true;
 
 			if(!current.has("parent")
 				|| !current.get("parent").isJsonPrimitive())
@@ -299,13 +295,14 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 			current = byId.get(current.get("parent").getAsInt());
 		}
 
-		if(!found)
-			return new float[]{width / 2F, height / 2F, 0};
-
-		// **偏移要按祖先的缩放放大**：子对象的 origin 处在父对象的局部坐标系里。
-		// 证据写在作者的脚本里 —— Rounded Corners 的脚本把值除以父与祖父缩放的
-		// 乘积再乘回去，那正是在抵消这里做的复合缩放。实测「流萤」Holder 链的缩放
-		// 是 0.5，于是 Rounded Corners 的 (-1206,0) 只该贡献 -603。
+		// **缺省的 origin 是 (0,0)，不是画布中心** —— 参考实现里写得很清楚：
+		// ObjectData 的 origin 默认值是 glm::vec3(0.0f)。我原先在"整条链都没有
+		// origin"时退回画布中心，那是错的：该对象在 WE 里就落在画布左上角。
+		//
+		// 偏移要按祖先的缩放/旋转复合：子对象的 origin 处在父对象的局部坐标系里。
+		// 本场景实测所有可见图层沿父链的累计旋转都是 0（93 个对象里只有 10 个写了
+		// 非零 angles，且都不在这些层的链上），所以这里只做缩放复合；旋转留待真
+		// 遇到非零场景时再补。
 		float x = 0;
 		float y = 0;
 		float scaleX = 1;
