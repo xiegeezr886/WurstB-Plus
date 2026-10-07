@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -117,6 +118,76 @@ final class LayerResamplerTest
 	void leavesAProperlySizedBackgroundAlone()
 	{
 		assertNull(LayerResampler.target(4096, 4096, 3840, 2160, 1, 1));
+	}
+
+	// ------------------------------- 塞不进剩余预算时按缺口再缩 ------------------
+
+	/** 放得下就什么都不做。 */
+	@Test
+	void fitIntoLeavesRoomEnoughAlone()
+	{
+		assertNull(LayerResampler.fitInto(1000, 1000, 1_000_000));
+		assertNull(LayerResampler.fitInto(1000, 1000, 2_000_000));
+	}
+
+	/**
+	 * 只差一点点时也要缩，哪怕只缩掉一个像素 —— 缩一点点留住这一层，
+	 * 远好过因为差几个像素就把整层丢掉。
+	 */
+	@Test
+	void fitIntoShrinksEvenForATinyDeficit()
+	{
+		int[] fit = LayerResampler.fitInto(1000, 1000, 1_000_000 - 1);
+
+		assertNotNull(fit);
+		assertTrue((long)fit[0] * fit[1] <= 999_999, "必须真的塞得下");
+	}
+
+	/** 剩余空间只有四分之一时应当缩到一半边长。 */
+	@Test
+	void fitIntoHalvesTheEdgeWhenRoomIsAQuarter()
+	{
+		int[] fit = LayerResampler.fitInto(1000, 1000, 250_000);
+
+		assertNotNull(fit);
+		assertEquals(500, fit[0]);
+		assertEquals(500, fit[1]);
+		// 缩完必须真的塞得下
+		assertTrue((long)fit[0] * fit[1] <= 250_000);
+	}
+
+	/** 长宽比要保持。 */
+	@Test
+	void fitIntoKeepsTheAspectRatio()
+	{
+		int[] fit = LayerResampler.fitInto(4096, 2048, 1_000_000);
+
+		assertNotNull(fit);
+		assertEquals(2.0, fit[0] / (double)fit[1], 0.02);
+	}
+
+	/** 剩余空间小到会突破质量地板时，宁可返回 null 去丢层。 */
+	@Test
+	void fitIntoRefusesToGoBelowTheQualityFloor()
+	{
+		// 4096x4096 塞进 1000 像素：就算缩到 1x1 也不够……
+		assertNull(LayerResampler.fitInto(4096, 4096, 1000));
+
+		// 剩余空间本身就是地板以下
+		assertNull(LayerResampler.fitInto(1000, 1000,
+			LayerResampler.MIN_PIXELS - 1));
+	}
+
+	/** 缩到地板之上但刚好够放时应当放行 —— 别把地板当成"必须大于"。 */
+	@Test
+	void fitIntoAllowsExactlyTheFloor()
+	{
+		int[] fit = LayerResampler.fitInto(2048, 2048, 70_000);
+
+		assertNotNull(fit);
+		assertTrue((long)fit[0] * fit[1] >= LayerResampler.MIN_PIXELS,
+			"不该缩到地板以下");
+		assertTrue((long)fit[0] * fit[1] <= 70_000, "又必须真的塞得下");
 	}
 
 	/** 面积平均：4x4 每个 2x2 块取平均。 */

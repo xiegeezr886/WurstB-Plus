@@ -53,6 +53,57 @@ final class LayerResampler
 	static final float HEADROOM = 1.25F;
 
 	/**
+	 * 质量地板：缩到这个像素数以下就不值得了，宁可丢层。
+	 *
+	 * <p>
+	 * 256×256 = 65536。依据：走到这一步的多是叠在上面的 UI 面板与文字框，缩到 256
+	 * 见方时文字已经明显发糊 —— 再小就不如不画。而 65536 像素相对 64M 的预算只占
+	 * 千分之一，硬塞进来也换不回多少东西。
+	 * </p>
+	 */
+	static final long MIN_PIXELS = 65_536;
+
+	/**
+	 * 剩余预算放不下时，算出"刚好放得下"的尺寸。
+	 *
+	 * <p>
+	 * 与 {@link #target} 的区别：{@code target} 是按**显示尺寸**该缩到多少（质量优先），
+	 * 这个是按**剩余预算**必须缩到多少（塞得下优先）。两者都按等比缩，保持长宽比。
+	 * </p>
+	 *
+	 * @param room
+	 *            剩余可用像素数
+	 * @return {@code {宽, 高}}；已经放得下、或缩到质量地板以下都不划算时返回 {@code null}
+	 */
+	static int[] fitInto(int width, int height, long room)
+	{
+		if(width <= 0 || height <= 0)
+			return null;
+
+		long pixels = (long)width * height;
+
+		if(pixels <= room)
+			return null;
+
+		if(room < MIN_PIXELS)
+			return null;
+
+		// 面积按比例缩：倍率 = sqrt(现有像素 / 可容纳像素)。
+		// 取 floor 保证乘完仍然 <= room。
+		double factor = Math.sqrt(pixels / (double)room);
+		int targetWidth = Math.max(1, (int)Math.floor(width / factor));
+		int targetHeight = Math.max(1, (int)Math.floor(height / factor));
+
+		if((long)targetWidth * targetHeight < MIN_PIXELS)
+			return null;
+
+		if(targetWidth >= width && targetHeight >= height)
+			return null;
+
+		return new int[]{targetWidth, targetHeight};
+	}
+
+	/**
 	 * 该不该降、降到多少。
 	 *
 	 * @param sizeX

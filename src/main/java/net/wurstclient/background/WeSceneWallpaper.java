@@ -203,9 +203,38 @@ public final class WeSceneWallpaper implements AutoCloseable
 					continue;
 
 				NativeImage image = bound.image();
-				totalPixels += (long)image.getWidth() * image.getHeight();
+				int imageWidth = image.getWidth();
+				int imageHeight = image.getHeight();
 
-				if(totalPixels > MAX_PIXELS)
+				// 塞不进剩余预算时**先别丢层**：按缺口把它再缩到刚好放得下。
+				// 图层是按顺序排的、背景在前，所以走到这里的通常是叠加在上面的
+				// UI 面板/文字框 —— 稍微软一点远好过整层消失。
+				int[] fit = LayerResampler.fitInto(imageWidth, imageHeight,
+					MAX_PIXELS - totalPixels);
+
+				if(fit != null)
+					try
+					{
+						NativeImage smaller = LayerResampler.downscale(image,
+							fit[0], fit[1]);
+						image.close();
+						image = smaller;
+
+						System.out.println("[Background] 「" + layer.name()
+							+ "」塞不进剩余预算，再缩到 " + fit[0] + "x" + fit[1]
+							+ "（原 " + imageWidth + "x" + imageHeight + "）");
+
+						imageWidth = fit[0];
+						imageHeight = fit[1];
+
+					}catch(RuntimeException e)
+					{
+						// 缩不了就照旧走下面的跳过分支
+					}
+
+				long pixels = (long)imageWidth * imageHeight;
+
+				if(totalPixels + pixels > MAX_PIXELS)
 				{
 					// 到预算就别再往里加了，但**别把整个场景扔掉**：图层是按顺序
 					// 排的，背景通常在最前面，丢掉后面几层远好过整幅退回内置背景
@@ -219,19 +248,18 @@ public final class WeSceneWallpaper implements AutoCloseable
 					// 这里**必须留日志**：不留的话，被砍掉的层看起来就像"压根没处理"，
 					// 排查时会往贴图格式那边找 —— 实测「流萤」的 mp4 贴图就因此被误判
 					// 过一轮（那一层本身解得出来，是被预算挡掉的）。
-					totalPixels -= (long)image.getWidth() * image.getHeight();
 					image.close();
 					skippedForBudget++;
 
 					// 逐层记下来：只说"跳过了 4 层"没法判断跳掉的是不是要紧的内容
 					System.out.println("[Background]   预算不够，跳过「"
-						+ layer.name() + "」：" + image.getWidth() + "x"
-						+ image.getHeight() + "（累计已 "
-						+ totalPixels / 1_000_000 + "M 像素）");
+						+ layer.name() + "」：" + imageWidth + "x" + imageHeight
+						+ "（累计已 " + totalPixels / 1_000_000 + "M 像素）");
 					continue;
 				}
 
-				decoded.add(bound);
+				totalPixels += pixels;
+				decoded.add(new DecodedLayer(layer, image));
 			}
 		}catch(RuntimeException e)
 		{
