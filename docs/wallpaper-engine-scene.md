@@ -473,6 +473,33 @@ format 分布: {f0=53, f8=19, f9=15}
 **要改的话 128M 是可用的**（实测无 OOM、无卡顿），但那是显存换图层数的取舍，
 不是修 bug —— 等材质系统做出来、蓝幕能被抠掉之后，再提上去才有意义。
 
+**官方文档事后给了这个问题一个明确答案（2026-10-07 补）**：Wallpaper Engine 自己的
+设计文档
+[Texture Optimization](https://docs.wallpaperengine.io/en/scene/performance/texture.html)
+写着
+
+> we recommend using around **300 MB VRAM or less** for great performance. Using less
+> than **500 MB** is also still acceptable but you should try and **not exceed this limit**
+
+对照下来：**64M 像素 = 256 MB，正好落在官方推荐的 ~300 MB 以内**；而 **128M 像素
+= 512 MB，已经越过官方"不要超过 500 MB"的线**。所以这个取舍不必再讨论 ——
+**保持 64M 是有官方依据的**，不是保守。
+
+同一页还印证了另外两件我们早先靠实测推出来的事：
+
+1. **DXT5 / DXT1 只占未压缩格式的四分之一显存**（1 字节/像素 vs 4），与
+   `WeTexture` 里那张每像素字节表一致。
+2. **2 的幂填充是 WE 自己的行为**：原文说 DXT5/DXT1 贴图分辨率必须是 2 的幂，
+   "Wallpaper Engine will quietly take care of this in the background and add invisible
+   pixels"。这正解释了实测看到的 `树叶 1024×885 → 按 1024×1024 存`、
+   `preview 1080×1080 → 按 2048×2048 存` —— 那是它的约定，不是我们解析错。
+3. 官方明说 **GPU 不支持直接渲染 JPEG/PNG，WE 必须先转换** —— 与 `.tex` 里
+   `compression == 0` 存 PNG/JPEG、`compression == 1` 存 LZ4 压缩的裸像素/DXT 对应。
+
+顺带一提：官方建议作者在导入时**把图层裁剪到最小尺寸**（含去掉 padding），而
+「一根钟表指针用 2000×2000」正是没做这件事的结果 —— 那属于素材没优化，
+不是渲染端的问题。渲染端若要做，就是我上面记的"按显示尺寸上传图层"。
+
 **取规范的可网络通道**（这台机器上实测）：`raw.githubusercontent.com` **不通**、
 `wallpaper-engine.fandom.com` 与 `raw.githack.com` **不通**、`deepwiki.com` 返回 429、
 `cdn.jsdelivr.net` 通但返回 `application/octet-stream`（抓取工具拒收）。
