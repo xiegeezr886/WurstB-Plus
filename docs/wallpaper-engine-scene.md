@@ -410,6 +410,24 @@ format 分布: {f0=53, f8=19, f9=15}
 更多层也就能同时画出来。场景的图层几何里本来就有显示尺寸信息，所以这是可行的 ——
 但需要自己写重采样（`NativeImage` 没有现成的缩放接口），不是小改动。
 
+### 库里同名的两条不是重复，是同一作品的两种形态
+
+排查时踩到一次：`run/wurst/backgrounds/` 里同时存在
+
+```
+4k-customizable-where-dream-has-been-夢が残した足跡         media.gif 941KB + thumbnail.png
+4k-customizable-where-dream-has-been-夢が残した足跡-工坊测   media.pkg 25MB
+4k动态音乐壁纸-流浪地球-the-wandering-earth                 media.jpg 117KB + thumbnail.png
+4k动态音乐壁纸-流浪地球-the-wandering-earth-工坊测试          media.pkg 15.8MB
+```
+
+**这不是重复导入**：工坊作品里可以同时带 GIF/图片与场景（`.pkg`），导入器把它们各建了
+一个条目，两条都合法。选中 GIF/图片那条时它按静态图静默加载（**不会有任何
+`[Background]` 日志**），看起来就像"背景没生效" —— 我这次就是误选了它才拿到空日志。
+
+**认条目的判据**：看目录里是 `media.pkg`（场景）还是 `media.gif`/`media.jpg`（图片），
+别只看名字前缀。
+
 ### 帧率实测（2026-10-07）
 
 
