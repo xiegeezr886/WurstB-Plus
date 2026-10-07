@@ -459,6 +459,14 @@ public final class WeSceneWallpaper implements AutoCloseable
 	}
 
 	/**
+	 * 贴图的后处理入口（名字是历史遗留，现在它做两件事）：**先抠像、再按显示尺寸缩小**。
+	 *
+	 * <p>
+	 * 顺序不能颠倒：降采样是按 alpha 预乘求平均的，先把蓝底抠成透明，边缘过渡才不会
+	 * 把蓝色混进人物那一侧。
+	 * </p>
+	 *
+	 * <p>
 	 * 按图层的**显示尺寸**把贴图缩小再上传。
 	 *
 	 * <p>
@@ -482,6 +490,22 @@ public final class WeSceneWallpaper implements AutoCloseable
 	 */
 	private static NativeImage shrink(WeScene.Layer layer, NativeImage image)
 	{
+		// 抠像先行：蓝幕素材在这个场景里很常见，而它必须发生在降采样之前
+		if(layer.colorKey() != null)
+			try
+			{
+				layer.colorKey().apply(image);
+				System.out.println("[Background] 「" + layer.name()
+					+ "」按色键抠像（键色 " + layer.colorKey().red() + " "
+					+ layer.colorKey().green() + " " + layer.colorKey().blue()
+					+ "，容差 " + layer.colorKey().tolerance() + "）");
+
+			}catch(RuntimeException e)
+			{
+				System.out.println("[Background] 「" + layer.name()
+					+ "」抠像失败，按原图继续：" + e.getMessage());
+			}
+
 		int[] target = LayerResampler.target(image.getWidth(),
 			image.getHeight(), layer.sizeX(), layer.sizeY(), layer.scaleX(),
 			layer.scaleY());

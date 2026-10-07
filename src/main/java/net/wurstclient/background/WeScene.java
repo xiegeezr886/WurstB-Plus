@@ -89,7 +89,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 	public record Layer(String name, String texture, float originX, float originY,
 		float sizeX, float sizeY, float scaleX, float scaleY, float alpha,
 		float colorR, float colorG, float colorB, float parallaxX,
-		float parallaxY)
+		float parallaxY, WeColorKey colorKey)
 	{}
 
 	private static final float DEFAULT_WIDTH = 1920;
@@ -213,9 +213,13 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 		float alpha = (float)number(object, "alpha", 1);
 
+		// 色键抠像：蓝幕/绿幕素材的图层会带一个 effects/colorkey 效果，
+		// 键色与阈值就写在它的常量里（不需要材质或着色器系统）
+		WeColorKey colorKey = WeColorKey.parse(object.get("effects"));
+
 		return new Layer(string(object, "name", modelName), texture, origin[0],
 			origin[1], size[0], size[1], scale[0], scale[1], alpha, color[0],
-			color[1], color[2], depth[0], depth[1]);
+			color[1], color[2], depth[0], depth[1], colorKey);
 	}
 
 	/** 模型 → 材质 → 第一个贴图名；任何一步缺失都返回 null。 */
