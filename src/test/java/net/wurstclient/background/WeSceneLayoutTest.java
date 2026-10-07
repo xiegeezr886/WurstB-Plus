@@ -29,7 +29,7 @@ final class WeSceneLayoutTest
 	private static WeScene.Layer layer(float sizeX, float sizeY, float scale)
 	{
 		return new WeScene.Layer("test", "texture", 1920, 1080, sizeX, sizeY,
-			scale, scale, 1, 1, 1, 1, 0.05F, 0.05F);
+			scale, scale, 1, 1, 1, 1, 0.05F, 0.05F, null);
 	}
 
 	/**
@@ -99,7 +99,7 @@ final class WeSceneLayoutTest
 	void offCentreLayersMove()
 	{
 		WeScene.Layer corner = new WeScene.Layer("test", "texture", 0, 0, 100,
-			100, 1, 1, 1, 1, 1, 1, 0, 0);
+			100, 1, 1, 1, 1, 1, 1, 0, 0, null);
 
 		Rect rect = WeSceneLayout.rect(corner, 0.5F, 3840, 2160, 1920, 1080,
 			100, 100, 0, 0);
