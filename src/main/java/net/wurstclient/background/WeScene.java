@@ -280,20 +280,17 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 	private static float[] absoluteOrigin(JsonObject object,
 		Map<Integer, JsonObject> byId, int width, int height)
 	{
-		float x = 0;
-		float y = 0;
-		boolean found = false;
+		// 先把链按「根 → 自身」的顺序列出来
+		List<JsonObject> chain = new ArrayList<>();
 		JsonObject current = object;
+		boolean found = false;
 
 		for(int depth = 0; current != null && depth < 32; depth++)
 		{
+			chain.add(0, current);
+
 			if(current.has("origin"))
-			{
-				float[] own = numbers(current.get("origin"), 0, 0, 0);
-				x += own[0];
-				y += own[1];
 				found = true;
-			}
 
 			if(!current.has("parent")
 				|| !current.get("parent").isJsonPrimitive())
@@ -304,6 +301,32 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 		if(!found)
 			return new float[]{width / 2F, height / 2F, 0};
+
+		// **偏移要按祖先的缩放放大**：子对象的 origin 处在父对象的局部坐标系里。
+		// 证据写在作者的脚本里 —— Rounded Corners 的脚本把值除以父与祖父缩放的
+		// 乘积再乘回去，那正是在抵消这里做的复合缩放。实测「流萤」Holder 链的缩放
+		// 是 0.5，于是 Rounded Corners 的 (-1206,0) 只该贡献 -603。
+		float x = 0;
+		float y = 0;
+		float scaleX = 1;
+		float scaleY = 1;
+
+		for(JsonObject node : chain)
+		{
+			if(node.has("origin"))
+			{
+				float[] own = numbers(node.get("origin"), 0, 0, 0);
+				x += own[0] * scaleX;
+				y += own[1] * scaleY;
+			}
+
+			if(node.has("scale"))
+			{
+				float[] scale = numbers(node.get("scale"), 1, 1, 1);
+				scaleX *= scale[0];
+				scaleY *= scale[1];
+			}
+		}
 
 		return new float[]{x, y, 0};
 	}
