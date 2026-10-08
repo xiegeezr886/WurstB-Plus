@@ -240,20 +240,24 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		String alignment = string(object, "horizontalalign",
 			string(object, "alignment", "center")).toLowerCase(Locale.ROOT);
 
-		// Wallpaper Engine 的**内置工具模型**不随包发布，所以 pkg.read 一定读不到：
-		//   models/util/solidlayer.json  = 纯色矩形（用图层自己的 color/alpha 画）
-		//   models/util/composelayer.json = 分组/合成层（自身不画东西）
-		// 实测「流萤」里 Background / Progress Bar / Settings Container / Audio Bars /
-		// 纯色 等 10 个对象都指向 solidlayer —— 它们以前因为"模型文件读不到"被整个丢掉，
-		// 画面上就少了一块。用空贴图名标记成纯色层，由渲染那边铺成矩形。
+		// Wallpaper Engine 的**内置工具模型**不随包发布，所以 pkg.read 一定读不到。
+		// 依据官方 assets/models/util/*.json 里各自的自述字段：
+		//   solidlayer / solidlayer_depthtest   "solidlayer": true   → 纯色矩形
+		//   composelayer / composelayer_depthtest  "passthrough": true，
+		//                                          材质取 _rt_FullFrameBuffer
+		//   fullscreenlayer                     "fullscreen": true，同样取帧缓冲
+		//   projectlayer                        "projectlayer": true、autosize
+		// 后四者都要 render-to-texture（把**当前帧**当贴图用），本项目画不出来，
+		// 所以明确跳过 —— 之所以判断写成"含 util/solidlayer 就当纯色"，是因为
+		// depthtest 变体也声明了 solidlayer: true，只认单一名字会把整层丢掉。
 		if(modelName.contains("util/solidlayer"))
 			return new Layer(string(object, "name", modelName), "", origin[0],
 				origin[1], size[0], size[1], scale[0], scale[1], alpha,
 				color[0], color[1], color[2], depth[0], depth[1], alignment,
 				colorKey);
 
-		// 分组层自己不产生像素；它下面的子对象才是内容（子对象的渲染尚未实现）
-		if(modelName.contains("util/composelayer"))
+		// 其余内置工具模型：帧缓冲/后期层，跳过（不是解析失败，是画不出来）
+		if(modelName.contains("util/"))
 			return null;
 
 		String texture = findTexture(modelName, files);
