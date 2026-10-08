@@ -126,7 +126,7 @@ dependencies {
 	annotationProcessor "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
 	jarJar(group: "io.github.llamalad7", name: "mixinextras-forge",
 		version: "[${project.mixinextras_version},)")
-	annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
+	annotationProcessor "org.spongepowered:mixin:0.8.7:processor"
 	implementation "org.java-websocket:Java-WebSocket:1.5.3"
 	minecraftLibrary("org.java-websocket:Java-WebSocket:1.5.3") {
 		exclude group: "org.slf4j", module: "slf4j-api"
