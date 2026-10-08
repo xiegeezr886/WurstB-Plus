@@ -305,7 +305,11 @@ final class NavigatorSettingsPanel extends Window
 		clear();
 		for(Setting setting : visibleSettings)
 		{
-			Component component = setting.getComponent();
+			// 同 SettingsWindow：Setting 只保证「有个能渲染的东西」，
+			// 是不是本包的类型由这里收窄。
+			if(!(setting.getComponent() instanceof Component component))
+				continue;
+			
 			component.setIndent(setting.getDepth() * 8);
 			add(component);
 		}

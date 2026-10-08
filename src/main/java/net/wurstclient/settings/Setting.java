@@ -20,7 +20,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import net.wurstclient.WurstClient;
-import net.wurstclient.clickgui2.Component;
 import net.wurstclient.keybinds.PossibleKeybind;
 import net.wurstclient.util.ChatUtils;
 import net.wurstclient.util.text.WText;
@@ -207,7 +206,15 @@ public abstract class Setting
 			listener.run();
 	}
 	
-	public abstract Component getComponent();
+	/**
+	 * 把自己渲染进某个 GUI 的东西，交给调用方用 {@code instanceof} 收窄。
+	 *
+	 * <p>
+	 * 返回类型是 {@link SettingComponent} 这个空接口，**不是某个具体 GUI 的类**：
+	 * 具体类型会把"设置"层钉死在那一套 GUI 上，删掉它就会打断这里和全部子类。
+	 * </p>
+	 */
+	public abstract SettingComponent getComponent();
 	
 	public abstract void fromJson(JsonElement json);
 	

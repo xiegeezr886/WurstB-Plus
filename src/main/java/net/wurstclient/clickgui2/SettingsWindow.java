@@ -55,7 +55,11 @@ public final class SettingsWindow extends Window
 
 	private void addSetting(Setting setting)
 	{
-		Component component = setting.getComponent();
+		// Setting 只声明「有个能渲染的东西」（SettingComponent 空接口），
+		// 具体是不是本包的类型由这里收窄 —— 这正是解耦的代价与目的。
+		if(!(setting.getComponent() instanceof Component component))
+			return;
+		
 		component.setIndent(setting.getDepth() * 12);
 		add(component);
 	}

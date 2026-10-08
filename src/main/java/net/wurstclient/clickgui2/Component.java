@@ -10,8 +10,14 @@ package net.wurstclient.clickgui2;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
+import net.wurstclient.settings.SettingComponent;
 
-public abstract class Component
+/**
+ * 声明自己就是「设置能渲染成的东西」的一种。这样 {@code Setting} 只依赖
+ * {@link SettingComponent} 那个空接口，不必反过来依赖本包 —— 删掉或替换
+ * 这套 GUI 不再会打断设置层。见 {@link SettingComponent} 的说明。
+ */
+public abstract class Component implements SettingComponent
 {
 	protected static final Minecraft MC = WurstClient.MC;
 	protected static final WurstClient WURST = WurstClient.INSTANCE;
