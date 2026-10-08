@@ -48,14 +48,32 @@ import net.wurstclient.util.json.JsonUtils;
  * <p>
  * 没有实现的部分：godrays / blurprecise / filmgrain / waterwaves 这几个效果
  * 都是 GLSL 后期，静态渲染只画基础图层，亮度与光晕会比 Wallpaper Engine 里
- * 淡一些；时钟与日期文字层也不画。</p>
+ * 淡一些；文本对象会画，但用的是 MC 自带字体、且只画静态内容（见 {@link TextLayer}）。</p>
  */
 public record WeScene(int width, int height, float zoom, boolean parallax,
 	float parallaxAmount, float parallaxDelay, List<Layer> layers,
-	List<ParticleLayer> particles)
+	List<ParticleLayer> particles, List<TextLayer> texts)
 {
 	/** {@code scene.json} 在包里的名字。 */
 	public static final String SCENE_JSON = "scene.json";
+
+	/**
+	 * 一个文本对象（时钟、日期、作者留言这类）。
+	 *
+	 * <p>
+	 * <b>两处必须知道的近似</b>：① 不加载包内的 {@code .otf} 字体，用 MC 自带字体画，
+	 * 所以字形与作者原版不同；② 只画**静态**内容 —— 文本常常是脚本驱动的（实测某场景
+	 * 的时钟就是脚本按时间生成字符串），这里画的是文件里存的那一份，不会走时。
+	 * </p>
+	 *
+	 * @param pointSize
+	 *            字号，画布像素单位；画的时候按渲染比例折算到屏幕
+	 */
+	public record TextLayer(String name, String text, float originX,
+		float originY, float sizeX, float sizeY, float scaleX, float scaleY,
+		float colorR, float colorG, float colorB, float alpha,
+		String horizontalAlign, String verticalAlign, float pointSize)
+	{}
 
 	/**
 	 * 一个粒子层（雪这类 sprite 效果）。
@@ -96,6 +114,16 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 	private static final float DEFAULT_WIDTH = 1920;
 	private static final float DEFAULT_HEIGHT = 1080;
+
+	/**
+	 * 文本对象没写 {@code pointsize} 时的兜底字号（画布像素）。
+	 *
+	 * <p>
+	 * 官方 {@code TextData} 里没给出默认值，这是**本项目自己定的**兜底 —— 取一个
+	 * 在 4K 画布上看得清、又不至于糊满屏的数。写清楚是猜的，别当成权威值。
+	 * </p>
+	 */
+	private static final float DEFAULT_POINT_SIZE = 48;
 
 	/**
 	 * @param sceneJson
@@ -140,6 +168,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 		List<Layer> layers = new ArrayList<>();
 		List<ParticleLayer> particles = new ArrayList<>();
+		List<TextLayer> texts = new ArrayList<>();
 		JsonArray objects = array(scene, "objects");
 
 		// 对象是一棵树：子对象的 origin 是**相对父对象**的偏移。实测「流萤」里 93 个
@@ -169,6 +198,16 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 				continue;
 			}
 
+			// 文本对象：对象里写的是 text 而不是 image。放在粒子之前判 ——
+			// 一个对象不会是两种类型，先判哪个都行，按参考实现的顺序来。
+			TextLayer text = readTextLayer(object, byId, width, height);
+
+			if(text != null)
+			{
+				texts.add(text);
+				continue;
+			}
+
 			ParticleLayer particle =
 				readParticleLayer(object, width, height, layers.size());
 
@@ -177,7 +216,76 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		}
 
 		return new WeScene(width, height, zoom, parallax, parallaxAmount,
-			parallaxDelay, List.copyOf(layers), List.copyOf(particles));
+			parallaxDelay, List.copyOf(layers), List.copyOf(particles),
+			List.copyOf(texts));
+	}
+
+	/**
+	 * 文本对象。
+	 *
+	 * <p>
+	 * 几何（origin / size / scale / alignment）与图像层走同一套：{@link #absoluteOrigin}
+	 * 沿父链累加、{@link #inheritedScale} 沿链相乘。颜色、alpha、对齐、字号都按官方
+	 * {@code TextData} 的字段名读。
+	 * </p>
+	 *
+	 * <p>
+	 * <b>为什么这里不套用图像层那条"origin 被脚本绑定就跳过"的规则</b>：那条是为了避免
+	 * 把动画中间态的位置画出来；而实测的文本对象（时钟）脚本算的是**常量**位置
+	 * （{@code let originX = 960; let originY = 1035;}），跳过它等于整块文字都不画。
+	 * 文本体积小、缺了比偏一点更显眼，所以这里照画，只要求值能读出来。
+	 * </p>
+	 */
+	private static TextLayer readTextLayer(JsonObject object,
+		Map<Integer, JsonObject> byId, int width, int height)
+	{
+		if(!isVisible(object.get("visible")) || !object.has("text"))
+			return null;
+
+		String text = textValue(object.get("text"));
+
+		if(text == null || text.isBlank())
+			return null;
+
+		float[] origin = absoluteOrigin(object, byId, width, height);
+		float[] size = numbers(object.get("size"), 0, 0, 0);
+		float[] scale = inheritedScale(object, byId);
+		float[] color = numbers(object.get("color"), 1, 1, 1);
+
+		float alpha = (float)number(object, "alpha", 1);
+		float pointSize = (float)number(object, "pointsize", DEFAULT_POINT_SIZE);
+
+		String horizontal = string(object, "horizontalalign", "center")
+			.toLowerCase(Locale.ROOT);
+		String vertical = string(object, "verticalalign", "center")
+			.toLowerCase(Locale.ROOT);
+
+		return new TextLayer(string(object, "name", "text"), text, origin[0],
+			origin[1], size[0], size[1], scale[0], scale[1], color[0], color[1],
+			color[2], alpha, horizontal, vertical, pointSize);
+	}
+
+	/**
+	 * 文本内容：可能是普通字符串，也可能是 {@code {script, value}} 这种绑定形式
+	 * （实测那个时钟就是脚本按时间生成的）。取不出可显示内容时返回 {@code null}。
+	 */
+	private static String textValue(JsonElement element)
+	{
+		if(element == null || element.isJsonNull())
+			return null;
+
+		if(element.isJsonPrimitive())
+			return element.getAsString();
+
+		if(element.isJsonObject())
+		{
+			JsonObject object = element.getAsJsonObject();
+
+			if(object.has("value"))
+				return textValue(object.get("value"));
+		}
+
+		return null;
 	}
 
 	/**
