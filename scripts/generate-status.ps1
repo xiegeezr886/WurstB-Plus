@@ -71,10 +71,16 @@ function Get-ProjectRoots {
     foreach ($d in @('fabric', 'neoforge')) {
         if (Test-Path $d) { $candidates.Add($d) }
     }
-    foreach ($parent in @('versions', 'fabric\versions', 'neoforge\versions')) {
+    # 路径一律用正斜杠：PowerShell 在 Windows 与 Linux 上都接受，而反斜杠在
+    # Linux 上会被当成文件名的一部分（Test-Path 'fabric\versions' 必然为假）。
+    foreach ($parent in @('versions', 'fabric/versions', 'neoforge/versions')) {
         if (Test-Path $parent) {
             foreach ($dir in Get-ChildItem $parent -Directory | Sort-Object Name) {
-                $candidates.Add($dir.FullName.Substring($RepoRoot.Length + 1))
+                # 归一化为正斜杠：这个值会写进 docs/STATUS.md，而闸门是拿生成结果
+                # 与已提交文件逐字节比对的。若用 OS 原生分隔符，Windows 生成 \、
+                # Linux 生成 /，同一仓库在两个平台会产出不同文档 —— ubuntu CI 上
+                # 闸门将永久为红。
+                $candidates.Add(($dir.FullName.Substring($RepoRoot.Length + 1)).Replace('\', '/'))
             }
         }
     }
@@ -97,7 +103,7 @@ function Read-Property([string]$Path, [string]$Key) {
 }
 
 function Get-GradleVersion([string]$ProjDir) {
-    $p = Join-Path $ProjDir 'gradle\wrapper\gradle-wrapper.properties'
+    $p = Join-Path $ProjDir 'gradle/wrapper/gradle-wrapper.properties'
     if (-not (Test-Path $p)) { return $null }
     $m = Select-String -Path $p -Pattern 'gradle-([0-9][0-9.]*)-(bin|all)\.zip' -ErrorAction SilentlyContinue |
          Select-Object -First 1
@@ -145,8 +151,8 @@ $rows = New-Object System.Collections.Generic.List[object]
 foreach ($rel in $projectRoots) {
     $full = if ($rel -eq '.') { $RepoRoot } else { Join-Path $RepoRoot $rel }
     $gp = Join-Path $full 'gradle.properties'
-    $srcJava = Join-Path $full 'src\main\java'
-    $testJava = Join-Path $full 'src\test\java'
+    $srcJava = Join-Path $full 'src/main/java'
+    $testJava = Join-Path $full 'src/test/java'
 
     $v16Count = 0
     foreach ($pkg in $V16Packages) {
@@ -168,7 +174,7 @@ foreach ($rel in $projectRoots) {
         TestClasses  = (Count-Java $testJava)
         TestMethods  = (Count-Tests $testJava)
         V16Packages  = $v16Count
-        WrapperJar   = (Test-Path (Join-Path $full 'gradle\wrapper\gradle-wrapper.jar'))
+        WrapperJar   = (Test-Path (Join-Path $full 'gradle/wrapper/gradle-wrapper.jar'))
         License      = ((Test-Path (Join-Path $full 'LICENSE.txt')) -or (Test-Path (Join-Path $full 'LICENSE')))
     })
 }
