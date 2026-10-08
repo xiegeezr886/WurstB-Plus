@@ -543,6 +543,23 @@ public final class WeSceneWallpaper implements AutoCloseable
 					+ "」抠像失败，按原图继续：" + e.getMessage());
 			}
 
+		// 模糊排在抠像之后、降采样之前：官方的效果是对图层内容做的，抠像改的是
+		// alpha，先抠再糊才不会把要抠掉的底色糊进边缘。降采样之前做是为了少算 ——
+		// 代价是实际半径比官方按原分辨率做的略大（约等于降采样系数），已记在 WeBlur 上。
+		if(layer.blur() != null)
+			try
+			{
+				layer.blur().apply(image);
+				System.out.println("[Background] 「" + layer.name() + "」模糊（步长 "
+					+ layer.blur().scaleX() + " " + layer.blur().scaleY()
+					+ "，核 " + (13 - layer.blur().kernel() * 10) + "）");
+
+			}catch(RuntimeException e)
+			{
+				System.out.println("[Background] 「" + layer.name()
+					+ "」模糊失败，按原图继续：" + e.getMessage());
+			}
+
 		int[] target = LayerResampler.target(image.getWidth(),
 			image.getHeight(), layer.sizeX(), layer.sizeY(), layer.scaleX(),
 			layer.scaleY());
