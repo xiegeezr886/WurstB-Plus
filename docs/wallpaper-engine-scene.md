@@ -706,7 +706,40 @@ Audio Bars  origin=(-155.19, 321.98)   scale=0.5
 **剩下的「异位」更可能来自脚本动画的中间态**（存值不是渲染时的实际值），
 而不是组合算术本身。
 
-### 全部已导入场景的实机普查（2026-10-07）
+### 文本对象：已量到规模与字段，实现待做（2026-10-07）
+
+**实测：文本对象确实存在**。扫 12 个场景包 / 108 个对象，其中带 `text` 字段的 **5 个** ✓
+所以"整类没渲染"是真缺口，不是理论问题。真实例子（某场景的时钟）：
+
+```json
+{"name":"Clock", "text":…, "font":"fonts/Alcubierre.otf", "pointsize":…,
+ "size":…, "scale":…, "color":"1 1 1", "alpha":1.0,
+ "horizontalalign":"center", "verticalalign":…, "anchor":"center",
+ "padding":…, "opaquebackground":false, "backgroundcolor":"0 0 0",
+ "copybackground":true, "perspective":…, "ledsource":false,
+ "origin":{"script":"…let originX = 960; let originY = 1035;…"}}
+```
+
+**字段全集**（5 个文本对象上都出现）：
+`alpha / anchor / angles / backgroundbrightness / backgroundcolor / brightness /
+color / colorBlendMode / copybackground / font / horizontalalign / id /
+ledsource / locktransforms / name / opaquebackground / origin / padding /
+parallaxDepth / perspective / pointsize / scale / size / solid / text /
+verticalalign / visible`
+
+**实现规格（下一轮照此做）**：
+
+1. `WeScene`：仿粒子的做法加一个 `TextLayer` 列表 —— 解析分支放在 `readLayer` 与
+   `readParticleLayer` 之间（有 `text` 字段就走它），几何沿用 `absoluteOrigin` /
+   `inheritedScale` / `alignment` 那套（与图像层一致）。
+2. `WeSceneWallpaper`：加一趟文字渲染，位置由矩形 + `horizontalalign`/`verticalalign`
+   + `padding` 决定，颜色与 alpha 取图层的。
+3. **两处必须如实标注的近似**：① 不做字体加载，用 MC 自带字体（`font` 指向包内的
+   `.otf`，要用真字体得自己解析 ✗ 不属于这一轮）；② 只画**静态**文本 —— `text` 内容
+   常常是脚本驱动的（那个时钟就是），存值不是渲染时的实际内容。
+4. 文字不占贴图像素预算，但要参与绘制顺序（当前与粒子一样是"最后统一画"，
+   与图像层的相对层级仍是不精确的 —— 这是已知简化）。
+
 
 
 
@@ -891,3 +924,5 @@ F2 截图，缩放到 1296x672）。
 区域的亮斑峰值从 134 升到 157、亮点数从 5837 升到 6040，8 秒内有 16% 的亮点换了位置；
 方向与量级都对，但雪本身只有 0.3～5 像素，肉眼与统计都很难把它和壁纸自身的白色花瓣
 区分开，所以**没有做到逐颗对照**。
+
+### 全部已导入场景的实机普查（2026-10-07）
