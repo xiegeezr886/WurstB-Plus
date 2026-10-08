@@ -152,6 +152,54 @@ final class WeColorKeyTest
 		image.close();
 	}
 
+	/**
+	 * 距离用**曼哈顿**而不是欧氏 —— 这是官方着色器里写死的算式
+	 * （{@code dot(abs(keyColor - albedo.rgb), vec3(1,1,1))}），两者会给出不同判定。
+	 *
+	 * <p>
+	 * 取一个能区分两者的颜色：键色 (0,0,1)、颜色约 (0.3,0.3,1)、容差 0.5 ——
+	 * 曼哈顿距离是 0.6（**超出**容差、应当保留），欧氏距离只有 0.424（会被误判成键出）。
+	 * 所以这条用例能钉住用的到底是哪一种。
+	 * </p>
+	 */
+	@Test
+	void usesManhattanDistanceNotEuclidean()
+	{
+		WeColorKey key = WeColorKey.parse(JsonParser.parseString("""
+			[{"file":"effects/colorkey/effect.json",
+			  "passes":[{"constantshadervalues":{
+			    "color":"0 0 1","tolerance":0.5,"fuzziness":0.0,
+			    "alpha":0}}]}]
+			"""));
+
+		NativeImage image = new NativeImage(NativeImage.Format.RGBA, 1, 1, false);
+		image.setPixelRGBA(0, 0, argb(255, 77, 77, 255));
+
+		key.apply(image);
+
+		assertEquals(255, image.getPixelRGBA(0, 0) >>> 24,
+			"曼哈顿距离 0.6 超出容差 0.5，这个像素不该被抠掉");
+
+		image.close();
+	}
+
+	/** alpha 是**乘**上去的（mix(keyAlpha, 1, blend)），不是直接替换。 */
+	@Test
+	void multipliesTheExistingAlpha()
+	{
+		NativeImage image = new NativeImage(NativeImage.Format.RGBA, 2, 1, false);
+
+		image.setPixelRGBA(0, 0, argb(200, 0, 12, 255));
+		image.setPixelRGBA(1, 0, argb(64, 0, 12, 255));
+
+		key().apply(image);
+
+		assertEquals(0, image.getPixelRGBA(0, 0) >>> 24);
+		assertEquals(0, image.getPixelRGBA(1, 0) >>> 24);
+
+		image.close();
+	}
+
 	// ------------------------------------------------------------------
 
 	private static WeColorKey key()

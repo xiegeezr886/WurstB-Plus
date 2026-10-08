@@ -46,7 +46,26 @@ public final class AutoStealHack extends Hack
 	 */
 	private final ReentrantLock lock = new ReentrantLock();
 	private final Condition clickDone = lock.newCondition();
-	private boolean clicked;
+
+	/**
+	 * 每次点击的序号。<b>不能用单个布尔量表示「点完了」</b>：点击是
+	 * {@code MC.execute()} 排队到客户端线程执行的，而工作线程随时可能被
+	 * 下一次 steal()/store() 打断。若只用一个共享标记，被中断的那次点击仍留在
+	 * 队列里，它执行完置位后会被**新的**工作线程当成自己的完成信号 —— 表现是
+	 * 一次「存储」里混进一次「偷取」，且两次点击挤在同一帧、节流失效。
+	 *
+	 * <p>
+	 * 改成发号：工作线程排队时先领一个号，只等自己的号；点击执行完把号记进
+	 * {@link #completedClickToken}。别人的号不会唤醒它。
+	 * </p>
+	 */
+	private long nextClickToken;
+
+	/**
+	 * 已执行完的最大号，<b>只增不减</b>。只增是为了让迟到的旧点击（号更小）不能
+	 * 把水位拉回去、从而让正在等新号的工作线程误判或永久等待。
+	 */
+	private long completedClickToken;
 	
 	/**
 	 * 工作线程只读该标记；判断界面是否还在的 {@code MC.screen} 只能在客户端线程
@@ -114,8 +133,9 @@ public final class AutoStealHack extends Hack
 				if(!screenOpen)
 					break;
 				
-				MC.execute(() -> clickSlot(screen, slot));
-				awaitClick();
+				long token = nextClickToken();
+				MC.execute(() -> clickSlot(screen, slot, token));
+				awaitClick(token);
 				
 			}catch(InterruptedException e)
 			{
@@ -126,10 +146,26 @@ public final class AutoStealHack extends Hack
 	}
 	
 	/**
+	 * 领一个点击号。只在这里自增，且整段持锁，所以两个工作线程不会拿到同一个号。
+	 */
+	private long nextClickToken()
+	{
+		lock.lock();
+		try
+		{
+			return ++nextClickToken;
+		}finally
+		{
+			lock.unlock();
+		}
+	}
+
+	/**
 	 * 真正的点击。整段都在客户端线程上跑，因为 {@code slotClicked()}
 	 * 是原版的界面回调：它会改菜单内容并向服务器发包。
 	 */
-	private void clickSlot(AbstractContainerScreen<?> screen, Slot slot)
+	private void clickSlot(AbstractContainerScreen<?> screen, Slot slot,
+		long token)
 	{
 		try
 		{
@@ -144,12 +180,14 @@ public final class AutoStealHack extends Hack
 			
 		}finally
 		{
-			// 即使 slotClicked() 抛异常也要放行工作线程，否则它会一直停在 awaitClick()
+			// 即使 slotClicked() 抛异常也要放行工作线程，否则它会一直停在 awaitClick(token)
 			lock.lock();
 			try
 			{
-				clicked = true;
-				clickDone.signal();
+				// 只增不减：迟到的旧号不能把水位拉回去
+				if(token > completedClickToken)
+					completedClickToken = token;
+				clickDone.signalAll();
 			}finally
 			{
 				lock.unlock();
@@ -158,17 +196,21 @@ public final class AutoStealHack extends Hack
 	}
 	
 	/**
-	 * 等客户端线程点完一格再继续。等待的是工作线程，不是客户端线程；界面已经
+	 * 等客户端线程点完自己那一格再继续。等待的是工作线程，不是客户端线程；界面已经
 	 * 关闭、或线程被下一个 steal()/store() 打断时不再等，直接结束。
+	 *
+	 * <p>
+	 * 只认 {@code token} 这一个号：别的 worker 的点击完成后水位可能已经超过它，
+	 * 那正是「自己这次已经点过了」，可以直接继续。
+	 * </p>
 	 */
-	private void awaitClick() throws InterruptedException
+	private void awaitClick(long token) throws InterruptedException
 	{
 		lock.lock();
 		try
 		{
-			while(!clicked && screenOpen)
+			while(completedClickToken < token && screenOpen)
 				clickDone.await();
-			clicked = false;
 			
 		}finally
 		{

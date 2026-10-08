@@ -30,16 +30,9 @@ import com.mojang.blaze3d.platform.NativeImage;
  * </pre>
  *
  * <p>
- * <b>判定用的是归一化 RGB 的欧氏距离</b>：距离在 {@code tolerance} 以内按透明处理，
- * 再往外一段渐变回不透明。这是对 WE 那个着色器数学的**推测**（拿不到它的源码），
- * 所以：① 只做保守的键出，绝不把远离键色的颜色也弄透明；② 画面要肉眼确认过才算数。
- * </p>
- *
- * <p>
- * 渐变的宽度取 {@code min(fuzziness, tolerance)}：{@code fuzziness} 具体怎么参与
- * 计算没有权威依据，这样取的含义是"在 tolerance 这段距离内完成过渡"，而当
- * {@code fuzziness >= tolerance}（实测就是这种）时退化为**整段 tolerance 都用来渐变**
- * —— 键色正中全透明、边界处刚好不透明，人物那侧不受影响。
+ * <b>判定用的是官方实现里的算式</b>（Wallpaper Engine 安装目录
+ * {@code assets/effects/colorkey/shaders/effects/colorkey.frag} 的自述，只学数学不抄代码）：
+ * 曼哈顿距离 + {@code smoothstep} 过渡 + alpha **相乘**。
  * </p>
  */
 record WeColorKey(float red, float green, float blue, float tolerance,
@@ -155,14 +148,29 @@ record WeColorKey(float red, float green, float blue, float tolerance,
 	 * 在**降采样之前**做：降采样是按 alpha 预乘求平均的，先把蓝底抠成透明，边缘的
 	 * 过渡才不会把蓝色混进人物那一侧。
 	 * </p>
+	 *
+	 * <p>
+	 * <b>判定公式来自官方实现的自述</b>（Wallpaper Engine 安装目录里的
+	 * {@code assets/effects/colorkey/shaders/effects/colorkey.frag}，只学算式、不抄代码）：
+	 * </p>
+	 *
+	 * <pre>
+	 * delta = |key.r - c.r| + |key.g - c.g| + |key.b - c.b|   // 曼哈顿距离，不是欧氏
+	 * blend = smoothstep(0.001, 0.002 + fuzziness, delta - tolerance)
+	 * a    *= mix(keyedAlpha, 1, blend)                        // 是乘，不是替换
+	 * </pre>
+	 *
+	 * <p>
+	 * 我原先按欧氏距离、并把 alpha 直接替换成结果 —— 两处都不对：欧氏会把某些颜色判得
+	 * 比实际更靠近键色，直接替换则会丢掉图层原有的半透明（封面、淡入淡出都靠它）。
+	 * </p>
 	 */
 	void apply(NativeImage image)
 	{
 		int width = image.getWidth();
 		int height = image.getHeight();
-		float band = Math.min(fuzziness, tolerance);
-		float opaqueAt = tolerance;
-		float clearBelow = tolerance - band;
+		float edge0 = 0.001F;
+		float edge1 = 0.002F + fuzziness;
 
 		for(int y = 0; y < height; y++)
 			for(int x = 0; x < width; x++)
@@ -178,27 +186,26 @@ record WeColorKey(float red, float green, float blue, float tolerance,
 				float g = (pixel >> 8 & 0xFF) / 255F;
 				float b = (pixel >> 16 & 0xFF) / 255F;
 
-				float dr = r - red;
-				float dg = g - green;
-				float db = b - blue;
-				float distance =
-					(float)Math.sqrt(dr * dr + dg * dg + db * db);
-
-				if(distance >= opaqueAt)
-					continue;
-
-				float factor;
-
-				if(distance <= clearBelow || band <= 0)
-					factor = keyedAlpha;
-				else
-					factor = keyedAlpha + (1 - keyedAlpha)
-						* (distance - clearBelow) / band;
+				float delta = Math.abs(red - r) + Math.abs(green - g)
+					+ Math.abs(blue - b);
+				float blend =
+					smoothstep(edge0, edge1, delta - tolerance);
+				float factor = keyedAlpha + (1 - keyedAlpha) * blend;
 
 				int out = Math.round(alpha * Math.max(0, Math.min(1, factor)));
 
-				image.setPixelRGBA(x, y,
-					out << 24 | (pixel & 0x00FFFFFF));
+				image.setPixelRGBA(x, y, out << 24 | (pixel & 0x00FFFFFF));
 			}
+	}
+
+	/** GLSL 的 {@code smoothstep}：两端之外是常数，之间走三次 Hermite 过渡。 */
+	private static float smoothstep(float edge0, float edge1, float x)
+	{
+		if(edge1 <= edge0)
+			return x < edge0 ? 0 : 1;
+
+		float u = (x - edge0) / (edge1 - edge0);
+		u = Math.max(0, Math.min(1, u));
+		return u * u * (3 - 2 * u);
 	}
 }
