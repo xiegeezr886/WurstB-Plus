@@ -249,5 +249,5 @@
 | 3 | 裁决 `mixin` 版本冲突；把登记表里 7 个多版本坐标收敛到最少 |
 | 4 | ~~法务：PingFang 字体决策~~ **已删除（2026-10-06）**；仍需补齐内嵌依赖的许可文本，并决策同样属于 Apple 字体的 **SF Pro Rounded**（`rise.json`） |
 | 5 | ~~修 AutoSteal 的共享信号串台（token 配对或单 worker）~~ **已完成（commit 632aa164，见 §3.3）** |
-| 6 | 解 `Setting → clickgui2.Component` 耦合 —— 这是收敛 GUI 的前置条件 |
+| 6 | ~~解 `Setting → clickgui2.Component` 耦合~~ **已完成（commit 见下）** —— `Setting` 只依赖新增的空接口 `settings.SettingComponent`，`clickgui2.Component` 实现它，调用方用 instanceof 收窄；依赖方向变为 `clickgui2 → settings` 单向。残留：10 个 settings 文件仍 import clickgui2（它们确实在构造 clickgui2 组件，属主动选择而非基类强制） |
 | 7 | 把 683 个"零变体"文件提取为共享 sourceSet（不改逻辑、只删重复） |
