@@ -86,6 +86,12 @@ record WeBlur(float scaleX, float scaleY, int kernel)
 				|| !file.getAsString().contains("blurprecise"))
 				continue;
 
+			// **效果自己也带 visible**，作者会用它临时关掉某个效果。实测「persica」的
+			// 「backdrop flowers」就是 visible:false 的模糊 —— 不看这个字段就会把作者
+			// 明确禁用的效果画上去。缺字段按启用处理（与图层 visible 同一套语义）。
+			if(!WeScene.isEffectVisible(effect))
+				continue;
+
 			float scaleX = 1;
 			float scaleY = 1;
 			int kernel = 0;

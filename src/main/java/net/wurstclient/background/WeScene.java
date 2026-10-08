@@ -571,6 +571,20 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		return null;
 	}
 
+	/**
+	 * 效果条目自己的 {@code visible}（作者可以用它临时关掉某个效果）。
+	 *
+	 * <p>
+	 * 与图层 {@code visible} 同一套语义：缺字段按启用处理。实测「persica」的
+	 * 「backdrop flowers」上挂着一个 {@code visible:false} 的模糊，不看这个字段就会
+	 * 把作者明确禁用的效果画上去。
+	 * </p>
+	 */
+	static boolean isEffectVisible(JsonObject effect)
+	{
+		return !effect.has("visible") || isVisible(effect.get("visible"));
+	}
+
 	/** {@code visible} 既可能是布尔，也可能是 {@code {user, value}}。 */
 	private static boolean isVisible(JsonElement element)
 	{
