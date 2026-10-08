@@ -23,6 +23,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -79,6 +80,16 @@ public final class WeSceneWallpaper implements AutoCloseable
 	private final WeScene scene;
 	private final List<Bound> layers;
 	private final List<BoundParticles> particleLayers;
+
+	/**
+	 * 文本层只在装载后报一次日志。
+	 *
+	 * <p>
+	 * {@code renderText} 是**每帧**调用的，第一版把日志写在里面，结果 60fps × 4 层
+	 * 直接把日志刷爆了 —— 渲染循环里一律不许打日志，这条记在这当教训。
+	 * </p>
+	 */
+	private boolean textLogged;
 	private boolean closed;
 
 	/** 平滑后的鼠标偏移（屏幕像素），视差跟随它而不是直接跟鼠标。 */
@@ -917,6 +928,26 @@ public final class WeSceneWallpaper implements AutoCloseable
 				particleLayers.get(particleIndex++), scale, screenWidth,
 				screenHeight, influence, delta);
 
+		// 文本对象：不占贴图像素预算、也不需要 GPU 资源，直接按几何画。
+		// 与粒子一样是"最后统一画"，所以它和图像层之间的相对层级并不精确 ——
+		// 这是已知简化，不是遗漏。
+		if(!textLogged && !scene.texts().isEmpty())
+		{
+			textLogged = true;
+			StringBuilder summary = new StringBuilder();
+
+			for(WeScene.TextLayer text : scene.texts())
+				summary.append("「").append(text.name()).append("」")
+					.append(text.text().replace('\n', ' ')).append(' ');
+
+			System.out.println("[Background] 文本层 " + scene.texts().size()
+				+ " 个：" + summary.toString().trim()
+				+ "（用 MC 自带字体、只画静态内容）");
+		}
+
+		for(WeScene.TextLayer text : scene.texts())
+			drew |= renderText(graphics, text, scale, screenWidth, screenHeight);
+
 		graphics.setColor(1, 1, 1, 1);
 		return drew;
 	}
@@ -957,6 +988,79 @@ public final class WeSceneWallpaper implements AutoCloseable
 	}
 
 	/** 一个粒子层：先按帧时间推进，再逐颗画成加性混合的柔光点。 */
+	/**
+	 * 画一个文本对象。
+	 *
+	 * <p>
+	 * 位置与图像层用同一套换算：{@code origin} 是画布坐标（中心），先映射到屏幕；
+	 * {@code size × scale} 是图层在屏幕上的框，文字在这个框里按
+	 * {@code horizontalalign} / {@code verticalalign} 摆放。
+	 * </p>
+	 *
+	 * <p>
+	 * <b>两处都是本项目的做法，不是作者的</b>：① 字号按 MC 字体的 9 像素行高折算
+	 * （目标字号除以 9 当缩放系数）；② 不使用作者指定的 {@code font}（包内 {@code .otf}），
+	 * 用 MC 自带字体代替，字形不同。写在这里，免得被当成"还原得很准"。
+	 * </p>
+	 *
+	 * @return 是否真的画了东西
+	 */
+	private boolean renderText(GuiGraphics graphics, WeScene.TextLayer layer,
+		float scale, int screenWidth, int screenHeight)
+	{
+		String text = layer.text();
+
+		if(text == null || text.isBlank() || layer.alpha() <= 0)
+			return false;
+
+		Font font = Minecraft.getInstance().font;
+
+		// origin 是图层中心，与图像层的矩形计算保持一致
+		float centreX = screenWidth / 2F
+			+ (layer.originX() - scene.width() / 2F) * scale;
+		float centreY = screenHeight / 2F
+			+ (layer.originY() - scene.height() / 2F) * scale;
+
+		float boxWidth = layer.sizeX() * layer.scaleX() * scale;
+		float boxHeight = layer.sizeY() * layer.scaleY() * scale;
+
+		float fontSize =
+			Math.max(1, layer.pointSize() * layer.scaleX() * scale);
+		float factor = fontSize / 9F;
+
+		float textWidth = font.width(text) * factor;
+		float textHeight = font.lineHeight * factor;
+
+		float x = switch(layer.horizontalAlign())
+		{
+			case "left" -> centreX - boxWidth / 2F;
+			case "right" -> centreX + boxWidth / 2F - textWidth;
+			default -> centreX - textWidth / 2F;
+		};
+
+		float y = switch(layer.verticalAlign())
+		{
+			case "top" -> centreY - boxHeight / 2F;
+			case "bottom" -> centreY + boxHeight / 2F - textHeight;
+			default -> centreY - textHeight / 2F;
+		};
+
+		int alpha = Math.round(Math.max(0, Math.min(1, layer.alpha())) * 255);
+		int red = Math.round(Math.max(0, Math.min(1, layer.colorR())) * 255);
+		int green = Math.round(Math.max(0, Math.min(1, layer.colorG())) * 255);
+		int blue = Math.round(Math.max(0, Math.min(1, layer.colorB())) * 255);
+		int colour = alpha << 24 | red << 16 | green << 8 | blue;
+
+		graphics.pose().pushPose();
+		graphics.pose().translate(x, y, 0);
+		graphics.pose().scale(factor, factor, 1);
+		graphics.drawString(font, text, 0, 0, colour, false);
+		graphics.pose().popPose();
+
+		// 这里**不要**打日志：本方法是每帧调用的。装载时那一条汇总在 render 里报。
+		return true;
+	}
+
 	private boolean renderParticles(GuiGraphics graphics, BoundParticles group,
 		float scale, int screenWidth, int screenHeight, float influence,
 		float delta)
