@@ -61,7 +61,7 @@ final class WeSceneLayoutTest
 	private static Rect rectWithAlignment(String alignment)
 	{
 		WeScene.Layer layer = new WeScene.Layer("test", "texture", 1920, 1080,
-			100, 100, 1, 1, 1, 1, 1, 1, 0, 0, alignment, null);
+			100, 100, 1, 1, 1, 1, 1, 1, 0, 0, alignment, null, null);
 
 		return WeSceneLayout.rect(layer, 0.5F, 3840, 2160, 1920, 1080, 100, 100,
 			0, 0);
@@ -70,7 +70,7 @@ final class WeSceneLayoutTest
 	private static WeScene.Layer layer(float sizeX, float sizeY, float scale)
 	{
 		return new WeScene.Layer("test", "texture", 1920, 1080, sizeX, sizeY,
-			scale, scale, 1, 1, 1, 1, 0.05F, 0.05F, "center", null);
+			scale, scale, 1, 1, 1, 1, 0.05F, 0.05F, "center", null, null);
 	}
 
 	/**
@@ -140,7 +140,7 @@ final class WeSceneLayoutTest
 	void offCentreLayersMove()
 	{
 		WeScene.Layer corner = new WeScene.Layer("test", "texture", 0, 0, 100,
-			100, 1, 1, 1, 1, 1, 1, 0, 0, "center", null);
+			100, 1, 1, 1, 1, 1, 1, 0, 0, "center", null, null);
 
 		Rect rect = WeSceneLayout.rect(corner, 0.5F, 3840, 2160, 1920, 1080,
 			100, 100, 0, 0);
