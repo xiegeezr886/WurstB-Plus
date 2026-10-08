@@ -63,6 +63,12 @@ record WeColorKey(float red, float green, float blue, float tolerance,
 					.contains(EFFECT))
 				continue;
 
+			// 效果自己也带 visible：作者会用它临时关掉某个效果。实测「persica」的
+			// 「backdrop flowers」上就挂着一个 visible:false 的色键 —— 不看这个字段
+			// 会把作者明确禁用的效果画上去。缺字段按启用处理。
+			if(!WeScene.isEffectVisible(effect))
+				continue;
+
 			JsonObject constants = firstConstants(effect);
 
 			if(constants == null)

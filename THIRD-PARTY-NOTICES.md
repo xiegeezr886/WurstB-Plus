@@ -58,6 +58,45 @@
 3. 注意 `vorbis-support` 自称 **LGPL-3.0**，与项目主许可 GPL-3.0-or-later 不同；
    LGPL 对"允许用户替换该库"有额外要求，relocate 后的动态替换路径需要确认。
 
+#### 第 1 步的进展（2026-10-07，未完成）
+
+实测了根工程产物 `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar` 的
+`META-INF/jarjar/metadata.json`：**内嵌依赖 17 个**（不是 18），其中
+**只有 2 个 jar 自带许可文件** —— `mixinextras-forge`（`LICENSE_MixinExtras`）与
+`vorbis-support`（`META-INF/license.txt`）；**其余 15 个产物内零许可文本**。
+
+核实许可时踩到一个坑，记下来：**这批 POM 里 `<licenses>` 元素普遍不存在**
+（先按该元素解析，17 个全部报"无声明"，看起来像全都没写）。
+实际许可声明在 **POM 的 XML 头部注释**里，例如 `com.google.zxing:core:3.5.3`：
+
+    <!-- Copyright (C) 2010 ZXing authors
+         Licensed under the Apache License, Version 2.0 (the "License"); ... -->
+
+改成对 POM 全文做许可关键词识别后，从本机 Gradle 缓存
+（`~/.gradle/caches/modules-2/files-2.1`）**已确认 5 个**：
+
+| 坐标 | 许可 | 依据 |
+| --- | --- | --- |
+| `io.github.llamalad7:mixinextras-forge` | MIT | POM 文本 |
+| `org.java-websocket:Java-WebSocket` | MIT | POM 文本 |
+| `com.google.zxing:core` | Apache-2.0 | POM 头部注释 |
+| `org.jetbrains.skiko:skiko-awt` | Apache-2.0 | POM 文本 |
+| `org.jetbrains.kotlin:kotlin-stdlib` | Apache-2.0 | POM 文本 |
+
+**仍未确认 12 个**，且原因分类明确：
+
+  * 8 个 POM 文本里没有可识别的许可字串 —— `netty-codec-socks`、
+    `netty-handler-proxy`（许可在**父 POM** 里，本机缓存不含父 POM）、
+    `mp3spi`、`jlayer`、`jflac-codec`、`vorbis-support`、`tritonus-all`、`jorbis`；
+  * 4 个**本机缓存里根本没有 POM** —— `java-stream-player`、`jaudiotagger`
+    （来自 flatDir 或本地 maven 目录）、`baritone-api-forge`（来自
+    `baritone-maven/` 本地坐标）、`kotlinx-coroutines-core`。
+
+**所以第 1 步无法只靠本机缓存完成**：剩下 12 个必须去上游仓库取 LICENSE 文件
+（这也正是原文写的"查上游仓库的 LICENSE 文件，而非仅看 POM"）。
+第 2 步（把文本打进产物）依赖第 1 步，且需要新建
+`src/main/resources/META-INF/licenses/<artifact>/`；本机只有 `cozyui` 一个范例。
+
 ## 三、随包分发的原生库
 
 | 组件 | 许可 | 对应源码 | 状态 |
