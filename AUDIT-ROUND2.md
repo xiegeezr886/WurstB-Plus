@@ -70,7 +70,7 @@
 
 | # | 缺陷 | 修法 | 复核判定 |
 | --- | --- | --- | --- |
-| 18 | `AutoStealHack` / `ChatTranslatorHack` 在后台线程直接操作 GUI 与网络（改菜单、发包、改渲染线程遍历的聊天队列） | 改走 `MC.execute`；AutoSteal 用 `ReentrantLock`+`Condition` 做无忙等交接 | ChatTranslator **SOUND**；AutoSteal **SUSPECT**（见 §三） |
+| 18 | `AutoStealHack` / `ChatTranslatorHack` 在后台线程直接操作 GUI 与网络（改菜单、发包、改渲染线程遍历的聊天队列） | 改走 `MC.execute`；AutoSteal 用 `ReentrantLock`+`Condition` 做无忙等交接 | ChatTranslator **SOUND**；AutoSteal 的串台**已修**（§3.3 / 632aa164） |
 | 19 | `SkikoNatives` 每次启动无条件重写 26.5 MB 原生库、无校验、无平台守卫、失败契约不一致 | 加 SHA-256（一致则跳过）、落盘后复校、平台守卫、统一失败契约 | **BROKEN → 已修**（见 §三） |
 | 20 | `EventManager` 每次事件分发都分配并遍历一个永远为空的 map；每次功能开关沿继承链 `getDeclaredMethods()` | `isEmpty()` 短路 + 按类缓存注解扫描结论 | **SOUND** |
 | 21 | `AsyncTextureLoader` 拒绝策略异常直接抛给调用方；`read` 返回 0 时自旋；关池后永久失败 | 转成失败的 future、修读循环、关池后按需重建 | **SOUND** |
@@ -105,13 +105,21 @@
 
 **已修**：`get()` 移到 `:145`，即 `HackList` 构造之后、`SettingsFile` 之前。实测确认：`hax = new HackList` 在 `:136`、`RadialMenuHack.get()` 在 `:145`、`new SettingsFile` 在 `:156`。
 
-### 3.3 SUSPECT（MEDIUM-LOW）— AutoSteal 的共享信号会串台 **（未修，见 §五）**
+### 3.3 SUSPECT（MEDIUM-LOW）— AutoSteal 的共享信号会串台 **（已修，commit 632aa164）**
 
 `clicked` 字段与 `Condition` 被**所有 worker 共用**，无法把一次信号与某一次具体点击配对。
 
 失败场景：W1（steal）刚 `MC.execute(clickSlot(A))` 但尚未 park；用户点"存储" → `interrupt()` 杀掉 W1，而 `clickSlot(A)` 仍在客户端队列里 → W2（store）排队 B 并 park → 客户端线程执行 A（界面未变，**真的点了**）并置 `clicked=true` → W2 把它当成自己的完成。结果：一次"存储"里混进一次偷取、且节流坍塌（A 与 B 同帧点击）。
 
-**未修原因**：正确修法需要给每次点击发一个 token 并让 worker 只认自己的 token（或改成单 worker 串行队列），属于设计改动；当前窗口 ≤ 1 帧、且只在"偷取中切到存储"这一种快速操作下命中。已记入待办。
+**修法（已实施）**：按本节建议的 token 方案改掉了 —— 排队前领号（`nextClickToken`，持锁自增），点击执行完把这个号记进 `completedClickToken`（**只增不减**），worker 只等自己的号（`completedClickToken >= token`）。三点要害：
+
+1. **别人的号不会唤醒自己** —— 被中断的旧点击完成时写的是旧号，新 worker 等的是新号，不再被误判成自己的完成；
+2. **水位只增不减** —— 迟到的旧号不能把水位拉回去，否则等在后面的 worker 可能被"拉回的水位"骗过、或永久等待；
+3. **用 `>=` 而非 `==`** —— 若自己那次完成前水位已被更晚的点击推高，说明早就点过了，直接继续，不会卡住。
+
+`signal()` 同时改成 `signalAll()`：现在可能有两个工作线程等同一个 Condition，只唤醒一个会让另一个永久停在 await。
+
+**这条修改未经实测**：触发窗口 ≤ 1 帧、且只在"偷取中切到存储"时命中，我没有复现手段（`hacks/` 目录本就没有测试）。正确性是按上述不变量论证的。另见 §五 中"`awaitClick()` 无超时"那条 —— 那是**另一个**问题，本次没动。
 
 ### 3.4 FALSIFIED（P0）— 「新克隆可构建全部 67 个工程」这个结论本身是错的 **（已修）**
 
@@ -240,6 +248,6 @@
 | 2 | 把 `-Check`（依赖闸门）与 `generate-status.ps1 -Check`（状态闸门）接进 CI；同时加一个最小 `compileJava` job |
 | 3 | 裁决 `mixin` 版本冲突；把登记表里 7 个多版本坐标收敛到最少 |
 | 4 | ~~法务：PingFang 字体决策~~ **已删除（2026-10-06）**；仍需补齐内嵌依赖的许可文本，并决策同样属于 Apple 字体的 **SF Pro Rounded**（`rise.json`） |
-| 5 | 修 AutoSteal 的共享信号串台（token 配对或单 worker） |
+| 5 | ~~修 AutoSteal 的共享信号串台（token 配对或单 worker）~~ **已完成（commit 632aa164，见 §3.3）** |
 | 6 | 解 `Setting → clickgui2.Component` 耦合 —— 这是收敛 GUI 的前置条件 |
 | 7 | 把 683 个"零变体"文件提取为共享 sourceSet（不改逻辑、只删重复） |
