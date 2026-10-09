@@ -58,7 +58,7 @@
 3. 注意 `vorbis-support` 自称 **LGPL-3.0**，与项目主许可 GPL-3.0-or-later 不同；
    LGPL 对"允许用户替换该库"有额外要求，relocate 后的动态替换路径需要确认。
 
-#### 第 1 步的进展（2026-10-07，未完成）
+#### 第 1、2 步已完成（2026-10-07）
 
 实测了根工程产物 `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar` 的
 `META-INF/jarjar/metadata.json`：**内嵌依赖 17 个**（不是 18），其中
@@ -170,3 +170,21 @@ NoCheatPlus 等源码与压缩包）、`_artifacts/`、`_tools/`、`_smoke/`、`
 **注意**：这些材料里含**无许可证的反编译源码**与**竞品客户端产物**。项目既有的
 [移植优先级](docs/RELEASE.md) 已声明"无许可证反编译源码只核对行为，不直接复制"，
 请继续保持该边界。若要共享工作区，请先清理这些目录。
+
+**补记（同日完成）**：上条"必须去上游取件"的结论正确，且上游**是通的**
+（`repo1.maven.org` / `maven.aliyun.com` / `raw.githubusercontent.com` 均可达）。
+17 个依赖的许可已全部落实，证据分三类：14 个由 Maven Central 的 POM 解析
+（其中 8 个的声明在**父 POM** 里）；2 个由上游仓库 LICENSE 正文确认
+（`java-stream-player` GPL-3.0、`baritone-api-forge` LGPL-3.0）；1 个
+（`jaudiotagger`）由 **jar 自带 POM** 确认 —— 其真实坐标是 `net.jthink` 而非
+jarjar 元数据写的 `com.github.goxr3plus`，故 Central 查不到。
+
+最终分布：Apache-2.0 ×6、MIT ×2、LGPL-2.1 ×5、LGPL-3.0 ×2、GPL-3.0 ×1、
+LGPL(版本未声明) ×1。第 2 步已实施：`src/main/resources/META-INF/licenses/<artifact>/`
+下新增 17 个目录，每个含 `ATTRIBUTION.txt`（写明许可、SPDX、**证据出处**、文本
+SHA-256）与许可正文。
+
+**两处局限**：(1) `jaudiotagger` 的**版本号是推断的** —— 其 POM 只写 `LGPL` 未写版本，
+URL 指向 LGPL-3.0，已在它的 ATTRIBUTION 里注明；(2) **只在 `-dev.jar` 里验证过**
+（59 个文件 / 19 个组件），发布产物由 `reobfJar` 产出而那次构建**被环境强制终止**
+（`DBG_TERMINATE_PROCESS`，非构建失败），故尚未确认许可文本进入最终发布产物。
