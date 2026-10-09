@@ -1,0 +1,26 @@
+jaudiotagger
+============
+
+Licence : GNU LGPL 3.0 (SPDX: LGPL-3.0-only)  ** 版本号见下方说明 **
+Evidence: the jar's own embedded POM
+
+  路径  META-INF/maven/net.jthink/jaudiotagger/pom.xml
+  原文  <licenses>
+          <license>
+            <name>LGPL</name>
+            <url>http://www.gnu.org/copyleft/lesser.html</url>
+          </license>
+        </licenses>
+
+  jar 版本 2.2.7。注意 jarjar 元数据里写的坐标是 com.github.goxr3plus:jaudiotagger，
+  而 jar 自带 POM 里的实际坐标是 net.jthink:jaudiotagger —— 后者不在 Maven Central
+  （已实测 404），这也是先前查不到它的原因。
+
+  ** 版本号是推断的 **：POM 只写了 "LGPL"，没有写版本；URL 指向的内容是 LGPL-3.0。
+  所以随包附上的是 LGPL-3.0 正文，但这一处**没有直接声明**支持版本号。
+  若需确证，应查 jaudiotagger 上游仓库的 LICENSE 文件（本次四个候选 URL 均 404，未取到）。
+
+Text    : fetched from the SPDX license-list-data repository (LGPL-3.0-only)
+
+Bundled into the WurstB+ Plus jar via jarJar. The licence text above is
+shipped alongside this file so recipients have it in the artifact.

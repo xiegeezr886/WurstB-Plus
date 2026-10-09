@@ -1,0 +1,12 @@
+java-stream-player
+==================
+
+Licence : GNU GPL 3.0 (GPL-3.0-only)
+Evidence: 上游仓库 goxr3plus/java-stream-player 的 LICENSE
+Text    : fetched from the SPDX license-list-data repository (GPL-3.0-only)
+SHA-256 : fb981668c18a279e285fc4d83fba1e836cc84dd4daa73c9697d3cfd2d8aca6e0
+
+Bundled into the WurstB+ Plus jar via jarJar. The licence text above is
+shipped alongside this file so recipients have it in the artifact.
+Upstream: https://raw.githubusercontent.com/goxr3plus/java-stream-player/master/LICENSE
+Upstream SHA-256: 589ed823e9a84c56feb95ac58e7cf384626b9cbf4fda2a907bc36e103de1bad2

@@ -1,0 +1,10 @@
+skiko-awt
+=========
+
+Licence : Apache License 2.0 (Apache-2.0)
+Evidence: Maven Central POM（自身）
+Text    : fetched from the SPDX license-list-data repository (Apache-2.0)
+SHA-256 : 074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff
+
+Bundled into the WurstB+ Plus jar via jarJar. The licence text above is
+shipped alongside this file so recipients have it in the artifact.

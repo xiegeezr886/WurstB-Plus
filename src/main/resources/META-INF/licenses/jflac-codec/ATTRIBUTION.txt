@@ -1,0 +1,10 @@
+jflac-codec
+===========
+
+Licence : GNU LGPL 2.1 (LGPL-2.1-only)
+Evidence: Maven Central POM（父 POM）
+Text    : fetched from the SPDX license-list-data repository (LGPL-2.1-only)
+SHA-256 : 5749785c8bdefafcb5d798270ed0a967036fe2ca63dcedade1627565dfef81d2
+
+Bundled into the WurstB+ Plus jar via jarJar. The licence text above is
+shipped alongside this file so recipients have it in the artifact.

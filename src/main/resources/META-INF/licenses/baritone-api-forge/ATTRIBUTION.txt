@@ -1,0 +1,12 @@
+baritone-api-forge
+==================
+
+Licence : GNU LGPL 3.0 (LGPL-3.0-only)
+Evidence: 上游仓库 cabaletta/baritone 的 LICENSE
+Text    : fetched from the SPDX license-list-data repository (LGPL-3.0-only)
+SHA-256 : 996af0513df21f7496288951c41428a03c174e9e4a9d63665c57d670f845ccb1
+
+Bundled into the WurstB+ Plus jar via jarJar. The licence text above is
+shipped alongside this file so recipients have it in the artifact.
+Upstream: https://raw.githubusercontent.com/cabaletta/baritone/master/LICENSE
+Upstream SHA-256: a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b
