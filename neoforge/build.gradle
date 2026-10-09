@@ -136,3 +136,12 @@ tasks.named("jarJar").configure {
     archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
     finalizedBy "reobfJarJar"
 }
+
+
+// ---------------------------------------------------------------------------
+// 共享源码：把「在所有工程里逐字节相同」的文件收拢到 common/，各工程引用它。
+// 这批文件共 293 个、原先在仓库里有 19,631 个物理副本。
+// 只收「出现在全部 67 个工程且零变体」的文件，故增删不改变任何工程可见的
+// 源集合；有变体的文件一律留在工程自己的 src/main/java 里。
+// ---------------------------------------------------------------------------
+sourceSets.main.java.srcDir "../common/src/main/java"
