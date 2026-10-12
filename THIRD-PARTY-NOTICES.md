@@ -184,7 +184,24 @@ LGPL(版本未声明) ×1。第 2 步已实施：`src/main/resources/META-INF/li
 下新增 17 个目录，每个含 `ATTRIBUTION.txt`（写明许可、SPDX、**证据出处**、文本
 SHA-256）与许可正文。
 
-**两处局限**：(1) `jaudiotagger` 的**版本号是推断的** —— 其 POM 只写 `LGPL` 未写版本，
+**发布产物已验证（2026-10-12）**：重跑 `gradlew build` 后确认许可文本确实进了发布产物 ——
+
+    WurstB+ Plus-v1.6.0-Forge-1.20.1.jar
+        55,722,520 B   EOCD: True   CRC: OK
+        1823 条目 / 1516 class / jarJar 内嵌 17
+        META-INF/licenses: 59 文件 / 19 组件（17 个依赖 + cozyui）
+
+**顺带发现并修掉一个会阻塞发布的问题**：先前那次被中途杀死的构建在 `build/libs`
+留下了一个**截断的** `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar` —— 它大小正常（9.5 MB）、
+时间正常、文件名正常，但**没有 zip 的 EOCD**，打开就报「找不到中央目录结尾记录」。
+从外面完全看不出来。这类文件已实测出现两次，两次都是发布用的那个产物（不是 -dev）。
+
+为此新增 `scripts/verify-jars.ps1`：逐个检查 EOCD、中央目录可解析性、以及
+（`-Deep` 时）每个条目的 CRC；不通过就以非零码退出并提示"删掉重新构建，不要发布"。
+已双向验证：对完好的 3 个产物报通过（exit 0），对人为截断的副本报出
+「缺少 EOCD —— 写入被中途打断」（exit 1）。
+
+**仍有一处局限**：`jaudiotagger` 的**版本号是推断的**
 URL 指向 LGPL-3.0，已在它的 ATTRIBUTION 里注明；(2) **只在 `-dev.jar` 里验证过**
 （59 个文件 / 19 个组件），发布产物由 `reobfJar` 产出而那次构建**被环境强制终止**
 （`DBG_TERMINATE_PROCESS`，非构建失败），故尚未确认许可文本进入最终发布产物。
