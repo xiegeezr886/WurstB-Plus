@@ -105,9 +105,10 @@ final class WeSceneTextTest
 
 		WeScene.TextLayer text = parse(scene).texts().get(0);
 
-		// 父链偏移按祖先缩放复合：1000 + 200*0.5 = 1100、500 + (-100)*0.5 = 450
+		// 父链偏移按祖先缩放复合，且**子对象的 Y 偏移取反**：
+		// x = 1000 + 200*0.5 = 1100、y = 500 - (-100)*0.5 = 550
 		assertEquals(1100, text.originX(), 0.01);
-		assertEquals(450, text.originY(), 0.01);
+		assertEquals(550, text.originY(), 0.01);
 		// 缩放也继承
 		assertEquals(0.5F, text.scaleX(), 0.001);
 	}

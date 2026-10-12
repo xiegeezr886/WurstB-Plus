@@ -434,8 +434,22 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 			if(node.has("origin"))
 			{
 				float[] own = numbers(node.get("origin"), 0, 0, 0);
+
+				// **子对象的 Y 偏移取反**（父级局部坐标 Y 向上，画布 Y 向下）。
+				//
+				// 依据：拿作者原版截图与我的渲染逐元素反推。全画布大层
+				// （真寻 / 真寻_l_1 这些，origin 就是画布中心）取不取反都一样 ——
+				// 所以它们**永远看不出问题**；而偏移非零的小部件差几百像素：
+				//   真寻_眼2 文件偏移 (-819.67, +113.12)，反推应为约 (-908, -193)
+				//   year     文件偏移 (+147.58, +855.53)，反推应约为 (-685, -781)
+				// 两处都是"Y 量级接近、符号相反"，X 没有这个现象，所以只翻 Y。
+				//
+				// **这是一条待实机对照验证的规则**，改完立刻与作者原版截图并排比。
+				boolean child = node.has("parent")
+					&& node.get("parent").isJsonPrimitive();
+
 				x += own[0] * scaleX;
-				y += own[1] * scaleY;
+				y += (child ? -own[1] : own[1]) * scaleY;
 			}
 
 			if(node.has("scale"))
