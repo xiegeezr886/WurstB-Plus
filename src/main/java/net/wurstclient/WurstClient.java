@@ -57,6 +57,7 @@ import net.wurstclient.util.render.AsyncTextureLoader;
 import net.wurstclient.music.NeteaseMusicPlayer;
 import net.wurstclient.util.render.PostEffectQueue;
 import net.wurstclient.util.EntitySnapshotManager;
+import net.wurstclient.util.WurstDebugLog;
 import net.wurstclient.util.inventory.InventoryActionQueue;
 
 public enum WurstClient
@@ -113,6 +114,14 @@ public enum WurstClient
 		MC = Minecraft.getInstance();
 		IMC = (IMinecraftClient)MC;
 		wurstFolder = createWurstFolder();
+		
+		// 调试日志：默认写到 <游戏目录>/wurst/logs/，每个游戏实例一份，互不覆盖。
+		// 放在这里是因为它是第一个拿到 wurstFolder 的地方；它自身不抛异常，
+		// 就算磁盘不可写也只是禁用日志，不影响启动。
+		WurstDebugLog.init(wurstFolder);
+		WurstDebugLog.debug("WurstClient",
+			"启动 " + CLIENT_NAME + "，日志文件 " + WurstDebugLog.getLogFile());
+		
 		guiPreferences = new GuiPreferences(wurstFolder);
 		
 		eventManager = new EventManager(this);
