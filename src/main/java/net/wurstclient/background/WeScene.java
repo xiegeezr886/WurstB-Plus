@@ -202,16 +202,19 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		// 表现就是"某个部件压在该在上面/下面的东西上"，而位置和尺寸全是对的 ——
 		// 实测就是用户看到的那条：尺寸修对之后，剩下的是叠加层顺序不对。
 		//
-		// 方向取**升序**（zorder 大的后画、盖在上面）：依据是数组顺序本来就基本正确，
-		// 升序与它一致，只是把少数例外纠过来；反过来会让整张背景盖住人物。
-		// List.sort 是稳定排序，zorder 相同时保持数组里的相对顺序 —— 与官方一致。
+		// 方向取**降序**（zorder 大的先画、压在下面）。先前取升序是错的，而且错得很典型：
+		// 实机反馈"眼白在皮肤下面"—— 数组顺序里眼睛（真寻_眼2）本来排在皮肤（真寻_fd_1）
+		// 之后、是压在上面的，升序把它挪到了前面，等于我亲手把眼睛塞到皮肤底下。
+		// 降序把这一对恢复回来。List.sort 是稳定排序，zorder 相同时保持数组里的相对顺序。
 		List<JsonObject> ordered = new ArrayList<>();
 
 		for(JsonElement element : objects)
 			if(element.isJsonObject())
 				ordered.add(element.getAsJsonObject());
 
-		ordered.sort(Comparator.comparingInt(o -> (int)number(o, "zorder", 0)));
+		ordered.sort(Comparator
+			.comparingInt((JsonObject o) -> (int)number(o, "zorder", 0))
+			.reversed());
 
 		for(JsonElement element : ordered)
 		{
