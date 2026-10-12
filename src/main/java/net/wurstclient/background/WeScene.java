@@ -10,6 +10,7 @@ package net.wurstclient.background;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -196,7 +197,23 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 				byId.put(element.getAsJsonObject().get("id").getAsInt(),
 					element.getAsJsonObject());
 
+		// **叠加顺序由 zorder 决定，不是数组顺序**。以前直接按数组顺序画，多数场景
+		// 恰好对得上（作者导出时两个顺序常常一致），所以一直没暴露；一旦不一致，
+		// 表现就是"某个部件压在该在上面/下面的东西上"，而位置和尺寸全是对的 ——
+		// 实测就是用户看到的那条：尺寸修对之后，剩下的是叠加层顺序不对。
+		//
+		// 方向取**升序**（zorder 大的后画、盖在上面）：依据是数组顺序本来就基本正确，
+		// 升序与它一致，只是把少数例外纠过来；反过来会让整张背景盖住人物。
+		// List.sort 是稳定排序，zorder 相同时保持数组里的相对顺序 —— 与官方一致。
+		List<JsonObject> ordered = new ArrayList<>();
+
 		for(JsonElement element : objects)
+			if(element.isJsonObject())
+				ordered.add(element.getAsJsonObject());
+
+		ordered.sort(Comparator.comparingInt(o -> (int)number(o, "zorder", 0)));
+
+		for(JsonElement element : ordered)
 		{
 			if(!element.isJsonObject())
 				continue;
