@@ -75,7 +75,7 @@ public record WePuppetMesh(float minX, float minY, float maxX, float maxY,
 
 	private static final String MAGIC = "MDLV0023";
 
-	/** 网格在模型空间的宽高；这就是该图层该显示的尺寸。 */
+	/** 网格在模型空间的宽高。 */
 	public float width()
 	{
 		return maxX - minX;
@@ -84,6 +84,29 @@ public record WePuppetMesh(float minX, float minY, float maxX, float maxY,
 	public float height()
 	{
 		return maxY - minY;
+	}
+
+	/**
+	 * **贴图**在模型空间占的宽：包围盒宽 ÷ UV 跨度。
+	 *
+	 * <p>
+	 * 网格通常比贴图略大一圈（真寻_眼2 是 UV {@code -0.021..1.023}，即四周各多 2%），
+	 * 直接拿包围盒当贴图尺寸会把这 2% 一起放大，整层再偏十几像素。除以 UV 跨度就消掉了。</p>
+	 *
+	 * <p>
+	 * 实测自洽：{@code 808.0 / 1.0439 = 774.0}，正好等于贴图宽度 774 —— 说明网格顶点
+	 * 就是**画布像素**，不是归一化坐标，中间没有再乘一次缩放。</p>
+	 */
+	public float textureWidth()
+	{
+		float span = maxU - minU;
+		return span > 0.0001f ? width() / span : width();
+	}
+
+	public float textureHeight()
+	{
+		float span = maxV - minV;
+		return span > 0.0001f ? height() / span : height();
 	}
 
 	/**

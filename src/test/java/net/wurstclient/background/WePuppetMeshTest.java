@@ -56,6 +56,10 @@ final class WePuppetMeshTest
 		assertEquals(1f, parsed.maxU(), 0.001f);
 		assertEquals(0f, parsed.minV(), 0.001f);
 		assertEquals(1f, parsed.maxV(), 0.001f);
+
+		// UV 正好铺满 0..1 时，贴图尺寸就是包围盒尺寸
+		assertEquals(200f, parsed.textureWidth(), 0.001f);
+		assertEquals(100f, parsed.textureHeight(), 0.001f);
 	}
 
 	/**
@@ -77,8 +81,13 @@ final class WePuppetMeshTest
 		assertEquals(808f, parsed.width(), 0.1f);
 		assertEquals(368.9f, parsed.height(), 0.1f);
 
-		// 贴图高度 874 —— 按贴图铺会高出 2.37 倍，这就是"偏移"的来源
-		assertEquals(2.37f, 874f / parsed.height(), 0.01f);
+		// 除以 UV 跨度后正好回到贴图宽度 774 —— 反证网格顶点就是画布像素
+		assertEquals(774f, parsed.textureWidth(), 1f);
+
+		// 高度方向被压到 353，而贴图是 874 —— 按贴图铺会高出 2.47 倍，
+		// 这就是"眼睛/眼白偏移"的来源
+		assertEquals(353f, parsed.textureHeight(), 1f);
+		assertEquals(2.47f, 874f / parsed.textureHeight(), 0.02f);
 	}
 
 	@Test

@@ -555,10 +555,10 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 		WePuppetMesh mesh = WePuppetMesh.parse(data);
 
-		if(mesh == null || mesh.width() <= 0 || mesh.height() <= 0)
+		if(mesh == null || mesh.textureWidth() <= 0 || mesh.textureHeight() <= 0)
 			return null;
 
-		return new float[]{mesh.width(), mesh.height()};
+		return new float[]{mesh.textureWidth(), mesh.textureHeight()};
 	}
 
 	/** 模型 → 材质 → 第一个贴图名；任何一步缺失都返回 null。 */
