@@ -185,7 +185,8 @@ public final class WeSceneWallpaper implements AutoCloseable
 		WePackage pkg = WePackage.parse(packageBytes);
 		String sceneJson = text(pkg, WeScene.SCENE_JSON);
 
-		WeScene scene = WeScene.parse(sceneJson, name -> text(pkg, name));
+		WeScene scene = WeScene.parse(sceneJson, name -> text(pkg, name),
+			pkg::read);
 		List<DecodedLayer> decoded = new ArrayList<>();
 		long totalPixels = 0;
 		int skippedForBudget = 0;
