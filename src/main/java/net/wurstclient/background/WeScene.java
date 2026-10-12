@@ -109,7 +109,8 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 	public record Layer(String name, String texture, float originX, float originY,
 		float sizeX, float sizeY, float scaleX, float scaleY, float alpha,
 		float colorR, float colorG, float colorB, float parallaxX,
-		float parallaxY, String alignment, WeColorKey colorKey, WeBlur blur)
+		float parallaxY, String alignment, WeColorKey colorKey, WeBlur blur,
+		WePuppetMesh puppet)
 	{}
 
 	private static final float DEFAULT_WIDTH = 1920;
@@ -377,7 +378,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 			return new Layer(name, "", origin[0],
 				origin[1], size[0], size[1], scale[0], scale[1], alpha,
 				color[0], color[1], color[2], depth[0], depth[1], alignment,
-				colorKey, blur);
+				colorKey, blur, null);
 
 		// 其余内置工具模型：帧缓冲/后期层，跳过（不是解析失败，是画不出来）
 		if(modelName.contains("util/"))
@@ -388,23 +389,26 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		if(texture == null)
 			return null;
 
-		// 木偶部件：显示尺寸由**网格包围盒**决定，不是贴图。贴图 774x874 的眼睛，
-		// 网格只占 y -174.5..194.4（高 369）—— 按贴图铺会明显偏低偏大，这就是
-		// 作者原版与本项目渲染之间那处「眼睛/眼白偏移」。理由与格式见 WePuppetMesh。
-		float[] mesh = puppetSize(modelName, files, binaries);
+		// 木偶部件：显示尺寸由**网格包围盒**决定，不是贴图，而且网格是**形变过的**
+		// —— 实测「真寻_眼2」按 UV 线性映射的残差 x 只有 2.5px，但 y 有 65.7px RMS、
+		// 最大 147.6px，所以这一层不能整块铺，必须按三角形光栅化（见 WeSceneWallpaper
+		// 的 deform）。这里把网格一路带给渲染端。
+		WePuppetMesh mesh = puppetMesh(modelName, files, binaries);
 
 		if(mesh != null)
 		{
 			System.out.println("[Background] 木偶图层「" + name + "」按网格定尺寸 "
-				+ Math.round(mesh[0]) + "x" + Math.round(mesh[1])
+				+ Math.round(mesh.width()) + "x" + Math.round(mesh.height())
 				+ "（场景声明 " + Math.round(size[0]) + "x"
-				+ Math.round(size[1]) + "）");
-			size = mesh;
+				+ Math.round(size[1]) + "，" + mesh.triangleCount()
+				+ " 个三角形）");
+			size = new float[]{mesh.width(), mesh.height()};
 		}
 
 		return new Layer(name, texture, origin[0],
 			origin[1], size[0], size[1], scale[0], scale[1], alpha, color[0],
-			color[1], color[2], depth[0], depth[1], alignment, colorKey, blur);
+			color[1], color[2], depth[0], depth[1], alignment, colorKey, blur,
+			mesh);
 	}
 
 	/** 值是不是绑定了脚本（形如 {@code {script, scriptproperties, value}}）。 */
@@ -525,14 +529,10 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 	}
 
 	/**
-	 * 模型引了木偶网格时，返回网格包围盒的宽高；不是木偶、读不到、或格式对不上
-	 * 都返回 null（调用方照旧按贴图尺寸）。
-	 *
-	 * <p>
-	 * 骨骼与动画没做，也不需要：绑定姿势下顶点本身就是模型空间里的绝对坐标，
-	 * 包围盒即该部件的真实占地。</p>
+	 * 模型引了木偶网格时返回它；不是木偶、读不到、或格式对不上都返回 null
+	 * （调用方照旧按贴图尺寸整块铺）。
 	 */
-	private static float[] puppetSize(String modelName,
+	private static WePuppetMesh puppetMesh(String modelName,
 		Function<String, String> files, Function<String, byte[]> binaries)
 	{
 		if(binaries == null)
@@ -555,10 +555,10 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 		WePuppetMesh mesh = WePuppetMesh.parse(data);
 
-		if(mesh == null || mesh.textureWidth() <= 0 || mesh.textureHeight() <= 0)
+		if(mesh == null || mesh.width() <= 0 || mesh.height() <= 0)
 			return null;
 
-		return new float[]{mesh.textureWidth(), mesh.textureHeight()};
+		return mesh;
 	}
 
 	/** 模型 → 材质 → 第一个贴图名；任何一步缺失都返回 null。 */

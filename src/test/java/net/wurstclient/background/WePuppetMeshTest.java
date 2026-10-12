@@ -10,11 +10,14 @@ package net.wurstclient.background;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
+
+import com.mojang.blaze3d.platform.NativeImage;
 
 /**
  * 木偶网格的最小解析（{@link WePuppetMesh}）。
@@ -146,8 +149,82 @@ final class WePuppetMeshTest
 		assertNull(WePuppetMesh.parse(data));
 	}
 
-	/** 造一段 .mdl：头部 84 字节 + 顶点 + 索引长度 + 索引。 */
-	private static byte[] mesh(float[][] vertices, int[] indices)
+	/**
+	 * 光栅化：四角对应四象限，并且**上下翻转**（局部 y 向上、输出图 y 向下）。
+	 *
+	 * <p>
+	 * 源图 2x2 四个角四种颜色；网格是 10x10 的矩形，UV 铺满。按实测的坐标系，
+	 * 源图**左上**（uv 0,0）应该落在输出的**左下**。
+	 * </p>
+	 */
+	@Test
+	void warpsQuadWithFlippedY()
+	{
+		byte[] data = mesh(new float[][]{{0, 0, 0, 0}, {10, 0, 1, 0},
+			{10, 10, 1, 1}, {0, 10, 0, 1}}, new int[]{0, 1, 2, 0, 2, 3});
+		WePuppetMesh parsed = WePuppetMesh.parse(data);
+		assertNotNull(parsed);
+
+		NativeImage out = WeSceneWallpaper.deform(parsed, source2x2());
+
+		assertNotNull(out);
+		assertEquals(10, out.getWidth());
+		assertEquals(10, out.getHeight());
+
+		assertEquals(BLUE, out.getPixelRGBA(0, 0));
+		assertEquals(WHITE, out.getPixelRGBA(9, 0));
+		assertEquals(RED, out.getPixelRGBA(0, 9));
+		assertEquals(GREEN, out.getPixelRGBA(9, 9));
+	}
+
+	/**
+	 * 网格之外的像素必须是透明的 —— 这一条才是"部件归位"的关键：形状由网格说了算，
+	 * 不再是无脑铺满整个矩形。
+	 */
+	@Test
+	void leavesPixelsOutsideMeshTransparent()
+	{
+		byte[] data = mesh(new float[][]{{0, 0, 0, 0}, {10, 0, 1, 0},
+			{0, 10, 0, 1}}, new int[]{0, 1, 2});
+		WePuppetMesh parsed = WePuppetMesh.parse(data);
+		assertNotNull(parsed);
+
+		NativeImage out = WeSceneWallpaper.deform(parsed, source2x2());
+
+		assertNotNull(out);
+		assertEquals(10, out.getWidth());
+
+		// 三角形占输出的左下半（顶点 (0,10) (10,10) (0,0)）
+		assertEquals(0xFF, out.getPixelRGBA(1, 8) >>> 24);
+		assertEquals(0, out.getPixelRGBA(8, 1) >>> 24);
+	}
+
+	/** 没有网格时原图原样返回，别把不需要变形的图层也复制一遍。 */
+	@Test
+	void returnsSourceWithoutMesh()
+	{
+		NativeImage source = source2x2();
+
+		assertSame(source, WeSceneWallpaper.deform(null, source));
+	}
+
+	private static final int RED = 0xFF0000FF;
+	private static final int GREEN = 0xFF00FF00;
+	private static final int BLUE = 0xFFFF0000;
+	private static final int WHITE = 0xFFFFFFFF;
+
+	private static NativeImage source2x2()
+	{
+		NativeImage image =
+			new NativeImage(NativeImage.Format.RGBA, 2, 2, false);
+		image.setPixelRGBA(0, 0, RED);
+		image.setPixelRGBA(1, 0, GREEN);
+		image.setPixelRGBA(0, 1, BLUE);
+		image.setPixelRGBA(1, 1, WHITE);
+		return image;
+	}
+
+	/** 造一段 .mdl：头部 84 字节 + 顶点 + 索引长度 + 索引。 */	private static byte[] mesh(float[][] vertices, int[] indices)
 	{
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		byte[] header = new byte[84];

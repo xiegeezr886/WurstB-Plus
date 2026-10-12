@@ -58,7 +58,7 @@ import java.nio.charset.StandardCharsets;
  */
 public record WePuppetMesh(float minX, float minY, float maxX, float maxY,
 	float minU, float minV, float maxU, float maxV, int vertexCount,
-	int triangleCount)
+	int triangleCount, float[] positions, float[] uvs, int[] indices)
 {
 	/** 顶点段的起点。 */
 	private static final int VERTEX_START = 84;
@@ -141,6 +141,8 @@ public record WePuppetMesh(float minX, float minY, float maxX, float maxY,
 		float minY = Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
 		float minU = Float.MAX_VALUE, maxU = -Float.MAX_VALUE;
 		float minV = Float.MAX_VALUE, maxV = -Float.MAX_VALUE;
+		float[] positions = new float[vertices * 2];
+		float[] uvs = new float[vertices * 2];
 
 		for(int i = 0; i < vertices; i++)
 		{
@@ -154,6 +156,11 @@ public record WePuppetMesh(float minX, float minY, float maxX, float maxY,
 				|| !Float.isFinite(u) || !Float.isFinite(v))
 				return null;
 
+			positions[i * 2] = x;
+			positions[i * 2 + 1] = y;
+			uvs[i * 2] = u;
+			uvs[i * 2 + 1] = v;
+
 			minX = Math.min(minX, x);
 			maxX = Math.max(maxX, x);
 			minY = Math.min(minY, y);
@@ -166,15 +173,19 @@ public record WePuppetMesh(float minX, float minY, float maxX, float maxY,
 
 		// 最大索引必须落在顶点数之内 —— 这条比长度字段更难伪造，是真正判据
 		int highest = -1;
+		int[] indices = new int[indexBytes / 2];
 
-		for(int at = indicesAt + 4; at < indicesAt + 4 + indexBytes; at += 2)
-			highest = Math.max(highest, uint16At(data, at));
+		for(int i = 0; i < indices.length; i++)
+		{
+			indices[i] = uint16At(data, indicesAt + 4 + i * 2);
+			highest = Math.max(highest, indices[i]);
+		}
 
 		if(highest < 0 || highest >= vertices)
 			return null;
 
 		return new WePuppetMesh(minX, minY, maxX, maxY, minU, minV, maxU,
-			maxV, vertices, indexBytes / 6);
+			maxV, vertices, indexBytes / 6, positions, uvs, indices);
 	}
 
 	private static boolean hasMagic(byte[] data)
