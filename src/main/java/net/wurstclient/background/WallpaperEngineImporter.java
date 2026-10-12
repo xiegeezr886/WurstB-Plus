@@ -123,11 +123,30 @@ public final class WallpaperEngineImporter
 
 			Path media = resolveMedia(wallpaper, project);
 
+			// project.json 有时认不出这是场景 —— 实测「Arknights: Endfield -
+			// Perlica & Talos II」和「Arknights-明日方舟-阿米娅-王冠」的
+			// project.json 只有 2KB、缺类型标记，于是 resolveMedia 返回 null，
+			// 最后退回 preview.gif：导入进来的是一张 255x255 的预览动图，
+			// 界面上就是"加载不了"（类型还被记成 IMAGE，而 NativeImage 读不了 GIF）。
+			//
+			// 所以补一条**以实际文件为准**的判断：目录里有 scene.pkg 就当场景。
+			// 这比信任 project.json 的类型声明更可靠 —— 文件在不在是事实。
+			if(media == null)
+			{
+				Path pkg = wallpaper.resolve("scene.pkg");
+
+				if(Files.isRegularFile(pkg))
+					media = pkg;
+			}
+
 			if(media != null)
 			{
+				BackgroundKind kind = BackgroundKind
+					.fromFileName(media.getFileName().toString());
+
 				candidates.add(new Candidate(media,
-					BackgroundKind.fromFileName(media.getFileName().toString()),
-					title, null, resolveThumbnail(wallpaper, project, media)));
+					kind != null ? kind : BackgroundKind.SCENE, title, null,
+					resolveThumbnail(wallpaper, project, media)));
 				return;
 			}
 
