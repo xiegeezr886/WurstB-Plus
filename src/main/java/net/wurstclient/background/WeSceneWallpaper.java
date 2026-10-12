@@ -449,7 +449,139 @@ public final class WeSceneWallpaper implements AutoCloseable
 		return factor;
 	}
 
+	/**
+	 * 木偶网格变形：把整张贴图按网格**逐三角形光栅化**成一张新图。
+	 *
+	 * <p>
+	 * <b>为什么不能整块铺</b>：实测「真寻_眼2」的网格是形变过的 —— 用 UV 线性映射去逼近，
+	 * x 方向残差只有 2.5px，但 y 方向 RMS 65.7px、最大 147.6px（平均偏差 150px）。
+	 * 也就是说这一层既不是"整张贴图铺个矩形"，也不是"铺个斜四边形"，只能逐三角形还原。
+	 * </p>
+	 *
+	 * <p>
+	 * <b>坐标系</b>（两条都是实测出来的，不是约定）：</p>
+	 * <ul>
+	 * <li>局部坐标原点是图层 origin，<b>y 向上</b>（画布 y 向下）—— 证据是 v 最小的顶点
+	 * 局部 y 为正（+105），v 最大的局部 y 为负（-123），即 v=0 在贴图上边；</li>
+	 * <li>顶点坐标就是**画布像素**：包围盒宽 808 / UV 跨度 1.044 = 774，正好等于贴图宽度。</li>
+	 * </ul>
+	 *
+	 * <p>
+	 * 输出图就是包围盒那一块，于是外面照旧 {@code blit} 到尺寸为包围盒的矩形即可，
+	 * 整条渲染路径（颜色/alpha/视差/预算）都不用动。</p>
+	 */
+	static NativeImage deform(WePuppetMesh mesh, NativeImage source)
+	{
+		if(mesh == null || source == null || mesh.indices().length < 3)
+			return source;
+
+		int sourceWidth = source.getWidth();
+		int sourceHeight = source.getHeight();
+		int outWidth = Math.max(1, Math.round(mesh.width()));
+		int outHeight = Math.max(1, Math.round(mesh.height()));
+		NativeImage out =
+			new NativeImage(NativeImage.Format.RGBA, outWidth, outHeight, false);
+
+		float spanX = mesh.maxX() - mesh.minX();
+		float spanY = mesh.maxY() - mesh.minY();
+
+		if(spanX <= 0 || spanY <= 0 || sourceWidth <= 0 || sourceHeight <= 0)
+		{
+			out.close();
+			return source;
+		}
+
+		int vertices = mesh.vertexCount();
+		float[] screenX = new float[vertices];
+		float[] screenY = new float[vertices];
+
+		for(int i = 0; i < vertices; i++)
+		{
+			screenX[i] =
+				(mesh.positions()[i * 2] - mesh.minX()) / spanX * outWidth;
+			// 局部 y 向上，输出图 y 向下
+			screenY[i] =
+				(mesh.maxY() - mesh.positions()[i * 2 + 1]) / spanY * outHeight;
+		}
+
+		int[] indices = mesh.indices();
+
+		for(int t = 0; t + 2 < indices.length; t += 3)
+			fillTriangle(out, source, mesh, indices[t], indices[t + 1],
+				indices[t + 2], screenX, screenY, outWidth, outHeight,
+				sourceWidth, sourceHeight);
+
+		return out;
+	}
+
+	private static void fillTriangle(NativeImage out, NativeImage source,
+		WePuppetMesh mesh, int a, int b, int c, float[] screenX,
+		float[] screenY, int outWidth, int outHeight, int sourceWidth,
+		int sourceHeight)
+	{
+		float ax = screenX[a], ay = screenY[a];
+		float bx = screenX[b], by = screenY[b];
+		float cx = screenX[c], cy = screenY[c];
+		float area = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+
+		if(Math.abs(area) < 0.0001f)
+			return;
+
+		int minX = Math.max(0, (int)Math.floor(Math.min(ax, Math.min(bx, cx))));
+		int maxX = Math.min(outWidth - 1,
+			(int)Math.ceil(Math.max(ax, Math.max(bx, cx))));
+		int minY = Math.max(0, (int)Math.floor(Math.min(ay, Math.min(by, cy))));
+		int maxY = Math.min(outHeight - 1,
+			(int)Math.ceil(Math.max(ay, Math.max(by, cy))));
+
+		for(int y = minY; y <= maxY; y++)
+			for(int x = minX; x <= maxX; x++)
+			{
+				float px = x + 0.5f, py = y + 0.5f;
+				float w0 = ((bx - px) * (cy - py) - (by - py) * (cx - px))
+					/ area;
+				float w1 = ((cx - px) * (ay - py) - (cy - py) * (ax - px))
+					/ area;
+				float w2 = 1 - w0 - w1;
+
+				if(w0 < 0 || w1 < 0 || w2 < 0)
+					continue;
+
+				float u = w0 * mesh.uvs()[a * 2] + w1 * mesh.uvs()[b * 2]
+					+ w2 * mesh.uvs()[c * 2];
+				float v = w0 * mesh.uvs()[a * 2 + 1]
+					+ w1 * mesh.uvs()[b * 2 + 1]
+					+ w2 * mesh.uvs()[c * 2 + 1];
+
+				int sx = Math.round(u * sourceWidth - 0.5f);
+				int sy = Math.round(v * sourceHeight - 0.5f);
+
+				if(sx < 0 || sy < 0 || sx >= sourceWidth
+					|| sy >= sourceHeight)
+					continue;
+
+				out.setPixelRGBA(x, y, source.getPixelRGBA(sx, sy));
+			}
+	}
+
 	private static DecodedLayer decodeLayer(WeScene.Layer layer, byte[] bytes)
+	{
+		NativeImage image = decodeImage(layer, bytes);
+
+		if(image == null)
+			return null;
+
+		NativeImage deformed = deform(layer.puppet(), image);
+
+		// 变形产出的是新图，原图就没用了（NativeImage 是堆外内存，得显式放）
+		if(deformed != image)
+			image.close();
+
+		return new DecodedLayer(layer, shrink(layer, deformed));
+	}
+
+	/** 解出图层自己的那张图（还没做木偶变形、也还没按显示尺寸缩）。 */
+	private static NativeImage decodeImage(WeScene.Layer layer, byte[] bytes)
 	{
 		try
 		{
@@ -458,15 +590,13 @@ public final class WeSceneWallpaper implements AutoCloseable
 			int height = texture.imageHeight();
 
 			if(texture.isStandardImage())
-				return new DecodedLayer(layer, shrink(layer,
-					NativeImage.read(
-						new ByteArrayInputStream(texture.payload()))));
+				return NativeImage.read(
+					new ByteArrayInputStream(texture.payload()));
 
 			Raw raw = decodeUncompressed(texture, bytes);
 
 			if(raw != null)
-				return new DecodedLayer(layer, shrink(layer,
-					toImage(raw.rgba(), raw.width(), raw.height())));
+				return toImage(raw.rgba(), raw.width(), raw.height());
 
 			// 视频贴图：载荷就是一整段 MP4，解出第一帧当静态画面用
 			if(texture.isMp4())
@@ -474,7 +604,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 				NativeImage frame = decodeMp4Frame(texture.payload());
 
 				if(frame != null)
-					return new DecodedLayer(layer, shrink(layer, frame));
+					return frame;
 
 				System.out.println("[Background] 跳过 " + layer.name()
 					+ "：mp4 视频贴图解不出帧（" + width + "x" + height + "，"
