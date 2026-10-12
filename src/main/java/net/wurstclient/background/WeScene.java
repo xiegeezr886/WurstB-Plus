@@ -135,6 +135,18 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 	public static WeScene parse(String sceneJson,
 		Function<String, String> files) throws IOException
 	{
+		return parse(sceneJson, files, null);
+	}
+
+	/**
+	 * @param binaries
+	 *            按包内条目名取**原始字节**，取不到返回 null；用来读木偶网格
+	 *            {@code .mdl}（二进制，走不了 {@code files}）。给了 null 就按旧
+	 *            行为：木偶图层退回贴图尺寸。
+	 */
+	public static WeScene parse(String sceneJson, Function<String, String> files,
+		Function<String, byte[]> binaries) throws IOException
+	{
 		if(sceneJson == null || sceneJson.isBlank())
 			throw new IOException("场景包里的 " + SCENE_JSON + " 是空的");
 
@@ -190,7 +202,8 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 			JsonObject object = element.getAsJsonObject();
 
-			Layer layer = readLayer(object, files, width, height, byId);
+			Layer layer = readLayer(object, files, binaries, width, height,
+				byId);
 
 			if(layer != null)
 			{
@@ -311,13 +324,14 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 	}
 
 	private static Layer readLayer(JsonObject object,
-		Function<String, String> files, int width, int height,
-		Map<Integer, JsonObject> byId)
+		Function<String, String> files, Function<String, byte[]> binaries,
+		int width, int height, Map<Integer, JsonObject> byId)
 	{
 		if(!isVisible(object.get("visible")))
 			return null;
 
 		String modelName = string(object, "image", "");
+		String name = string(object, "name", modelName);
 
 		if(modelName.isEmpty())
 			return null;
@@ -360,7 +374,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		// 所以明确跳过 —— 之所以判断写成"含 util/solidlayer 就当纯色"，是因为
 		// depthtest 变体也声明了 solidlayer: true，只认单一名字会把整层丢掉。
 		if(modelName.contains("util/solidlayer"))
-			return new Layer(string(object, "name", modelName), "", origin[0],
+			return new Layer(name, "", origin[0],
 				origin[1], size[0], size[1], scale[0], scale[1], alpha,
 				color[0], color[1], color[2], depth[0], depth[1], alignment,
 				colorKey, blur);
@@ -374,7 +388,21 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		if(texture == null)
 			return null;
 
-		return new Layer(string(object, "name", modelName), texture, origin[0],
+		// 木偶部件：显示尺寸由**网格包围盒**决定，不是贴图。贴图 774x874 的眼睛，
+		// 网格只占 y -174.5..194.4（高 369）—— 按贴图铺会明显偏低偏大，这就是
+		// 作者原版与本项目渲染之间那处「眼睛/眼白偏移」。理由与格式见 WePuppetMesh。
+		float[] mesh = puppetSize(modelName, files, binaries);
+
+		if(mesh != null)
+		{
+			System.out.println("[Background] 木偶图层「" + name + "」按网格定尺寸 "
+				+ Math.round(mesh[0]) + "x" + Math.round(mesh[1])
+				+ "（场景声明 " + Math.round(size[0]) + "x"
+				+ Math.round(size[1]) + "）");
+			size = mesh;
+		}
+
+		return new Layer(name, texture, origin[0],
 			origin[1], size[0], size[1], scale[0], scale[1], alpha, color[0],
 			color[1], color[2], depth[0], depth[1], alignment, colorKey, blur);
 	}
@@ -494,6 +522,43 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		}
 
 		return new float[]{x, y, 1};
+	}
+
+	/**
+	 * 模型引了木偶网格时，返回网格包围盒的宽高；不是木偶、读不到、或格式对不上
+	 * 都返回 null（调用方照旧按贴图尺寸）。
+	 *
+	 * <p>
+	 * 骨骼与动画没做，也不需要：绑定姿势下顶点本身就是模型空间里的绝对坐标，
+	 * 包围盒即该部件的真实占地。</p>
+	 */
+	private static float[] puppetSize(String modelName,
+		Function<String, String> files, Function<String, byte[]> binaries)
+	{
+		if(binaries == null)
+			return null;
+
+		JsonObject model = read(files, modelName);
+
+		if(model == null)
+			return null;
+
+		String puppet = string(model, "puppet", "");
+
+		if(puppet.isEmpty())
+			return null;
+
+		byte[] data = binaries.apply(puppet);
+
+		if(data == null)
+			return null;
+
+		WePuppetMesh mesh = WePuppetMesh.parse(data);
+
+		if(mesh == null || mesh.width() <= 0 || mesh.height() <= 0)
+			return null;
+
+		return new float[]{mesh.width(), mesh.height()};
 	}
 
 	/** 模型 → 材质 → 第一个贴图名；任何一步缺失都返回 null。 */
