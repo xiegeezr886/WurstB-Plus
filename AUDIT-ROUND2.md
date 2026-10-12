@@ -245,9 +245,9 @@
 | 优先级 | 动作 |
 | --- | --- |
 | 1 | 构建验证 5 个 NeoForge 工程（含新增的 Baritone 内嵌），并抽测其余加载器各 1 个 |
-| 2 | 把 `-Check`（依赖闸门）与 `generate-status.ps1 -Check`（状态闸门）接进 CI；同时加一个最小 `compileJava` job |
-| 3 | 裁决 `mixin` 版本冲突；把登记表里 7 个多版本坐标收敛到最少 |
-| 4 | ~~法务：PingFang 字体决策~~ **已删除（2026-10-06）**；仍需补齐内嵌依赖的许可文本，并决策同样属于 Apple 字体的 **SF Pro Rounded**（`rise.json`） |
+| 2 | ~~把 `-Check`（依赖闸门）与 `generate-status.ps1 -Check`（状态闸门）接进 CI；同时加一个最小 `compileJava` job~~ **已完成（commit 3f3093a2，`.github/workflows/verify.yml`）**。顺带发现 `generate-status.ps1` 是 Windows-only 的（5 处硬编码反斜杠 + 输出用 OS 分隔符，在 ubuntu 上会永久为红），一并修掉 |
+| 3 | ~~裁决 `mixin` 版本冲突~~ **已完成（2026-10-07）** —— 用实验而非"挑新的"：根工程升到 0.8.7 后构建通过，且 refmap 与 0.8.5 **逐字节相同**（64,652 B / SHA-256 AA510CD1…），故统一到 0.8.7。登记表里其余多版本坐标各有明确理由（netty 按 MC 段、baritone 按发布版），未强行收敛 |
+| 4 | ~~法务：PingFang 字体决策~~ **已删除（2026-10-06）**；~~仍需补齐内嵌依赖的许可文本~~ **已完成（2026-10-12）**：17 个依赖的许可全部落实（14 个由 Maven Central POM 含父 POM、2 个由上游 LICENSE、1 个由 jar 自带 POM），许可正文已进**发布产物**（59 文件 / 19 组件）。**仍需人工拍板**：SF Pro Rounded（Apple 字体，树内零许可声明，已记录待决） |
 | 5 | ~~修 AutoSteal 的共享信号串台（token 配对或单 worker）~~ **已完成（commit 632aa164，见 §3.3）** |
 | 6 | ~~解 `Setting → clickgui2.Component` 耦合~~ **已完成（commit 见下）** —— `Setting` 只依赖新增的空接口 `settings.SettingComponent`，`clickgui2.Component` 实现它，调用方用 instanceof 收窄；依赖方向变为 `clickgui2 → settings` 单向。残留：10 个 settings 文件仍 import clickgui2（它们确实在构造 clickgui2 组件，属主动选择而非基类强制） |
 | 7 | 把 683 个"零变体"文件提取为共享 sourceSet（不改逻辑、只删重复） |
