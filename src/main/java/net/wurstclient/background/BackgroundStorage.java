@@ -119,8 +119,15 @@ public final class BackgroundStorage
 		{
 			JsonObject json = JsonUtils.parseFile(meta).getAsJsonObject();
 			String file = json.get("file").getAsString();
-			BackgroundKind kind =
-				BackgroundKind.valueOf(json.get("kind").getAsString());
+
+			// 按**实际文件名**纠正类型。旧版本的导入会把 .gif 记成 IMAGE，而图片
+			// 那条路用 NativeImage 解码 —— 它根本读不了 GIF（BackgroundThumbnail 的
+			// 注释里就写着这一点），于是卡片一直空白，看起来像加载不了。
+			// 这里按扩展名重认一次，旧条目就能自愈，不必让用户重新导入；
+			// 认不出来（例如 media.pkg）才回退到 meta 里存的类型。
+			BackgroundKind derived = BackgroundKind.fromFileName(file);
+			BackgroundKind kind = derived != null ? derived
+				: BackgroundKind.valueOf(json.get("kind").getAsString());
 
 			if(mediaPath(id, file) == null)
 				return null;
