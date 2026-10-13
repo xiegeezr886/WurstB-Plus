@@ -37,7 +37,7 @@ public record WeParticlePreset(float rate, float distanceMin,
 	float swayFrequencyMin, float swayFrequencyMax, float swayPhaseMin,
 	float swayPhaseMax, float swayScaleMin, float swayScaleMax,
 	float swayMaskX, float swayMaskY, int maxCount, float startTime,
-	String material)
+	String material, float alphaMin, float alphaMax)
 {
 	/** 没有发射速率时一个粒子都不发，比按默认值乱喷安全。 */
 	private static final float DEFAULT_RATE = 0;
@@ -87,6 +87,11 @@ public record WeParticlePreset(float rate, float distanceMin,
 		float colorMin = 255;
 		float colorMax = 255;
 
+		// 粒子的**基础不透明度**。缺这个字段时按 1（完全不透明）—— 与"不写就画实心"
+		// 的旧行为一致，不会因为加了这一项而改变别的场景。
+		float alphaMin = 1;
+		float alphaMax = 1;
+
 		for(JsonElement element : array(root, "initializer"))
 		{
 			JsonObject initializer = object(element);
@@ -114,6 +119,13 @@ public record WeParticlePreset(float rate, float distanceMin,
 					float[] high = numbers(initializer, "max", 255, 255);
 					colorMin = Math.min(low[0], low[1]);
 					colorMax = Math.max(high[0], high[1]);
+				}
+				case "alpharandom" -> {
+					// **这就是那片光晕**：雾写的是 0.15~0.20，也就是每颗只有 17% 不透明度。
+					// 我原来压根没读这个字段，粒子一律按 alpha=1 画 —— 加性混合下亮 6 倍，
+					// 再乘上 1000~2200 的尺寸，就是满屏白光。
+					alphaMin = (float)number(initializer, "min", alphaMin);
+					alphaMax = (float)number(initializer, "max", alphaMax);
 				}
 				default -> {
 				}
@@ -171,7 +183,7 @@ public record WeParticlePreset(float rate, float distanceMin,
 			velocityMin[1], velocityMax[0], velocityMax[1], colorMin, colorMax,
 			fadeInTime, swayFrequencyMin, swayFrequencyMax, swayPhaseMin,
 			swayPhaseMax, swayScaleMin, swayScaleMax, swayMaskX, swayMaskY,
-			maxCount, startTime, material);
+			maxCount, startTime, material, alphaMin, alphaMax);
 	}
 
 	/** 每秒最多发这么多（上限也拦一道，防止预设里速率离谱）。 */

@@ -76,6 +76,7 @@ public final class WeParticles
 		private float lifetime;
 		private float age;
 		private float brightness;
+		private float maxAlpha = 1;
 		private float fadeIn;
 		private float swayFrequency;
 		private float swayPhase;
@@ -98,10 +99,18 @@ public final class WeParticles
 			return size;
 		}
 
-		/** 0..1：预设的 {@code fadeintime} 内淡入，之后恒为 1。 */
+		/**
+		 * 0..1：预设的 {@code alpharandom}（每颗自己的基础不透明度）× 淡入。
+		 *
+		 * <p>
+		 * <b>这里原来漏了 {@code alpharandom}</b>：淡入满了一律返回 1，等于把
+		 * "每颗 15%~20% 不透明度"的雾画成了实心 —— 加性混合下亮 6 倍，
+		 * 这就是用户看到的那片光晕。</p>
+		 */
 		public float alpha()
 		{
-			return fadeIn <= 0 ? 1 : Math.min(1, age / fadeIn);
+			float ramp = fadeIn <= 0 ? 1 : Math.min(1, age / fadeIn);
+			return Math.max(0, Math.min(1, maxAlpha)) * ramp;
 		}
 
 		public float brightness()
@@ -194,6 +203,8 @@ public final class WeParticles
 		particle.brightness =
 			Math.max(0, Math.min(1, between(preset.colorMin(), preset.colorMax())
 				/ 255.0F));
+		particle.maxAlpha =
+			Math.max(0, Math.min(1, between(preset.alphaMin(), preset.alphaMax())));
 		particle.fadeIn = Math.max(0, preset.fadeInTime());
 		particle.swayFrequency = between(preset.swayFrequencyMin(),
 			preset.swayFrequencyMax());
