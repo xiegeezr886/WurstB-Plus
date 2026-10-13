@@ -185,37 +185,10 @@ final class WeSceneLayoutTest
 			.isEmpty());
 	}
 
-	/**
-	 * 发射半径要放大到覆盖画布：Persica 的雪预设写 10～1200，画布 3840×2160，
-	 * 照字面画就只是正中一圈（实机上用户报的就是"雪只在中间"）。
-	 */
-	@Test
-	void emitterSpreadCoversTheCanvas()
-	{
-		float spread = WeSceneLayout.emitterSpread(3840, 2160, 1200);
-
-		// 最外圈半径刚好够到画面四角
-		assertEquals(Math.hypot(3840, 2160) / 2 / 1200, spread, 1e-4);
-
-		float outer = 1200 * spread;
-		assertTrue(outer >= 3840 / 2F, "左右两边还是空的：" + outer);
-		assertTrue(outer >= 2160 / 2F, "上下两边还是空的：" + outer);
-
-		// 内圈跟着一起放大，分布形状不变
-		assertEquals(10 * spread, 10 * spread, 1e-4);
-	}
-
-	/** 预设本来就够大时不缩小，退化输入不炸。 */
-	@Test
-	void emitterSpreadNeverShrinks()
-	{
-		assertEquals(1, WeSceneLayout.emitterSpread(3840, 2160, 5000), 1e-4);
-		assertEquals(1, WeSceneLayout.emitterSpread(3840, 2160, 2400), 1e-4);
-		assertEquals(1, WeSceneLayout.emitterSpread(0, 2160, 100), 1e-4);
-		assertEquals(1, WeSceneLayout.emitterSpread(3840, 0, 100), 1e-4);
-		assertEquals(1, WeSceneLayout.emitterSpread(3840, 2160, 0), 1e-4);
-		assertEquals(1, WeSceneLayout.emitterSpread(3840, 2160, -5), 1e-4);
-	}
+	// 这里原有两条 `emitterSpread` 的用例（把发射半径放大到够到画布四角）。
+	// 那条放大是**我自造的**，已被 WE 自己的渲染否掉：作品预览图里雾是贴地一条雾带，
+	// 而预设写的 distancemin/max（雪 10~1200、雾 0~512）本来就是画布单位。
+	// 现在按预设原样发射，`emitterSpread` 一并删除，见 docs/RELEASE.md 第 10 项。
 
 	/**
 	 * 阻尼跟随必须与帧率无关：把一帧拆成两半跑两次，结果要和整帧跑一次一样。
