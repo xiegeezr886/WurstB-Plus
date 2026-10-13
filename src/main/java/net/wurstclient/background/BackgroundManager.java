@@ -332,6 +332,9 @@ public final class BackgroundManager
 	 * of this list. */
 	public List<BackgroundEntry> entries()
 	{
+		// 顺带修一次"当初导入成预览图"的坏条目（后台线程、只跑一次）。
+		// 放在这里是因为库第一次被列出来时才知道有哪些条目。
+		WallpaperEngineRepair.repairOnceAsync(storage());
 		return storage().list();
 	}
 
