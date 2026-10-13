@@ -35,29 +35,13 @@ public final class WeParticles
 	private final Random random;
 	private final List<Particle> particles = new ArrayList<>();
 
-	/**
-	 * 发射范围的放大倍数（见 {@link WeSceneLayout#emitterSpread}）。
-	 *
-	 * <p>
-	 * 预设写的是 {@code sphererandom} 的 {@code distancemin/max}，Persica 的两个雪
-	 * 预设都是 10～1200——在 3840 宽的画布里那只是正中一圈，实机看起来就是"雪只在
-	 * 中间"。放大到覆盖整幅画面才是这个壁纸该有的样子。</p>
-	 */
-	private final float spread;
-
 	private float clock;
 	private float spawnCredit;
 
 	public WeParticles(WeParticlePreset preset, long seed)
 	{
-		this(preset, seed, 1);
-	}
-
-	public WeParticles(WeParticlePreset preset, long seed, float spread)
-	{
 		this.preset = preset;
 		this.random = new Random(seed);
-		this.spread = Math.max(0, spread);
 	}
 
 	public WeParticlePreset preset()
@@ -186,12 +170,17 @@ public final class WeParticles
 	{
 		Particle particle = new Particle();
 
-		// 发射范围：以图层原点为中心、半径 min..max 的圆环内随机一点，
-		// 半径按 spread 放大到覆盖画布（见 emitterSpread）
+		// 发射中心是 **emitter 自己的 origin**（WE 的雪写 "0 650 0"，从图层上方 650
+		// 处落下），半径就是 distancemin..max。
+		//
+		// 这两个量**都按预设原样用**：我原来漏了 origin，又把半径放大到"够到画布四角"，
+		// 结果雾的 512 半径变成 ~1874、铺满全屏 —— 作品预览图里雾明明是贴地一条带。
 		double angle = random.nextDouble() * Math.PI * 2;
-		float radius = between(preset.distanceMin(), preset.distanceMax()) * spread;
-		particle.x = (float)(Math.cos(angle) * radius);
-		particle.y = (float)(Math.sin(angle) * radius);
+		float radius = between(preset.distanceMin(), preset.distanceMax());
+		particle.x =
+			preset.emitterOriginX() + (float)(Math.cos(angle) * radius);
+		particle.y =
+			preset.emitterOriginY() + (float)(Math.sin(angle) * radius);
 
 		particle.velocityX =
 			between(preset.velocityMinX(), preset.velocityMaxX());

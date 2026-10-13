@@ -137,7 +137,7 @@ final class WeParticlesTest
 	{
 		WeParticlePreset preset = new WeParticlePreset(10, 10, 100, 100, 100, 2,
 			4, -10, -50, -37, -90, 95, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			1000, 0, null, 1, 1);
+			1000, 0, null, 1, 1, 0, 0);
 		WeParticles particles = new WeParticles(preset, 2);
 
 		for(int i = 0; i < 10; i++)
@@ -151,7 +151,7 @@ final class WeParticlesTest
 	{
 		WeParticlePreset preset = new WeParticlePreset(20, 10, 100, 0.5F, 0.5F,
 			2, 4, 0, -50, 0, -90, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			1000, 0, null, 1, 1);
+			1000, 0, null, 1, 1, 0, 0);
 		WeParticles particles = new WeParticles(preset, 3);
 
 		particles.advance(0.1F);
@@ -176,7 +176,7 @@ final class WeParticlesTest
 	{
 		WeParticlePreset preset = new WeParticlePreset(100, 10, 100, 100, 100,
 			2, 4, -10, -50, -37, -90, 255, 255, 0, 0, 0, 0, 0, 0, 0, 1, 0.5F,
-			1000, 0, null, 1, 1);
+			1000, 0, null, 1, 1, 0, 0);
 		WeParticles particles = new WeParticles(preset, 4);
 
 		particles.advance(0.05F);
@@ -199,7 +199,7 @@ final class WeParticlesTest
 	void fadeInAndSwayStayInRange() throws IOException
 	{
 		WeParticlePreset preset = new WeParticlePreset(100, 10, 100, 100, 100,
-			2, 4, 0, 0, 0, 0, 255, 255, 0.2F, 0.5F, 1.5F, 0, 1, 20, 35, 1, 0.5F, 1000, 0, null, 1, 1);
+			2, 4, 0, 0, 0, 0, 255, 255, 0.2F, 0.5F, 1.5F, 0, 1, 20, 35, 1, 0.5F, 1000, 0, null, 1, 1, 0, 0);
 		WeParticles particles = new WeParticles(preset, 5);
 
 		particles.advance(0.1F);
@@ -230,7 +230,7 @@ final class WeParticlesTest
 	{
 		WeParticlePreset preset = new WeParticlePreset(1000, 10, 100, 1000,
 			1000, 2, 4, 0, 0, 0, 0, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 50, 0, null, 1, 1);
+			0, 50, 0, null, 1, 1, 0, 0);
 		WeParticles particles = new WeParticles(preset, 6);
 
 		for(int i = 0; i < 200; i++)
@@ -270,7 +270,7 @@ final class WeParticlesTest
 	{
 		WeParticlePreset preset = new WeParticlePreset(100, 10, 100, 100, 100,
 			2, 4, 0, 0, 0, 0, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			1000, 0, null, 1, 1);
+			1000, 0, null, 1, 1, 0, 0);
 
 		WeParticles stalling = new WeParticles(preset, 8);
 		stalling.advance(5F);

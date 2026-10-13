@@ -37,7 +37,8 @@ public record WeParticlePreset(float rate, float distanceMin,
 	float swayFrequencyMin, float swayFrequencyMax, float swayPhaseMin,
 	float swayPhaseMax, float swayScaleMin, float swayScaleMax,
 	float swayMaskX, float swayMaskY, int maxCount, float startTime,
-	String material, float alphaMin, float alphaMax)
+	String material, float alphaMin, float alphaMax, float emitterOriginX,
+	float emitterOriginY)
 {
 	/** 没有发射速率时一个粒子都不发，比按默认值乱喷安全。 */
 	private static final float DEFAULT_RATE = 0;
@@ -63,6 +64,8 @@ public record WeParticlePreset(float rate, float distanceMin,
 		float rate = DEFAULT_RATE;
 		float distanceMin = 0;
 		float distanceMax = 0;
+		float emitterOriginX = 0;
+		float emitterOriginY = 0;
 		int maxCount = 1000;
 		float startTime = 0;
 
@@ -76,6 +79,12 @@ public record WeParticlePreset(float rate, float distanceMin,
 			rate = (float)number(emitter, "rate", rate);
 			distanceMin = (float)number(emitter, "distancemin", distanceMin);
 			distanceMax = (float)number(emitter, "distancemax", distanceMax);
+
+			// 发射中心不是图层原点：实测 snowflat 写 "0 650 0"，雪从上方 650 处落下；
+			// 漏掉它雪就会整片偏低。
+			float[] origin = numbers(emitter, "origin", 0, 0, 0);
+			emitterOriginX = origin[0];
+			emitterOriginY = origin[1];
 		}
 
 		float lifetimeMin = 1;
@@ -183,7 +192,8 @@ public record WeParticlePreset(float rate, float distanceMin,
 			velocityMin[1], velocityMax[0], velocityMax[1], colorMin, colorMax,
 			fadeInTime, swayFrequencyMin, swayFrequencyMax, swayPhaseMin,
 			swayPhaseMax, swayScaleMin, swayScaleMax, swayMaskX, swayMaskY,
-			maxCount, startTime, material, alphaMin, alphaMax);
+			maxCount, startTime, material, alphaMin, alphaMax, emitterOriginX,
+			emitterOriginY);
 	}
 
 	/** 每秒最多发这么多（上限也拦一道，防止预设里速率离谱）。 */

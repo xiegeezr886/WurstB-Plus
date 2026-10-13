@@ -48,7 +48,7 @@ final class WeParticlesAlphaTest
 	@Test
 	void particlesStayWithinThePresetOpacity()
 	{
-		WeParticles system = new WeParticles(parse(FOG_LIKE), 0x5EEDL, 1);
+		WeParticles system = new WeParticles(parse(FOG_LIKE), 0x5EEDL);
 		system.advance(5F);
 
 		assertTrue(system.count() > 0, "应当发出粒子");
@@ -74,7 +74,7 @@ final class WeParticlesAlphaTest
 		assertEquals(1F, preset.alphaMin(), 0.0001F);
 		assertEquals(1F, preset.alphaMax(), 0.0001F);
 
-		WeParticles system = new WeParticles(preset, 0x5EEDL, 1);
+		WeParticles system = new WeParticles(preset, 0x5EEDL);
 		system.advance(5F);
 
 		assertTrue(system.count() > 0);
