@@ -353,8 +353,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 	}
 
 	/** 粒子预设读不出来不算致命：那一层跳过，剩下的照画。 */
-	private static List<DecodedParticles> decodeParticles(WePackage pkg,
-		WeScene scene)
+	static List<DecodedParticles> decodeParticles(WePackage pkg, WeScene scene)
 	{
 		// 先把能读到的预设**全都**读出来：预算要按全部系统的开销算。
 		// 原来是读到第 8 套就 break —— 那等于"收几套"完全看前 8 套的脸色。
@@ -453,11 +452,22 @@ public final class WeSceneWallpaper implements AutoCloseable
 		if(sprite == null)
 			return null;
 
-		String name = sprite.texture() + ".tex";
-		byte[] bytes = pkg.read(name);
+		String base = sprite.texture() + ".tex";
+		byte[] bytes = null;
 
-		if(bytes == null)
-			bytes = assetBytes(name);
+		// WE 的贴图名是**相对 materials/** 的：材质里写 particle/fog/fog1，
+		// 文件是 materials/particle/fog/fog1.tex。第一版漏了这个前缀，
+		// 于是每一个粒子贴图都"取不到"、全部退回白点 —— 探针当场抓到。
+		for(String name : new String[]{"materials/" + base, base})
+		{
+			bytes = pkg.read(name);
+
+			if(bytes == null)
+				bytes = assetBytes(name);
+
+			if(bytes != null)
+				break;
+		}
 
 		if(bytes == null)
 			return null;
