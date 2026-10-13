@@ -1057,7 +1057,7 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 | 1 | 木偶网格逐三角形光栅化（`WeSceneWallpaper.deform`） | 加载日志（`9687 个三角形`、`为预算收紧 808x369 -> 625x285`）＋ 用户口头确认过一次「尺寸对了」 | 形状、边缘、接缝没人看过 |
 | 2 | 木偶层的 **y 翻转假设**（局部 y 向上） | **无**。这是 `deform` 里唯一没验证过的假设；若翻了就是「眼白不在该在的位置」 | 用皮肤层透空洞的形状离线判定，或直接看一眼 |
 | 3 | 叠加顺序按 `zorder` 排 | 实测该场景 51 个对象**全都没有 `zorder` 字段** → 排序恒为空操作 | 顺序问题的根因不在这里 |
-| 4 | 粒子系统（`WeParticles`） | **根因已量到**：预设顶层有 `material` 字段（`fog1.json` → `materials/presets/fog1.json`），**混合模式写在那份材质里**（`passes[].blending`），而我一律按加性画。实测数字：雾的 `size` 是 **1000~2200**（画布单位）、颜色 255、每系统稳态 6 颗；加性叠上去就是满屏白光。对照：雪 2~30、sparkle 用的正是 additive 材质 | 把 `material` 读进来、按 `blending` 分别用加性/普通混合；`MAX_PARTICLE_LAYERS=8` 仍是拍的（该场景 51 个系统） |
+| 4 | 粒子系统（`WeParticles`） | **根因是贴图，不是混合模式**（后者第三次被否）：预设顶层 `material` → 材质里 `passes[].blending` **实测雾与火花都写 additive**，所以"我一律加性"本身没错；同一条 pass 里的 `textures[0]` 才是关键 —— 雾用 `particle/fog/fog1` 那种很淡的云，而我用自造的白点按 1000~2200 画布单位加性铺开，就是满屏白光。已改为读材质贴图（包内 → WE 安装目录 `assets/materials/<名字>.tex`），拿不到才退回白点 | 实机确认光晕是否消失；`MAX_PARTICLE_LAYERS=8` 仍是我拍的（该场景 51 个系统） |
 | 5 | 自动修复 `WallpaperEngineRepair.apply`（写文件那条） | 用户实机确认佩丽卡与流浪地球**已能加载** | 元数据/缩略图是否正确没核对；标题对不上会静默跳过 |
 | 6 | 「主体不动」= **SceneScript 未实现** | 已用真判据 `WeTexture.isMp4()` 排除视频贴图（流浪地球 0 个视频层） | 要不要嵌 JS 运行时待定 |
 | 7 | `眉毛_puppet.mdl`（同魔数另一变体，解析器主动拒绝） | 该层退回按贴图尺寸铺，**已知会偏** | 那个变体的头部差异 |
