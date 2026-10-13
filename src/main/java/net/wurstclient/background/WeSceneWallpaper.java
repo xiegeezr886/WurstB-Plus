@@ -67,9 +67,6 @@ public final class WeSceneWallpaper implements AutoCloseable
 	/** 图层数上限，正常场景个位数。 */
 	private static final int MAX_LAYERS = 64;
 
-	/** 粒子层数上限。 */
-	private static final int MAX_PARTICLE_LAYERS = 8;
-
 	/** 一帧最多按这么长时间推进，卡顿之后不会一次补出成百上千个粒子。 */
 	private static final float MAX_FRAME_SECONDS = 0.1F;
 
@@ -359,13 +356,13 @@ public final class WeSceneWallpaper implements AutoCloseable
 	private static List<DecodedParticles> decodeParticles(WePackage pkg,
 		WeScene scene)
 	{
-		List<DecodedParticles> out = new ArrayList<>();
+		// 先把能读到的预设**全都**读出来：预算要按全部系统的开销算。
+		// 原来是读到第 8 套就 break —— 那等于"收几套"完全看前 8 套的脸色。
+		List<WeScene.ParticleLayer> layers = new ArrayList<>();
+		List<WeParticlePreset> presets = new ArrayList<>();
 
 		for(WeScene.ParticleLayer layer : scene.particles())
 		{
-			if(out.size() >= MAX_PARTICLE_LAYERS)
-				break;
-
 			String json = text(pkg, layer.preset());
 
 			if(json == null)
@@ -377,18 +374,46 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 			try
 			{
-				WeParticlePreset preset = WeParticlePreset.parse(json);
-				WeParticleSprite sprite =
-					resolveSprite(pkg, preset.material());
-
-				out.add(new DecodedParticles(layer, preset, sprite,
-					loadSprite(pkg, sprite)));
+				layers.add(layer);
+				presets.add(WeParticlePreset.parse(json));
 
 			}catch(IOException | RuntimeException e)
 			{
 				System.out.println("[Background] 跳过粒子层 " + layer.name()
 					+ "：" + e.getMessage());
 			}
+		}
+
+		double[] particles = new double[presets.size()];
+		double[] areas = new double[presets.size()];
+
+		for(int i = 0; i < presets.size(); i++)
+		{
+			particles[i] = presets.get(i).steadyParticles();
+			areas[i] = presets.get(i).steadyArea();
+		}
+
+		double areaLimit =
+			WeParticleBudget.DEFAULT.areaLimit(scene.width(), scene.height());
+		int admitted =
+			WeParticleBudget.DEFAULT.admit(particles, areas, areaLimit);
+
+		if(admitted < presets.size())
+			System.out.println("[Background] 粒子 " + presets.size() + " 套里收 "
+				+ admitted + " 套（拦在 "
+				+ WeParticleBudget.DEFAULT.limiter(particles, areas, areaLimit,
+					admitted)
+				+ "）");
+
+		List<DecodedParticles> out = new ArrayList<>();
+
+		for(int i = 0; i < admitted; i++)
+		{
+			WeParticlePreset preset = presets.get(i);
+			WeParticleSprite sprite = resolveSprite(pkg, preset.material());
+
+			out.add(new DecodedParticles(layers.get(i), preset, sprite,
+				loadSprite(pkg, sprite)));
 		}
 
 		return List.copyOf(out);
