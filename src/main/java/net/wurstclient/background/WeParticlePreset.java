@@ -36,7 +36,8 @@ public record WeParticlePreset(float rate, float distanceMin,
 	float velocityMaxY, float colorMin, float colorMax, float fadeInTime,
 	float swayFrequencyMin, float swayFrequencyMax, float swayPhaseMin,
 	float swayPhaseMax, float swayScaleMin, float swayScaleMax,
-	float swayMaskX, float swayMaskY, int maxCount, float startTime)
+	float swayMaskX, float swayMaskY, int maxCount, float startTime,
+	String material)
 {
 	/** 没有发射速率时一个粒子都不发，比按默认值乱喷安全。 */
 	private static final float DEFAULT_RATE = 0;
@@ -162,12 +163,15 @@ public record WeParticlePreset(float rate, float distanceMin,
 		maxCount = (int)number(root, "maxcount", maxCount);
 		startTime = (float)number(root, "starttime", startTime);
 
+		// 混合模式与真正的粒子贴图都在这里引用的材质里，见 WeParticleSprite
+		String material = string(root, "material");
+
 		return new WeParticlePreset(rate, distanceMin, distanceMax,
 			lifetimeMin, lifetimeMax, sizeMin, sizeMax, velocityMin[0],
 			velocityMin[1], velocityMax[0], velocityMax[1], colorMin, colorMax,
 			fadeInTime, swayFrequencyMin, swayFrequencyMax, swayPhaseMin,
 			swayPhaseMax, swayScaleMin, swayScaleMax, swayMaskX, swayMaskY,
-			maxCount, startTime);
+			maxCount, startTime, material);
 	}
 
 	/** 每秒最多发这么多（上限也拦一道，防止预设里速率离谱）。 */

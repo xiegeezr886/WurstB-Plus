@@ -172,6 +172,31 @@ public final class SteamLocator
 		return null;
 	}
 
+	/**
+	 * Wallpaper Engine 自带的资源目录（{@code .../common/wallpaper_engine/assets}），
+	 * 找不到返回 {@code null}。
+	 *
+	 * <p>
+	 * 粒子预设引用的材质与粒子贴图**不在作品包里**：实测「佩丽卡」的 {@code scene.pkg}
+	 * 里有 {@code materials/presets/fog1.json}，但 {@code particle/fog/fog1.tex}
+	 * 只在 WE 安装目录里（{@code assets/materials/particle/fog/fog1.tex}）。
+	 * </p>
+	 */
+	public static Path wallpaperEngineAssets()
+	{
+		for(Path steamRoot : steamRoots())
+			for(Path library : libraryRoots(steamRoot))
+			{
+				Path assets = library.resolve("steamapps").resolve("common")
+					.resolve("wallpaper_engine").resolve("assets");
+
+				if(Files.isDirectory(assets))
+					return assets;
+			}
+
+		return null;
+	}
+
 	private static void collectLibraryPaths(Map<String, Object> document,
 		LinkedHashSet<Path> roots)
 	{

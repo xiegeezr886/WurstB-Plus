@@ -14,8 +14,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
 
@@ -102,6 +104,18 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 	private DynamicTexture dot;
 
+	/** 每个粒子层一份上传好的贴图；资源重载后会被 {@link #particleTexture} 重建。 */
+	private final Map<BoundParticles, SpriteTexture> particleTextures =
+		new HashMap<>();
+
+	/**
+	 * 上传好的粒子贴图：注册用的 {@link ResourceLocation}（{@code blit} 要它）、
+	 * 纹理本身，以及源图尺寸（{@code blit} 要知道源尺寸）。
+	 */
+	private record SpriteTexture(ResourceLocation id, DynamicTexture texture,
+		int width, int height)
+	{}
+
 	private WeSceneWallpaper(WeScene scene, List<Bound> layers,
 		List<BoundParticles> particleLayers)
 	{
@@ -117,7 +131,8 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 	/** 一套跑起来的粒子，以及它插在第几个图层之前。 */
 	private record BoundParticles(WeScene.ParticleLayer layer,
-		WeParticles system, int layerIndex)
+		WeParticles system, int layerIndex, WeParticleSprite sprite,
+		NativeImage spriteImage)
 	{}
 
 	/**
@@ -176,7 +191,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 	/** 一个已经解析、还没跑起来的粒子层。 */
 	public record DecodedParticles(WeScene.ParticleLayer layer,
-		WeParticlePreset preset)
+		WeParticlePreset preset, WeParticleSprite sprite, NativeImage spriteImage)
 	{}
 
 	/** 后台线程：读包、解析、解码所有图层贴图与粒子预设。 */
@@ -362,8 +377,13 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 			try
 			{
-				out.add(
-					new DecodedParticles(layer, WeParticlePreset.parse(json)));
+				WeParticlePreset preset = WeParticlePreset.parse(json);
+				WeParticleSprite sprite =
+					resolveSprite(pkg, preset.material());
+
+				out.add(new DecodedParticles(layer, preset, sprite,
+					loadSprite(pkg, sprite)));
+
 			}catch(IOException | RuntimeException e)
 			{
 				System.out.println("[Background] 跳过粒子层 " + layer.name()
@@ -372,6 +392,93 @@ public final class WeSceneWallpaper implements AutoCloseable
 		}
 
 		return List.copyOf(out);
+	}
+
+	/**
+	 * 预设引用的材质：先在作品包里找，再退回 WE 安装目录。
+	 *
+	 * <p>
+	 * 实测两条路都需要：「佩丽卡」的包里带着 {@code materials/presets/fog1.json}，
+	 * 但它引用的粒子贴图 {@code particle/fog/fog1.tex} **只在 WE 安装目录里**。</p>
+	 */
+	private static WeParticleSprite resolveSprite(WePackage pkg,
+		String material)
+	{
+		if(material == null || material.isBlank())
+			return null;
+
+		String json = text(pkg, material);
+
+		if(json == null)
+			json = assetText(material);
+
+		return json == null ? null : WeParticleSprite.parse(json);
+	}
+
+	/**
+	 * 把粒子贴图解出来。解不出来就返回 {@code null}，那一层退回白色柔光点。
+	 *
+	 * <p>
+	 * 白色柔光点不是等价替代：雾用的 {@code particle/fog/fog1} 是一团很淡的云，
+	 * 而白点按尺寸铺到 1000~2200 画布单位、又是加性混合，就是用户看到的那片
+	 * 「不正常的光晕」。所以拿不到真贴图时宁可画淡一点的白点，也别照着原尺寸铺满。</p>
+	 */
+	private static NativeImage loadSprite(WePackage pkg, WeParticleSprite sprite)
+	{
+		if(sprite == null)
+			return null;
+
+		String name = sprite.texture() + ".tex";
+		byte[] bytes = pkg.read(name);
+
+		if(bytes == null)
+			bytes = assetBytes(name);
+
+		if(bytes == null)
+			return null;
+
+		try
+		{
+			WeTexture texture = WeTexture.parse(bytes);
+
+			if(texture.isStandardImage())
+				return NativeImage
+					.read(new ByteArrayInputStream(texture.payload()));
+
+			Raw raw = decodeUncompressed(texture, bytes);
+
+			return raw == null ? null
+				: toImage(raw.rgba(), raw.width(), raw.height());
+
+		}catch(IOException | RuntimeException e)
+		{
+			return null;
+		}
+	}
+
+	private static String assetText(String name)
+	{
+		byte[] bytes = assetBytes(name);
+		return bytes == null ? null : new String(bytes, StandardCharsets.UTF_8);
+	}
+
+	/** WE 安装目录 {@code assets/<名字>} 下的一段文件；没有就返回 {@code null}。 */
+	private static byte[] assetBytes(String name)
+	{
+		Path assets = SteamLocator.wallpaperEngineAssets();
+		Path file = assets == null ? null : assets.resolve(name);
+
+		if(file == null || !Files.isRegularFile(file))
+			return null;
+
+		try
+		{
+			return Files.readAllBytes(file);
+
+		}catch(IOException e)
+		{
+			return null;
+		}
 	}
 
 	/**
@@ -1026,7 +1133,8 @@ public final class WeSceneWallpaper implements AutoCloseable
 				decoded.scene.height(), layer.preset().distanceMax());
 			particles.add(new BoundParticles(layer.layer(),
 				new WeParticles(layer.preset(), 0x5EED0000L + i, spread),
-				Math.min(layer.layer().layerIndex(), bound.size())));
+				Math.min(layer.layer().layerIndex(), bound.size()),
+				layer.sprite(), layer.spriteImage()));
 		}
 
 		return new WeSceneWallpaper(decoded.scene(), List.copyOf(bound),
@@ -1245,8 +1353,17 @@ public final class WeSceneWallpaper implements AutoCloseable
 		float offsetY = WeSceneLayout.parallaxOffset(layer.parallaxY(),
 			scene.parallaxAmount(), influence, smoothOffsetY);
 
-		// 加性混合：雪花是发光的小点，不是半透明的贴片
-		RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+		SpriteTexture sprite = particleTexture(group);
+
+		if(sprite == null)
+			return false;
+
+		// 混合模式取自预设引用的材质（见 WeParticleSprite）：实测雾与火花都写 additive；
+		// 缺字段时按普通混合 —— 加性只会更亮，默认不亮是安全的那一侧。
+		if(group.sprite() == null || group.sprite().additive())
+			RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+		else
+			RenderSystem.defaultBlendFunc();
 
 		for(WeParticles.Particle particle : group.system().particles())
 		{
@@ -1276,8 +1393,9 @@ public final class WeSceneWallpaper implements AutoCloseable
 			int top = Math.round(screenY - size / 2);
 			int side = Math.max(1, Math.round(size));
 
-			graphics.blit(DOT, left, top, side, side, 0, 0, DOT_SIZE, DOT_SIZE,
-				DOT_SIZE, DOT_SIZE);
+			graphics.blit(sprite.id(), left, top, side, side, 0, 0,
+				sprite.width(), sprite.height(), sprite.width(),
+				sprite.height());
 		}
 
 		graphics.setColor(1, 1, 1, 1);
@@ -1293,6 +1411,51 @@ public final class WeSceneWallpaper implements AutoCloseable
 	 * 资源，包里没有，所以自己生成一个：alpha 用 {@code (1-r)^2}，加性混合下就是
 	 * 一颗柔和的光点。</p>
 	 */
+	/**
+	 * 这一层粒子用哪张贴图。
+	 *
+	 * <p>
+	 * 能拿到材质里写的真贴图就用真的（雾是 {@code particle/fog/fog1} 那种淡云），
+	 * 拿不到才退回自己合成的白色柔光点。上传是懒的、按层缓存；和
+	 * {@link #dotTexture()} 一样要检查贴图管理器里还是不是我们那一份，
+	 * 资源重载之后得重建。</p>
+	 */
+	private SpriteTexture particleTexture(BoundParticles group)
+	{
+		SpriteTexture cached = particleTextures.get(group);
+
+		if(cached != null && Minecraft.getInstance().getTextureManager()
+			.getTexture(cached.id()) == cached.texture())
+			return cached;
+
+		NativeImage image = group.spriteImage();
+
+		if(image == null)
+		{
+			DynamicTexture fallback = dotTexture();
+
+			if(fallback == null)
+				return null;
+
+			SpriteTexture plain =
+				new SpriteTexture(DOT, fallback, DOT_SIZE, DOT_SIZE);
+			particleTextures.put(group, plain);
+			return plain;
+		}
+
+		DynamicTexture texture = new DynamicTexture(image);
+		texture.setFilter(true, false);
+
+		ResourceLocation id = new ResourceLocation(WurstClient.MOD_ID,
+			"we_particle_sprite/" + particleTextures.size());
+		Minecraft.getInstance().getTextureManager().register(id, texture);
+
+		SpriteTexture fresh = new SpriteTexture(id, texture, image.getWidth(),
+			image.getHeight());
+		particleTextures.put(group, fresh);
+		return fresh;
+	}
+
 	private DynamicTexture dotTexture()
 	{
 		if(dot != null && Minecraft.getInstance().getTextureManager()
