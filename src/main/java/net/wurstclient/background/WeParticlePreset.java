@@ -180,6 +180,33 @@ public record WeParticlePreset(float rate, float distanceMin,
 		return Math.max(0, Math.min(rate, maxCount));
 	}
 
+	/** 稳态颗数 = 发射速率 × 平均寿命，再被 {@code maxcount} 截断。 */
+	public double steadyParticles()
+	{
+		double life = (lifetimeMin + lifetimeMax) / 2.0;
+		return Math.max(0, Math.min(effectiveRate() * life, maxCount));
+	}
+
+	/** 平均尺寸（画布单位）。 */
+	public double meanSize()
+	{
+		return Math.max(0, (sizeMin + sizeMax) / 2.0);
+	}
+
+	/**
+	 * 这一套粒子一帧铺开的**画布面积**（像素²）= 颗数 × 平均尺寸²。
+	 *
+	 * <p>
+	 * 这是定粒子预算的依据：加性混合下决定观感与开销的是"总共有多少面积在叠加"，
+	 * 不是"有多少颗"。实测「佩丽卡」5 个系统只有 256 颗，却铺开 42.3M 画布像素²
+	 * （画布才 4M）—— 8.5 个屏幕的加性叠加，那才是那片光晕。</p>
+	 */
+	public double steadyArea()
+	{
+		double size = meanSize();
+		return steadyParticles() * size * size;
+	}
+
 	private static JsonObject object(JsonElement element)
 	{
 		return element != null && element.isJsonObject()
