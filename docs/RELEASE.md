@@ -52,19 +52,29 @@ Forge 无官方 1.20.5 与 1.21.2，故这两个版本只有 Fabric / NeoForge�
 ### 本地构建路径
 
 构建脚本把每个工程的产物收敛到 `build/release-v1.5/`（该目录在 `.gitignore` 内），日志在
-`build/release-v1.5-logs/`，逐工程结果在 `build/release-v1.5/_build-report.txt`。脚本本身位于
-`tmp-recon/`（仓库外，不随仓库分发），逻辑是「读 `gradle.properties` 的 `mod_version` → 选生产任务 → 跑 Gradle → 收集并重命名 jar」：
+`build/release-v1.5-logs/`，逐工程结果在 `build/release-v1.5/_build-report.txt`。逻辑是
+「读 `gradle.properties` 的 `mod_version` → 选生产任务 → 跑 Gradle → 收集并重命名 jar」。
+
+> **脚本在仓库内**：`scripts/build-v1.5-release.py`。
+> 本文档此前写的是 `D:\WurstB\tmp-recon\build-v1.5-release.py`（仓库外）——
+> 该路径**已不存在**，脚本已收进仓库。照旧路径执行会直接失败，故此处更正。
 
 ```powershell
 # 构建全部 v1.5 工程（联网；JDK 21 用于 MC ≤ 1.21.11，JDK 25 用于 26.x）
-python D:\WurstB\tmp-recon\build-v1.5-release.py
+python scripts/build-v1.5-release.py
+
+# 只看计划、不构建（先确认矩阵与所选任务/JDK 是否符合预期）
+python scripts/build-v1.5-release.py --plan
 
 # 只重试指定工程
-python D:\WurstB\tmp-recon\build-v1.5-release.py Forge-1.21.5 NeoForge-26.2
+python scripts/build-v1.5-release.py Forge-1.21.5 NeoForge-26.2
 
 # 打包校验（zip 完好 / 加载器元数据 / Mixin 配置 / 主类）
-python D:\WurstB\tmp-recon\validate-jars.py
+python scripts/validate-release-jars.py
 ```
+
+根目录 Forge 1.20.1 **不在构建矩阵内**（`ROOT_FORGE_SKIP = True`）：它是 v1.6.0 形态，
+无法再重建出 v1.5.0 的它，Release 上保留发布当时的那个产物。
 
 各工程自身产物仍落在自己的 `build/libs/`，例如
 `versions/1.21.5/build/libs/WurstB+ Plus-v1.5.0-Forge-1.21.5.jar`。
@@ -870,7 +880,7 @@ Forge 1.21.11/26.2 使用 `allJar`，NeoForge 与 Fabric 使用 `build`。所有
 
 ### 一键构建 15 个发布产物
 
-`scripts/build-all.ps1` 依次构建 15 个原发布版本（5 个 MC 版本 × Forge/NeoForge/Fabric），每个工程的产物输出到各自的 `build/libs/`。61 个工程的 v1.5.0 全量打包已单独完成并上传 Release，走的是工作区 `tmp-recon/build-v1.5-release.py`（仓库外，不随仓库分发）；新版本工程的批量构建因此仍需手工执行各自的生产任务。
+`scripts/build-all.ps1` 依次构建 15 个原发布版本（5 个 MC 版本 × Forge/NeoForge/Fabric），每个工程的产物输出到各自的 `build/libs/`。66 个工程的 v1.5.0 全量打包走的是仓库内的 `scripts/build-v1.5-release.py`（见上文「本地构建路径」）；新版本工程的批量构建因此仍需手工执行各自的生产任务。
 
 ```powershell
 # 全量构建
@@ -1057,11 +1067,12 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 | 1 | 木偶网格逐三角形光栅化（`WeSceneWallpaper.deform`） | 加载日志（`9687 个三角形`、`为预算收紧 808x369 -> 625x285`）＋ 用户口头确认过一次「尺寸对了」 | 形状、边缘、接缝没人看过 |
 | 2 | 木偶层的 **y 翻转假设**（局部 y 向上） | **无**。这是 `deform` 里唯一没验证过的假设；若翻了就是「眼白不在该在的位置」 | 用皮肤层透空洞的形状离线判定，或直接看一眼 |
 | 3 | 叠加顺序按 `zorder` 排 | 实测该场景 51 个对象**全都没有 `zorder` 字段** → 排序恒为空操作 | 顺序问题的根因不在这里 |
-| 4 | 粒子系统（`WeParticles`） | **根因是贴图，不是混合模式**（后者第三次被否）：预设顶层 `material` → 材质里 `passes[].blending` **实测雾与火花都写 additive**，所以"我一律加性"本身没错；同一条 pass 里的 `textures[0]` 才是关键 —— 雾用 `particle/fog/fog1` 那种很淡的云，而我用自造的白点按 1000~2200 画布单位加性铺开，就是满屏白光。已改为读材质贴图（包内 → WE 安装目录 `assets/materials/<名字>.tex`），拿不到才退回白点 | 实机确认光晕是否消失。粒子预算已按实测改成 **32 套 / 6000 颗 / 24 屏**（佩丽卡 8.5 屏、流浪地球 12.5 屏，两个场景都收得下全部；原来那个 `MAX_PARTICLE_LAYERS=8` 是拍的，流浪地球 51 套只画了 8 套） |
+| 4 | 粒子系统（`WeParticles`） | **根因是"没读 `alpharandom`"**：`fog1.json` 写 `alpharandom 0.15~0.20`，即每颗雾只有 ~17% 不透明度，而 `alpha()` 淡入满了一律返回 1 —— 加性混合下亮约 6 倍，再乘 1000~2200 的尺寸与 8.5 屏覆盖，就是那片光晕。已修（`358da8d5`），佩丽卡三套大雾预测降 **7.8 倍**。**其余量已逐条对过 WE 自己的文件**：`size` 是**世界/画布单位**（`common_particles.h` 的 `ComputeParticlePosition` = `position + size*right*(u-0.5) - size*up*(v-0.5)*textureRatio`，与我的 `size*scale` 一致）；混合模式在 `material` 的 `passes[].blending`（雾与火花都 additive）；贴图取 `textures[0]`，且**名字相对 `materials/`**（漏前缀导致上一版每张贴图都取不到、全退回白点，已修 `9a368d0c`） | 实机确认光晕降幅。粒子预算已按实测改成 32 套 / 6000 颗 / 24 屏 |
 | 5 | 自动修复 `WallpaperEngineRepair.apply`（写文件那条） | 用户实机确认佩丽卡与流浪地球**已能加载** | 元数据/缩略图是否正确没核对；标题对不上会静默跳过 |
 | 6 | 「主体不动」= **SceneScript 未实现** | 已用真判据 `WeTexture.isMp4()` 排除视频贴图（流浪地球 0 个视频层） | 要不要嵌 JS 运行时待定 |
 | 7 | `眉毛_puppet.mdl`（同魔数另一变体，解析器主动拒绝） | 该层退回按贴图尺寸铺，**已知会偏** | 那个变体的头部差异 |
 | 8 | `selectedBackground` 每次跑完被改回 `persica` | 观察到两次 | 有它就无法保证「我看的那张 = 你要看的那张」 |
+| 9 | 粒子**旋转**未实现 | WE 的 `genericparticle.geom` 用 `ComputeParticleTangents(v_Rotation)` 旋转每颗粒子，我画的是轴对齐方块；`rotationrandom` 的取值范围/单位没在预设里查到定值 | **不猜单位**：先把 WE 的默认旋转区间量出来，否则转错比不转更难看 |
 
 > **纪律条款（本项目的教训）**：第 3 项那次我连改两版方向、两次都是空操作（等于翻硬币）；
 > 而摆位那轮先量后改（量出旋转全为 0）省掉了一整轮。**方向类的东西不许靠推理定，先量。**
