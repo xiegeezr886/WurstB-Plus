@@ -14,9 +14,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.glass.GlassButtons;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.gui.visual.VisualTheme;
-import net.wurstclient.hud2.render.RiseFrostedGlass;
 
 public final class HudEditorScreen extends Screen
 {
@@ -98,8 +98,9 @@ public final class HudEditorScreen extends Screen
 	{
 		renderBackground(graphics);
 		renderReferenceGuides(graphics);
-		graphics.flush();
-		RiseFrostedGlass.captureFrame();
+		// 编辑器里的元素预览也要跟 HUD 一样是玻璃：这里重开一趟抓帧（抓帧本身是懒的，
+		// 在第一个真正画玻璃的元素处发生，那之前已经 flush 过）。
+		GlassButtons.beginPass();
 
 		long now = System.nanoTime();
 		float elapsedSeconds = lastRenderNanos == 0 ? 0

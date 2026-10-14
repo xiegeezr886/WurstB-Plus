@@ -1,0 +1,176 @@
+{
+  "vertex": "wurst:glass",
+  "fragment": "wurst:glass",
+  "attributes": [
+    "Position",
+    "UV0"
+  ],
+  "samplers": [
+    {
+      "name": "Scene"
+    },
+    {
+      "name": "Blurred"
+    },
+    {
+      "name": "Artwork"
+    }
+  ],
+  "uniforms": [
+    {"name":"GlowColor","type":"float","count":3,"values":[1,1,1]},
+    {"name":"GlowStrength","type":"float","count":1,"values":[1]},
+    {
+      "name": "ModelViewMat",
+      "type": "matrix4x4",
+      "count": 16,
+      "values": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "ProjMat",
+      "type": "matrix4x4",
+      "count": 16,
+      "values": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "FrameSize",
+      "type": "float",
+      "count": 2,
+      "values": [
+        1,
+        1
+      ]
+    },
+    {
+      "name": "PanelSize",
+      "type": "float",
+      "count": 2,
+      "values": [
+        100,
+        100
+      ]
+    },
+    {
+      "name": "Mouse",
+      "type": "float",
+      "count": 2,
+      "values": [
+        -1000,
+        -1000
+      ]
+    },
+    {
+      "name": "Radius",
+      "type": "float",
+      "count": 1,
+      "values": [
+        18
+      ]
+    },
+    {
+      "name": "Refraction",
+      "type": "float",
+      "count": 1,
+      "values": [
+        8
+      ]
+    },
+    {
+      "name": "Frost",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.65
+      ]
+    },
+    {
+      "name": "Tint",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.1
+      ]
+    },
+    {
+      "name": "Highlight",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "name": "PixelScale",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "values": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "name": "ArtworkUv",
+      "type": "float",
+      "count": 4
+    },
+    {
+      "values": [
+        0
+      ],
+      "name": "UseArtwork",
+      "type": "float",
+      "count": 1
+    },
+    {
+      "values": [
+        1
+      ],
+      "name": "Opacity",
+      "type": "float",
+      "count": 1
+    }
+  ],
+  "blend": {
+    "srcrgb": "srcalpha",
+    "func": "add",
+    "dstrgb": "1-srcalpha"
+  }
+}

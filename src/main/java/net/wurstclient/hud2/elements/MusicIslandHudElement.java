@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.glass.GlassPanels;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.RiseFont;
 import net.wurstclient.clickgui2.music.NeteaseImageCache;
@@ -268,10 +269,8 @@ public final class MusicIslandHudElement extends HudElement
 		int height, float radius)
 	{
 		int corner = Math.max(1, Math.round(radius));
-		FlatRenderer.fillRoundedRect(graphics, x, y, x + width, y + height,
-			corner, BACKGROUND);
-		FlatRenderer.drawRoundedOutline(graphics, x, y, x + width, y + height,
-			corner, OUTLINE);
+		GlassPanels.draw(graphics, x, y, x + width, y + height, corner,
+			BACKGROUND, OUTLINE);
 	}
 	
 	/**

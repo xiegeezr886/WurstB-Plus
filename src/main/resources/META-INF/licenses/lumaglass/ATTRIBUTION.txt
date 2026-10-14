@@ -1,0 +1,49 @@
+LumaGlass — liquid-glass UI for Minecraft 1.20.1 Forge
+
+Upstream: https://github.com/Sunny5349/LumaGlass
+Version ported: 0.2.9
+Upstream commit cloned for the port: f1d5717305d287b857cf364b2670f52882868358 (2026-09-25)
+Author: Sunny5349
+License: MIT (see LumaGlass-MIT.txt in this directory)
+
+WurstB+ Plus does not depend on the LumaGlass mod at runtime and does not
+bundle its jar. The glass look of vanilla controls is a source-level port: the
+files below were copied or adapted into this repository.
+
+Ported verbatim (only the resource namespace changed, lumaglass -> wurst):
+
+- assets/wurst/shaders/core/glass.json / .vsh / .fsh
+  from assets/lumaglass/shaders/core/glass.json / .vsh / .fsh
+  (.vsh/.fsh are byte-identical to upstream; the JSONs differ only in the
+  "vertex"/"fragment" namespace)
+- assets/wurst/shaders/core/blur.json / .vsh / .fsh
+  from assets/lumaglass/shaders/core/blur.json / .vsh / .fsh
+  (same: GLSL byte-identical, JSON namespace only)
+
+Adapted into this project's packages and style:
+
+- src/main/java/net/wurstclient/gui/glass/GlassRenderer.java
+  from dev/lumaglass/client/GlassRenderer.java plus the capture lifecycle of
+  dev/lumaglass/api/client/GlassCanvas.java and GlassFrame.java
+- src/main/java/net/wurstclient/gui/glass/GlassStyle.java
+  from dev/lumaglass/api/client/GlassStyle.java (fields and validation;
+  the glow-colour component is omitted because this port has no glow palette)
+- src/main/java/net/wurstclient/gui/glass/GlassButtons.java
+  from dev/lumaglass/client/theme/VanillaGlass.java (automatic-theme path,
+  including the scrollbar material)
+- src/main/java/net/wurstclient/mixin/AbstractButtonMixin.java
+  from dev/lumaglass/mixin/client/ButtonMixin.java
+- src/main/java/net/wurstclient/mixin/AbstractSliderButtonMixin.java
+  from dev/lumaglass/mixin/client/SliderMixin.java
+- src/main/java/net/wurstclient/mixin/CheckboxMixin.java
+  from dev/lumaglass/mixin/client/CheckboxMixin.java
+- src/main/java/net/wurstclient/mixin/SelectionListMixin.java
+  from dev/lumaglass/mixin/client/SelectionListMixin.java
+  (only its scrollbar branch; the list background / selection-row branches of
+  the upstream mixin are not ported)
+
+Default material values (blur 4.8, refraction 24, frost 1, tint 0, highlight 1,
+glow off) are taken from LumaGlass GlassConfig defaults; the focused
++0.13 tint / +0.7 highlight adjustment is from VanillaGlass.style().
+
+Deviations from upstream are listed in docs/glass-controls.md.

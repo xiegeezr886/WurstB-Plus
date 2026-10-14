@@ -13,8 +13,17 @@ import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.gui.glass.GlassButtons;
 import net.wurstclient.gui.visual.VisualTheme;
 
+/**
+ * 原版滑块的画法：整条与把手改为 LumaGlass 的玻璃面板（见 {@code gui/glass/}），玻璃
+ * 不可用时回退到原来的扁平样式。
+ *
+ * <p>
+ * 上游 LumaGlass 的 {@code SliderMixin} 就是这条画法：一条圆角 10 的玻璃当滑轨，一块
+ * 宽 8、圆角 4 的小玻璃当把手，把手位置按 {@code value} 在条内滑动、恒为高亮态。</p>
+ */
 @Mixin(AbstractSliderButton.class)
 public abstract class AbstractSliderButtonMixin extends AbstractWidget
 {
@@ -34,7 +43,7 @@ public abstract class AbstractSliderButtonMixin extends AbstractWidget
 	}
 
 	@Inject(at = @At("HEAD"), method = "renderWidget", cancellable = true)
-	private void renderLiquidBounceSlider(GuiGraphics graphics, int mouseX,
+	private void wurst$renderGlassSlider(GuiGraphics graphics, int mouseX,
 		int mouseY, float partialTicks, CallbackInfo ci)
 	{
 		long now = System.nanoTime();
@@ -45,6 +54,15 @@ public abstract class AbstractSliderButtonMixin extends AbstractWidget
 		float target = isHoveredOrFocused() && active ? 1 : 0;
 		wurst$hoverProgress += (target - wurst$hoverProgress)
 			* (1 - (float)Math.exp(-18 * delta));
+
+		if(GlassButtons.renderSlider(graphics, getX(), getY(), getWidth(),
+			getHeight(), value, wurst$hoverProgress, active, alpha))
+		{
+			renderScrollingString(graphics, Minecraft.getInstance().font, 2,
+				active ? VisualTheme.TEXT : VisualTheme.TEXT_DISABLED);
+			ci.cancel();
+			return;
+		}
 
 		int left = getX();
 		int top = getY();

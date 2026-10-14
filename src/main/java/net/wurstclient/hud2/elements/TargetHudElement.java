@@ -18,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.glass.GlassPanels;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.events.PlayerAttacksEntityListener;
 import net.wurstclient.gui.visual.VisualTheme;
@@ -25,7 +26,6 @@ import net.wurstclient.hack.HackList;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.hud2.HudManager;
-import net.wurstclient.hud2.render.RiseFrostedGlass;
 import net.wurstclient.hud2.render.RiseHudFont;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.ScreenRegistry;
@@ -267,8 +267,8 @@ public final class TargetHudElement extends HudElement
 		int width, Player target, float partialTicks)
 	{
 		Font font = WurstClient.MC.font;
-		RiseFrostedGlass.draw(graphics, x, y, x + width - 1, y + HEIGHT,
-			PANEL_RADIUS, 1, 0x6E000000);
+		GlassPanels.draw(graphics, x, y, x + width - 1, y + HEIGHT,
+			PANEL_RADIUS, 0x6E000000);
 
 		// 参考 TargetInfoElement.java:118-121 的酒量口径：吸收值同时进分子与分母，
 		// 所以「满血 + 满吸收」才是满条。

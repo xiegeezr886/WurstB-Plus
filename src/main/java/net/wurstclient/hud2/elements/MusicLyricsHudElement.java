@@ -5,6 +5,7 @@ import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.glass.GlassPanels;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
@@ -111,10 +112,8 @@ public final class MusicLyricsHudElement extends HudElement
 			? 1_200 : player.getAdjustedLyricPositionMs(), false);
 		lyricsView.update();
 
-		FlatRenderer.fillRoundedRect(graphics, x, y, x + WIDTH, y + HEIGHT,
-			10, withOpacity(BACKGROUND, visibility));
-		FlatRenderer.drawRoundedOutline(graphics, x, y, x + WIDTH,
-			y + HEIGHT, 10, withOpacity(OUTLINE, visibility));
+		GlassPanels.draw(graphics, x, y, x + WIDTH, y + HEIGHT, 10, BACKGROUND,
+			OUTLINE, visibility);
 		HudElementConfig config = WurstClient.INSTANCE.getHudManager().getLayout()
 			.get(getId());
 		float hudScale = config == null ? 1 : config.getScale();

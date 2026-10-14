@@ -8,6 +8,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.glass.GlassPanels;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.gui.visual.VisualTheme;
@@ -39,7 +40,8 @@ public final class PotionHudElement extends HudElement
 		List<String> lines = getLines();
 		if(lines.isEmpty())
 			return;
-		graphics.fill(x, y, x + getWidth(), y + getHeight(),
+		// 液态玻璃卡片；不可用时按原来的 SURFACE_50 扁平填充回退
+		GlassPanels.draw(graphics, x, y, x + getWidth(), y + getHeight(), 4,
 			VisualTheme.SURFACE_50);
 		for(int index = 0; index < lines.size(); index++)
 			graphics.drawString(font, lines.get(index), x + 2,

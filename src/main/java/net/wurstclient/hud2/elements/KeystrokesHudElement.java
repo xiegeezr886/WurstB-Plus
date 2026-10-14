@@ -13,6 +13,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.gui.glass.GlassPanels;
 import net.wurstclient.events.MouseButtonListener;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
@@ -169,15 +170,17 @@ public final class KeystrokesHudElement extends HudElement
 		KeyMapping mapping, int x, int y, int width, int height, float delta)
 	{
 		float progress = updateAnimation(mapping, mapping.isDown(), delta);
-		int background = mixColor(IDLE_BACKGROUND, PRESSED_BACKGROUND,
-			progress);
 		int border = mixColor(IDLE_BORDER, PRESSED_BORDER, progress);
 		int textColor = mixColor(IDLE_TEXT, PRESSED_TEXT, progress);
 
-		FlatRenderer.fillRoundedRect(graphics, x, y, x + width, y + height,
-			3, background);
-		FlatRenderer.drawRoundedOutline(graphics, x, y, x + width,
-			y + height, 3, border);
+		// 液态玻璃键帽；玻璃底色固定，按下状态改用一层主题色薄涂表达
+		GlassPanels.draw(graphics, x, y, x + width, y + height, 3,
+			IDLE_BACKGROUND, border);
+		if(progress > 0.01F)
+			FlatRenderer.fillRoundedRect(graphics, x, y, x + width,
+				y + height, 3,
+				VisualTheme.withAlpha(PRESSED_BACKGROUND,
+					0.35F * progress));
 
 		Font font = WurstClient.MC.font;
 		int textX = x + (width - font.width(label)) / 2;
