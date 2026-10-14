@@ -30,17 +30,18 @@ import com.mojang.blaze3d.platform.NativeImage;
  * </pre>
  *
  * <p>
- * 判据取「{@code 残差(p) < 20} **且** {@code 残差(p) < 0.5 × 残差(p/2)}」：绝对阈值挡掉
- * "本来就没有周期"的贴图（它们的残差普遍很大），比值阈值挡掉"平整到平移多少都差不多"
- * 的贴图（那种残差处处为 0，比值判据不成立）。这两条一起才把三个样本都判对。</p>
+ * 判据用**投影**：沿另一轴把亮度求和得到一维剖面，再看剖面的相对残差。理由是帧与帧
+ * 内容本来就不一样，逐像素比会被帧间差异淹没 —— 第一版就是逐像素 + 绝对阈值 20，
+ * 于是把 `fog3` 判成了单帧（它明明是 8×8 图集，逐像素残差却到 27.99）。投影把帧间差异
+ * 平均掉之后，两个雾贴图都能稳定量出 8×8。</p>
  */
 public record WeParticleSheet(int columns, int rows)
 {
-	/** 绝对阈值：残差大于它就不认为是图集。 */
-	private static final double MAX_RESIDUAL = 20;
+	/** 相对残差阈值（残差 ÷ 剖面均值）：大于它就不认为是图集。 */
+	private static final double MAX_RESIDUAL = 0.25;
 
 	/** 比值阈值：一个帧宽的残差要显著小于半帧的。 */
-	private static final double RATIO = 0.5;
+	private static final double RATIO = 0.6;
 
 	/** 单帧（不是图集）。 */
 	public static final WeParticleSheet SINGLE = new WeParticleSheet(1, 1);
@@ -114,33 +115,67 @@ public record WeParticleSheet(int columns, int rows)
 		return SINGLE;
 	}
 
-	/** 沿 x、y 各平移 period 后的平均差，取两者的均值（每 4 像素采一个）。 */
+	/** 沿 x、y 各平移 period 后的相对残差，取两者的均值。 */
 	private static double residual(NativeImage image, int period)
 	{
 		if(period <= 0)
 			return Double.MAX_VALUE;
 
-		return (axis(image, period, true) + axis(image, period, false)) / 2;
+		return (profileResidual(image, period, true)
+			+ profileResidual(image, period, false)) / 2;
 	}
 
-	private static double axis(NativeImage image, int period, boolean horizontal)
+	/**
+	 * 一维剖面的**相对**残差：沿另一轴把亮度求和得到剖面，平移一个周期的平均差 ÷ 平均值。
+	 *
+	 * <p>
+	 * 用投影而不是逐像素差：帧图集里每一帧的内容都不一样，逐像素比会被帧间差异淹没
+	 * （`fog3` 就是这么被第一版判成单帧的：它明明是 8×8 图集，逐像素残差却到 27.99）；
+	 * 沿另一轴求和之后，帧间差异被平均掉，剩下的是"每帧在同一相对位置都有东西"这个周期
+	 * 结构。</p>
+	 *
+	 * <p>
+	 * 归一是必需的：不同贴图整体亮度差很多，绝对值没法共用阈值。全黑/全白的图直接返回
+	 * 最大值 —— 它平移多少都"相等"，别被这一点骗过去。</p>
+	 */
+	private static double profileResidual(NativeImage image, int period,
+		boolean horizontal)
 	{
-		int width = image.getWidth();
-		int height = image.getHeight();
-		double sum = 0;
-		long count = 0;
+		if(period <= 0)
+			return Double.MAX_VALUE;
 
-		for(int y = 0; y < height; y += 4)
-			for(int x = 0; x < width; x += 4)
+		int length = horizontal ? image.getWidth() : image.getHeight();
+		int other = horizontal ? image.getHeight() : image.getWidth();
+		double[] profile = new double[length];
+		double mean = 0;
+
+		for(int i = 0; i < length; i++)
+		{
+			double sum = 0;
+			int count = 0;
+
+			for(int j = 0; j < other; j += 2)
 			{
-				int otherX = horizontal ? (x + period) % width : x;
-				int otherY = horizontal ? y : (y + period) % height;
-				sum += Math.abs(luma(image.getPixelRGBA(x, y))
-					- luma(image.getPixelRGBA(otherX, otherY)));
+				sum += luma(horizontal ? image.getPixelRGBA(i, j)
+					: image.getPixelRGBA(j, i));
 				count++;
 			}
 
-		return count == 0 ? 0 : sum / count;
+			profile[i] = count == 0 ? 0 : sum / count;
+			mean += profile[i];
+		}
+
+		mean /= length;
+
+		if(mean <= 1)
+			return Double.MAX_VALUE;
+
+		double difference = 0;
+
+		for(int i = 0; i < length; i++)
+			difference += Math.abs(profile[i] - profile[(i + period) % length]);
+
+		return difference / length / mean;
 	}
 
 	private static int luma(int pixel)
