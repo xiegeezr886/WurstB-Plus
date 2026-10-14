@@ -1338,8 +1338,18 @@ public final class WeSceneWallpaper implements AutoCloseable
 			Math.max(1, layer.pointSize() * layer.scaleX() * scale);
 		float factor = fontSize / 9F;
 
-		float textWidth = font.width(text) * factor;
-		float textHeight = font.lineHeight * factor;
+		// **换行要自己处理**：预设里存的文本本身就带 `\n`（实测 `May\n28th`、
+		// `周日\n上午`），而 `drawString` 不认识它 —— 换行符会被当成缺字形、画成一个
+		// 小方框（用户截图里 `May◻28th`、`周日◻上午` 那个方块就是它）。
+		String[] lines = text.split("\n", -1);
+		float lineHeight = font.lineHeight * factor;
+		float widest = 0;
+
+		for(String line : lines)
+			widest = Math.max(widest, font.width(line) * factor);
+
+		float textWidth = widest;
+		float textHeight = lineHeight * lines.length;
 
 		float x = switch(layer.horizontalAlign())
 		{
@@ -1364,7 +1374,22 @@ public final class WeSceneWallpaper implements AutoCloseable
 		graphics.pose().pushPose();
 		graphics.pose().translate(x, y, 0);
 		graphics.pose().scale(factor, factor, 1);
-		graphics.drawString(font, text, 0, 0, colour, false);
+
+		// 每行按同一套对齐规则摆在自己的行位上（pose 已缩放，这里用的是字体单位）
+		for(int i = 0; i < lines.length; i++)
+		{
+			float lineWidth = font.width(lines[i]);
+			float lineX = switch(layer.horizontalAlign())
+			{
+				case "left" -> 0;
+				case "right" -> widest / factor - lineWidth;
+				default -> (widest / factor - lineWidth) / 2F;
+			};
+
+			graphics.drawString(font, lines[i], Math.round(lineX),
+				i * font.lineHeight, colour, false);
+		}
+
 		graphics.pose().popPose();
 
 		// 这里**不要**打日志：本方法是每帧调用的。装载时那一条汇总在 render 里报。
