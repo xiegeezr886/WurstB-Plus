@@ -16,7 +16,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
@@ -106,6 +108,16 @@ public final class WeSceneWallpaper implements AutoCloseable
 		new HashMap<>();
 
 	/**
+	 * 文本层用的作者字体，键是 {@link #fontKey}（字体引用 + 取整后的字号）。
+	 *
+	 * <p>
+	 * 加载不出来（{@code .otf} 的 CFF 轮廓、{@code systemfont_*} 的系统字体、
+	 * 或者包里根本没有这份文件）时**这里没有对应项**，画的时候回退 MC 自带字体。
+	 * </p>
+	 */
+	private final Map<String, WeSceneFont> sceneFonts;
+
+	/**
 	 * 上传好的粒子贴图：注册用的 {@link ResourceLocation}（{@code blit} 要它）、
 	 * 纹理本身，以及源图尺寸（{@code blit} 要知道源尺寸）。
 	 */
@@ -114,11 +126,12 @@ public final class WeSceneWallpaper implements AutoCloseable
 	{}
 
 	private WeSceneWallpaper(WeScene scene, List<Bound> layers,
-		List<BoundParticles> particleLayers)
+		List<BoundParticles> particleLayers, Map<String, WeSceneFont> sceneFonts)
 	{
 		this.scene = scene;
 		this.layers = layers;
 		this.particleLayers = particleLayers;
+		this.sceneFonts = sceneFonts;
 	}
 
 	/** 一张已经上传的贴图，连同它属于哪一层。 */
@@ -147,13 +160,25 @@ public final class WeSceneWallpaper implements AutoCloseable
 		private final WeScene scene;
 		private final List<DecodedLayer> remaining;
 		private final List<DecodedParticles> particles;
+		private final Map<String, byte[]> fonts;
 
 		Decoded(WeScene scene, List<DecodedLayer> layers,
-			List<DecodedParticles> particles)
+			List<DecodedParticles> particles, Map<String, byte[]> fonts)
 		{
 			this.scene = scene;
 			this.remaining = new ArrayList<>(layers);
 			this.particles = particles;
+			this.fonts = fonts;
+		}
+
+		/**
+		 * 文本层要用的字体文件字节，键是场景里写的引用（例如
+		 * {@code fonts/workshop/3759258840/yuanshen.ttf}）。只装**能加载**的那些，
+		 * 剩下的在装载时就报过回退原因了。
+		 */
+		public Map<String, byte[]> fonts()
+		{
+			return fonts;
 		}
 
 		public WeScene scene()
@@ -345,7 +370,111 @@ public final class WeSceneWallpaper implements AutoCloseable
 				+ " 层；已画出 " + decoded.size() + " 层");
 
 		return new Decoded(scene, List.copyOf(decoded),
-			decodeParticles(pkg, scene));
+			decodeParticles(pkg, scene), readFonts(pkg, scene));
+	}
+
+	/**
+	 * 文本层要用的字体文件：只读**能加载**的那些（glyf 型 {@code .ttf}）。
+	 *
+	 * <p>
+	 * 两类引用在这里就被挡掉并说明原因，不留给渲染时每帧判断：{@code .otf} 是 CFF
+	 * 轮廓、STB 的 {@code stbtt_InitFont} 直接返回 0；{@code systemfont_*} 指的是
+	 * 系统字体，作品包里本来就没有。
+	 * </p>
+	 */
+	private static Map<String, byte[]> readFonts(WePackage pkg, WeScene scene)
+	{
+		Map<String, byte[]> fonts = new LinkedHashMap<>();
+
+		for(WeScene.TextLayer layer : scene.texts())
+		{
+			String ref = layer.font();
+
+			if(ref == null || ref.isBlank() || fonts.containsKey(ref))
+				continue;
+
+			if(!WeSceneFont.canLoad(ref))
+			{
+				boolean otf = ref.toLowerCase(Locale.ROOT).endsWith(".otf");
+
+				System.out.println("[Background] 文本层「" + layer.name()
+					+ "」的字体 " + ref + " 回退 MC 自带字体（"
+					+ (otf ? ".otf 是 CFF 轮廓，STB 打不开"
+						: "systemfont_* 是系统字体，包里没有") + "）");
+				continue;
+			}
+
+			byte[] bytes = pkg.read(ref);
+
+			if(bytes == null)
+			{
+				System.out.println("[Background] 字体 " + ref
+					+ " 在包里没有，回退 MC 自带字体");
+				continue;
+			}
+
+			fonts.put(ref, bytes);
+		}
+
+		return Map.copyOf(fonts);
+	}
+
+	/**
+	 * 字体缓存键：同一个字体文件在不同字号下要各加载一份（provider 的 {@code size}
+	 * 就是 em 的像素高，字号变了字形得重新光栅化）。
+	 */
+	static String fontKey(String fontRef, float pointSize)
+	{
+		return fontRef == null ? "" : fontRef.trim() + "@" + Math.round(pointSize);
+	}
+
+	/**
+	 * 把解出来的字体字节做成 MC 字体。**只能在客户端线程做**（要 TextureManager）。
+	 *
+	 * <p>
+	 * 按 {@link #fontKey} 缓存：同一个字体文件在不同字号下各一份 —— provider 的
+	 * {@code size} 就是 em 的像素高，字号变了字形得重新光栅化。加载失败只报一条并跳过，
+	 * 那一层照旧用 MC 自带字体画，不至于整张壁纸画不出来。
+	 * </p>
+	 */
+	private static Map<String, WeSceneFont> loadFonts(Decoded decoded)
+	{
+		Map<String, WeSceneFont> fonts = new HashMap<>();
+		int index = 0;
+
+		for(WeScene.TextLayer layer : decoded.scene().texts())
+		{
+			String ref = layer.font();
+			byte[] bytes = decoded.fonts().get(ref);
+
+			if(bytes == null)
+				continue;
+
+			float pointSize = Math.max(1, Math.round(layer.pointSize()));
+			String key = fontKey(ref, pointSize);
+
+			if(fonts.containsKey(key))
+				continue;
+
+			try
+			{
+				ResourceLocation id = new ResourceLocation(WurstClient.MOD_ID,
+					"we_scene_font/" + index++);
+
+				fonts.put(key, WeSceneFont.load(ref, pointSize, bytes, id));
+
+			}catch(IOException e)
+			{
+				System.out.println("[Background] 字体 " + ref + " 加载失败（"
+					+ e.getMessage() + "），该层回退 MC 自带字体");
+			}
+		}
+
+		if(!fonts.isEmpty())
+			System.out.println("[Background] 作者字体 " + fonts.size() + " 份："
+				+ String.join("、", fonts.keySet()));
+
+		return Map.copyOf(fonts);
 	}
 
 	public static Decoded decode(Path pkgFile) throws IOException
@@ -1227,7 +1356,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 		}
 
 		return new WeSceneWallpaper(decoded.scene(), List.copyOf(bound),
-			List.copyOf(particles));
+			List.copyOf(particles), loadFonts(decoded));
 	}
 
 	/** 场景的画布宽高，日志与测试用。 */
@@ -1364,9 +1493,16 @@ public final class WeSceneWallpaper implements AutoCloseable
 	 * </p>
 	 *
 	 * <p>
-	 * <b>两处都是本项目的做法，不是作者的</b>：① 字号按 MC 字体的 9 像素行高折算
-	 * （目标字号除以 9 当缩放系数）；② 不使用作者指定的 {@code font}（包内 {@code .otf}），
-	 * 用 MC 自带字体代替，字形不同。写在这里，免得被当成"还原得很准"。
+	 * <b>字体</b>：作者指定的 {@code font} 如果是 glyf 型 {@code .ttf}，就真的用它
+	 * （{@link WeSceneFont} 把包内字体装成 MC 的 {@code Font}）；{@code .otf}
+	 * （CFF 轮廓）与 {@code systemfont_*} 回退 MC 自带字体。整层回退时字号沿用本项目
+	 * 的折算（目标字号 ÷ MC 字体的 9 像素行高）；用作者字体时缩放系数**就是**画布→屏幕
+	 * —— provider 的 {@code size} 本来就是 em 的像素高（= WE 的 {@code pointsize}）。
+	 * </p>
+	 *
+	 * <p>
+	 * <b>行内混排</b>：作者字体缺某个字形时，那个字符回退 MC 字体（{@link WeTextRuns}），
+	 * 位置按各自字宽累加 —— 不会再画出缺字形的小方框。
 	 * </p>
 	 *
 	 * @return 是否真的画了东西
@@ -1379,7 +1515,13 @@ public final class WeSceneWallpaper implements AutoCloseable
 		if(text == null || text.isBlank() || layer.alpha() <= 0)
 			return false;
 
-		Font font = Minecraft.getInstance().font;
+		Font vanilla = Minecraft.getInstance().font;
+		WeSceneFont sceneFont = sceneFont(layer);
+		Font font = sceneFont == null ? vanilla : sceneFont.font();
+
+		// 回退片段（作者字体缺字形）要按 MC 字体的 9 像素行高放大到同高
+		float fallbackScale =
+			sceneFont == null ? 1F : Math.max(1, layer.pointSize()) / 9F;
 
 		// origin 是图层中心，与图像层的矩形计算保持一致
 		float centreX = screenWidth / 2F
@@ -1390,19 +1532,25 @@ public final class WeSceneWallpaper implements AutoCloseable
 		float boxWidth = layer.sizeX() * layer.scaleX() * scale;
 		float boxHeight = layer.sizeY() * layer.scaleY() * scale;
 
-		float fontSize =
-			Math.max(1, layer.pointSize() * layer.scaleX() * scale);
-		float factor = fontSize / 9F;
+		// 作者字体：provider 的 size 就是 em 的像素高（见 WeSceneFont），所以缩放系数
+		// **就是**画布→屏幕；整层回退到 MC 字体时沿用原来的"目标字号 ÷ 9"。
+		// 行高也得分开取：Font.lineHeight 是写死的 9，对自定义字体没有意义。
+		float factor = sceneFont == null
+			? Math.max(1, layer.pointSize() * layer.scaleX() * scale) / 9F
+			: layer.scaleX() * scale;
+		float lineStep =
+			sceneFont == null ? vanilla.lineHeight : sceneFont.lineHeight();
 
 		// **换行要自己处理**：预设里存的文本本身就带 `\n`（实测 `May\n28th`、
 		// `周日\n上午`），而 `drawString` 不认识它 —— 换行符会被当成缺字形、画成一个
 		// 小方框（用户截图里 `May◻28th`、`周日◻上午` 那个方块就是它）。
 		String[] lines = text.split("\n", -1);
-		float lineHeight = font.lineHeight * factor;
+		float lineHeight = lineStep * factor;
 		float widest = 0;
 
 		for(String line : lines)
-			widest = Math.max(widest, font.width(line) * factor);
+			widest = Math.max(widest, lineWidth(line, font, vanilla, sceneFont,
+				fallbackScale) * factor);
 
 		float textWidth = widest;
 		float textHeight = lineHeight * lines.length;
@@ -1431,25 +1579,94 @@ public final class WeSceneWallpaper implements AutoCloseable
 		graphics.pose().translate(x, y, 0);
 		graphics.pose().scale(factor, factor, 1);
 
-		// 每行按同一套对齐规则摆在自己的行位上（pose 已缩放，这里用的是字体单位）
+		// 每行按同一套对齐规则摆在自己的行位上（pose 已缩放，这里用的是字体单位）。
+		// 行内可能混着两种字体（作者字体缺字形的字符回退 MC 字体），见 drawLine。
 		for(int i = 0; i < lines.length; i++)
 		{
-			float lineWidth = font.width(lines[i]);
+			float lineUnits = lineWidth(lines[i], font, vanilla, sceneFont,
+				fallbackScale);
 			float lineX = switch(layer.horizontalAlign())
 			{
 				case "left" -> 0;
-				case "right" -> widest / factor - lineWidth;
-				default -> (widest / factor - lineWidth) / 2F;
+				case "right" -> widest / factor - lineUnits;
+				default -> (widest / factor - lineUnits) / 2F;
 			};
 
-			graphics.drawString(font, lines[i], Math.round(lineX),
-				i * font.lineHeight, colour, false);
+			drawLine(graphics, lines[i], lineX, i * lineStep, colour, font,
+				vanilla, sceneFont, fallbackScale);
 		}
 
 		graphics.pose().popPose();
 
 		// 这里**不要**打日志：本方法是每帧调用的。装载时那一条汇总在 render 里报。
 		return true;
+	}
+
+	/** 这一层的作者字体；没加载成功（{@code .otf}、{@code systemfont_*}、读不到）就是 null。 */
+	private WeSceneFont sceneFont(WeScene.TextLayer layer)
+	{
+		if(layer.font() == null || layer.font().isBlank())
+			return null;
+
+		return sceneFonts.get(fontKey(layer.font(), layer.pointSize()));
+	}
+
+	/**
+	 * 一行在**主字体单位**下的宽度。
+	 *
+	 * <p>
+	 * 用作者字体时行内可能混排：缺字形的那些字符按 MC 字体量，再乘
+	 * {@code fallbackScale} 折回主字体的尺度（MC 字体只有 9 像素行高）。
+	 * </p>
+	 */
+	private static float lineWidth(String line, Font font, Font vanilla,
+		WeSceneFont sceneFont, float fallbackScale)
+	{
+		if(sceneFont == null)
+			return font.width(line);
+
+		float width = 0;
+
+		for(WeTextRuns.Run run : WeTextRuns.split(line, sceneFont::supports))
+			width += run.custom() ? font.width(run.text())
+				: vanilla.width(run.text()) * fallbackScale;
+
+		return width;
+	}
+
+	/** 一行按片段画出来：作者字体画得动的用它，缺字形的字符用 MC 字体补。 */
+	private static void drawLine(GuiGraphics graphics, String line, float x,
+		float y, int colour, Font font, Font vanilla, WeSceneFont sceneFont,
+		float fallbackScale)
+	{
+		if(sceneFont == null)
+		{
+			graphics.drawString(font, line, Math.round(x), Math.round(y), colour,
+				false);
+			return;
+		}
+
+		float cursor = x;
+
+		for(WeTextRuns.Run run : WeTextRuns.split(line, sceneFont::supports))
+		{
+			if(run.custom())
+			{
+				graphics.drawString(font, run.text(), Math.round(cursor),
+					Math.round(y), colour, false);
+				cursor += font.width(run.text());
+				continue;
+			}
+
+			// 回退片段：先把原点挪到这一段的起点，再按比例放大到与作者字体同高
+			graphics.pose().pushPose();
+			graphics.pose().translate(cursor, y, 0);
+			graphics.pose().scale(fallbackScale, fallbackScale, 1);
+			graphics.drawString(vanilla, run.text(), 0, 0, colour, false);
+			graphics.pose().popPose();
+
+			cursor += vanilla.width(run.text()) * fallbackScale;
+		}
 	}
 
 	private boolean renderParticles(GuiGraphics graphics, BoundParticles group,
@@ -1664,6 +1881,11 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 		closed = true;
 		closeQuietly(layers);
+
+		// 作者字体：FontSet.close() 会一起关掉 provider（连带 STB 的 font info）与
+		// 字形图集，直接缓冲由 WeSceneFont 自己还
+		for(WeSceneFont font : sceneFonts.values())
+			font.close();
 
 		if(dot != null)
 		{
