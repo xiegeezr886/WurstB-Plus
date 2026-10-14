@@ -129,7 +129,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 	/** 一套跑起来的粒子，以及它插在第几个图层之前。 */
 	private record BoundParticles(WeScene.ParticleLayer layer,
 		WeParticles system, int layerIndex, WeParticleSprite sprite,
-		NativeImage spriteImage)
+		NativeImage spriteImage, WeParticleSheet sheet)
 	{}
 
 	/**
@@ -188,7 +188,8 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 	/** 一个已经解析、还没跑起来的粒子层。 */
 	public record DecodedParticles(WeScene.ParticleLayer layer,
-		WeParticlePreset preset, WeParticleSprite sprite, NativeImage spriteImage)
+		WeParticlePreset preset, WeParticleSprite sprite, NativeImage spriteImage,
+		WeParticleSheet sheet)
 	{}
 
 	/** 后台线程：读包、解析、解码所有图层贴图与粒子预设。 */
@@ -410,9 +411,10 @@ public final class WeSceneWallpaper implements AutoCloseable
 		{
 			WeParticlePreset preset = presets.get(i);
 			WeParticleSprite sprite = resolveSprite(pkg, preset.material());
+			NativeImage image = loadSprite(pkg, sprite);
 
-			out.add(new DecodedParticles(layers.get(i), preset, sprite,
-				loadSprite(pkg, sprite)));
+			out.add(new DecodedParticles(layers.get(i), preset, sprite, image,
+				sheetFor(pkg, sprite, image)));
 		}
 
 		return List.copyOf(out);
@@ -488,6 +490,60 @@ public final class WeSceneWallpaper implements AutoCloseable
 		}catch(IOException | RuntimeException e)
 		{
 			return null;
+		}
+	}
+
+	/**
+	 * 这一层粒子的帧格：读贴图旁边的 {@code .tex-json}，取它声明的帧序列。
+	 *
+	 * <p>
+	 * <b>这是 WE 自己的数据通路。</b>{@code particle/fog/fog1.tex} 旁边就是
+	 * {@code fog1.tex-json}（WE 安装目录 {@code assets/materials/particle/fog/}），
+	 * 里面写着 {@code "spritesheetsequences" : [{ "frames" : 64, "width" : 128,
+	 * "height" : 128 }]} —— 1024×1024 的贴图就是 8×8、每帧 128×128；
+	 * {@code fog3} 那份声明完全相同。{@code halo}/{@code halo_6} 的 tex-json
+	 * **没有这个键**（只有 format/clampuvs/nomip），于是它们就是单帧。</p>
+	 *
+	 * <p>
+	 * 以前是在像素上找周期（逐像素残差、投影周期、连通块计数、带容差的模板匹配），
+	 * 四种判据都被真贴图否掉：{@code fog3} 的帧边界上根本没有留白，而 {@code fog1}
+	 * 的空隙又让 2×2、4×4 这些<em>约数</em>格子同样"切在缝里"。声明式元数据把这个问题
+	 * 从"估计"变成了"读取"。</p>
+	 *
+	 * <p>
+	 * 查找顺序与贴图本身一致：先包内 {@code materials/<名字>.tex-json}，再 WE 安装
+	 * 目录。读不到、或元数据自相矛盾，就退回单帧并报一条 —— 不猜一个"看起来合理"的格子。</p>
+	 */
+	private static WeParticleSheet sheetFor(WePackage pkg,
+		WeParticleSprite sprite, NativeImage image)
+	{
+		if(sprite == null || image == null)
+			return WeParticleSheet.SINGLE;
+
+		String texJson = null;
+
+		for(String name : new String[]{"materials/" + sprite.texture(),
+			sprite.texture()})
+		{
+			texJson = text(pkg, name + ".tex-json");
+
+			if(texJson == null)
+				texJson = assetText(name + ".tex-json");
+
+			if(texJson != null)
+				break;
+		}
+
+		try
+		{
+			return WeParticleSheet.of(WeTextureSheet.parse(texJson,
+				image.getWidth(), image.getHeight()));
+
+		}catch(IOException e)
+		{
+			System.out.println("[Background] 粒子贴图 " + sprite.texture()
+				+ " 的帧序列不可用（" + e.getMessage() + "），按单帧画");
+			return WeParticleSheet.SINGLE;
 		}
 	}
 
@@ -1167,7 +1223,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 			particles.add(new BoundParticles(layer.layer(),
 				new WeParticles(layer.preset(), 0x5EED0000L + i),
 				Math.min(layer.layer().layerIndex(), bound.size()),
-				layer.sprite(), layer.spriteImage()));
+				layer.sprite(), layer.spriteImage(), layer.sheet()));
 		}
 
 		return new WeSceneWallpaper(decoded.scene(), List.copyOf(bound),
@@ -1516,9 +1572,10 @@ public final class WeSceneWallpaper implements AutoCloseable
 			"we_particle_sprite/" + particleTextures.size());
 		Minecraft.getInstance().getTextureManager().register(id, texture);
 
-		// 帧图集在这里量一次：贴图若真是 8x8 的雾动画，画的时候只取一帧
+		// 帧格在装载时就按元数据定好了（tex-json 的 spritesheetsequences），
+		// 这里只把它交给贴图；画的时候按寿命取其中一帧。
 		SpriteTexture fresh = new SpriteTexture(id, texture, image.getWidth(),
-			image.getHeight(), WeParticleSheet.detect(image));
+			image.getHeight(), group.sheet());
 		particleTextures.put(group, fresh);
 		return fresh;
 	}
