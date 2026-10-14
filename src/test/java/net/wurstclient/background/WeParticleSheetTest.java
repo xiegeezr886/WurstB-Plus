@@ -26,15 +26,19 @@ import com.mojang.blaze3d.platform.NativeImage;
  */
 final class WeParticleSheetTest
 {
-	/** 4×4 帧、每帧 16px：每格画一样的图案，所以帧宽就是 16。 */
+	/**
+	 * 4×4 帧、每帧 16px：每格在**同一相对位置**画一小块亮斑，所以帧宽就是 16。
+	 *
+	 * <p>
+	 * 亮斑必须在每格里同一相对位置 —— 投影法看的就是"每格对剖面贡献同样的形状"。
+	 * 早先那版用棋盘格当素材，结果列投影是常数（棋盘每列明暗各半），任何周期都"相等"，
+	 * 判据正确地拒绝了它：**是素材不像图集，不是代码错**。</p>
+	 */
 	@Test
 	void detectsRepeatingSheet()
 	{
-		// 格子取 8px：平移 8 会让棋盘反相，所以真正的周期是 16。
-		// （原稿写的 4px 周期其实只有 8，判据会把 8 当帧宽 —— 第一版断言就是这么写错的，
-		// 代码是对的：它量出来的正是花纹的真实周期。）
 		NativeImage image = image(64, (x, y) ->
-			((x % 16) / 8 + (y % 16) / 8) % 2 == 0 ? 240 : 15);
+			x % 16 >= 4 && x % 16 < 12 && y % 16 >= 4 && y % 16 < 12 ? 240 : 10);
 
 		WeParticleSheet sheet = WeParticleSheet.detect(image);
 
