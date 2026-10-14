@@ -73,7 +73,8 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 	public record TextLayer(String name, String text, float originX,
 		float originY, float sizeX, float sizeY, float scaleX, float scaleY,
 		float colorR, float colorG, float colorB, float alpha,
-		String horizontalAlign, String verticalAlign, float pointSize)
+		String horizontalAlign, String verticalAlign, float pointSize,
+		String font)
 	{}
 
 	/**
@@ -296,6 +297,11 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		float alpha = (float)number(object, "alpha", 1);
 		float pointSize = (float)number(object, "pointsize", DEFAULT_POINT_SIZE);
 
+		// 作者指定的字体文件（实测 9 个对象用 fonts/workshop/3759258840/yuanshen.ttf）。
+		// 能不能真的用它由 WeSceneFont.canLoad 判：只有 glyf 型 .ttf 可以，
+		// .otf（CFF 轮廓）与 systemfont_* 一律回退 MC 自带字体。
+		String font = string(object, "font", "");
+
 		String horizontal = string(object, "horizontalalign", "center")
 			.toLowerCase(Locale.ROOT);
 		String vertical = string(object, "verticalalign", "center")
@@ -303,7 +309,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 		return new TextLayer(string(object, "name", "text"), text, origin[0],
 			origin[1], size[0], size[1], scale[0], scale[1], color[0], color[1],
-			color[2], alpha, horizontal, vertical, pointSize);
+			color[2], alpha, horizontal, vertical, pointSize, font);
 	}
 
 	/**
