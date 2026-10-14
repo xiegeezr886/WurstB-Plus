@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.glass.GlassPanels;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.hud2.NotificationContent;
 
@@ -121,9 +122,9 @@ public final class ComposeNotifications
 		int t = Math.round(top);
 		int r = Math.round(right);
 		int b = Math.round(bottom);
-		// 卡片底 + 发光 + 流动渐变描边（1:1 HackAI NotificationView）
-		FlatRenderer.fillRoundedRect(graphics, l, t, r, b, CARD_RADIUS,
-			withAlpha(0x0A0A0A, Math.round(217 * fade)));
+		// 卡片底改液态玻璃（淡出时整块跟着淡；两道流动渐变描边保留）+ 发光 + 流动渐变描边（1:1 HackAI NotificationView）
+		GlassPanels.draw(graphics, l, t, r, b, CARD_RADIUS,
+			withAlpha(0x0A0A0A, 217), 0, fade);
 		FlatRenderer.drawGradientOutline(graphics, l - 2, t - 2, r + 2, b + 2,
 			CARD_RADIUS + 2, FlowingGradient.flowing(l, r - l,
 				30 * fade));

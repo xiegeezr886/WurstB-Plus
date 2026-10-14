@@ -13,9 +13,24 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;
+import net.wurstclient.gui.glass.GlassButtons;
 import net.wurstclient.gui.visual.VisualRenderer;
 import net.wurstclient.gui.visual.VisualTheme;
 
+/**
+ * 原版按钮的画法：底色改为 LumaGlass 的玻璃面板（见 {@code gui/glass/}），玻璃不可用时
+ * 回退到原来的扁平样式。
+ *
+ * <p>
+ * 这个注入点是全客户端原版按钮的唯一入口：{@code AbstractButton.renderWidget} 的 HEAD
+ * 被取消后，按钮背景完全由这里决定。所以玻璃那一条路径失败时必须原样画回旧样式，
+ * 不能把异常抛出去——那会让每个带按钮的界面都崩。</p>
+ *
+ * <p>
+ * 旧的扁平样式里按文案判断的"危险色"（删除/登出等）在玻璃这一侧没有等价物：
+ * LumaGlass 的材质用中性底色，只有泛光带色相，而泛光在上游默认关闭、本移植里恒为 0。
+ * 该判断只保留在回退路径上。</p>
+ */
 @Mixin(AbstractButton.class)
 public abstract class AbstractButtonMixin extends AbstractWidget
 {
@@ -45,7 +60,7 @@ public abstract class AbstractButtonMixin extends AbstractWidget
 	}
 
 	@Inject(at = @At("HEAD"), method = "renderWidget", cancellable = true)
-	private void renderLiquidBounceButton(GuiGraphics graphics, int mouseX,
+	private void wurst$renderGlassButton(GuiGraphics graphics, int mouseX,
 		int mouseY, float partialTicks, CallbackInfo ci)
 	{
 		long now = System.nanoTime();
@@ -61,18 +76,24 @@ public abstract class AbstractButtonMixin extends AbstractWidget
 		float press = Math.max(0,
 			1 - (now - wurst$pressedAtNanos) / 120_000_000F);
 		int inset = press > 0.08F ? 1 : 0;
-		boolean dangerous = isDangerous(getMessage().getString());
-		VisualRenderer.button(graphics, getX() + inset, getY() + inset,
-			getX() + getWidth() - inset, getY() + getHeight() - inset,
-			VisualTheme.RADIUS_SMALL,
-			Math.min(1, wurst$hoverProgress + press * 0.22F), active,
-			dangerous);
+		int x1 = getX() + inset;
+		int y1 = getY() + inset;
+		int x2 = getX() + getWidth() - inset;
+		int y2 = getY() + getHeight() - inset;
+		float focus = Math.min(1, wurst$hoverProgress + press * 0.22F);
+
+		if(!GlassButtons.renderButton(graphics, x1, y1, x2 - x1, y2 - y1,
+			focus, active, alpha))
+			VisualRenderer.button(graphics, x1, y1, x2, y2,
+				VisualTheme.RADIUS_SMALL, focus, active,
+				isDangerous(getMessage().getString()));
 
 		int textColor = active ? VisualTheme.TEXT : VisualTheme.TEXT_DISABLED;
 		renderString(graphics, Minecraft.getInstance().font, textColor);
 		ci.cancel();
 	}
 
+	/** 只被扁平回退路径使用，保持旧样式对破坏性操作的红色提示。 */
 	@Unique
 	private static boolean isDangerous(String label)
 	{

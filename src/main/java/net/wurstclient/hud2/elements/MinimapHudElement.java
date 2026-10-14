@@ -19,6 +19,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.material.MapColor;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.glass.GlassPanels;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hud2.HudElement;
@@ -136,10 +137,10 @@ public final class MinimapHudElement extends HudElement
 
 	private void drawFrame(GuiGraphics graphics, int x, int y)
 	{
-		FlatRenderer.fillRoundedRect(graphics, x + 1, y + 3, x + WIDTH - 1,
-			y + HEIGHT, WIDTH / 2, 0x68000000);
-		FlatRenderer.fillRoundedRect(graphics, x + 1, y + 1, x + WIDTH - 1,
-			y + WIDTH - 1, WIDTH / 2, 0xF0080A0D);
+		// 圆盘改液态玻璃：投影由着色器自带的柔和投影接管，所以原来那条手画投影去掉了。
+		// 地图内框保持不透明——地图贴图是不透明的，玻璃放在它后面看不见。
+		GlassPanels.draw(graphics, x + 1, y + 1, x + WIDTH - 1, y + WIDTH - 1,
+			WIDTH / 2, 0xF0080A0D);
 		FlatRenderer.fillRoundedRect(graphics, x + PADDING - 1,
 			y + PADDING - 1, x + PADDING + MAP_SIZE + 1,
 			y + PADDING + MAP_SIZE + 1, MAP_RADIUS + 1, 0xFF050607);

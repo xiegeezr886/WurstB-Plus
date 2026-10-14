@@ -13,9 +13,9 @@ import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Score;
 import net.minecraft.world.scores.Scoreboard;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.glass.GlassPanels;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
-import net.wurstclient.hud2.render.RiseFrostedGlass;
 import net.wurstclient.hud2.render.RiseHudFont;
 import net.wurstclient.util.ScreenRegistry;
 
@@ -68,8 +68,8 @@ public final class ScoreboardHudElement extends HudElement
 		int width = getWidth();
 		int maxTextWidth = width - PADDING * 4;
 		int height = panelHeightForEntries(snapshot.entries().size());
-		RiseFrostedGlass.draw(graphics, x, y, x + width, y + height, RADIUS,
-			1, 0x78000000);
+		GlassPanels.draw(graphics, x, y, x + width, y + height, RADIUS,
+			0x78000000);
 
 		int textColor = 0xFFFFFFFF;
 		RiseHudFont.drawCentered(graphics, font, snapshot.title(),

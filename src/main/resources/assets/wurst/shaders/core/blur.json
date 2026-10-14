@@ -1,0 +1,31 @@
+{
+  "vertex": "wurst:blur",
+  "fragment": "wurst:blur",
+  "attributes": [
+    "Position",
+    "UV0"
+  ],
+  "samplers": [
+    {
+      "name": "Source"
+    }
+  ],
+  "uniforms": [
+    { "name": "SourceTexel", "type": "float", "count": 2, "values": [1, 1] },
+    { "name": "Downsample", "type": "float", "count": 1, "values": [0] },
+    {
+      "name": "Direction",
+      "type": "float",
+      "count": 2,
+      "values": [
+        0,
+        0
+      ]
+    }
+  ],
+  "blend": {
+    "srcrgb": "srcalpha",
+    "func": "add",
+    "dstrgb": "1-srcalpha"
+  }
+}

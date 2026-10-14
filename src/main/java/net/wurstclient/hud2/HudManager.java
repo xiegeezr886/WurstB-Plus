@@ -18,18 +18,16 @@ import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.GUIRenderListener;
+import net.wurstclient.gui.glass.GlassButtons;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.settings.Setting;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
 import net.wurstclient.hud2.elements.CoordsHudElement;
-import net.wurstclient.hud2.elements.ClockHudElement;
 import net.wurstclient.hud2.elements.ArmorHudElement;
 import net.wurstclient.hud2.elements.ComboHudElement;
 import net.wurstclient.hud2.elements.CompassHudElement;
-import net.wurstclient.hud2.elements.FpsHudElement;
-import net.wurstclient.hud2.elements.CpsHudElement;
 import net.wurstclient.hud2.elements.DayCounterHudElement;
 import net.wurstclient.hud2.elements.GameModeHudElement;
 import net.wurstclient.hud2.elements.HealthHudElement;
@@ -52,7 +50,6 @@ import net.wurstclient.hud2.elements.ServerHudElement;
 import net.wurstclient.hud2.elements.SpeedHudElement;
 import net.wurstclient.hud2.elements.TpsHudElement;
 import net.wurstclient.hud2.elements.WeatherHudElement;
-import net.wurstclient.hud2.render.RiseFrostedGlass;
 import net.wurstclient.util.ScreenRegistry;
 
 public final class HudManager implements GUIRenderListener
@@ -110,7 +107,6 @@ public final class HudManager implements GUIRenderListener
 			if(config != null && config.isEnabled())
 				element.onDisable(this);
 		}
-		RiseFrostedGlass.close();
 	}
 
 	@Override
@@ -120,12 +116,7 @@ public final class HudManager implements GUIRenderListener
 		if(ScreenRegistry.HUD_EDITOR.isOpen())
 			return;
 
-		if(isElementEnabled(ScoreboardHudElement.ID)
-			|| isElementEnabled("target_hud"))
-		{
-			graphics.flush();
-			RiseFrostedGlass.captureFrame();
-		}
+		GlassButtons.beginPass();
 
 		for(HudElement element : elements.values())
 		{
@@ -294,24 +285,22 @@ public final class HudManager implements GUIRenderListener
 
 	private void registerDefaultElements()
 	{
-		registerElement(new FpsHudElement());
 		registerElement(new CoordsHudElement());
 		registerElement(new PingHudElement());
 		registerElement(new TpsHudElement());
 		registerElement(new SpeedHudElement());
 		registerElement(new ServerHudElement());
-		registerElement(new ClockHudElement());
 		registerElement(new ArmorHudElement());
 		registerElement(new InventoryHudElement());
 		registerElement(new PotionHudElement());
 		registerElement(new ComboHudElement());
+		// 键盘显示**不换**：WurstB+ 自己这套（五排、可调键帽、玻璃键帽）比无限GUI 的好
 		registerElement(new KeystrokesHudElement());
 		registerElement(new TargetHudElement());
 		registerElement(new ScoreboardHudElement());
 		registerElement(new MinimapHudElement());
 		registerElement(new MusicIslandHudElement());
 		registerElement(new MusicLyricsHudElement());
-		registerElement(new CpsHudElement());
 		registerElement(new CompassHudElement());
 		registerElement(new DayCounterHudElement());
 		registerElement(new GameModeHudElement());

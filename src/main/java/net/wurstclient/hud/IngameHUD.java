@@ -24,7 +24,7 @@ public final class IngameHUD implements GUIRenderListener
 	{
 		if(!WurstClient.INSTANCE.isEnabled())
 			return;
-		
+
 		if(tabGui == null)
 			tabGui = new TabGui();
 		

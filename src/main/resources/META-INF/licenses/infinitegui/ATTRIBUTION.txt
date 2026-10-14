@@ -1,0 +1,21 @@
+InfiniteGUI (无限GUI) — HUD 信息项的源码移植，WurstB+ Plus 归属说明
+
+Upstream: https://github.com/QCMaxcer/InfiniteGUI-Minecraft-DLL
+Ported from commit: eb2ba346097359fe78ce5b210d7a230be5cd6a68 ("此项目不再维护", 2026-09-12)
+License: MIT (see InfiniteGUI-MIT.txt in this directory)
+
+WurstB+ Plus 不依赖 InfiniteGUI 的 DLL，也不在运行期加载任何原生库。这里用的是它的**源码**：
+HUD 的时间 / FPS / CPS 三项按其对应信息项（TimeItem / FpsItem / CPSItem）移植成 Java，
+结构、文案格式（"%Y-%m-%d | %H:%M:%S"、"[120FPS]"、"[CPS: 3 | 1]"）、配置形状
+（{"Items":[{"type":...,"isEnabled":...}]}）与文字阴影画法都照上游。
+
+按本工程口径改掉的部分（尺寸形状与材质）：
+- 尺寸与形状用 WurstB+ 自己的（卡片内边距左右 2 / 上下 1、圆角 4），不是上游的 ImGui 像素值；
+- 材质走本工程的 liquid glass（移植自 LumaGlass 的玻璃管线），不是上游的 80% 黑底；
+- 默认开（上游这几项默认关），避免"替换了源码"表现成"这几项 HUD 消失"。
+
+未移植：计数器 / 文件数量 / 文本 / B站粉丝 / B站弹幕 / 音乐信息，以及它的 ImGui 菜单系统。
+键盘显示与通知明确不换（WurstB+ 自己的实现更好）。
+
+许可情况如实说明：上游 LICENSE.txt 是 MIT 正文，但版权行没有填（字面是
+"Copyright (c) [year] [fullname]"）。本工程按 MIT 保留正文原文，并把上游仓库与提交号写在这里以便溯源。

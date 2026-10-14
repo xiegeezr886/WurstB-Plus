@@ -5,6 +5,7 @@ import java.awt.Color;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.glass.GlassPanels;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.settings.ColorSetting;
@@ -47,8 +48,9 @@ public abstract class TextHudElement extends HudElement
 	{
 		Font font = WurstClient.MC.font;
 		String text = getText();
-		graphics.fill(x, y, x + font.width(text) + 4, y + font.lineHeight + 2,
-			VisualTheme.SURFACE_50);
+		// 液态玻璃卡片；玻璃不可用时 GlassPanels 会按原来的 SURFACE_50 扁平填充画回去
+		GlassPanels.draw(graphics, x, y, x + font.width(text) + 4,
+			y + font.lineHeight + 2, 4, VisualTheme.SURFACE_50);
 		// 用 getColor().getRGB() 而不是 getColorI()：后者会把 alpha 强制成不透明
 		// （ColorSetting.java:72），用户调的透明度会被吃掉。
 		graphics.drawString(font, text, x + 2, y + 1,

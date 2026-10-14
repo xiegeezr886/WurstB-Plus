@@ -3,6 +3,7 @@ package net.wurstclient.hud2.elements;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.glass.GlassPanels;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.hud2.HudElement;
 import net.wurstclient.hud2.HudLayout.HudElementConfig;
@@ -53,10 +54,9 @@ public final class InventoryHudElement extends HudElement
 	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
 		int accent = VisualTheme.ACCENT;
-		FlatRenderer.fillRoundedRect(graphics, x, y, x + WIDTH, y + HEIGHT,
-			4, CARD_FILL);
-		FlatRenderer.drawRoundedOutline(graphics, x, y, x + WIDTH, y + HEIGHT,
-			4, CARD_OUTLINE);
+		// 卡片底改液态玻璃（描边由玻璃自己的边缘高光接管；回退时仍画原来的描边）
+		GlassPanels.draw(graphics, x, y, x + WIDTH, y + HEIGHT, 4, CARD_FILL,
+			CARD_OUTLINE);
 		FlatRenderer.fillRoundedRect(graphics, x + 1, y + 2, x + 3,
 			y + HEIGHT - 2, 1, accent);
 		graphics.drawString(WurstClient.MC.font, getName(), x + 7, y + 3, TEXT,

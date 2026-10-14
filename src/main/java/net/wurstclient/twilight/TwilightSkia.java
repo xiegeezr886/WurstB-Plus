@@ -383,8 +383,7 @@ public final class TwilightSkia
 	/**
 	 * A soft shadow. Skia's canvas only offers rectangular shadows, while the
 	 * reference uses multi layer box shadows such as {@code 12px 22px 58px}, so
-	 * this stacks rounded rectangles with decreasing alpha - the same approach
-	 * {@code RiseFrostedGlass} uses for the same reason.
+	 * this stacks rounded rectangles with decreasing alpha.
 	 */
 	public static void softShadow(float x, float y, float width, float height,
 		float radius, float spread, int color)
