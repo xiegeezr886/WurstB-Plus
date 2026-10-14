@@ -84,6 +84,19 @@ public final class WeParticles
 		}
 
 		/**
+		 * 0..1：这一颗的寿命进度。
+		 *
+		 * <p>
+		 * WE 用它挑帧图集里的第几帧（{@code ComputeSpriteFrame(frac(lifetime), ...)}），
+		 * 所以雾这类动画贴图会随粒子变老而换帧。</p>
+		 */
+		public float lifeFraction()
+		{
+			return lifetime <= 0 ? 0
+				: Math.max(0, Math.min(1, age / lifetime));
+		}
+
+		/**
 		 * 0..1：预设的 {@code alpharandom}（每颗自己的基础不透明度）× 淡入。
 		 *
 		 * <p>

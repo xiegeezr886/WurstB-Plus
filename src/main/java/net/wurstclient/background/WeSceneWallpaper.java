@@ -110,7 +110,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 	 * 纹理本身，以及源图尺寸（{@code blit} 要知道源尺寸）。
 	 */
 	private record SpriteTexture(ResourceLocation id, DynamicTexture texture,
-		int width, int height)
+		int width, int height, WeParticleSheet sheet)
 	{}
 
 	private WeSceneWallpaper(WeScene scene, List<Bound> layers,
@@ -1426,9 +1426,17 @@ public final class WeSceneWallpaper implements AutoCloseable
 			int top = Math.round(screenY - size / 2);
 			int side = Math.max(1, Math.round(size));
 
-			graphics.blit(sprite.id(), left, top, side, side, 0, 0,
-				sprite.width(), sprite.height(), sprite.width(),
-				sprite.height());
+			// 帧图集：按这一颗的寿命取**一帧**（WE 的 ComputeSpriteFrame 同语义）。
+			// 不这么做的话整张 8x8 会被一次画出来 —— 那就是格子状的光晕。
+			WeParticleSheet sheet = sprite.sheet();
+			int frame = sheet.frameOf(particle.lifeFraction());
+			int frameWidth = sprite.width() / Math.max(1, sheet.columns());
+			int frameHeight = sprite.height() / Math.max(1, sheet.rows());
+
+			graphics.blit(sprite.id(), left, top, side, side,
+				sheet.columnOf(frame) * frameWidth,
+				sheet.rowOf(frame) * frameHeight, frameWidth, frameHeight,
+				sprite.width(), sprite.height());
 		}
 
 		graphics.setColor(1, 1, 1, 1);
@@ -1470,8 +1478,8 @@ public final class WeSceneWallpaper implements AutoCloseable
 			if(fallback == null)
 				return null;
 
-			SpriteTexture plain =
-				new SpriteTexture(DOT, fallback, DOT_SIZE, DOT_SIZE);
+			SpriteTexture plain = new SpriteTexture(DOT, fallback, DOT_SIZE,
+				DOT_SIZE, WeParticleSheet.SINGLE);
 			particleTextures.put(group, plain);
 			return plain;
 		}
@@ -1483,8 +1491,9 @@ public final class WeSceneWallpaper implements AutoCloseable
 			"we_particle_sprite/" + particleTextures.size());
 		Minecraft.getInstance().getTextureManager().register(id, texture);
 
+		// 帧图集在这里量一次：贴图若真是 8x8 的雾动画，画的时候只取一帧
 		SpriteTexture fresh = new SpriteTexture(id, texture, image.getWidth(),
-			image.getHeight());
+			image.getHeight(), WeParticleSheet.detect(image));
 		particleTextures.put(group, fresh);
 		return fresh;
 	}
