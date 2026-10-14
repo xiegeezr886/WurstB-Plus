@@ -18,6 +18,52 @@
 | --- | --- | --- |
 | WurstB+ Plus 源码 | **GPL-3.0-or-later** | 继承自 [Wurst7](https://github.com/Wurst-Imperium/Wurst7)。全文见 [LICENSE.txt](LICENSE.txt) |
 | Forge MDK 模板部分 | **LGPL-2.1**（含 MCP 数据不可再分发限制） | 见 [LICENSE-Forge-MDK.txt](LICENSE-Forge-MDK.txt) |
+| **LumaGlass**（移植进来的玻璃按钮渲染） | **MIT** | Copyright © 2026 Sunny5349；上游 <https://github.com/Sunny5349/LumaGlass>，移植自 0.2.9。见下 |
+| **InfiniteGUI / 无限GUI**（移植进来的 HUD 信息项） | **MIT**（上游 LICENSE.txt 正文；**版权行是未填的占位符**） | 上游 <https://github.com/QCMaxcer/InfiniteGUI-Minecraft-DLL>，移植自提交 `eb2ba34`。见下 |
+
+### 移植的第三方源码：InfiniteGUI（无限GUI）
+
+HUD 的**时间 / FPS / CPS** 三项是 InfiniteGUI 的对应信息项的 Java 移植（结构、文案格式、配置形状都
+照上游），**不是运行时依赖**：产物里没有它的 DLL，也没有任何原生加载——早先那条"随包 DLL + 进程内
+`System.load`"的路已经按用户要求撤掉，改成只搬源码。
+
+| 本工程 | 上游 | 关系 |
+| --- | --- | --- |
+| `infinitegui/InfiniteWindow.java` | `Item.h` + `WindowModule.h`（窗口那部分） | 改写（尺寸与材质按本工程口径，见 [docs/infinitegui-hud.md](docs/infinitegui-hud.md)） |
+| `infinitegui/TimeWindow.java` / `FpsWindow.java` / `CpsWindow.java` | `TimeItem.*` / `FpsItem.*` / `CPSItem.*` | 文案格式与更新周期照搬 |
+| `infinitegui/InfiniteText.java` | `ImGuiStd.h` 的 `TextColoredShadow` | 同一画法（1px 阴影 + 本体） |
+| `infinitegui/InfiniteHud.java` | `ItemManager.*`（注册 / 每帧分发 / 配置存取） | 取子集，配置文件放在 `<wurst>/infinitegui/profile.json` |
+
+**未移植**：计数器 / 文件数量 / 文本 / B站粉丝 / B站弹幕 / 音乐信息（上游其余信息项），以及它的
+ImGui 菜单系统。**键盘显示与通知明确不换**（WurstB+ 自己的实现更好，用户裁决）。
+
+许可情况如实说明：上游 `LICENSE.txt` 是 MIT 正文，但版权行**没有填**（字面是
+`Copyright (c) [year] [fullname]`）；本工程按 MIT 要求保留正文（
+[`META-INF/licenses/infinitegui/`](src/main/resources/META-INF/licenses/infinitegui/)，含
+`InfiniteGUI-MIT.txt` 与 `ATTRIBUTION.txt`）并把上游仓库与提交号写在这里以便溯源。
+
+
+### 移植的第三方源码：LumaGlass
+
+客户端里**原版控件**（按钮、滑块、复选框、列表滚动条）的底色是 LumaGlass（Minecraft
+1.20.1 / Forge 的液态玻璃 UI 模组）的玻璃面板。**不是运行时依赖**：产物里没有 LumaGlass
+的 jar，也没有对应的 mod 依赖声明，而是把用到的那部分源码移植进了本仓库（客户端要自包含
+发布，上游也没有公共 Maven）。
+
+许可正文随包分发在
+[`src/main/resources/META-INF/licenses/lumaglass/`](src/main/resources/META-INF/licenses/lumaglass/)：
+`LumaGlass-MIT.txt`（MIT 全文）与 `ATTRIBUTION.txt`（逐文件来源、上游提交、改动点）。
+
+| 本工程 | 上游 | 关系 |
+| --- | --- | --- |
+| `assets/wurst/shaders/core/glass.{json,vsh,fsh}`、`blur.{json,vsh,fsh}` | `assets/lumaglass/shaders/core/` 同名文件 | `.vsh`/`.fsh` **逐字节相同**，`.json` 只改命名空间 |
+| `gui/glass/GlassRenderer.java`、`GlassStyle.java`、`GlassButtons.java` | `client/GlassRenderer.java`、`api/client/GlassStyle.java`、`client/theme/VanillaGlass.java` | 改写（差异逐条记在 [docs/glass-controls.md](docs/glass-controls.md) §5） |
+| `mixin/AbstractButtonMixin.java` | `mixin/client/ButtonMixin.java` | 只改按钮底色那一段 |
+| `mixin/AbstractSliderButtonMixin.java` | `mixin/client/SliderMixin.java` | 只改滑块底色那一段 |
+| `mixin/CheckboxMixin.java` | `mixin/client/CheckboxMixin.java` | 整个混入 |
+| `mixin/SelectionListMixin.java` | `mixin/client/SelectionListMixin.java` | 只取其中的滚动条分支（列表底色与选中行未移植） |
+
+MIT 与项目的 GPL-3.0-or-later 兼容；MIT 要求保留版权与许可声明，因此上述文本随产物分发。
 
 > 修正记录：审计前 `LICENSE.txt` 实为 Forge MDK 的 LGPL-2.1 文本，却被 README 徽章与
 > `PROJECT_INDEX.md` 当作 GPL-3.0 引用，且仓库内**没有 GPL-3.0 全文**。现已拆分为上述两个文件。
@@ -105,6 +151,9 @@
 | **Skiko**（`assets/wurst/skiko/skiko-windows-x64.dll` + `icudtl.dat`） | **Apache-2.0** | 上游 JetBrains Skiko | ✅ 已入库 |
 | **Baritone**（各工程内嵌 / `baritone-maven/`） | ⚠ 见上 | 上游 | ⚠ 待补声明 |
 
+> **InfiniteGUI 不在这一节**：它的 HUD 项是按**源码**移植进来的（见第一节），产物里既没有它的
+> DLL，也不做任何原生加载。早先"随包 DLL + 进程内 `System.load()`"那条路已按用户要求撤掉。
+
 > **FFmpeg 说明**：这是本次审计中唯一一处**实质性合规缺口**。`CHANGELOG.md` 曾声称
 > "可复现的 FFmpeg 构建脚本与 JNI shim 源码在仓库的 `native/ffmpeg/` 下（对应源码提供）"，
 > 但 `native/` 的 git 跟踪文件数是 **0**——它没有被 gitignore，只是**从未提交**，
@@ -162,14 +211,25 @@ JSON，以及**从未被任何代码调用**的 `clickgui2/PingFangFont.java`，
 
 以下目录**未被 git 跟踪**，因此不构成再分发；它们只存在于作者工作区：
 
-`source/`（Wurst7 / LiquidBounce / Meteor / FDPClient / WurstCN / RavenBS / Rise / Vape / Grim /
-NoCheatPlus 等源码与压缩包）、`_artifacts/`、`_tools/`、`_smoke/`、`.test/`、`.recon/`、
-`official/`、`free0810/`、`forge-mdk/`、`wurstb_profiles/`、`_errreport/`、
-以及根目录的 6 个 `.zip`。
+`reference/upstream-sources/`（Wurst7 / LiquidBounce / Meteor / FDPClient / WurstCN /
+RavenBS / Rise / Vape / Grim / NoCheatPlus 等源码与压缩包）、`reference/decompiled/`
+（Mojang 与 Forge 的字节码 dump）、`reference/vendor/`（第三方配置与 profile）、
+`reference/artifacts/`、`reference/tools/`（baritone 各版本源码树与临时工具）、
+`reference/recon/`（逆向工程证据）、`reference/errreport/`（崩溃日志与缺陷报告）、
+`reference/porting-stale/`、`reference/smoke/`、`.test/`、`.recon/`，
+以及根目录的 5 个 `.zip`。
 
 **注意**：这些材料里含**无许可证的反编译源码**与**竞品客户端产物**。项目既有的
 [移植优先级](docs/RELEASE.md) 已声明"无许可证反编译源码只核对行为，不直接复制"，
 请继续保持该边界。若要共享工作区，请先清理这些目录。
+
+> **2026-10-13 更新：路径已归位。** 上面这批目录原先散落在仓库根目录
+> （`source/`、`official/`、`free0810/`、`wurstb_profiles/`、`_artifacts/`、`_tools/`、
+> `_recon/`、`_smoke/`、`_errreport/`、`_porting_stale/`、`forge-mdk/`），现已全部收进
+> 单一的 `reference/` 树，由 `.gitignore` 的 `/reference/` 一条规则覆盖。
+> 逐目录的来源、许可状态与"可否删除"见 [docs/REPO-HYGIENE.md](docs/REPO-HYGIENE.md)。
+> 同时删除了三处死残留：重复的 `gradle/gradle/wrapper/`、空的 `libs/`、
+> 只剩一个 wrapper jar 的 `forge-mdk/`。
 
 **补记（同日完成）**：上条"必须去上游取件"的结论正确，且上游**是通的**
 （`repo1.maven.org` / `maven.aliyun.com` / `raw.githubusercontent.com` 均可达）。
