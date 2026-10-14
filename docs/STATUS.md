@@ -14,9 +14,9 @@
 | 独立 Gradle 工程 | **67** |
 | Minecraft 版本 | **23** |
 | 加载器 | **Fabric / Forge / NeoForge** |
-| src/main/java 文件 | **50,810** |
-| 测试类 / 测试方法（全部工程合计） | **1,884 / 5,790** |
-| 根工程源码 / 测试类 / 测试方法 | **775 / 201 / 1,335** |
+| src/main/java 文件 | **51,414** |
+| 测试类 / 测试方法（全部工程合计） | **1,898 / 5,873** |
+| 根工程源码 / 测试类 / 测试方法 | **793 / 215 / 1,418** |
 | 含 v1.6 子系统的工程 | **1 / 67** |
 | 含 gradle-wrapper.jar 的工程 | **67 / 67** |
 | 含 LICENSE.txt 的工程 | **67 / 67** |
@@ -26,7 +26,7 @@
 
 | 工程 | 加载器 | MC | 加载器版本 | Java | Gradle | mod_version | 组 | 源码 | 测试类 | 测试方法 | v1.6 包 | wrapper | LICENSE |
 | --- | --- | --- | --- | ---: | ---: | --- | --- | ---: | ---: | ---: | ---: | :---: | :---: |
-| fabric | Fabric | 1.20.1 |  |  | 8.11 | 1.5.0-Fabric-1.20.1 | net.wurstpenguin | 473 | 0 | 0 | 0/13 | yes | yes |
+| fabric | Fabric | 1.20.1 |  |  | 8.11 | 1.5.0-Fabric-1.20.1 | net.wurstpenguin | 766 | 0 | 0 | 0/13 | yes | yes |
 | fabric/versions/1.20.2 | Fabric | 1.20.2 |  |  | 8.11 | 1.5.0-Fabric-1.20.2 | net.wurstpenguin | 767 | 0 | 0 | 0/13 | yes | yes |
 | fabric/versions/1.20.3 | Fabric | 1.20.3 |  |  | 8.11 | 1.5.0-Fabric-1.20.3 | net.wurstpenguin | 767 | 0 | 0 | 0/13 | yes | yes |
 | fabric/versions/1.20.4 | Fabric | 1.20.4 |  |  | 8.11 | 1.5.0-Fabric-1.20.4 | net.wurstpenguin | 767 | 0 | 0 | 0/13 | yes | yes |
@@ -49,7 +49,7 @@
 | fabric/versions/26.1.2 | Fabric | 26.1.2 |  |  | 9.6.0 | 1.5.0-Fabric-26.1.2 | net.wurstpenguin | 792 | 0 | 0 | 0/13 | yes | yes |
 | fabric/versions/26.2 | Fabric | 26.2 |  |  | 9.6.0 | 1.5.0-Fabric-26.2 | net.wurstpenguin | 793 | 0 | 0 | 0/13 | yes | yes |
 | fabric/versions/26.3 | Fabric | 26.3 |  |  | 9.6.0 | 1.5.0-Fabric-26.3 | net.wurstpenguin | 795 | 0 | 0 | 0/13 | yes | yes |
-| . | Forge | 1.20.1 | 47.4.10 | 17 | 8.11 | v1.6.0-Forge-1.20.1 | net.wurstpenguin | 775 | 201 | 1335 | 13/13 | yes | yes |
+| . | Forge | 1.20.1 | 47.4.10 | 17 | 8.11 | v1.6.0-Forge-1.20.1 | net.wurstpenguin | 793 | 215 | 1418 | 13/13 | yes | yes |
 | versions/1.20.2 | Forge | 1.20.2 | 48.1.0 | 17 | 8.14.4 | v1.5.0-Forge-1.20.2 | net.wurstclient | 752 | 0 | 0 | 0/13 | yes | yes |
 | versions/1.20.3 | Forge | 1.20.3 | 49.0.2 | 17 | 8.11 | v1.5.0-Forge-1.20.3 | net.wurstclient | 767 | 0 | 0 | 0/13 | yes | yes |
 | versions/1.20.4 | Forge | 1.20.4 | 49.2.0 | 17 | 8.14.4 | v1.5.0-Forge-1.20.4 | net.wurstclient | 767 | 0 | 0 | 0/13 | yes | yes |
@@ -70,7 +70,7 @@
 | versions/26.1.2 | Forge | 26.1.2 | 64.1.0 | 25 | 9.4.1 | v1.5.0-Forge-26.1.2 | net.wurstpenguin | 790 | 0 | 0 | 0/13 | yes | yes |
 | versions/26.2 | Forge | 26.2 | 65.1.0 | 25 | 9.4.1 | v1.5.0-Forge-26.2 | net.wurstpenguin | 792 | 0 | 0 | 0/13 | yes | yes |
 | versions/26.3 | Forge | 26.3 | 66.0.3 | 25 | 9.4.1 | v1.5.0-Forge-26.3 | net.wurstpenguin | 794 | 0 | 0 | 0/13 | yes | yes |
-| neoforge | NeoForge | 1.20.1 | 47.1.3 | 17 | 8.14.4 | v1.5.0-NeoForge-1.20.1 | net.wurstclient | 445 | 0 | 0 | 0/13 | yes | yes |
+| neoforge | NeoForge | 1.20.1 | 47.1.3 | 17 | 8.14.4 | v1.5.0-NeoForge-1.20.1 | net.wurstclient | 738 | 0 | 0 | 0/13 | yes | yes |
 | neoforge/versions/1.20.2 | NeoForge | 1.20.2 |  | 17 | 8.11 | v1.5.0-NeoForge-1.20.2 | net.wurstpenguin | 753 | 0 | 0 | 0/13 | yes | yes |
 | neoforge/versions/1.20.3 | NeoForge | 1.20.3 |  | 17 | 8.11 | v1.5.0-NeoForge-1.20.3 | net.wurstpenguin | 768 | 0 | 0 | 0/13 | yes | yes |
 | neoforge/versions/1.20.4 | NeoForge | 1.20.4 |  | 17 | 8.11 | v1.5.0-NeoForge-1.20.4 | net.wurstpenguin | 768 | 0 | 0 | 0/13 | yes | yes |
