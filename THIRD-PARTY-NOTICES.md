@@ -19,29 +19,6 @@
 | WurstB+ Plus 源码 | **GPL-3.0-or-later** | 继承自 [Wurst7](https://github.com/Wurst-Imperium/Wurst7)。全文见 [LICENSE.txt](LICENSE.txt) |
 | Forge MDK 模板部分 | **LGPL-2.1**（含 MCP 数据不可再分发限制） | 见 [LICENSE-Forge-MDK.txt](LICENSE-Forge-MDK.txt) |
 | **LumaGlass**（移植进来的玻璃按钮渲染） | **MIT** | Copyright © 2026 Sunny5349；上游 <https://github.com/Sunny5349/LumaGlass>，移植自 0.2.9。见下 |
-| **InfiniteGUI / 无限GUI**（移植进来的 HUD 信息项） | **MIT**（上游 LICENSE.txt 正文；**版权行是未填的占位符**） | 上游 <https://github.com/QCMaxcer/InfiniteGUI-Minecraft-DLL>，移植自提交 `eb2ba34`。见下 |
-
-### 移植的第三方源码：InfiniteGUI（无限GUI）
-
-HUD 的**时间 / FPS / CPS** 三项是 InfiniteGUI 的对应信息项的 Java 移植（结构、文案格式、配置形状都
-照上游），**不是运行时依赖**：产物里没有它的 DLL，也没有任何原生加载——早先那条"随包 DLL + 进程内
-`System.load`"的路已经按用户要求撤掉，改成只搬源码。
-
-| 本工程 | 上游 | 关系 |
-| --- | --- | --- |
-| `infinitegui/InfiniteWindow.java` | `Item.h` + `WindowModule.h`（窗口那部分） | 改写（尺寸与材质按本工程口径，见 [docs/infinitegui-hud.md](docs/infinitegui-hud.md)） |
-| `infinitegui/TimeWindow.java` / `FpsWindow.java` / `CpsWindow.java` | `TimeItem.*` / `FpsItem.*` / `CPSItem.*` | 文案格式与更新周期照搬 |
-| `infinitegui/InfiniteText.java` | `ImGuiStd.h` 的 `TextColoredShadow` | 同一画法（1px 阴影 + 本体） |
-| `infinitegui/InfiniteHud.java` | `ItemManager.*`（注册 / 每帧分发 / 配置存取） | 取子集，配置文件放在 `<wurst>/infinitegui/profile.json` |
-
-**未移植**：计数器 / 文件数量 / 文本 / B站粉丝 / B站弹幕 / 音乐信息（上游其余信息项），以及它的
-ImGui 菜单系统。**键盘显示与通知明确不换**（WurstB+ 自己的实现更好，用户裁决）。
-
-许可情况如实说明：上游 `LICENSE.txt` 是 MIT 正文，但版权行**没有填**（字面是
-`Copyright (c) [year] [fullname]`）；本工程按 MIT 要求保留正文（
-[`META-INF/licenses/infinitegui/`](src/main/resources/META-INF/licenses/infinitegui/)，含
-`InfiniteGUI-MIT.txt` 与 `ATTRIBUTION.txt`）并把上游仓库与提交号写在这里以便溯源。
-
 
 ### 移植的第三方源码：LumaGlass
 
@@ -150,9 +127,6 @@ MIT 与项目的 GPL-3.0-or-later 兼容；MIT 要求保留版权与许可声明
 | **FFmpeg**（`assets/wurst/ffmpeg/` 下 7 个 DLL） | **LGPL-2.1**（随包提供 `copying-lgplv2.1.txt` + `license-ffmpeg.txt`） | **[native/ffmpeg/](native/ffmpeg/)**：`build-ffmpeg.sh`、`build-shim.sh`、`COPYING.GPLv2/GPLv3/LGPLv2.1/LGPLv3`、`src/vf_ffmpeg_jni.c` | ✅ **已修复**（此前从未入库） |
 | **Skiko**（`assets/wurst/skiko/skiko-windows-x64.dll` + `icudtl.dat`） | **Apache-2.0** | 上游 JetBrains Skiko | ✅ 已入库 |
 | **Baritone**（各工程内嵌 / `baritone-maven/`） | ⚠ 见上 | 上游 | ⚠ 待补声明 |
-
-> **InfiniteGUI 不在这一节**：它的 HUD 项是按**源码**移植进来的（见第一节），产物里既没有它的
-> DLL，也不做任何原生加载。早先"随包 DLL + 进程内 `System.load()`"那条路已按用户要求撤掉。
 
 > **FFmpeg 说明**：这是本次审计中唯一一处**实质性合规缺口**。`CHANGELOG.md` 曾声称
 > "可复现的 FFmpeg 构建脚本与 JNI shim 源码在仓库的 `native/ffmpeg/` 下（对应源码提供）"，
