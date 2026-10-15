@@ -240,6 +240,9 @@ public record WePuppetRig(List<Bone> bones, List<Animation> animations)
 		{
 			for(int a = 0; a < animationCount; a++)
 			{
+				// ---- 一段动画的头（实测偏移，见类注释）----
+				//   +0 u64 id、+8 cstr name、其后 cstr mode、再 f32 fps、
+				//   u32 frames、u32 flags、i32 trackCount
 				long id = cursor.uint32() | (long)cursor.uint32() << 32;
 				String name = cursor.cstring();
 				String mode = cursor.cstring();
@@ -250,7 +253,7 @@ public record WePuppetRig(List<Bone> bones, List<Animation> animations)
 
 				if(name == null || mode == null || frames < 0 || frames > 100000
 					|| trackCount != boneCount)
-					return null;
+					break;
 
 				List<Track> tracks = new ArrayList<>(trackCount);
 
@@ -260,7 +263,8 @@ public record WePuppetRig(List<Bone> bones, List<Animation> animations)
 					int bytes = cursor.int32();
 
 					if(bytes != 36 * (frames + 1))
-						return null;
+						throw new IllegalStateException(
+							"轨道 blob 长度不对：" + bytes);
 
 					float[] samples = new float[9 * (frames + 1)];
 
@@ -270,13 +274,20 @@ public record WePuppetRig(List<Bone> bones, List<Animation> animations)
 					tracks.add(new Track(flags, samples));
 				}
 
-				animations.add(new Animation(id, name,
-					mode == null ? "" : mode, fps, frames, List.copyOf(tracks)));
+				animations.add(new Animation(id, name, mode, fps, frames,
+					List.copyOf(tracks)));
 			}
 
 		}catch(RuntimeException e)
 		{
-			return null;
+			// 读坏一段就**保留已经读出来的那些**，不再往后走。
+			//
+			// 这一条是实测逼出来的：文档写的动画头我们在第一段上完全读通（id/名字/
+			// mode/fps/frames/trackCount 全对得上），但每段动画后面还有版本相关的
+			// 附加块（A>=3 的标量轨道、A>=5 的动画 AABB、A>=6 的第三组标量轨道、
+			// 事件表……），它们的布局没有权威说明 —— 第二段的头因此可能对不齐。
+			// 场景要的动画 138 正好是第一段，所以"能读多少读多少"就够了；
+			// 把整段丢掉反而是最坏的选择。
 		}
 
 		return List.copyOf(animations);

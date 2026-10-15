@@ -95,20 +95,61 @@ final class WePuppetRigRealFileTest
 		}
 
 		// ------------------------------------------------------------------
-		// 动画段（MDLA）：**尚未对齐**，所以这里只报告、不断言。
-		//
-		// 现状（2026-10-15）：按 docs/puppet-mdl-format.md 抄的顺序读
-		// 「u64 id → cstr name → cstr mode → f32 fps → u32 frames → u32 flags →
-		// i32 trackCount」读不下来。实测这个文件的 MDLA 头是：
-		//   +13 animCount=2、+17 id=138、+25 名字「动画 1」、+33 mode="loop"，
-		//   但两个字符串后面有 2 字节填充（+38/+39），+40 起的字段与 fps/frames/
-		//   trackCount 对不上（也搜不到 trackCount=34）。
-		// 探针：build/mdl-mdla.py（打印头字节并搜已知值）。
-		// 结论：骨头已经能用，动画还差这一步对齐；对齐之后才有"眨眼"。
+		// 动画段（MDLA）：第一段就是场景要的 138，实测头为
+		//   +17 u64 id=138、+25 「动画 1」、+34 "loop"、+39 f32 fps=60.0、
+		//   +43 u32 frames=600、+47 flags=0、+51 trackCount=34、
+		//   +55 起每根骨骼 [u32 flags][u32 blob=36*(F+1)][36*(F+1) 字节采样]
+		// 第二段之后的头可能对不齐（每段动画后面还有版本相关的附加块，布局没有权威
+		// 说明），所以解析器保留已读出的段、不再往后走 —— 场景要的这段在第一段。
 		// ------------------------------------------------------------------
-		for(WePuppetRig.Animation animation : rig.animations())
-			System.out.println("[Probe]   动画 id=" + animation.id() + " 「"
-				+ animation.name() + "」 mode=" + animation.mode() + " fps="
-				+ animation.fps() + " frames=" + animation.frames());
+		WePuppetRig.Animation wanted = rig.byId(WANTED_ANIMATION);
+
+		assertNotNull(wanted, "MDLA 里没有场景要的动画 id " + WANTED_ANIMATION);
+		assertEquals(rig.boneCount(), wanted.tracks().size(), "轨道数 = 骨骼数");
+
+		for(WePuppetRig.Track track : wanted.tracks())
+			assertEquals(9 * (wanted.frames() + 1), track.samples().length,
+				"每帧 9 个 float、共 F+1 帧");
+
+		System.out.println("[Probe] 目标动画 id=" + wanted.id() + " 名字=「"
+			+ wanted.name() + "」 mode=" + wanted.mode() + " fps=" + wanted.fps()
+			+ " frames=" + wanted.frames() + " 时长=" + wanted.duration()
+			+ "s 轨道=" + wanted.tracks().size());
+
+		// 第 0 帧的**位置**应当等于骨骼的绑定平移（绑定位姿就是这个动画的第 0 帧）——
+		// 这一条同时校验骨骼矩阵与采样偏移对不对
+		int matching = 0;
+
+		for(int i = 0; i < rig.boneCount(); i++)
+		{
+			WePuppetRig.Bone bone = rig.bones().get(i);
+			WePuppetRig.Track track = wanted.tracks().get(i);
+			double distance = Math.abs(track.sample(0, 0) - bone.bindMatrix()[12])
+				+ Math.abs(track.sample(0, 1) - bone.bindMatrix()[13])
+				+ Math.abs(track.sample(0, 2) - bone.bindMatrix()[14]);
+
+			if(distance < 0.05)
+				matching++;
+			else if(i < 3)
+				System.out.println("[Probe]   [" + i + "] 第 0 帧位置 ("
+					+ track.sample(0, 0) + ", " + track.sample(0, 1) + ", "
+					+ track.sample(0, 2) + ") vs 绑定平移 ("
+					+ bone.bindMatrix()[12] + ", " + bone.bindMatrix()[13]
+					+ ", " + bone.bindMatrix()[14] + ")");
+		}
+
+		System.out.println("[Probe] 第 0 帧位置 = 绑定平移的骨骼数：" + matching + "/"
+			+ rig.boneCount());
+		assertTrue(matching >= rig.boneCount() - 4,
+			"第 0 帧位置应当基本等于绑定平移，实际只有 " + matching + " 根对上");
+
+		WePuppetRig.Track first = wanted.tracks().get(0);
+		StringBuilder sample = new StringBuilder();
+
+		for(int index = 0; index < 9; index++)
+			sample.append(String.format("%9.4f", first.sample(0, index)));
+
+		System.out.println("[Probe] 第 0 帧骨骼 0 的 9 个分量"
+			+ "（位置 xyz、欧拉 xyz、缩放 xyz）：" + sample);
 	}
 }
