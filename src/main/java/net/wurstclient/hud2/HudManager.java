@@ -26,7 +26,10 @@ import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
 import net.wurstclient.hud2.elements.CoordsHudElement;
 import net.wurstclient.hud2.elements.ArmorHudElement;
+import net.wurstclient.hud2.elements.ClockHudElement;
 import net.wurstclient.hud2.elements.ComboHudElement;
+import net.wurstclient.hud2.elements.CpsHudElement;
+import net.wurstclient.hud2.elements.FpsHudElement;
 import net.wurstclient.hud2.elements.CompassHudElement;
 import net.wurstclient.hud2.elements.DayCounterHudElement;
 import net.wurstclient.hud2.elements.GameModeHudElement;
@@ -294,8 +297,11 @@ public final class HudManager implements GUIRenderListener
 		registerElement(new InventoryHudElement());
 		registerElement(new PotionHudElement());
 		registerElement(new ComboHudElement());
-		// 键盘显示**不换**：WurstB+ 自己这套（五排、可调键帽、玻璃键帽）比无限GUI 的好
+		// 键盘显示用 WurstB+ 自己的实现（五排键帽、键帽边长可调、玻璃键帽）
 		registerElement(new KeystrokesHudElement());
+		registerElement(new FpsHudElement());
+		registerElement(new ClockHudElement());
+		registerElement(new CpsHudElement());
 		registerElement(new TargetHudElement());
 		registerElement(new ScoreboardHudElement());
 		registerElement(new MinimapHudElement());

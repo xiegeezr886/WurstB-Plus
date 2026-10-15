@@ -46,7 +46,6 @@ pwsh -File scripts/generate-status.ps1 -Check   # CI：状态漂移则退出码 
 | `net.wurstclient.event` / `events` | 事件管理器、订阅器与各事件接口 |
 | `net.wurstclient.gui` | 标题界面（`title/`）与视觉 token / 渲染（`visual/`） |
 | `net.wurstclient.gui.glass` | 原版控件的玻璃外观（按钮 / 滑块 / 复选框 / 列表滚动条）与 HUD 卡片：抓帧 + 着色器绘制（`GlassRenderer`）、材质（`GlassStyle`）、渲染趟次与回退（`GlassButtons`）、卡片入口（`GlassPanels`）。移植自 LumaGlass，见 [docs/glass-controls.md](docs/glass-controls.md) |
-| `net.wurstclient.infinitegui` | HUD 的时间 / FPS / CPS 按无限GUI 源码移植（`InfiniteWindow` 基类 + `TimeWindow`/`FpsWindow`/`CpsWindow` + `InfiniteHud` 管理器）。见 [docs/infinitegui-hud.md](docs/infinitegui-hud.md) |
 | `net.wurstclient.hack` / `hacks` | Hack 基类、注册表、冲突与生命周期；具体 Hack 实现 |
 | `net.wurstclient.hud` / `hud2` | 原 HUD / TabGUI；HUD2 系统、磨砂玻璃、指标采样、卡片编辑器与元素 |
 | `net.wurstclient.keybinds` | 按键绑定（TOGGLE/HOLD/SMART）、配置与执行 |
