@@ -112,7 +112,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		float sizeX, float sizeY, float scaleX, float scaleY, float alpha,
 		float colorR, float colorG, float colorB, float parallaxX,
 		float parallaxY, String alignment, WeColorKey colorKey, WeBlur blur,
-		WePuppetMesh puppet)
+		WeIris iris, WePuppetMesh puppet)
 	{}
 
 	private static final float DEFAULT_WIDTH = 1920;
@@ -389,6 +389,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		float alpha = (float)number(object, "alpha", 1);
 		WeColorKey colorKey = WeColorKey.parse(object.get("effects"));
 		WeBlur blur = WeBlur.parse(object.get("effects"));
+		WeIris iris = WeIris.parse(object.get("effects"));
 
 		// 对齐方式：参考实现读的是
 		// optional("horizontalalign", optional("alignment", "center"))
@@ -411,7 +412,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 			return new Layer(name, "", origin[0],
 				origin[1], size[0], size[1], scale[0], scale[1], alpha,
 				color[0], color[1], color[2], depth[0], depth[1], alignment,
-				colorKey, blur, null);
+				colorKey, blur, null, null);
 
 		// 其余内置工具模型：帧缓冲/后期层，跳过（不是解析失败，是画不出来）
 		if(modelName.contains("util/"))
@@ -441,7 +442,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		return new Layer(name, texture, origin[0],
 			origin[1], size[0], size[1], scale[0], scale[1], alpha, color[0],
 			color[1], color[2], depth[0], depth[1], alignment, colorKey, blur,
-			mesh);
+			iris, mesh);
 	}
 
 	/** 值是不是绑定了脚本（形如 {@code {script, scriptproperties, value}}）。 */

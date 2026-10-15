@@ -38,7 +38,6 @@ import net.wurstclient.hack.HackList;
 import net.wurstclient.hacks.RadialMenuHack;
 import net.wurstclient.hud.IngameHUD;
 import net.wurstclient.hud2.HudManager;
-import net.wurstclient.infinitegui.InfiniteHud;
 import net.wurstclient.hud2.ClientMetricsManager;
 import net.wurstclient.keybinds.KeybindList;
 import net.wurstclient.keybinds.KeybindProcessor;
@@ -88,7 +87,6 @@ public enum WurstClient
 	private CmdProcessor cmdProcessor;
 	private IngameHUD hud;
 	private HudManager hudManager;
-	private InfiniteHud infiniteHud;
 	private ClientMetricsManager clientMetricsManager;
 	private EntitySnapshotManager entitySnapshotManager;
 	private PostEffectQueue postEffectQueue;
@@ -204,9 +202,6 @@ public enum WurstClient
 
 		hudManager.start();
 
-		// 无限GUI 的那三项 HUD（时间/FPS/CPS）按源码移植进来，替换掉客户端原来的 clock/fps/cps
-		infiniteHud = new InfiniteHud();
-		infiniteHud.start();
 		
 		updater = new WurstUpdater();
 		eventManager.add(UpdateListener.class, updater);

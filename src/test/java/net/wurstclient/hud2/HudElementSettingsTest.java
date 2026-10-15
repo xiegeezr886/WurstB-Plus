@@ -18,8 +18,8 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.gui.visual.VisualTheme;
-import net.wurstclient.hud2.elements.HealthHudElement;
-import net.wurstclient.hud2.elements.WeatherHudElement;
+import net.wurstclient.hud2.elements.ClockHudElement;
+import net.wurstclient.hud2.elements.FpsHudElement;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.settings.Setting;
@@ -144,7 +144,7 @@ final class HudElementSettingsTest
 	@Test
 	void textElementsGetAColorSettingThatDefaultsToTheOldConstant()
 	{
-		HudElement element = new HealthHudElement();
+		HudElement element = new FpsHudElement();
 		Setting setting = element.getSettings().get("text color");
 
 		assertNotNull(setting);
@@ -157,7 +157,7 @@ final class HudElementSettingsTest
 	@Test
 	void everyTextElementSharesTheSameSingleColorSetting()
 	{
-		assertEquals(1, new HealthHudElement().getSettings().size());
-		assertEquals(1, new WeatherHudElement().getSettings().size());
+		assertEquals(1, new FpsHudElement().getSettings().size());
+		assertEquals(1, new ClockHudElement().getSettings().size());
 	}
 }
