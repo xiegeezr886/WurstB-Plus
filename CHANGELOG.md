@@ -251,16 +251,6 @@ Scene 型壁纸此前只能导入预览图。本轮把格式读通并**在游戏
 - **实机验证**：dev 客户端（`gradlew runClient`）跑起来 + 游戏自己的 F2 截图，确认网格背景、账号胶囊、齿轮与其下拉菜单、白色字标、动作条与 4 个按钮都按设计渲染；截图见 [docs/title-menu.md](docs/title-menu.md)。**踩坑记录**：`PrintWindow` 抓 OpenGL 窗口会返回残缺/陈旧的帧（曾据此误判"动作条没渲染"），判定 MC 界面内容只能用 F2；`SetForegroundWindow` 会被 Windows 前台锁拒绝，需要 `AttachThreadInput` 才拿得到焦点。字标素材的转白也踩了两坑：原图字母的孔是**不透明白色填充**（只取 alpha 会把字母填死），以及任何"加粗"滤波都会糊死 s / b 的圈。
 - **如实说明**：① 头像是圆角方块而不是正圆——原版 GUI 只有矩形裁剪，皮肤脸部贴图只有 8×8 像素，按列切片拼圆的粒度太粗；② 图标沿用仓库原有的实心图标，只新生成一个 `fdp/power.png`（参考图的「退出」用电源符号）；③ 旧的版本号 / Forge 版本角标去掉（参考图上没有）；④ `BackgroundSelectScreen` 的版式仍是旧的（文案已跟上 i18n）；⑤ 其他 14 个平台工程的 `gui/title/` 拷贝未同步。
 
-### HUD 的时间 / FPS / CPS 换成无限GUI（源码移植）
-
-HUD 里**时间、FPS、CPS** 三项按 [InfiniteGUI](https://github.com/QCMaxcer/InfiniteGUI-Minecraft-DLL)（无限GUI）的源码移植成 Java，替换掉客户端原来的 `clock` / `fps` / `cps` 三个元素（那三个元素类已删除）。**不随包 DLL、不做原生加载**——只搬源码。逐项约定、配置与验证状态见 [docs/infinitegui-hud.md](docs/infinitegui-hud.md)。
-
-- **换哪些**：无限GUI 有的才换。`fps` / `cps` / `clock` 换成移植版；**键盘显示不换**（用户裁决：WurstB+ 自己的五排键帽/可调尺寸更好）、**通知不换**（WurstB+ 是 Compose 卡片流）；血条、背包、小地图、记分板、Target、坐标、TPS…无限GUI 根本没有，继续由客户端画。
-- **照搬上游的**：项的 `type` 名（`时间显示`/`FPS显示`/`CPS显示`，配置靠它对上）、文案格式（`%Y-%m-%d | %H:%M:%S`、`[120FPS]`、`[CPS: 3 | 1]`）、更新周期（1000ms / 最近一秒）、前后缀默认值、1px 阴影画法、配置形状 `{"Items":[{"type":…,"isEnabled":…}]}`（存在 `<wurst>/infinitegui/profile.json`）。
-- **按本工程口径改的**：① **尺寸与形状用 WurstB+ 的**（卡片内边距左右 2 / 上下 1、圆角 4），不是上游的 ImGui 像素值；② **材质走 liquid glass**（`GlassPanels`），玻璃不可用时回退到上游那个 80% 黑；③ 默认开（上游默认关），免得"替换了源码"表现成"这三项 HUD 消失"；④ 拖动只在有光标的界面里生效。
-- **验证**：新增 `InfiniteTextTest`（3 项钉住三项文案格式逐字对齐上游）与 `InfiniteWindowTest`（6 项钉住配置往返、`type` 名、前后缀默认、命中测试、尺寸约定）；全量 **215 个测试类 / 1418 项 / 0 失败**。**实机截图还没有**（本轮尝试被并行构建与窗口占用打断）。
-- **如实说明**：① 这三项不在 `hud2` 元素表里，HUD 编辑器看不到也拖不了，改开关/位置靠 JSON 或在有光标的界面里拖；② 上游其余 6 项（计数器 / 文件数量 / 文本 / B站粉丝 / B站弹幕 / 音乐信息）本批未移植；③ 上游 LICENSE.txt 的版权行是未填占位符，随包只保留正文与溯源；④ 只有根工程有，其余 66 个工程没有。
-
 ### 原版控件改为 LumaGlass 玻璃面板（按钮 / 滑块 / 复选框 / 滚动条）
 
 客户端里**原版控件**的底色从扁平圆角换成液态玻璃：透出界面自己的背景、圆角带边缘折射与高光。整条链子移植自 [LumaGlass](https://github.com/Sunny5349/LumaGlass) 0.2.9（MIT，Copyright © 2026 Sunny5349），**不是运行时依赖**——产物里没有它的 jar，源码移植进本仓库，许可正文随包分发在 `META-INF/licenses/lumaglass/`。
