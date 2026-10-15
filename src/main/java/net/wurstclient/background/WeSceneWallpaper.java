@@ -136,7 +136,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 	/** 一张已经上传的贴图，连同它属于哪一层。 */
 	private record Bound(WeScene.Layer layer, ResourceLocation location,
-		DynamicTexture texture, int width, int height)
+		DynamicTexture texture, int width, int height, IrisState iris)
 	{}
 
 	/** 一套跑起来的粒子，以及它插在第几个图层之前。 */
@@ -208,8 +208,68 @@ public final class WeSceneWallpaper implements AutoCloseable
 	}
 
 	/** 一层还没上传的贴图。 */
-	public record DecodedLayer(WeScene.Layer layer, NativeImage image)
+	public record DecodedLayer(WeScene.Layer layer, NativeImage image,
+		IrisState iris)
 	{}
+
+	/**
+	 * 会随时间重算的虹膜扰动：源像素 + 遮罩 + 纹理。
+	 *
+	 * <p>
+	 * 效果本身是"整层统一的 UV 偏移、按遮罩逐像素加权"（见 {@link WeIris}），
+	 * 所以**必须动**才有意义 —— 冻结在某一时刻等于没做。这里按
+	 * {@link #INTERVAL_NANOS} 节流重算并重传贴图：眼睛层 774x874（67 万像素）一次重算
+	 * 就是个拷贝循环，真正的成本是约 2.7MB/次的纹理上传，5Hz 也只有 13MB/s。
+	 * </p>
+	 */
+	static final class IrisState
+	{
+		/** 5Hz：效果本身是 1Hz 阶跃 + 连续噪声，5Hz 足够表达。 */
+		private static final long INTERVAL_NANOS = 200_000_000L;
+
+		private final WeIris iris;
+		private final NativeImage source;
+		private final NativeImage mask;
+		private final NativeImage target;
+		private DynamicTexture texture;
+		private long lastNanos;
+
+		IrisState(WeIris iris, NativeImage source, NativeImage mask,
+			NativeImage target, DynamicTexture texture)
+		{
+			this.iris = iris;
+			this.source = source;
+			this.mask = mask;
+			this.target = target;
+			this.texture = texture;
+		}
+
+		/** 纹理是客户端线程建的，所以建好后在这里补挂一次。 */
+		void attach(DynamicTexture texture)
+		{
+			this.texture = texture;
+			lastNanos = 0;
+		}
+
+		void update(long nowNanos)
+		{
+			if(texture == null || nowNanos - lastNanos < INTERVAL_NANOS)
+				return;
+
+			lastNanos = nowNanos;
+			iris.apply(source, mask, target, nowNanos / 1e9);
+			texture.upload();
+		}
+
+		/** 源像素与遮罩是自己分配的；target 归纹理所有，不在这里关。 */
+		void close()
+		{
+			source.close();
+
+			if(mask != null)
+				mask.close();
+		}
+	}
 
 	/** 一个已经解析、还没跑起来的粒子层。 */
 	public record DecodedParticles(WeScene.ParticleLayer layer,
@@ -260,7 +320,8 @@ public final class WeSceneWallpaper implements AutoCloseable
 					if(bytes == null)
 						continue;
 
-					DecodedLayer bound = decodeLayer(layer, bytes);
+					DecodedLayer bound = decodeLayer(layer, bytes,
+						irisMask(pkg, layer));
 
 					if(bound == null)
 						continue;
@@ -351,7 +412,9 @@ public final class WeSceneWallpaper implements AutoCloseable
 				}
 
 				totalPixels += pixels;
-				decoded.add(new DecodedLayer(layer, image));
+
+				// 这条分支是"没有贴图、自己合成一张"的层（纯色层），不会有虹膜扰动
+				decoded.add(new DecodedLayer(layer, image, null));
 			}
 		}catch(RuntimeException e)
 		{
@@ -912,7 +975,15 @@ public final class WeSceneWallpaper implements AutoCloseable
 			}
 	}
 
-	private static DecodedLayer decodeLayer(WeScene.Layer layer, byte[] bytes)
+	/**
+	 * 解一层：贴图 → 木偶变形 → 抠像/模糊/降采样 → 虹膜扰动。
+	 *
+	 * @param mask
+	 *            虹膜扰动的遮罩；{@code null} 表示没有（那时按整层统一偏移算，
+	 *            对应片元着色器里 {@code #if MASK} 不成立的那条分支）
+	 */
+	private static DecodedLayer decodeLayer(WeScene.Layer layer, byte[] bytes,
+		NativeImage mask)
 	{
 		NativeImage image = decodeImage(layer, bytes);
 
@@ -925,7 +996,80 @@ public final class WeSceneWallpaper implements AutoCloseable
 		if(deformed != image)
 			image.close();
 
-		return new DecodedLayer(layer, shrink(layer, deformed));
+		NativeImage target = shrink(layer, deformed);
+
+		if(layer.iris() == null)
+		{
+			if(mask != null)
+				mask.close();
+
+			return new DecodedLayer(layer, target, null);
+		}
+
+		// 虹膜扰动要逐帧重算，所以**源像素得留一份**：target 会被反复改写
+		NativeImage source = copy(target);
+		layer.iris().apply(source, mask, target, 0);
+
+		System.out.println("[Background] 「" + layer.name() + "」按虹膜扰动处理（"
+			+ target.getWidth() + "x" + target.getHeight() + "，"
+			+ (mask == null ? "无遮罩=整层偏移"
+				: "遮罩 " + mask.getWidth() + "x" + mask.getHeight())
+			+ "，speed=" + layer.iris().speed() + " scale="
+			+ layer.iris().scaleX() + "x" + layer.iris().scaleY() + " noise="
+			+ layer.iris().noiseAmount() + " rough=" + layer.iris().rough()
+			+ " phase=" + layer.iris().phase() + "）");
+
+		return new DecodedLayer(layer, target,
+			new IrisState(layer.iris(), source, mask, target, null));
+	}
+
+	/**
+	 * 虹膜扰动的遮罩（{@code masks/iris_mask_…}）。
+	 *
+	 * <p>
+	 * 读不到就返回 {@code null}：那时按"整层统一偏移"算 —— 这与片元着色器
+	 * {@code #if MASK} 不成立时的行为一致，而不是把整个效果丢掉。
+	 * </p>
+	 */
+	private static NativeImage irisMask(WePackage pkg, WeScene.Layer layer)
+	{
+		if(layer.iris() == null || layer.iris().maskTexture() == null)
+			return null;
+
+		String entry =
+			WeScene.textureEntryName(layer.iris().maskTexture(), pkg.names());
+		byte[] bytes = entry == null ? null : pkg.read(entry);
+
+		if(bytes == null)
+		{
+			System.out.println("[Background] 「" + layer.name() + "」的虹膜遮罩 "
+				+ layer.iris().maskTexture() + " 没找到，按整层偏移算");
+			return null;
+		}
+
+		try
+		{
+			return decodeImage(layer, bytes);
+
+		}catch(RuntimeException e)
+		{
+			System.out.println("[Background] 「" + layer.name()
+				+ "」的虹膜遮罩解不出来（" + e.getMessage() + "），按整层偏移算");
+			return null;
+		}
+	}
+
+	/** 逐像素复制一张图（虹膜扰动要留着源像素反复重采样）。 */
+	private static NativeImage copy(NativeImage image)
+	{
+		NativeImage out = new NativeImage(image.format(), image.getWidth(),
+			image.getHeight(), false);
+
+		for(int y = 0; y < image.getHeight(); y++)
+			for(int x = 0; x < image.getWidth(); x++)
+				out.setPixelRGBA(x, y, image.getPixelRGBA(x, y));
+
+		return out;
 	}
 
 	/** 解出图层自己的那张图（还没做木偶变形、也还没按显示尺寸缩）。 */
@@ -1330,7 +1474,11 @@ public final class WeSceneWallpaper implements AutoCloseable
 				// 像素交给纹理了，从待办里摘掉
 				iterator.remove();
 				bound.add(new Bound(layer.layer(), location, texture,
-					image.getWidth(), image.getHeight()));
+					image.getWidth(), image.getHeight(), layer.iris()));
+
+				// 虹膜扰动的状态要拿到纹理才能重传（纹理只能在客户端线程建）
+				if(layer.iris() != null)
+					layer.iris().attach(texture);
 
 			}catch(RuntimeException | Error e)
 			{
@@ -1451,6 +1599,10 @@ public final class WeSceneWallpaper implements AutoCloseable
 		int screenWidth, int screenHeight, float influence)
 	{
 		WeScene.Layer definition = layer.layer();
+
+		// 虹膜扰动：按 5Hz 重算并重传这张贴图（见 IrisState）
+		if(layer.iris() != null)
+			layer.iris().update(System.nanoTime());
 
 		WeSceneLayout.Rect rect = WeSceneLayout.rect(definition, scale,
 			scene.width(), scene.height(), screenWidth, screenHeight,
@@ -1902,6 +2054,10 @@ public final class WeSceneWallpaper implements AutoCloseable
 			Minecraft.getInstance().getTextureManager()
 				.release(layer.location());
 			layer.texture().close();
+
+			// 虹膜扰动的源像素/遮罩是自己分配的，纹理那边不收
+			if(layer.iris() != null)
+				layer.iris().close();
 		}
 	}
 
