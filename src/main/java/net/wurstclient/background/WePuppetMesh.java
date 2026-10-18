@@ -58,8 +58,12 @@ import java.nio.charset.StandardCharsets;
  */
 public record WePuppetMesh(float minX, float minY, float maxX, float maxY,
 	float minU, float minV, float maxU, float maxV, int vertexCount,
-	int triangleCount, float[] positions, float[] uvs, int[] indices)
+	int triangleCount, float[] positions, float[] uvs, int[] indices,
+	int[] boneIndices, float[] boneWeights)
 {
+	/** 顶点里骨骼索引、骨骼权重的字节偏移。 */
+	private static final int BLEND_INDICES_OFFSET = 40;
+	private static final int BLEND_WEIGHTS_OFFSET = 56;
 	/** 顶点段的起点。 */
 	private static final int VERTEX_START = 84;
 
@@ -143,6 +147,8 @@ public record WePuppetMesh(float minX, float minY, float maxX, float maxY,
 		float minV = Float.MAX_VALUE, maxV = -Float.MAX_VALUE;
 		float[] positions = new float[vertices * 2];
 		float[] uvs = new float[vertices * 2];
+		int[] boneIndices = new int[vertices * 4];
+		float[] boneWeights = new float[vertices * 4];
 
 		for(int i = 0; i < vertices; i++)
 		{
@@ -160,6 +166,16 @@ public record WePuppetMesh(float minX, float minY, float maxX, float maxY,
 			positions[i * 2 + 1] = y;
 			uvs[i * 2] = u;
 			uvs[i * 2 + 1] = v;
+
+			// 骨骼索引是 4 个 uint32、权重是 4 个 float（本项目原先只拿它们校验格式，
+			// 现在要真的蒙皮，所以留下来）
+			for(int k = 0; k < 4; k++)
+			{
+				boneIndices[i * 4 + k] =
+					int32At(data, at + BLEND_INDICES_OFFSET + k * 4);
+				boneWeights[i * 4 + k] =
+					floatAt(data, at + BLEND_WEIGHTS_OFFSET + k * 4);
+			}
 
 			minX = Math.min(minX, x);
 			maxX = Math.max(maxX, x);
@@ -185,7 +201,8 @@ public record WePuppetMesh(float minX, float minY, float maxX, float maxY,
 			return null;
 
 		return new WePuppetMesh(minX, minY, maxX, maxY, minU, minV, maxU,
-			maxV, vertices, indexBytes / 6, positions, uvs, indices);
+			maxV, vertices, indexBytes / 6, positions, uvs, indices,
+			boneIndices, boneWeights);
 	}
 
 	private static boolean hasMagic(byte[] data)

@@ -883,13 +883,35 @@ public final class WeSceneWallpaper implements AutoCloseable
 	 */
 	static NativeImage deform(WePuppetMesh mesh, NativeImage source)
 	{
-		if(mesh == null || source == null || mesh.indices().length < 3)
+		return deform(mesh, source, mesh == null ? null : mesh.positions(), 0, 0);
+	}
+
+	/**
+	 * 按**给定的顶点位置**光栅化（绑定姿势就是 {@link WePuppetMesh#positions()}）。
+	 *
+	 * <p>
+	 * 动画那一路要的是这个重载：输出框仍然是网格的包围盒（图层在画布上的位置不动），
+	 * 变的只是每个顶点在框里的位置 —— 见 {@link WePuppetPose#skin}。
+	 * </p>
+	 *
+	 * @param posed
+	 *            顶点位置（x、y 交替），长度 {@code 2 × 顶点数}
+	 * @param outWidth
+	 *            输出宽；传 0 表示用网格包围盒
+	 */
+	static NativeImage deform(WePuppetMesh mesh, NativeImage source,
+		float[] posed, int outWidth, int outHeight)
+	{
+		if(mesh == null || source == null || mesh.indices().length < 3
+			|| posed == null)
 			return source;
 
 		int sourceWidth = source.getWidth();
 		int sourceHeight = source.getHeight();
-		int outWidth = Math.max(1, Math.round(mesh.width()));
-		int outHeight = Math.max(1, Math.round(mesh.height()));
+		outWidth = outWidth > 0 ? outWidth
+			: Math.max(1, Math.round(mesh.width()));
+		outHeight = outHeight > 0 ? outHeight
+			: Math.max(1, Math.round(mesh.height()));
 		NativeImage out =
 			new NativeImage(NativeImage.Format.RGBA, outWidth, outHeight, false);
 
@@ -908,11 +930,9 @@ public final class WeSceneWallpaper implements AutoCloseable
 
 		for(int i = 0; i < vertices; i++)
 		{
-			screenX[i] =
-				(mesh.positions()[i * 2] - mesh.minX()) / spanX * outWidth;
+			screenX[i] = (posed[i * 2] - mesh.minX()) / spanX * outWidth;
 			// 局部 y 向上，输出图 y 向下
-			screenY[i] =
-				(mesh.maxY() - mesh.positions()[i * 2 + 1]) / spanY * outHeight;
+			screenY[i] = (mesh.maxY() - posed[i * 2 + 1]) / spanY * outHeight;
 		}
 
 		int[] indices = mesh.indices();
