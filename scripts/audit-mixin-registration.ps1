@@ -31,7 +31,7 @@
     Markdown report path. Default: docs/MIXIN-REGISTRATION-GAPS.md
 
 .PARAMETER TsvPath
-    Machine-readable output for batch work. Default: _recon/mixin-gaps.tsv
+    Machine-readable output for batch work. Default: reference/recon/mixin-gaps.tsv
 
 .EXAMPLE
     pwsh -File scripts/audit-mixin-registration.ps1
@@ -39,7 +39,7 @@
 [CmdletBinding()]
 param(
     [string]$OutputPath = 'docs/MIXIN-REGISTRATION-GAPS.md',
-    [string]$TsvPath = '_recon/mixin-gaps.tsv',
+    [string]$TsvPath = 'reference/recon/mixin-gaps.tsv',
     [string]$RepoRoot
 )
 
