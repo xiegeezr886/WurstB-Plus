@@ -124,7 +124,7 @@ pwsh -File scripts/dependency-versions.ps1 -Bump "io.netty:netty-codec-socks" "4
 4. **跟着改源码**：新 MC 版本几乎总有被移除/改签名的原版方法。参考
    [PORTING_TASK.md](../PORTING_TASK.md) 里按 `javap` 核对真实 jar 的做法，
    不要凭"版本号相邻"推断 API 相邻。
-5. **`_porting_stale` / `scripts/audit-mixin-*.py`**：已有离线审计脚本可一次性扫三棵树找失效注入点。
+5. **`reference/porting-stale` / `scripts/audit-mixin-*.py`**：已有离线审计脚本可一次性扫三棵树找失效注入点。
 6. **打包校验**：`zip` 完好、含加载器元数据、含 Mixin 配置、含主类、**含内嵌依赖**
    （`neoforge/versions/1.20.2…1.20.6` 曾经 5 个工程完全没有内嵌 Baritone 运行时，
    产物体积 26.9 MB 却没有任何 `META-INF/jarjar/` 条目）。
@@ -168,4 +168,5 @@ pwsh -File scripts/build-all.ps1 -Offline
 | [RELEASE.md](RELEASE.md) | 发布与维护手册 |
 | [PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md) | 逐版本移植状态 |
 | [CONFIG-FORMAT.md](CONFIG-FORMAT.md) | 配置文件格式 |
+| [REPO-HYGIENE.md](REPO-HYGIENE.md) | 工作区卫生：`reference/` 各目录的来源、许可与可否删除 |
 | [../THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md) | 第三方许可与归属 |

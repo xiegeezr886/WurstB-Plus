@@ -302,7 +302,7 @@ function Test-EmbeddedBaritone($artifact, $entryName, $mcVersion) {
             return @{ Passed = $false; Note = "bundled Baritone declares minecraft $mcSpec, which excludes $mcVersion" }
         }
 
-        # 26.2 bundles a Baritone that _tools/baritone-26.2-compat post-processed, so
+        # 26.2 bundles a Baritone that reference/tools/baritone-26.2-compat post-processed, so
         # the injected shim classes must be there. 26.3 bundles upstream Baritone
         # 1.20.0 (its own "For Minecraft 26.3" release) unpatched, so those classes
         # must NOT be expected there.
