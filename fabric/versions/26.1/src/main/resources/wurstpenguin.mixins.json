@@ -80,6 +80,12 @@
                    "TextVisitFactoryMixin",
                    "TitleScreenMixin",
                    "ToastManagerAccessor",
+                   "BlockStateBaseMixin",
+                   "xray.BlockStateBaseMixin",
+                   "xray.FluidRendererMixin",
+                   "xray.ModelBlockRendererMixin",
+                   "xray.SectionCompilerMixin",
+                   "xray.indigo.AltModelBlockRendererImplMixin",
                    "WorldMixin",
                    "LevelRendererMixin"
                ],

@@ -14,6 +14,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.clickgui2.screens.EditBlockListScreen;
@@ -188,6 +189,18 @@ public final class XRayHack extends Hack implements UpdateListener,
 			event.cancel();
 	}
 	
+	public Boolean shouldDrawSide(BlockState state, BlockPos pos)
+	{
+		if(!isEnabled())
+			return null;
+
+		boolean visible = isVisible(state.getBlock(), pos);
+		if(!visible && opacity.getValue() > 0)
+			return null;
+
+		return visible;
+	}
+
 	public boolean isVisible(Block block, BlockPos pos)
 	{
 		String name = BlockUtils.getName(block);
@@ -218,6 +231,11 @@ public final class XRayHack extends Hack implements UpdateListener,
 	public int getOpacityColorMask()
 	{
 		return (int)(opacity.getValue() * 255) << 24 | 0xFFFFFF;
+	}
+
+	public float getOpacityFloat()
+	{
+		return opacity.getValueF();
 	}
 	
 	/**
