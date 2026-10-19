@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 TEST = ROOT / ".test"
 VERSIONS = TEST / "versions"
 LIBRARIES = TEST / "libraries"
-WORK = ROOT / "_smoke" / "provision"
+WORK = ROOT / "reference" / "smoke" / "provision"
 BMCL = "https://bmclapi2.bangbang93.com"
 LOADERS = ("forge", "fabric", "neoforge")
 
