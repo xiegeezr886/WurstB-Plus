@@ -88,6 +88,10 @@
     "TitleScreenMixin",
     "ToastManagerAccessor",
     "WorldMixin",
+    "xray.BlockStateBaseMixin",
+    "xray.FluidRendererMixin",
+    "xray.ModelBlockRendererMixin",
+    "xray.SectionCompilerMixin",
     "LevelRendererMixin"
   ],
   "injectors": {

@@ -96,17 +96,24 @@ public enum RenderUtils
 	}
 	
 	/**
-	 * Submits custom geometry to the current render frame. The renderer
-	 * callback receives a VertexConsumer that writes into the given RenderType.
+	 * Draws custom geometry immediately, like upstream Wurst does.
+	 *
+	 * <p>
+	 * Deliberately NOT using submitCustomGeometry: LevelRenderer.render()
+	 * executes the frame graph before returning, so nodes submitted from
+	 * our RenderEvent (fired at RETURN) miss the current frame and get
+	 * drawn with stale camera state, which shows up as ESP geometry being
+	 * offset. Callers transform their vertices with the given PoseStack,
+	 * same as the draw* helpers below.
 	 */
 	public static void submit(PoseStack matrices, RenderType layer,
 		java.util.function.Consumer<VertexConsumer> renderer)
 	{
-		if(submitNodeStorage == null)
-			return;
-		submitNodeStorage.submitCustomGeometry(matrices, layer,
-			(pose, buffer) -> renderer.accept(buffer));
+		WurstBufferSource bs = new WurstBufferSource();
+		renderer.accept(bs.getBuffer(layer));
+		bs.uploadAndDraw();
 	}
+
 	
 	/**
 	 * Submits text to the current render frame, transformed by the given

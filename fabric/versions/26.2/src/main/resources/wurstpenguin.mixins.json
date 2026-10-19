@@ -8,6 +8,7 @@
 
                ],
     "client":  [
+                   "BlockStateBaseMixin",
                    "OptionInstanceMixin",
                    "AbstractSignEditScreenMixin",
                    "AllowedAddressResolverMixin",
@@ -86,6 +87,14 @@
                    "TextVisitFactoryMixin",
                    "TitleScreenMixin",
                    "ToastManagerAccessor",
+                   "xray.BlockStateBaseMixin",
+                   "xray.FluidRendererMixin",
+                   "xray.ModelBlockRendererMixin",
+                   "xray.SectionCompilerMixin",
+                   "xray.indigo.AltModelBlockRendererImplMixin",
+                   "xray.sodium.AbstractBlockRenderContextMixin",
+                   "xray.sodium.BlockRendererMixin",
+                   "xray.sodium.DefaultFluidRendererMixin",
                    "WorldMixin",
                    "LevelRendererMixin"
                ],

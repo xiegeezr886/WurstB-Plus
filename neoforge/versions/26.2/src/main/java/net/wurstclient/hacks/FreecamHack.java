@@ -36,7 +36,8 @@ import net.wurstclient.util.RenderUtils;
 public final class FreecamHack extends Hack implements UpdateListener,
 	PacketOutputListener, IsPlayerInWaterListener, AirStrafingSpeedListener,
 	IsPlayerInLavaListener, CameraTransformViewBobbingListener,
-	IsNormalCubeListener, SetOpaqueCubeListener, RenderListener
+	IsNormalCubeListener, SetOpaqueCubeListener, RenderListener,
+	VisGraphListener
 {
 	private final SliderSetting speed =
 		new SliderSetting("Speed", 1, 0.05, 10, 0.05, ValueDisplay.DECIMAL);
@@ -74,7 +75,8 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		EVENTS.add(IsNormalCubeListener.class, this);
 		EVENTS.add(SetOpaqueCubeListener.class, this);
 		EVENTS.add(RenderListener.class, this);
-		
+		EVENTS.add(VisGraphListener.class, this);
+
 		fakePlayer = new FakePlayerEntity();
 		LocalPlayer player = MC.player;
 		camPos = player.getEyePosition();
@@ -102,7 +104,8 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		EVENTS.remove(IsNormalCubeListener.class, this);
 		EVENTS.remove(SetOpaqueCubeListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
-		
+		EVENTS.remove(VisGraphListener.class, this);
+
 		fakePlayer.resetPlayerPosition();
 		fakePlayer.despawn();
 		
@@ -228,6 +231,12 @@ public final class FreecamHack extends Hack implements UpdateListener,
 			event.cancel();
 	}
 	
+	@Override
+	public void onVisGraph(VisGraphEvent event)
+	{
+		event.cancel();
+	}
+
 	@Override
 	public void onIsNormalCube(IsNormalCubeEvent event)
 	{

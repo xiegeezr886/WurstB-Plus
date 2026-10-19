@@ -6,6 +6,7 @@
   "plugin": "net.wurstclient.mixin.WurstMixinConfigPlugin",
   "mixins": [],
   "client": [
+    "BlockStateBaseMixin",
     "OptionInstanceMixin",
     "AbstractSignEditScreenMixin",
     "AllowedAddressResolverMixin",
@@ -84,6 +85,10 @@
     "TextVisitFactoryMixin",
     "TitleScreenMixin",
     "ToastManagerAccessor",
+    "xray.BlockStateBaseMixin",
+    "xray.FluidRendererMixin",
+    "xray.ModelBlockRendererMixin",
+    "xray.SectionCompilerMixin",
     "WorldMixin",
     "LevelRendererMixin"
   ],

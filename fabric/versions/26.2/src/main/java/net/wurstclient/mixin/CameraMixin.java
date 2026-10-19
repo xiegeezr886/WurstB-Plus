@@ -20,6 +20,8 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.level.material.FogType;
 import net.wurstclient.WurstClient;
+import net.wurstclient.event.EventManager;
+import net.wurstclient.events.VisGraphListener.VisGraphEvent;
 import net.wurstclient.hacks.DankBobbingHack;
 import net.wurstclient.hacks.CameraDistanceHack;
 
@@ -71,6 +73,13 @@ public abstract class CameraMixin
 	private void onExtractRenderState(CameraRenderState cameraState,
 		float partialTicks, CallbackInfo ci)
 	{
+		// Disables smart culling when requested through VisGraphEvent
+		// (X-Ray / Freecam need to see chunks hidden behind terrain).
+		VisGraphEvent visGraphEvent = new VisGraphEvent();
+		EventManager.fire(visGraphEvent);
+		if(visGraphEvent.isCancelled())
+			cameraState.smartCull = false;
+
 		if(WurstClient.INSTANCE.getHax().antiBlindHack.isEnabled())
 			cameraState.entityRenderState.doesMobEffectBlockSky = false;
 

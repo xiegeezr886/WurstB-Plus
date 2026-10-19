@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.waypoints.TrackedWaypoint;
 import net.wurstclient.WurstClient;
@@ -28,16 +28,17 @@ public abstract class CameraMixin implements TrackedWaypoint.Camera
 	private boolean detached;
 	
 	@Inject(
-		method = "setup(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/Entity;ZZF)V",
-		at = @At("RETURN"))
-	private void onSetup(Level level, Entity entity, boolean detached,
-		boolean inverseView, float partialTicks, CallbackInfo ci)
+		method = "setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V",
+		at = @At("RETURN"),
+		cancellable = false)
+	public void onSetup(BlockGetter blockGetter, Entity entity, boolean bl,
+		boolean bl2, float partialTicks, CallbackInfo ci)
 	{
 		FreecamHack freecam = WurstClient.INSTANCE.getHax().freecamHack;
 		if(!freecam.isEnabled())
 			return;
 		
-		this.detached = true;
+		detached = true;
 		setPosition(freecam.getCamPos(partialTicks));
 		setRotation(freecam.getCamYaw(), freecam.getCamPitch());
 	}
