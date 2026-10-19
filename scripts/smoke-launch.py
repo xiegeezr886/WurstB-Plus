@@ -26,9 +26,9 @@ r"""冒烟启动：把每个工程的客户端真启动一遍，自动分类「�
 
 全量扫描要跑很久（67 个工程 × 1~5 分钟），中断后用结果 TSV 续跑：
 
-    python scripts/smoke-launch.py --all --results _smoke/results.tsv --skip-done
+    python scripts/smoke-launch.py --all --results reference/smoke/results.tsv --skip-done
 
-日志写到 <仓库>/_smoke/<工程>.log（同版本同加载器的上一次日志会被覆盖，注意留存），
+日志写到 <仓库>/reference/smoke/<工程>.log（同版本同加载器的上一次日志会被覆盖，注意留存），
 结果 TSV 每判完一个工程就 append 一行：`工程 <TAB> 版本 <TAB> 判定 <TAB> 秒 <TAB> 详情`。
 """
 import argparse
@@ -40,7 +40,7 @@ import sys
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGDIR = os.path.join(ROOT, '_smoke')
+LOGDIR = os.path.join(ROOT, 'reference', 'smoke')
 INIT = os.path.join(ROOT, 'gradle', 'init-mirrors.gradle')
 
 GATE_MARK = 'Sound engine started'

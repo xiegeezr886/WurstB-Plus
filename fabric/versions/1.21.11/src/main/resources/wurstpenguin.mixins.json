@@ -42,7 +42,6 @@
     "GenericContainerScreenMixin",
     "HeldItemRendererMixin",
     "FogRendererMixin",
-    "FluidRendererMixin",
     "freecam/CameraMixin",
     "freecam/ItemInHandRendererMixin",
     "freecam/LocalPlayerMixin",
@@ -80,6 +79,11 @@
     "TextVisitFactoryMixin",
     "TitleScreenMixin",
     "WorldMixin",
+    "xray.ItemBlockRenderTypesMixin",
+    "xray.LiquidBlockRendererMixin",
+    "xray.ModelBlockRendererMixin",
+    "xray.indigo.AbstractTerrainRenderContextMixin",
+    "xray.indigo.BlockRenderInfoMixin",
     "LevelRendererMixin"
   ],
   "injectors": {
