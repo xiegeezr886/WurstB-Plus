@@ -59,7 +59,11 @@ Set-Location $RepoRoot
 
 # Project roots, in a stable order.  A project root is any directory that has
 # both settings.gradle and build.gradle and is not a vendored/excluded tree.
-$ExcludePattern = '\\(build|source|_tools|_artifacts|run|\.test|\.opencode|forge-mdk|baritone-maven|node_modules|logs)\\|\\\.gradle'
+# Local-only reference material now lives under reference/ (upstream sources,
+# decompiled dumps, tooling). Several of those trees contain their own
+# settings.gradle/build.gradle, so the whole directory must stay excluded or
+# the project count silently changes.
+$ExcludePattern = '\\(build|reference|run|\.test|\.opencode|baritone-maven|node_modules|logs)\\|\\\.gradle'
 
 function Get-ProjectRoots {
     $roots = New-Object System.Collections.Generic.List[string]

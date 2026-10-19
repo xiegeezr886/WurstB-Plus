@@ -14,6 +14,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.clickgui2.screens.EditBlockListScreen;
@@ -22,6 +23,7 @@ import net.wurstclient.events.RenderBlockEntityListener;
 import net.wurstclient.events.SetOpaqueCubeListener;
 import net.wurstclient.events.ShouldDrawSideListener;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.VisGraphListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.mixinterface.ISimpleOption;
 import net.wurstclient.settings.BlockListSetting;
@@ -35,7 +37,7 @@ import net.wurstclient.util.PlatformUtils;
 @SearchTags({"XRay", "x ray", "OreFinder", "ore finder"})
 public final class XRayHack extends Hack implements UpdateListener,
 	SetOpaqueCubeListener, GetAmbientOcclusionLightLevelListener,
-	ShouldDrawSideListener, RenderBlockEntityListener
+	ShouldDrawSideListener, RenderBlockEntityListener, VisGraphListener
 {
 	private final BlockListSetting ores = new BlockListSetting("Ores",
 		"A list of blocks that X-Ray will show. They don't have to be just ores"
@@ -120,7 +122,8 @@ public final class XRayHack extends Hack implements UpdateListener,
 		EVENTS.add(GetAmbientOcclusionLightLevelListener.class, this);
 		EVENTS.add(ShouldDrawSideListener.class, this);
 		EVENTS.add(RenderBlockEntityListener.class, this);
-		
+		EVENTS.add(VisGraphListener.class, this);
+
 		// reload chunks
 		MC.levelExtractor.allChanged();
 		
@@ -138,7 +141,8 @@ public final class XRayHack extends Hack implements UpdateListener,
 		EVENTS.remove(GetAmbientOcclusionLightLevelListener.class, this);
 		EVENTS.remove(ShouldDrawSideListener.class, this);
 		EVENTS.remove(RenderBlockEntityListener.class, this);
-		
+		EVENTS.remove(VisGraphListener.class, this);
+
 		// reload chunks
 		MC.levelExtractor.allChanged();
 		
@@ -156,6 +160,12 @@ public final class XRayHack extends Hack implements UpdateListener,
 		ISimpleOption.get(MC.options.gamma()).forceSetValue(16.0);
 	}
 	
+	@Override
+	public void onVisGraph(VisGraphEvent event)
+	{
+		event.cancel();
+	}
+
 	@Override
 	public void onSetOpaqueCube(SetOpaqueCubeEvent event)
 	{
@@ -188,6 +198,18 @@ public final class XRayHack extends Hack implements UpdateListener,
 			event.cancel();
 	}
 	
+	public Boolean shouldDrawSide(BlockState state, BlockPos pos)
+	{
+		if(!isEnabled())
+			return null;
+
+		boolean visible = isVisible(state.getBlock(), pos);
+		if(!visible && opacity.getValue() > 0)
+			return null;
+
+		return visible;
+	}
+
 	public boolean isVisible(Block block, BlockPos pos)
 	{
 		String name = BlockUtils.getName(block);
@@ -218,6 +240,11 @@ public final class XRayHack extends Hack implements UpdateListener,
 	public int getOpacityColorMask()
 	{
 		return (int)(opacity.getValue() * 255) << 24 | 0xFFFFFF;
+	}
+
+	public float getOpacityFloat()
+	{
+		return opacity.getValueF();
 	}
 	
 	/**
