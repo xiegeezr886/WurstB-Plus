@@ -25,7 +25,8 @@ public final class WurstMixinConfigPlugin implements IMixinConfigPlugin
 		String mixinClassName)
 	{
 		if(!mixinClassName.endsWith("SodiumBlockOcclusionCacheMixin")
-			&& !mixinClassName.endsWith("SodiumFluidRendererMixin"))
+			&& !mixinClassName.endsWith("SodiumFluidRendererMixin")
+			&& !mixinClassName.contains(".xray.sodium."))
 			return true;
 
 		try
