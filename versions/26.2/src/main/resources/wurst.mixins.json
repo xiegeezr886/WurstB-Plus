@@ -8,6 +8,7 @@
   "mixins": [],
   "client": [
     "OptionInstanceMixin",
+    "AbstractBlockStateMixin",
     "AbstractSignEditScreenMixin",
     "AllowedAddressResolverMixin",
     "AtmosphericFogEnvironmentMixin",
@@ -84,6 +85,10 @@
     "TextVisitFactoryMixin",
     "TitleScreenMixin",
     "ToastManagerAccessor",
+    "xray.BlockStateBaseMixin",
+    "xray.FluidRendererMixin",
+    "xray.ModelBlockRendererMixin",
+    "xray.SectionCompilerMixin",
     "WorldMixin",
     "LevelRendererMixin"
   ],
