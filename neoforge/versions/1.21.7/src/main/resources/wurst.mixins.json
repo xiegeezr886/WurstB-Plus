@@ -42,7 +42,6 @@
     "GenericContainerScreenMixin",
     "HeldItemRendererMixin",
     "FogRendererMixin",
-    "FluidRendererMixin",
     "freecam/CameraMixin",
     "freecam/ItemInHandRendererMixin",
     "freecam/LocalPlayerMixin",
@@ -79,6 +78,9 @@
     "TelemetryManagerMixin",
     "TextVisitFactoryMixin",
     "TitleScreenMixin",
+    "xray.ItemBlockRenderTypesMixin",
+    "xray.FluidRendererMixin",
+    "xray.BlockModelRendererMixin",
     "WorldMixin",
     "LevelRendererMixin"
   ],
