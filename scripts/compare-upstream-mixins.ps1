@@ -1,5 +1,5 @@
-﻿# 依赖：先在 _recon/wurst7.git 放一份上游 bare 克隆（blob 过滤即可，约 6 MB）：
-#   git clone --bare --filter=blob:none https://github.com/Wurst-Imperium/Wurst7.git _recon/wurst7.git
+﻿# 依赖：先在 reference/recon/wurst7.git 放一份上游 bare 克隆（blob 过滤即可，约 6 MB）：
+#   git clone --bare --filter=blob:none https://github.com/Wurst-Imperium/Wurst7.git reference/recon/wurst7.git
 # 上游 48 个分支覆盖 1.20.1 - 26.4。
 $ErrorActionPreference = 'Stop'
 Set-Location 'C:\Users\ui863\Documents\trae_projects\VAP'
@@ -8,8 +8,8 @@ Set-Location 'C:\Users\ui863\Documents\trae_projects\VAP'
 # 本地某个混入文件"存在但未登记"，如果在同版本官方里是登记着的，
 # 那就不是"设计上不登记"，而是移植时漏了。
 
-$gitDir = (Resolve-Path '_recon\wurst7.git').Path
-$outDir = Join-Path (Get-Location).Path '_recon\upstream-mixins'
+$gitDir = (Resolve-Path 'reference\recon\wurst7.git').Path
+$outDir = Join-Path (Get-Location).Path 'reference\recon\upstream-mixins'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
 function Get-UpstreamMixinList([string]$branch) {
@@ -97,5 +97,5 @@ $fixList | Group-Object MC | Sort-Object Name | ForEach-Object {
 }
 Write-Host ''
 Write-Host ("合计可确证该登记的: {0}" -f $fixList.Count)
-$fixList | Export-Csv -NoTypeInformation -Encoding UTF8 '_recon\upstream-confirmed-gaps.csv'
-Write-Host '已写 _recon\upstream-confirmed-gaps.csv'
+$fixList | Export-Csv -NoTypeInformation -Encoding UTF8 'reference\recon\upstream-confirmed-gaps.csv'
+Write-Host '已写 reference\recon\upstream-confirmed-gaps.csv'
