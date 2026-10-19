@@ -34,7 +34,7 @@ $minecraft = $minecraftCandidates | Where-Object { Test-Path -LiteralPath $_ } |
 if (-not $minecraft) {
 	throw "Minecraft 26.2 compile jar is missing. Run a 26.2 Gradle setup once."
 }
-$toolRoot = Join-Path $ProjectRoot "_tools\baritone-26.2-compat"
+$toolRoot = Join-Path $ProjectRoot "reference\tools\baritone-26.2-compat"
 $classes = Join-Path $toolRoot "build\classes"
 
 foreach ($required in @($javac, $java, $asm, $asmCommons, $minecraft)) {

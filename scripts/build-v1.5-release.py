@@ -147,12 +147,19 @@ def task_for(loader, mc):
     而 1.20.5 / 1.20.6 的 `wurstpenguin.accesswidener` 里有一条陈旧声明
     （`Entity.maxUpStep` 字段在这两个版本已不存在），会让 `build` 直接失败。
     这不是脚本问题，也与最终 jar 无关——`build` 里的 `remapJar` 产物是一样的。
+
+    **26.x 的 Fabric 是例外，要用 `jar`**：那 5 个工程引的是
+    `net.fabricmc.fabric-loom`（Loom 1.17.x），该插件**不提供 `remapJar`**，
+    重映射后的产物由 `jar` 直接产出；老工程引的是 `fabric-loom`，才有 `remapJar`。
+    docs/RELEASE.md 的矩阵表本来就写着「`remapJar`（26.x：`jar`）」，
+    这里先前漏了那个例外，导致 5 个 Fabric-26.x 一直以
+    `Task 'remapJar' not found` 失败。
     """
     if loader == 'Forge':
         return 'jarJar' if mc in ('1.20.2', '1.20.3', '1.20.4', '1.20.6',
                                   '1.21', '1.21.1') else 'allJar'
     if loader == 'Fabric':
-        return 'remapJar'
+        return 'jar' if mc.startswith('26.') else 'remapJar'
     return 'build'
 
 
@@ -182,7 +189,16 @@ def build(name, project_dir, loader, mc):
     os.makedirs(OUT, exist_ok=True)
     log = os.path.join(LOGS, name + '.log')
     cmd = [gradle_command(project_dir), task, '--init-script', INIT,
-           '--console=plain']
+           '--console=plain',
+           # 关掉配置缓存。26.x 的工程跑在 Gradle 9.x 上（默认开启配置缓存），
+           # 而它们的 build.gradle 在执行期的闭包里引用了 `project`，Gradle 直接报
+           #   Invocation of 'project' references a Gradle script object from a
+           #   Groovy closure at execution time, which is unsupported with the
+           #   configuration cache.
+           # 这是那些工程自身的写法问题，与产物无关；关掉配置缓存即可正常出包
+           # （实测 NeoForge-26.1 由 FAIL 转为 17s 通过）。Gradle 8.x 的老工程
+           # 本就没开这个特性，加此参数对它们无影响。
+           '--no-configuration-cache']
     if project_dir.endswith('fabric') or 'fabric' + os.sep in project_dir + os.sep:
         cmd.append('-Ploom_libraries_base=https://libraries.minecraft.net/')
     start = time.time()
