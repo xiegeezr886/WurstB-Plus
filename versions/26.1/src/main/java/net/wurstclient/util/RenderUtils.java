@@ -72,12 +72,29 @@ public enum RenderUtils
 	
 	public static Vec3 getCameraPos()
 	{
-		return WurstClient.MC.gameRenderer.getMainCamera().position();
+		Camera camera = WurstClient.MC.gameRenderer.getMainCamera();
+		if(camera == null)
+			return Vec3.ZERO;
+		
+		return camera.position();
+	}
+	
+	public static Rotation getCameraRotation()
+	{
+		Camera camera = WurstClient.MC.gameRenderer.getMainCamera();
+		if(camera == null)
+			return new Rotation(0, 0);
+		
+		return new Rotation(camera.yRot(), camera.xRot());
 	}
 	
 	public static BlockPos getCameraBlockPos()
 	{
-		return BlockPos.containing(getCameraPos());
+		Camera camera = WurstClient.MC.gameRenderer.getMainCamera();
+		if(camera == null)
+			return BlockPos.ZERO;
+		
+		return camera.blockPosition();
 	}
 	
 	public static RegionPos getCameraRegion()
@@ -172,12 +189,7 @@ public enum RenderUtils
 	
 	private static Vec3 getTracerOrigin(float partialTicks)
 	{
-		Vec3 start = RotationUtils.getClientLookVec(partialTicks).scale(10);
-		if(WurstClient.MC.options
-			.getCameraType() == CameraType.THIRD_PERSON_FRONT)
-			start = start.reverse();
-		
-		return start;
+		return getCameraRotation().toLookVec().scale(10);
 	}
 	
 	public static void drawTracer(PoseStack matrices, float partialTicks,
@@ -785,12 +797,19 @@ public enum RenderUtils
 	 * Similar to {@link GuiGraphicsExtractor#fill(int, int, int, int, int)}, but uses
 	 * floating-point coordinates instead of integers.
 	 */
-	public static void fill2D(GuiGraphicsExtractor context, float x1, float y1, float x2,
-		float y2, int color)
+	public static void fill2D(GuiGraphicsExtractor context, float x1, float y1,
+		float x2, float y2, int color)
 	{
-		// Coordinates are already in GUI space (the caller projects with
-		// gui-scaled dimensions), so no manual rescaling is needed.
-		context.fill((int)x1, (int)y1, (int)x2, (int)y2, color);
+		int scale = WurstClient.MC.getWindow().getGuiScale();
+		int xs1 = (int)(x1 * scale);
+		int ys1 = (int)(y1 * scale);
+		int xs2 = (int)(x2 * scale);
+		int ys2 = (int)(y2 * scale);
+		
+		context.pose().pushMatrix();
+		context.pose().scale(1F / scale);
+		context.fill(xs1, ys1, xs2, ys2, color);
+		context.pose().popMatrix();
 	}
 	
 	/**
@@ -831,27 +850,24 @@ public enum RenderUtils
 	 * than the vanilla method, and uses a z value of 1 to ensure that lines
 	 * show up above fills.
 	 */
-	public static void drawLine2D(GuiGraphicsExtractor context, float x1, float y1,
-		float x2, float y2, int color)
+	public static void drawLine2D(GuiGraphicsExtractor context, float x1,
+		float y1, float x2, float y2, int color)
 	{
-		if(color >>> 24 == 0)
-			return;
+		int scale = WurstClient.MC.getWindow().getGuiScale();
+		float x = x1 * scale;
+		float y = y1 * scale;
+		float w = (x2 - x1) * scale;
+		float h = (y2 - y1) * scale;
+		float angle = (float)Mth.atan2(h, w);
+		int length = Math.round(Mth.sqrt(w * w + h * h));
 		
-		// Simulate a 1px line with a quad, like vanilla hLine/vLine do
-		// (the 26.x GUI pipeline only supports QUADS topology).
-		float dx = x2 - x1;
-		float dy = y2 - y1;
-		float length = (float)Math.sqrt(dx * dx + dy * dy);
-		if(length < 0.0001F)
-			return;
-		
-		float nx = -dy / length * 0.5F;
-		float ny = dx / length * 0.5F;
-		
-		// CCW order: left-top, left-bottom, right-bottom, right-top
-		float[][] quad = {{x1 - nx, y1 - ny}, {x1 + nx, y1 + ny},
-			{x2 + nx, y2 + ny}, {x2 - nx, y2 - ny}};
-		fillQuads2D(context, quad, color);
+		context.pose().pushMatrix();
+		context.pose().scale(1F / scale);
+		context.pose().translate(x, y);
+		context.pose().rotate(angle);
+		context.pose().translate(-0.5F, -0.5F);
+		context.horizontalLine(0, length - 1, 0, color);
+		context.pose().popMatrix();
 	}
 	
 	/**
@@ -860,16 +876,22 @@ public enum RenderUtils
 	 * wide instead of one scaled pixel, uses fewer draw calls than the vanilla
 	 * method, and uses a z value of 1 to ensure that lines show up above fills.
 	 */
-	public static void drawBorder2D(GuiGraphicsExtractor context, float x1, float y1,
-		float x2, float y2, int color)
+	public static void drawBorder2D(GuiGraphicsExtractor context, float x1,
+		float y1, float x2, float y2, int color)
 	{
-		if(color >>> 24 == 0)
-			return;
+		int scale = WurstClient.MC.getWindow().getGuiScale();
+		int x = (int)(x1 * scale);
+		int y = (int)(y1 * scale);
+		int w = (int)((x2 - x1) * scale);
+		int h = (int)((y2 - y1) * scale);
 		
-		drawLine2D(context, x1, y1, x2, y1, color);
-		drawLine2D(context, x2, y1, x2, y2, color);
-		drawLine2D(context, x2, y2, x1, y2, color);
-		drawLine2D(context, x1, y2, x1, y1, color);
+		context.pose().pushMatrix();
+		context.pose().scale(1F / scale);
+		context.horizontalLine(x, x + w - 1, y, color);
+		context.horizontalLine(x, x + w - 1, y + h - 1, color);
+		context.verticalLine(x, y + 1, y + h - 1, color);
+		context.verticalLine(x + w - 1, y + 1, y + h - 1, color);
+		context.pose().popMatrix();
 	}
 	
 	/**
