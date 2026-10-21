@@ -155,3 +155,6 @@ reasonix.toml
 #   gradle/gradle/   accidental duplicate wrapper directory (deleted)
 #   /libs/           empty stray directory (deleted)
 #   /baritone-api-forge-1.20_or_1.20.1.jar   never referenced by any build
+
+# Unrelated local asset pack (not part of the client build)
+/GenshinFontPack/
