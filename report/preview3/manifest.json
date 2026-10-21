@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "backend": "native",
+  "rasterEngine": "libreoffice",
+  "source": "saved",
+  "inputPath": "C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\report\\BSOD检测报告_OMEN-11_20261020.docx",
+  "sourceSha256": "acf743d69178f4b743a73192dcb7f3497baa3ec1660b1de5fb1beab9c9314be4",
+  "dpi": 120,
+  "pageCount": 7,
+  "images": [
+    {
+      "index": 1,
+      "page": 3,
+      "path": "C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\report\\preview3\\page-0001.png",
+      "width": 1020,
+      "height": 1320,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 816,
+        "height": 1056
+      },
+      "byteLength": 90228
+    },
+    {
+      "index": 2,
+      "page": 4,
+      "path": "C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\report\\preview3\\page-0002.png",
+      "width": 1020,
+      "height": 1320,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 816,
+        "height": 1056
+      },
+      "byteLength": 97801
+    }
+  ],
+  "missingFonts": [
+    "Courier"
+  ]
+}
