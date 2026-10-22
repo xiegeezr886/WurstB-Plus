@@ -81,28 +81,6 @@ distribution resolves even offline.
 
 ---
 
-## Rendering compatibility (X-Ray / Vulkan)
-
-On 2026-10-22 the X-Ray rendering path was audited per version and verified in real clients:
-
-- **Fixed in this pass:** the 6-argument `shouldRenderFace` chunk path on NeoForge 26.1–26.3 and 1.21.6–1.21.11; missing Block / Indigo culling hooks on Fabric/Forge/NeoForge 1.21.2–1.21.5; the `oreNamesCache` concurrency crash in `XRayHack`; Baritone startup/render crashes on Forge 26.2 and 1.21.4–1.21.11.
-- **X-Ray verified** (screenshots show the stone wall gone and ores/chests visible):
-  - Fabric: 1.20.2–1.20.4, 1.21.4–1.21.11, 26.1–26.3
-  - Forge: 1.21.4–1.21.5, 1.21.8–1.21.11, 26.1–26.3 (1.21.6/1.21.7 are source-covered but were not launched)
-  - NeoForge: 1.21.2–1.21.11, 26.1–26.3
-- **Vulkan (experimental, available from 26.2):** 26.2/26.3 add a `Graphics API` video setting; the default is still OpenGL. Vulkan was verified with X-Ray on Fabric/Forge 26.2 and on all three loaders for 26.3. A same-frame X-Ray + MobESP check found no world or ESP offset. **NeoForge 26.2 fails during GLFW window creation under Vulkan** (`GLFW error 65540: ... GLFW_NO_API`), which is a NeoForge 26.2 loader bug rather than a Wurst issue; use OpenGL for that combination.
-- **Still blocked:** Fabric 1.20.5 / 1.20.6 / 1.21 / 1.21.1 / 1.21.2 / 1.21.3 disconnect during configuration because the `minecraft:brand` custom payload has 14 extra bytes. This is a Fabric API/Loom environment issue unrelated to X-Ray.
-
-Enabling Vulkan (26.2/26.3 only):
-
-```powershell
-./gradlew runClient -PspWorld=xray-test -PgraphicsBackend=vulkan
-```
-
-Or in game: Options → Video Settings → Graphics API → `Prefer Vulkan (Experimental)`. Vulkan 1.2 with dynamic rendering and push descriptors is required; backend creation falls back to OpenGL automatically.
-
----
-
 ## Documentation
 
 | Document | Contents |
@@ -134,10 +112,10 @@ inventoried in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). FFmpeg is an LG
 **corresponding source** (build scripts, `COPYING.*`, the JNI shim source) ships in
 [`native/ffmpeg/`](native/ffmpeg).
 
-> **Verification scope:** the support table above reflects this round's X-Ray launches and
-> screenshots. Combinations not listed (Forge/NeoForge 1.20.x–1.21.1, Forge 1.21.3, etc.) passed
-> compilation and packaging validation but were **not launched in game** this round. Vulkan is
-> available only on 26.2/26.3, and NeoForge 26.2's Vulkan startup is blocked by a loader bug.
+> **Verification scope:** not every combination has been launched in game. Forge/NeoForge
+> 1.20.x–1.21.1, Forge 1.21.3 and other listed combinations passed compilation and packaging
+> validation but were **not launched in game** this round. Vulkan is available only on
+> 26.2/26.3, and NeoForge 26.2's Vulkan startup is blocked by a loader bug.
 > Per-version status is in the "X-Ray and Vulkan verification" section of
 > [docs/RELEASE.md](docs/RELEASE.md) and in
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md).
