@@ -103,6 +103,12 @@ public final class TunnellerHack extends Hack
 	}
 	
 	@Override
+	protected boolean canEnable()
+	{
+		return MC.player != null && MC.level != null;
+	}
+
+	@Override
 	protected void onEnable()
 	{
 		WURST.getHax().fightBotHack.setEnabled(false);
@@ -156,6 +162,9 @@ public final class TunnellerHack extends Hack
 	@Override
 	public void onUpdate()
 	{
+		if(tasks == null)
+			return;
+
 		HackList hax = WURST.getHax();
 		Hack[] incompatibleHax = {hax.autoSwitchHack, hax.autoToolHack,
 			hax.autoWalkHack, hax.blinkHack, hax.flightHack,

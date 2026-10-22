@@ -1,4 +1,4 @@
-﻿#version 330
+#version 330
 
 #moj_import <minecraft:globals.glsl>
 #moj_import <minecraft:dynamictransforms.glsl>
@@ -7,7 +7,7 @@
 in vec3 Position;
 in vec4 Color;
 in vec3 Normal;
-const float LineWidth = 2.0;
+const float WURST_LINE_WIDTH = 2.0;
 
 out vec4 vertexColor;
 
@@ -27,7 +27,7 @@ void main() {
     vec3 ndc2 = linePosEnd.xyz / linePosEnd.w;
 
     vec2 lineScreenDirection = normalize((ndc2.xy - ndc1.xy) * ScreenSize);
-    vec2 lineOffset = vec2(-lineScreenDirection.y, lineScreenDirection.x) * LineWidth / ScreenSize;
+    vec2 lineOffset = vec2(-lineScreenDirection.y, lineScreenDirection.x) * WURST_LINE_WIDTH / ScreenSize;
 
     if (lineOffset.x < 0.0) {
         lineOffset *= -1.0;

@@ -24,7 +24,8 @@ public final class NameProtectHack extends Hack
 	
 	public String protect(String string)
 	{
-		if(!isEnabled() || MC.player == null)
+		if(!isEnabled() || MC.player == null || MC.player.connection == null
+			|| MC.level == null)
 			return string;
 		
 		String me = MC.getUser().getName();

@@ -244,6 +244,9 @@ public final class TestControlServer
 					continue;
 				try
 				{
+					System.out.println("[WurstTest] "
+						+ (enable ? "enable " : "disable ")
+						+ hack.getName());
 					hack.setEnabled(enable);
 					if(hack.isEnabled() == enable)
 						changed++;
@@ -336,7 +339,7 @@ public final class TestControlServer
 				future.completeExceptionally(t);
 			}
 		});
-		return future.get(10, TimeUnit.SECONDS);
+		return future.get(120, TimeUnit.SECONDS);
 	}
 
 	private static Map<String, String> parseQuery(String rawQuery)

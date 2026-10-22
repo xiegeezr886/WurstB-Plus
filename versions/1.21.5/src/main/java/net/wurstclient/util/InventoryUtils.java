@@ -255,7 +255,10 @@ public enum InventoryUtils
 			return;
 		
 		MC.player.getInventory().setItem(slot, stack);
+		// Send a snapshot: the encoder runs on the netty thread and the
+		// inventory slot may be mutated (e.g. thrown) before it finishes.
 		MC.player.connection.send(
-			new ServerboundSetCreativeModeSlotPacket(toNetworkSlot(slot), stack));
+			new ServerboundSetCreativeModeSlotPacket(toNetworkSlot(slot),
+				stack.copy()));
 	}
 }
