@@ -41,7 +41,7 @@ public final class CriticalsHack extends Hack
 		Mode.values(), Mode.PACKET);
 
 	private final EnumSetting<PacketProfile> packetProfile = new EnumSetting<>(
-		"Packet profile", PacketProfile.values(), PacketProfile.NO_CHEAT_PLUS)
+		"Packet profile", PacketProfile.values(), PacketProfile.WURST)
 			.visibleWhen(() -> mode.getSelected() == Mode.PACKET);
 
 	private final SliderSetting jumpHeight = new SliderSetting("Jump height",
@@ -49,7 +49,7 @@ public final class CriticalsHack extends Hack
 		ValueDisplay.DECIMAL).visibleWhen(() -> mode.getSelected() == Mode.MINI_JUMP);
 
 	private final CheckboxSetting onlyReady = new CheckboxSetting(
-		"Only when ready", "Requires at least 90% attack cooldown.", true);
+		"Only when ready", "Requires at least 90% attack cooldown.", false);
 
 	private final CheckboxSetting stopSprinting = new CheckboxSetting(
 		"Stop sprinting", "Stops sprinting before spoofing a critical hit.",
@@ -147,6 +147,15 @@ public final class CriticalsHack extends Hack
 	{
 		switch(profile)
 		{
+			case WURST -> {
+				// Upstream Wurst7 1.20.1 / WurstCN packet sequence:
+				// the first packet claims onGround=true while moving up,
+				// then the server sees the player leave the ground.
+				sendOffset(0.0625, true);
+				sendOffset(0, false);
+				sendOffset(1.1E-5, false);
+				sendOffset(0, false);
+			}
 			case VANILLA -> {
 				sendOffset(0.2, false);
 				sendOffset(0.01, false);
@@ -167,6 +176,13 @@ public final class CriticalsHack extends Hack
 			}
 			case DOWN -> sendOffset(-1.0E-9, false);
 			case GRIM -> sendOffset(-0.000001, false);
+			case GRIMAC -> {
+				// LiquidBounce CriticalsPacket "Grim": only while airborne.
+				// A tiny downward nudge keeps fallDistance > 0 without
+				// tripping Grim's movement simulation.
+				if(!MC.player.onGround())
+					sendOffset(-0.000001, false);
+			}
 		}
 	}
 
@@ -213,6 +229,8 @@ public final class CriticalsHack extends Hack
 	/** 发包方案（供模式类使用，因此是 public 的嵌套枚举）。 */
 	public enum PacketProfile
 	{
+		WURST("Wurst"),
+		GRIMAC("GrimAC"),
 		VANILLA("Vanilla"),
 		NO_CHEAT_PLUS("NoCheatPlus"),
 		FALLING("Falling"),
