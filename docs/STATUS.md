@@ -49,7 +49,7 @@
 | fabric/versions/26.1.2 | Fabric | 26.1.2 |  |  | 9.6.0 | 1.5.0-Fabric-26.1.2 | net.wurstpenguin | 798 | 0 | 0 | 0/13 | yes | yes |
 | fabric/versions/26.2 | Fabric | 26.2 |  |  | 9.6.0 | 1.5.0-Fabric-26.2 | net.wurstpenguin | 802 | 0 | 0 | 0/13 | yes | yes |
 | fabric/versions/26.3 | Fabric | 26.3 |  |  | 9.6.0 | 1.5.0-Fabric-26.3 | net.wurstpenguin | 804 | 0 | 0 | 0/13 | yes | yes |
-| . | Forge | 1.20.1 | 47.4.10 | 17 | 9.7.1 | v1.6.0-Forge-1.20.1 | net.wurstpenguin | 792 | 219 | 1433 | 13/13 | yes | yes |
+| . | Forge | 1.20.1 | 47.4.10 | 17 | 8.11 | v1.6.0-Forge-1.20.1 | net.wurstpenguin | 792 | 219 | 1433 | 13/13 | yes | yes |
 | versions/1.20.2 | Forge | 1.20.2 | 48.1.0 | 17 | 8.14.4 | v1.5.0-Forge-1.20.2 | net.wurstclient | 753 | 0 | 0 | 0/13 | yes | yes |
 | versions/1.20.3 | Forge | 1.20.3 | 49.0.2 | 17 | 8.11 | v1.5.0-Forge-1.20.3 | net.wurstclient | 768 | 0 | 0 | 0/13 | yes | yes |
 | versions/1.20.4 | Forge | 1.20.4 | 49.2.0 | 17 | 8.14.4 | v1.5.0-Forge-1.20.4 | net.wurstclient | 768 | 0 | 0 | 0/13 | yes | yes |
