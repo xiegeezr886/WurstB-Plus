@@ -24,46 +24,73 @@ import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.ARGB;
-import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hacks.XRayHack;
 
 @Mixin(ModelBlockRenderer.class)
-public abstract class ModelBlockRendererMixin implements ItemLike
+public abstract class ModelBlockRendererMixin
 {
 	private static ThreadLocal<Float> currentOpacity =
 		ThreadLocal.withInitial(() -> 1F);
-	
+
 	/**
-	 * Makes X-Ray work when neither Sodium nor Indigo are running. Also gets
-	 * called while Indigo is running when breaking a block in survival mode or
-	 * seeing a piston retract.
+	 * Makes X-Ray work when neither Sodium nor Indigo are running. NeoForge's
+	 * patched renderer has both this 5-arg method and a deprecated 4-arg
+	 * variant; chunk rendering uses the 5-arg one.
+	 */
+	@WrapOperation(
+		method = "shouldRenderFace(Lnet/minecraft/client/renderer/block/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/core/BlockPos;)Z",
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"))
+	private boolean onShouldRenderFace5(BlockGetter level, BlockPos pos,
+		BlockState state, BlockState otherState, Direction side,
+		Operation<Boolean> original, BlockAndTintGetter outerLevel,
+		BlockPos outerPos, BlockState outerState, Direction outerDirection,
+		BlockPos neighborPos)
+	{
+		Boolean result = getShouldDrawSide(state, pos);
+		if(result != null)
+			return result;
+
+		return original.call(level, pos, state, otherState, side);
+	}
+
+	/**
+	 * Old 4-arg variant, kept for the remaining call paths in NeoForge's
+	 * patched renderer (e.g. moving blocks / pistons).
 	 */
 	@WrapOperation(
 		method = "shouldRenderFace(Lnet/minecraft/client/renderer/block/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/core/BlockPos;)Z",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"))
-	private boolean onShouldRenderFace(BlockState state, BlockState otherState,
+	private boolean onShouldRenderFace4(BlockState state, BlockState otherState,
 		Direction side, Operation<Boolean> original, BlockAndTintGetter world,
 		BlockState stateButFromTheOtherMethod,
 		Direction sideButFromTheOtherMethod, BlockPos neighborPos)
 	{
+		Boolean result =
+			getShouldDrawSide(state, neighborPos.relative(side.getOpposite()));
+		if(result != null)
+			return result;
+
+		return original.call(state, otherState, side);
+	}
+
+	private Boolean getShouldDrawSide(BlockState state, BlockPos pos)
+	{
 		XRayHack xray = WurstClient.INSTANCE.getHax().xRayHack;
-		BlockPos pos = neighborPos.relative(side.getOpposite());
 		Boolean shouldDrawSide = xray.shouldDrawSide(state, pos);
-		
+
 		if(!xray.isOpacityMode() || xray.isVisible(state.getBlock(), pos))
 			currentOpacity.set(1F);
 		else
 			currentOpacity.set(xray.getOpacityFloat());
-		
-		if(shouldDrawSide != null)
-			return shouldDrawSide;
-		
-		return original.call(state, otherState, side);
+
+		return shouldDrawSide;
 	}
-	
+
 	/**
 	 * Applies X-Ray's opacity mask to the block color after all the normal
 	 * coloring and shading is done, if neither Sodium nor Indigo are running.
@@ -85,10 +112,10 @@ public abstract class ModelBlockRendererMixin implements ItemLike
 					ARGB.color(Math.round(ARGB.alpha(color) * opacity),
 						ARGB.red(color), ARGB.green(color), ARGB.blue(color)));
 			}
-		
+
 		original.call(output, x, y, z, quad, instance);
 	}
-	
+
 	/**
 	 * Hides blocks like grass and snow when neither Sodium nor Indigo are
 	 * running. Wraps the second {@code getQuads} call (the one with
@@ -109,10 +136,31 @@ public abstract class ModelBlockRendererMixin implements ItemLike
 	{
 		XRayHack xray = WurstClient.INSTANCE.getHax().xRayHack;
 		Boolean shouldDrawSide = xray.shouldDrawSide(state, pos);
-		
+
 		if(Boolean.FALSE.equals(shouldDrawSide))
 			return List.of();
-		
+
+		return original.call(part, direction);
+	}
+
+	@WrapOperation(method = {
+		"tesselateFlat(Lnet/minecraft/client/renderer/block/BlockQuadOutput;FFFLjava/util/List;Lnet/minecraft/client/renderer/block/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)V",
+		"tesselateAmbientOcclusion(Lnet/minecraft/client/renderer/block/BlockQuadOutput;FFFLjava/util/List;Lnet/minecraft/client/renderer/block/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)V"},
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/client/renderer/block/dispatch/BlockStateModelPart;getQuads(Lnet/minecraft/core/Direction;)Ljava/util/List;",
+			ordinal = 0))
+	private List<BakedQuad> hideCulledQuads(BlockStateModelPart part,
+		Direction direction, Operation<List<BakedQuad>> original,
+		BlockQuadOutput output, float x, float y, float z,
+		List<BlockStateModelPart> list, BlockAndTintGetter level,
+		BlockState state, BlockPos pos)
+	{
+		XRayHack xray = WurstClient.INSTANCE.getHax().xRayHack;
+		Boolean shouldDrawSide = xray.shouldDrawSide(state, pos);
+
+		if(Boolean.FALSE.equals(shouldDrawSide))
+			return List.of();
+
 		return original.call(part, direction);
 	}
 }

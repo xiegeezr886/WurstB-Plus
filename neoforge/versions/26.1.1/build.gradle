@@ -215,3 +215,14 @@ idea {
         downloadJavadoc = true
     }
 }
+
+if(project.hasProperty("spWorld")) {
+	neoForge {
+		runs {
+			client {
+				programArguments.addAll '--quickPlaySingleplayer', project.property("spWorld")
+				programArguments.addAll '--quickPlayPath', project.property("spLog")
+			}
+		}
+	}
+}
