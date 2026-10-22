@@ -78,6 +78,45 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 验证：`enableAll` 报告 184 个启用、9 个因前置条件未启用；45 秒后 145 个保持启用，
 客户端在线，`errorsOnly` 日志为空，无崩溃/断线。
 
+### 全版本批量压测（2026-10-22）
+
+新增 `scripts/test-all-hacks.ps1`：逐个真实启动 23 个 Fabric 工程，进入 `xray-test`
+单人世界后调用 `enableAll`，settle 25–30 秒，再收集启用数与 `errorsOnly` 日志。
+17 个版本 PASS，6 个被下方已知的 Fabric API/Loom 配置阶段断线阻塞。
+
+| 结果 | 版本（启用 / 失败） |
+| --- | --- |
+| PASS | 1.20.1 (143/12)、1.20.2 (147/8)、1.20.3 (138/9)、1.20.4 (137/9)、1.21.4 (148/8)、1.21.5 (146/9)、1.21.6–1.21.10 (146/9)、1.21.11 (145/9)、26.1–26.1.2 (147/9)、26.2 (144/11)、26.3 (143/11) |
+| 阻塞 | 1.20.5、1.20.6、1.21、1.21.1、1.21.2、1.21.3：`configuration/serverbound/minecraft:custom_payload ... found 14 bytes extra`（见 RELEASE.md「已知阻塞」；1.21.3 改用 `-Online` 后构建不再失败） |
+
+本轮压测暴露并修复的运行时问题：
+
+- **Baritone 客户端线程自死锁**：Baritone 1.10.8–1.16.0（MC 1.20.5–1.21.10）的
+  `BlockOptionalMeta$ServerLevelStub` 在静态初始化时用 `Minecraft` 作为 executor 调度
+  registry 加载，随后在客户端线程 `join()` 该 future。首次 `mine()` 发生在客户端线程时
+  永久卡死（1.21.4/1.21.5 的 `enableAll` 500 即此）。`BaritoneUtils` 现在改为后台线程
+  预初始化（`isMiningReady()`），`startMining` 在就绪前直接返回、由下一次 update 重试。
+- **EasyVertexBuffer 关闭共享缓冲**（1.21.5）：`uploadImmediateVertexBuffer` 返回的是
+  `VertexFormat` 复用的 immediate buffer，`close()` 把它关掉后下一次上传抛
+  `Buffer already closed` 并把客户端带走。`close()` 不再释放该缓冲。
+- **创造模式物品栏包竞态**（1.21.5/1.21.9）：`setCreativeStack` 把同一个 `ItemStack`
+  放进背包后立即发 `ServerboundSetCreativeModeSlotPacket`，Netty 编码期间该栈可能被
+  丢弃/修改，导致服务端 `found 3 bytes extra` 并断线。现在发送 `stack.copy()` 快照。
+- **1.21.6–1.21.10 编译失败**：这些版本的 `VertexConsumer` 没有 `setLineWidth`，
+  `PlayerHaloRenderer` / `BreadcrumbsHack` 改为只写 `setNormal`（15 个工程）。
+- **1.21.9/1.21.10 `fogless_lines` 顶点着色器**：文件带 UTF-8 BOM，且
+  `const float LineWidth` 与 `dynamictransforms.glsl` 的 uniform 重名，1.21.9 起
+  管线编译失败。已去 BOM 并改用 `WURST_LINE_WIDTH`（15 个工程）。
+- **1.21.4 残留 post shader JSON**：1.21.4 起 `shaders/post/*.json` 被当作
+  `ShaderProgramConfig` 解析，旧的 chain JSON 启动即报 `No key fragment/vertex`。
+  该版本 LSD 已不加载后期效果，删除 3 个工程里的 5 个无效 JSON。
+- **测试控制口**：`onClientThread` 超时 10s → 120s（世界加载期间批量启用会超时），
+  并为每个 hack 打印 `[WurstTest] enable <name>` 以便定位卡住的位置。
+
+编译校验：Fabric 1.21.4/1.21.5/1.21.6/1.21.9 实机运行；Forge 1.21.4/1.21.6、
+NeoForge 1.21.5/1.21.9、根 NeoForge 1.20.1 `compileJava` 通过。根 Forge 1.20.1
+的 `compileJava` 仍卡在既有 ForgeGradle 反编译源码的 `slotClicked` 覆盖错误（与本次改动无关）。
+
 ---
 
 ## 未发布 — X-Ray 多版本修复与 Vulkan 支持（2026-10-22）
