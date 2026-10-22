@@ -223,7 +223,13 @@ public enum WurstClient
 				"WurstB-Shutdown"));
 		}
 		startBaritoneShutdownWatcher();
-		TestControlServer.startIfConfigured();
+		try
+		{
+			TestControlServer.startIfConfigured();
+		}catch(Throwable ignored)
+		{
+			// The test control port is optional; never break startup.
+		}
 		
 	}
 
