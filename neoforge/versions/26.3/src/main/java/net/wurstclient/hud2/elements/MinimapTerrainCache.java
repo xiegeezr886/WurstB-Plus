@@ -182,7 +182,7 @@ final class MinimapTerrainCache
 		int chunkZ)
 	{
 		return level.hasChunkAt(new BlockPos(chunkX * CHUNK_SIZE,
-			level.getMinY() * 16, chunkZ * CHUNK_SIZE));
+			level.getMinY(), chunkZ * CHUNK_SIZE));
 	}
 
 	static int chunkCoordinate(int blockCoordinate)

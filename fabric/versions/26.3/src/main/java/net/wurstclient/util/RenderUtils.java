@@ -9,13 +9,10 @@ package net.wurstclient.util;
 
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Locale;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import com.mojang.renderpearl.api.device.DeviceInfo;
-import com.mojang.renderpearl.api.device.GpuDevice;
 import com.mojang.renderpearl.backend.opengl.GlConst;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -92,28 +89,6 @@ public enum RenderUtils
 		}
 	}
 	private static SubmitNodeStorage submitNodeStorage;
-	private static boolean worldNodePass;
-	private static Boolean vulkanBackend;
-
-	public static boolean isVulkanBackend()
-	{
-		if(vulkanBackend == null)
-		{
-			boolean detected = false;
-			try
-			{
-				GpuDevice device = RenderSystem.tryGetDevice();
-				DeviceInfo info = device == null ? null : device.getDeviceInfo();
-				String name = info == null ? null : info.backendName();
-				detected = name != null
-					&& name.toLowerCase(Locale.ROOT).contains("vulkan");
-			}catch(Throwable ignored)
-			{
-			}
-			vulkanBackend = detected;
-		}
-		return vulkanBackend;
-	}
 
 	public static void setSubmitNodeStorage(SubmitNodeStorage storage)
 	{
@@ -121,46 +96,19 @@ public enum RenderUtils
 	}
 
 	/**
-	 * Vulkan compatibility: while this is active, world-space geometry is
-	 * submitted into the level's {@link SubmitNodeStorage} instead of being
-	 * drawn in a separate late render pass. The feature pass then draws it
-	 * with the same frame's model-view/projection as terrain, instead of the
-	 * late-pass state that makes ESP boxes drift like vanilla beacon beams
-	 * and sign text on the experimental Vulkan backend.
-	 */
-	public static void beginWorldNodePass()
-	{
-		worldNodePass = true;
-	}
-
-	public static void endWorldNodePass()
-	{
-		worldNodePass = false;
-	}
-
-	/**
 	 * Draws custom geometry immediately, like upstream Wurst does.
 	 *
 	 * <p>
-	 * Deliberately NOT using submitCustomGeometry at RETURN: LevelRenderer
+	 * Deliberately NOT using submitCustomGeometry: LevelRenderer.render()
 	 * executes the frame graph before returning, so nodes submitted from our
-	 * late RenderEvent miss the current frame and get drawn with stale camera
-	 * state - which shows up as ESP geometry being offset. The Vulkan path
-	 * below fires the event inside submitFeatures instead, while the storage
-	 * is still open.
+	 * RenderEvent (fired at RETURN) miss the current frame and get drawn with
+	 * stale camera state - which shows up as ESP geometry being offset.
 	 * The callback is expected to transform its vertices with the given
 	 * PoseStack, same as the draw* helpers below.
 	 */
 	public static void submit(PoseStack matrices, RenderType layer,
 		java.util.function.Consumer<VertexConsumer> renderer)
 	{
-		if(worldNodePass && submitNodeStorage != null)
-		{
-			submitNodeStorage.submitCustomGeometry(new PoseStack(), layer,
-				(pose, buffer) -> renderer.accept(buffer));
-			return;
-		}
-
 		WurstBufferSource bs = new WurstBufferSource();
 		renderer.accept(bs.getBuffer(layer));
 		bs.uploadAndDraw();
@@ -912,8 +860,8 @@ public enum RenderUtils
 		if(vertices == null || vertices.length < 4 || color >>> 24 == 0)
 			return;
 		getGuiRenderState(context)
-			.addGuiElement(new PolygonRenderState(
-			context.pose(), vertices, color));
+			.addGuiElement(new PolygonRenderState(context.pose(),
+			context.scissorStack.peek(), vertices, color));
 	}
 	/**
 	 * Submits a batch of quads (4 vertices per quad, QUADS draw mode) as a
@@ -929,8 +877,8 @@ public enum RenderUtils
 			|| quadColors.length * 4 != vertices.length)
 			return;
 		getGuiRenderState(context)
-			.addGuiElement(new QuadMeshRenderState(
-			context.pose(), vertices, quadColors));
+			.addGuiElement(new QuadMeshRenderState(context.pose(),
+			context.scissorStack.peek(), vertices, quadColors));
 	}
 
 	
@@ -1038,14 +986,16 @@ public enum RenderUtils
 		implements GuiElementRenderState
 	{
 		private final Matrix3x2fc pose;
+		private final ScreenRectangle scissor;
 		private final float[][] vertices;
 		private final int[] quadColors;
 		private final ScreenRectangle bounds;
 
-		private QuadMeshRenderState(Matrix3x2fc pose, float[][] vertices,
-			int[] quadColors)
+		private QuadMeshRenderState(Matrix3x2fc pose, ScreenRectangle scissor,
+			float[][] vertices, int[] quadColors)
 		{
 			this.pose = new Matrix3x2f(pose);
+			this.scissor = scissor;
 			this.vertices = vertices;
 			this.quadColors = quadColors;
 			int minX = Integer.MAX_VALUE;
@@ -1102,7 +1052,7 @@ public enum RenderUtils
 		@Override
 		public ScreenRectangle scissorArea()
 		{
-			return null;
+			return scissor;
 		}
 
 		@Override
@@ -1114,14 +1064,16 @@ public enum RenderUtils
 private static final class PolygonRenderState implements GuiElementRenderState
 	{
 		private final Matrix3x2fc pose;
+		private final ScreenRectangle scissor;
 		private final float[][] vertices;
 		private final int color;
 		private final ScreenRectangle bounds;
 
-		private PolygonRenderState(Matrix3x2fc pose, float[][] vertices,
-			int color)
+		private PolygonRenderState(Matrix3x2fc pose, ScreenRectangle scissor,
+			float[][] vertices, int color)
 		{
 			this.pose = new Matrix3x2f(pose);
+			this.scissor = scissor;
 			this.vertices = vertices;
 			this.color = color;
 			float[] tx = new float[4];
@@ -1173,7 +1125,7 @@ private static final class PolygonRenderState implements GuiElementRenderState
 		@Override
 		public ScreenRectangle scissorArea()
 		{
-			return null;
+			return scissor;
 		}
 
 		@Override

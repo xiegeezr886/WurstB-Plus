@@ -107,7 +107,7 @@ public enum ChunkUtils
 	{
 		int i = chunk.getHighestFilledSectionIndex();
 		if(i == -1)
-			return chunk.getMinY() * 16;
+			return chunk.getMinY();
 		
 		// ChunkAccess.getSectionYFromSectionIndex was removed in 26.1.2;
 		// section Y == minSectionY + index.

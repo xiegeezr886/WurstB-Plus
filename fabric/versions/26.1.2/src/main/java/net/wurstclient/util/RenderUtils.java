@@ -870,7 +870,7 @@ public enum RenderUtils
 			return;
 		getGuiRenderState(context)
 			.addGuiElement(new PolygonRenderState(
-			context.pose(), vertices, color));
+			context.pose(), context.scissorStack.peek(), vertices, color));
 	}
 	/**
 	 * Submits a batch of quads (4 vertices per quad, QUADS draw mode) as a
@@ -887,7 +887,7 @@ public enum RenderUtils
 			return;
 		getGuiRenderState(context)
 			.addGuiElement(new QuadMeshRenderState(
-			context.pose(), vertices, quadColors));
+			context.pose(), context.scissorStack.peek(), vertices, quadColors));
 	}
 
 	
@@ -995,14 +995,15 @@ public enum RenderUtils
 		implements GuiElementRenderState
 	{
 		private final Matrix3x2fc pose;
+		private final ScreenRectangle scissor;
 		private final float[][] vertices;
 		private final int[] quadColors;
 		private final ScreenRectangle bounds;
 
-		private QuadMeshRenderState(Matrix3x2fc pose, float[][] vertices,
-			int[] quadColors)
+		private QuadMeshRenderState(Matrix3x2fc pose, ScreenRectangle scissor, float[][] vertices, int[] quadColors)
 		{
 			this.pose = new Matrix3x2f(pose);
+			this.scissor = scissor;
 			this.vertices = vertices;
 			this.quadColors = quadColors;
 			int minX = Integer.MAX_VALUE;
@@ -1059,7 +1060,7 @@ public enum RenderUtils
 		@Override
 		public ScreenRectangle scissorArea()
 		{
-			return null;
+			return scissor;
 		}
 
 		@Override
@@ -1071,14 +1072,15 @@ public enum RenderUtils
 private static final class PolygonRenderState implements GuiElementRenderState
 	{
 		private final Matrix3x2fc pose;
+		private final ScreenRectangle scissor;
 		private final float[][] vertices;
 		private final int color;
 		private final ScreenRectangle bounds;
 
-		private PolygonRenderState(Matrix3x2fc pose, float[][] vertices,
-			int color)
+		private PolygonRenderState(Matrix3x2fc pose, ScreenRectangle scissor, float[][] vertices, int color)
 		{
 			this.pose = new Matrix3x2f(pose);
+			this.scissor = scissor;
 			this.vertices = vertices;
 			this.color = color;
 			float[] tx = new float[4];
@@ -1130,7 +1132,7 @@ private static final class PolygonRenderState implements GuiElementRenderState
 		@Override
 		public ScreenRectangle scissorArea()
 		{
-			return null;
+			return scissor;
 		}
 
 		@Override

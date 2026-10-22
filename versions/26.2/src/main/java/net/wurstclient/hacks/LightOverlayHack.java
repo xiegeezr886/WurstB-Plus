@@ -65,7 +65,7 @@ public final class LightOverlayHack extends Hack implements RenderListener
 				{
 					BlockPos pos =
 						MC.player.blockPosition().offset(x, -1, z);
-					while(pos.getY() > MC.level.getMinY() * 16
+					while(pos.getY() > MC.level.getMinY()
 						&& !MC.level.getBlockState(pos).isSolid())
 						pos = pos.below();
 
