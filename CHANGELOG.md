@@ -117,6 +117,22 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 NeoForge 1.21.5/1.21.9、根 NeoForge 1.20.1 `compileJava` 通过。根 Forge 1.20.1
 的 `compileJava` 仍卡在既有 ForgeGradle 反编译源码的 `slotClicked` 覆盖错误（与本次改动无关）。
 
+### 6 个“开发环境断线”版本的生产版复测（2026-10-22）
+
+上述 6 个版本在 `gradlew runClient` 下的断线只属于 Loom 开发环境。改用
+`.test/versions` 的真实启动器实例复测发布 JAR：
+
+- **1.20.5 / 1.20.6 / 1.21 / 1.21.1 / 1.21.2 / 1.21.3 全部进入世界并保持连接**
+  （`run-version-tests.ps1 -QuickPlayWorld xray-test` 均 PASS）。
+- **1.21.1 生产版全 hack 压测**：`enableAll` 186 启用、8 个前置条件失败；
+  120 秒后客户端仍在线，`lost connection` / `Reported exception` / 崩溃报告均为 0。
+- 1.21.3 首次启动曾无日志静默退出一次，重跑 PASS，未复现。
+
+为能构建这些版本的生产 JAR，顺带修掉两处失效的 access-widener 条目：
+1.20.5/1.20.6 的 `Entity.maxUpStep` 字段在 1.20.5 起已改为 `maxUpStep()` 方法；
+1.21.2/1.21.3 的 `GameRenderer.loadEffect(ResourceLocation)` 已不存在。两处条目在源码中
+均无引用，删除后 `validateAccessWidener` 通过。
+
 ---
 
 ## 未发布 — X-Ray 多版本修复与 Vulkan 支持（2026-10-22）
