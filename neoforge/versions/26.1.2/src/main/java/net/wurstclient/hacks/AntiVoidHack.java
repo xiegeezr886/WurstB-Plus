@@ -41,10 +41,10 @@ public final class AntiVoidHack extends Hack implements UpdateListener
 			return;
 
 		if(onlyHole.isChecked()
-			&& MC.player.getBlockY() > MC.level.getMinY() * 16 + 10)
+			&& MC.player.getBlockY() > MC.level.getMinY() + 10)
 			return;
 
-		if(MC.player.getY() < MC.level.getMinY() * 16 + 3)
+		if(MC.player.getY() < MC.level.getMinY() + 3)
 		{
 			MC.player.setDeltaMovement(0, 0.5, 0);
 			if(MC.player.getY() > -60)
