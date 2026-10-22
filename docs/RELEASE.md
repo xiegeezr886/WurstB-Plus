@@ -19,8 +19,8 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 
 **67 个工程中，66 个的 v1.5.0 产物已按当前源码重新构建**，并与留存的原 1.20.1 Forge 产物一起发布在 GitHub Release
 [**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（**共 67 个资产**，命名统一为
-`WurstB+.Plus-<版本>-<加载器>-<mc>.jar`）。每个 jar 都做过打包校验（zip 完好、含加载器元数据与 Mixin 配置、含主类），
-但**除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证**——详见[多版本平行移植](#多版本平行移植)与[验证状态](#验证状态)。
+`WurstB+.Plus-<版本>-<加载器>-<mc>.jar`）。每个 jar 都做过打包校验（zip 完好、含加载器元数据与 Mixin 配置、含主类）。
+游戏内启动验证覆盖 1.21.11 / 26.2 的六个工程，以及 2026-10-22 的 X-Ray/Vulkan 矩阵（见下节）；其余组合仍只有编译/打包校验——详见[多版本平行移植](#多版本平行移植)与[验证状态](#验证状态)。
 
 > 计数口径：**64 个工程目录** = `versions/` 20（Forge）+ `fabric/versions/` 22 + `neoforge/versions/` 22。加上 3 个 1.20.1 根工程（根目录 Forge、`neoforge/`、`fabric/`）合计 **67 个独立 Gradle 构建**，与「多加载器目录」一节的 67 一致。
 
@@ -28,6 +28,82 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 
 > **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
 > 其余 **66 个工程均为 v1.5.0 形态**，v1.6 子系统尚未移植，见「v1.6 新增子系统」。
+
+## X-Ray 与 Vulkan 验证（2026-10-22）
+
+本节记录 2026-10-22 对 X-Ray 渲染链路做的逐版本源码核对与真实客户端验证，以及 Minecraft
+26.2/26.3 的实验性 Vulkan 后端测试。
+
+### 渲染管线修复
+
+- **NeoForge 26.1–26.3、1.21.6–1.21.11**：NeoForge 补丁后的区块渲染走 6 参
+  `shouldRenderFace(BlockAndTintGetter, BlockPos, BlockState, boolean, Direction, BlockPos)`，
+  原 mixin 只覆盖 5 参旧路径，导致 X-Ray 开启后石墙仍然可见（青色像素计数会误判 PASS）。
+  已在 `xray.ModelBlockRendererMixin` / `xray.BlockModelRendererMixin` 补 6 参 wrap。
+- **Fabric/Forge/NeoForge 1.21.2–1.21.5**：这些版本缺少 `Block`/Indigo 剔除钩子。
+  已补 `Block.shouldRenderFace` 的 3 参和 5 参 hook；Fabric 另补
+  `xray.indigo.BlockRenderInfoMixin`（1.21.2/1.21.3 注入 `shouldDrawFace`，
+  1.21.4/1.21.5 注入 `shouldDrawSide`）。这些版本的 `XRayHack` 没有
+  `shouldDrawSide` 辅助方法，mixin 改为触发 `ShouldDrawSideEvent`。
+- **`XRayHack.isVisible`**：`oreNamesCache` 为空时懒初始化，修复启用 X-Ray 时区块构建线程
+  并发执行 `Collections.binarySearch(null)` 的崩溃（Forge 26.1.2/26.2 曾实测崩溃）。
+- **Baritone**：
+  - 恢复 Forge 26.2 `baritone-forge-1.18.0-26.2.jar` 丢失的
+    `MixinConfigs` / `MixinConnector` manifest 属性。
+  - 1.21.4–1.21.11 的 Baritone mixin 类版本从 65 降到 61（该环境下 Mixin 只接受到 61），
+    并从 jar 与 NeoForge 源码资源 `mixins.baritone.json` 移除 `MixinWorldRenderer`，
+    避免 `RenderPipelines` → `IRenderer.<clinit>` 强转崩溃。代价是 Baritone 路径可视化关闭。
+  - Fabric pre-26 的 Baritone mixin 仍禁用：不会因 Baritone 崩溃，但 Baritone 功能不可用。
+
+### X-Ray 启动验证矩阵（OpenGL）
+
+以下组合均启动真实客户端、进入测试石室并截图确认石墙消失：
+
+| 加载器 | 已验证版本 |
+| --- | --- |
+| Fabric | 1.20.2、1.20.3、1.20.4、1.21.4–1.21.11、26.1–26.3 |
+| Forge | 1.21.4–1.21.5、1.21.8–1.21.11、26.1–26.3（1.21.6/1.21.7 仅源码覆盖，未启动） |
+| NeoForge | 1.21.2–1.21.11、26.1–26.3 |
+
+X-Ray + MobESP 同帧检查（NeoForge 26.3、Fabric 26.2/26.3、Forge 26.2/26.3）中，
+ESP 红框与悬空猪对齐，未发现世界几何或 2D 叠加层偏移。
+
+### Vulkan（26.2/26.3）
+
+26.2 起视频设置新增 **Graphics API**：`Default`（当前等同 `Prefer OpenGL`）、
+`Prefer Vulkan (Experimental)`、`Prefer OpenGL`。Vulkan 需要 1.2 + dynamic rendering +
+push descriptors，创建失败会自动回退 OpenGL；启动崩溃会把设置改回 `Default`。
+
+测试命令（build.gradle 会追加 `--graphicsBackend vulkan`）：
+
+```powershell
+./gradlew runClient -PspWorld=xray-test -PgraphicsBackend=vulkan
+```
+
+实测环境：RTX 5070 Laptop / NVIDIA 592.19 / Vulkan 1.4.325。
+
+| 版本 | Fabric | Forge | NeoForge |
+| --- | --- | --- | --- |
+| 26.2 | X-Ray PASS，MobESP 对齐 | X-Ray PASS，MobESP 对齐 | **启动失败（加载器 bug）** |
+| 26.3 | X-Ray PASS，MobESP 对齐 | X-Ray PASS，MobESP 对齐 | X-Ray PASS，MobESP 对齐 |
+
+NeoForge 26.2 的 Vulkan 失败信息：
+
+```text
+GLFW error 65540: Vulkan: Window surface creation requires the window
+to have the client API set to GLFW_NO_API
+```
+
+把 Wurst 的 mixin 配置临时清空后仍可复现，确认是 NeoForge 26.2 的启动顺序问题
+（26.3 已修复），与本客户端无关；NeoForge 26.2 请使用 OpenGL。
+
+### 已知阻塞
+
+- **Fabric 1.20.5 / 1.20.6 / 1.21 / 1.21.1 / 1.21.2 / 1.21.3**：配置阶段断线
+  `Packet configuration/serverbound/minecraft:custom_payload ... found 14 bytes extra`。
+  首个包是 `minecraft:brand`；与 Fabric Loader 版本、Wurst 连接事件分发、
+  VanillaSpoof 均无关，属于 Fabric API/Loom 环境问题。1.21.4+ 正常。
+- Forge/NeoForge 1.20.x–1.21.1、Forge 1.21.3 本轮未做游戏内启动验证（源码钩子已覆盖）。
 
 ## 发布产物矩阵（66 个重建 + 1 个留存）
 
@@ -146,7 +222,7 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组 ID | `wurstpenguin` |
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
-| 构建状态 | **67 个工程全部产出打包 jar**，其中 66 个按当前源码重建并已上传 v1.5.0 Release（另 1 个是留存的根 Forge 1.20.1 产物）；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。除 1.21.11 / 26.2 的六个工程外均无游戏内启动验证（详见 [PORTING_TASK.md](../PORTING_TASK.md) 与 [PROJECT_INDEX.md](../PROJECT_INDEX.md)） |
+| 构建状态 | **67 个工程全部产出打包 jar**，其中 66 个按当前源码重建并已上传 v1.5.0 Release（另 1 个是留存的根 Forge 1.20.1 产物）；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。游戏内启动验证覆盖 1.21.11 / 26.2 的六个工程与 2026-10-22 的 X-Ray/Vulkan 矩阵（见「X-Ray 与 Vulkan 验证」）；其余组合无游戏内启动验证（详见 [PORTING_TASK.md](../PORTING_TASK.md) 与 [PROJECT_INDEX.md](../PROJECT_INDEX.md)） |
 | 注册 Hack | **209** 个（根工程 v1.6.0；`hacks/` 下声明 `extends Hack` 的类共 210 个，其中 `RadialMenuHack` 未注册） |
 | 注册命令 | **57** |
 | Other Feature | **18** |
@@ -870,7 +946,7 @@ Forge 1.21.11/26.2 使用 `allJar`，NeoForge 与 Fabric 使用 `build`。所有
 
 ### 尚未完成的部分
 
-- **没有任何游戏内运行验证**（1.21.11 / 26.2 的六个工程除外）：未启动客户端、未做 Mixin 应用校验。已知的运行时债务（Mixin 目标描述符不匹配、部分 1.21.6–1.21.8 姓名牌渲染调整失效、1.21.5 的 `PostEffectQueue`/`LsdHack` 降级等）逐条记在 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md) 的「剩余工作」。
+- **不在 X-Ray/Vulkan 验证矩阵内的组合没有游戏内运行验证**：1.21.11 / 26.2 的六个工程与 2026-10-22 的 X-Ray/Vulkan 矩阵（见「X-Ray 与 Vulkan 验证」）已启动客户端并检查渲染；其余组合未启动客户端、未做 Mixin 应用校验。已知的运行时债务（Mixin 目标描述符不匹配、部分 1.21.6–1.21.8 姓名牌渲染调整失效、1.21.5 的 `PostEffectQueue`/`LsdHack` 降级等）逐条记在 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md) 的「剩余工作」。
 - v1.6 子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透）在这 46 个工程中均未移植。
 - `scripts/build-all.ps1` / `run-version-tests.ps1` 的工程表仍只覆盖已发布的 15 个工程；新版本工程的批量打包目前靠 `tmp-recon/build-v1.5-release.py`（未纳入仓库，逻辑见[本地构建路径](#本地构建路径)）。
 
@@ -1096,7 +1172,7 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 
 - **46 / 46 个工程 `compileJava` 通过**；其中 34 个带测试源码的工程 `compileTestJava` 也通过，`neoforge/versions/1.21.5` 另跑通 JUnit（51 测试类 / 135 用例 / 0 失败）
 - **46 / 46 个工程打包通过**，jar 已上传 v1.5.0 Release；打包必须联网（`--offline` 会因部分 MC 依赖无本地缓存而失败），NeoForge 1.20.2–1.20.6 另需联网完成 MC 产物解压/反编译
-- 46 个新版本工程 + 14 个非根目录的原发布工程 = **60 个 jar 本轮重建**（根目录 Forge 1.20.1 的 v1.5 产物无法重建，沿用发布当时的那一个）；**没有游戏内启动验证**，也未移植 v1.6 子系统；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)
+- 46 个新版本工程 + 14 个非根目录的原发布工程 = **60 个 jar 本轮重建**（根目录 Forge 1.20.1 的 v1.5 产物无法重建，沿用发布当时的那一个）；这些工程中位于 X-Ray/Vulkan 验证矩阵内的版本已做游戏内启动验证（见「X-Ray 与 Vulkan 验证」），其余未做；v1.6 子系统仍未移植；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)
 
 打包校验口径（`tmp-recon/validate-jars.py`，61/61 通过）：zip 完好、含加载器元数据（`mods.toml` / `neoforge.mods.toml` / `fabric.mod.json`）、含 Mixin 配置（Forge/NeoForge 为 `wurst.mixins.json`，Fabric 为 `wurstpenguin.mixins.json`）、含 `net/wurstclient/WurstClient.class`、条目数 ≥ 200。
 
