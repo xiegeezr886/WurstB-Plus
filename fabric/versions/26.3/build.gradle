@@ -87,3 +87,16 @@ jar {
 		rename { "${it}_${project.base.archivesName.get()}" }
 	}
 }
+
+if(project.hasProperty("spWorld")) {
+	tasks.matching { it.name == "runClient" }.configureEach {
+		args "--quickPlaySingleplayer", project.property("spWorld")
+		args "--quickPlayPath", project.property("spLog")
+	}
+}
+
+if(project.hasProperty("graphicsBackend")) {
+    tasks.matching { it.name == "runClient" }.configureEach {
+        args "--graphicsBackend", project.property("graphicsBackend")
+    }
+}
