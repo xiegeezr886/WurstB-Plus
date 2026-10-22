@@ -790,7 +790,7 @@ public enum RenderUtils
 		if(vertices == null || vertices.length < 4 || color >>> 24 == 0)
 			return;
 		context.getRenderState().submitGuiElement(new PolygonRenderState(
-			context.pose(), vertices, color));
+			context.pose(), context.getScissorArea(), vertices, color));
 	}
 	/**
 	 * Submits a batch of quads (4 vertices per quad, QUADS draw mode) as a
@@ -806,7 +806,7 @@ public enum RenderUtils
 			|| quadColors.length * 4 != vertices.length)
 			return;
 		context.getRenderState().submitGuiElement(new QuadMeshRenderState(
-			context.pose(), vertices, quadColors));
+			context.pose(), context.getScissorArea(), vertices, quadColors));
 	}
 
 	
@@ -911,14 +911,16 @@ public enum RenderUtils
 		implements GuiElementRenderState
 	{
 		private final Matrix3x2f pose;
+		private final ScreenRectangle scissor;
 		private final float[][] vertices;
 		private final int[] quadColors;
 		private final ScreenRectangle bounds;
 
-		private QuadMeshRenderState(Matrix3x2f pose, float[][] vertices,
-			int[] quadColors)
+		private QuadMeshRenderState(Matrix3x2f pose, ScreenRectangle scissor,
+			float[][] vertices, int[] quadColors)
 		{
-			this.pose = pose;
+			this.pose = new Matrix3x2f(pose);
+			this.scissor = scissor;
 			this.vertices = vertices;
 			this.quadColors = quadColors;
 			int minX = Integer.MAX_VALUE;
@@ -975,7 +977,7 @@ public enum RenderUtils
 		@Override
 		public ScreenRectangle scissorArea()
 		{
-			return null;
+			return scissor;
 		}
 
 		@Override
@@ -987,14 +989,16 @@ public enum RenderUtils
 private static final class PolygonRenderState implements GuiElementRenderState
 	{
 		private final Matrix3x2f pose;
+		private final ScreenRectangle scissor;
 		private final float[][] vertices;
 		private final int color;
 		private final ScreenRectangle bounds;
 
-		private PolygonRenderState(Matrix3x2f pose, float[][] vertices,
-			int color)
+		private PolygonRenderState(Matrix3x2f pose, ScreenRectangle scissor,
+			float[][] vertices, int color)
 		{
-			this.pose = pose;
+			this.pose = new Matrix3x2f(pose);
+			this.scissor = scissor;
 			this.vertices = vertices;
 			this.color = color;
 			float[] tx = new float[4];
@@ -1046,7 +1050,7 @@ private static final class PolygonRenderState implements GuiElementRenderState
 		@Override
 		public ScreenRectangle scissorArea()
 		{
-			return null;
+			return scissor;
 		}
 
 		@Override

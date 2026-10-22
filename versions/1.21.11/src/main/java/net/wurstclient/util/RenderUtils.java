@@ -805,7 +805,7 @@ public enum RenderUtils
 		if(vertices == null || vertices.length < 4 || color >>> 24 == 0)
 			return;
 		context.getRenderState().submitGuiElement(new PolygonRenderState(
-			context.pose(), vertices, color));
+			context.pose(), context.getScissorArea(), vertices, color));
 	}
 	
 	/**
@@ -907,14 +907,16 @@ public enum RenderUtils
 	private static final class PolygonRenderState implements GuiElementRenderState
 	{
 		private final Matrix3x2fc pose;
+		private final ScreenRectangle scissor;
 		private final float[][] vertices;
 		private final int color;
 		private final ScreenRectangle bounds;
 
-		private PolygonRenderState(Matrix3x2fc pose, float[][] vertices,
-			int color)
+		private PolygonRenderState(Matrix3x2fc pose, ScreenRectangle scissor,
+			float[][] vertices, int color)
 		{
-			this.pose = pose;
+			this.pose = new Matrix3x2f(pose);
+			this.scissor = scissor;
 			this.vertices = vertices;
 			this.color = color;
 			float[] tx = new float[4];
@@ -966,7 +968,7 @@ public enum RenderUtils
 		@Override
 		public ScreenRectangle scissorArea()
 		{
-			return null;
+			return scissor;
 		}
 
 		@Override

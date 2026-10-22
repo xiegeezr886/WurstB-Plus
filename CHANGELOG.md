@@ -28,6 +28,12 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 - **Navigator 设置行叠字**：设置组件被拉伸到面板宽度后，长名称与右侧取值重叠
   （1.21.11 Fabric 截图复现：`Swing hand` 与 `Client-side` 叠在一起）。`ComboBoxComponent`
   现在按可用宽度截断名称；实机截图确认不再重叠。
+- **Navigator 左侧异位黑色卡片**：根因不是窗口残留，而是 1.21.6–1.21.11 的延迟 GUI
+  渲染状态（`QuadMeshRenderState` / `PolygonRenderState`）保存了**可变的 pose 引用**，
+  在 `popMatrix()` 之后才构建顶点，导致所有圆角矩形按局部坐标画到 (0,0)；同时
+  `scissorArea()` 返回 `null`，滚动区域外的控件也不会被裁剪。现改为提交时**快照矩阵**
+  并由 `GuiGraphicsExtractor` 跟踪当前 scissor。Fabric 1.21.11 实机截图确认左侧卡片消失，
+  设置控件回到面板内。覆盖 1.21.6–1.21.11 × 三加载器（18 个工程）。
 - **Navigator 残留窗口**：`NavigatorScreen` 不再调用 `ClickGui.render()`（会顺带渲染残留的
   ClickGUI 窗口），改为只渲染 popup 与 tooltip。
 - **Freecam 破坏创造飞行**：Freecam 每 tick 把 `abilities.flying` 置 false 后未恢复。
