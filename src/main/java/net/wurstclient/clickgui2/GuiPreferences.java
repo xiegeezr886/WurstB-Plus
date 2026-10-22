@@ -1,10 +1,12 @@
 package net.wurstclient.clickgui2;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.Set;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -44,6 +47,7 @@ public final class GuiPreferences
 	private boolean riseMode;
 	private int vapeLayoutVersion;
 	private String selectedFont = BUILTIN_FONT;
+	private Boolean fontPackFilesReady;
 	private boolean bundledDefaultImported;
 	private boolean bundledSceneImported;
 	private boolean targetPlayers = true;
@@ -63,6 +67,8 @@ public final class GuiPreferences
 		path = wurstFolder.resolve("gui-preferences.json");
 		fontsFolder = wurstFolder.resolve("fonts");
 		load();
+		if(!isSelectedFontAvailable())
+			selectedFont = BUILTIN_FONT;
 	}
 
 	private void load()
@@ -479,6 +485,15 @@ public final class GuiPreferences
 		return lower.endsWith(".ttf") || lower.endsWith(".otf");
 	}
 
+	private boolean isSelectedFontAvailable()
+	{
+		if(BUILTIN_FONT.equals(selectedFont))
+			return true;
+
+		Path source = fontsFolder.resolve(selectedFont).normalize();
+		return source.getParent().equals(fontsFolder.normalize())
+			&& Files.isRegularFile(source) && isFontFile(selectedFont);
+	}
 	public void selectFont(String fontName)
 	{
 		if(BUILTIN_FONT.equals(fontName))
@@ -497,6 +512,7 @@ public final class GuiPreferences
 		selectedFont = fontName;
 		save();
 		enableFontPack();
+		fontPackFilesReady = true;
 	}
 
 	private void createFontPack(Path source)
@@ -513,7 +529,7 @@ public final class GuiPreferences
 
 			JsonObject pack = new JsonObject();
 			JsonObject packInfo = new JsonObject();
-			packInfo.addProperty("pack_format", 15);
+			writePackFormat(packInfo);
 			packInfo.addProperty("description",
 				WurstClient.CLIENT_NAME + " selected GUI font");
 			pack.add("pack", packInfo);
@@ -523,7 +539,7 @@ public final class GuiPreferences
 			JsonArray providers = new JsonArray();
 			JsonObject custom = new JsonObject();
 			custom.addProperty("type", "ttf");
-			custom.addProperty("file", WurstClient.MOD_ID + ":font/selected.ttf");
+			custom.addProperty("file", WurstClient.MOD_ID + ":selected.ttf");
 			custom.addProperty("size", 11);
 			custom.addProperty("oversample", 2.0F);
 			JsonArray shift = new JsonArray();
@@ -543,6 +559,51 @@ public final class GuiPreferences
 		}
 	}
 
+	private static void writePackFormat(JsonObject packInfo)
+	{
+		try(InputStream in = GuiPreferences.class
+			.getResourceAsStream("/version.json"))
+		{
+			if(in != null)
+			{
+				JsonObject version = JsonParser.parseString(
+					new String(in.readAllBytes(), StandardCharsets.UTF_8))
+					.getAsJsonObject();
+				JsonObject packVersion = version.getAsJsonObject("pack_version");
+				if(packVersion != null)
+				{
+					if(packVersion.has("resource"))
+					{
+						packInfo.addProperty("pack_format",
+							packVersion.get("resource").getAsInt());
+						return;
+					}
+
+					if(packVersion.has("resource_major"))
+					{
+						int major = packVersion.get("resource_major").getAsInt();
+						packInfo.add("min_format", formatArray(major, 0));
+						packInfo.add("max_format",
+							formatArray(major, Integer.MAX_VALUE));
+						return;
+					}
+				}
+			}
+		}catch(Exception ignored)
+		{
+			// fall through to the legacy format
+		}
+
+		packInfo.addProperty("pack_format", 15);
+	}
+
+	private static JsonArray formatArray(int major, int minor)
+	{
+		JsonArray array = new JsonArray();
+		array.add(major);
+		array.add(minor);
+		return array;
+	}
 	private void enableFontPack()
 	{
 		Minecraft minecraft = Minecraft.getInstance();
@@ -558,11 +619,36 @@ public final class GuiPreferences
 	public Component styleText(String text)
 	{
 		Component component = Component.literal(text);
-		if(!fontEnabled || BUILTIN_FONT.equals(selectedFont))
+		if(!fontEnabled || BUILTIN_FONT.equals(selectedFont)
+			|| !isFontPackActive())
 			return component;
 		return component.copy().withStyle(style -> style.withFont(CUSTOM_FONT));
 	}
 
+	private boolean isFontPackActive()
+	{
+		if(!isFontPackFilesReady())
+			return false;
+
+		Minecraft minecraft = Minecraft.getInstance();
+		return minecraft != null
+			&& minecraft.options.resourcePacks.contains(FONT_PACK_ID);
+	}
+
+	private boolean isFontPackFilesReady()
+	{
+		if(fontPackFilesReady == null)
+		{
+			Path packFolder = Minecraft.getInstance().getResourcePackDirectory()
+				.resolve(FONT_PACK_NAME);
+			Path fontFolder = packFolder.resolve("assets")
+				.resolve(WurstClient.MOD_ID).resolve("font");
+			fontPackFilesReady = Files.isRegularFile(packFolder.resolve("pack.mcmeta"))
+				&& Files.isRegularFile(fontFolder.resolve("selected.json"))
+				&& Files.isRegularFile(fontFolder.resolve("selected.ttf"));
+		}
+		return fontPackFilesReady;
+	}
 	public enum TargetType
 	{
 		PLAYERS,
