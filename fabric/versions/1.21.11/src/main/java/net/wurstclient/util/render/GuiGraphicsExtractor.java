@@ -40,7 +40,12 @@ import net.minecraft.world.item.ItemStack;
 public final class GuiGraphicsExtractor
 {
 	private final GuiGraphics inner;
-	
+	private int scissorX1;
+	private int scissorY1;
+	private int scissorX2;
+	private int scissorY2;
+	private boolean scissorEnabled;
+
 	public GuiGraphicsExtractor(GuiGraphics inner)
 	{
 		this.inner = inner;
@@ -88,12 +93,39 @@ public final class GuiGraphicsExtractor
 	
 	public void enableScissor(int x1, int y1, int x2, int y2)
 	{
+		if(scissorEnabled)
+		{
+			x1 = Math.max(x1, scissorX1);
+			y1 = Math.max(y1, scissorY1);
+			x2 = Math.min(x2, scissorX2);
+			y2 = Math.min(y2, scissorY2);
+		}
 		inner.enableScissor(x1, y1, x2, y2);
+		scissorX1 = x1;
+		scissorY1 = y1;
+		scissorX2 = x2;
+		scissorY2 = y2;
+		scissorEnabled = true;
 	}
-	
+
 	public void disableScissor()
 	{
 		inner.disableScissor();
+		scissorEnabled = false;
+	}
+
+	/**
+	 * Current scissor in screen coordinates, or {@code null} when disabled.
+	 * Deferred GUI elements must capture this at submission time; otherwise
+	 * they draw outside the scissor after the caller has disabled it.
+	 */
+	public net.minecraft.client.gui.navigation.ScreenRectangle getScissorArea()
+	{
+		if(!scissorEnabled)
+			return null;
+		return new net.minecraft.client.gui.navigation.ScreenRectangle(scissorX1,
+			scissorY1, Math.max(0, scissorX2 - scissorX1),
+			Math.max(0, scissorY2 - scissorY1));
 	}
 	
 	public boolean containsPointInScissor(int x, int y)

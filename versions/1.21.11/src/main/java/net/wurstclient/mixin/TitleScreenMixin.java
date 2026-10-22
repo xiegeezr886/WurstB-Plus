@@ -39,7 +39,8 @@ public abstract class TitleScreenMixin extends Screen
 	private void onInit(CallbackInfo ci)
 	{
 		wurstPenguin$customMenu = WurstClient.INSTANCE.isEnabled()
-			&& !minecraft.isDemo();
+			&& !minecraft.isDemo()
+			&& WurstClient.INSTANCE.getHax().clickGuiHack.isCustomTitleScreen();
 		if(!wurstPenguin$customMenu)
 			return;
 
