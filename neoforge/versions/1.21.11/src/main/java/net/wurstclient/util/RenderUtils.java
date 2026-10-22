@@ -936,7 +936,6 @@ public enum RenderUtils
 		{
 			this.pose = new Matrix3x2f(pose);
 			this.scissor = scissor;
-			this.pose = new Matrix3x2f(pose);
 			this.vertices = vertices;
 			this.quadColors = quadColors;
 			int minX = Integer.MAX_VALUE;
@@ -1015,7 +1014,6 @@ private static final class PolygonRenderState implements GuiElementRenderState
 		{
 			this.pose = new Matrix3x2f(pose);
 			this.scissor = scissor;
-			this.pose = new Matrix3x2f(pose);
 			this.vertices = vertices;
 			this.color = color;
 			float[] tx = new float[4];
