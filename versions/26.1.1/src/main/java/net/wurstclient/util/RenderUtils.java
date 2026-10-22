@@ -818,13 +818,47 @@ public enum RenderUtils
 	 * @apiNote Due to back-face culling, quads will be invisible if their
 	 *          vertices are not supplied in counter-clockwise order.
 	 */
+	private static final java.lang.reflect.Method GET_SCISSOR_STACK;
+	private static final java.lang.reflect.Method PEEK_SCISSOR;
+
+	static
+	{
+		java.lang.reflect.Method getter = null;
+		java.lang.reflect.Method peek = null;
+		try
+		{
+			getter = GuiGraphicsExtractor.class.getMethod("getScissorStack");
+			peek = getter.getReturnType().getMethod("peek");
+			peek.setAccessible(true);
+		}catch(ReflectiveOperationException ignored)
+		{
+		}
+		GET_SCISSOR_STACK = getter;
+		PEEK_SCISSOR = peek;
+	}
+
+	private static ScreenRectangle getScissorArea(GuiGraphicsExtractor context)
+	{
+		if(GET_SCISSOR_STACK == null || PEEK_SCISSOR == null)
+			return null;
+		try
+		{
+			Object stack = GET_SCISSOR_STACK.invoke(context);
+			return stack == null ? null
+				: (ScreenRectangle)PEEK_SCISSOR.invoke(stack);
+		}catch(ReflectiveOperationException ignored)
+		{
+			return null;
+		}
+	}
+
 	public static void fillQuads2D(GuiGraphicsExtractor context, float[][] vertices,
 		int color)
 	{
 		if(vertices == null || vertices.length < 4 || color >>> 24 == 0)
 			return;
 		context.getRenderState().addGuiElement(new PolygonRenderState(
-			context.pose(), vertices, color));
+			context.pose(), getScissorArea(context), vertices, color));
 	}
 	
 	/**
@@ -929,14 +963,15 @@ public enum RenderUtils
 	private static final class PolygonRenderState implements GuiElementRenderState
 	{
 		private final Matrix3x2fc pose;
+		private final ScreenRectangle scissor;
 		private final float[][] vertices;
 		private final int color;
 		private final ScreenRectangle bounds;
 
-		private PolygonRenderState(Matrix3x2fc pose, float[][] vertices,
-			int color)
+		private PolygonRenderState(Matrix3x2fc pose, ScreenRectangle scissor, float[][] vertices, int color)
 		{
 			this.pose = new Matrix3x2f(pose);
+			this.scissor = scissor;
 			this.vertices = vertices;
 			this.color = color;
 			float[] tx = new float[4];
@@ -988,7 +1023,7 @@ public enum RenderUtils
 		@Override
 		public ScreenRectangle scissorArea()
 		{
-			return null;
+			return scissor;
 		}
 
 		@Override
