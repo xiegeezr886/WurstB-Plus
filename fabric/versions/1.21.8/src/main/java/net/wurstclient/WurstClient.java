@@ -56,6 +56,7 @@ import net.wurstclient.util.render.AsyncTextureLoader;
 import net.wurstclient.util.render.PostEffectQueue;
 import net.wurstclient.util.EntitySnapshotManager;
 import net.wurstclient.util.inventory.InventoryActionQueue;
+import net.wurstclient.util.TestControlServer;
 
 public enum WurstClient
 {
@@ -196,6 +197,7 @@ public enum WurstClient
 				"WurstB-Shutdown"));
 		}
 		startBaritoneShutdownWatcher();
+		TestControlServer.startIfConfigured();
 		
 	}
 

@@ -59,7 +59,12 @@ public enum GoogleTranslate
 	public static String translate(String text, String langFrom, String langTo)
 	{
 		String html = getHTML(text, langFrom, langTo);
+		if(html == null)
+			return null;
+
 		String translated = parseHTML(html);
+		if(translated == null)
+			return null;
 		
 		// Return null if Google Translate just returned the original text,
 		// ignoring capitalization changes, whitespace, and broken characters

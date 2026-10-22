@@ -83,9 +83,8 @@ public final class PacketLoggerHack extends Hack
 			lastReset = System.currentTimeMillis();
 		}
 
-		String msg = dir + " " + packet.getClass().getSimpleName();
-		if(showData.isChecked())
-			msg += " " + packet.toString();
-		ChatUtils.message(msg);
+		String msg = dir + " " + packet.getClass().getSimpleName()
+			+ (showData.isChecked() ? " " + packet.toString() : "");
+		MC.execute(() -> ChatUtils.message(msg));
 	}
 }
