@@ -177,7 +177,8 @@ public final class NavigatorScreen extends Screen
 		else
 			renderSettings(graphics, mouseX, mouseY, partialTicks);
 
-		WURST.getGui().render(graphics, mouseX, mouseY, partialTicks);
+		WURST.getGui().renderPopups(graphics, mouseX, mouseY);
+		WURST.getGui().renderTooltip(graphics, mouseX, mouseY);
 	}
 
 	private void renderSidebar(GuiGraphicsExtractor graphics, int mouseX, int mouseY,

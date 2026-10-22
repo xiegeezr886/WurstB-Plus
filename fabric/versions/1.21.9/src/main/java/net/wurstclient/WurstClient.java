@@ -8,9 +8,11 @@
 package net.wurstclient;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
@@ -193,11 +195,51 @@ public enum WurstClient
 			Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown,
 				"WurstB-Shutdown"));
 		}
+		startBaritoneShutdownWatcher();
 		
 	}
 
+	/**
+	 * Main returning does not end the JVM while Baritone's non-daemon workers are
+	 * alive; Minecraft 26.x then writes a shutdown-watchdog crash report after 15s.
+	 * A daemon watcher notices `running == false` during the client's own stop
+	 * sequence and interrupts the pool before post-main, so the JVM can exit.
+	 */
+	private void startBaritoneShutdownWatcher()
+	{
+		Thread watcher = new Thread(() ->
+		{
+			boolean seenRunning = false;
+			while(true)
+			{
+				try
+				{
+					Thread.sleep(250);
+				}catch(InterruptedException e)
+				{
+					return;
+				}
+				Minecraft mc = MC;
+				if(mc == null)
+					continue;
+				if(mc.isRunning())
+				{
+					seenRunning = true;
+					continue;
+				}
+				if(seenRunning)
+				{
+					shutdownBaritoneExecutor();
+					return;
+				}
+			}
+		}, "WurstB-BaritoneShutdown");
+		watcher.setDaemon(true);
+		watcher.start();
+	}
 	public void shutdown()
 	{
+		shutdownBaritoneExecutor();
 		if(discordRpcManager != null)
 			discordRpcManager.shutdown();
 		if(clientMetricsManager != null && eventManager != null)
@@ -209,6 +251,28 @@ public enum WurstClient
 		AsyncTextureLoader.shutdown();
 	}
 	
+	/**
+	 * Baritone creates a non-daemon static thread pool (baritone.Baritone.threadPool)
+	 * whose workers keep the JVM alive after the client stops. Minecraft 26.x has a
+	 * shutdown watchdog that then writes a crash report. Baritone has no public
+	 * shutdown API, so interrupt the pool reflectively; missing fields are ignored.
+	 */
+	private static void shutdownBaritoneExecutor()
+	{
+		try
+		{
+			Class<?> baritone = Class.forName("baritone.Baritone");
+			Field field = baritone.getDeclaredField("threadPool");
+			field.setAccessible(true);
+			Object pool = field.get(null);
+			if(pool instanceof ExecutorService executor)
+				executor.shutdownNow();
+		}catch(Throwable ignored)
+		{
+			// Baritone not present or its internal layout changed.
+		}
+	}
+
 	private Path createWurstFolder()
 	{
 		Path dotMinecraftFolder = MC.gameDirectory.toPath().normalize();
