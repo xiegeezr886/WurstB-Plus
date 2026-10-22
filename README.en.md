@@ -87,7 +87,7 @@ distribution resolves even offline.
 | --- | --- |
 | [CHANGELOG.md](CHANGELOG.md) | Version history, including known limitations and deviations |
 | [PROJECT_INDEX.md](PROJECT_INDEX.md) | Per-project index: toolchain, source file count, entry classes, artifact names |
-| [docs/RELEASE.md](docs/RELEASE.md) | **Release and maintenance handbook** (the original README): **feature documentation** (new subsystems, the new-hack inventory, HUD elements, refactored internals, architecture), **installation**, **building and running**, artifact matrix, packaging validation, verification status |
+| [docs/RELEASE.md](docs/RELEASE.md) | **Release and maintenance handbook** (the original README): **feature documentation** (new subsystems, the new-hack inventory, HUD elements, refactored internals, architecture), **installation**, **building and running**, artifact matrix, packaging validation, verification status, **rendering compatibility (X-Ray / Vulkan)** |
 | [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) | Porting plan and per-version status for the new-version projects |
 | [docs/PORTING-1.21.11-26.2.md](docs/PORTING-1.21.11-26.2.md) | Render pipeline and porting notes for 1.21.11 / 26.2 |
 | [PORTING_TASK.md](PORTING_TASK.md) | Porting tasks and open items |
@@ -116,7 +116,7 @@ inventoried in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). FFmpeg is an LG
 > 1.20.x–1.21.1, Forge 1.21.3 and other listed combinations passed compilation and packaging
 > validation but were **not launched in game** this round. Vulkan is available only on
 > 26.2/26.3, and NeoForge 26.2's Vulkan startup is blocked by a loader bug.
-> Per-version status is in the "X-Ray and Vulkan verification" section of
+> Per-version status is in the "Rendering compatibility (X-Ray / Vulkan)" section of
 > [docs/RELEASE.md](docs/RELEASE.md) and in
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md).
 
