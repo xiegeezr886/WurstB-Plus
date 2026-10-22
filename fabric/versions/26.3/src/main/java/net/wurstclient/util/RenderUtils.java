@@ -9,10 +9,13 @@ package net.wurstclient.util;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Locale;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import com.mojang.renderpearl.api.device.DeviceInfo;
+import com.mojang.renderpearl.api.device.GpuDevice;
 import com.mojang.renderpearl.backend.opengl.GlConst;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -88,27 +91,76 @@ public enum RenderUtils
 				"Failed to read GuiGraphicsExtractor.guiRenderState", e);
 		}
 	}
-		private static SubmitNodeStorage submitNodeStorage;
-	
+	private static SubmitNodeStorage submitNodeStorage;
+	private static boolean worldNodePass;
+	private static Boolean vulkanBackend;
+
+	public static boolean isVulkanBackend()
+	{
+		if(vulkanBackend == null)
+		{
+			boolean detected = false;
+			try
+			{
+				GpuDevice device = RenderSystem.tryGetDevice();
+				DeviceInfo info = device == null ? null : device.getDeviceInfo();
+				String name = info == null ? null : info.backendName();
+				detected = name != null
+					&& name.toLowerCase(Locale.ROOT).contains("vulkan");
+			}catch(Throwable ignored)
+			{
+			}
+			vulkanBackend = detected;
+		}
+		return vulkanBackend;
+	}
+
 	public static void setSubmitNodeStorage(SubmitNodeStorage storage)
 	{
 		submitNodeStorage = storage;
 	}
-	
+
+	/**
+	 * Vulkan compatibility: while this is active, world-space geometry is
+	 * submitted into the level's {@link SubmitNodeStorage} instead of being
+	 * drawn in a separate late render pass. The feature pass then draws it
+	 * with the same frame's model-view/projection as terrain, instead of the
+	 * late-pass state that makes ESP boxes drift like vanilla beacon beams
+	 * and sign text on the experimental Vulkan backend.
+	 */
+	public static void beginWorldNodePass()
+	{
+		worldNodePass = true;
+	}
+
+	public static void endWorldNodePass()
+	{
+		worldNodePass = false;
+	}
+
 	/**
 	 * Draws custom geometry immediately, like upstream Wurst does.
 	 *
 	 * <p>
-	 * Deliberately NOT using submitCustomGeometry: LevelRenderer.render()
+	 * Deliberately NOT using submitCustomGeometry at RETURN: LevelRenderer
 	 * executes the frame graph before returning, so nodes submitted from our
-	 * RenderEvent (fired at RETURN) miss the current frame and get drawn with
-	 * stale camera state - which shows up as ESP geometry being offset.
+	 * late RenderEvent miss the current frame and get drawn with stale camera
+	 * state - which shows up as ESP geometry being offset. The Vulkan path
+	 * below fires the event inside submitFeatures instead, while the storage
+	 * is still open.
 	 * The callback is expected to transform its vertices with the given
 	 * PoseStack, same as the draw* helpers below.
 	 */
 	public static void submit(PoseStack matrices, RenderType layer,
 		java.util.function.Consumer<VertexConsumer> renderer)
 	{
+		if(worldNodePass && submitNodeStorage != null)
+		{
+			submitNodeStorage.submitCustomGeometry(new PoseStack(), layer,
+				(pose, buffer) -> renderer.accept(buffer));
+			return;
+		}
+
 		WurstBufferSource bs = new WurstBufferSource();
 		renderer.accept(bs.getBuffer(layer));
 		bs.uploadAndDraw();
