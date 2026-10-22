@@ -124,7 +124,7 @@ public final class BreadcrumbsHack extends Hack
 					float len = Math.max(1.0E-4F,
 						(float)Math.sqrt(nx * nx + ny * ny + nz * nz));
 					buf.addVertex(matrix, x, y, z).setColor(r, g, b, alpha)
-						.setNormal(nx / len, ny / len, nz / len).setLineWidth(2);
+						.setNormal(nx / len, ny / len, nz / len);
 				}
 			});
 	}
