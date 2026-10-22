@@ -43,6 +43,10 @@ jobs:
         shell: pwsh
         run: ./scripts/generate-status.ps1 -Check
 
+      - name: 许可完整性闸门
+        shell: pwsh
+        run: ./scripts/check-licenses.ps1 -Quiet
+
   compile:
     name: 根工程 compileJava
     runs-on: ubuntu-latest
