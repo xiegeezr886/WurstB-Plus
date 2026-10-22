@@ -275,7 +275,8 @@ public final class NavigatorScreen extends Screen
 			renderModules(graphics, renderingFeatures, renderingCategory == 0,
 				localMouseX, localMouseY, partialTicks, clip);
 		renderCategoryTransition(graphics);
-		WURST.getGui().render(graphics, localMouseX, localMouseY, partialTicks);
+		WURST.getGui().renderPopups(graphics, localMouseX, localMouseY);
+		WURST.getGui().renderTooltip(graphics, localMouseX, localMouseY);
 		graphics.disableScissor();
 		graphics.flush();
 		RenderSystem.setShaderColor(1, 1, 1, 1);
