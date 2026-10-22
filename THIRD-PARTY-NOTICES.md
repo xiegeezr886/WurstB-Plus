@@ -126,7 +126,7 @@ MIT 与项目的 GPL-3.0-or-later 兼容；MIT 要求保留版权与许可声明
 | --- | --- | --- | --- |
 | **FFmpeg**（`assets/wurst/ffmpeg/` 下 7 个 DLL） | **LGPL-2.1**（随包提供 `copying-lgplv2.1.txt` + `license-ffmpeg.txt`） | **[native/ffmpeg/](native/ffmpeg/)**：`build-ffmpeg.sh`、`build-shim.sh`、`COPYING.GPLv2/GPLv3/LGPLv2.1/LGPLv3`、`src/vf_ffmpeg_jni.c` | ✅ **已修复**（此前从未入库） |
 | **Skiko**（`assets/wurst/skiko/skiko-windows-x64.dll` + `icudtl.dat`） | **Apache-2.0** | 上游 JetBrains Skiko | ✅ 已入库 |
-| **Baritone**（各工程内嵌 / `baritone-maven/`） | ⚠ 见上 | 上游 | ⚠ 待补声明 |
+| **Baritone**（各工程内嵌 / `baritone-maven/`） | **LGPL-3.0** | 上游 | ✅ 已补（67/67 工程随包分发许可正文，见下） |
 
 > **FFmpeg 说明**：这是本次审计中唯一一处**实质性合规缺口**。`CHANGELOG.md` 曾声称
 > "可复现的 FFmpeg 构建脚本与 JNI shim 源码在仓库的 `native/ffmpeg/` 下（对应源码提供）"，
@@ -234,6 +234,52 @@ SHA-256）与许可正文。
 （`-Deep` 时）每个条目的 CRC；不通过就以非零码退出并提示"删掉重新构建，不要发布"。
 已双向验证：对完好的 3 个产物报通过（exit 0），对人为截断的副本报出
 「缺少 EOCD —— 写入被中途打断」（exit 1）。
+
+## 六、66 个非根工程的许可补齐（2026-10-22）
+
+此前只有根工程（Forge 1.20.1）带完整的 `META-INF/licenses/`（19 个组件）；
+其余 **66 个工程只有 `cozyui`**，尽管它们实际都内嵌了 Baritone、Netty ×2 与
+Java-WebSocket（NeoForge 根工程还内嵌了 MixinExtras），发布产物里没有对应许可文本。
+
+本轮为每个非根工程写入了其**实际内嵌**的组件目录：
+
+| 工程类型 | 补入的许可目录 |
+| --- | --- |
+| Fabric（23） | `baritone-api-fabric`、`netty-codec-socks`、`netty-handler-proxy`、`Java-WebSocket` |
+| Forge 版本（20） | `baritone-forge`（1.21 / 1.21.1 为 `baritone-api-forge`）、`netty-codec-socks`、`netty-handler-proxy`、`Java-WebSocket`；1.20.2 / 1.20.3 / 1.20.4 / 1.20.6 / 1.21 / 1.21.1 另含 `mixinextras-forge` |
+| NeoForge 版本（22） | `baritone-neoforge`（1.20.2–1.21.1 为 `baritone-api-neoforge` 本地 jar）、`netty-codec-socks`、`netty-handler-proxy`、`Java-WebSocket` |
+| NeoForge 根工程（1） | 上述四项 + `mixinextras-forge` |
+
+每个目录包含许可正文与 `ATTRIBUTION.txt`（写明许可、SPDX、证据出处与文本 SHA-256）。
+Baritone 的版本号**逐工程不同**，`ATTRIBUTION.txt` 不写死版本，而是指向该工程
+`build.gradle` 中的 `baritone:*` 坐标，避免版本漂移后声明失真。
+
+`baritone-maven/` 下的 jar 本身**仍不含许可条目**；许可文本随使用它们的
+工程产物分发，仓库内 67 个工程的资源目录是权威来源。上游 `cabaletta/baritone`
+的 LICENSE 为 LGPL-3.0-only。
+
+### ⚠ 新发现：nether-pathfinder 上游没有许可
+
+Baritone 内嵌了 `dev.babbaj:nether-pathfinder`（Fabric 产物里是
+`META-INF/jars/nether-pathfinder-1.4.1.jar` / `1.6.jar`，Forge/NeoForge 产物里是
+shaded 的 `dev/babbaj/pathfinder/*` 类）。上游 <https://github.com/babbaj/nether-pathfinder>
+**没有任何 LICENSE / COPYING / NOTICE 文件**，GitHub API 的 `license` 字段为 `null`
+（2026-10-22 核实）。
+
+这意味着**这 60 个工程实际分发了无许可授权的代码**。本轮已为这 60 个工程写入
+`META-INF/licenses/nether-pathfinder/ATTRIBUTION.txt`，如实记录"上游未声明许可"，
+**没有伪造许可文本**。发布前必须三选一：
+
+1. 取得作者书面授权；
+2. 替换掉该组件；
+3. 不再分发内嵌它的 Baritone 构建。
+
+受影响工程共 **63 个**：Forge 19 个、Fabric 23 个、NeoForge 21 个
+（根 Forge 1.20.1 与 NeoForge 1.21.4 等少数工程未分发该组件）。
+该结论由 `scripts/check-licenses.ps1` 直接读取 Baritone jar 的内嵌条目/遮蔽类核实，
+不是按版本号推断。
+
+> **未包含在本轮**：SF Pro Rounded 字体的授权问题（见第四节），仍待决策。
 
 **仍有一处局限**：`jaudiotagger` 的**版本号是推断的**
 URL 指向 LGPL-3.0，已在它的 ATTRIBUTION 里注明；(2) **只在 `-dev.jar` 里验证过**
