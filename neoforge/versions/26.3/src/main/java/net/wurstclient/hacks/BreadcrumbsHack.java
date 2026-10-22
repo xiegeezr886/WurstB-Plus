@@ -116,8 +116,15 @@ public final class BreadcrumbsHack extends Hack
 					float x = (float)(point.x - cam.x);
 					float y = (float)(point.y - cam.y + 0.1);
 					float z = (float)(point.z - cam.z);
+					Vec3 prev = points.get(Math.max(0, i - 1));
+					Vec3 next = points.get(Math.min(points.size() - 1, i + 1));
+					float nx = (float)(next.x - prev.x);
+					float ny = (float)(next.y - prev.y);
+					float nz = (float)(next.z - prev.z);
+					float len = Math.max(1.0E-4F,
+						(float)Math.sqrt(nx * nx + ny * ny + nz * nz));
 					buf.addVertex(matrix, x, y, z).setColor(r, g, b, alpha)
-						;
+						.setNormal(nx / len, ny / len, nz / len).setLineWidth(2);
 				}
 			});
 	}
