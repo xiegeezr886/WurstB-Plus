@@ -116,6 +116,11 @@ public final class MultiAuraHack extends Hack
 
 	private final SliderSetting hurtTime = new SliderSetting("Hurt time", 10,
 		0, 10, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
+	private final CheckboxSetting hitSelect = new CheckboxSetting("Hit select",
+		"Only attacks when the hit can actually land: waits for the target to leave"
+			+ " its invulnerability window (latency-aware), or attacks immediately"
+			+ " while you are in your own hurt window (trading).",
+		true);
 	private final SliderSetting maxTargets = new SliderSetting("Target limit",
 		0, 0, 50, 1, ValueDisplay.INTEGER.withLabel(0, "unlimited"));
 	private final EnumSetting<TargetPriority> priority = new EnumSetting<>(
@@ -254,6 +259,9 @@ public final class MultiAuraHack extends Hack
 	private float rolledRange = -1;
 	private int rangeRollCounter;
 
+	/** 轮转攻击的目标游标，见 {@link #nextRoundRobinTarget(List)}。 */
+	private int roundRobinIndex;
+
 	public MultiAuraHack()
 	{
 		super("MultiAura");
@@ -272,6 +280,7 @@ public final class MultiAuraHack extends Hack
 		addSetting(maximumCooldown);
 		addSetting(ignoreCooldownWhenExitingRange);
 		addSetting(hurtTime);
+		addSetting(hitSelect);
 		addSetting(maxTargets);
 		addSetting(priority);
 		addSetting(fov);
@@ -326,6 +335,7 @@ public final class MultiAuraHack extends Hack
 	protected void onEnable()
 	{
 		clearTargets();
+		roundRobinIndex = 0;
 		clickScheduler.reset(minCps.getValueI(), maxCps.getValueI(),
 			clickPattern.getSelected(), minimumCooldown.getValueF(),
 			maximumCooldown.getValueF(), System.currentTimeMillis());
@@ -475,18 +485,18 @@ public final class MultiAuraHack extends Hack
 				sendFullRotation(attackRotation);
 
 			List<Entity> freshTargets = collectAttackTargets();
+			Entity attackTarget = nextRoundRobinTarget(freshTargets);
 			boolean attacked = false;
-			for(Entity entity : freshTargets)
+			if(attackTarget != null)
 			{
-				if(!isValidAttackTarget(entity))
-					continue;
 				boolean wasSprinting = MC.player.isSprinting();
-				swingHand.swing(InteractionHand.MAIN_HAND);
-				MC.gameMode.attack(MC.player, entity);
+				MC.gameMode.attack(MC.player, attackTarget);
 				if(keepSprint.isChecked() && wasSprinting)
 					restoreSprint();
 				attacked = true;
 			}
+			if(attacked)
+				swingHand.swing(InteractionHand.MAIN_HAND);
 
 			if(onTick)
 				sendFullRotation(
@@ -519,6 +529,35 @@ public final class MultiAuraHack extends Hack
 			swingHand.swing(InteractionHand.MAIN_HAND);
 			clickScheduler.recordSuccessfulClick(now);
 		}
+	}
+
+	private Entity nextRoundRobinTarget(List<Entity> targets)
+	{
+		int index = CombatActionPolicy.findNextEligibleIndex(roundRobinIndex,
+			targets.size(), i -> isValidAttackTarget(targets.get(i))
+				&& isHitSelectWindowOpen(targets.get(i)));
+		if(index < 0)
+			return null;
+
+		roundRobinIndex = index + 1;
+		return targets.get(index);
+	}
+
+	private boolean isHitSelectWindowOpen(Entity target)
+	{
+		if(!hitSelect.isChecked() || !(target instanceof LivingEntity living))
+			return true;
+
+		return CombatActionPolicy.isHitSelectWindowOpen(living.hurtTime,
+			getLatencyTicks(), MC.player.hurtTime);
+	}
+
+	private int getLatencyTicks()
+	{
+		if(MC.getConnection() == null || MC.player == null)
+			return 0;
+		var info = MC.getConnection().getPlayerInfo(MC.player.getUUID());
+		return info == null ? 0 : info.getLatency() / 50;
 	}
 
 	private Entity selectPrimaryTarget()

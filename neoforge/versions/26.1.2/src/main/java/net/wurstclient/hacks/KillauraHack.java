@@ -121,11 +121,16 @@ public final class KillauraHack extends Hack
 		"Prioritize target type", "Orders players before hostile and neutral mobs.",
 		true);
 	private final EnumSetting<Priority> priority = new EnumSetting<>("Priority",
-		Priority.values(), Priority.HEALTH);
+		Priority.values(), Priority.ANGLE);
 	private final SliderSetting fov = new SliderSetting("FOV", 180, 0, 180,
 		5, ValueDisplay.DEGREES);
 	private final SliderSetting hurtTime = new SliderSetting("Hurt time", 10,
 		0, 10, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
+	private final CheckboxSetting hitSelect = new CheckboxSetting("Hit select",
+		"Only attacks when the hit can actually land: waits for the target to leave"
+			+ " its invulnerability window (latency-aware), or attacks immediately"
+			+ " while you are in your own hurt window (trading).",
+		true);
 	private final AimAtSetting aimAt = new AimAtSetting(
 		"Preferred point used by the sampled hit-box point tracker.");
 	private final SliderSetting targetPrediction = new SliderSetting(
@@ -267,6 +272,7 @@ public final class KillauraHack extends Hack
 		addSetting(priority);
 		addSetting(fov);
 		addSetting(hurtTime);
+		addSetting(hitSelect);
 		addSetting(aimAt);
 		addSetting(targetPrediction);
 		addSetting(selfPrediction);
@@ -470,8 +476,8 @@ public final class KillauraHack extends Hack
 			}
 
 			boolean wasSprinting = MC.player.isSprinting();
-			swingHand.swing(InteractionHand.MAIN_HAND);
 			MC.gameMode.attack(MC.player, attackTarget);
+			swingHand.swing(InteractionHand.MAIN_HAND);
 			if(keepSprint.isChecked() && wasSprinting
 				&& !shouldBlockSprinting())
 				restoreSprint();
@@ -583,9 +589,28 @@ public final class KillauraHack extends Hack
 		return !pauseWhileMining.isChecked() || !MC.gameMode.isDestroying();
 	}
 
+	private boolean isHitSelectWindowOpen(Entity target)
+	{
+		if(!hitSelect.isChecked() || !(target instanceof LivingEntity living))
+			return true;
+
+		return CombatActionPolicy.isHitSelectWindowOpen(living.hurtTime,
+			getLatencyTicks(), MC.player.hurtTime);
+	}
+
+	private int getLatencyTicks()
+	{
+		if(MC.getConnection() == null || MC.player == null)
+			return 0;
+		var info = MC.getConnection().getPlayerInfo(MC.player.getUUID());
+		return info == null ? 0 : info.getLatency() / 50;
+	}
+
 	private boolean canAttackNow(Entity target)
 	{
 		if(target == null || !criticalsSelection.getSelected().allowsAttack(target))
+			return false;
+		if(!isHitSelectWindowOpen(target))
 			return false;
 		return !isInventoryOpen() || ignoreOpenInventory.isChecked()
 			|| simulateInventoryClosing.isChecked();
