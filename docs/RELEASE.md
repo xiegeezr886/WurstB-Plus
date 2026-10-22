@@ -29,7 +29,7 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 > **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
 > 其余 **66 个工程均为 v1.5.0 形态**，v1.6 子系统尚未移植，见「v1.6 新增子系统」。
 
-## X-Ray 与 Vulkan 验证（2026-10-22）
+## 渲染兼容性（X-Ray / Vulkan）
 
 本节记录 2026-10-22 对 X-Ray 渲染链路做的逐版本源码核对与真实客户端验证，以及 Minecraft
 26.2/26.3 的实验性 Vulkan 后端测试。
@@ -222,7 +222,7 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组 ID | `wurstpenguin` |
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
-| 构建状态 | **67 个工程全部产出打包 jar**，其中 66 个按当前源码重建并已上传 v1.5.0 Release（另 1 个是留存的根 Forge 1.20.1 产物）；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。游戏内启动验证覆盖 1.21.11 / 26.2 的六个工程与 2026-10-22 的 X-Ray/Vulkan 矩阵（见「X-Ray 与 Vulkan 验证」）；其余组合无游戏内启动验证（详见 [PORTING_TASK.md](../PORTING_TASK.md) 与 [PROJECT_INDEX.md](../PROJECT_INDEX.md)） |
+| 构建状态 | **67 个工程全部产出打包 jar**，其中 66 个按当前源码重建并已上传 v1.5.0 Release（另 1 个是留存的根 Forge 1.20.1 产物）；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。游戏内启动验证覆盖 1.21.11 / 26.2 的六个工程与 2026-10-22 的 X-Ray/Vulkan 矩阵（见「渲染兼容性（X-Ray / Vulkan）」）；其余组合无游戏内启动验证（详见 [PORTING_TASK.md](../PORTING_TASK.md) 与 [PROJECT_INDEX.md](../PROJECT_INDEX.md)） |
 | 注册 Hack | **209** 个（根工程 v1.6.0；`hacks/` 下声明 `extends Hack` 的类共 210 个，其中 `RadialMenuHack` 未注册） |
 | 注册命令 | **57** |
 | Other Feature | **18** |
@@ -946,7 +946,7 @@ Forge 1.21.11/26.2 使用 `allJar`，NeoForge 与 Fabric 使用 `build`。所有
 
 ### 尚未完成的部分
 
-- **不在 X-Ray/Vulkan 验证矩阵内的组合没有游戏内运行验证**：1.21.11 / 26.2 的六个工程与 2026-10-22 的 X-Ray/Vulkan 矩阵（见「X-Ray 与 Vulkan 验证」）已启动客户端并检查渲染；其余组合未启动客户端、未做 Mixin 应用校验。已知的运行时债务（Mixin 目标描述符不匹配、部分 1.21.6–1.21.8 姓名牌渲染调整失效、1.21.5 的 `PostEffectQueue`/`LsdHack` 降级等）逐条记在 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md) 的「剩余工作」。
+- **不在 X-Ray/Vulkan 验证矩阵内的组合没有游戏内运行验证**：1.21.11 / 26.2 的六个工程与 2026-10-22 的 X-Ray/Vulkan 矩阵（见「渲染兼容性（X-Ray / Vulkan）」）已启动客户端并检查渲染；其余组合未启动客户端、未做 Mixin 应用校验。已知的运行时债务（Mixin 目标描述符不匹配、部分 1.21.6–1.21.8 姓名牌渲染调整失效、1.21.5 的 `PostEffectQueue`/`LsdHack` 降级等）逐条记在 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md) 的「剩余工作」。
 - v1.6 子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透）在这 46 个工程中均未移植。
 - `scripts/build-all.ps1` / `run-version-tests.ps1` 的工程表仍只覆盖已发布的 15 个工程；新版本工程的批量打包目前靠 `tmp-recon/build-v1.5-release.py`（未纳入仓库，逻辑见[本地构建路径](#本地构建路径)）。
 
@@ -1172,7 +1172,7 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 
 - **46 / 46 个工程 `compileJava` 通过**；其中 34 个带测试源码的工程 `compileTestJava` 也通过，`neoforge/versions/1.21.5` 另跑通 JUnit（51 测试类 / 135 用例 / 0 失败）
 - **46 / 46 个工程打包通过**，jar 已上传 v1.5.0 Release；打包必须联网（`--offline` 会因部分 MC 依赖无本地缓存而失败），NeoForge 1.20.2–1.20.6 另需联网完成 MC 产物解压/反编译
-- 46 个新版本工程 + 14 个非根目录的原发布工程 = **60 个 jar 本轮重建**（根目录 Forge 1.20.1 的 v1.5 产物无法重建，沿用发布当时的那一个）；这些工程中位于 X-Ray/Vulkan 验证矩阵内的版本已做游戏内启动验证（见「X-Ray 与 Vulkan 验证」），其余未做；v1.6 子系统仍未移植；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)
+- 46 个新版本工程 + 14 个非根目录的原发布工程 = **60 个 jar 本轮重建**（根目录 Forge 1.20.1 的 v1.5 产物无法重建，沿用发布当时的那一个）；这些工程中位于 X-Ray/Vulkan 验证矩阵内的版本已做游戏内启动验证（见「渲染兼容性（X-Ray / Vulkan）」），其余未做；v1.6 子系统仍未移植；运行时债务逐条见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)
 
 打包校验口径（`tmp-recon/validate-jars.py`，61/61 通过）：zip 完好、含加载器元数据（`mods.toml` / `neoforge.mods.toml` / `fabric.mod.json`）、含 Mixin 配置（Forge/NeoForge 为 `wurst.mixins.json`，Fabric 为 `wurstpenguin.mixins.json`）、含 `net/wurstclient/WurstClient.class`、条目数 ≥ 200。
 
