@@ -119,10 +119,15 @@ public final class PlayerHaloRenderer
 		{
 			double angle1 = Math.PI * 2 * i / SEGMENTS;
 			double angle2 = Math.PI * 2 * (i + 1) / SEGMENTS;
-			addVertex(buffer, matrix, center, radius, angle1, red, green, blue,
-				0.95F);
-			addVertex(buffer, matrix, center, radius, angle2, red, green, blue,
-				0.95F);
+			double dx = Math.cos(angle2) - Math.cos(angle1);
+			double dz = Math.sin(angle2) - Math.sin(angle1);
+			double len = Math.sqrt(dx * dx + dz * dz);
+			float nx = (float)(dx / len);
+			float nz = (float)(dz / len);
+			addLineVertex(buffer, matrix, center, radius, angle1, red, green,
+				blue, nx, nz);
+			addLineVertex(buffer, matrix, center, radius, angle2, red, green,
+				blue, nx, nz);
 		}
 	}
 
@@ -134,5 +139,15 @@ public final class PlayerHaloRenderer
 			(float)(center.x + Math.cos(angle) * radius), (float)center.y,
 			(float)(center.z + Math.sin(angle) * radius))
 			.setColor(red, green, blue, alpha);
+	}
+	private static void addLineVertex(VertexConsumer buffer, Matrix4f matrix,
+		Vec3 center, double radius, double angle, float red, float green,
+		float blue, float nx, float nz)
+	{
+		buffer.addVertex(matrix,
+			(float)(center.x + Math.cos(angle) * radius), (float)center.y,
+			(float)(center.z + Math.sin(angle) * radius))
+			.setColor(red, green, blue, 0.95F).setNormal(nx, 0, nz)
+			.setLineWidth(2);
 	}
 }
