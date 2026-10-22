@@ -159,7 +159,8 @@ public final class EasyVertexBuffer implements AutoCloseable
 	@Override
 	public void close()
 	{
-		if(vertexBuffer != null)
-			vertexBuffer.close();
+		// The immediate vertex buffer is owned by VertexFormat's upload cache
+		// and reused by the next upload. Closing it here would make the next
+		// upload fail with "Buffer already closed".
 	}
 }

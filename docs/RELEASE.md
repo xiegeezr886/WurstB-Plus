@@ -103,6 +103,10 @@ to have the client API set to GLFW_NO_API
   `Packet configuration/serverbound/minecraft:custom_payload ... found 14 bytes extra`。
   首个包是 `minecraft:brand`；与 Fabric Loader 版本、Wurst 连接事件分发、
   VanillaSpoof 均无关，属于 Fabric API/Loom 环境问题。1.21.4+ 正常。
+  2026-10-22 复核：抓包确认客户端发出的 brand 包本身格式正确
+  （`0f minecraft:brand 06 fabric`），1.21.3 改用联网构建后编译通过、仍在配置阶段被同一问题断开。
+  该阻塞只影响 Loom 开发环境；生产 JAR 不受影响，但本仓库暂无这 6 个版本的
+  生产实例可做游戏内复测。
 - Forge/NeoForge 1.20.x–1.21.1、Forge 1.21.3 本轮未做游戏内启动验证（源码钩子已覆盖）。
 
 ## 发布产物矩阵（66 个重建 + 1 个留存）
@@ -1119,6 +1123,22 @@ powershell -ExecutionPolicy Bypass -File scripts\upgrade-lwjgl.ps1 `
 - 若日后重新导入以上来源，请先核对哈希与来源，并继续保持以上限制。
 
 ## 验证状态
+
+**2026-10-22 全 hack 批量压测（Fabric 23 个版本）**
+
+`scripts/test-all-hacks.ps1` 逐个真实启动客户端，进入 `xray-test` 单人世界后用
+`TestControlServer` 的 `enableAll` 启用全部 hack，settle 25–30 秒后读取
+`/hacks` 与 `/logs?errorsOnly=1`。**17 / 23 PASS**，0 崩溃、0 错误日志：
+
+- PASS：1.20.1、1.20.2、1.20.3、1.20.4、1.21.4、1.21.5、1.21.6、1.21.7、1.21.8、
+  1.21.9、1.21.10、1.21.11、26.1、26.1.1、26.1.2、26.2、26.3
+- 阻塞（非本客户端问题）：1.20.5、1.20.6、1.21、1.21.1、1.21.2、1.21.3，见上节「已知阻塞」
+
+本轮由压测发现并修复的问题（Baritone 自死锁、1.21.5 共享 GPU 缓冲、创造模式物品栏包
+竞态、1.21.6–1.21.10 line width 编译、1.21.9 fogless_lines BOM/LineWidth、
+1.21.4 残留 shader JSON）见 [CHANGELOG.md](../CHANGELOG.md) 的「全版本批量压测」。
+Forge/NeoForge 本轮只做了抽样 `compileJava`（Forge 1.21.4/1.21.6、NeoForge
+1.21.5/1.21.9、根 NeoForge 1.20.1 通过），未做游戏内全 hack 压测。
 
 **原发布矩阵（15 个工程）**
 
