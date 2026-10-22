@@ -7,6 +7,41 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ---
 
+## 未发布 — B 站反馈修复（2026-10-22）
+
+针对视频 `BV1WLha63E8L` 226 条评论中可核查的 bug 反馈，67 个工程同步修复：
+
+- **KillAura 默认目标选择**：`Priority` 由 `HEALTH` 改为 `ANGLE`，避免转头打血量最低的怪、
+  让玩家瞄准的目标只吃到横扫 1 点伤害；攻击/挥手顺序改为与原版一致的 attack → swing；
+  补上 `Hit select`（延迟感知的无敌帧窗口）。根工程在 2026-09-23 已修，本次补齐其余 66 个工程。
+- **MultiAura 伤害衰减**：同一 tick 攻击多个目标时，第二刀起攻击蓄力已被清零（只剩 20% 伤害）。
+  全部 67 个工程改为**轮转攻击**：一次 click 只打一个目标，按列表依次轮换，每刀吃满蓄力；
+  同时补上 `Hit select`（延迟感知的无敌帧窗口）与 `CombatActionPolicy.findNextEligibleIndex`
+  纯函数实现。
+- **自定义主界面开关**：`ClickGuiHack` 新增 `Custom title screen`（默认开）。关闭后
+  `TitleScreenMixin` 不再 `clearWidgets()`，恢复原版与第三方 mod（如 ModMenu）的标题界面按钮。
+- **26.x 退出看门狗崩溃**：Baritone 的静态 `ThreadPoolExecutor` 是非 daemon，主线程退出后
+  JVM 不结束，Minecraft 26.x 在 post-main 15 秒后生成
+  `Client shutdown from post-main` 崩溃报告。新增 daemon 监视线程，在 `Minecraft.isRunning()`
+  变为 false 时反射调用 `baritone.Baritone.threadPool.shutdownNow()`；保留 shutdown hook 兜底。
+  实测 Fabric 26.3：关闭窗口后 8 秒内正常退出，**不再生成新的崩溃报告**。
+- **Navigator 设置行叠字**：设置组件被拉伸到面板宽度后，长名称与右侧取值重叠
+  （1.21.11 Fabric 截图复现：`Swing hand` 与 `Client-side` 叠在一起）。`ComboBoxComponent`
+  现在按可用宽度截断名称；实机截图确认不再重叠。
+- **Navigator 残留窗口**：`NavigatorScreen` 不再调用 `ClickGui.render()`（会顺带渲染残留的
+  ClickGUI 窗口），改为只渲染 popup 与 tooltip。
+- **Freecam 破坏创造飞行**：Freecam 每 tick 把 `abilities.flying` 置 false 后未恢复。
+  现在启用时记录 `previousFlying`，关闭时恢复。
+
+验证：
+- 编译：根工程、Fabric/NeoForge 1.20.1、Forge/NeoForge/Fabric 1.20.2、Forge 1.21.5、
+  Fabric 1.21.11、Fabric 26.1.2、Forge/NeoForge/Fabric 26.3 全部 `compileJava` 通过。
+- 单测：根工程 `test` BUILD SUCCESSFUL（JDK 21）。
+- 实机：Fabric 1.21.11 进世界、打开 Navigator、右键 Protect、截图确认设置行不重叠；
+  Fabric 26.3 进世界后关闭窗口，确认无新增 shutdown watchdog 崩溃报告。
+
+---
+
 ## 未发布 — X-Ray 多版本修复与 Vulkan 支持（2026-10-22）
 
 ### 修复

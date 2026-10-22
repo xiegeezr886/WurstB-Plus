@@ -45,6 +45,7 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		new ColorSetting("Tracer color", Color.WHITE);
 	
 	private FakePlayerEntity fakePlayer;
+	private boolean previousFlying;
 	
 	public FreecamHack()
 	{
@@ -69,6 +70,7 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		EVENTS.add(RenderListener.class, this);
 		
 		fakePlayer = new FakePlayerEntity();
+		previousFlying = MC.player.getAbilities().flying;
 		
 		Options opt = MC.options;
 		KeyMapping[] bindings = {opt.keyUp, opt.keyDown, opt.keyLeft,
@@ -96,6 +98,7 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		
 		LocalPlayer player = MC.player;
 		player.setDeltaMovement(Vec3.ZERO);
+		player.getAbilities().flying = previousFlying;
 		
 		MC.levelRenderer.allChanged();
 	}

@@ -119,6 +119,9 @@ public final class ComboBoxComponent<T extends Enum<T>> extends Component
 		
 		// text
 		String name = setting.getTranslatedName();
+		int nameWidth = x4 - x1 - 4;
+		if(TR.width(name) > nameWidth)
+			name = TR.plainSubstrByWidth(name, Math.max(0, nameWidth));
 		String value = "" + setting.getSelected();
 		int txtColor = GUI.getTxtColor();
 		context.text(TR, name, x1, y1 + 2, txtColor, false);

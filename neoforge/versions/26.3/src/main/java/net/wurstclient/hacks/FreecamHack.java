@@ -49,6 +49,7 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		new ColorSetting("Tracer color", Color.WHITE);
 	
 	private FakePlayerEntity fakePlayer;
+	private boolean previousFlying;
 	private Vec3 camPos;
 	private Vec3 prevCamPos;
 	private float camYaw;
@@ -78,6 +79,7 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		EVENTS.add(VisGraphListener.class, this);
 
 		fakePlayer = new FakePlayerEntity();
+		previousFlying = MC.player.getAbilities().flying;
 		LocalPlayer player = MC.player;
 		camPos = player.getEyePosition();
 		prevCamPos = camPos;
@@ -111,6 +113,7 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		
 		LocalPlayer player = MC.player;
 		player.setDeltaMovement(Vec3.ZERO);
+		player.getAbilities().flying = previousFlying;
 		
 		MC.levelExtractor.allChanged();
 	}
