@@ -11,7 +11,6 @@ accessible	method	net/minecraft/client/gui/components/AbstractSelectionList	getR
 accessible	method	net/minecraft/client/renderer/FogRenderer	getPriorityFogFunction	(Lnet/minecraft/world/entity/Entity;F)Lnet/minecraft/client/renderer/FogRenderer$MobEffectFogFunction;
 accessible	method	net/minecraft/client/renderer/GameRenderer	loadEffect	(Lnet/minecraft/resources/ResourceLocation;)V
 accessible	field	net/minecraft/client/gui/screens/Screen	renderables	Ljava/util/List;
-accessible	field	net/minecraft/world/entity/Entity	maxUpStep	F
 accessible	field	net/minecraft/client/multiplayer/MultiPlayerGameMode	destroyDelay	I
 accessible	field	net/minecraft/client/multiplayer/MultiPlayerGameMode	destroyProgress	F
 accessible	field	net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket	sectionPos	Lnet/minecraft/core/SectionPos;
