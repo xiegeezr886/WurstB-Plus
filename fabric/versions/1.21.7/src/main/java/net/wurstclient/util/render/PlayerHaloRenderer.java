@@ -147,7 +147,6 @@ public final class PlayerHaloRenderer
 		buffer.addVertex(matrix,
 			(float)(center.x + Math.cos(angle) * radius), (float)center.y,
 			(float)(center.z + Math.sin(angle) * radius))
-			.setColor(red, green, blue, 0.95F).setNormal(nx, 0, nz)
-			.setLineWidth(2);
+			.setColor(red, green, blue, 0.95F).setNormal(nx, 0, nz);
 	}
 }
