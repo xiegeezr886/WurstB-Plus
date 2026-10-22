@@ -1,9 +1,71 @@
 # WurstB+ Plus 变更记录
 
-WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。当前发布矩阵为 **5 个 MC 版本（1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2）× Forge / NeoForge / Fabric = 15 个独立工程**。
+WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖 **23 个 MC 版本（1.20.1–26.3）× Forge / NeoForge / Fabric = 67 个独立 Gradle 工程**；已发布资产为 v1.5.0（全矩阵）与 v1.6.0 预发布（根目录 Forge 1.20.1）。
 
 > **版本分布（重要）**：只有根目录 Forge 1.20.1 工程推进到 **v1.6.0**；
-> 其余 14 个平台工程仍为 **v1.5.0**，v1.6 的 GUI/音乐/Skia 子系统尚未移植。
+> 其余平台工程仍为 **v1.5.0**，v1.6 的 GUI/音乐/Skia 子系统尚未移植。
+
+---
+
+## 未发布 — X-Ray 多版本修复与 Vulkan 支持（2026-10-22）
+
+### 修复
+
+- **NeoForge 26.1–26.3、1.21.6–1.21.11**：区块渲染走 6 参
+  `shouldRenderFace(BlockAndTintGetter, BlockPos, BlockState, boolean, Direction, BlockPos)`，
+  原 mixin 只覆盖 5 参旧路径，导致 X-Ray 打开后石墙仍然可见（青色像素计数会误报 PASS）。
+  已补 6 参 wrap。
+- **Fabric/Forge/NeoForge 1.21.2–1.21.5**：补 `Block.shouldRenderFace` 3 参/5 参钩子；
+  Fabric 另补 Indigo `BlockRenderInfo` 钩子（1.21.2/1.21.3 为 `shouldDrawFace`，
+  1.21.4/1.21.5 为 `shouldDrawSide`）。旧版 Indigo 没有 `XRayHack.shouldDrawSide`，
+  改用 `ShouldDrawSideEvent`。
+- **`XRayHack.isVisible`**：`oreNamesCache` 为 null 时懒初始化，修复启用 X-Ray 时
+  区块构建线程并发调用 `Collections.binarySearch(null)` 的崩溃（Forge 26.1.2/26.2 曾实测崩溃）。
+- **Baritone**：
+  - 恢复 Forge 26.2 `baritone-forge-1.18.0-26.2.jar` 丢失的
+    `MixinConfigs` / `MixinConnector` manifest 属性。
+  - 1.21.4–1.21.11 的 Baritone mixin 类版本从 65 降到 61（Mixin 仅接受到 61），
+    并从 jar 与 NeoForge 源码资源 `mixins.baritone.json` 移除 `MixinWorldRenderer`，
+    避免 `RenderPipelines` → `IRenderer.<clinit>` 强转崩溃。代价是 Baritone 路径可视化关闭，
+    寻路/挖掘功能保留。
+- **Criticals**：新增 `WURST` / `GRIMAC` PacketProfile，默认包配置改为 `WURST`，
+  `Only when ready` 默认为关闭。
+
+### 已验证（真实客户端 + 截图确认石墙消失）
+
+| 加载器 | 版本 |
+| --- | --- |
+| Fabric | 1.20.2–1.20.4、1.21.4–1.21.11、26.1–26.3 |
+| Forge | 1.21.4–1.21.5、1.21.8–1.21.11、26.1–26.3（1.21.6/1.21.7 仅源码覆盖，未启动） |
+| NeoForge | 1.21.2–1.21.11、26.1–26.3 |
+
+X-Ray + MobESP 同帧检查：NeoForge 26.3、Fabric 26.2/26.3、Forge 26.2/26.3 的 ESP 红框
+均与悬空猪对齐，未发现世界或 2D 叠加层偏移。
+
+### Vulkan（26.2 起实验性，可选）
+
+- 26.2/26.3 视频设置新增 **Graphics API**：`Default`（当前等同 `Prefer OpenGL`）、
+  `Prefer Vulkan (Experimental)`、`Prefer OpenGL`。要求 Vulkan 1.2 + dynamic rendering +
+  push descriptors；创建失败自动回退 OpenGL。
+- 测试命令：`./gradlew runClient -PspWorld=xray-test -PgraphicsBackend=vulkan`
+  （build.gradle 会追加 `--graphicsBackend vulkan`）。
+- 实测（RTX 5070 / NVIDIA 592.19）：
+  - 26.2 Fabric、Forge：Vulkan 下 X-Ray 正常，MobESP 无偏移。
+  - 26.3 Fabric、Forge、NeoForge：Vulkan 下 X-Ray 正常，MobESP 无偏移。
+  - **NeoForge 26.2**：Vulkan 启动在 GLFW 窗口创建阶段失败：
+    `GLFW error 65540: Vulkan: Window surface creation requires the window to have
+    the client API set to GLFW_NO_API`。用空 Wurst mixin 配置复现，确认是 NeoForge 26.2
+    加载器问题，与本客户端无关；该组合请使用 OpenGL。
+
+### 已知阻塞
+
+- **Fabric 1.20.5 / 1.20.6 / 1.21 / 1.21.1 / 1.21.2 / 1.21.3**：配置阶段断线
+  `Packet configuration/serverbound/minecraft:custom_payload ... found 14 bytes extra`。
+  首个包是 `minecraft:brand`；与 Fabric Loader 版本、Wurst 连接事件分发、VanillaSpoof
+  均无关，属于 Fabric API/Loom 环境问题。1.21.4+ 正常。
+- Forge/NeoForge 1.20.x–1.21.1、Forge 1.21.3 本轮未做游戏内启动验证（源码钩子已覆盖）。
+- Fabric pre-26 的 Baritone mixin 仍处于禁用状态：不会因 Baritone 崩溃，但 Baritone
+  功能本身不可用。
 
 ---
 
