@@ -13,6 +13,7 @@ import net.wurstclient.clickgui2.ClickGuiScreen;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.NotificationSeverity;
+import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
@@ -33,12 +34,19 @@ public final class ClickGuiHack extends Hack
 			"Maximum height for settings windows\n" + "0 = no limit", 200, 0,
 			1000, 50, ValueDisplay.INTEGER);
 	
+	private final CheckboxSetting customTitleScreen = new CheckboxSetting(
+		"Custom title screen",
+		"Replaces the vanilla title screen with WurstB+'s menu. Disable this to keep"
+			+ " vanilla and mod-added title screen buttons.",
+		true);
+
 	public ClickGuiHack()
 	{
 		super("ClickGUI");
 		addSetting(ttOpacity);
 		addSetting(maxHeight);
 		addSetting(maxSettingsHeight);
+		addSetting(customTitleScreen);
 	}
 	
 	@Override
@@ -64,5 +72,10 @@ public final class ClickGuiHack extends Hack
 	public int getMaxSettingsHeight()
 	{
 		return maxSettingsHeight.getValueI();
+	}
+
+	public boolean isCustomTitleScreen()
+	{
+		return customTitleScreen.isChecked();
 	}
 }
