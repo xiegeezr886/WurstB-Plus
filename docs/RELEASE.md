@@ -105,8 +105,13 @@ to have the client API set to GLFW_NO_API
   VanillaSpoof 均无关，属于 Fabric API/Loom 环境问题。1.21.4+ 正常。
   2026-10-22 复核：抓包确认客户端发出的 brand 包本身格式正确
   （`0f minecraft:brand 06 fabric`），1.21.3 改用联网构建后编译通过、仍在配置阶段被同一问题断开。
-  该阻塞只影响 Loom 开发环境；生产 JAR 不受影响，但本仓库暂无这 6 个版本的
-  生产实例可做游戏内复测。
+  该阻塞只影响 Loom 开发环境。同日用 `.test/versions` 的生产实例复测：
+  **1.20.5 / 1.20.6 / 1.21 / 1.21.1 / 1.21.2 / 1.21.3 的发布 JAR 全部进入世界并保持连接**
+  （`run-version-tests.ps1` 均 PASS）；1.21.1 另在生产版执行 `enableAll`
+  （186 启用 / 8 前置条件失败），120 秒内无断线、无崩溃报告。1.21.3 首次启动
+  曾无日志静默退出一次，重跑通过，未能复现。
+  另：1.20.5/1.20.6 的 `maxUpStep`、1.21.2/1.21.3 的 `loadEffect` access-widener
+  条目在这些版本已不存在，会使 `build` 的 `validateAccessWidener` 失败；已删除死条目。
 - Forge/NeoForge 1.20.x–1.21.1、Forge 1.21.3 本轮未做游戏内启动验证（源码钩子已覆盖）。
 
 ## 发布产物矩阵（66 个重建 + 1 个留存）
