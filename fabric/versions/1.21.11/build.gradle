@@ -45,7 +45,10 @@ dependencies {
 	include implementation("io.netty:netty-codec-socks:4.1.118.Final")
 	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
 
-	include implementation("baritone:baritone-api-fabric:1.17.0-1.21.11")
+	include modImplementation("baritone:baritone-api-fabric:1.17.0-1.21.11")
+	// Fabric Loader only extracts Baritone's nested jars in production;
+	// dev runs need the bundled nether-pathfinder on the classpath explicitly.
+	runtimeOnly "dev.babbaj:nether-pathfinder:1.6"
 
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"
@@ -81,5 +84,12 @@ test {
 jar {
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}" }
+	}
+}
+
+if(project.hasProperty("spWorld")) {
+	tasks.matching { it.name == "runClient" }.configureEach {
+		args "--quickPlaySingleplayer", project.property("spWorld")
+		args "--quickPlayPath", project.property("spLog")
 	}
 }
