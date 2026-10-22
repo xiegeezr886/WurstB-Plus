@@ -188,3 +188,9 @@ def baritoneUpperBound(String coord) {
         throw new GradleException("baritone_version 格式无法解析: ${coord}")
     return "${m.group(1)}.${(m.group(2) as int) + 1}"
 }
+if(project.hasProperty("spWorld")) {
+	tasks.matching { it.name == "runClient" }.configureEach {
+		args "--quickPlaySingleplayer", project.property("spWorld")
+		args "--quickPlayPath", project.property("spLog")
+	}
+}

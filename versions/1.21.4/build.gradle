@@ -177,3 +177,10 @@ tasks.register('allJar', Jar) {
     exclude 'net/minecraft/**', 'net/minecraftforge/**'
     exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'module-info.class'
 }
+
+if(project.hasProperty("spWorld")) {
+	tasks.matching { it.name == "runClient" }.configureEach {
+		args "--quickPlaySingleplayer", project.property("spWorld")
+		args "--quickPlayPath", project.property("spLog")
+	}
+}

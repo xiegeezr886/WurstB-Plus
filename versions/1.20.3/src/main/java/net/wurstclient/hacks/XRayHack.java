@@ -191,7 +191,10 @@ public final class XRayHack extends Hack implements UpdateListener,
 	public boolean isVisible(Block block, BlockPos pos)
 	{
 		String name = BlockUtils.getName(block);
-		int index = Collections.binarySearch(oreNamesCache, name);
+		ArrayList<String> cache = oreNamesCache;
+		if(cache == null)
+			cache = oreNamesCache = new ArrayList<>(ores.getBlockNames());
+		int index = Collections.binarySearch(cache, name);
 		boolean visible = index >= 0;
 		
 		if(visible && onlyExposed.isChecked() && pos != null)

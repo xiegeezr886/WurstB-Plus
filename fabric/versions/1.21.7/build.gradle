@@ -49,7 +49,10 @@ dependencies {
 	// 切勿改成高版本的 Baritone(例如为 1.21.11 构建的 1.17.0)——intermediary 方法名按版本分配,
 	// 目标方法在 1.21.7 中不存在时,Mixin 会在 APPLY 阶段直接中断游戏启动。
 	// 见 scripts/verify-embedded-baritone.ps1
-	include implementation("baritone:baritone-api-fabric:${project.baritone_version}")
+	include modImplementation("baritone:baritone-api-fabric:${project.baritone_version}")
+	// Fabric Loader only extracts Baritone's nested jars in production;
+	// dev runs need the bundled nether-pathfinder on the classpath explicitly.
+	runtimeOnly "dev.babbaj:nether-pathfinder:1.4.1"
 
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"
@@ -100,5 +103,12 @@ test {
 jar {
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}" }
+	}
+}
+
+if(project.hasProperty("spWorld")) {
+	tasks.matching { it.name == "runClient" }.configureEach {
+		args "--quickPlaySingleplayer", project.property("spWorld")
+		args "--quickPlayPath", project.property("spLog")
 	}
 }

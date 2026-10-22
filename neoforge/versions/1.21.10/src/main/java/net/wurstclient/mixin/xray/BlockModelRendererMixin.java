@@ -25,6 +25,7 @@ import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hacks.XRayHack;
@@ -62,6 +63,35 @@ public abstract class BlockModelRendererMixin
 			return shouldDrawSide;
 
 		return original.call(state, otherState, side);
+	}
+
+	/**
+	 * NeoForge's chunk renderer calls the 6-arg variant, which in turn calls
+	 * the 5-arg Block method; the 5-arg private overload above is only used by
+	 * other call paths.
+	 */
+	@WrapOperation(
+		method = "shouldRenderFace(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;ZLnet/minecraft/core/Direction;Lnet/minecraft/core/BlockPos;)Z",
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"))
+	private static boolean onShouldRenderFace6(BlockGetter level, BlockPos pos,
+		BlockState state, BlockState otherState, Direction side,
+		Operation<Boolean> original, BlockAndTintGetter outerLevel,
+		BlockPos outerPos, BlockState outerState, boolean cull,
+		Direction outerDirection, BlockPos neighborPos)
+	{
+		XRayHack xray = WurstClient.INSTANCE.getHax().xRayHack;
+		Boolean shouldDrawSide = xray.shouldDrawSide(state, pos);
+
+		if(!xray.isOpacityMode() || xray.isVisible(state.getBlock(), pos))
+			currentOpacity.set(1F);
+		else
+			currentOpacity.set(xray.getOpacityFloat());
+
+		if(shouldDrawSide != null)
+			return shouldDrawSide;
+
+		return original.call(level, pos, state, otherState, side);
 	}
 
 	/**

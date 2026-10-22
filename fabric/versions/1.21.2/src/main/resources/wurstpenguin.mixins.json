@@ -81,6 +81,7 @@
                    "SimpleOptionMixin",
                    "SodiumBlockOcclusionCacheMixin",
                    "SodiumFluidRendererMixin",
+                   "xray.indigo.BlockRenderInfoMixin",
                    "StatsScreenMixin",
                    "StatusEffectInstanceMixin",
                    "TelemetryManagerMixin",
