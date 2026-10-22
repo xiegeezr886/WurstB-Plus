@@ -18,8 +18,62 @@ public final class BaritoneUtils
 		return BaritoneAPI.getProvider().getPrimaryBaritone();
 	}
 
+	private static final int PRELOAD_PENDING = 0;
+	private static final int PRELOAD_STARTED = 1;
+	private static final int PRELOAD_READY = 2;
+	private static volatile int miningPreloadState;
+
+	/**
+	 * Older bundled Baritone builds initialize their registry snapshot through
+	 * Minecraft's task queue, which deadlocks if that first happens on the
+	 * client thread. Prepare it on a background thread before mining.
+	 */
+	public static boolean isMiningReady()
+	{
+		if(miningPreloadState == PRELOAD_READY)
+			return true;
+		if(miningPreloadState == PRELOAD_PENDING)
+			synchronized(BaritoneUtils.class)
+			{
+				if(miningPreloadState == PRELOAD_PENDING)
+				{
+					miningPreloadState = PRELOAD_STARTED;
+					Thread thread = new Thread(BaritoneUtils::preloadMining,
+						"Wurst-BaritoneMiningPreload");
+					thread.setDaemon(true);
+					thread.start();
+				}
+			}
+		return false;
+	}
+
+	private static void preloadMining()
+	{
+		try
+		{
+			Class<?> stub = Class.forName(
+				"baritone.api.utils.BlockOptionalMeta$ServerLevelStub");
+			try
+			{
+				stub.getMethod("registryAccess");
+			}catch(NoSuchMethodException e)
+			{
+				return;
+			}
+			Object instance = stub.getMethod("fastCreate").invoke(null);
+			stub.getMethod("registryAccess").invoke(instance);
+		}catch(Throwable e)
+		{
+			System.err.println("Baritone preload failed: " + e);
+		}finally
+		{
+			miningPreloadState = PRELOAD_READY;
+		}
+	}
 	public static boolean startMining(Block... blocks)
 	{
+		if(!isMiningReady())
+			return false;
 		try
 		{
 			getBaritone().getMineProcess().mine(blocks);
