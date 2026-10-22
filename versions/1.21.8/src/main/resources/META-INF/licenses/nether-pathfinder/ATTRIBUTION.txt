@@ -1,0 +1,17 @@
+nether-pathfinder
+=================
+
+Licence : NONE DECLARED — upstream repository has no LICENSE / COPYING / NOTICE file
+Evidence: https://github.com/babbaj/nether-pathfinder (checked 2026-10-22;
+          GitHub API reports license = null and the repository root contains
+          no licence file)
+Version : 1.4.1 or 1.6, embedded inside the bundled Baritone artifact
+          (Fabric: META-INF/jars/nether-pathfinder-*.jar;
+           Forge / NeoForge: shaded dev/babbaj/pathfinder/* classes)
+
+No licence text is shipped because upstream does not provide one.
+Redistribution is therefore NOT clearly permitted.
+
+ACTION REQUIRED before release: obtain written permission from the author,
+replace the component, or stop bundling the affected Baritone builds.
+Upstream: https://github.com/babbaj/nether-pathfinder
