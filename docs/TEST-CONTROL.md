@@ -39,7 +39,9 @@
 | POST | `/hacks/disableAll` | 禁用全部 hack |
 | GET | `/logs?lines=200&errorsOnly=0` | 读取 `logs/latest.log` 末尾若干行 |
 
-所有修改 hack 状态的操作都会切回客户端主线程执行。
+所有修改 hack 状态的操作都会切回客户端主线程执行，等待上限 120 秒。
+`enableAll` / `disableAll` 会为每个 hack 打印 `[WurstTest] enable <name>`，
+卡住时可直接看 `latest.log` 的最后一行定位。
 
 ## 示例
 
