@@ -83,7 +83,7 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 | [docs/STATUS.md](docs/STATUS.md) | **权威状态数字（自动生成，请勿手改）**：工程清单、工具链、测试数、v1.6 缺口 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更，含已知局限与偏差 |
 | [docs/PROJECT-STRUCTURE.md](docs/PROJECT-STRUCTURE.md) | 67 工程布局的由来、为何没有共享 sourceSet、如何新增 MC 版本 |
-| [docs/RELEASE.md](docs/RELEASE.md) | **发布与维护手册**（原 README）：**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）、**安装**、**构建与运行**、产物矩阵、打包校验、验证状态 |
+| [docs/RELEASE.md](docs/RELEASE.md) | **发布与维护手册**（原 README）：**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）、**安装**、**构建与运行**、产物矩阵、打包校验、验证状态、**渲染兼容性（X-Ray / Vulkan）** |
 | [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) | 新版本工程的移植计划与逐版本状态 |
 | [docs/PORTING-1.21.11-26.2.md](docs/PORTING-1.21.11-26.2.md) | 1.21.11 / 26.2 的渲染管线与移植说明 |
 | [PORTING_TASK.md](PORTING_TASK.md) | 移植任务与未完成项 |
@@ -110,7 +110,7 @@ FFmpeg 为 LGPL-2.1 构建，其**对应源码**（构建脚本、`COPYING.*`、
 > **验证范围：** 并非所有组合都做过游戏内启动验证；Forge/NeoForge 1.20.x–1.21.1、
 > Forge 1.21.3 等本轮只完成编译/打包验证，**没有游戏内启动验证**。Vulkan 仅 26.2/26.3
 > 支持，且 NeoForge 26.2 的 Vulkan 启动受加载器 bug 阻塞。
-> 逐版本状态见 [docs/RELEASE.md](docs/RELEASE.md) 的「X-Ray 与 Vulkan 验证」与
+> 逐版本状态见 [docs/RELEASE.md](docs/RELEASE.md) 的「渲染兼容性（X-Ray / Vulkan）」与
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
 
 <div align="center">
