@@ -48,6 +48,38 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ---
 
+## 未发布 — 测试控制口与全 hack 压测（2026-10-22）
+
+### 新增：本地测试控制口
+
+67 个工程新增 `net.wurstclient.util.TestControlServer`，默认关闭；只有创建
+`gameDir/wurst/test-control.properties`（或传 `-Dwurst.test.port`）才启动。
+仅绑定 `127.0.0.1`，所有请求需带 token。提供：
+
+- `GET /ping`
+- `GET /hacks`、`POST /hacks/enable|disable?name=...`
+- `POST /hacks/enableAll|disableAll`
+- `GET /logs?lines=N&errorsOnly=1`
+
+详见 [docs/TEST-CONTROL.md](docs/TEST-CONTROL.md)。
+
+### 全 hack 压测发现并修复
+
+在 Fabric 1.21.11 的测试世界启用 184 个 hack，连续运行后发现并修复：
+
+- **PacketLogger**：在 Netty 网络线程直接写聊天栏，触发字体纹理上传
+  （`Rendersystem called from wrong thread`）导致断线。改为 `MC.execute(...)` 回主线程。
+- **PlayerHalo / Breadcrumbs**：1.21.6+ 的 line layer 顶点格式要求
+  `Normal`/`LineWidth`，这两个渲染器只写 position/color，抛
+  `Missing elements in vertex: Normal, LineWidth`。已补 normal 与 line width。
+- **ChatTranslator**：翻译请求失败时 `getHTML()` 返回 null，`parseHTML(null)`
+  抛 NPE。已在 `translate()` 中做空值保护。
+
+验证：`enableAll` 报告 184 个启用、9 个因前置条件未启用；45 秒后 145 个保持启用，
+客户端在线，`errorsOnly` 日志为空，无崩溃/断线。
+
+---
+
 ## 未发布 — X-Ray 多版本修复与 Vulkan 支持（2026-10-22）
 
 ### 修复
