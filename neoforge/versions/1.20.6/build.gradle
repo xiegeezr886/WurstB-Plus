@@ -38,7 +38,7 @@ while (wurstbRepoRoot != null && !new File(wurstbRepoRoot, "gradle/wurstb-versio
 if (wurstbRepoRoot == null) {
 	throw new GradleException("Cannot locate the repository root above " + rootDir)
 }
-def baritoneJar = new File(wurstbRepoRoot, "baritone-api-forge-1.20.1.jar")
+def baritoneJar = new File(projectDir, "libs/baritone-api-neoforge-1.10.8-1.20.6.jar")
 if (!baritoneJar.isFile()) {
 	throw new GradleException("Missing bundled Baritone jar: " + baritoneJar)
 }
