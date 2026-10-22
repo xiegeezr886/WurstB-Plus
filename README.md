@@ -76,6 +76,28 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 
 ---
 
+## 渲染兼容性（X-Ray / Vulkan）
+
+2026-10-22 对 X-Ray 渲染链路做了逐版本源码核对和真实客户端验证：
+
+- **本轮修复**：NeoForge 26.1–26.3、1.21.6–1.21.11 的 6 参 `shouldRenderFace` 区块渲染路径；Fabric/Forge/NeoForge 1.21.2–1.21.5 的 Block / Indigo 剔除钩子；`XRayHack` 的 `oreNamesCache` 并发空指针崩溃；Forge 26.2 与 1.21.4–1.21.11 的 Baritone 启动/渲染崩溃。
+- **已验证 X-Ray 可用**（截图确认石墙消失、矿石/箱子可见）：
+  - Fabric：1.20.2–1.20.4、1.21.4–1.21.11、26.1–26.3
+  - Forge：1.21.4–1.21.5、1.21.8–1.21.11、26.1–26.3（1.21.6/1.21.7 仅源码覆盖，未启动）
+  - NeoForge：1.21.2–1.21.11、26.1–26.3
+- **Vulkan（26.2 起提供，实验性）**：26.2/26.3 的视频设置新增 `Graphics API`，默认仍为 OpenGL。实测 26.2 的 Fabric/Forge 与 26.3 的三加载器均可在 Vulkan 下正常显示 X-Ray；X-Ray + MobESP 同帧检查未发现世界或 ESP 偏移。**NeoForge 26.2 的 Vulkan 启动会在 GLFW 窗口创建阶段失败**（`GLFW error 65540: ... GLFW_NO_API`，属于 NeoForge 26.2 自身问题，与 Wurst 无关），该组合请使用 OpenGL。
+- **仍阻塞**：Fabric 1.20.5 / 1.20.6 / 1.21 / 1.21.1 / 1.21.2 / 1.21.3 在配置阶段因 `minecraft:brand` 自定义 payload 多出 14 字节而断线。这是 Fabric API/Loom 环境问题，与 X-Ray 无关。
+
+启用 Vulkan（仅 26.2/26.3）：
+
+```powershell
+./gradlew runClient -PspWorld=xray-test -PgraphicsBackend=vulkan
+```
+
+或在游戏内：选项 → 视频设置 → Graphics API → `Prefer Vulkan (Experimental)`。需要 Vulkan 1.2 + dynamic rendering + push descriptors；创建失败会自动回退 OpenGL。
+
+---
+
 ## 文档索引
 
 | 文档 | 内容 |
@@ -107,9 +129,10 @@ LGPL 2.1 文本，适用于其中所述的 Minecraft Forge / FML 部分（含 MC
 FFmpeg 为 LGPL-2.1 构建，其**对应源码**（构建脚本、`COPYING.*`、JNI shim 源码）
 随仓库提供于 [`native/ffmpeg/`](native/ffmpeg)。
 
-> **注意：** 只有 **1.21.11 与 26.2 的六个工程**做过**游戏内启动**验证；其余工程的产物通过的是
-> 编译与**打包校验**（zip 完好、含加载器元数据与 Mixin 配置、含主类），**没有游戏内启动验证**。
-> 逐版本状态见 [docs/RELEASE.md](docs/RELEASE.md) 与
+> **验证范围：** 上表为本轮实际启动并截图验证的 X-Ray 矩阵；未列出的组合（Forge/NeoForge
+> 1.20.x–1.21.1、Forge 1.21.3 等）本轮只完成编译/打包验证，**没有游戏内启动验证**。
+> Vulkan 仅 26.2/26.3 支持，且 NeoForge 26.2 的 Vulkan 启动受加载器 bug 阻塞。
+> 逐版本状态见 [docs/RELEASE.md](docs/RELEASE.md) 的「X-Ray 与 Vulkan 验证」与
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
 
 <div align="center">
