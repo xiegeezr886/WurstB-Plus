@@ -10,6 +10,7 @@
 	"AbstractButtonMixin",
 	"AbstractSliderButtonMixin",
     "AbstractBlockStateMixin",
+    "AbstractContainerScreenInvoker",
     "AbstractSignEditScreenMixin",
     "AllowedAddressResolverMixin",
     "BackgroundRendererMixin",
