@@ -35,6 +35,10 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 - **代理环境变量桥接**：Java 不读取 `HTTP_PROXY` / `HTTPS_PROXY`。客户端启动时把这两个
   环境变量写成 JVM 代理属性，避免皮肤、音乐等 HTTP 请求直连超时（PCL 自身未设置代理时
   仍需在 PCL 里配置代理，或使用系统代理）。
+- **修复头像先正确、随后变成 Alex**：皮肤管理器的回调可能先报告一个尚未下载完成的
+  `skins/<hash>`；此前会立即切到默认皮肤。现在回调只有在目标位置**可读**时才更新，
+  且屏幕上已有的头像不会被新位置的一次加载失败替换掉——只有首次完全没有头像时才用
+  默认皮肤兜底。
 - **测试脚本识别根工程 Baritone**：`run-version-tests.ps1` 原先只匹配 `[Baritone]` /
   `Baritone 1.x` 等横幅，根 Forge 1.20.1 输出的是 `Baritone world data dir` /
   `Baritone settings file`，导致世界已加载却被记为 TIMEOUT。已补充这些标记。
