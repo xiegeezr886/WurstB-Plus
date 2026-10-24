@@ -26,7 +26,8 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
   （约 60ms 时间常数），滚动条与卡片位置同步动画。
 - **标题界面资料卡头像**：主动调用 `SkinManager.registerSkins` 请求本地账号皮肤；
   皮肤解析失败时退回默认皮肤，贴图未注册完成时显示圆角占位块，不再出现空白头像。
-  头像改成圆角方块（逐行 scissor，半径 = 头像尺寸 / 4）。
+  头像改为**CPU 预生成圆角方块贴图**（按当前 GUI scale 渲染、边缘 4×4 超采样抗锯齿），
+  不再用逐行 scissor，避免小尺寸下出现阶梯状像素点。
 - **测试脚本识别根工程 Baritone**：`run-version-tests.ps1` 原先只匹配 `[Baritone]` /
   `Baritone 1.x` 等横幅，根 Forge 1.20.1 输出的是 `Baritone world data dir` /
   `Baritone settings file`，导致世界已加载却被记为 TIMEOUT。已补充这些标记。
