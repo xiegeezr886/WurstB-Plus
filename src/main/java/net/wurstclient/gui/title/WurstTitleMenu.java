@@ -11,6 +11,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
+import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.gui.ModListScreen;
@@ -72,6 +74,7 @@ public final class WurstTitleMenu
 	private Component playerName;
 	private Component welcome;
 	private ResourceLocation skin;
+	private static boolean skinRequested;
 	private boolean menuOpen;
 
 	public WurstTitleMenu(Screen parent)
@@ -89,6 +92,7 @@ public final class WurstTitleMenu
 		playerName = Component.literal(minecraft.getUser().getName());
 		welcome = Component.translatable("wurst.title.welcome");
 		skin = resolveSkin(minecraft);
+		requestSkin(minecraft);
 		configureTextures(minecraft);
 
 		Font font = minecraft.font;
@@ -192,14 +196,7 @@ public final class WurstTitleMenu
 		FlatRenderer.fillRoundedRect(graphics, chip.x(), chip.y(), chip.right(),
 			chip.bottom(), layout.chipRadius(), CHIP_FILL);
 
-		Rect avatar = layout.avatar();
-		if(skin != null)
-			PlayerFaceRenderer.draw(graphics, skin, avatar.x(), avatar.y(),
-				avatar.width());
-		else
-			FlatRenderer.fillRoundedRect(graphics, avatar.x(), avatar.y(),
-				avatar.right(), avatar.bottom(), avatar.width() / 2,
-				0x40FFFFFF);
+		drawAvatar(graphics, layout.avatar());
 
 		Font font = minecraft.font;
 		graphics.drawString(font, playerName, layout.chipTextX(),
@@ -250,6 +247,83 @@ public final class WurstTitleMenu
 		Rect menu = layout.menu();
 		FlatRenderer.fillRoundedRect(graphics, menu.x(), menu.y(), menu.right(),
 			menu.bottom(), layout.menuRadius(), MENU_FILL);
+	}
+
+	/**
+	 * 标题界面也要主动请求一次本地账号的皮肤：没有进过世界时原版不会替我们
+	 * 注册，贴图就一直不存在，头像位置只剩下占位块。
+	 */
+	private static void requestSkin(Minecraft minecraft)
+	{
+		if(skinRequested)
+			return;
+
+		skinRequested = true;
+
+		try
+		{
+			GameProfile profile = minecraft.getUser().getGameProfile();
+			minecraft.getSkinManager().registerSkins(profile,
+				(type, location, texture) -> {}, false);
+		}catch(RuntimeException e)
+		{
+			skinRequested = false;
+		}
+	}
+
+	private void drawAvatar(GuiGraphics graphics, Rect avatar)
+	{
+		ResourceLocation texture = skin;
+
+		if(texture == null)
+			texture = DefaultPlayerSkin.getDefaultSkin();
+
+		// The skin is registered asynchronously. Until its texture exists,
+		// drawing the face would bind the missing-texture checkerboard.
+		if(texture == null || minecraft.getTextureManager()
+			.getTexture(texture) == MissingTextureAtlasSprite.getTexture())
+		{
+			FlatRenderer.fillRoundedRect(graphics, avatar.x(), avatar.y(),
+				avatar.right(), avatar.bottom(), avatar.width() / 2,
+				0x40FFFFFF);
+			return;
+		}
+
+		int size = avatar.width();
+		int radius = Math.max(2, size / 4);
+
+		// Minecraft can only scissor rectangles, so mask the rounded corners
+		// row by row. The avatar is tiny (at most ~22 logical px), so this is
+		// a couple dozen blits per title frame at worst.
+		for(int row = 0; row < size; row++)
+		{
+			int inset = cornerInset(row, size, radius);
+			int x1 = avatar.x() + inset;
+			int x2 = avatar.right() - inset;
+
+			if(x2 <= x1)
+				continue;
+
+			graphics.enableScissor(x1, avatar.y() + row, x2,
+				avatar.y() + row + 1);
+			PlayerFaceRenderer.draw(graphics, texture, avatar.x(), avatar.y(),
+				size);
+			graphics.disableScissor();
+		}
+	}
+
+	/** Horizontal inset of a rounded-rect corner at the given row. */
+	private static int cornerInset(int row, int size, int radius)
+	{
+		int edgeDistance = Math.min(row, size - 1 - row);
+
+		if(edgeDistance >= radius)
+			return 0;
+
+		double dy = radius - (edgeDistance + 0.5D);
+		double dx = Math.sqrt(Math.max(0,
+			(double)radius * radius - dy * dy));
+		return (int)Math.round(radius - dx);
 	}
 
 	/**
