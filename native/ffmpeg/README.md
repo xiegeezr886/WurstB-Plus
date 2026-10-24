@@ -19,7 +19,7 @@ This exists because the pure-Java JCodec path decodes the reference 4K file at
 
 | Path | What it is |
 | --- | --- |
-| `dll/` | The build products. 7 DLLs ship with the mod (**7,605,466 bytes = 7.25 MiB**) |
+| `dll/` | The build products. 8 DLLs ship with the mod (**8,362,148 bytes = 7.98 MiB**) |
 | `dll/vf_ffmpeg_test.exe` | Standalone C harness: measures decode fps without Minecraft. Dev tool, does **not** ship |
 | `src/vf_ffmpeg_jni.c` | The JNI shim **and** the harness (one file, `-DVF_WITH_MAIN`) |
 | `build-ffmpeg.sh` | Full reproducible build: FFmpeg + shim |
@@ -33,9 +33,9 @@ Java side lives in the mod source tree:
 - `src/main/java/net/wurstclient/background/FfmpegNatives.java`
 - `src/main/java/net/wurstclient/background/FfmpegVideoDecoderTest.java`
 
-For the mod to actually use these, the **7 DLLs** (not the `.exe`) are also copied
+For the mod to actually use these, the **8 DLLs** (not the `.exe`) are also copied
 to `src/main/resources/assets/wurst/ffmpeg/` — that is where `FfmpegNatives`
-extracts them from at runtime. **That copy exists** (7,605,466 bytes, plus the
+extracts them from at runtime. **That copy exists** (8,362,148 bytes, plus the
 LGPL texts renamed to valid lowercase resource paths:
 `copying-lgplv2.1.txt` and `license-ffmpeg.txt`), and it is kept in sync by
 `FfmpegNativesTest`.
@@ -140,15 +140,16 @@ Measured sizes of `native/ffmpeg/dll/`:
 | --- | --- | --- |
 | `avcodec-61.dll` | 5,013,504 | the decoders |
 | `avutil-59.dll` | 1,058,304 | core helpers |
-| `swscale-8.dll` | 665,088 | YUV → RGBA conversion |
+| `swscale-8.dll` | 665,600 | YUV → RGBA conversion |
+| `swresample-5.dll` | 123,392 | audio sample format / channel conversion to S16 stereo |
 | `avformat-61.dll` | 587,264 | MP4 / MKV / AVI demuxing |
 | `zlib1.dll` | 128,488 | avformat's only external library |
 | `vf_ffmpeg.dll` | 86,485 | the JNI shim (ours) |
 | `libwinpthread-1.dll` | 66,333 | avutil's threading runtime |
-| **Total (7 DLLs)** | **7,605,466 (~7.25 MiB)** | |
+| **Total (8 DLLs)** | **8,362,148 (~7.98 MiB)** | |
 
 `vf_ffmpeg_test.exe` (~98 KB) sits in the same directory but is a development
-tool and **does not ship** — the mod only needs the 7 DLLs.
+tool and **does not ship** — the mod only needs the 8 DLLs.
 
 Two dependencies had to be shipped rather than linked away, so the payload is
 **7 DLLs, not 5**:
@@ -172,7 +173,9 @@ avcodec-61.dll   -> avutil-59.dll, KERNEL32, msvcrt, ole32
 avformat-61.dll  -> avcodec-61.dll, avutil-59.dll, KERNEL32, msvcrt, zlib1.dll
 avutil-59.dll    -> KERNEL32, msvcrt, bcrypt, USER32, libwinpthread-1.dll
 swscale-8.dll    -> avutil-59.dll, KERNEL32, msvcrt
-vf_ffmpeg.dll    -> avcodec-61, avformat-61, avutil-59, swscale-8, KERNEL32, msvcrt
+swresample-5.dll -> avutil-59.dll, KERNEL32, msvcrt
+vf_ffmpeg.dll    -> avcodec-61, avformat-61, avutil-59, swscale-8,
+                    swresample-5, KERNEL32, msvcrt
 ```
 
 **Load order matters, and the two runtime DLLs must be loaded first.**
@@ -181,9 +184,9 @@ directory, `System32`, `PATH`) — *not* from the directory that DLL lives in. S
 loading `avutil-59.dll` by absolute path still fails with *"Can't find dependent
 libraries"* unless `libwinpthread-1.dll` is already loaded, and
 `avformat-61.dll` likewise needs `zlib1.dll` first. `FfmpegNatives.DLLS` encodes
-exactly that order (`libwinpthread-1`, `zlib1`, `avutil-59`, `swscale-8`,
-`avcodec-61`, `avformat-61`, `vf_ffmpeg`). This was verified on JDK 17 and
-JDK 25.
+exactly that order (`libwinpthread-1`, `zlib1`, `avutil-59`, `swresample-5`,
+`swscale-8`, `avcodec-61`, `avformat-61`, `vf_ffmpeg`). This was verified on
+JDK 17 and JDK 25.
 
 ---
 
@@ -391,7 +394,7 @@ break the DLLs' filename-based interdependencies) and extracted on first use to
 What the mod does with them (all of it in
 [`../../docs/title-background.md`](../../docs/title-background.md) §6):
 
-1. The 7 DLLs live in `src/main/resources/assets/wurst/ffmpeg/` (plus
+1. The 8 DLLs live in `src/main/resources/assets/wurst/ffmpeg/` (plus
    `copying-lgplv2.1.txt` and `license-ffmpeg.txt`, the LGPL texts which the
    licence requires shipping).
 2. `BackgroundVideo` decodes through `FfmpegVideoDecoder` and falls back from
