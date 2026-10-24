@@ -1,17 +1,20 @@
 package net.wurstclient.gui.title;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.PlayerFaceRenderer;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -75,6 +78,12 @@ public final class WurstTitleMenu
 	private Component welcome;
 	private ResourceLocation skin;
 	private static boolean skinRequested;
+	private static final ResourceLocation AVATAR_TEXTURE =
+		new ResourceLocation(WurstClient.MOD_ID, "title_avatar");
+	private DynamicTexture avatarTexture;
+	private ResourceLocation avatarSource;
+	private int avatarPixels = -1;
+	private int avatarRetryCooldown;
 	private boolean menuOpen;
 
 	public WurstTitleMenu(Screen parent)
@@ -273,15 +282,22 @@ public final class WurstTitleMenu
 
 	private void drawAvatar(GuiGraphics graphics, Rect avatar)
 	{
-		ResourceLocation texture = skin;
+		int size = avatar.width();
 
-		if(texture == null)
-			texture = DefaultPlayerSkin.getDefaultSkin();
+		if(size <= 0)
+			return;
 
-		// The skin is registered asynchronously. Until its texture exists,
-		// drawing the face would bind the missing-texture checkerboard.
-		if(texture == null || minecraft.getTextureManager()
-			.getTexture(texture) == MissingTextureAtlasSprite.getTexture())
+		ResourceLocation source = skin;
+
+		if(source == null)
+			source = DefaultPlayerSkin.getDefaultSkin();
+
+		int pixels = Math.max(8, Math.min(256, size * Math.max(1,
+			(int)Math.round(minecraft.getWindow().getGuiScale()))));
+
+		ensureAvatarTexture(source, pixels);
+
+		if(avatarTexture == null)
 		{
 			FlatRenderer.fillRoundedRect(graphics, avatar.x(), avatar.y(),
 				avatar.right(), avatar.bottom(), avatar.width() / 2,
@@ -289,41 +305,171 @@ public final class WurstTitleMenu
 			return;
 		}
 
-		int size = avatar.width();
-		int radius = Math.max(2, size / 4);
+		graphics.blit(AVATAR_TEXTURE, avatar.x(), avatar.y(), size, size, 0, 0,
+			pixels, pixels, pixels, pixels);
+	}
 
-		// Minecraft can only scissor rectangles, so mask the rounded corners
-		// row by row. The avatar is tiny (at most ~22 logical px), so this is
-		// a couple dozen blits per title frame at worst.
-		for(int row = 0; row < size; row++)
+	/**
+	 * Builds a rounded-square copy of the skin's face at the current GUI
+	 * scale. Doing this on the CPU gives anti-aliased corners; scissoring
+	 * can only cut whole rectangles and leaves a staircase at small sizes.
+	 */
+	private void ensureAvatarTexture(ResourceLocation source, int pixels)
+	{
+		if(avatarTexture != null && source.equals(avatarSource)
+			&& pixels == avatarPixels)
 		{
-			int inset = cornerInset(row, size, radius);
-			int x1 = avatar.x() + inset;
-			int x2 = avatar.right() - inset;
+			AbstractTexture current = minecraft.getTextureManager()
+				.getTexture(AVATAR_TEXTURE);
+			if(current == avatarTexture)
+				return;
+		}
 
-			if(x2 <= x1)
-				continue;
+		avatarTexture = null;
+		avatarSource = source;
+		avatarPixels = pixels;
 
-			graphics.enableScissor(x1, avatar.y() + row, x2,
-				avatar.y() + row + 1);
-			PlayerFaceRenderer.draw(graphics, texture, avatar.x(), avatar.y(),
-				size);
-			graphics.disableScissor();
+		if(source == null || avatarRetryCooldown > 0)
+		{
+			avatarRetryCooldown = Math.max(0, avatarRetryCooldown - 1);
+			return;
+		}
+
+		SkinImage loaded = loadSkinImage(source);
+
+		if(loaded == null)
+		{
+			// The skin is registered asynchronously; try again in a moment
+			// instead of hitting the resource manager every frame.
+			avatarRetryCooldown = 20;
+			return;
+		}
+
+		NativeImage image = loaded.image();
+
+		try
+		{
+			NativeImage rounded = buildRoundedAvatar(image, pixels);
+			DynamicTexture texture = new DynamicTexture(rounded);
+			texture.setFilter(true, false);
+
+			minecraft.getTextureManager().release(AVATAR_TEXTURE);
+			minecraft.getTextureManager().register(AVATAR_TEXTURE, texture);
+			avatarTexture = texture;
+		}finally
+		{
+			if(loaded.owned())
+				image.close();
 		}
 	}
 
-	/** Horizontal inset of a rounded-rect corner at the given row. */
-	private static int cornerInset(int row, int size, int radius)
+	private SkinImage loadSkinImage(ResourceLocation source)
 	{
-		int edgeDistance = Math.min(row, size - 1 - row);
+		AbstractTexture texture = minecraft.getTextureManager()
+			.getTexture(source);
 
-		if(edgeDistance >= radius)
-			return 0;
+		if(texture instanceof DynamicTexture dynamic
+			&& dynamic.getPixels() != null)
+		{
+			NativeImage pixels = dynamic.getPixels();
+			if(pixels.getWidth() >= 48 && pixels.getHeight() >= 16)
+				return new SkinImage(pixels, false);
+		}
 
-		double dy = radius - (edgeDistance + 0.5D);
-		double dx = Math.sqrt(Math.max(0,
-			(double)radius * radius - dy * dy));
-		return (int)Math.round(radius - dx);
+		try
+		{
+			var resource = minecraft.getResourceManager().getResource(source);
+			if(resource.isEmpty())
+				return null;
+
+			try(InputStream in = resource.get().open())
+			{
+				NativeImage pixels = NativeImage.read(in);
+				return new SkinImage(pixels, true);
+			}
+		}catch(IOException | RuntimeException e)
+		{
+			return null;
+		}
+	}
+
+	private static NativeImage buildRoundedAvatar(NativeImage skin, int pixels)
+	{
+		NativeImage result = new NativeImage(NativeImage.Format.RGBA, pixels,
+			pixels, false);
+		double radius = pixels * 0.25D;
+
+		for(int y = 0; y < pixels; y++)
+		{
+			int sy = Math.min(7, y * 8 / pixels);
+
+			for(int x = 0; x < pixels; x++)
+			{
+				int sx = Math.min(7, x * 8 / pixels);
+				int face = skin.getPixelRGBA(8 + sx, 8 + sy);
+				int hat = skin.getPixelRGBA(40 + sx, 8 + sy);
+				int color = blendOver(hat, face);
+				double coverage = cornerCoverage(x, y, pixels, radius);
+				int alpha = (int)Math.round(
+					((color >>> 24) & 0xFF) * coverage);
+
+				result.setPixelRGBA(x, y, (alpha << 24) | (color & 0xFFFFFF));
+			}
+		}
+
+		return result;
+	}
+
+	/** Source-over blend of two ABGR pixels. */
+	private static int blendOver(int source, int destination)
+	{
+		int sourceAlpha = (source >>> 24) & 0xFF;
+
+		if(sourceAlpha == 0)
+			return destination;
+		if(sourceAlpha == 255)
+			return source;
+
+		int inverse = 255 - sourceAlpha;
+		int red = (((source & 0xFF) * sourceAlpha)
+			+ ((destination & 0xFF) * inverse)) / 255;
+		int green = ((((source >>> 8) & 0xFF) * sourceAlpha)
+			+ (((destination >>> 8) & 0xFF) * inverse)) / 255;
+		int blue = ((((source >>> 16) & 0xFF) * sourceAlpha)
+			+ (((destination >>> 16) & 0xFF) * inverse)) / 255;
+		int alpha = sourceAlpha
+			+ (((destination >>> 24) & 0xFF) * inverse) / 255;
+
+		return (alpha << 24) | (blue << 16) | (green << 8) | red;
+	}
+
+	/** Fraction of the pixel covered by a rounded rectangle. */
+	private static double cornerCoverage(int x, int y, int size,
+		double radius)
+	{
+		double center = size / 2D;
+		double inner = center - radius;
+		int inside = 0;
+
+		for(int subY = 0; subY < 4; subY++)
+			for(int subX = 0; subX < 4; subX++)
+			{
+				double px = x + (subX + 0.5D) / 4D;
+				double py = y + (subY + 0.5D) / 4D;
+				double qx = Math.abs(px - center) - inner;
+				double qy = Math.abs(py - center) - inner;
+				double distance = Math.hypot(Math.max(qx, 0),
+					Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - radius;
+
+				if(distance <= 0)
+					inside++;
+			}
+
+		return inside / 16D;
+	}
+
+	private record SkinImage(NativeImage image, boolean owned)
+	{
 	}
 
 	/**
