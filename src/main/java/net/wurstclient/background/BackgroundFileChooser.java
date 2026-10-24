@@ -10,6 +10,7 @@ package net.wurstclient.background;
 import java.awt.Component;
 import java.awt.HeadlessException;
 import java.io.File;
+import java.nio.file.Path;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -29,21 +30,39 @@ public final class BackgroundFileChooser extends JFileChooser
 {
 	public static void main(String[] args)
 	{
+		Path picked = pick(new File(args.length > 0 ? args[0] : "."));
+
+		if(picked != null)
+			System.out.println(picked);
+	}
+
+	/**
+	 * Shows the picker and returns the selected file, or null when cancelled.
+	 * Call this on the AWT event thread.
+	 */
+	public static Path pick(File initialDirectory)
+	{
 		SwingUtils.setLookAndFeel();
-		BackgroundFileChooser fileChooser = new BackgroundFileChooser(
-			new File(args.length > 0 ? args[0] : "."));
+		BackgroundFileChooser fileChooser =
+			new BackgroundFileChooser(initialDirectory);
 
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		fileChooser.setAcceptAllFileFilterUsed(true);
-		fileChooser.setDialogTitle("选择背景图片或 GIF");
+		fileChooser.setDialogTitle("选择背景图片、GIF 或视频");
+		fileChooser.addChoosableFileFilter(
+			new FileNameExtensionFilter("图片 / GIF / 视频",
+				"png", "jpg", "jpeg", "bmp", "gif", "mp4", "m4v"));
 		fileChooser.addChoosableFileFilter(
 			new FileNameExtensionFilter("图片与 GIF (png, jpg, jpeg, bmp, gif)",
 				"png", "jpg", "jpeg", "bmp", "gif"));
+		fileChooser.addChoosableFileFilter(
+			new FileNameExtensionFilter("视频 (mp4, m4v)", "mp4", "m4v"));
+		fileChooser.setFileFilter(fileChooser.getChoosableFileFilters()[0]);
 
 		if(fileChooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION)
-			return;
+			return null;
 
-		System.out.println(fileChooser.getSelectedFile().getAbsolutePath());
+		return fileChooser.getSelectedFile().toPath();
 	}
 
 	public BackgroundFileChooser(File currentDirectory)

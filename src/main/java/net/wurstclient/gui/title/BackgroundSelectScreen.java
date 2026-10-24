@@ -25,7 +25,6 @@ import net.wurstclient.background.BackgroundEntry;
 import net.wurstclient.background.BackgroundFilePicker;
 import net.wurstclient.background.BackgroundKind;
 import net.wurstclient.background.BackgroundManager;
-import net.wurstclient.background.BackgroundMotion;
 import net.wurstclient.background.BackgroundStorage;
 import net.wurstclient.background.BackgroundThumbnail;
 import net.wurstclient.background.BackgroundVideo;
@@ -54,6 +53,9 @@ public final class BackgroundSelectScreen extends Screen
 	private static final int PADDING = 20;
 	private static final int HEADER_HEIGHT = 44;
 	private static final int SCROLL_STEP = 36;
+
+	private static final ResourceLocation WE_ICON = new ResourceLocation(
+		"wurst", "textures/gui/fdp/wallpaper_engine.png");
 
 	private static final int PANEL = 0xF01B1E24;
 	private static final int CARD_BG = 0xFF23272F;
@@ -95,7 +97,7 @@ public final class BackgroundSelectScreen extends Screen
 	private long lastScrollNanos;
 
 	private String status = "";
-	private boolean busy;
+	private boolean scanning;
 
 	public BackgroundSelectScreen(Screen parent)
 	{
@@ -116,6 +118,8 @@ public final class BackgroundSelectScreen extends Screen
 	protected void init()
 	{
 		entries = BackgroundManager.get().entries();
+		minecraft.getTextureManager().getTexture(WE_ICON)
+			.setFilter(true, false);
 
 		int maxScroll = maxScroll(panel());
 		targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
@@ -167,26 +171,6 @@ public final class BackgroundSelectScreen extends Screen
 		boolean closeHovered = close.contains(mouseX, mouseY);
 		graphics.drawString(font, "✕", close.x + 5, close.y + 4,
 			closeHovered ? TEXT : MUTED, false);
-
-		// scan Steam library
-		Rect scan = scanButton(panel);
-		boolean scanHovered = scan.contains(mouseX, mouseY);
-		FlatRenderer.fillRoundedRect(graphics, scan.x, scan.y, scan.right(),
-			scan.bottom(), CHIP_RADIUS, scanHovered ? CARD_HOVER : CARD_BG);
-		graphics.drawString(font,
-			busy ? tr("wurst.background.scanning")
-				: tr("wurst.background.scan_steam"),
-			scan.x + 10, scan.y + 6, scanHovered ? TEXT : MUTED, false);
-
-		// motion picker: cycles, which is enough for four options
-		Rect motion = motionButton(panel);
-		boolean motionHovered = motion.contains(mouseX, mouseY);
-		FlatRenderer.fillRoundedRect(graphics, motion.x, motion.y, motion.right(),
-			motion.bottom(), CHIP_RADIUS, motionHovered ? CARD_HOVER : CARD_BG);
-		String label = tr("wurst.background.motion",
-			BackgroundManager.get().motion());
-		graphics.drawString(font, label, motion.x + 10, motion.y + 6,
-			motionHovered ? TEXT : MUTED, false);
 	}
 
 	private void drawGrid(GuiGraphics graphics, Rect panel, int mouseX,
@@ -196,7 +180,7 @@ public final class BackgroundSelectScreen extends Screen
 		int contentTop = panel.y + HEADER_HEIGHT;
 		int contentHeight = panel.bottom() - contentTop - 26;
 
-		int cards = entries.size() + 2; // default + the import card
+		int cards = entries.size() + 3; // default + two import cards
 		int rows = (cards + columns - 1) / columns;
 		int contentTotal = rows * (CARD_HEIGHT + GAP) - GAP + PADDING * 2;
 		int maxScroll = Math.max(0, contentTotal - contentHeight);
@@ -225,8 +209,10 @@ public final class BackgroundSelectScreen extends Screen
 
 			if(index == 0)
 				drawDefaultCard(graphics, card, mouseX, mouseY);
-			else if(index == cards - 1)
+			else if(index == entries.size() + 1)
 				drawImportCard(graphics, card, mouseX, mouseY);
+			else if(index == entries.size() + 2)
+				drawWallpaperEngineCard(graphics, card, mouseX, mouseY);
 			else
 				drawEntryCard(graphics, card, entries.get(index - 1), mouseX,
 					mouseY);
@@ -279,7 +265,7 @@ public final class BackgroundSelectScreen extends Screen
 	private int maxScroll(Rect panel)
 	{
 		int columns = columns(panel);
-		int cards = entries.size() + 2;
+		int cards = entries.size() + 3;
 		int rows = (cards + columns - 1) / columns;
 		int contentTop = panel.y + HEADER_HEIGHT;
 		int contentHeight = panel.bottom() - contentTop - 26;
@@ -312,13 +298,26 @@ public final class BackgroundSelectScreen extends Screen
 			card.bottom(), CARD_RADIUS, hovered ? CARD_HOVER : 0x331B1E24);
 		outline(graphics, card, hovered ? ACCENT : 0x44FFFFFF);
 		int centerX = card.centerX();
-		int centerY = card.y + (CARD_HEIGHT - CAPTION_HEIGHT) / 2;
+		int centerY = card.y + CARD_HEIGHT / 2;
 		graphics.fill(centerX - 10, centerY - 1, centerX + 10, centerY + 1,
 			hovered ? ACCENT : MUTED);
 		graphics.fill(centerX - 1, centerY - 10, centerX + 1, centerY + 10,
 			hovered ? ACCENT : MUTED);
-		drawCaption(graphics, card);
-		drawCardLabel(graphics, card, tr("wurst.background.import"), "");
+	}
+
+	private void drawWallpaperEngineCard(GuiGraphics graphics, Rect card,
+		int mouseX, int mouseY)
+	{
+		boolean hovered = card.contains(mouseX, mouseY);
+		FlatRenderer.fillRoundedRect(graphics, card.x, card.y, card.right(),
+			card.bottom(), CARD_RADIUS, hovered ? CARD_HOVER : 0x331B1E24);
+		outline(graphics, card, hovered ? ACCENT : 0x44FFFFFF);
+
+		int iconSize = 32;
+		int iconX = card.centerX() - iconSize / 2;
+		int iconY = card.y + CARD_HEIGHT / 2 - iconSize / 2;
+		graphics.blit(WE_ICON, iconX, iconY, iconSize, iconSize, 0, 0, 88, 88,
+			88, 88);
 	}
 
 	private void drawEntryCard(GuiGraphics graphics, Rect card,
@@ -449,29 +448,20 @@ public final class BackgroundSelectScreen extends Screen
 			return true;
 		}
 
-		if(scanButton(panel).contains(mouseX, mouseY) && !busy)
-		{
-			scanSteamLibrary();
-			return true;
-		}
-
-		if(motionButton(panel).contains(mouseX, mouseY))
-		{
-			cycleMotion();
-			return true;
-		}
-
 		int index = cardAt(panel, mouseX, mouseY);
 
 		if(index < 0)
 			return true;
 
-		int last = entries.size() + 1;
+		int imageCard = entries.size() + 1;
+		int wallpaperEngineCard = entries.size() + 2;
 
 		if(index == 0)
 			BackgroundManager.get().select(BackgroundStorage.DEFAULT_ID);
-		else if(index == last)
+		else if(index == imageCard)
 			importFromFile();
+		else if(index == wallpaperEngineCard)
+			importWallpaperEngine();
 		else
 		{
 			BackgroundEntry entry = entries.get(index - 1);
@@ -675,7 +665,10 @@ public final class BackgroundSelectScreen extends Screen
 							path.getFileName());
 					else
 					{
-						BackgroundManager.get().select(id);
+						// Videos are probed when their card is clicked, so
+						// don't select an unplayable file immediately.
+						if(kind != BackgroundKind.VIDEO)
+							BackgroundManager.get().select(id);
 						entries = BackgroundManager.get().entries();
 						status = tr("wurst.background.imported",
 							path.getFileName());
@@ -687,31 +680,12 @@ public final class BackgroundSelectScreen extends Screen
 		});
 	}
 
-	/**
-	 * 从候选自带的缩略图来源生成缩略图。场景包的 {@code thumbnail} 指向它的
-	 * 预览图而不是包本身——解码器读不了 {@code .pkg}。
-	 */
-	private static byte[] createThumbnail(
-		WallpaperEngineImporter.Candidate candidate)
+	private void importWallpaperEngine()
 	{
-		Path source = candidate.thumbnail();
+		if(scanning)
+			return;
 
-		if(source == null)
-			return null;
-
-		boolean animated = source.equals(candidate.media())
-			&& candidate.kind() == BackgroundKind.GIF;
-
-		return animated
-			? BackgroundThumbnail.createAnimated(source,
-				BackgroundThumbnail.MAX_SIZE)
-			: BackgroundThumbnail.create(source,
-				BackgroundThumbnail.MAX_SIZE);
-	}
-
-	private void scanSteamLibrary()
-	{
-		busy = true;
+		scanning = true;
 		status = tr("wurst.background.scan_started");
 
 		Thread worker = new Thread(() -> {
@@ -750,7 +724,7 @@ public final class BackgroundSelectScreen extends Screen
 			int skippedCount = skipped;
 
 			minecraft.execute(() -> {
-				busy = false;
+				scanning = false;
 				entries = BackgroundManager.get().entries();
 				status = tr("wurst.background.scan_done", importedCount,
 					previewCount, skippedCount);
@@ -759,6 +733,27 @@ public final class BackgroundSelectScreen extends Screen
 
 		worker.setDaemon(true);
 		worker.start();
+	}
+
+	/**
+	 * 从候选自带的缩略图来源生成缩略图。场景包的 {@code thumbnail} 指向它的
+	 * 预览图而不是包本身——解码器读不了 {@code .pkg}。
+	 */
+	private static byte[] createThumbnail(
+		WallpaperEngineImporter.Candidate candidate)
+	{
+		Path source = candidate.thumbnail();
+
+		if(source == null)
+			return null;
+
+		boolean animated = source.equals(candidate.media())
+			&& candidate.kind() == BackgroundKind.GIF;
+
+		return animated
+			? BackgroundThumbnail.createAnimated(source,
+				BackgroundThumbnail.MAX_SIZE)
+			: BackgroundThumbnail.create(source, BackgroundThumbnail.MAX_SIZE);
 	}
 
 	private void delete(BackgroundEntry entry)
@@ -773,14 +768,6 @@ public final class BackgroundSelectScreen extends Screen
 			status = tr("wurst.background.deleted", entry.title());
 		}else
 			status = tr("wurst.background.delete_failed", entry.title());
-	}
-
-	private void cycleMotion()
-	{
-		BackgroundMotion[] values = BackgroundMotion.values();
-		BackgroundMotion current = BackgroundManager.get().motion();
-		WurstClient.INSTANCE.getGuiPreferences()
-			.setBackgroundMotion(values[(current.ordinal() + 1) % values.length]);
 	}
 
 	// ------------------------------------------------------------------
@@ -854,7 +841,7 @@ public final class BackgroundSelectScreen extends Screen
 		int columns = columns(panel);
 		int contentTop = panel.y + HEADER_HEIGHT;
 		int viewportBottom = panel.bottom() - 26;
-		int cards = entries.size() + 2;
+		int cards = entries.size() + 3;
 
 		// Cards are clipped to the viewport, so the invisible part must not be
 		// clickable either.
@@ -894,17 +881,6 @@ public final class BackgroundSelectScreen extends Screen
 	private Rect closeButton(Rect panel)
 	{
 		return new Rect(panel.right() - 30, panel.y + 10, 20, 20);
-	}
-
-	private Rect scanButton(Rect panel)
-	{
-		return new Rect(panel.right() - 30 - 12 - 110, panel.y + 10, 110, 20);
-	}
-
-	private Rect motionButton(Rect panel)
-	{
-		return new Rect(panel.right() - 30 - 12 - 110 - 12 - 120, panel.y + 10,
-			120, 20);
 	}
 
 	private String trim(String text, int maxWidth)
