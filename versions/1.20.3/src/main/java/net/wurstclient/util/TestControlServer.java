@@ -78,7 +78,7 @@ public final class TestControlServer
 			}
 
 			server = HttpServer.create(new InetSocketAddress(
-				InetAddress.getLoopbackAddress(), port), 0);
+				InetAddress.getByName("127.0.0.1"), port), 0);
 			server.createContext("/", TestControlServer::handle);
 			server.setExecutor(Executors.newSingleThreadExecutor(r -> {
 				Thread thread = new Thread(r, "Wurst-TestControl");
