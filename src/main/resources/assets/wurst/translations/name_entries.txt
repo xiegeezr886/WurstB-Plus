@@ -92,6 +92,7 @@
   "hack.name.kaboom": "爆破",
   "hack.name.killaura": "杀戮光环",
   "hack.name.killpotion": "杀人药水",
+  "hack.name.leftclicker": "连点器",
   "hack.name.liquids": "液体放置",
   "hack.name.lsd": "LSD幻觉",
   "hack.name.masstpa": "群发TPA",

@@ -18,6 +18,7 @@ import net.minecraft.world.inventory.Slot;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.mixin.AbstractContainerScreenInvoker;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
@@ -176,7 +177,8 @@ public final class AutoStealHack extends Hack
 				return;
 			}
 			
-			screen.slotClicked(slot, slot.index, 0, ClickType.QUICK_MOVE);
+			((AbstractContainerScreenInvoker)screen).wurst$slotClicked(slot,
+				slot.index, 0, ClickType.QUICK_MOVE);
 			
 		}finally
 		{
