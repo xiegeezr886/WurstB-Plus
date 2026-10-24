@@ -25,7 +25,7 @@
 | --- | --- |
 | 账号胶囊 | 左上角 `(16, 15)` 起，`218×70`，圆角约 10；头像 42×42 |
 | 账号名 / 副标题 | 名 `Eatgrapes` 约 24px 高、白色；`Welcome back` 约 13px、灰 |
-| 齿轮 | 右上角 `(1244, 16)` 起，`36×36`，右边距 16 |
+| 齿轮 | 右上角 `(1244, 16)` 起，`36×36`，右边距 16（v1.6 已移除，改由左上账号卡片打开菜单） |
 | 动作条底板 | `x 20..920`（宽 904）、`y 579..646`（高 67），约 50% 黑 |
 | 动作条按钮 | 4 个 `208×48`、间隔 16，约 82% 黑，圆角约 12；图标约 20px |
 | 左下角标题 | `x 28..213`、`y 506..547`（字高 41） |
@@ -109,11 +109,11 @@
 - **动作条**：`单人游戏` / `多人游戏` / `游戏设置` / `退出游戏`，分别走
   `ScreenRegistry.WORLD_SELECTION` / `MULTIPLAYER` / `OPTIONS`、`Minecraft::stop`。
   **Minecraft Realms 的入口去掉了**（用户选择）。
-- **右上角齿轮**：点开一个下拉卡片，里面 3 行：`背景`（`BackgroundSelectScreen`）、
-  `账号`（`AltManagerScreen`）、`模组`（Forge `ModListScreen`）。菜单用
-  `AbstractWidget.visible` 开关，不动态增删控件——渲染途中改控件表会
-  `ConcurrentModificationException`。
-- 点击空白处**不会**关掉齿轮菜单（要再点一次齿轮）。原因是「点外面关掉」需要在
+- **左上角账号卡片**：点击展开下拉卡片，里面 3 行：`背景`（`BackgroundSelectScreen`）、
+  `账号`（`AltManagerScreen`）、`模组`（Forge `ModListScreen`）。右上角的齿轮已移除，
+  保持壁纸干净；菜单用 `AbstractWidget.visible` 开关，不动态增删控件——渲染途中改
+  控件表会 `ConcurrentModificationException`。
+- 点击空白处**不会**关掉菜单（要再点一次账号卡片）。原因是「点外面关掉」需要在
   `Screen.mouseClicked` 上注入，而那是所有界面共用的方法，代价比收益大。
 - 悬停动画沿用 `clickgui2.animation.HoverAnimation`（20 帧）。
 
