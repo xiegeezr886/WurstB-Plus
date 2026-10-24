@@ -11,21 +11,26 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import net.minecraft.client.Minecraft;
 import net.wurstclient.WurstClient;
-import net.wurstclient.util.MultiProcessingUtils;
 
 /**
  * Opens {@link BackgroundFileChooser} without blocking the game.
  *
  * <p>
- * The alt list importer waits for its chooser inline, which freezes the client
- * for as long as the dialog is open. Here the whole exchange runs on a daemon
- * thread and only the result is handed back to the client thread.
+ * Minecraft sets {@code java.awt.headless=true}, so a Swing dialog cannot be
+ * created inside the game JVM ({@link java.awt.HeadlessException}). The
+ * chooser therefore runs in its own JVM and reports the picked path on
+ * stdout. The classpath is the mod jar from {@code <gameDir>/mods}; the
+ * protection-domain path is a union filesystem in production and cannot be
+ * handed to {@link ProcessBuilder}.
  */
 public final class BackgroundFilePicker
 {
@@ -45,15 +50,20 @@ public final class BackgroundFilePicker
 
 			try
 			{
-				Process process = MultiProcessingUtils.startProcessWithIO(
-					BackgroundFileChooser.class,
-					WurstClient.INSTANCE.getWurstFolder().toString());
+				Process process = new ProcessBuilder(
+					Paths.get(System.getProperty("java.home"), "bin", "java")
+						.toString(),
+					"-cp", findChooserClasspath(),
+					BackgroundFileChooser.class.getName(),
+					WurstClient.INSTANCE.getWurstFolder().toString())
+						.start();
 				picked = readPath(process);
 				process.waitFor();
 
-			}catch(IOException | InterruptedException | RuntimeException e)
+			}catch(Throwable t)
 			{
-				// a chooser we cannot open simply means nothing was picked
+				System.err.println("[Wurst] Background picker failed: " + t);
+				t.printStackTrace();
 			}
 
 			Path result = picked;
@@ -62,6 +72,39 @@ public final class BackgroundFilePicker
 
 		thread.setDaemon(true);
 		thread.start();
+	}
+
+	private static String findChooserClasspath() throws IOException
+	{
+		Path mods = Minecraft.getInstance().gameDirectory.toPath()
+			.resolve("mods");
+
+		if(Files.isDirectory(mods))
+		{
+			try(Stream<Path> entries = Files.list(mods))
+			{
+				Path jar = entries
+					.filter(path -> path.getFileName().toString()
+						.startsWith("WurstB+"))
+					.filter(path -> path.getFileName().toString()
+						.endsWith(".jar"))
+					.findFirst().orElse(null);
+
+				if(jar != null)
+					return jar.toAbsolutePath().toString();
+			}
+		}
+
+		// Development runs keep the classes in a build directory.
+		try
+		{
+			return Paths.get(BackgroundFileChooser.class.getProtectionDomain()
+				.getCodeSource().getLocation().toURI()).toString();
+
+		}catch(Exception e)
+		{
+			return System.getProperty("java.class.path");
+		}
 	}
 
 	private static Path readPath(Process process) throws IOException

@@ -342,9 +342,14 @@ public final class WurstTitleMenu
 	private void ensureAvatarTexture(ResourceLocation source,
 		ResourceLocation fallback, int pixels)
 	{
-		AbstractTexture current = minecraft.getTextureManager()
-			.getTexture(AVATAR_TEXTURE);
-		boolean showing = avatarTexture != null && current == avatarTexture;
+		boolean showing = false;
+
+		if(avatarTexture != null)
+		{
+			AbstractTexture current = minecraft.getTextureManager()
+				.getTexture(AVATAR_TEXTURE);
+			showing = current == avatarTexture;
+		}
 
 		if(showing && source != null && source.equals(avatarSource)
 			&& pixels == avatarPixels)
