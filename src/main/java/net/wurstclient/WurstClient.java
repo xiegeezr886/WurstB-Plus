@@ -9,6 +9,7 @@ package net.wurstclient;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -113,7 +114,8 @@ public enum WurstClient
 	public void initialize()
 	{
 		System.out.println("Starting " + CLIENT_NAME + "...");
-		
+		configureProxyFromEnvironment();
+
 		MC = Minecraft.getInstance();
 		IMC = (IMinecraftClient)MC;
 		wurstFolder = createWurstFolder();
@@ -287,6 +289,55 @@ public enum WurstClient
 		BackgroundManager.shutdown();
 	}
 	
+	/**
+	 * Java ignores the HTTP_PROXY / HTTPS_PROXY environment variables. Chinese
+	 * launchers often only export those, so the skin download (and every other
+	 * Java HTTP request) goes out directly and times out. Bridge them to the
+	 * JVM proxy properties once, unless the launcher already set a proxy.
+	 */
+	private static void configureProxyFromEnvironment()
+	{
+		if(System.getProperty("http.proxyHost") != null
+			|| System.getProperty("https.proxyHost") != null)
+			return;
+
+		String raw = System.getenv("HTTPS_PROXY");
+
+		if(raw == null || raw.isBlank())
+			raw = System.getenv("HTTP_PROXY");
+
+		if(raw == null || raw.isBlank())
+		{
+			// No environment override: let Java honour the Windows system
+			// proxy when the user has enabled it.
+			System.setProperty("java.net.useSystemProxies", "true");
+			return;
+		}
+
+		try
+		{
+			URI uri = URI.create(raw.contains("://") ? raw : "http://" + raw);
+			String host = uri.getHost();
+
+			if(host == null || host.isBlank())
+				return;
+
+			int port = uri.getPort() > 0 ? uri.getPort() : 8080;
+			String portText = Integer.toString(port);
+
+			System.setProperty("http.proxyHost", host);
+			System.setProperty("http.proxyPort", portText);
+			System.setProperty("https.proxyHost", host);
+			System.setProperty("https.proxyPort", portText);
+			System.setProperty("http.nonProxyHosts", "localhost|127.*");
+			System.out.println("[Wurst] Using proxy " + host + ":" + port);
+
+		}catch(RuntimeException e)
+		{
+			System.out.println("[Wurst] Ignoring invalid proxy setting: " + raw);
+		}
+	}
+
 	/**
 	 * Baritone creates a non-daemon static thread pool (baritone.Baritone.threadPool)
 	 * whose workers keep the JVM alive after the client stops. Minecraft 26.x has a

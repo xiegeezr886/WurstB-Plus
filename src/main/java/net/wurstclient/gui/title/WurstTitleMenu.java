@@ -1,5 +1,7 @@
 package net.wurstclient.gui.title;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ import net.wurstclient.gui.title.TitleMenuLayout.Rect;
 import net.wurstclient.gui.title.WurstTitleButton.Style;
 import net.wurstclient.gui.visual.VisualRenderer;
 import net.wurstclient.gui.visual.VisualTheme;
+import net.wurstclient.mixin.SkinManagerAccessor;
 import net.wurstclient.util.ScreenRegistry;
 
 /**
@@ -85,6 +88,9 @@ public final class WurstTitleMenu
 	private ResourceLocation avatarSource;
 	private int avatarPixels = -1;
 	private int avatarRetryCooldown;
+	private boolean avatarFromFallback;
+	private int avatarUpgradeCountdown;
+	private String avatarLogState = "";
 	private boolean menuOpen;
 
 	public WurstTitleMenu(Screen parent)
@@ -296,14 +302,15 @@ public final class WurstTitleMenu
 			return;
 
 		ResourceLocation source = skin;
+		ResourceLocation fallback = DefaultPlayerSkin.getDefaultSkin();
 
 		if(source == null)
-			source = DefaultPlayerSkin.getDefaultSkin();
+			source = fallback;
 
 		int pixels = Math.max(8, Math.min(256, size * Math.max(1,
 			(int)Math.round(minecraft.getWindow().getGuiScale()))));
 
-		ensureAvatarTexture(source, pixels);
+		ensureAvatarTexture(source, fallback, pixels);
 
 		if(avatarTexture == null)
 		{
@@ -322,15 +329,23 @@ public final class WurstTitleMenu
 	 * scale. Doing this on the CPU gives anti-aliased corners; scissoring
 	 * can only cut whole rectangles and leaves a staircase at small sizes.
 	 */
-	private void ensureAvatarTexture(ResourceLocation source, int pixels)
+	private void ensureAvatarTexture(ResourceLocation source,
+		ResourceLocation fallback, int pixels)
 	{
-		if(avatarTexture != null && source.equals(avatarSource)
-			&& pixels == avatarPixels)
+		if(avatarTexture != null && source != null
+			&& source.equals(avatarSource) && pixels == avatarPixels)
 		{
 			AbstractTexture current = minecraft.getTextureManager()
 				.getTexture(AVATAR_TEXTURE);
+
 			if(current == avatarTexture)
-				return;
+			{
+				// The real skin may still be downloading; retry about once a
+				// second while the default skin stands in for it.
+				if(!avatarFromFallback || --avatarUpgradeCountdown > 0)
+					return;
+				avatarUpgradeCountdown = 60;
+			}
 		}
 
 		boolean changed = source != null && (!source.equals(avatarSource)
@@ -350,6 +365,13 @@ public final class WurstTitleMenu
 		}
 
 		SkinImage loaded = loadSkinImage(source);
+		boolean usedFallback = false;
+
+		if(loaded == null && fallback != null && !fallback.equals(source))
+		{
+			loaded = loadSkinImage(fallback);
+			usedFallback = loaded != null;
+		}
 
 		if(loaded == null)
 		{
@@ -370,6 +392,16 @@ public final class WurstTitleMenu
 			minecraft.getTextureManager().release(AVATAR_TEXTURE);
 			minecraft.getTextureManager().register(AVATAR_TEXTURE, texture);
 			avatarTexture = texture;
+			avatarFromFallback = usedFallback;
+			avatarUpgradeCountdown = 60;
+
+			String state = usedFallback ? "default until " + source
+				: "using " + source;
+			if(!state.equals(avatarLogState))
+			{
+				avatarLogState = state;
+				System.out.println("[Wurst] Title avatar: " + state);
+			}
 		}finally
 		{
 			if(loaded.owned())
@@ -379,6 +411,11 @@ public final class WurstTitleMenu
 
 	private SkinImage loadSkinImage(ResourceLocation source)
 	{
+		// Downloaded skins are HttpTextures (SimpleTexture), whose pixels
+		// cannot be read back. Read the on-disk cache instead.
+		if(source.getPath().startsWith("skins/"))
+			return loadCachedSkin(source);
+
 		AbstractTexture texture = minecraft.getTextureManager()
 			.getTexture(source);
 
@@ -400,6 +437,38 @@ public final class WurstTitleMenu
 			{
 				NativeImage pixels = NativeImage.read(in);
 				return new SkinImage(pixels, true);
+			}
+		}catch(IOException | RuntimeException e)
+		{
+			return null;
+		}
+	}
+
+	private SkinImage loadCachedSkin(ResourceLocation source)
+	{
+		String hash = source.getPath().substring("skins/".length());
+
+		try
+		{
+			File directory = ((SkinManagerAccessor)minecraft.getSkinManager())
+				.wurst$skinsDirectory();
+			File file = new File(
+				new File(directory, hash.length() > 2 ? hash.substring(0, 2)
+					: "xx"),
+				hash);
+
+			if(!file.isFile() || file.length() <= 0)
+				return null;
+
+			try(InputStream in = new FileInputStream(file))
+			{
+				NativeImage pixels = NativeImage.read(in);
+
+				if(pixels.getWidth() >= 48 && pixels.getHeight() >= 16)
+					return new SkinImage(pixels, true);
+
+				pixels.close();
+				return null;
 			}
 		}catch(IOException | RuntimeException e)
 		{
