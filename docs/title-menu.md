@@ -158,8 +158,13 @@
    账号资料里的 textures 属性在标题界面经常还没拉取，只调用
    `getInsecureSkinLocation` 会一直得到默认的 Alex/Steve。`PlayerSkinProviderMixin`
    只在校验完成后追加 Wurst 披风，不再替换整个 `registerSkins`，因此不会遮挡
-   CustomSkinLoader / 离线皮肤启动器。贴图注册完成前显示圆角占位块，避免缺失贴图
-   的棋盘格。
+   CustomSkinLoader / 离线皮肤启动器。真实皮肤是 `HttpTexture`（`SimpleTexture`），
+   取不到像素，因此从 `SkinManager.skinsDirectory` 的下载缓存读文件；文件还没下载
+   完成时先显示默认皮肤，并每秒重试一次，下载完成后自动换成真实皮肤。
+   `WurstClient` 启动时会把 `HTTPS_PROXY` / `HTTP_PROXY` 环境变量桥接成 JVM 代理
+   属性（PCL 等启动器默认不传），否则 `textures.minecraft.net` 在国内会直连超时。
+   注意：PCL 的代理设置需要写进它的网络设置，或以系统代理/环境变量形式提供；只在
+   Wurst 里桥接环境变量，启动器不设置时仍然拉不到皮肤。
 2. **图标用的是仓库原有的 Wurst 实心图标**（`textures/gui/fdp/`），参考图那套是
    细描边线性图标。额外只生成了一个 `fdp/power.png`（电源符号，参考图的「退出」
    用它，仓库里没有）。
