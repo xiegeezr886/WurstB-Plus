@@ -337,13 +337,6 @@ public final class BackgroundSelectScreen extends Screen
 			graphics.fill(card.x + PREVIEW_INSET, card.y + PREVIEW_INSET,
 				card.right() - PREVIEW_INSET, previewBottom, 0x22FFFFFF);
 
-		if(entry.kind() == BackgroundKind.VIDEO)
-			// 视频的徽章跟着探测结果走：没探完是「检测中」，能放就只写「视频」，
-			// 放不了才写「不能播放」
-			drawBadge(graphics, card, videoBadge(entry));
-		else if(entry.kind() == BackgroundKind.GIF)
-			drawBadge(graphics, card, "GIF");
-
 		drawCaption(graphics, card);
 		drawCardLabel(graphics, card, entry.title(), entry.origin());
 	}
@@ -382,13 +375,6 @@ public final class BackgroundSelectScreen extends Screen
 			crop[3], textureWidth, textureHeight);
 	}
 
-	private void drawBadge(GuiGraphics graphics, Rect card, String text)
-	{
-		int width = font.width(text) + 8;
-		int x = card.right() - width - 5;
-		graphics.fill(x, card.y + 5, x + width, card.y + 17, 0xAA000000);
-		graphics.drawString(font, text, x + 4, card.y + 8, 0xFFFFFFFF, false);
-	}
 
 	private void drawCardLabel(GuiGraphics graphics, Rect card, String title,
 		String subtitle)
@@ -525,26 +511,6 @@ public final class BackgroundSelectScreen extends Screen
 	// ------------------------------------------------------------------
 	// 视频能不能放
 	// ------------------------------------------------------------------
-
-	/**
-	 * 视频卡片的徽章。
-	 *
-	 * <p>
-	 * 「不能播放」现在是探出来的结论而不是预设：探测（
-	 * {@link BackgroundVideo#probeAsync}）在后台线程读文件头并解一帧，结果按条目 id
-	 * 留在本界面里，所以画卡片不会每帧去读磁盘。
-	 * </p>
-	 */
-	private String videoBadge(BackgroundEntry entry)
-	{
-		BackgroundVideo.Probe probe = videoProbe(entry);
-
-		if(probe == null)
-			return tr("wurst.background.video_checking");
-
-		return probe.playable() ? tr("wurst.background.video_playable")
-			: tr("wurst.background.video_badge");
-	}
 
 	/**
 	 * @return 探测结果，还没探完返回 null；同一个条目只会发起一次探测

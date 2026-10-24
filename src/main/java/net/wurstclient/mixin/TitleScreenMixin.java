@@ -66,16 +66,6 @@ public abstract class TitleScreenMixin extends Screen
 		ci.cancel();
 	}
 
-	@Inject(method = "mouseClicked(DDI)Z", at = @At("HEAD"),
-		cancellable = true)
-	private void onMouseClicked(double mouseX, double mouseY, int button,
-		CallbackInfoReturnable<Boolean> cir)
-	{
-		if(wurstPenguin$customMenu && wurstPenguin$titleMenu != null
-			&& wurstPenguin$titleMenu.mouseClicked(mouseX, mouseY, button))
-			cir.setReturnValue(true);
-	}
-
 	@Inject(at = @At("HEAD"),
 		method = "getMultiplayerDisabledReason()Lnet/minecraft/network/chat/Component;",
 		cancellable = true)

@@ -54,6 +54,7 @@ public final class WurstTitleMenu
 	private static final ResourceLocation POWER = fdp("power");
 	private static final ResourceLocation USER = fdp("user");
 	private static final ResourceLocation INFO = fdp("info");
+	private static final ResourceLocation SETTINGS = icon("settings");
 	private static final ResourceLocation RENDER = icon("render");
 	private static final ResourceLocation LOGO = new ResourceLocation("wurst",
 		"textures/gui/wurstb_logo_white.png");
@@ -131,8 +132,15 @@ public final class WurstTitleMenu
 			() -> ScreenRegistry.OPTIONS.open(parent)));
 		addWidget.accept(action(3, "wurst.title.quit", POWER, minecraft::stop));
 
-		// 右上角不再放齿轮；点击左上角账号卡片打开同一菜单。
-		// 菜单行：默认收起来，靠 visible 开关
+		// 右上角齿轮
+		Rect gear = layout.gear();
+		addWidget.accept(new WurstTitleButton(gear.x(), gear.y(),
+			gear.width(), gear.height(),
+			Component.translatable("wurst.title.menu"), SETTINGS,
+			this::toggleMenu, Style.ICON, layout.gearRadius(),
+			layout.gearIconSize()));
+
+		// 齿轮菜单：默认收起来，靠 visible 开关
 		addMenuRow(addWidget, 0, "wurst.title.background", RENDER,
 			() -> minecraft.setScreen(new BackgroundSelectScreen(parent)));
 		addMenuRow(addWidget, 1, "wurst.title.accounts", USER,
@@ -162,24 +170,6 @@ public final class WurstTitleMenu
 		row.visible = false;
 		menuRows.add(row);
 		addWidget.accept(row);
-	}
-
-	/**
-	 * The top-right gear is intentionally gone; the account chip is now the
-	 * entry point for the Background / Accounts / Mods menu.
-	 *
-	 * @return whether the click was consumed
-	 */
-	public boolean mouseClicked(double mouseX, double mouseY, int button)
-	{
-		if(button == 0 && layout != null
-			&& layout.chip().contains(mouseX, mouseY))
-		{
-			toggleMenu();
-			return true;
-		}
-
-		return false;
 	}
 
 	private void toggleMenu()
@@ -697,7 +687,7 @@ public final class WurstTitleMenu
 	private static void configureTextures(Minecraft minecraft)
 	{
 		for(ResourceLocation location : List.of(SINGLEPLAYER, MULTIPLAYER,
-			OPTIONS, POWER, USER, INFO, RENDER, LOGO))
+			OPTIONS, POWER, USER, INFO, SETTINGS, RENDER, LOGO))
 			minecraft.getTextureManager().getTexture(location)
 				.setFilter(true, false);
 	}
