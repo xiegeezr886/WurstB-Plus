@@ -107,7 +107,14 @@ public final class WurstTitleMenu
 
 		playerName = Component.literal(minecraft.getUser().getName());
 		welcome = Component.translatable("wurst.title.welcome");
-		skin = resolveSkin(minecraft);
+
+		// Resizing the window re-runs init(). getInsecureSkinLocation often
+		// falls back to Alex/Steve there (the profile textures are not fetched
+		// yet), so never overwrite an already resolved real skin with it.
+		ResourceLocation resolved = resolveSkin(minecraft);
+		if(skin == null || (isDefaultSkinLocation(skin) && resolved != null
+			&& !isDefaultSkinLocation(resolved)))
+			skin = resolved;
 		requestSkin(minecraft);
 		configureTextures(minecraft);
 
