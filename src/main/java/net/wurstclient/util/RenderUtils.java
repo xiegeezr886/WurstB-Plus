@@ -25,6 +25,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -986,4 +987,17 @@ public enum RenderUtils
 	
 	public record ColoredBox(AABB box, int color)
 	{}
+
+	public static void submitText(PoseStack matrices, float x, float y,
+		FormattedCharSequence text, boolean dropShadow, Font.DisplayMode mode,
+		int light, int color, int backgroundColor, int offset)
+	{
+		MultiBufferSource.BufferSource buffers = getVCP();
+		matrices.pushPose();
+		matrices.translate(0, 0, offset);
+		WurstClient.MC.font.drawInBatch(text, x, y, color, dropShadow,
+			matrices.last().pose(), buffers, mode, backgroundColor, light);
+		matrices.popPose();
+		buffers.endBatch();
+	}
 }
