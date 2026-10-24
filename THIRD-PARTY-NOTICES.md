@@ -16,9 +16,13 @@
 
 | 组件 | 许可 | 说明 |
 | --- | --- | --- |
-| WurstB+ Plus 源码 | **GPL-3.0-or-later** | 继承自 [Wurst7](https://github.com/Wurst-Imperium/Wurst7)。全文见 [LICENSE.txt](LICENSE.txt) |
+| WurstB+ Plus 整体源码 | **AGPL-3.0-or-later** | 全文见 [LICENSE.txt](LICENSE.txt) |
+| Wurst7 上游部分 | **GPL-3.0-or-later** | 继承自 [Wurst7](https://github.com/Wurst-Imperium/Wurst7)；GPL 全文见 [LICENSE-GPL-3.0.txt](LICENSE-GPL-3.0.txt)。GPL-3.0 代码并入 AGPL-3.0 作品 |
 | Forge MDK 模板部分 | **LGPL-2.1**（含 MCP 数据不可再分发限制） | 见 [LICENSE-Forge-MDK.txt](LICENSE-Forge-MDK.txt) |
 | **LumaGlass**（移植进来的玻璃按钮渲染） | **MIT** | Copyright © 2026 Sunny5349；上游 <https://github.com/Sunny5349/LumaGlass>，移植自 0.2.9。见下 |
+| **FO** 部分模块 | **CC0-1.0** | 上游 <https://github.com/jialebot6666/FO>；可自由改编 |
+| **InvincibleMachineGun** 部分模块 | **GPL-3.0** | 上游 <https://github.com/adaxiaohu/InvincibleMachineGun>；与整体 AGPL-3.0 兼容 |
+| **LeavesHack** 部分模块 | **AGPL-3.0** | 上游 <https://github.com/MrBZBZ/LeavesHack>；与整体许可一致 |
 
 ### 移植的第三方源码：LumaGlass
 
@@ -40,7 +44,7 @@
 | `mixin/CheckboxMixin.java` | `mixin/client/CheckboxMixin.java` | 整个混入 |
 | `mixin/SelectionListMixin.java` | `mixin/client/SelectionListMixin.java` | 只取其中的滚动条分支（列表底色与选中行未移植） |
 
-MIT 与项目的 GPL-3.0-or-later 兼容；MIT 要求保留版权与许可声明，因此上述文本随产物分发。
+MIT 与项目的 AGPL-3.0-or-later 兼容；MIT 要求保留版权与许可声明，因此上述文本随产物分发。
 
 > 修正记录：审计前 `LICENSE.txt` 实为 Forge MDK 的 LGPL-2.1 文本，却被 README 徽章与
 > `PROJECT_INDEX.md` 当作 GPL-3.0 引用，且仓库内**没有 GPL-3.0 全文**。现已拆分为上述两个文件。
@@ -78,7 +82,7 @@ MIT 与项目的 GPL-3.0-or-later 兼容；MIT 要求保留版权与许可声明
 1. 核实上表所有 ⚠ 行的实际许可（查上游仓库的 LICENSE 文件，而非仅看 POM）。
 2. 把每个内嵌依赖的许可文本打进产物，例如放到 `META-INF/licenses/<artifact>/`——
    仓库已有现成的正确范例：`src/main/resources/META-INF/licenses/cozyui/`。
-3. 注意 `vorbis-support` 自称 **LGPL-3.0**，与项目主许可 GPL-3.0-or-later 不同；
+3. 注意 `vorbis-support` 自称 **LGPL-3.0**，与项目主许可 AGPL-3.0-or-later 不同；
    LGPL 对"允许用户替换该库"有额外要求，relocate 后的动态替换路径需要确认。
 
 #### 第 1、2 步已完成（2026-10-07）
