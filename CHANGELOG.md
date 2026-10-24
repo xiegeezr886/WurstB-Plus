@@ -35,6 +35,16 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 - **代理环境变量桥接**：Java 不读取 `HTTP_PROXY` / `HTTPS_PROXY`。客户端启动时把这两个
   环境变量写成 JVM 代理属性，避免皮肤、音乐等 HTTP 请求直连超时（PCL 自身未设置代理时
   仍需在 PCL 里配置代理，或使用系统代理）。
+- **背景选择界面精简**：移除顶部的「运动：无」和「扫描 Steam 库」两个按钮及其点击
+  处理，标题栏只保留标题与关闭按钮。
+- **背景导入卡片**：修复导入按钮无反应（Minecraft JVM 是 headless，进程内 Swing
+  会抛 `HeadlessException`；改为在独立 JVM 中运行文件选择器，并从 `<gameDir>/mods`
+  找 mod jar 作为 classpath）。导入卡片去掉下方文字，文件选择器支持图片 / GIF /
+  视频（png、jpg、jpeg、bmp、gif、mp4、m4v）；视频导入后不自动选中，点击卡片时
+  再探测可播放性。
+- **Wallpaper Engine 导入卡片**：在导入卡片右侧新增带官方 Wallpaper Engine 图标的
+  卡片，点击后扫描 Steam 库并导入 WE 壁纸（原顶部「扫描 Steam 库」按钮的功能）。
+  图标取自 Wallpaper Engine 官方 Steam 商店 logo，归属见 `THIRD-PARTY-NOTICES.md`。
 - **修复头像先正确、随后变成 Alex**：皮肤管理器的回调可能先报告一个尚未下载完成的
   `skins/<hash>`；此前会立即切到默认皮肤。现在回调只有在目标位置**可读**时才更新，
   且屏幕上已有的头像不会被新位置的一次加载失败替换掉——只有首次完全没有头像时才用
