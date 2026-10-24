@@ -125,6 +125,21 @@ CONFIGURE_FLAGS=(
 	--enable-decoder=mpeg4
 	--enable-decoder=mjpeg
 
+	# audio decoders: video wallpapers typically carry AAC; scene/other
+	# containers may use MP3/Opus/Vorbis/FLAC/AC-3
+	--enable-decoder=aac
+	--enable-decoder=aac_latm
+	--enable-decoder=mp3
+	--enable-decoder=opus
+	--enable-decoder=vorbis
+	--enable-decoder=flac
+	--enable-decoder=alac
+	--enable-decoder=ac3
+	--enable-decoder=eac3
+	--enable-decoder=pcm_s16le
+	--enable-decoder=pcm_s24le
+	--enable-decoder=pcm_f32le
+
 	# demuxers (mp4/mov share the 'mov' demuxer; mkv/webm use matroska)
 	--enable-demuxer=mov
 	--enable-demuxer=matroska
@@ -139,6 +154,12 @@ CONFIGURE_FLAGS=(
 	--enable-parser=av1
 	--enable-parser=mpeg4video
 	--enable-parser=mjpeg
+	--enable-parser=aac
+	--enable-parser=aac_latm
+	--enable-parser=mpegaudio
+	--enable-parser=opus
+	--enable-parser=vorbis
+	--enable-parser=flac
 
 	# hardware decode
 	#
@@ -161,6 +182,7 @@ CONFIGURE_FLAGS=(
 
 	# libraries / misc
 	--enable-swscale
+	--enable-swresample
 	--enable-protocol=file
 	--enable-zlib
 	--disable-encoders
@@ -246,13 +268,15 @@ CFLAGS_COMMON=(
 
 mkdir -p "$OUT_DLL"
 cp "$PREFIX"/bin/avutil-*.dll "$PREFIX"/bin/swscale-*.dll \
-	"$PREFIX"/bin/avcodec-*.dll "$PREFIX"/bin/avformat-*.dll "$OUT_DLL/"
+	"$PREFIX"/bin/swresample-*.dll "$PREFIX"/bin/avcodec-*.dll \
+	"$PREFIX"/bin/avformat-*.dll "$OUT_DLL/"
 
 gcc "${CFLAGS_COMMON[@]}" -shared -o "$OUT_DLL/vf_ffmpeg.dll" "$SHIM_SRC" \
-	-L"$PREFIX/lib" -lavformat -lavcodec -lswscale -lavutil
+	-L"$PREFIX/lib" -lavformat -lavcodec -lswscale -lswresample -lavutil
 
 gcc "${CFLAGS_COMMON[@]}" -DVF_WITH_MAIN -o "$OUT_DLL/vf_ffmpeg_test.exe" \
-	"$SHIM_SRC" -L"$PREFIX/lib" -lavformat -lavcodec -lswscale -lavutil
+	"$SHIM_SRC" -L"$PREFIX/lib" -lavformat -lavcodec -lswscale -lswresample \
+	-lavutil
 
 echo "=== staged into $OUT_DLL ==="
 ls -l "$OUT_DLL"
