@@ -365,6 +365,9 @@ public final class HackList implements UpdateListener
 	public final MobHudHack mobHudHack = new MobHudHack();
 	public final NoGhostBlocksHack noGhostBlocksHack = new NoGhostBlocksHack();
 	public final NotifierHack notifierHack = new NotifierHack();
+	public final BetterTabHack betterTabHack = new BetterTabHack();
+	public final BetterTooltipsHack betterTooltipsHack = new BetterTooltipsHack();
+	public final NoStatusEffectsHack noStatusEffectsHack = new NoStatusEffectsHack();
 	public final OdmGearHack odmGearHack = new OdmGearHack();
 	public final OffhandHack offhandHack = new OffhandHack();
 	public final OreVeinESPHack oreVeinEspHack = new OreVeinESPHack();
