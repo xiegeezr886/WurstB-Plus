@@ -37,6 +37,11 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
   仍需在 PCL 里配置代理，或使用系统代理）。
 - **背景选择界面精简**：移除顶部的「运动：无」和「扫描 Steam 库」两个按钮及其点击
   处理，标题栏只保留标题与关闭按钮。
+- **移除主界面右上角齿轮**：点击左上角账号卡片展开「背景 / 账号 / 模组」菜单，壁纸
+  右上角不再有任何图标。
+- **关闭原版主界面音乐**：`MusicManagerMixin` 在 `TitleScreen` 上取消
+  `MusicManager.startPlaying`；游戏内音乐不受影响。壁纸本身也没有音轨——视频背景
+  只解码画面，Wallpaper Engine 场景不播放声音。
 - **背景导入卡片**：修复导入按钮无反应（Minecraft JVM 是 headless，进程内 Swing
   会抛 `HeadlessException`；改为在独立 JVM 中运行文件选择器，并从 `<gameDir>/mods`
   找 mod jar 作为 classpath）。导入卡片去掉下方文字，文件选择器支持图片 / GIF /
