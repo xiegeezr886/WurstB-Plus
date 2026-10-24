@@ -26,11 +26,15 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
   （约 60ms 时间常数），滚动条与卡片位置同步动画。
 - **标题界面资料卡头像**：主动调用 `SkinManager.registerSkins` 请求本地账号皮肤，
   并通过回调接收**真实皮肤贴图位置**（账号资料里的 textures 属性在标题界面往往还没
-  拉取，之前会一直显示默认的 Alex/Steve）；皮肤解析失败时才退回默认皮肤，贴图未就绪
-  时显示圆角占位块。`PlayerSkinProviderMixin` 从「整个替换 registerSkins」改为
-  TAIL 追加 Wurst 披风，不再遮挡 CustomSkinLoader / 离线皮肤启动器。
-  头像改为**CPU 预生成圆角方块贴图**（按当前 GUI scale 渲染、边缘 8×8 超采样抗锯齿），
-  不再用逐行 scissor，避免小尺寸下出现阶梯状像素点。
+  拉取，之前会一直显示默认的 Alex/Steve）。真实皮肤是 `HttpTexture`（`SimpleTexture`），
+  取不到像素，因此从 `SkinManager.skinsDirectory` 的下载缓存读文件；文件未下载完成时
+  先显示默认皮肤并每秒重试，下载完成后自动切换。`PlayerSkinProviderMixin` 从
+  「整个替换 registerSkins」改为 TAIL 追加 Wurst 披风，不再遮挡 CustomSkinLoader /
+  离线皮肤启动器。头像改为**CPU 预生成圆角方块贴图**（按当前 GUI scale 渲染、
+  边缘 8×8 超采样抗锯齿），不再用逐行 scissor，避免小尺寸下出现阶梯状像素点。
+- **代理环境变量桥接**：Java 不读取 `HTTP_PROXY` / `HTTPS_PROXY`。客户端启动时把这两个
+  环境变量写成 JVM 代理属性，避免皮肤、音乐等 HTTP 请求直连超时（PCL 自身未设置代理时
+  仍需在 PCL 里配置代理，或使用系统代理）。
 - **测试脚本识别根工程 Baritone**：`run-version-tests.ps1` 原先只匹配 `[Baritone]` /
   `Baritone 1.x` 等横幅，根 Forge 1.20.1 输出的是 `Baritone world data dir` /
   `Baritone settings file`，导致世界已加载却被记为 TIMEOUT。已补充这些标记。
