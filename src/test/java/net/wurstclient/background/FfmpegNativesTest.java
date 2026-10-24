@@ -17,13 +17,13 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * natives 要随模组一起发布：7 个 DLL 放在
+ * natives 要随模组一起发布：8 个 DLL 放在
  * {@code src/main/resources/assets/wurst/ffmpeg/} 下，运行时由 {@link FfmpegNatives}
  * 解压到 {@code gameDir/ffmpeg/} 再加载。
  *
  * <p>
  * 「真的解压并加载」这一步需要 Minecraft 的资源管理器，这里跑不了（单测没有客户端）；
- * 这里能验的是更早、也更容易忘的一步：<b>那 7 个文件真的在资源目录里</b>。少了任何
+ * 这里能验的是更早、也更容易忘的一步：<b>那 8 个文件真的在资源目录里</b>。少了任何
  * 一个，游戏里都会退化成"视频背景放不了"，而且只在真正用到时才发现。
  * </p>
  *
@@ -36,8 +36,8 @@ import org.junit.jupiter.api.Test;
  */
 final class FfmpegNativesTest
 {
-	/** native/ffmpeg/README.md 里记的那 7 个文件加起来的大小。 */
-	private static final long DLL_TOTAL = 7_605_466L;
+	/** native/ffmpeg/README.md 里记的那 8 个文件加起来的大小。 */
+	private static final long DLL_TOTAL = 8_362_148L;
 
 	private static final Path RESOURCES =
 		Path.of("src", "main", "resources", "assets", "wurst", "ffmpeg");
@@ -47,7 +47,7 @@ final class FfmpegNativesTest
 	{
 		List<String> names = FfmpegNatives.loadedNames();
 
-		assertEquals(7, names.size(), "要发布的 DLL 个数（不含 vf_ffmpeg_test.exe）");
+		assertEquals(8, names.size(), "要发布的 DLL 个数（不含 vf_ffmpeg_test.exe）");
 
 		long total = 0;
 
@@ -88,6 +88,7 @@ final class FfmpegNativesTest
 		int pthread = names.indexOf("libwinpthread-1.dll");
 		int zlib = names.indexOf("zlib1.dll");
 		int avutil = names.indexOf("avutil-59.dll");
+		int swresample = names.indexOf("swresample-5.dll");
 		int avformat = names.indexOf("avformat-61.dll");
 		int shim = names.indexOf("vf_ffmpeg.dll");
 
@@ -95,8 +96,10 @@ final class FfmpegNativesTest
 			"libwinpthread-1.dll 必须在 avutil-59.dll 之前：" + names);
 		assertTrue(zlib >= 0 && zlib < avformat,
 			"zlib1.dll 必须在 avformat-61.dll 之前：" + names);
+		assertTrue(swresample > avutil && swresample < shim,
+			"swresample-5.dll 必须在 avutil 之后、shim 之前：" + names);
 		assertEquals(names.size() - 1, shim,
-			"shim 自己最后加载（它依赖另外六个）：" + names);
+			"shim 自己最后加载（它依赖另外七个）：" + names);
 	}
 
 	/**

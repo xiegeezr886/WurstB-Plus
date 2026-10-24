@@ -65,6 +65,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 {
 	/** 一层贴图的像素上限，防止坏文件把显存吃光。 */
 	private static final long MAX_PIXELS = 64_000_000L;
+	private static final long MAX_AUDIO_BYTES = 64L * 1024 * 1024;
 
 	/** 图层数上限，正常场景个位数。 */
 	private static final int MAX_LAYERS = 64;
@@ -117,6 +118,9 @@ public final class WeSceneWallpaper implements AutoCloseable
 	 */
 	private final Map<String, WeSceneFont> sceneFonts;
 
+	/** 场景自带的音频；没有音频对象时为 null。 */
+	private final WeSceneAudioPlayer sceneAudio;
+
 	/**
 	 * 上传好的粒子贴图：注册用的 {@link ResourceLocation}（{@code blit} 要它）、
 	 * 纹理本身，以及源图尺寸（{@code blit} 要知道源尺寸）。
@@ -126,12 +130,15 @@ public final class WeSceneWallpaper implements AutoCloseable
 	{}
 
 	private WeSceneWallpaper(WeScene scene, List<Bound> layers,
-		List<BoundParticles> particleLayers, Map<String, WeSceneFont> sceneFonts)
+		List<BoundParticles> particleLayers,
+		Map<String, WeSceneFont> sceneFonts,
+		List<WeSceneAudioPlayer.Clip> audio)
 	{
 		this.scene = scene;
 		this.layers = layers;
 		this.particleLayers = particleLayers;
 		this.sceneFonts = sceneFonts;
+		this.sceneAudio = WeSceneAudioPlayer.start(audio);
 	}
 
 	/** 一张已经上传的贴图，连同它属于哪一层。 */
@@ -161,14 +168,17 @@ public final class WeSceneWallpaper implements AutoCloseable
 		private final List<DecodedLayer> remaining;
 		private final List<DecodedParticles> particles;
 		private final Map<String, byte[]> fonts;
+		private final List<WeSceneAudioPlayer.Clip> audio;
 
 		Decoded(WeScene scene, List<DecodedLayer> layers,
-			List<DecodedParticles> particles, Map<String, byte[]> fonts)
+			List<DecodedParticles> particles, Map<String, byte[]> fonts,
+			List<WeSceneAudioPlayer.Clip> audio)
 		{
 			this.scene = scene;
 			this.remaining = new ArrayList<>(layers);
 			this.particles = particles;
 			this.fonts = fonts;
+			this.audio = audio;
 		}
 
 		/**
@@ -184,6 +194,11 @@ public final class WeSceneWallpaper implements AutoCloseable
 		public WeScene scene()
 		{
 			return scene;
+		}
+
+		public List<WeSceneAudioPlayer.Clip> audio()
+		{
+			return audio;
 		}
 
 		/** 还没交给纹理的图层，上传完成后就是空的。 */
@@ -433,7 +448,85 @@ public final class WeSceneWallpaper implements AutoCloseable
 				+ " 层；已画出 " + decoded.size() + " 层");
 
 		return new Decoded(scene, List.copyOf(decoded),
-			decodeParticles(pkg, scene), readFonts(pkg, scene));
+			decodeParticles(pkg, scene), readFonts(pkg, scene),
+			decodeSceneAudio(pkg, scene));
+	}
+
+	/** 场景引用的音频文件：从包里读出字节，播放时才落盘。 */
+	private static List<WeSceneAudioPlayer.Clip> decodeSceneAudio(WePackage pkg,
+		WeScene scene)
+	{
+		List<WeSceneAudioPlayer.Clip> result = new ArrayList<>();
+		long totalBytes = 0;
+
+		for(WeScene.AudioLayer layer : scene.audio())
+			for(String name : layer.soundFiles())
+			{
+				String entry = findAudioEntry(pkg, name);
+
+				if(entry == null)
+				{
+					System.out.println(
+						"[Background] 场景音频不在包里：" + name);
+					continue;
+				}
+
+				byte[] bytes;
+
+				try
+				{
+					bytes = pkg.read(entry);
+				}catch(RuntimeException e)
+				{
+					System.out.println(
+						"[Background] 场景音频读取失败：" + entry + "：" + e);
+					continue;
+				}
+
+				if(bytes == null || bytes.length == 0)
+					continue;
+
+				if(totalBytes + bytes.length > MAX_AUDIO_BYTES)
+				{
+					System.out.println(
+						"[Background] 场景音频超过 64MB，跳过：" + entry);
+					continue;
+				}
+
+				totalBytes += bytes.length;
+				result.add(new WeSceneAudioPlayer.Clip(layer.name(),
+					audioExtension(entry), bytes, layer.volume(), layer.loop()));
+			}
+
+		return result;
+	}
+
+	private static String findAudioEntry(WePackage pkg, String name)
+	{
+		if(name == null || name.isBlank())
+			return null;
+
+		if(pkg.entry(name) != null)
+			return name;
+
+		String normalized = name.replace('\\', '/');
+
+		for(String candidate : pkg.names())
+			if(candidate.replace('\\', '/').equalsIgnoreCase(normalized))
+				return candidate;
+
+		return null;
+	}
+
+	private static String audioExtension(String entry)
+	{
+		int dot = entry.lastIndexOf('.');
+
+		if(dot < 0)
+			return ".mp3";
+
+		String extension = entry.substring(dot).toLowerCase(Locale.ROOT);
+		return extension.matches("\\.[a-z0-9]{1,5}") ? extension : ".mp3";
 	}
 
 	/**
@@ -1524,7 +1617,7 @@ public final class WeSceneWallpaper implements AutoCloseable
 		}
 
 		return new WeSceneWallpaper(decoded.scene(), List.copyOf(bound),
-			List.copyOf(particles), loadFonts(decoded));
+			List.copyOf(particles), loadFonts(decoded), decoded.audio());
 	}
 
 	/** 场景的画布宽高，日志与测试用。 */
@@ -2052,6 +2145,10 @@ public final class WeSceneWallpaper implements AutoCloseable
 			return;
 
 		closed = true;
+
+		if(sceneAudio != null)
+			sceneAudio.close();
+
 		closeQuietly(layers);
 
 		// 作者字体：FontSet.close() 会一起关掉 provider（连带 STB 的 font info）与
