@@ -10,7 +10,7 @@
 [![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#版本支持矩阵)
 [![Gradle projects](https://img.shields.io/badge/Gradle_projects-67-4C1D95?style=flat-square)](#仓库结构)
 [![preview](https://img.shields.io/badge/preview-v1.6.0-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)
-[![License](https://img.shields.io/badge/license-GPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
 
 </div>
 
@@ -97,7 +97,9 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 
 ## 许可
 
-**源码采用 [GPL-3.0-or-later](LICENSE.txt)（继承自 Wurst）**，`LICENSE.txt` 即 GPL-3.0 全文。
+**整体作品采用 [AGPL-3.0-or-later](LICENSE.txt)**，`LICENSE.txt` 即 AGPL-3.0 全文。
+源自 Wurst 的 GPL-3.0-or-later 部分保留在 [LICENSE-GPL-3.0.txt](LICENSE-GPL-3.0.txt)；
+按 GPL-3.0 的兼容规则，GPL-3.0 代码可以并入以 AGPL-3.0 发布的整体作品。
 
 仓库根目录另有 [LICENSE-Forge-MDK.txt](LICENSE-Forge-MDK.txt)，是 Forge MDK 模板带来的
 LGPL 2.1 文本，适用于其中所述的 Minecraft Forge / FML 部分（含 MCP 数据的不可再分发限制）。
