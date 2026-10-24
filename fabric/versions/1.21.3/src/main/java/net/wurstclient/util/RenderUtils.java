@@ -25,6 +25,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -88,6 +89,18 @@ public enum RenderUtils
 	public static MultiBufferSource.BufferSource getVCP()
 	{
 		return WurstClient.MC.renderBuffers().bufferSource();
+	}
+	
+	public static void submitText(PoseStack matrices, float x, float y,
+		FormattedCharSequence text, boolean dropShadow,
+		Font.DisplayMode displayMode, int lightCoords, int color,
+		int backgroundColor, int outlineColor)
+	{
+		MultiBufferSource.BufferSource buffers = getVCP();
+		WurstClient.MC.font.drawInBatch(text, x, y, color, dropShadow,
+			matrices.last().pose(), buffers, displayMode, backgroundColor,
+			lightCoords);
+		buffers.endBatch();
 	}
 	
 	public static float[] getRainbowColor()
