@@ -39,6 +39,17 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
   处理，标题栏只保留标题与关闭按钮。
 - **移除壁纸卡片右上角的类型徽章**：视频 / GIF 卡片不再在右上角显示「视频」「GIF」
   「不能播放」等标签；主界面右上角的设置齿轮保持不变。
+- **壁纸音频（全部来源）**：
+  - 视频背景：FFmpeg 新增 AAC / MP3 / Opus / Vorbis / FLAC / ALAC / AC-3 / PCM
+    解码与 swresample；`FfmpegVideoDecoder` 暴露音频接口，`VideoAudioPlayer` 用
+    Java Sound `SourceDataLine` 播放，离开标题/选择界面自动暂停，播完循环。
+  - Wallpaper Engine 场景：解析 `sound` / `volume` / `playbackmode` 音频对象，从
+    `scene.pkg` 提取 MP3/OGG 等文件，由 `WeSceneAudioPlayer`（java-stream-player）播放；
+    同样只在标题/选择界面发声。
+  - 图片 / GIF 本身没有音轨。FFmpeg natives 从 7 个 DLL 增加到 8 个（新增
+    `swresample-5.dll`）。
+  - 实机验证：场景音频日志 `[Background] Scene audio: ...`、视频音频日志
+    `[Background] Video audio: 48000 Hz, 2 ch`，均无异常；全量单测 1433 项 0 失败。
 - **关闭原版主界面音乐**：`MusicManagerMixin` 在 `TitleScreen` 上取消
   `MusicManager.startPlaying`；游戏内音乐不受影响。壁纸本身也没有音轨——视频背景
   只解码画面，Wallpaper Engine 场景不播放声音。
