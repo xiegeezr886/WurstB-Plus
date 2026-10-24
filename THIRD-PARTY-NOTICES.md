@@ -285,3 +285,12 @@ shaded 的 `dev/babbaj/pathfinder/*` 类）。上游 <https://github.com/babbaj/
 URL 指向 LGPL-3.0，已在它的 ATTRIBUTION 里注明；(2) **只在 `-dev.jar` 里验证过**
 （59 个文件 / 19 个组件），发布产物由 `reobfJar` 产出而那次构建**被环境强制终止**
 （`DBG_TERMINATE_PROCESS`，非构建失败），故尚未确认许可文本进入最终发布产物。
+
+---
+
+## 五、Wallpaper Engine 图标
+
+`src/main/resources/assets/wurst/textures/gui/fdp/wallpaper_engine.png` 取自
+Wallpaper Engine 的官方 Steam 商店 logo（app 431960 的 `logo.png`），裁剪左侧蓝色
+图标并缩放到 88×88。Wallpaper Engine 及其图标版权归 Kristjan Skutta / Wallpaper
+Engine 所有；此处仅用于在背景选择界面标识「从该来源导入」，不表示任何隶属或背书关系。
