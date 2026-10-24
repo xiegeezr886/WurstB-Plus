@@ -10,7 +10,7 @@
 [![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#version-support)
 [![Gradle projects](https://img.shields.io/badge/Gradle_projects-67-4C1D95?style=flat-square)](#repository-layout)
 [![preview](https://img.shields.io/badge/preview-v1.6.0-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)
-[![License](https://img.shields.io/badge/license-GPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
 
 </div>
 
@@ -100,8 +100,9 @@ distribution resolves even offline.
 
 ## Licence
 
-**The source is [GPL-3.0-or-later](LICENSE.txt), inherited from Wurst**; `LICENSE.txt` is the full
-GPL-3.0 text.
+**The combined work is [AGPL-3.0-or-later](LICENSE.txt)**; `LICENSE.txt` is the full AGPL-3.0 text.
+Parts inherited from Wurst remain GPL-3.0-or-later and are kept in
+[LICENSE-GPL-3.0.txt](LICENSE-GPL-3.0.txt); GPL-3.0 code may be combined into an AGPL-3.0 work.
 
 [LICENSE-Forge-MDK.txt](LICENSE-Forge-MDK.txt) is the separate LGPL 2.1 text that ships with the
 Forge MDK template and applies to the Minecraft Forge / FML parts described in it (including the
