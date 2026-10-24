@@ -24,9 +24,12 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
   未滚动时不再外溢，滚动后导入卡片完整显示在面板内。
 - **背景选择界面平滑滚动**：滚轮不再按 36px 整格跳，改为记录目标位置并按时间缓动
   （约 60ms 时间常数），滚动条与卡片位置同步动画。
-- **标题界面资料卡头像**：主动调用 `SkinManager.registerSkins` 请求本地账号皮肤；
-  皮肤解析失败时退回默认皮肤，贴图未注册完成时显示圆角占位块，不再出现空白头像。
-  头像改为**CPU 预生成圆角方块贴图**（按当前 GUI scale 渲染、边缘 4×4 超采样抗锯齿），
+- **标题界面资料卡头像**：主动调用 `SkinManager.registerSkins` 请求本地账号皮肤，
+  并通过回调接收**真实皮肤贴图位置**（账号资料里的 textures 属性在标题界面往往还没
+  拉取，之前会一直显示默认的 Alex/Steve）；皮肤解析失败时才退回默认皮肤，贴图未就绪
+  时显示圆角占位块。`PlayerSkinProviderMixin` 从「整个替换 registerSkins」改为
+  TAIL 追加 Wurst 披风，不再遮挡 CustomSkinLoader / 离线皮肤启动器。
+  头像改为**CPU 预生成圆角方块贴图**（按当前 GUI scale 渲染、边缘 8×8 超采样抗锯齿），
   不再用逐行 scissor，避免小尺寸下出现阶梯状像素点。
 - **测试脚本识别根工程 Baritone**：`run-version-tests.ps1` 原先只匹配 `[Baritone]` /
   `Baritone 1.x` 等横幅，根 Forge 1.20.1 输出的是 `Baritone world data dir` /
