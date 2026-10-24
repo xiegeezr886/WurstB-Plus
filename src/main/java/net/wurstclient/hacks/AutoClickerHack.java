@@ -21,9 +21,9 @@ import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.AttackTimerPolicy;
 
-@SearchTags({"left clicker", "auto clicker", "autoclicker", "连点器",
+@SearchTags({"auto clicker", "autoclicker", "left clicker", "连点器",
 	"左键连点"})
-public final class LeftClickerHack extends Hack
+public final class AutoClickerHack extends Hack
 	implements UpdateListener, PreMotionListener
 {
 	private final SliderSetting minCps = new SliderSetting("Minimum CPS", 8, 1,
@@ -41,9 +41,9 @@ public final class LeftClickerHack extends Hack
 	private boolean pressedByUs;
 	private long nextClickNanos;
 
-	public LeftClickerHack()
+	public AutoClickerHack()
 	{
-		super("LeftClicker");
+		super("AutoClicker");
 		setCategory(Category.COMBAT);
 		addConflictGroup(HackConflictGroup.COMBAT_TARGETING);
 		addSetting(minCps);

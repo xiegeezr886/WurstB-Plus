@@ -147,7 +147,7 @@
   "description.wurst.setting.kaboom.particles": "Whether or not to display explosion particles. Does not affect block breaking. Only you can see the particles.",
   "description.wurst.hack.killaura": "Automatically attacks entities around you.",
   "description.wurst.hack.killpotion": "Generates a potion that can kill almost anything, including players in Creative mode. Does not work on undead mobs, since they are already dead.\n\nRequires Creative mode.",
-  "description.wurst.hack.leftclicker": "Automatically left-clicks at a configurable CPS. Works with blocks, entities and air, and can optionally require holding the attack key.",
+  "description.wurst.hack.autoclicker": "Automatically left-clicks at a configurable CPS. Works with blocks, entities and air, and can optionally require holding the attack key.",
   "description.wurst.hack.liquids": "Allows you to place blocks in liquids.",
   "description.wurst.hack.lsd": "Causes hallucinations.",
   "description.wurst.hack.masstpa": "Sends a TPA request to all players.",
