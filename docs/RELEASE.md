@@ -232,11 +232,11 @@ NeoForge 1.21.1 若启动时出现 `baritone.api.forge does not read module mine
 | 模组名称 | WurstB+ Plus |
 | 开发者署名 | Penguin |
 | 构建状态 | **67 个工程全部产出打包 jar**，其中 66 个按当前源码重建并已上传 v1.5.0 Release（另 1 个是留存的根 Forge 1.20.1 产物）；根目录 **v1.6.0** 另通过 `compileJava` + `test` 验证。游戏内启动验证覆盖 1.21.11 / 26.2 的六个工程与 2026-10-22 的 X-Ray/Vulkan 矩阵（见「渲染兼容性（X-Ray / Vulkan）」）；其余组合无游戏内启动验证（详见 [PORTING_TASK.md](../PORTING_TASK.md) 与 [PROJECT_INDEX.md](../PROJECT_INDEX.md)） |
-| 注册 Hack | **209** 个（根工程 v1.6.0；`hacks/` 下声明 `extends Hack` 的类共 210 个，其中 `RadialMenuHack` 未注册） |
+| 注册 Hack | **210** 个（根工程 v1.6.0；`hacks/` 下声明 `extends Hack` 的类共 211 个，其中 `RadialMenuHack` 未注册） |
 | 注册命令 | **57** |
 | Other Feature | **18** |
-| Forge Mixin | 74 (1.20.1 根工程，见 `wurst.mixins.json`) |
-| Java 文件 | **1046**（根 1.20.1 `src/main/java`，含 v1.6 子系统） |
+| Forge Mixin | 75 (1.20.1 根工程，见 `wurst.mixins.json`) |
+| Java 文件 | **1048**（根 1.20.1 `src/main/java`，含 v1.6 子系统） |
 | 单元测试 | **176 个测试类 / 1114 项 / 0 失败**（根工程 1.20.1，2026-10-04 以 Java 17 跑 `gradlew test --offline`），覆盖 v1.6 音乐解析、AMLL 歌词流水线与布局、Twilight 外壳/主页/列表几何与封面蒙版、标题背景存储/运动/壁纸引擎导入/GIF 合成与帧时钟、Compose 动画、MD3 主题、周界挖掘全套（区域几何、边界检测、液体策略、配置迁移、双语文本）、种子矿透（抽样契约、预测确定性、种子存储）、结构定位（区域扫描、频率削减速率）、种子反解（LCG 逐位一致性、搜索闭环、无范围反解还原）与结构扫描器 |
 
 > 根目录是 Forge 1.20.1-47.4.10 工程；`neoforge/`、`versions/` 和 `fabric/` 是独立版本工程，不共享加载器运行时。Forge/NeoForge 使用 Mojang 官方映射，Fabric 使用 Fabric Loom + 官方映射；Fabric 版本通过 Access Widener 和 Fabric API 适配，不代表根工程是 Fabric 项目。
@@ -255,7 +255,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 
 对比方式：用 GitHub 的 Git Trees API 拉取上游 `Wurst-Imperium/Wurst7` 的 `master` 全量文件
 清单（157 个 hack / 52 个命令 / 18 个 Other Feature），再逐类求差。结论：本仓库新增
-**14 个包、57 个 hack、7 个命令**；Other Feature 与上游数量相同（18 个），没有新增。
+**14 个包、58 个 hack、7 个命令**；Other Feature 与上游数量相同（18 个），没有新增。
 14 个包中 8 个在所有工程里都有，另外 6 个只在根目录 Forge 1.20.1（v1.6.0）里实现：
 
 | 范围 | 包 | Hack | 命令 |
@@ -318,12 +318,13 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 | `Twerk` | Fun | 快速下蹲舞蹈 |
 | `Vomit` | Fun | 快速进食 |
 
-**仅根目录 Forge 1.20.1（v1.6.0，15 个）**
+**仅根目录 Forge 1.20.1（v1.6.0，16 个）**
 
 | Hack | 分类 | 功能 |
 | --- | --- | --- |
 | `AirJump` | Movement | 空中跳跃 / 多段跳，可设模式 |
 | `EntityCulling` | Render | 异步遮挡查询，跳过被方块完全遮挡的实体，可分组控制与延迟 |
+| `LeftClicker` | Combat | 左键连点，1–20 CPS，可设为仅在按住左键时连点 |
 | `MusicPlayer` | Other | 网易云音乐播放器 |
 | `NoMissCooldown` | Combat | 去掉空挥冷却，可取消落空的攻击 |
 | `NoRotate` | Movement | 忽略服务端的视角纠正，可分别保留 yaw / pitch |
@@ -378,7 +379,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 | `seed.crack` | 2 | 无范围反解：位块分解 + 陪集求交（弱约束集不保证唯一） |
 | `seed.scan` | 1 | 自动观测：方块特征识别 6 类结构（阈值未在存档标定） |
 
-新增 Hack（14 个）：`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SeedOreESP`、`SeedStructureESP`、`SuperKnockback`、`VehicleBoost`、`WTap`。
+新增 Hack（15 个）：`AirJump`、`EntityCulling`、`LeftClicker`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SeedOreESP`、`SeedStructureESP`、`SuperKnockback`、`VehicleBoost`、`WTap`。
 
 其中 `PerimeterDigger`（Blocks 分类）配合 `.perimeter` 与 Brigadier `/perimeterdig`（含 Tab 补全）在 v1.6 **原生等价移植**了社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 的全部功能：闭区间矩形规划与**不规则区域边界检测**、**液体 avoid / replace / seal_boundary** 策略与边界封堵、批次上限与背包满自动暂停、**自动拾取与多卸货点卸货**、**工具/鞘翅耐久替换**、**自动进食、补给、睡觉**、**跨维度熔炉修复**、**行走与鞘翅寻路**、**按服务器/存档分存配置**、**中英双语文本与命令**。原模组为 Fabric / MC 26.1.1 / Java 25 且依赖修改版 Baritone，无法直接内置，故本实现把区域挖掘语义落在本项目自己的 `PerimeterMiningSchematic` 上、交给官方 Baritone 的 `BuilderProcess` 执行，并按同样判定复刻液体与边界语义（具体偏差见 `CHANGELOG.md`）。
 
