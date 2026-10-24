@@ -7,6 +7,17 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ---
 
+## 未发布 — 许可证切换为 AGPL-3.0（2026-10-24）
+
+- 整体作品改为 **AGPL-3.0-or-later**：`LICENSE.txt` 替换为 AGPL-3.0 全文，原 GPL-3.0 全文保留为
+  `LICENSE-GPL-3.0.txt`。
+- 原因：后续引入 LeavesHack（AGPL-3.0）的模块；按 GPL/AGPL 的单向兼容规则，GPL-3.0 代码可以并入
+  以 AGPL-3.0 发布的整体作品。
+- `README.md`、`README.en.md`、`THIRD-PARTY-NOTICES.md` 已同步；v1.5.0 及更早的已发布版本仍按
+  GPL-3.0 授权，不可撤回。
+
+---
+
 ## 未发布 — v1.6 开发（2026-10-24）
 
 - **新增 `AutoClicker`（左键连点，Combat）**：1–20 CPS 可调、可选仅在按住左键时连点、
