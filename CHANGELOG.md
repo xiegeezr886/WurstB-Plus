@@ -45,6 +45,9 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 - **Wallpaper Engine 导入卡片**：在导入卡片右侧新增带官方 Wallpaper Engine 图标的
   卡片，点击后扫描 Steam 库并导入 WE 壁纸（原顶部「扫描 Steam 库」按钮的功能）。
   图标取自 Wallpaper Engine 官方 Steam 商店 logo，归属见 `THIRD-PARTY-NOTICES.md`。
+- **修复窗口缩放后头像变 Alex**：调整窗口会重新执行 `init()`，此前每次都重新调用
+  `getInsecureSkinLocation`，在标题界面它常返回默认皮肤并覆盖已解析出的真实皮肤。
+  现在只有当前没有皮肤、或当前仍是默认皮肤时才会更新皮肤位置。
 - **修复头像先正确、随后变成 Alex**：皮肤管理器的回调可能先报告一个尚未下载完成的
   `skins/<hash>`；此前会立即切到默认皮肤。现在回调只有在目标位置**可读**时才更新，
   且屏幕上已有的头像不会被新位置的一次加载失败替换掉——只有首次完全没有头像时才用
