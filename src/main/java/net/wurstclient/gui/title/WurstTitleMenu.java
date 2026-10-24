@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -76,7 +77,7 @@ public final class WurstTitleMenu
 	private TitleMenuLayout layout;
 	private Component playerName;
 	private Component welcome;
-	private ResourceLocation skin;
+	private static ResourceLocation skin;
 	private static boolean skinRequested;
 	private static final ResourceLocation AVATAR_TEXTURE =
 		new ResourceLocation(WurstClient.MOD_ID, "title_avatar");
@@ -272,8 +273,15 @@ public final class WurstTitleMenu
 		try
 		{
 			GameProfile profile = minecraft.getUser().getGameProfile();
-			minecraft.getSkinManager().registerSkins(profile,
-				(type, location, texture) -> {}, false);
+			minecraft.getSkinManager().registerSkins(profile, (type, location,
+				texture) -> {
+				// The profile's textures property is often empty until the
+				// session lookup completes, so the initial resolution above
+				// falls back to the default skin. Take the real location as
+				// soon as the skin manager reports it.
+				if(type == MinecraftProfileTexture.Type.SKIN)
+					skin = location;
+			}, false);
 		}catch(RuntimeException e)
 		{
 			skinRequested = false;
@@ -325,9 +333,15 @@ public final class WurstTitleMenu
 				return;
 		}
 
+		boolean changed = source != null && (!source.equals(avatarSource)
+			|| pixels != avatarPixels);
+
 		avatarTexture = null;
 		avatarSource = source;
 		avatarPixels = pixels;
+
+		if(changed)
+			avatarRetryCooldown = 0;
 
 		if(source == null || avatarRetryCooldown > 0)
 		{
@@ -451,11 +465,11 @@ public final class WurstTitleMenu
 		double inner = center - radius;
 		int inside = 0;
 
-		for(int subY = 0; subY < 4; subY++)
-			for(int subX = 0; subX < 4; subX++)
+		for(int subY = 0; subY < 8; subY++)
+			for(int subX = 0; subX < 8; subX++)
 			{
-				double px = x + (subX + 0.5D) / 4D;
-				double py = y + (subY + 0.5D) / 4D;
+				double px = x + (subX + 0.5D) / 8D;
+				double py = y + (subY + 0.5D) / 8D;
 				double qx = Math.abs(px - center) - inner;
 				double qy = Math.abs(py - center) - inner;
 				double distance = Math.hypot(Math.max(qx, 0),
@@ -465,7 +479,7 @@ public final class WurstTitleMenu
 					inside++;
 			}
 
-		return inside / 16D;
+		return inside / 64D;
 	}
 
 	private record SkinImage(NativeImage image, boolean owned)
