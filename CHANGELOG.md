@@ -22,6 +22,8 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 - **背景选择界面滚动裁剪**：卡片网格原先没有 scissor，854×480 下加号/导入卡片会整张画到
   面板外、压在壁纸上；现在按面板内容视口裁剪，越界部分不可见也不可点击。实机 854×480 验证：
   未滚动时不再外溢，滚动后导入卡片完整显示在面板内。
+- **背景选择界面平滑滚动**：滚轮不再按 36px 整格跳，改为记录目标位置并按时间缓动
+  （约 60ms 时间常数），滚动条与卡片位置同步动画。
 - **测试脚本识别根工程 Baritone**：`run-version-tests.ps1` 原先只匹配 `[Baritone]` /
   `Baritone 1.x` 等横幅，根 Forge 1.20.1 输出的是 `Baritone world data dir` /
   `Baritone settings file`，导致世界已加载却被记为 TIMEOUT。已补充这些标记。
