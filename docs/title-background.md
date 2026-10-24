@@ -1,6 +1,6 @@
 # 标题界面自定义背景
 
-> 范围：v1.6 根目录 Forge 1.20.1 工程。功能入口在主菜单右上角，代码在
+> 范围：v1.6 根目录 Forge 1.20.1 工程。功能入口在主菜单左上角账号卡片（右上角齿轮已移除），代码在
 > `net.wurstclient.background`（29 个类）+ `net.wurstclient.gui.title.BackgroundSelectScreen`。
 > 本文记录**接线与实现**，以及**哪些能力只是「导入并标记」而并没有真正生效**。
 
