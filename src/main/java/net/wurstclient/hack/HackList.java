@@ -39,6 +39,7 @@ public final class HackList implements UpdateListener
 	public final AntiEntityPushHack antiEntityPushHack =
 		new AntiEntityPushHack();
 	public final AntiHungerHack antiHungerHack = new AntiHungerHack();
+	public final AntiKnockbackHack antiKnockbackHack = new AntiKnockbackHack();
 	public final AntiSpamHack antiSpamHack = new AntiSpamHack();
 	public final AntiWaterPushHack antiWaterPushHack = new AntiWaterPushHack();
 	public final AntiWobbleHack antiWobbleHack = new AntiWobbleHack();
@@ -143,6 +144,7 @@ public final class HackList implements UpdateListener
 	public final KaboomHack kaboomHack = new KaboomHack();
 	public final KeepSprintHack keepSprintHack = new KeepSprintHack();
 	public final KillauraHack killauraHack = new KillauraHack();
+	public final KillauraLegitHack killauraLegitHack = new KillauraLegitHack();
 	public final KillPotionHack killPotionHack = new KillPotionHack();
 	public final LiquidsHack liquidsHack = new LiquidsHack();
 	public final LsdHack lsdHack = new LsdHack();

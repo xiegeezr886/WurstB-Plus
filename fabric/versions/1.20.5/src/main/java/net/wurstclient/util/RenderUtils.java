@@ -25,6 +25,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -981,6 +982,19 @@ public enum RenderUtils
 		buffer.vertex(matrix, xs2, ys2, 0).color(shadowColor2).endVertex();
 	}
 	
+	public static void submitText(PoseStack matrixStack, float x, int y,
+		FormattedCharSequence text, boolean dropShadow,
+		Font.DisplayMode displayMode, int light, int color,
+		int backgroundColor, int outlineColor)
+	{
+		MultiBufferSource.BufferSource buffers =
+			WurstClient.MC.renderBuffers().bufferSource();
+		WurstClient.MC.font.drawInBatch(text, x, y, color, dropShadow,
+			matrixStack.last().pose(), buffers, displayMode, backgroundColor,
+			light);
+		buffers.endBatch();
+	}
+
 	public record ColoredPoint(Vec3 point, int color)
 	{}
 	
