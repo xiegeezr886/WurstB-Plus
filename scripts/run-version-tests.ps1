@@ -760,7 +760,7 @@ function Test-Version($jarPath, $instanceDir) {
             if ($log -match "Starting WurstB\+ Plus|WurstB\+ Plus .*\(wurstpenguin\)|wurstpenguin [v\d]") {
                 $wurstSeen = $true
             }
-            if ($log -match "(?i)(\[Baritone\]|Baritone\s+1\.|baritoe\s+\(|mod/baritoe)") {
+            if ($log -match "(?i)(\[Baritone\]|Baritone\s+1\.|baritoe\s+\(|mod/baritoe|baritone\.launch\.BaritoneMixinConnector|Baritone world data dir|Baritone settings file)") {
                 $baritoneSeen = $true
             }
             if (-not $worldLoaded -and $log -match "(?i)(logged in with entity id|joined the game)") {
