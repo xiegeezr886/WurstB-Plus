@@ -285,7 +285,17 @@ public final class WurstTitleMenu
 				// session lookup completes, so the initial resolution above
 				// falls back to the default skin. Take the real location as
 				// soon as the skin manager reports it.
-				if(type == MinecraftProfileTexture.Type.SKIN)
+				if(type != MinecraftProfileTexture.Type.SKIN
+					|| !isSkinReadable(location))
+					return;
+
+				// Don't downgrade a real skin to the vanilla default when a
+				// later session lookup falls back to Alex/Steve.
+				boolean currentReal = skin != null
+					&& !isDefaultSkinLocation(skin);
+				boolean newReal = !isDefaultSkinLocation(location);
+
+				if(!currentReal || newReal)
 					skin = location;
 			}, false);
 		}catch(RuntimeException e)
@@ -332,26 +342,54 @@ public final class WurstTitleMenu
 	private void ensureAvatarTexture(ResourceLocation source,
 		ResourceLocation fallback, int pixels)
 	{
-		if(avatarTexture != null && source != null
-			&& source.equals(avatarSource) && pixels == avatarPixels)
-		{
-			AbstractTexture current = minecraft.getTextureManager()
-				.getTexture(AVATAR_TEXTURE);
+		AbstractTexture current = minecraft.getTextureManager()
+			.getTexture(AVATAR_TEXTURE);
+		boolean showing = avatarTexture != null && current == avatarTexture;
 
-			if(current == avatarTexture)
+		if(showing && source != null && source.equals(avatarSource)
+			&& pixels == avatarPixels)
+		{
+			// The real skin may still be downloading; retry about once a
+			// second while the default skin stands in for it.
+			if(!avatarFromFallback || --avatarUpgradeCountdown > 0)
+				return;
+
+			avatarUpgradeCountdown = 60;
+			SkinImage upgrade = loadSkinImage(source);
+
+			if(upgrade != null)
+				buildAvatar(upgrade, source, pixels, false);
+
+			return;
+		}
+
+		if(showing)
+		{
+			// The skin location (or GUI scale) changed. Keep the avatar that
+			// is already on screen until the new one is readable: tearing it
+			// down to the fallback here is what turned a correct skin into
+			// Alex while the real texture was being re-registered.
+			if(avatarRetryCooldown > 0)
 			{
-				// The real skin may still be downloading; retry about once a
-				// second while the default skin stands in for it.
-				if(!avatarFromFallback || --avatarUpgradeCountdown > 0)
-					return;
-				avatarUpgradeCountdown = 60;
+				avatarRetryCooldown--;
+				return;
 			}
+
+			SkinImage loaded = loadSkinImage(source);
+
+			if(loaded == null)
+			{
+				avatarRetryCooldown = 20;
+				return;
+			}
+
+			buildAvatar(loaded, source, pixels, false);
+			return;
 		}
 
 		boolean changed = source != null && (!source.equals(avatarSource)
 			|| pixels != avatarPixels);
 
-		avatarTexture = null;
 		avatarSource = source;
 		avatarPixels = pixels;
 
@@ -381,6 +419,12 @@ public final class WurstTitleMenu
 			return;
 		}
 
+		buildAvatar(loaded, source, pixels, usedFallback);
+	}
+
+	private void buildAvatar(SkinImage loaded, ResourceLocation source,
+		int pixels, boolean usedFallback)
+	{
 		NativeImage image = loaded.image();
 
 		try
@@ -392,6 +436,8 @@ public final class WurstTitleMenu
 			minecraft.getTextureManager().release(AVATAR_TEXTURE);
 			minecraft.getTextureManager().register(AVATAR_TEXTURE, texture);
 			avatarTexture = texture;
+			avatarSource = source;
+			avatarPixels = pixels;
 			avatarFromFallback = usedFallback;
 			avatarUpgradeCountdown = 60;
 
@@ -446,18 +492,11 @@ public final class WurstTitleMenu
 
 	private SkinImage loadCachedSkin(ResourceLocation source)
 	{
-		String hash = source.getPath().substring("skins/".length());
-
 		try
 		{
-			File directory = ((SkinManagerAccessor)minecraft.getSkinManager())
-				.wurst$skinsDirectory();
-			File file = new File(
-				new File(directory, hash.length() > 2 ? hash.substring(0, 2)
-					: "xx"),
-				hash);
+			File file = cachedSkinFile(source);
 
-			if(!file.isFile() || file.length() <= 0)
+			if(file == null || !file.isFile() || file.length() <= 0)
 				return null;
 
 			try(InputStream in = new FileInputStream(file))
@@ -473,6 +512,67 @@ public final class WurstTitleMenu
 		}catch(IOException | RuntimeException e)
 		{
 			return null;
+		}
+	}
+
+	private static File cachedSkinFile(ResourceLocation source)
+	{
+		String hash = source.getPath().substring("skins/".length());
+
+		try
+		{
+			File directory = ((SkinManagerAccessor)Minecraft.getInstance()
+				.getSkinManager()).wurst$skinsDirectory();
+
+			return new File(
+				new File(directory, hash.length() > 2 ? hash.substring(0, 2)
+					: "xx"),
+				hash);
+		}catch(RuntimeException e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Whether the skin callback's location can actually be rendered right now.
+	 * The manager reports a location before an HttpTexture has finished
+	 * downloading; switching to it too early would replace a working skin
+	 * with the fallback.
+	 */
+	private static boolean isDefaultSkinLocation(ResourceLocation location)
+	{
+		return location.getNamespace().equals("minecraft")
+			&& location.getPath().startsWith("textures/entity/player/");
+	}
+
+	private static boolean isSkinReadable(ResourceLocation location)
+	{
+		if(location == null)
+			return false;
+
+		Minecraft mc = Minecraft.getInstance();
+
+		try
+		{
+			AbstractTexture texture = mc.getTextureManager()
+				.getTexture(location);
+
+			if(texture instanceof DynamicTexture dynamic
+				&& dynamic.getPixels() != null)
+				return true;
+
+			if(location.getPath().startsWith("skins/"))
+			{
+				File file = cachedSkinFile(location);
+				return file != null && file.isFile() && file.length() > 0;
+			}
+
+			return mc.getResourceManager().getResource(location).isPresent();
+
+		}catch(RuntimeException e)
+		{
+			return false;
 		}
 	}
 
