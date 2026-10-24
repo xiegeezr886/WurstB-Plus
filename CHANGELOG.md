@@ -7,6 +7,26 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ---
 
+## 未发布 — v1.6 开发（2026-10-24）
+
+- **新增 `LeftClicker`（左键连点，Combat）**：1–20 CPS 可调、可选仅在按住左键时连点、
+  启动延迟 0–1000ms；通过 `IKeyBinding.simulatePress()` 走原版真实左键事件，方块 / 实体 /
+  空气都适用，界面打开或正在使用物品时自动暂停。中文名「连点器」。
+- **修复根工程 `gradlew build` 失败**：`accesstransformer.cfg` 把
+  `AbstractContainerScreen.slotClicked` 提为 public 后，ForgeGradle 重新编译反编译源码时
+  4 个原版子类的 protected 覆盖报“cannot override”。改为 `@Invoker` Mixin
+  （`AbstractContainerScreenInvoker`），`AutoSteal` 通过它调用，删除该 AT 条目。
+  根工程 `compileJava` / `build` 恢复通过。
+- **测试控制口绑定 IPv4**：`InetAddress.getLoopbackAddress()` 在部分 JVM 上返回 `::1`，
+  与文档和脚本使用的 `127.0.0.1` 不一致；67 个工程统一显式绑定 `127.0.0.1`。
+- **实机验证（生产版 Forge 1.20.1，世界 WurstSmokeFresh）**：`LeftClicker` 出现在
+  `/hacks` 并成功启用；8 秒内输出 66 次点击（约 8.25 CPS，落在配置的 8–12 区间），
+  关闭后点击立即停止；无崩溃报告、无新 `hs_err`。批量脚本因根工程不打 Baritone 横幅而
+  把本次运行记为 TIMEOUT（`did not load quick-play world`），但日志与 `/hacks` 均确认世界
+  已加载、客户端在线，属于测试脚本的判定误报。
+
+---
+
 ## 未发布 — B 站反馈修复（2026-10-22）
 
 针对视频 `BV1WLha63E8L` 226 条评论中可核查的 bug 反馈，67 个工程同步修复：
