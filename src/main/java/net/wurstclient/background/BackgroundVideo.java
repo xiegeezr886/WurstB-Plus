@@ -190,6 +190,9 @@ public final class BackgroundVideo implements AutoCloseable
 
 	private Thread thread;
 
+	/** 视频音轨；没有音频或音频设备不可用时为 null。 */
+	private VideoAudioPlayer audioPlayer;
+
 	/** 解码器、每帧字节数与帧间隔：只有解码线程碰。 */
 	private FfmpegVideoDecoder decoder;
 	private int frameBytes;
@@ -296,6 +299,7 @@ public final class BackgroundVideo implements AutoCloseable
 			// 先等第一帧出来再交回去：这段时间花的是一条后台线程，换掉的是纹理
 			// 头几帧的黑屏
 			waitForFirstFrame(FIRST_FRAME_TIMEOUT_MS);
+			audioPlayer = VideoAudioPlayer.start(file);
 			ready = true;
 
 		}finally
@@ -1397,6 +1401,12 @@ public final class BackgroundVideo implements AutoCloseable
 	/** 关缓冲与解码器。调用前必须保证解码线程已经退出，或者根本还没起来。 */
 	private void releaseResources()
 	{
+		if(audioPlayer != null)
+		{
+			audioPlayer.close();
+			audioPlayer = null;
+		}
+
 		List<NativeImage> closing = new ArrayList<>(BUFFER_COUNT + 2);
 
 		synchronized(lock)

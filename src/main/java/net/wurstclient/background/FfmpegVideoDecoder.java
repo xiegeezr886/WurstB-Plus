@@ -309,6 +309,59 @@ public final class FfmpegVideoDecoder implements AutoCloseable
 		return rc;
 	}
 
+	// ------------------------------------------------------------------ audio
+
+	/** 文件里是否有可解码的音频轨。 */
+	public boolean hasAudio()
+	{
+		return handle != 0 && nativeHasAudio(handle);
+	}
+
+	/** 音频采样率（Hz）；没有音频时为 0。 */
+	public int audioSampleRate()
+	{
+		return handle != 0 ? nativeAudioSampleRate(handle) : 0;
+	}
+
+	/** 音频输出声道数（固定 2），没有音频时为 0。 */
+	public int audioChannels()
+	{
+		return handle != 0 ? nativeAudioChannels(handle) : 0;
+	}
+
+	/**
+	 * 解下一段 S16LE 交错 PCM。
+	 *
+	 * @return 写入的字节数；{@code 0} 表示音轨已到结尾，负值为 FFmpeg
+	 *         AVERROR；没有音频轨时为 {@code -1}
+	 */
+	public int nextAudio(byte[] dst)
+	{
+		if(handle == 0 || dst == null)
+			return -1;
+
+		int bytes = nativeNextAudio(handle, dst, dst.length);
+
+		if(bytes < 0)
+			lastError = lastNativeError(handle);
+
+		return bytes;
+	}
+
+	/** 音轨回到开头。 */
+	public int seekAudioToStart()
+	{
+		if(handle == 0)
+			return -1;
+
+		int rc = nativeSeekAudioToStart(handle);
+
+		if(rc < 0)
+			lastError = lastNativeError(handle);
+
+		return rc;
+	}
+
 	/** 幂等关闭。关闭后再调 {@link #nextFrame} 返回 {@code -1}。 */
 	@Override
 	public void close()
@@ -461,6 +514,17 @@ public final class FfmpegVideoDecoder implements AutoCloseable
 		int capacity);
 
 	private static native int nativeSeekToStart(long handle);
+
+	private static native boolean nativeHasAudio(long handle);
+
+	private static native int nativeAudioSampleRate(long handle);
+
+	private static native int nativeAudioChannels(long handle);
+
+	private static native int nativeNextAudio(long handle, byte[] dst,
+		int capacity);
+
+	private static native int nativeSeekAudioToStart(long handle);
 
 	private static native void nativeClose(long handle);
 

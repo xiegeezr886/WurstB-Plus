@@ -53,7 +53,8 @@ import net.wurstclient.util.json.JsonUtils;
  */
 public record WeScene(int width, int height, float zoom, boolean parallax,
 	float parallaxAmount, float parallaxDelay, List<Layer> layers,
-	List<ParticleLayer> particles, List<TextLayer> texts)
+	List<ParticleLayer> particles, List<TextLayer> texts,
+	List<AudioLayer> audio)
 {
 	/** {@code scene.json} 在包里的名字。 */
 	public static final String SCENE_JSON = "scene.json";
@@ -75,6 +76,17 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		float colorR, float colorG, float colorB, float alpha,
 		String horizontalAlign, String verticalAlign, float pointSize,
 		String font)
+	{}
+
+	/**
+	 * 一个音频对象：{@code sound} 是包内相对路径数组（实测
+	 * {@code sounds/....mp3}），{@code playbackmode} 为 {@code loop} 时循环。
+	 *
+	 * @param volume
+	 *            场景里写的 0–1 音量
+	 */
+	public record AudioLayer(String name, List<String> soundFiles, float volume,
+		boolean loop)
 	{}
 
 	/**
@@ -184,6 +196,7 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 		List<Layer> layers = new ArrayList<>();
 		List<ParticleLayer> particles = new ArrayList<>();
 		List<TextLayer> texts = new ArrayList<>();
+		List<AudioLayer> audio = new ArrayList<>();
 		JsonArray objects = array(scene, "objects");
 
 		// 对象是一棵树：子对象的 origin 是**相对父对象**的偏移。实测「流萤」里 93 个
@@ -254,12 +267,20 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 				readParticleLayer(object, width, height, layers.size());
 
 			if(particle != null)
+			{
 				particles.add(particle);
+				continue;
+			}
+
+			AudioLayer sound = readAudioLayer(object);
+
+			if(sound != null)
+				audio.add(sound);
 		}
 
 		return new WeScene(width, height, zoom, parallax, parallaxAmount,
 			parallaxDelay, List.copyOf(layers), List.copyOf(particles),
-			List.copyOf(texts));
+			List.copyOf(texts), List.copyOf(audio));
 	}
 
 	/**
@@ -355,6 +376,42 @@ public record WeScene(int width, int height, float zoom, boolean parallax,
 
 		return new ParticleLayer(string(object, "name", preset), preset,
 			origin[0], origin[1], depth[0], depth[1], layerIndex);
+	}
+
+	/**
+	 * 音频对象：对象里写的是 {@code sound} 数组，没有 {@code image} /
+	 * {@code particle} / {@code text}。
+	 */
+	private static AudioLayer readAudioLayer(JsonObject object)
+	{
+		if(!isVisible(object.get("visible")) || !object.has("sound"))
+			return null;
+
+		List<String> files = new ArrayList<>();
+		JsonElement sound = object.get("sound");
+
+		if(sound.isJsonArray())
+		{
+			for(JsonElement element : sound.getAsJsonArray())
+				if(element.isJsonPrimitive()
+					&& element.getAsJsonPrimitive().isString())
+					files.add(element.getAsString());
+
+		}else if(sound.isJsonPrimitive()
+			&& sound.getAsJsonPrimitive().isString())
+			files.add(sound.getAsString());
+
+		files.removeIf(String::isBlank);
+
+		if(files.isEmpty())
+			return null;
+
+		float volume = (float)number(object, "volume", 1);
+		boolean loop = "loop".equalsIgnoreCase(
+			string(object, "playbackmode", ""));
+
+		return new AudioLayer(string(object, "name", files.get(0)),
+			List.copyOf(files), volume, loop);
 	}
 
 	private static Layer readLayer(JsonObject object,

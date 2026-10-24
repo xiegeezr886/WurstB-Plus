@@ -66,8 +66,8 @@ final class FfmpegNatives
 	 * to touch {@code java.library.path} or the working directory.
 	 */
 	private static final String[] DLLS = {"libwinpthread-1.dll", "zlib1.dll",
-		"avutil-59.dll", "swscale-8.dll", "avcodec-61.dll", "avformat-61.dll",
-		"vf_ffmpeg.dll"};
+		"avutil-59.dll", "swresample-5.dll", "swscale-8.dll", "avcodec-61.dll",
+		"avformat-61.dll", "vf_ffmpeg.dll"};
 
 	/** 资源目录（相对 assets/wurst/）。 */
 	private static final String RESOURCE_DIR = "ffmpeg";
