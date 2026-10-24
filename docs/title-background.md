@@ -108,7 +108,7 @@ shim**。上一版用的是纯 Java 的 JCodec，同一段 4K 素材只有 **3.8
 | AV1（`av01`） | **只有硬件解码**。FFmpeg 里没有软件 AV1 解码器（`libavcodec/av1dec.c` 在没有 hwaccel 时直接返回 ENOSYS），所以**需要一块支持 AV1 解码的显卡**；没有就会落到「这个编码本版放不了（实际：AV1）」 |
 | VP8（`vp08`）、ProRes | 放不了：这套构建**没有**编进这两个解码器，卡片上写明编码名 |
 | WebM / MKV / AVI / 其它容器 | 放不了：本版只认 MP4（扩展名也只收 `.mp4` / `.m4v`）。FFmpeg 本身带了 Matroska / AVI 解复用，但没接线 |
-| 音轨 | **完全忽略**。视频背景没有声音，将来也不打算有 |
+| 音轨 | FFmpeg 解成 S16 立体声 PCM，由 Java Sound `SourceDataLine` 播放；标题界面之外自动暂停，播完自动循环 |
 | 10 位 / HDR | **没有测过**。转换路径（`swscale` → `AV_PIX_FMT_RGBA`）是 8 位的，10 位源会走一次没验证过的降位转换 |
 | 带旋转矩阵的手机竖拍视频 | **会横过来显示**：旧的 JCodec 路径会按 `tkhd` 的旋转信息转正，现在这套构建没开 filter，shim 也不读 display matrix。未实现，见第 7 节 |
 
@@ -291,7 +291,7 @@ box 头）、用 `Mp4Probe` 扫一眼盒子结构（有没有视频轨道、什�
 1. **视频只支持 MP4 容器**：能放 H.264 / HEVC / VP9 / MPEG-4 Part 2 / Motion JPEG，
    **AV1 需要显卡支持**（这套构建没有软件 AV1 解码器）；VP8 与 ProRes 没编进来；
    WebM / MKV / AVI 虽然 FFmpeg 自己能解复用，但本版没接线（扩展名也只收 `.mp4` /
-   `.m4v`）。**音轨一律忽略**。
+   `.m4v`）。音轨由 FFmpeg 解码后交给 Java Sound 播放。
 2. **带旋转矩阵的视频会横过来显示**：旧的 JCodec 路径会按 `tkhd` 的旋转信息把画面
    转正，换到 FFmpeg 之后没有做这件事——这套构建没开 filter，shim 也不读 display
    matrix。要做的话有两条路：给 shim 加一次 `sws_scale` 之外的旋转（要改 native 并
@@ -301,7 +301,8 @@ box 头）、用 `Mp4Probe` 扫一眼盒子结构（有没有视频轨道、什�
 5. **Wallpaper Engine 的网页 / 应用型壁纸**只导入其**预览图**并在卡片上注明原因
    （`Candidate.note`）。Scene 型壁纸不再是这一类：它的场景包会被导入并按图层画出来
    （见 [`wallpaper-engine-scene.md`](wallpaper-engine-scene.md)），但**只画静态
-   图层**——效果着色器、粒子、时钟与音频都还没有。
+   图层**——效果着色器、粒子与时钟还没有；音频对象已支持（`sound` 数组 +
+   `volume` + `playbackmode`），由 `WeSceneAudioPlayer` 用 java-stream-player 播放。
 6. **动图只有整个界面可见时才推进**：标题界面不显示时不会后台跑帧，重进界面会按
    挂钟时间直接跳到该显示的那一帧（不做补帧）。视频同理，而且更彻底：不显示超过
    一秒解码线程就停下（不是空转），重新显示时接着往下放。

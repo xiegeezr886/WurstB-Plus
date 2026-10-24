@@ -36,9 +36,12 @@
 #include <libavutil/buffer.h>
 #include <libavutil/error.h>
 #include <libavutil/hwcontext.h>
+#include <libavutil/channel_layout.h>
 #include <libavutil/hwcontext_d3d11va.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/opt.h>
 #include <libavutil/time.h>   /* av_gettime_relative(), used by the CLI harness */
+#include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
 
 /* Java class this shim belongs to. */
@@ -79,6 +82,18 @@ typedef struct {
 	int srcW;              /* sws source width,  re-checked every frame */
 	int srcH;              /* sws source height, re-checked every frame */
 	int64_t framesOut;     /* frames converted; 0 = the next one is the first */
+	/* ---- audio (optional; the same container may carry a track) ---- */
+	AVCodecContext *audio_dec;
+	AVFrame *audio_frame;
+	AVPacket *audio_pkt;
+	struct SwrContext *swr;
+	uint8_t *audio_buf;    /* reusable S16 interleaved conversion output */
+	int audio_buf_cap;
+	int audio_stream;      /* -1 when the file has no audio */
+	int audio_rate;
+	int audio_channels;    /* output is always 2 */
+	int audio_ok;          /* decoder + resampler are ready */
+	int audio_draining;    /* NULL packet sent, waiting for the last frames */
 	char file[VF_FILE_MAX]; /* the path, so reasons can name the file */
 	char note[VF_NOTE_MAX]; /* non-fatal: why a fallback happened (e.g. no hw) */
 	char err[VF_ERR_MAX];
@@ -398,6 +413,70 @@ static enum AVPixelFormat get_sw_format(AVCodecContext *ctx,
 	return AV_PIX_FMT_NONE;
 }
 
+/*
+ * Optional audio track. Failure is deliberately non-fatal: a wallpaper video
+ * with an unsupported audio codec should still render, just silently.
+ */
+static void vf_open_audio(VFHandle *h)
+{
+	const AVCodec *codec = NULL;
+	AVStream *st;
+	AVChannelLayout in_layout = {0};
+	AVChannelLayout out_layout = {0};
+	int stream;
+	int err;
+
+	h->audio_stream = -1;
+
+	if(!h || !h->fmt)
+		return;
+
+	stream = av_find_best_stream(h->fmt, AVMEDIA_TYPE_AUDIO, -1, h->stream,
+		&codec, 0);
+	if(stream < 0 || !codec)
+		return; /* no audio track: normal */
+
+	st = h->fmt->streams[stream];
+	h->audio_dec = avcodec_alloc_context3(codec);
+	if(!h->audio_dec)
+		return;
+
+	if(avcodec_parameters_to_context(h->audio_dec, st->codecpar) < 0)
+		return;
+	if(avcodec_open2(h->audio_dec, codec, NULL) < 0)
+		return;
+
+	h->audio_frame = av_frame_alloc();
+	h->audio_pkt = av_packet_alloc();
+	if(!h->audio_frame || !h->audio_pkt)
+		return;
+
+	if(h->audio_dec->sample_rate <= 0 || !h->audio_dec->sample_fmt)
+		return;
+
+	if(h->audio_dec->ch_layout.nb_channels > 0)
+		av_channel_layout_copy(&in_layout, &h->audio_dec->ch_layout);
+	else
+		av_channel_layout_default(&in_layout, 2);
+	av_channel_layout_default(&out_layout, 2);
+
+	err = swr_alloc_set_opts2(&h->swr, &out_layout, AV_SAMPLE_FMT_S16,
+		h->audio_dec->sample_rate, &in_layout, h->audio_dec->sample_fmt,
+		h->audio_dec->sample_rate, 0, NULL);
+	av_channel_layout_uninit(&in_layout);
+	if(err < 0 || !h->swr || swr_init(h->swr) < 0)
+		return;
+
+	h->audio_stream = stream;
+	h->audio_rate = h->audio_dec->sample_rate;
+	h->audio_channels = 2;
+	h->audio_ok = 1;
+
+	if(getenv("VF_DEBUG"))
+		fprintf(stderr, "[vf] audio: stream=%d codec=%s rate=%d\n", stream,
+			codec->name, h->audio_rate);
+}
+
 static VFHandle *vf_open(const char *path, int wantHardware)
 {
 	VFHandle *h;
@@ -428,6 +507,7 @@ static VFHandle *vf_open(const char *path, int wantHardware)
 	}
 
 	h->stream = -1;
+	h->audio_stream = -1;
 	h->srcFmt = AV_PIX_FMT_NONE;
 	h->wantHardware = wantHardware;
 	snprintf(h->file, sizeof(h->file), "%s", path ? path : "(null)");
@@ -575,6 +655,7 @@ static VFHandle *vf_open(const char *path, int wantHardware)
 	h->outW = h->width;
 	h->outH = h->height;
 	h->err[0] = '\0';
+	vf_open_audio(h);
 	h->ok = 1;
 
 	if(getenv("VF_DEBUG"))
@@ -632,6 +713,13 @@ static void vf_close(VFHandle *h)
 	VFCLOSE_STEP("swframe", if(h->swframe) av_frame_free(&h->swframe));
 	VFCLOSE_STEP("frame", if(h->frame) av_frame_free(&h->frame));
 	VFCLOSE_STEP("pkt", if(h->pkt) av_packet_free(&h->pkt));
+	VFCLOSE_STEP("audio_swr", if(h->swr) swr_free(&h->swr));
+	VFCLOSE_STEP("audio_frame",
+		if(h->audio_frame) av_frame_free(&h->audio_frame));
+	VFCLOSE_STEP("audio_pkt", if(h->audio_pkt) av_packet_free(&h->audio_pkt));
+	VFCLOSE_STEP("audio_dec",
+		if(h->audio_dec) avcodec_free_context(&h->audio_dec));
+	VFCLOSE_STEP("audio_buf", if(h->audio_buf) av_freep(&h->audio_buf));
 	VFCLOSE_STEP("fmt", if(h->fmt) avformat_close_input(&h->fmt));
 	VFCLOSE_STEP("handle", free(h));
 
@@ -934,6 +1022,36 @@ static int vf_seek_to_start(VFHandle *h)
 	return 0;
 }
 
+static int vf_seek_audio_to_start(VFHandle *h)
+{
+	int err;
+
+	if(!h || !h->fmt || !h->audio_ok || !h->audio_dec)
+		return AVERROR(EINVAL);
+
+	err = av_seek_frame(h->fmt, h->audio_stream, 0, AVSEEK_FLAG_BACKWARD);
+	if(err < 0)
+	{
+		vf_fail(h, VF_DECODE, "av_seek_frame(audio start)", err,
+			"the audio track cannot be rewound, looping would stop it");
+		return err;
+	}
+
+	avformat_flush(h->fmt);
+	avcodec_flush_buffers(h->audio_dec);
+	av_packet_unref(h->audio_pkt);
+	if(h->audio_frame)
+		av_frame_unref(h->audio_frame);
+	if(h->swr)
+	{
+		swr_close(h->swr);
+		if(swr_init(h->swr) < 0)
+			return AVERROR(EINVAL);
+	}
+	h->audio_draining = 0;
+	return 0;
+}
+
 static double vf_frame_rate(VFHandle *h)
 {
 	AVRational r;
@@ -1184,6 +1302,145 @@ JNIEXPORT jint JNICALL Java_net_wurstclient_background_FfmpegVideoDecoder_native
 	(void)env;
 	(void)cls;
 	return (jint)vf_seek_to_start(handle_from(ptr));
+}
+
+JNIEXPORT jboolean JNICALL Java_net_wurstclient_background_FfmpegVideoDecoder_nativeHasAudio(
+	JNIEnv *env, jclass cls, jlong ptr)
+{
+	VFHandle *h = handle_from(ptr);
+	(void)env;
+	(void)cls;
+	return h && h->audio_ok ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jint JNICALL Java_net_wurstclient_background_FfmpegVideoDecoder_nativeAudioSampleRate(
+	JNIEnv *env, jclass cls, jlong ptr)
+{
+	VFHandle *h = handle_from(ptr);
+	(void)env;
+	(void)cls;
+	return h && h->audio_ok ? h->audio_rate : 0;
+}
+
+JNIEXPORT jint JNICALL Java_net_wurstclient_background_FfmpegVideoDecoder_nativeAudioChannels(
+	JNIEnv *env, jclass cls, jlong ptr)
+{
+	VFHandle *h = handle_from(ptr);
+	(void)env;
+	(void)cls;
+	return h && h->audio_ok ? h->audio_channels : 0;
+}
+
+JNIEXPORT jint JNICALL Java_net_wurstclient_background_FfmpegVideoDecoder_nativeNextAudio(
+	JNIEnv *env, jclass cls, jlong ptr, jbyteArray jdst, jint capacity)
+{
+	VFHandle *h = handle_from(ptr);
+	jsize len;
+	(void)cls;
+
+	if(!h || !h->audio_ok || !jdst)
+		return -1;
+
+	len = (*env)->GetArrayLength(env, jdst);
+	if(capacity > len)
+		capacity = len;
+
+	for(;;)
+	{
+		int rc = avcodec_receive_frame(h->audio_dec, h->audio_frame);
+
+		if(rc == 0)
+		{
+			int max_samples = h->audio_frame->nb_samples;
+			int needed;
+			uint8_t *out[1];
+			int got;
+			int bytes;
+
+			if(max_samples <= 0)
+			{
+				av_frame_unref(h->audio_frame);
+				continue;
+			}
+
+			needed = av_samples_get_buffer_size(NULL, h->audio_channels,
+				max_samples, AV_SAMPLE_FMT_S16, 1);
+			if(needed <= 0)
+			{
+				av_frame_unref(h->audio_frame);
+				continue;
+			}
+
+			if(needed > h->audio_buf_cap)
+			{
+				av_freep(&h->audio_buf);
+				h->audio_buf = av_malloc(needed);
+				h->audio_buf_cap = h->audio_buf ? needed : 0;
+			}
+			if(!h->audio_buf)
+			{
+				av_frame_unref(h->audio_frame);
+				return AVERROR(ENOMEM);
+			}
+
+			out[0] = h->audio_buf;
+			got = swr_convert(h->swr, out, max_samples,
+				(const uint8_t **)h->audio_frame->extended_data,
+				h->audio_frame->nb_samples);
+			av_frame_unref(h->audio_frame);
+
+			if(got < 0)
+				return got;
+			if(got == 0)
+				continue;
+
+			bytes = got * h->audio_channels * (int)sizeof(int16_t);
+			if(bytes > capacity)
+				bytes = capacity;
+
+			(*env)->SetByteArrayRegion(env, jdst, 0, bytes,
+				(const jbyte *)h->audio_buf);
+			return bytes;
+		}
+
+		if(rc == AVERROR(EAGAIN))
+		{
+			int prc;
+
+			if(h->audio_draining)
+				return 0;
+
+			prc = av_read_frame(h->fmt, h->audio_pkt);
+			if(prc < 0)
+			{
+				if(prc == AVERROR_EOF)
+				{
+					avcodec_send_packet(h->audio_dec, NULL);
+					h->audio_draining = 1;
+					continue;
+				}
+				return prc;
+			}
+
+			if(h->audio_pkt->stream_index == h->audio_stream)
+				avcodec_send_packet(h->audio_dec, h->audio_pkt);
+			av_packet_unref(h->audio_pkt);
+			continue;
+		}
+
+		if(rc == AVERROR_EOF)
+			return 0;
+
+		return rc;
+	}
+}
+
+JNIEXPORT jint JNICALL Java_net_wurstclient_background_FfmpegVideoDecoder_nativeSeekAudioToStart(
+	JNIEnv *env, jclass cls, jlong ptr)
+{
+	(void)env;
+	(void)cls;
+	return (jint)vf_seek_audio_to_start(handle_from(ptr));
 }
 
 JNIEXPORT void JNICALL Java_net_wurstclient_background_FfmpegVideoDecoder_nativeClose(
