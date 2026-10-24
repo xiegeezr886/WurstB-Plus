@@ -18,7 +18,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+				import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.RenderListener;
@@ -139,7 +139,8 @@ public final class CityEspHack extends Hack
 
 		for(CityBlock cityBlock : cityBlocks)
 		{
-			AABB box = new AABB(Vec3.atLowerCornerOf(cityBlock.pos), Vec3.atLowerCornerOf(cityBlock.pos.offset(1, 1, 1)));
+			AABB box = new AABB(Vec3.atLowerCornerOf(cityBlock.pos),
+								Vec3.atLowerCornerOf(cityBlock.pos.offset(1, 1, 1)));
 			RenderUtils.drawSolidBox(matrixStack, box, quadColor, false);
 			RenderUtils.drawOutlinedBox(matrixStack, box, lineColor, false);
 		}
