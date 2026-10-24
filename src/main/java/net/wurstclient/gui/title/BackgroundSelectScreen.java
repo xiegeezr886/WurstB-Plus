@@ -193,6 +193,12 @@ public final class BackgroundSelectScreen extends Screen
 
 		scroll = Math.max(0, Math.min(scroll, maxScroll));
 
+		// Clip the scrolling content to the viewport. Without this, a card that
+		// is only partially scrolled into view is drawn in full and spills out
+		// over the panel border and the wallpaper below it.
+		int viewportBottom = panel.bottom() - 26;
+		graphics.enableScissor(panel.x, contentTop, panel.right(), viewportBottom);
+
 		for(int index = 0; index < cards; index++)
 		{
 			int column = index % columns;
@@ -200,7 +206,7 @@ public final class BackgroundSelectScreen extends Screen
 			int x = panel.x + PADDING + column * (CARD_WIDTH + GAP);
 			int y = contentTop + PADDING + row * (CARD_HEIGHT + GAP) - scroll;
 
-			if(y + CARD_HEIGHT < contentTop || y > panel.bottom() - 26)
+			if(y + CARD_HEIGHT < contentTop || y > viewportBottom)
 				continue;
 
 			Rect card = new Rect(x, y, CARD_WIDTH, CARD_HEIGHT);
@@ -213,6 +219,8 @@ public final class BackgroundSelectScreen extends Screen
 				drawEntryCard(graphics, card, entries.get(index - 1), mouseX,
 					mouseY);
 		}
+
+		graphics.disableScissor();
 
 		if(maxScroll > 0)
 		{
@@ -793,7 +801,13 @@ public final class BackgroundSelectScreen extends Screen
 	{
 		int columns = columns(panel);
 		int contentTop = panel.y + HEADER_HEIGHT;
+		int viewportBottom = panel.bottom() - 26;
 		int cards = entries.size() + 2;
+
+		// Cards are clipped to the viewport, so the invisible part must not be
+		// clickable either.
+		if(mouseY < contentTop || mouseY >= viewportBottom)
+			return -1;
 
 		for(int index = 0; index < cards; index++)
 		{
