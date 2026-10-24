@@ -291,6 +291,7 @@ URL 指向 LGPL-3.0，已在它的 ATTRIBUTION 里注明；(2) **只在 `-dev.ja
 ## 五、Wallpaper Engine 图标
 
 `src/main/resources/assets/wurst/textures/gui/fdp/wallpaper_engine.png` 取自
-Wallpaper Engine 的官方 Steam 商店 logo（app 431960 的 `logo.png`），裁剪左侧蓝色
-图标并缩放到 88×88。Wallpaper Engine 及其图标版权归 Kristjan Skutta / Wallpaper
-Engine 所有；此处仅用于在背景选择界面标识「从该来源导入」，不表示任何隶属或背书关系。
+Wallpaper Engine 的官方 Steam 商店 logo（app 431960 的 `logo.png`），裁剪左侧图标、
+缩放到 88×88 并重新着色为白色。Wallpaper Engine 及其图标版权归 Kristjan Skutta /
+Wallpaper Engine 所有；此处仅用于在背景选择界面标识「从该来源导入」，不表示任何
+隶属或背书关系。
