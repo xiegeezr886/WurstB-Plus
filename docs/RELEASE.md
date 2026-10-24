@@ -324,7 +324,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 | --- | --- | --- |
 | `AirJump` | Movement | 空中跳跃 / 多段跳，可设模式 |
 | `EntityCulling` | Render | 异步遮挡查询，跳过被方块完全遮挡的实体，可分组控制与延迟 |
-| `LeftClicker` | Combat | 左键连点，1–20 CPS，可设为仅在按住左键时连点 |
+| `AutoClicker` | Combat | 左键连点，1–20 CPS，可设为仅在按住左键时连点 |
 | `MusicPlayer` | Other | 网易云音乐播放器 |
 | `NoMissCooldown` | Combat | 去掉空挥冷却，可取消落空的攻击 |
 | `NoRotate` | Movement | 忽略服务端的视角纠正，可分别保留 yaw / pitch |
@@ -379,7 +379,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
 | `seed.crack` | 2 | 无范围反解：位块分解 + 陪集求交（弱约束集不保证唯一） |
 | `seed.scan` | 1 | 自动观测：方块特征识别 6 类结构（阈值未在存档标定） |
 
-新增 Hack（15 个）：`AirJump`、`EntityCulling`、`LeftClicker`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SeedOreESP`、`SeedStructureESP`、`SuperKnockback`、`VehicleBoost`、`WTap`。
+新增 Hack（15 个）：`AirJump`、`EntityCulling`、`AutoClicker`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SeedOreESP`、`SeedStructureESP`、`SuperKnockback`、`VehicleBoost`、`WTap`。
 
 其中 `PerimeterDigger`（Blocks 分类）配合 `.perimeter` 与 Brigadier `/perimeterdig`（含 Tab 补全）在 v1.6 **原生等价移植**了社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 的全部功能：闭区间矩形规划与**不规则区域边界检测**、**液体 avoid / replace / seal_boundary** 策略与边界封堵、批次上限与背包满自动暂停、**自动拾取与多卸货点卸货**、**工具/鞘翅耐久替换**、**自动进食、补给、睡觉**、**跨维度熔炉修复**、**行走与鞘翅寻路**、**按服务器/存档分存配置**、**中英双语文本与命令**。原模组为 Fabric / MC 26.1.1 / Java 25 且依赖修改版 Baritone，无法直接内置，故本实现把区域挖掘语义落在本项目自己的 `PerimeterMiningSchematic` 上、交给官方 Baritone 的 `BuilderProcess` 执行，并按同样判定复刻液体与边界语义（具体偏差见 `CHANGELOG.md`）。
 
