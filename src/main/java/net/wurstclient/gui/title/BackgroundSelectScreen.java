@@ -88,7 +88,12 @@ public final class BackgroundSelectScreen extends Screen
 	private final Set<String> videoProbesRequested = new HashSet<>();
 
 	private List<BackgroundEntry> entries = List.of();
-	private int scroll;
+
+	/** Animated scroll position and the wheel target it eases towards. */
+	private double scroll;
+	private double targetScroll;
+	private long lastScrollNanos;
+
 	private String status = "";
 	private boolean busy;
 
@@ -111,6 +116,11 @@ public final class BackgroundSelectScreen extends Screen
 	protected void init()
 	{
 		entries = BackgroundManager.get().entries();
+
+		int maxScroll = maxScroll(panel());
+		targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
+		scroll = Math.max(0, Math.min(scroll, maxScroll));
+		lastScrollNanos = 0;
 	}
 
 	// ------------------------------------------------------------------
@@ -191,7 +201,8 @@ public final class BackgroundSelectScreen extends Screen
 		int contentTotal = rows * (CARD_HEIGHT + GAP) - GAP + PADDING * 2;
 		int maxScroll = Math.max(0, contentTotal - contentHeight);
 
-		scroll = Math.max(0, Math.min(scroll, maxScroll));
+		targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
+		scroll = easeScroll(scroll, targetScroll, maxScroll);
 
 		// Clip the scrolling content to the viewport. Without this, a card that
 		// is only partially scrolled into view is drawn in full and spills out
@@ -204,7 +215,8 @@ public final class BackgroundSelectScreen extends Screen
 			int column = index % columns;
 			int row = index / columns;
 			int x = panel.x + PADDING + column * (CARD_WIDTH + GAP);
-			int y = contentTop + PADDING + row * (CARD_HEIGHT + GAP) - scroll;
+			int y = (int)Math.round(contentTop + PADDING
+				+ row * (CARD_HEIGHT + GAP) - scroll);
 
 			if(y + CARD_HEIGHT < contentTop || y > viewportBottom)
 				continue;
@@ -227,14 +239,52 @@ public final class BackgroundSelectScreen extends Screen
 			int trackHeight = contentHeight - PADDING * 2;
 			int thumbHeight = Math.max(24,
 				trackHeight * contentHeight / Math.max(1, contentTotal));
-			int thumbY = contentTop + PADDING
-				+ (trackHeight - thumbHeight) * scroll / maxScroll;
+			int thumbY = contentTop + PADDING + (int)Math.round(
+				(double)(trackHeight - thumbHeight) * scroll / maxScroll);
 			graphics.fill(panel.right() - 6, contentTop + PADDING,
 				panel.right() - 3, contentTop + PADDING + trackHeight,
 				0x22FFFFFF);
 			graphics.fill(panel.right() - 6, thumbY, panel.right() - 3,
 				thumbY + thumbHeight, 0x66FFFFFF);
 		}
+	}
+
+	/**
+	 * Eases the visible scroll position towards the wheel target, so a wheel
+	 * notch doesn't make the grid jump by a whole card.
+	 */
+	private double easeScroll(double current, double target, int maxScroll)
+	{
+		long now = System.nanoTime();
+
+		if(lastScrollNanos == 0)
+			lastScrollNanos = now;
+
+		double dt = Math.min(0.1,
+			(now - lastScrollNanos) / 1_000_000_000D);
+		lastScrollNanos = now;
+
+		if(current != target)
+		{
+			double factor = 1 - Math.exp(-dt / 0.06);
+			current += (target - current) * factor;
+
+			if(Math.abs(target - current) < 0.05)
+				current = target;
+		}
+
+		return Math.max(0, Math.min(current, maxScroll));
+	}
+
+	private int maxScroll(Rect panel)
+	{
+		int columns = columns(panel);
+		int cards = entries.size() + 2;
+		int rows = (cards + columns - 1) / columns;
+		int contentTop = panel.y + HEADER_HEIGHT;
+		int contentHeight = panel.bottom() - contentTop - 26;
+		int contentTotal = rows * (CARD_HEIGHT + GAP) - GAP + PADDING * 2;
+		return Math.max(0, contentTotal - contentHeight);
 	}
 
 	private void drawDefaultCard(GuiGraphics graphics, Rect card, int mouseX,
@@ -443,7 +493,9 @@ public final class BackgroundSelectScreen extends Screen
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta)
 	{
-		scroll -= (int)Math.signum(delta) * SCROLL_STEP;
+		int maxScroll = maxScroll(panel());
+		targetScroll = Math.max(0,
+			Math.min(targetScroll - delta * SCROLL_STEP, maxScroll));
 		return true;
 	}
 
@@ -814,7 +866,8 @@ public final class BackgroundSelectScreen extends Screen
 			int column = index % columns;
 			int row = index / columns;
 			int x = panel.x + PADDING + column * (CARD_WIDTH + GAP);
-			int y = contentTop + PADDING + row * (CARD_HEIGHT + GAP) - scroll;
+			int y = (int)Math.round(contentTop + PADDING
+				+ row * (CARD_HEIGHT + GAP) - scroll);
 
 			if(x <= mouseX && mouseX < x + CARD_WIDTH && y <= mouseY
 				&& mouseY < y + CARD_HEIGHT)
