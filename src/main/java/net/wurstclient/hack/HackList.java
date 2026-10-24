@@ -47,6 +47,7 @@ public final class HackList implements UpdateListener
 	public final AutoArmorHack autoArmorHack = new AutoArmorHack();
 	public final AutoBuildHack autoBuildHack = new AutoBuildHack();
 	public final AutoCityHack autoCityHack = new AutoCityHack();
+	public final AutoClickerHack autoClickerHack = new AutoClickerHack();
 	public final AutoCompleteHack autoCompleteHack = new AutoCompleteHack();
 	public final AutoDropHack autoDropHack = new AutoDropHack();
 	public final AutoLeaveHack autoLeaveHack = new AutoLeaveHack();
@@ -143,7 +144,6 @@ public final class HackList implements UpdateListener
 	public final KeepSprintHack keepSprintHack = new KeepSprintHack();
 	public final KillauraHack killauraHack = new KillauraHack();
 	public final KillPotionHack killPotionHack = new KillPotionHack();
-	public final LeftClickerHack leftClickerHack = new LeftClickerHack();
 	public final LiquidsHack liquidsHack = new LiquidsHack();
 	public final LsdHack lsdHack = new LsdHack();
 	public final MassTpaHack massTpaHack = new MassTpaHack();

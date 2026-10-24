@@ -9,7 +9,7 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ## 未发布 — v1.6 开发（2026-10-24）
 
-- **新增 `LeftClicker`（左键连点，Combat）**：1–20 CPS 可调、可选仅在按住左键时连点、
+- **新增 `AutoClicker`（左键连点，Combat）**：1–20 CPS 可调、可选仅在按住左键时连点、
   启动延迟 0–1000ms；通过 `IKeyBinding.simulatePress()` 走原版真实左键事件，方块 / 实体 /
   空气都适用，界面打开或正在使用物品时自动暂停。中文名「连点器」。
 - **修复根工程 `gradlew build` 失败**：`accesstransformer.cfg` 把
@@ -19,11 +19,14 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
   根工程 `compileJava` / `build` 恢复通过。
 - **测试控制口绑定 IPv4**：`InetAddress.getLoopbackAddress()` 在部分 JVM 上返回 `::1`，
   与文档和脚本使用的 `127.0.0.1` 不一致；67 个工程统一显式绑定 `127.0.0.1`。
-- **实机验证（生产版 Forge 1.20.1，世界 WurstSmokeFresh）**：`LeftClicker` 出现在
-  `/hacks` 并成功启用；8 秒内输出 66 次点击（约 8.25 CPS，落在配置的 8–12 区间），
-  关闭后点击立即停止；无崩溃报告、无新 `hs_err`。批量脚本因根工程不打 Baritone 横幅而
-  把本次运行记为 TIMEOUT（`did not load quick-play world`），但日志与 `/hacks` 均确认世界
-  已加载、客户端在线，属于测试脚本的判定误报。
+- **测试脚本识别根工程 Baritone**：`run-version-tests.ps1` 原先只匹配 `[Baritone]` /
+  `Baritone 1.x` 等横幅，根 Forge 1.20.1 输出的是 `Baritone world data dir` /
+  `Baritone settings file`，导致世界已加载却被记为 TIMEOUT。已补充这些标记。
+- **实机验证（生产版 Forge 1.20.1，世界 WurstSmokeFresh）**：按 `RELEASE.md` 的
+  `run-version-tests.ps1` 真实客户端流程运行，**PASS（68.6s）**，日志确认世界加载、
+  Wurst 与 Baritone 均已启动；`/hacks` 中 `AutoClicker` 已注册、无 `LeftClicker` 残留，
+  启用/关闭均返回成功，无崩溃报告、无新 `hs_err`。启用期间此前测得约 8.25 CPS
+  （配置 8–12），关闭后点击立即停止。
 
 ---
 
