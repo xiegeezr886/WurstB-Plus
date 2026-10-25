@@ -293,6 +293,7 @@ public final class HackList implements UpdateListener
 	public final AutoBreedHack autoBreedHack = new AutoBreedHack();
 	public final AutoSmelterHack autoSmelterHack = new AutoSmelterHack();
 	public final NotifierHack notifierHack = new NotifierHack();
+	public final FreelookHack freelookHack = new FreelookHack();
 	public final ChatHack chatHack = new ChatHack();
 	public final WaypointHack waypointHack = new WaypointHack();
 	public final DamageParticlesHack damageParticlesHack = new DamageParticlesHack();

@@ -12,6 +12,8 @@
   "description.wurst.altmanager.window": "这个按钮是打开另一个窗口的。",
   "description.wurst.altmanager.window_freeze": "当打开另一个窗口时，这会导致游戏看起来未响应。",
   "description.wurst.hack.aimassist": "帮助你瞄准附近的实体。",
+"hack.name.freelook": "自由视角",
+"description.wurst.hack.freelook": "按住时自由旋转视角，玩家身体朝向保持不变。",
 "hack.name.chat": "聊天增强",
 "description.wurst.hack.chat": "聊天防清屏、时间戳、历史记录与防刷屏。",
 "hack.name.waypoint": "路径点",

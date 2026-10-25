@@ -44,6 +44,8 @@ public abstract class GameRendererMixin implements AutoCloseable
 	private void onBobView(GameRenderer instance, PoseStack matrices,
 		float tickDelta, Operation<Void> original)
 	{
+		WurstClient.INSTANCE.getHax().freelookHack
+			.applyCameraRotation(matrices);
 		CameraTransformViewBobbingEvent event =
 			new CameraTransformViewBobbingEvent();
 		EventManager.fire(event);
