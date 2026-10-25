@@ -7,6 +7,7 @@
  */
 package net.wurstclient.mixin;
 
+import net.wurstclient.hack.HackList;
 import javax.annotation.Nullable;
 
 import org.objectweb.asm.Opcodes;
@@ -179,4 +180,26 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 				includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE,
 				self)));
 	}
+
+	@Inject(method = "setDeltaMovement(DDD)V", at = @At("HEAD"))
+	private void soar$updateDamageTilt(double x, double y, double z,
+		CallbackInfo ci)
+	{
+		net.minecraft.world.entity.Entity self =
+			(net.minecraft.world.entity.Entity)(Object)this;
+		if(!(self instanceof net.minecraft.world.entity.player.Player player)
+			|| player != WurstClient.MC.player)
+			return;
+
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax == null || !hax.damageTiltHack.isEnabled())
+			return;
+
+		Vec3 motion = player.getDeltaMovement();
+		float hurtDir = (float)(Math.toDegrees(
+			Math.atan2(motion.z - z, motion.x - x)) - player.getYRot());
+		if(Float.isFinite(hurtDir))
+			player.animateHurt(hurtDir);
+	}
+
 }
