@@ -396,6 +396,14 @@ public final class HackList implements UpdateListener
 	public final TpMachineGunHack tpMachineGunHack = new TpMachineGunHack();
 	public final TpBowAuraHack tpBowAuraHack = new TpBowAuraHack();
 	public final TpAnchorHack tpAnchorHack = new TpAnchorHack();
+	public final GAntiLagHack gAntiLagHack = new GAntiLagHack();
+	public final GSuperVClipHack gSuperVClipHack = new GSuperVClipHack();
+	public final GTpbotHack gTpbotHack = new GTpbotHack();
+	public final GTpAuraHack gTpAuraHack = new GTpAuraHack();
+	public final TPServerEquivalentHack tPServerEquivalentHack =
+		new TPServerEquivalentHack();
+	public final GcoreTpDiagnosticHack gcoreTpDiagnosticHack =
+		new GcoreTpDiagnosticHack();
 	public final TntBomberHack tntBomberHack = new TntBomberHack();
 	public final SwordGapHack swordGapHack = new SwordGapHack();
 	public final PistonCrystalHack pistonCrystalHack = new PistonCrystalHack();
