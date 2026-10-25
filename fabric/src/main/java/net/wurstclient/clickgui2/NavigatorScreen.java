@@ -16,6 +16,7 @@ import net.wurstclient.Category;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.animation.SmoothScroll;
+import net.wurstclient.gui.MainMenuBackground;
 import net.wurstclient.clickgui2.theme.FlatTheme;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 import org.lwjgl.glfw.GLFW;
@@ -159,7 +160,9 @@ public final class NavigatorScreen extends Screen
 		WURST.getGui().updateColors();
 
 		NanoVGUI.pass(graphics, () -> {
-			NanoVGUI.fill(0, 0, width, height, OVERLAY);
+			MainMenuBackground.render(width, height,
+				WURST.MC.level != null ? MainMenuBackground.INGAME_ALPHA
+					: MainMenuBackground.MENU_ALPHA);
 			FlatUiRenderer.panel(graphics, panelX, panelY,
 				panelX + panelWidth, panelY + panelHeight, 8, PANEL,
 				0xFF202020);

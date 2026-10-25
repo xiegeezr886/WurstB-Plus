@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
+import net.wurstclient.gui.MainMenuBackground;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.util.ScreenRegistry;
 
@@ -134,11 +135,8 @@ public final class WurstTitleMenu
 	private void drawBackground(GuiGraphics graphics, int screenWidth,
 		int screenHeight)
 	{
-		NanoVGUI.fillGradient(0, 0, screenWidth, screenHeight, 0xFF02090A,
-			ACCENT);
-		NanoVGUI.fillGradient(0, 0, screenWidth, screenHeight, 0xD9000000,
-			0x00000000);
-		NanoVGUI.fill(0, 0, screenWidth, screenHeight, 0x18000000);
+		MainMenuBackground.render(screenWidth, screenHeight,
+			MainMenuBackground.MENU_ALPHA);
 	}
 
 	private void drawBrand(GuiGraphics graphics, int screenWidth)
