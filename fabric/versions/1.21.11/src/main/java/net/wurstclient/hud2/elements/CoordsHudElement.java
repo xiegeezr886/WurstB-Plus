@@ -3,17 +3,17 @@ package net.wurstclient.hud2.elements;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.level.Level;
 import net.wurstclient.WurstClient;
-import net.wurstclient.hud2.HudLayout.HudElementConfig;
 
 public final class CoordsHudElement extends TextHudElement
 {
 	public CoordsHudElement()
 	{
 		super("coords", "Coordinates");
+		setDefaultPosition(3, 74);
 	}
 
 	@Override
-	protected String getText()
+	public String getText()
 	{
 		LocalPlayer player = WurstClient.MC.player;
 		if(player == null)
@@ -28,12 +28,5 @@ public final class CoordsHudElement extends TextHudElement
 			return text + " Nether: " + Math.floorDiv(x, 8) + " "
 				+ Math.floorDiv(z, 8);
 		return text;
-	}
-
-	@Override
-	public HudElementConfig getDefaultLayout()
-	{
-		return new HudElementConfig(HudElementConfig.HORIZONTAL_LEFT,
-			HudElementConfig.VERTICAL_TOP, 3, 70);
 	}
 }

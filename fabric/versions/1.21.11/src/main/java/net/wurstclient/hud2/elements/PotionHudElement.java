@@ -4,44 +4,33 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.wurstclient.WurstClient;
-import net.wurstclient.hud2.HudElement;
-import net.wurstclient.hud2.HudLayout.HudElementConfig;
+import net.wurstclient.hud2.HUDMod;
 
-public final class PotionHudElement extends HudElement
+public final class PotionHudElement extends HUDMod
 {
 	public PotionHudElement()
 	{
 		super("potions", "Potion Effects");
+		setDefaultPosition(620, 55);
 	}
 
 	@Override
-	public int getWidth()
+	protected void draw()
 	{
-		Font font = WurstClient.MC.font;
-		return getLines().stream().mapToInt(font::width).max().orElse(80) + 4;
-	}
-
-	@Override
-	public int getHeight()
-	{
-		return Math.max(1, getLines().size()) * WurstClient.MC.font.lineHeight + 2;
-	}
-
-	@Override
-	public void render(GuiGraphicsExtractor graphics, int x, int y, float partialTicks)
-	{
-		Font font = WurstClient.MC.font;
 		List<String> lines = getLines();
 		if(lines.isEmpty())
 			return;
-		graphics.fill(x, y, x + getWidth(), y + getHeight(), 0x80000000);
+
+		int contentWidth = lines.stream()
+			.mapToInt(line -> WurstClient.MC.font.width(line)).max().orElse(80);
+		int width = contentWidth + 11;
+		int height = lines.size() * 10 + 8;
+		drawBackground(width, height);
 		for(int index = 0; index < lines.size(); index++)
-			graphics.text(font, lines.get(index), x + 2,
-				y + 1 + index * font.lineHeight, 0xFFFFFFFF, false);
+			drawText(lines.get(index), 5.5F, 4.5F + index * 10, 9);
+		setSize(width, height);
 	}
 
 	private List<String> getLines()
@@ -62,14 +51,6 @@ public final class PotionHudElement extends HudElement
 		int seconds = Math.max(0, effect.getDuration() / 20);
 		String duration = String.format("%d:%02d", seconds / 60, seconds % 60);
 		return effect.getEffect().value().getDisplayName().getString()
-			+ amplifier + " "
-			+ duration;
-	}
-
-	@Override
-	public HudElementConfig getDefaultLayout()
-	{
-		return new HudElementConfig(HudElementConfig.HORIZONTAL_RIGHT,
-			HudElementConfig.VERTICAL_TOP, 3, 55);
+			+ amplifier + " " + duration;
 	}
 }

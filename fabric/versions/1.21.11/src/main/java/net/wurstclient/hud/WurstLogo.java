@@ -38,20 +38,10 @@ public final class WurstLogo
 		else
 			accent = otf.getBackgroundColor() | 0xFF000000;
 
-		int right = x + getWidth();
-		int bottom = y + PANEL_HEIGHT;
-		int textColor = ensureReadable(otf.getTextColor());
-		FlatRenderer.fillRoundedRect(context, x, y, right, bottom,
-			4, 0xA010141B);
-		FlatRenderer.drawRoundedOutline(context, x, y, right, bottom,
-			4, 0x2CFFFFFF);
-		FlatRenderer.fillRoundedRect(context, x + 1, y + 4,
-			x + 3, bottom - 4, 1, accent);
-
-		int textY = y + (PANEL_HEIGHT - font.lineHeight) / 2 + 1;
-		context.text(font, brand, x + 8, textY, textColor, false);
-		context.text(font, version, x + 14 + font.width(brand),
-			textY, withAlpha(textColor, 150), false);
+		int textY = y + (PANEL_HEIGHT - font.lineHeight) / 2;
+		context.text(font, brand, x + 5, textY, 0xFFFFFFFF, false);
+		context.text(font, version, x + 11 + font.width(brand), textY,
+			0xCCFFFFFF, false);
 	}
 
 	public int getWidth()

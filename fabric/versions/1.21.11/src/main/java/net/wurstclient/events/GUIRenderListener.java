@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.wurstclient.event.Event;
 import net.wurstclient.event.Listener;
+import net.wurstclient.hud2.HackHudElement;
 
 public interface GUIRenderListener extends Listener
 {
@@ -32,7 +33,11 @@ public interface GUIRenderListener extends Listener
 		public void fire(ArrayList<GUIRenderListener> listeners)
 		{
 			for(GUIRenderListener listener : listeners)
+			{
+				if(HackHudElement.isSuppressed(listener))
+					continue;
 				listener.onRenderGUI(context, partialTicks);
+			}
 		}
 		
 		@Override
