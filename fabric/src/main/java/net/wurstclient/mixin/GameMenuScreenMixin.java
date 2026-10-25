@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -29,6 +30,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.MainMenuBackground;
 import net.wurstclient.options.WurstOptionsScreen;
 
 @Mixin(PauseScreen.class)
@@ -55,6 +57,18 @@ public abstract class GameMenuScreenMixin extends Screen
 		addWurstOptionsButton();
 	}
 	
+	@Redirect(at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/gui/screens/PauseScreen;renderBackground(Lnet/minecraft/client/gui/GuiGraphics;)V"),
+		method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V")
+	private void wurst$replaceBackground(PauseScreen screen,
+		GuiGraphics graphics)
+	{
+		if(WurstClient.INSTANCE.getHax().noBackgroundHack
+			.shouldCancelBackground(screen))
+			return;
+		MainMenuBackground.render(graphics, screen);
+	}
+
 	@Inject(at = @At("TAIL"),
 		method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V")
 	private void onRender(GuiGraphics context, int mouseX, int mouseY,
