@@ -8,12 +8,17 @@
 // Ported from Soar Client v7.1.2 (LGPL-3.0).
 package net.wurstclient.hud2.mods;
 
+import java.awt.Color;
+
 import net.wurstclient.hud2.HUDMod;
 import net.wurstclient.hud2.compat.HudCompat;
 import net.wurstclient.hud2.nanovg.HudFonts;
+import net.wurstclient.hud2.nanovg.HudIcon;
 
 public final class TargetInfoMod extends HUDMod
 {
+	private static final float RING_RADIUS = 9F;
+
 	public TargetInfoMod()
 	{
 		super("TargetInfo", "Target Info",
@@ -26,31 +31,51 @@ public final class TargetInfoMod extends HUDMod
 	protected void draw()
 	{
 		HudCompat.TargetInfo target = HudCompat.target();
+		if(target == null && isEditing())
+			target = HudCompat.localPlayerTarget();
+
+		// No target: draw nothing at all.
 		if(target == null)
 		{
-			drawBackground(120, 20);
-			drawText("No target", 6, 5, 9, HudFonts.REGULAR,
-				getFontColor(200));
-			setSize(120, 20);
+			setSize(0, 0);
 			return;
 		}
 
-		float width = 170;
-		float height = target.skin() == null ? 34 : 44;
+		boolean hasHead = target.skin() != null;
+		float textX = hasHead ? 45.5F : 8F;
+		float nameWidth = getTextWidth(target.name(), 10.2F,
+			HudFonts.MEDIUM);
+		float width = Math.max(140, textX + Math.max(nameWidth, 46F) + 8F);
+		float height = 46;
 		drawBackground(width, height);
 
-		float textX = 6;
-		if(target.skin() != null)
-		{
-			drawPlayerHead(target.skin(), 6, 6, 30, 30, 6);
-			textX = 42;
-		}
+		if(hasHead)
+			drawPlayerHead(target.skin(), 5, 5, 36, 36, 6);
 
-		drawText(target.name(), textX, 5, 10, HudFonts.DEMIBOLD);
-		drawText(String.format("%.1f / %.1f HP", target.health(),
-			target.maxHealth()), textX, 19, 9, HudFonts.REGULAR);
-		drawText(String.format("%.1f m", target.distance()), textX, 31, 8,
-			HudFonts.REGULAR, getFontColor(200));
+		drawText(target.name(), textX, 8F, 10.2F, HudFonts.MEDIUM);
+
+		// Health and armour as circular gauges, like Soar's target HUD.
+		float health = (float)Math.max(0,
+			Math.min(1, target.health() / Math.max(target.maxHealth(), 0.001)));
+		float armor = Math.max(0, Math.min(1, target.armor() / 20F));
+		drawGauge(textX, 30.5F, HudIcon.HEART_FILL, health);
+		drawGauge(textX + 24F, 30.5F, HudIcon.SHIELD_FILL, armor);
+
 		setSize(Math.round(width), Math.round(height));
+	}
+
+	private void drawGauge(float baseX, float centerY, String icon,
+		float ratio)
+	{
+		float centerX = baseX + RING_RADIUS + 2;
+
+		drawArc(centerX, centerY, RING_RADIUS, -90, 270, 1.6F,
+			getFontColor(120));
+		if(ratio > 0.001F)
+			drawArc(centerX, centerY, RING_RADIUS, -90,
+				-90 + 360 * ratio, 1.6F, new Color(accentColor(255), true));
+
+		// The glyph is centred inside the ring, like Soar's target HUD.
+		drawText(icon, centerX - 4.5F, centerY - 4.5F, 9, HudFonts.ICON);
 	}
 }
