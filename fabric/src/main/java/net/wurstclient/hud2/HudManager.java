@@ -217,11 +217,13 @@ public final class HudManager
 		mod.clampToScreen(screenWidth, screenHeight);
 		mod.render(nvg, partialTicks);
 
+		// The selection ring sits exactly on the card's edge, using the same
+		// radius as HUDMod.drawBackground(). Drawing it a few pixels outside
+		// made the ring look detached from the card on dark backgrounds.
 		boolean hovered = mod.getId().equals(editor.getHoveredId());
-		int color = hovered ? 0xC8FFFFFF : 0x55000000;
-		nvg.drawOutlineRoundedRect(mod.getX() - 2, mod.getY() - 2,
-			mod.getWidth() + 4, mod.getHeight() + 4,
-			Math.max(2, 6.5F * mod.getScale()), 1.5F,
+		int color = hovered ? 0xFFFFFFFF : 0x66FFFFFF;
+		nvg.drawOutlineRoundedRect(mod.getX(), mod.getY(), mod.getWidth(),
+			mod.getHeight(), Math.max(2, 6F * mod.getScale()), 1F,
 			new java.awt.Color(color, true));
 
 		// Label every enabled module so empty overlays are identifiable.

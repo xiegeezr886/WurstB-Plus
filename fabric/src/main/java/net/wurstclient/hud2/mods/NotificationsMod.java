@@ -40,8 +40,10 @@ public final class NotificationsMod extends HUDMod
 	protected void draw()
 	{
 		float scale = getScale();
-		if(isEditing() && manager.getNotificationRenderer().getCount() == 0)
+		if(isEditing())
 		{
+			// Keep the editor's selection ring attached to a card: a live
+			// notification would slide horizontally and leave the ring behind.
 			float preview = manager.getNotificationRenderer()
 				.renderPreview(nvg, getX(), getY(), scale);
 			setSize(230, Math.max(36,
