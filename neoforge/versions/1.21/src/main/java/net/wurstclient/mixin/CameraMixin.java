@@ -47,7 +47,7 @@ public abstract class CameraMixin
 	private void onGetSubmersionType(
 		CallbackInfoReturnable<FogType> cir)
 	{
-		if(WurstClient.INSTANCE.getHax().noOverlayHack.isEnabled())
+		if((WurstClient.INSTANCE.getHax().noOverlayHack.isEnabled() || WurstClient.INSTANCE.getHax().clearWaterHack.isEnabled()))
 			cir.setReturnValue(FogType.NONE);
 	}
 }
