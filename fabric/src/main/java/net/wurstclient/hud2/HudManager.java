@@ -184,11 +184,11 @@ public final class HudManager
 
 		for(HUDMod mod : mods.values())
 		{
-			mod.clampToScreen(screenWidth, screenHeight);
 			if(!mod.isEnabled())
-				nvg.setAlpha(0.35F);
+				continue;
+
+			mod.clampToScreen(screenWidth, screenHeight);
 			mod.render(nvg, partialTicks);
-			nvg.setAlpha(1F);
 
 			boolean hovered = mod.getId().equals(editor.getHoveredId());
 			int color = hovered ? 0xC8FFFFFF : 0x55000000;
