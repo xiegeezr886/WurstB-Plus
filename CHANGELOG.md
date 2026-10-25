@@ -7,6 +7,18 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ---
 
+## 未发布 — Soar v8.0 剩余模块与界面修正（2026-10-26）
+
+- 新增 **BedwarsStatsOverlay**（起床战争统计）：显示标签列表玩家的等级、WLR、FKDR、BBLR；
+  fabric 端无 v8 的私有 websocket 后端，改用可选的 Hypixel 公开 API Key，未填 Key 时显示 `-`。
+- **BossHealth** 增加“原版位置”开关：关闭后由 HUD 接管并隐藏原版 Boss 条；默认保持原版位置。
+- 容器界面（背包、箱子等）恢复原版背景，不再套用主界面渐变。
+- **MusicWaveform** 暂未移植：它直接读取 v8 自带音乐播放器的 FFT 频谱，
+  而当前 fabric v1.5.1 工程没有该音乐后端；如需一并移植需单独引入整套音乐播放器。
+- ProtocolVersion 已有 `ViaVersionMod` 覆盖；CustomHand 已有 `CustomHeldItems`（X/Y/Z + 缩放）覆盖。
+
+---
+
 ## 未发布 — Soar v8.0 新增 6 个模块（2026-10-25）
 
 - 并入 v8.0 相对 v7.1.2 新增的 **AutoGG、ForceMainHand、JumpResetIndicator、
