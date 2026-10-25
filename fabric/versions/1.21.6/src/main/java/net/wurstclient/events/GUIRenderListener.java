@@ -1,4 +1,6 @@
 /*
+
+import net.wurstclient.hud2.HackHudElement;
  * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
@@ -32,7 +34,11 @@ public interface GUIRenderListener extends Listener
 		public void fire(ArrayList<GUIRenderListener> listeners)
 		{
 			for(GUIRenderListener listener : listeners)
+			{
+				if(HackHudElement.isSuppressed(listener))
+					continue;
 				listener.onRenderGUI(context, partialTicks);
+			}
 		}
 		
 		@Override

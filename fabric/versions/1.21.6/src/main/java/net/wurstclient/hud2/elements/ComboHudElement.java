@@ -3,7 +3,6 @@ package net.wurstclient.hud2.elements;
 import net.minecraft.world.entity.Entity;
 import net.wurstclient.WurstClient;
 import net.wurstclient.events.PlayerAttacksEntityListener;
-import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.hud2.HudManager;
 
 public final class ComboHudElement extends TextHudElement
@@ -17,6 +16,7 @@ public final class ComboHudElement extends TextHudElement
 	public ComboHudElement()
 	{
 		super("combo", "Combo");
+		setDefaultPosition(3, 188);
 	}
 
 	@Override
@@ -47,18 +47,11 @@ public final class ComboHudElement extends TextHudElement
 	}
 
 	@Override
-	protected String getText()
+	public String getText()
 	{
 		if(lastHitNanos == 0
 			|| System.nanoTime() - lastHitNanos > COMBO_TIMEOUT_NANOS)
 			combo = 0;
 		return "Combo: " + combo;
-	}
-
-	@Override
-	public HudElementConfig getDefaultLayout()
-	{
-		return new HudElementConfig(HudElementConfig.HORIZONTAL_LEFT,
-			HudElementConfig.VERTICAL_TOP, 3, 96);
 	}
 }

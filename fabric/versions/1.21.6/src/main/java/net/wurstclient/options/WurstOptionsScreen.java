@@ -23,7 +23,7 @@ import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
 import net.wurstclient.commands.FriendsCmd;
 import net.wurstclient.hacks.XRayHack;
-import net.wurstclient.hud2.HudEditorScreen;
+import net.wurstclient.hud2.GuiEditHUD;
 import net.wurstclient.other_features.VanillaSpoofOtf;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.ChatUtils;
@@ -101,7 +101,7 @@ public class WurstOptionsScreen extends Screen
 		new WurstOptionsButton(-50, 96, () -> "HUD Editor",
 			"Drag and reposition HUD elements on screen. Right-click to"
 				+ " cycle alignment. Click to enable/disable elements.",
-			b -> minecraft.setScreen(new HudEditorScreen()));
+			b -> minecraft.setScreen(new GuiEditHUD()));
 	}
 	
 	@Override
