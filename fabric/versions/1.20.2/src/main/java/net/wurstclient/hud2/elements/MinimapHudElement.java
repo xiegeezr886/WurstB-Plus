@@ -1,5 +1,8 @@
 package net.wurstclient.hud2.elements;
 
+import net.wurstclient.hud2.HUDMod;
+
+
 import com.mojang.blaze3d.platform.NativeImage;
 
 import net.minecraft.client.gui.Font;
@@ -21,13 +24,11 @@ import net.minecraft.world.level.material.MapColor;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.events.UpdateListener;
-import net.wurstclient.hud2.HudElement;
-import net.wurstclient.hud2.HudLayout.HudElementConfig;
 import net.wurstclient.hud2.HudManager;
 import net.wurstclient.util.EntitySnapshotManager.Snapshot;
 import net.wurstclient.util.RenderUtils;
 
-public final class MinimapHudElement extends HudElement
+public final class MinimapHudElement extends HUDMod
 	implements UpdateListener
 {
 	private static final WurstClient WURST = WurstClient.INSTANCE;
@@ -46,13 +47,9 @@ public final class MinimapHudElement extends HudElement
 
 	public MinimapHudElement()
 	{
-		super("minimap", "小地图");
-	}
-
-	@Override
-	public boolean renderEditorPreview()
-	{
-		return true;
+		super("minimap", "Minimap");
+		setDefaultPosition(700, 160);
+		setDefaultEnabled(false);
 	}
 
 	@Override
@@ -91,20 +88,15 @@ public final class MinimapHudElement extends HudElement
 	}
 
 	@Override
-	public int getWidth()
+	protected void draw()
 	{
-		return WIDTH;
-	}
+		int x = 0;
+		int y = 0;
+		drawBackground(WIDTH, HEIGHT);
+		graphics.pose().pushPose();
+		graphics.pose().translate(getX(), getY(), 0);
+		graphics.pose().scale(getScale(), getScale(), 1);
 
-	@Override
-	public int getHeight()
-	{
-		return HEIGHT;
-	}
-
-	@Override
-	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
-	{
 		LocalPlayer player = WurstClient.MC.player;
 		if(player != null && texture == null)
 		{
@@ -124,7 +116,7 @@ public final class MinimapHudElement extends HudElement
 		if(player != null)
 		{
 			drawChunkGrid(graphics, player, x, y);
-			drawEntities(graphics, player, x, y, partialTicks);
+			drawEntities(graphics, player, x, y, this.partialTicks);
 			drawPlayerArrow(graphics, player, x, y);
 		}
 
@@ -132,17 +124,16 @@ public final class MinimapHudElement extends HudElement
 		FlatRenderer.drawRoundedOutline(graphics, x + PADDING - 1,
 			y + PADDING - 1, x + PADDING + MAP_SIZE + 1,
 			y + PADDING + MAP_SIZE + 1, MAP_RADIUS + 1, 0x72006366);
+	
+		graphics.pose().popPose();
+		setSize(WIDTH, HEIGHT);
 	}
 
 	private void drawFrame(GuiGraphics graphics, int x, int y)
 	{
-		FlatRenderer.fillRoundedRect(graphics, x + 1, y + 3, x + WIDTH - 1,
-			y + HEIGHT, WIDTH / 2, 0x68000000);
-		FlatRenderer.fillRoundedRect(graphics, x + 1, y + 1, x + WIDTH - 1,
-			y + WIDTH - 1, WIDTH / 2, 0xF0080A0D);
 		FlatRenderer.fillRoundedRect(graphics, x + PADDING - 1,
 			y + PADDING - 1, x + PADDING + MAP_SIZE + 1,
-			y + PADDING + MAP_SIZE + 1, MAP_RADIUS + 1, 0xFF050607);
+			y + PADDING + MAP_SIZE + 1, MAP_RADIUS + 1, 0xF0080A0D);
 	}
 
 	private void composeTerrain(int playerX, int playerZ)
@@ -350,13 +341,5 @@ public final class MinimapHudElement extends HudElement
 			| (argb & 0xFF) << 16;
 	}
 
-	@Override
-	public HudElementConfig getDefaultLayout()
-	{
-		HudElementConfig config = new HudElementConfig(
-			HudElementConfig.HORIZONTAL_RIGHT,
-			HudElementConfig.VERTICAL_TOP, 8, 160);
-		config.setEnabled(false);
-		return config;
-	}
+
 }
