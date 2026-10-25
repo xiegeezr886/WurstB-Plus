@@ -82,8 +82,6 @@ public final class HudNotificationRenderer
 			new Color(0xBC000000, true), new Color(0xA0000000, true));
 		nvg.drawOutlineRoundedRect(x, y, cardWidth, cardHeight, 6 * scale,
 			1 * scale, new Color(0x24FFFFFF, true));
-		nvg.drawRoundedRect(x + 4 * scale, y + 8 * scale, 2 * scale,
-			cardHeight - 16 * scale, 1 * scale, new Color(accent));
 		nvg.drawText(HudIcon.INFO, x + 11 * scale, y + 8 * scale,
 			17 * scale, HudFonts.ICON, new Color(accent));
 		nvg.drawText("Notifications", x + 34 * scale, y + 6 * scale,
@@ -178,11 +176,6 @@ public final class HudNotificationRenderer
 			toColor(withAlpha(0xA0000000, alpha)));
 		nvg.drawOutlineRoundedRect(cardX, cardY, cardWidth, cardHeight,
 			6 * scale, 1 * scale, toColor(withAlpha(0x24FFFFFF, alpha)));
-
-		// Thin severity accent on the left edge.
-		nvg.drawRoundedRect(cardX + 4 * scale, cardY + 8 * scale, 2 * scale,
-			cardHeight - 16 * scale, 1 * scale,
-			toColor(withAlpha(accent, Math.round(210 * visibility))));
 
 		// Severity glyph, like Soar's notification icon.
 		nvg.drawText(iconFor(entry.severity), cardX + 11 * scale,
