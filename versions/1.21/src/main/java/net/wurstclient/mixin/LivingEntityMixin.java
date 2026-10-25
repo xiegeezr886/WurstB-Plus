@@ -52,4 +52,15 @@ public abstract class LivingEntityMixin
 			cir.setReturnValue(hax.noSlowdownHack
 				.getMovementSpeedWithoutItemSlowness(instance));
 	}
+
+	@Inject(method = "getCurrentSwingDuration()I", at = @At("HEAD"),
+		cancellable = true)
+	private void soar$onGetCurrentSwingDuration(
+		CallbackInfoReturnable<Integer> cir)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax != null && hax.slowSwingHack.isEnabled())
+			cir.setReturnValue(hax.slowSwingHack.getDelay());
+	}
+
 }

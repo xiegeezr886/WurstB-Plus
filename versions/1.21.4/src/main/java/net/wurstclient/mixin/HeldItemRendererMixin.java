@@ -7,6 +7,7 @@
  */
 package net.wurstclient.mixin;
 
+import net.wurstclient.hack.HackList;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -86,4 +87,22 @@ public abstract class HeldItemRendererMixin
 			WurstClient.INSTANCE.getHax().noShieldOverlayHack
 				.adjustShieldPosition(matrices, false);
 	}
+
+	@Inject(method = "renderArmWithItem", at = @At("HEAD"))
+	private void soar$applyCustomHeldItemTransform(
+		AbstractClientPlayer player, float tickDelta, float pitch,
+		InteractionHand hand, float swingProgress, ItemStack item,
+		float equipProgress, PoseStack matrices, MultiBufferSource collector, int light,
+		CallbackInfo ci)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax == null || !hax.customHeldItemsHack.isEnabled())
+			return;
+
+		var custom = hax.customHeldItemsHack;
+		matrices.translate(custom.getX(), custom.getY(), custom.getZ());
+		matrices.scale(custom.getScaleX(), custom.getScaleY(),
+			custom.getScaleZ());
+	}
+
 }

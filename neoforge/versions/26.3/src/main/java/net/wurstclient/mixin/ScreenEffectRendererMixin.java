@@ -29,8 +29,9 @@ public class ScreenEffectRendererMixin
 		constant = @Constant(floatValue = -0.3F))
 	private static float getFireOffset(float original)
 	{
-		return original - WurstClient.INSTANCE.getHax().noFireOverlayHack
-			.getOverlayOffset();
+		return WurstClient.INSTANCE.getHax().overlayEditorHack.isHideFire()
+			? original - 1000F
+			: original - WurstClient.INSTANCE.getHax().noFireOverlayHack.getOverlayOffset();
 	}
 	
 	// 26.3 起首个参数由 Minecraft 换成了 PlayerRenderState.WaterOverlay。
@@ -42,7 +43,7 @@ public class ScreenEffectRendererMixin
 		PlayerRenderState.WaterOverlay waterOverlay, PoseStack matrices,
 		SubmitNodeCollector submitNodeCollector, CallbackInfo ci)
 	{
-		if(WurstClient.INSTANCE.getHax().noOverlayHack.isEnabled())
+		if((WurstClient.INSTANCE.getHax().noOverlayHack.isEnabled() || WurstClient.INSTANCE.getHax().clearWaterHack.isEnabled()))
 			ci.cancel();
 	}
 }

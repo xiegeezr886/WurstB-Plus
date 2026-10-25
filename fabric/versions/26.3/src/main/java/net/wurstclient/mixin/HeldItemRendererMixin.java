@@ -7,6 +7,12 @@
  */
 package net.wurstclient.mixin;
 
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.wurstclient.hack.HackList;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Inject;
+import net.minecraft.world.item.ItemStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -92,4 +98,23 @@ public abstract class HeldItemRendererMixin
 		return hand != null ? hand : WurstClient.INSTANCE.getHax().multiAuraHack
 			.getFakeBlockingHand();
 	}
+
+	@Inject(method = "submitArmWithItem", at = @At("HEAD"))
+	private void soar$applyCustomHeldItemTransform(
+		net.minecraft.client.renderer.state.level.PlayerRenderState playerState,
+		net.minecraft.client.renderer.state.level.FirstPersonHandsAndItemsRenderState handState,
+		float tickDelta, float pitch, InteractionHand hand, float swingProgress,
+		ItemStack item, float equipProgress, PoseStack matrices,
+		SubmitNodeCollector collector, int light, CallbackInfo ci)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax == null || !hax.customHeldItemsHack.isEnabled())
+			return;
+
+		var custom = hax.customHeldItemsHack;
+		matrices.translate(custom.getX(), custom.getY(), custom.getZ());
+		matrices.scale(custom.getScaleX(), custom.getScaleY(),
+			custom.getScaleZ());
+	}
+
 }

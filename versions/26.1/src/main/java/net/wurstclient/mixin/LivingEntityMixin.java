@@ -7,6 +7,7 @@
  */
 package net.wurstclient.mixin;
 
+import net.wurstclient.hack.HackList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -36,4 +37,15 @@ public class LivingEntityMixin
 		if(WurstClient.INSTANCE.getHax().antiBlindHack.isEnabled())
 			cir.setReturnValue(0F);
 	}
+
+	@Inject(method = "getCurrentSwingDuration()I", at = @At("HEAD"),
+		cancellable = true)
+	private void soar$onGetCurrentSwingDuration(
+		CallbackInfoReturnable<Integer> cir)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax != null && hax.slowSwingHack.isEnabled())
+			cir.setReturnValue(hax.slowSwingHack.getDelay());
+	}
+
 }
