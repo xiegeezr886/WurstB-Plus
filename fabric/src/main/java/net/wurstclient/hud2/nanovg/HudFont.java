@@ -23,6 +23,7 @@ public final class HudFont
 	private final String resource;
 	private ByteBuffer buffer;
 	private boolean loaded;
+	private int id = -1;
 
 	HudFont(String name, String resource)
 	{
@@ -58,5 +59,15 @@ public final class HudFont
 	void setLoaded(boolean loaded)
 	{
 		this.loaded = loaded;
+	}
+
+	public int getId()
+	{
+		return id;
+	}
+
+	void setId(int id)
+	{
+		this.id = id;
 	}
 }

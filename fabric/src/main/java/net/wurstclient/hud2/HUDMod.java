@@ -27,6 +27,10 @@ import net.wurstclient.hud2.nanovg.NanoVGContext;
 public abstract class HUDMod extends Feature
 {
 	private static HudTheme theme = HudTheme.NORMAL;
+	private static final int[] LEGACY_COLORS = {0x000000, 0x0000AA,
+		0x00AA00, 0x00AAAA, 0xAA0000, 0xAA00AA, 0xFFAA00, 0xAAAAAA,
+		0x555555, 0x5555FF, 0x55FF55, 0x55FFFF, 0xFF5555, 0xFF55FF,
+		0xFFFF55, 0xFFFFFF};
 
 	private final String id;
 	private final String name;
@@ -514,6 +518,120 @@ public abstract class HUDMod extends Feature
 		float size, HudFont font)
 	{
 		drawCenteredText(text, addX, addY, size, font, getFontColor());
+	}
+
+	/**
+	 * Draws text that may contain legacy {@code §}-colour codes. Used by HUD
+	 * modules that show server-provided text, such as the scoreboard.
+	 */
+	public void drawLegacyText(String text, float addX, float addY, float size,
+		HudFont font)
+	{
+		if(nvg == null || text == null || text.isEmpty())
+			return;
+
+		float cursor = x + addX * scale;
+		float baseY = y + addY * scale;
+		float fontSize = size * scale;
+		Color base = getFontColor();
+		Color current = base;
+		StringBuilder segment = new StringBuilder();
+
+		for(int i = 0; i < text.length(); i++)
+		{
+			char c = text.charAt(i);
+			if(c != '\u00a7' || i + 1 >= text.length())
+			{
+				segment.append(c);
+				continue;
+			}
+
+			if(segment.length() > 0)
+			{
+				cursor = drawLegacySegment(segment.toString(), cursor, baseY,
+					fontSize, font, current);
+				segment.setLength(0);
+			}
+
+			char code = Character.toLowerCase(text.charAt(++i));
+			if(code == 'r')
+			{
+				current = base;
+			}else if(code == 'x')
+			{
+				int rgb = 0;
+				boolean valid = true;
+				for(int digit = 0; digit < 6; digit++)
+				{
+					if(i + 2 >= text.length()
+						|| text.charAt(i + 1) != '\u00a7')
+					{
+						valid = false;
+						break;
+					}
+					int value = Character.digit(
+						Character.toLowerCase(text.charAt(i + 2)), 16);
+					if(value < 0)
+					{
+						valid = false;
+						break;
+					}
+					rgb = rgb << 4 | value;
+					i += 2;
+				}
+				if(valid)
+					current = new Color(0xFF000000 | rgb);
+			}else
+			{
+				int index = legacyColorIndex(code);
+				if(index >= 0)
+					current = new Color(0xFF000000 | LEGACY_COLORS[index]);
+			}
+		}
+
+		if(segment.length() > 0)
+			drawLegacySegment(segment.toString(), cursor, baseY, fontSize, font,
+				current);
+	}
+
+	private float drawLegacySegment(String text, float cursor, float y,
+		float fontSize, HudFont font, Color color)
+	{
+		nvg.drawText(text, cursor, y, color, fontSize, font);
+		return cursor + nvg.getTextWidth(text, fontSize, font);
+	}
+
+	public float getLegacyTextWidth(String text, float size, HudFont font)
+	{
+		return getTextWidth(stripLegacy(text), size, font);
+	}
+
+	public static String stripLegacy(String text)
+	{
+		if(text == null || text.indexOf('\u00a7') < 0)
+			return text == null ? "" : text;
+
+		StringBuilder out = new StringBuilder(text.length());
+		for(int i = 0; i < text.length(); i++)
+		{
+			char c = text.charAt(i);
+			if(c == '\u00a7' && i + 1 < text.length())
+			{
+				i++;
+				continue;
+			}
+			out.append(c);
+		}
+		return out.toString();
+	}
+
+	private static int legacyColorIndex(char code)
+	{
+		if(code >= '0' && code <= '9')
+			return code - '0';
+		if(code >= 'a' && code <= 'f')
+			return 10 + code - 'a';
+		return -1;
 	}
 
 	/**

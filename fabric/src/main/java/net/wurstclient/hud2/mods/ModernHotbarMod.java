@@ -24,9 +24,12 @@ public final class ModernHotbarMod extends HUDMod
 	public ModernHotbarMod()
 	{
 		super("ModernHotbar", "Modern Hotbar",
-			"Shows a modern hotbar overlay.");
+			"Replaces the vanilla hotbar.");
 		setTranslationKey("modern_hotbar");
 		setDefaultPosition(350, 120);
+		// The vanilla hotbar is hidden while this module is on, so the module
+		// takes over its fixed position at the bottom centre.
+		setDraggable(false);
 	}
 
 	@Override
@@ -37,6 +40,10 @@ public final class ModernHotbarMod extends HUDMod
 			: MC.player.getInventory().selected;
 		float width = 9 * SLOT + 8;
 		float height = 30;
+		setX(Math.round((MC.getWindow().getGuiScaledWidth()
+			- width * getScale()) / 2F));
+		setY(Math.round(MC.getWindow().getGuiScaledHeight()
+			- height * getScale()));
 		drawBackground(width, height);
 
 		for(int i = 0; i < Math.min(9, items.size()); i++)

@@ -45,6 +45,13 @@ import net.wurstclient.hud2.compat.HudTextures;
 public final class NanoVGContext
 {
 	private static final int MAX_COLORS = 1024;
+	private static final String[] FALLBACK_FONT_PATHS = {
+		"C:/Windows/Fonts/seguisym.ttf", "C:/Windows/Fonts/SEGUISYM.TTF",
+		"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+		"/usr/share/fonts/TTF/DejaVuSans.ttf",
+		"/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf",
+		"/System/Library/Fonts/Apple Symbols.ttf",
+		"/System/Library/Fonts/Supplemental/Apple Symbols.ttf"};
 	private static NanoVGContext instance;
 
 	private long vg;
@@ -58,6 +65,7 @@ public final class NanoVGContext
 
 	private final Map<String, HudFont> fonts = new HashMap<>();
 	private final Map<Integer, NVGColor> colors = new HashMap<>();
+	private ByteBuffer fallbackFontBuffer;
 	private final Map<String, Integer> images = new HashMap<>();
 	private final Map<String, Long> imageTimestamps = new HashMap<>();
 	private final Map<Long, Integer> textureImages = new HashMap<>();
@@ -118,6 +126,7 @@ public final class NanoVGContext
 
 			for(HudFont font : HudFonts.all())
 				loadFont(font);
+			loadFallbackFont();
 
 			if(!ensureFramebuffer())
 				return false;
@@ -163,6 +172,7 @@ public final class NanoVGContext
 			}
 
 			font.setBuffer(buffer);
+			font.setId(handle);
 			font.setLoaded(true);
 			fonts.put(font.getName(), font);
 		}catch(Exception e)
@@ -186,6 +196,61 @@ public final class NanoVGContext
 			Method method = NanoVG.class.getMethod("nvgCreateFontMem",
 				long.class, CharSequence.class, ByteBuffer.class, int.class);
 			return (int)method.invoke(null, vg, name, buffer, 0);
+		}
+	}
+
+	/**
+	 * Loads an optional system symbol font so glyphs that MiSans does not
+	 * contain (server scoreboards often use arrows, stars and other symbols)
+	 * still render instead of disappearing.
+	 */
+	private void loadFallbackFont()
+	{
+		ByteBuffer buffer = null;
+		for(String path : FALLBACK_FONT_PATHS)
+		{
+			File file = new File(path);
+			if(!file.isFile())
+				continue;
+
+			try
+			{
+				byte[] bytes = Files.readAllBytes(file.toPath());
+				buffer = MemoryUtil.memAlloc(bytes.length);
+				buffer.put(bytes);
+				buffer.flip();
+				break;
+			}catch(Exception e)
+			{
+				if(buffer != null)
+				{
+					MemoryUtil.memFree(buffer);
+					buffer = null;
+				}
+			}
+		}
+
+		if(buffer == null)
+			return;
+
+		try
+		{
+			int id = createFontMem("wurst-symbol-fallback", buffer);
+			if(id == -1)
+			{
+				MemoryUtil.memFree(buffer);
+				return;
+			}
+
+			fallbackFontBuffer = buffer;
+			for(HudFont font : HudFonts.all())
+				if(font.isLoaded() && font.getId() != -1)
+					NanoVG.nvgAddFallbackFontId(vg, font.getId(), id);
+			System.out.println("[HUD] Loaded system symbol fallback font");
+		}catch(Exception e)
+		{
+			MemoryUtil.memFree(buffer);
+			System.err.println("[HUD] Could not load the symbol fallback font");
 		}
 	}
 
@@ -1125,6 +1190,11 @@ public final class NanoVGContext
 			// Shutting down; never let a GL error escape.
 		}finally
 		{
+			if(fallbackFontBuffer != null)
+			{
+				MemoryUtil.memFree(fallbackFontBuffer);
+				fallbackFontBuffer = null;
+			}
 			vg = 0;
 			available = false;
 		}
