@@ -4,6 +4,9 @@
  */
 package net.wurstclient.mixin;
 
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.Inject;
+import net.minecraft.world.entity.HumanoidArm;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -43,6 +46,22 @@ public abstract class PlayerMixin
 		HackList hax = WurstClient.INSTANCE.getHax();
 		return hax != null && hax.keepSprintHack
 			.shouldKeepSprint((Player)(Object)this);
+	}
+
+
+	@Inject(method = "getMainArm()Lnet/minecraft/world/entity/HumanoidArm;",
+		at = @At("HEAD"), cancellable = true)
+	private void soar$forceMainArm(
+		CallbackInfoReturnable<HumanoidArm> cir)
+	{
+		Player self = (Player)(Object)this;
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax == null || !hax.forceMainHandHack.isEnabled()
+			|| self == WurstClient.MC.player)
+			return;
+
+		cir.setReturnValue(hax.forceMainHandHack.isRightHand()
+			? HumanoidArm.RIGHT : HumanoidArm.LEFT);
 	}
 
 }

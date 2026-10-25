@@ -8,6 +8,7 @@
 
                ],
     "client":  [
+    "AvatarMixin",
                    "AbstractSignEditScreenMixin",
                    "AllowedAddressResolverMixin",
                    "AtmosphericFogEnvironmentMixin",
