@@ -54,7 +54,7 @@ public class GuiMixin
 		HackList hax = WurstClient.INSTANCE.getHax();
 		
 		if("textures/misc/pumpkinblur.png".equals(path)
-			&& hax.noPumpkinHack.isEnabled())
+			&& (hax.noPumpkinHack.isEnabled() || hax.overlayEditorHack.isHidePumpkin()))
 			ci.cancel();
 		
 		if("textures/misc/powder_snow_outline.png".equals(path)
