@@ -79,6 +79,9 @@ public final class PitchDisplayHack extends Hack implements GUIRenderListener
 
 	private boolean uiHidden()
 	{
+		if(net.wurstclient.hud2.HackHudElement.isPreviewRendering())
+			return false;
+
 		try
 		{
 			Object gui = MC.getClass().getField("gui").get(MC);

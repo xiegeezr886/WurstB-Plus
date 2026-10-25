@@ -1,4 +1,5 @@
 /*
+
  * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
@@ -28,30 +29,13 @@ public final class WurstLogo
 
 	public void renderAt(GuiGraphics context, int x, int y)
 	{
-		WurstLogoOtf otf = WURST.getOtfs().wurstLogoOtf;
 		String brand = WurstClient.CLIENT_NAME;
 		String version = getVersionString();
 		Font font = WurstClient.MC.font;
-		int accent;
-		if(WURST.getHax().rainbowUiHack.isEnabled())
-			accent = RenderUtils.toIntColor(WURST.getGui().getAcColor(), 1);
-		else
-			accent = otf.getBackgroundColor() | 0xFF000000;
-
-		int right = x + getWidth();
-		int bottom = y + PANEL_HEIGHT;
-		int textColor = ensureReadable(otf.getTextColor());
-		FlatRenderer.fillRoundedRect(context, x, y, right, bottom,
-			5, 0x74070A0F);
-		FlatRenderer.drawRoundedOutline(context, x, y, right,
-			bottom, 5, 0x2CFFFFFF);
-		FlatRenderer.fillRoundedRect(context, x + 1, y + 4,
-			x + 3, bottom - 4, 1, accent);
-
-		int textY = y + (PANEL_HEIGHT - font.lineHeight) / 2 + 1;
-		context.drawString(font, brand, x + 8, textY, textColor, false);
-		context.drawString(font, version, x + 14 + font.width(brand),
-			textY, withAlpha(textColor, 150), false);
+		int textY = y + (PANEL_HEIGHT - font.lineHeight) / 2;
+		context.drawString(font, brand, x + 5, textY, 0xFFFFFFFF, false);
+		context.drawString(font, version, x + 11 + font.width(brand), textY,
+			0xCCFFFFFF, false);
 	}
 
 	public int getWidth()

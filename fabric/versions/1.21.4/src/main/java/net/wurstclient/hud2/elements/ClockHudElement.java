@@ -3,8 +3,6 @@ package net.wurstclient.hud2.elements;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-import net.wurstclient.hud2.HudLayout.HudElementConfig;
-
 public final class ClockHudElement extends TextHudElement
 {
 	private static final DateTimeFormatter FORMAT =
@@ -13,18 +11,12 @@ public final class ClockHudElement extends TextHudElement
 	public ClockHudElement()
 	{
 		super("clock", "Clock");
+		setDefaultPosition(3, 169);
 	}
 
 	@Override
-	protected String getText()
+	public String getText()
 	{
 		return LocalTime.now().format(FORMAT);
-	}
-
-	@Override
-	public HudElementConfig getDefaultLayout()
-	{
-		return new HudElementConfig(HudElementConfig.HORIZONTAL_LEFT,
-			HudElementConfig.VERTICAL_TOP, 3, 142);
 	}
 }
