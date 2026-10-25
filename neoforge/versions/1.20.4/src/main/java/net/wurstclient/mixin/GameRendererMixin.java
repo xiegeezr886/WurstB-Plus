@@ -58,6 +58,8 @@ public abstract class GameRendererMixin implements AutoCloseable
 	private void onRenderWorldViewBobbing(float tickDelta, long limitTime,
 		PoseStack matrices, CallbackInfo ci)
 	{
+		WurstClient.INSTANCE.getHax().freelookHack
+			.applyCameraRotation(matrices);
 		CameraTransformViewBobbingEvent event =
 			new CameraTransformViewBobbingEvent();
 		EventManager.fire(event);
