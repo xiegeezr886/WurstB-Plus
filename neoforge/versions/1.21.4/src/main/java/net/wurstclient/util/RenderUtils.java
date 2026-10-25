@@ -91,6 +91,18 @@ public enum RenderUtils
 		return WurstClient.MC.renderBuffers().bufferSource();
 	}
 
+	/**
+	 * Submits custom geometry to the current render frame. The renderer
+	 * callback receives a VertexConsumer that writes into the given RenderType.
+	 */
+	public static void submit(PoseStack matrices, RenderType layer,
+		java.util.function.Consumer<VertexConsumer> renderer)
+	{
+		MultiBufferSource.BufferSource vcp = getVCP();
+		renderer.accept(vcp.getBuffer(layer));
+		vcp.endBatch(layer);
+	}
+
 	public static void submitText(PoseStack matrices, float x, float y,
 		FormattedCharSequence text, boolean dropShadow,
 		Font.DisplayMode displayMode, int lightCoords, int color,
@@ -102,7 +114,7 @@ public enum RenderUtils
 			lightCoords);
 		buffers.endBatch();
 	}
-
+	
 	public static float[] getRainbowColor()
 	{
 		float x = System.currentTimeMillis() % 2000 / 1000F;
