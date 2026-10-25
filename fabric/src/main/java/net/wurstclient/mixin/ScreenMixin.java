@@ -14,8 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
+import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.wurstclient.WurstClient;
 import net.wurstclient.gui.ButtonStyleRenderer;
 import net.wurstclient.gui.MainMenuBackground;
@@ -39,7 +41,8 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 			return;
 		}
 
-		if(screen instanceof TitleScreen)
+		if(screen instanceof TitleScreen || screen instanceof PauseScreen
+			|| screen instanceof AbstractContainerScreen)
 			return;
 
 		MainMenuBackground.render(context, screen);
@@ -62,7 +65,8 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 			return;
 		}
 
-		if(screen instanceof TitleScreen)
+		if(screen instanceof TitleScreen || screen instanceof PauseScreen
+			|| screen instanceof AbstractContainerScreen)
 			return;
 
 		MainMenuBackground.render(graphics, screen);
