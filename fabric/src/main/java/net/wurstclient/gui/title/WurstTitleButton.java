@@ -7,9 +7,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
+import net.wurstclient.gui.CustomRenderedButton;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 
 final class WurstTitleButton extends AbstractButton
+	implements CustomRenderedButton
 {
 	private static final int TEXT_COLOR = 0xFFF2F6F6;
 	private static final int ACCENT_COLOR = 0xFF006366;

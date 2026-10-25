@@ -15,7 +15,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.TitleScreen;
 import net.wurstclient.WurstClient;
+import net.wurstclient.gui.ButtonStyleRenderer;
+import net.wurstclient.gui.MainMenuBackground;
 
 @Mixin(Screen.class)
 public abstract class ScreenMixin extends AbstractContainerEventHandler
@@ -26,8 +29,59 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 		cancellable = true)
 	public void onRenderBackground(GuiGraphics context, CallbackInfo ci)
 	{
+		Screen screen = (Screen)(Object)this;
+		ButtonStyleRenderer.beginScreen(context, screen);
+
 		if(WurstClient.INSTANCE.getHax().noBackgroundHack
-			.shouldCancelBackground((Screen)(Object)this))
+			.shouldCancelBackground(screen))
+		{
 			ci.cancel();
+			return;
+		}
+
+		if(screen instanceof TitleScreen)
+			return;
+
+		MainMenuBackground.render(context, screen);
+		ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"),
+		method = "renderDirtBackground(Lnet/minecraft/client/gui/GuiGraphics;)V",
+		cancellable = true)
+	private void wurst$replaceDirtBackground(GuiGraphics graphics,
+		CallbackInfo ci)
+	{
+		Screen screen = (Screen)(Object)this;
+		ButtonStyleRenderer.beginScreen(graphics, screen);
+
+		if(WurstClient.INSTANCE.getHax().noBackgroundHack
+			.shouldCancelBackground(screen))
+		{
+			ci.cancel();
+			return;
+		}
+
+		if(screen instanceof TitleScreen)
+			return;
+
+		MainMenuBackground.render(graphics, screen);
+		ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"),
+		method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V")
+	private void wurst$drawStyledButtons(GuiGraphics graphics, int mouseX,
+		int mouseY, float partialTicks, CallbackInfo ci)
+	{
+		ButtonStyleRenderer.beginScreen(graphics, (Screen)(Object)this);
+	}
+
+	@Inject(at = @At("RETURN"),
+		method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V")
+	private void wurst$finishStyledButtons(GuiGraphics graphics, int mouseX,
+		int mouseY, float partialTicks, CallbackInfo ci)
+	{
+		ButtonStyleRenderer.endScreen(graphics);
 	}
 }
