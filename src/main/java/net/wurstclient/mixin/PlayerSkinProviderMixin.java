@@ -7,6 +7,9 @@
  */
 package net.wurstclient.mixin;
 
+import net.wurstclient.WurstClient;
+import net.minecraft.client.resources.DefaultPlayerSkin;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.HashMap;
 
 import javax.annotation.Nullable;
@@ -121,4 +124,22 @@ public abstract class PlayerSkinProviderMixin
 	{
 		throw new AssertionError();
 	}
+
+	@Inject(
+		method = "getInsecureSkinLocation(Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/resources/ResourceLocation;",
+		at = @At("HEAD"),
+		cancellable = true)
+	private void soar$protectSkin(GameProfile profile,
+		CallbackInfoReturnable<ResourceLocation> cir)
+	{
+		Minecraft mc = Minecraft.getInstance();
+		if(mc.player == null || WurstClient.INSTANCE.getHax() == null
+			|| !WurstClient.INSTANCE.getHax().skinProtectHack.isEnabled())
+			return;
+
+		if(profile.getId().equals(mc.player.getUUID()))
+			cir.setReturnValue(
+				DefaultPlayerSkin.getDefaultSkin(profile.getId()));
+	}
+
 }
