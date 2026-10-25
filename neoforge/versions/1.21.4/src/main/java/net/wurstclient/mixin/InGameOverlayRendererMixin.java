@@ -27,8 +27,9 @@ public class InGameOverlayRendererMixin
 		constant = @Constant(floatValue = -0.3F))
 	private static float getFireOffset(float original)
 	{
-		return original - WurstClient.INSTANCE.getHax().noFireOverlayHack
-			.getOverlayOffset();
+		return WurstClient.INSTANCE.getHax().overlayEditorHack.isHideFire()
+			? original - 1000F
+			: original - WurstClient.INSTANCE.getHax().noFireOverlayHack.getOverlayOffset();
 	}
 
 	@Inject(at = @At("HEAD"),
@@ -38,7 +39,7 @@ public class InGameOverlayRendererMixin
 		PoseStack matrices, MultiBufferSource bufferSource,
 		CallbackInfo ci)
 	{
-		if(WurstClient.INSTANCE.getHax().noOverlayHack.isEnabled())
+		if((WurstClient.INSTANCE.getHax().noOverlayHack.isEnabled() || WurstClient.INSTANCE.getHax().clearWaterHack.isEnabled()))
 			ci.cancel();
 	}
 }
