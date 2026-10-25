@@ -55,8 +55,10 @@ public abstract class GameRendererMixin implements AutoCloseable
 		ordinal = 0),
 		method = "renderLevel(FJ)V")
 	private void onRenderWorldViewBobbing(float tickDelta, long limitTime,
-		CallbackInfo ci)
+		PoseStack matrices, CallbackInfo ci)
 	{
+		WurstClient.INSTANCE.getHax().freelookHack
+			.applyCameraRotation(matrices);
 		CameraTransformViewBobbingEvent event =
 			new CameraTransformViewBobbingEvent();
 		EventManager.fire(event);
