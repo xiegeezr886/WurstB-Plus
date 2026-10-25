@@ -123,9 +123,11 @@ public final class HudManager
 
 	public void renderFrame(float partialTicks)
 	{
-		if(!started || !isVisible()
-			|| WURST.MC.screen instanceof GuiEditHUD)
+		if(!started || WURST.MC.screen instanceof GuiEditHUD
+			|| !isBaseVisible())
 			return;
+
+		boolean screenBlocked = isScreenBlocked();
 
 		NanoVGContext nvg = NanoVGContext.get();
 		if(!nvg.create())
@@ -140,7 +142,10 @@ public final class HudManager
 
 			try
 			{
-				drawModules(nvg, partialTicks);
+				if(screenBlocked)
+					drawScreenOverlayModules(nvg, partialTicks);
+				else
+					drawModules(nvg, partialTicks);
 			}finally
 			{
 				nvg.endFrame();
@@ -155,6 +160,22 @@ public final class HudManager
 			System.err.println("[HUD] Render failed");
 			t.printStackTrace();
 		}
+	}
+
+	/**
+	 * Keeps the hotbar replacement visible while a screen (ClickGUI,
+	 * Navigator, inventory, chat, ...) is open.
+	 */
+	private void drawScreenOverlayModules(NanoVGContext nvg, float partialTicks)
+	{
+		HUDMod hotbar = mods.get("ModernHotbar");
+		if(hotbar == null || !hotbar.isEnabled())
+			return;
+
+		int screenWidth = WURST.MC.getWindow().getGuiScaledWidth();
+		int screenHeight = WURST.MC.getWindow().getGuiScaledHeight();
+		hotbar.clampToScreen(screenWidth, screenHeight);
+		hotbar.render(nvg, partialTicks);
 	}
 
 	private void drawModules(NanoVGContext nvg, float partialTicks)
@@ -235,7 +256,7 @@ public final class HudManager
 			new java.awt.Color(0xCCFFFFFF, true));
 	}
 
-	private boolean isVisible()
+	private boolean isBaseVisible()
 	{
 		if(WURST.MC == null || WURST.MC.level == null
 			|| WURST.MC.player == null)
@@ -245,12 +266,14 @@ public final class HudManager
 		if(settings.hideWithDebug() && WURST.MC.options.renderDebug)
 			return false;
 
-		if(WURST.MC.screen != null
-			&& !(WURST.MC.screen instanceof GuiEditHUD)
-			&& settings.hideWithChat())
-			return false;
-
 		return true;
+	}
+
+	private boolean isScreenBlocked()
+	{
+		return WURST.MC.screen != null
+			&& !(WURST.MC.screen instanceof GuiEditHUD)
+			&& settings.hideWithChat();
 	}
 
 	public void addNotification(String title, String message,
