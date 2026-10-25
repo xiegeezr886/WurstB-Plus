@@ -310,6 +310,7 @@ public final class HackList implements UpdateListener
 		new InventoryTweaksHack();
 	public final MessageAuraHack messageAuraHack = new MessageAuraHack();
 	public final NotifierHack notifierHack = new NotifierHack();
+	public final FreelookHack freelookHack = new FreelookHack();
 	public final WaypointHack waypointHack = new WaypointHack();
 	public final ChatHack chatHack = new ChatHack();
 	public final PlayerPredicatorHack playerPredicatorHack = new PlayerPredicatorHack();
