@@ -7,6 +7,7 @@
  */
 package net.wurstclient.mixin;
 
+import net.wurstclient.hack.HackList;
 import java.io.File;
 
 import org.spongepowered.asm.mixin.Final;
@@ -266,4 +267,26 @@ public abstract class MinecraftClientMixin
 	{
 		return authenticationService.createUserApiService(accessToken);
 	}
+
+	@Inject(method = "getFps()I", at = @At("RETURN"), cancellable = true)
+	private void soar$onGetFps(
+		org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax == null || !hax.fpsSpooferHack.isEnabled())
+			return;
+
+		cir.setReturnValue(
+			cir.getReturnValueI() * hax.fpsSpooferHack.getMultiplier());
+	}
+
+	@Inject(method = "tick()V", at = @At("HEAD"))
+	private void soar$onTickHitDelayFix(
+		org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax != null && hax.hitDelayFixHack.isEnabled())
+			missTime = 0;
+	}
+
 }
