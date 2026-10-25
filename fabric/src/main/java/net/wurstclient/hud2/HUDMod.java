@@ -314,8 +314,12 @@ public abstract class HUDMod extends Feature
 			case NORMAL:
 			drawShadowScreen(x, y, w, h, radius);
 			roundedRect(x, y, w, h, radius, 0xA8000000);
-			drawRoundedOutline(x, y, w, h, radius, 1,
-				new Color(0x14FFFFFF, true));
+			// Absolute coordinates: the public drawRoundedOutline() expects
+			// module-relative addX/addY and scaled sizes, so calling it here
+			// shifted the border by the module position a second time.
+			if(nvg != null)
+				nvg.drawOutlineRoundedRect(x, y, w, h, radius, scale,
+					new Color(0x14FFFFFF, true));
 			break;
 
 			case GLOW:
