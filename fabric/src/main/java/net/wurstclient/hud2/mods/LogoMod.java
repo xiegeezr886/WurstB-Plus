@@ -7,6 +7,8 @@
  */
 package net.wurstclient.hud2.mods;
 
+import java.awt.Color;
+
 import net.wurstclient.hud2.HUDMod;
 import net.wurstclient.hud2.nanovg.HudFonts;
 
@@ -25,12 +27,25 @@ public final class LogoMod extends HUDMod
 	{
 		String brand = WURST.CLIENT_NAME;
 		String version = "v" + WURST.VERSION;
-		float width = getTextWidth(brand, 9, HudFonts.DEMIBOLD)
+
+		// Keep the word "Plus" in the theme's accent colour.
+		int plusIndex = brand.lastIndexOf(" Plus");
+		String brandMain = plusIndex >= 0 ? brand.substring(0, plusIndex)
+			: brand;
+		String brandAccent = plusIndex >= 0 ? brand.substring(plusIndex) : "";
+
+		float mainWidth = getTextWidth(brandMain, 9, HudFonts.DEMIBOLD);
+		float accentWidth = getTextWidth(brandAccent, 9, HudFonts.DEMIBOLD);
+		float width = mainWidth + accentWidth
 			+ getTextWidth(version, 9, HudFonts.REGULAR) + 18;
+
 		drawBackground(width, 20);
-		drawText(brand, 6, 5, 9, HudFonts.DEMIBOLD);
-		drawText(version, 6 + getTextWidth(brand, 9, HudFonts.DEMIBOLD) + 4,
-			5, 9, HudFonts.REGULAR, getFontColor(200));
+		drawText(brandMain, 6, 5, 9, HudFonts.DEMIBOLD);
+		if(!brandAccent.isEmpty())
+			drawText(brandAccent, 6 + mainWidth, 5, 9, HudFonts.DEMIBOLD,
+				new Color(accentColor(255), true));
+		drawText(version, 6 + mainWidth + accentWidth + 4, 5, 9,
+			HudFonts.REGULAR, getFontColor(200));
 		setSize(Math.round(width), 20);
 	}
 }

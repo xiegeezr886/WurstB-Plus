@@ -47,7 +47,10 @@ public final class HudNotificationRenderer
 				for(Iterator<Entry> it = active.iterator(); it.hasNext();)
 				{
 					Entry entry = it.next();
-					if(entry.message.equals(message))
+					// Keep "Enabled" and "Disabled" for the same feature as
+					// separate cards; only drop duplicates of the same state.
+					if(entry.severity == severity
+						&& entry.message.equals(message))
 						it.remove();
 				}
 
@@ -74,7 +77,7 @@ public final class HudNotificationRenderer
 	{
 		float cardWidth = CARD_WIDTH * scale;
 		float cardHeight = CARD_HEIGHT * scale;
-		int accent = severityColor(NotificationSeverity.INFO);
+		int iconArgb = iconColor(NotificationSeverity.INFO, 255);
 
 		nvg.drawShadow(x + 2 * scale, y + 3 * scale, cardWidth, cardHeight,
 			6 * scale);
@@ -83,7 +86,7 @@ public final class HudNotificationRenderer
 		nvg.drawOutlineRoundedRect(x, y, cardWidth, cardHeight, 6 * scale,
 			1 * scale, new Color(0x24FFFFFF, true));
 		nvg.drawText(HudIcon.INFO, x + 11 * scale, y + 8 * scale,
-			17 * scale, HudFonts.ICON, new Color(accent));
+			17 * scale, HudFonts.ICON, new Color(iconArgb, true));
 		nvg.drawText("Notifications", x + 34 * scale, y + 6 * scale,
 			9.5F * scale, HudFonts.MEDIUM, Color.WHITE);
 		nvg.drawText("HUD notification preview", x + 34 * scale,
@@ -167,7 +170,7 @@ public final class HudNotificationRenderer
 		float cardX = x + slide;
 		float cardY = y;
 		int alpha = Math.round(255 * visibility);
-		int accent = severityColor(entry.severity);
+		int iconArgb = iconColor(entry.severity, alpha);
 
 		nvg.drawShadow(cardX + 2 * scale, cardY + 3 * scale, cardWidth,
 			cardHeight, 6 * scale);
@@ -180,7 +183,7 @@ public final class HudNotificationRenderer
 		// Severity glyph, like Soar's notification icon.
 		nvg.drawText(iconFor(entry.severity), cardX + 11 * scale,
 			cardY + 8 * scale, 17 * scale, HudFonts.ICON,
-			toColor(withAlpha(accent, alpha)));
+			toColor(iconArgb));
 
 		float textX = cardX + 34 * scale;
 		float maxTextWidth = cardWidth - 46 * scale;
@@ -252,6 +255,26 @@ public final class HudNotificationRenderer
 		}catch(NumberFormatException e)
 		{
 			return 0xFF4677FF;
+		}
+	}
+
+	/**
+	 * Enabled notifications use the theme accent, disabled notifications use
+	 * white, and informational notifications keep their severity colour.
+	 */
+	private static int iconColor(NotificationSeverity severity, int alpha)
+	{
+		switch(severity)
+		{
+			case SUCCESS:
+			case ENABLED:
+			return withAlpha(HUDMod.accentColor(255), alpha);
+			case ERROR:
+			case DISABLED:
+			return withAlpha(0xFFFFFFFF, alpha);
+			case INFO:
+			default:
+			return withAlpha(severityColor(severity), alpha);
 		}
 	}
 
