@@ -17,7 +17,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
-import net.wurstclient.gui.MainMenuBackground;
 import net.wurstclient.hud2.compat.HudItemIcons;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 
@@ -58,9 +57,7 @@ public final class GuiEditHUD extends Screen
 		HudItemIcons.capturePending(NanoVGUI.context(), 4);
 
 		NanoVGUI.pass(graphics, () -> {
-			MainMenuBackground.render(width, height,
-				WURST.MC.level != null ? MainMenuBackground.INGAME_ALPHA
-					: MainMenuBackground.MENU_ALPHA);
+			NanoVGUI.fill(0, 0, width, height, 0x50000000);
 			for(int x = 0; x < width; x += GRID_SIZE)
 				NanoVGUI.fill(x, 0, x + 1, height, 0x08FFFFFF);
 			for(int y = 0; y < height; y += GRID_SIZE)
