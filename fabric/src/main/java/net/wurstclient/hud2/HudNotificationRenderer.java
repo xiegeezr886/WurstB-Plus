@@ -18,53 +18,51 @@ import net.wurstclient.hud2.nanovg.NanoVGContext;
 /**
  * Soar-style notification card with a black frosted-glass body.
  *
- * <p>Only one card is shown at a time, matching Soar's notification handler.
- * The card slides in from the right with a back-ease, stays for the configured
- * duration, then slides back out while fading.
+ * <p>Multiple cards are shown at once. The newest card sits on the module
+ * anchor and older cards are pushed upwards, so a burst of notifications
+ * never blocks the queue. Each card slides in from the right with a back-ease,
+ * stays for the configured duration, then slides back out while fading.
  */
 public final class HudNotificationRenderer
 {
 	private static final float CARD_WIDTH = 230;
 	private static final float CARD_HEIGHT = 36;
-	private static final long ENTER_MS = 300;
-	private static final long EXIT_MS = 300;
-	private static final int MAX_NOTIFICATIONS = 8;
+	private static final float CARD_GAP = 4;
+	private static final long ENTER_MS = 220;
+	private static final long EXIT_MS = 240;
+	private static final int MAX_VISIBLE = 5;
 
-	private final ArrayDeque<Entry> queue = new ArrayDeque<>();
-	private Entry current;
-	private long currentStart;
+	private final ArrayDeque<Entry> active = new ArrayDeque<>();
+	private long lastFrameNanos;
 
 	public HudNotificationRenderer() {}
 
 	public void addNotification(String title, String message,
 		NotificationSeverity severity)
 	{
-		synchronized(queue)
+		synchronized(active)
 		{
 			if(severity == NotificationSeverity.ENABLED
 				|| severity == NotificationSeverity.DISABLED)
-			{
-				if(current != null && current.message.equals(message))
-					return;
-				for(Iterator<Entry> it = queue.iterator(); it.hasNext();)
+				for(Iterator<Entry> it = active.iterator(); it.hasNext();)
 				{
 					Entry entry = it.next();
 					if(entry.message.equals(message))
 						it.remove();
 				}
-			}
 
-			while(queue.size() >= MAX_NOTIFICATIONS)
-				queue.removeFirst();
-			queue.addLast(new Entry(title, message, severity));
+			while(active.size() >= MAX_VISIBLE)
+				active.removeFirst();
+			active.addLast(new Entry(title, message, severity,
+				System.currentTimeMillis()));
 		}
 	}
 
 	public int getCount()
 	{
-		synchronized(queue)
+		synchronized(active)
 		{
-			return queue.size() + (current == null ? 0 : 1);
+			return active.size();
 		}
 	}
 
@@ -96,89 +94,129 @@ public final class HudNotificationRenderer
 		return cardHeight;
 	}
 
-	public float getHeight(float scale)
-	{
-		return current == null ? 0 : CARD_HEIGHT * scale;
-	}
-
 	/**
-	 * Draws the current notification and returns the height it used.
+	 * Draws the active notification stack and returns the height of one card.
 	 */
 	public float render(NanoVGContext nvg, float x, float y, float scale,
 		long durationMs)
 	{
 		long now = System.currentTimeMillis();
+		float cardWidth = CARD_WIDTH * scale;
+		float cardHeight = CARD_HEIGHT * scale;
+		float gap = CARD_GAP * scale;
+		float frameDelta = frameDelta(now);
 
-		synchronized(queue)
+		synchronized(active)
 		{
-			if(current == null)
+			// Drop cards whose exit animation has finished.
+			for(Iterator<Entry> it = active.iterator(); it.hasNext();)
 			{
-				current = queue.pollFirst();
-				currentStart = now;
+				Entry entry = it.next();
+				if(now - entry.start > durationMs + EXIT_MS)
+					it.remove();
 			}
 
-			// Advance past expired cards.
-			while(current != null && now - currentStart > durationMs + EXIT_MS)
+			if(active.isEmpty())
+				return 0;
+
+			// Newest card at the anchor, older cards pushed upwards.
+			int slot = 0;
+			for(Iterator<Entry> it = active.descendingIterator();
+				it.hasNext();)
 			{
-				current = queue.pollFirst();
-				currentStart = now;
+				Entry entry = it.next();
+				float targetY = y - slot * (cardHeight + gap);
+				if(Float.isNaN(entry.animY))
+					entry.animY = targetY;
+				else
+					entry.animY = approach(entry.animY, targetY, frameDelta);
+
+				drawCard(nvg, entry, x, entry.animY, cardWidth, cardHeight,
+					scale, now, durationMs);
+				slot++;
 			}
-
-			if(current == null)
-				return 0;
-
-			long age = now - currentStart;
-			float enter = clamp(age / (float)ENTER_MS);
-			float exit = clamp((age - durationMs) / (float)EXIT_MS);
-			float enterEase = easeOutBack(enter);
-			float exitEase = easeInBack(exit);
-			float visibility = Math.max(0,
-				Math.min(1, enterEase * (1 - exitEase)));
-			if(visibility <= 0.001F)
-				return 0;
-
-			float cardWidth = CARD_WIDTH * scale;
-			float cardHeight = CARD_HEIGHT * scale;
-			float slide = (1 - enterEase) * 160 * scale
-				+ exitEase * 160 * scale;
-			float cardX = x + slide;
-			float cardY = y;
-			int alpha = Math.round(255 * visibility);
-			int accent = severityColor(current.severity);
-
-			nvg.drawShadow(cardX + 2 * scale, cardY + 3 * scale, cardWidth,
-				cardHeight, 6 * scale);
-			nvg.drawGradientRoundedRect(cardX, cardY, cardWidth, cardHeight,
-				6 * scale, toColor(withAlpha(0xBC000000, alpha)),
-				toColor(withAlpha(0xA0000000, alpha)));
-			nvg.drawOutlineRoundedRect(cardX, cardY, cardWidth, cardHeight,
-				6 * scale, 1 * scale, toColor(withAlpha(0x24FFFFFF, alpha)));
-
-			// Thin severity accent on the left edge.
-			nvg.drawRoundedRect(cardX + 4 * scale, cardY + 8 * scale,
-				2 * scale, cardHeight - 16 * scale, 1 * scale,
-				toColor(withAlpha(accent, Math.round(210 * visibility))));
-
-			// Severity glyph, like Soar's notification icon.
-			nvg.drawText(iconFor(current.severity), cardX + 11 * scale,
-				cardY + 8 * scale, 17 * scale, HudFonts.ICON,
-				toColor(withAlpha(accent, alpha)));
-
-			float textX = cardX + 34 * scale;
-			float maxTextWidth = cardWidth - 46 * scale;
-			String title = nvg.getLimitText(current.title, 9.5F * scale,
-				HudFonts.MEDIUM, maxTextWidth);
-			String message = nvg.getLimitText(current.message, 8 * scale,
-				HudFonts.REGULAR, maxTextWidth);
-			nvg.drawText(title, textX, cardY + 6 * scale, 9.5F * scale,
-				HudFonts.MEDIUM,
-				toColor(withAlpha(0xFFFFFFFF, alpha)));
-			nvg.drawText(message, textX, cardY + 20 * scale, 8 * scale,
-				HudFonts.REGULAR,
-				toColor(withAlpha(0xFFD0D0D0, alpha)));
-
-			return cardHeight;
 		}
+
+		return cardHeight;
+	}
+
+	public float getHeight(float scale)
+	{
+		synchronized(active)
+		{
+			if(active.isEmpty())
+				return 0;
+			return active.size() * (CARD_HEIGHT + CARD_GAP) * scale - CARD_GAP
+				* scale;
+		}
+	}
+
+	private void drawCard(NanoVGContext nvg, Entry entry, float x, float y,
+		float cardWidth, float cardHeight, float scale, long now,
+		long durationMs)
+	{
+		long age = now - entry.start;
+		float enter = clamp(age / (float)ENTER_MS);
+		float exit = clamp((age - durationMs) / (float)EXIT_MS);
+		float enterEase = easeOutBack(enter);
+		float exitEase = easeInBack(exit);
+		float visibility = Math.max(0,
+			Math.min(1, enterEase * (1 - exitEase)));
+		if(visibility <= 0.001F)
+			return;
+
+		float slide = (1 - enterEase) * 160 * scale + exitEase * 160 * scale;
+		float cardX = x + slide;
+		float cardY = y;
+		int alpha = Math.round(255 * visibility);
+		int accent = severityColor(entry.severity);
+
+		nvg.drawShadow(cardX + 2 * scale, cardY + 3 * scale, cardWidth,
+			cardHeight, 6 * scale);
+		nvg.drawGradientRoundedRect(cardX, cardY, cardWidth, cardHeight,
+			6 * scale, toColor(withAlpha(0xBC000000, alpha)),
+			toColor(withAlpha(0xA0000000, alpha)));
+		nvg.drawOutlineRoundedRect(cardX, cardY, cardWidth, cardHeight,
+			6 * scale, 1 * scale, toColor(withAlpha(0x24FFFFFF, alpha)));
+
+		// Thin severity accent on the left edge.
+		nvg.drawRoundedRect(cardX + 4 * scale, cardY + 8 * scale, 2 * scale,
+			cardHeight - 16 * scale, 1 * scale,
+			toColor(withAlpha(accent, Math.round(210 * visibility))));
+
+		// Severity glyph, like Soar's notification icon.
+		nvg.drawText(iconFor(entry.severity), cardX + 11 * scale,
+			cardY + 8 * scale, 17 * scale, HudFonts.ICON,
+			toColor(withAlpha(accent, alpha)));
+
+		float textX = cardX + 34 * scale;
+		float maxTextWidth = cardWidth - 46 * scale;
+		String title = nvg.getLimitText(entry.title, 9.5F * scale,
+			HudFonts.MEDIUM, maxTextWidth);
+		String message = nvg.getLimitText(entry.message, 8 * scale,
+			HudFonts.REGULAR, maxTextWidth);
+		nvg.drawText(title, textX, cardY + 6 * scale, 9.5F * scale,
+			HudFonts.MEDIUM, toColor(withAlpha(0xFFFFFFFF, alpha)));
+		nvg.drawText(message, textX, cardY + 20 * scale, 8 * scale,
+			HudFonts.REGULAR, toColor(withAlpha(0xFFD0D0D0, alpha)));
+	}
+
+	private float frameDelta(long now)
+	{
+		long previous = lastFrameNanos;
+		lastFrameNanos = now * 1_000_000L;
+		if(previous == 0)
+			return 0;
+		return Math.min(0.1F,
+			(now * 1_000_000L - previous) / 1_000_000_000F);
+	}
+
+	private static float approach(float current, float target, float delta)
+	{
+		if(delta <= 0)
+			return current;
+		return current + (target - current)
+			* (1 - (float)Math.exp(-22 * delta));
 	}
 
 	private static float clamp(float value)
@@ -224,9 +262,17 @@ public final class HudNotificationRenderer
 		}
 	}
 
+	/**
+	 * Multiplies the colour's own alpha by the fade factor instead of
+	 * replacing it. Replacing it turned the 14% white border into an opaque
+	 * white ring and the frosted body into solid black.
+	 */
 	private static int withAlpha(int argb, int alpha)
 	{
-		return (argb & 0xFFFFFF) | Math.max(0, Math.min(255, alpha)) << 24;
+		int factor = Math.max(0, Math.min(255, alpha));
+		int base = argb >>> 24;
+		int result = base * factor / 255;
+		return (argb & 0xFFFFFF) | result << 24;
 	}
 
 	private static Color toColor(int argb)
@@ -239,13 +285,16 @@ public final class HudNotificationRenderer
 		private final String title;
 		private final String message;
 		private final NotificationSeverity severity;
+		private final long start;
+		private float animY = Float.NaN;
 
 		private Entry(String title, String message,
-			NotificationSeverity severity)
+			NotificationSeverity severity, long start)
 		{
 			this.title = title;
 			this.message = message;
 			this.severity = severity;
+			this.start = start;
 		}
 	}
 }

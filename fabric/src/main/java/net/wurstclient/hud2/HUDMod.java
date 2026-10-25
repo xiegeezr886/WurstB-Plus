@@ -196,6 +196,7 @@ public abstract class HUDMod extends Feature
 	{
 		this.nvg = nvg;
 		this.partialTicks = partialTicks;
+		nvg.save();
 		try
 		{
 			draw();
@@ -213,6 +214,7 @@ public abstract class HUDMod extends Feature
 				setEnabledSilently(false);
 		}finally
 		{
+			nvg.restore();
 			this.nvg = null;
 		}
 	}
@@ -491,14 +493,21 @@ public abstract class HUDMod extends Feature
 		drawCenteredText(text, addX, addY, size, font, getFontColor());
 	}
 
+	/**
+	 * Measures text in the module's own (unscaled) coordinate space.
+	 *
+	 * <p>Callers feed the result straight back into {@link #drawBackground} and
+	 * {@link #drawText}, which apply {@link #getScale()} themselves. Scaling the
+	 * size here as well would double-scale every generated card.
+	 */
 	public float getTextWidth(String text, float size, HudFont font)
 	{
-		return nvg == null ? 0 : nvg.getTextWidth(text, size * scale, font);
+		return nvg == null ? 0 : nvg.getTextWidth(text, size, font);
 	}
 
 	public float getTextHeight(String text, float size, HudFont font)
 	{
-		return nvg == null ? 0 : nvg.getTextHeight(text, size * scale, font);
+		return nvg == null ? 0 : nvg.getTextHeight(text, size, font);
 	}
 
 	public void drawRoundedImage(String path, float addX, float addY,
