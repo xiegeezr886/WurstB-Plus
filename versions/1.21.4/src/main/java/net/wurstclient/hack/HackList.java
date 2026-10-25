@@ -71,6 +71,21 @@ public final class HackList implements UpdateListener
 	public final AutoSmelterHack autoSmelterHack =
 		new AutoSmelterHack();
 	public final NotifierHack notifierHack = new NotifierHack();
+	public final StopwatchHack stopwatchHack = new StopwatchHack();
+	public final KeystrokesHack keystrokesHack = new KeystrokesHack();
+	public final ComboCounterHack comboCounterHack = new ComboCounterHack();
+	public final HypixelQuickPlayHack hypixelQuickPlayHack = new HypixelQuickPlayHack();
+	public final AutoTextHack autoTextHack = new AutoTextHack();
+	public final FpsLimiterHack fpsLimiterHack = new FpsLimiterHack();
+	public final BorderlessFullscreenHack borderlessFullscreenHack = new BorderlessFullscreenHack();
+	public final AsyncScreenshotHack asyncScreenshotHack = new AsyncScreenshotHack();
+	public final FovModifierHack fovModifierHack = new FovModifierHack();
+	public final BowZoomHack bowZoomHack = new BowZoomHack();
+	public final TaplookHack taplookHack = new TaplookHack();
+	public final ToggleSprintHack toggleSprintHack = new ToggleSprintHack();
+	public final ToggleSneakHack toggleSneakHack = new ToggleSneakHack();
+	public final QuickSwitchHack quickSwitchHack = new QuickSwitchHack();
+	public final GodbridgeAssistHack godbridgeAssistHack = new GodbridgeAssistHack();
 	public final AncientCitySearchHack ancientCitySearchHack = new AncientCitySearchHack();
 	public final SpearExploitHack spearExploitHack = new SpearExploitHack();
 	public final OdmGearHack odmGearHack = new OdmGearHack();
