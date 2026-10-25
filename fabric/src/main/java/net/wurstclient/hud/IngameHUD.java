@@ -23,7 +23,12 @@ public final class IngameHUD implements GUIRenderListener
 	{
 		if(!WurstClient.INSTANCE.isEnabled())
 			return;
-		
+
+		// The HUD editor owns the screen; hide TabGui and pinned ClickGUI
+		// windows so they cannot look like stray empty boxes.
+		if(WurstClient.MC.screen instanceof net.wurstclient.hud2.GuiEditHUD)
+			return;
+
 		if(tabGui == null)
 			tabGui = new TabGui();
 		

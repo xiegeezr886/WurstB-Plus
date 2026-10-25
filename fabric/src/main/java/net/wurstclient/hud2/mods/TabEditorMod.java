@@ -29,7 +29,15 @@ public final class TabEditorMod extends HUDMod
 	{
 		if(!HudCompat.playerListVisible() || MC.player == null)
 		{
-			setSize(0, 0);
+			if(isEditing())
+			{
+				drawBackground(190, 32);
+				drawText("Tab list", 6, 5, 9, HudFonts.REGULAR);
+				drawText("Hold Tab to preview", 6, 17, 8,
+					HudFonts.REGULAR, getFontColor(190));
+				setSize(190, 32);
+			}else
+				setSize(0, 0);
 			return;
 		}
 

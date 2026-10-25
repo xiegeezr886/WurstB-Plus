@@ -16,6 +16,7 @@
  */
 package net.wurstclient.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import net.minecraft.client.Screenshot;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.GuiEditHUD;
@@ -202,6 +204,10 @@ public final class TestControlServer
 
 					case "/world/enter":
 					handleWorldEnter(exchange, method, query);
+					break;
+
+					case "/screenshot":
+					handleScreenshot(exchange, method, query);
 					break;
 
 					case "/logs":
@@ -480,6 +486,45 @@ public final class TestControlServer
 				WurstClient.MC.createWorldOpenFlows()
 					.loadLevel(WurstClient.MC.screen, name);
 				return "{\"ok\":true,\"world\":\"" + escape(name) + "\"}";
+			}catch(Throwable t)
+			{
+				return "{\"ok\":false,\"error\":\"" + escape(t.toString())
+					+ "\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleScreenshot(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String name = query.getOrDefault("name", "hud-test")
+			.replaceAll("[^A-Za-z0-9_-]", "_");
+		String result = onClientThread(() -> {
+			try
+			{
+				File directory = new File(WurstClient.MC.gameDirectory,
+					"screenshots");
+				directory.mkdirs();
+				Screenshot.grab(directory, name,
+					WurstClient.MC.getMainRenderTarget(), component -> {});
+				File[] files = directory
+					.listFiles((dir, fileName) -> fileName.startsWith(name)
+						&& fileName.endsWith(".png"));
+				if(files == null || files.length == 0)
+					return "{\"ok\":true,\"file\":null}";
+				File newest = files[0];
+				for(File file : files)
+					if(file.lastModified() > newest.lastModified())
+						newest = file;
+				return "{\"ok\":true,\"file\":\""
+					+ escape(newest.getAbsolutePath().replace('\\', '/'))
+					+ "\"}";
 			}catch(Throwable t)
 			{
 				return "{\"ok\":false,\"error\":\"" + escape(t.toString())

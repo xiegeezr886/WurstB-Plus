@@ -161,14 +161,22 @@ public final class HudManager
 	{
 		int screenWidth = WURST.MC.getWindow().getGuiScaledWidth();
 		int screenHeight = WURST.MC.getWindow().getGuiScaledHeight();
+		HUDMod notifications = mods.get("Notifications");
 
 		for(HUDMod mod : mods.values())
 		{
-			if(!mod.isEnabled())
+			if(mod == notifications || !mod.isEnabled())
 				continue;
 
 			mod.clampToScreen(screenWidth, screenHeight);
 			mod.render(nvg, partialTicks);
+		}
+
+		// Notifications are an overlay and must render above every HUD card.
+		if(notifications != null && notifications.isEnabled())
+		{
+			notifications.clampToScreen(screenWidth, screenHeight);
+			notifications.render(nvg, partialTicks);
 		}
 	}
 
@@ -182,21 +190,18 @@ public final class HudManager
 		int screenWidth = WURST.MC.getWindow().getGuiScaledWidth();
 		int screenHeight = WURST.MC.getWindow().getGuiScaledHeight();
 
+		HUDMod notifications = mods.get("Notifications");
 		for(HUDMod mod : mods.values())
 		{
-			if(!mod.isEnabled())
+			if(mod == notifications || !mod.isEnabled())
 				continue;
 
-			mod.clampToScreen(screenWidth, screenHeight);
-			mod.render(nvg, partialTicks);
-
-			boolean hovered = mod.getId().equals(editor.getHoveredId());
-			int color = hovered ? 0xC8FFFFFF : 0x55000000;
-			nvg.drawOutlineRoundedRect(mod.getX() - 2, mod.getY() - 2,
-				mod.getWidth() + 4, mod.getHeight() + 4,
-				Math.max(2, 6.5F * mod.getScale()), 1.5F,
-				new java.awt.Color(color, true));
+			renderEditorModule(nvg, editor, mod, partialTicks, screenWidth,
+				screenHeight);
 		}
+		if(notifications != null && notifications.isEnabled())
+			renderEditorModule(nvg, editor, notifications, partialTicks,
+				screenWidth, screenHeight);
 
 		if(editor.getSnapLineX() >= 0)
 			nvg.drawRect(editor.getSnapLineX(), 0, 1, screenHeight,
@@ -204,6 +209,26 @@ public final class HudManager
 		if(editor.getSnapLineY() >= 0)
 			nvg.drawRect(0, editor.getSnapLineY(), screenWidth, 1,
 				new java.awt.Color(217, 60, 255));
+	}
+
+	private void renderEditorModule(NanoVGContext nvg, GuiEditHUD editor,
+		HUDMod mod, float partialTicks, int screenWidth, int screenHeight)
+	{
+		mod.clampToScreen(screenWidth, screenHeight);
+		mod.render(nvg, partialTicks);
+
+		boolean hovered = mod.getId().equals(editor.getHoveredId());
+		int color = hovered ? 0xC8FFFFFF : 0x55000000;
+		nvg.drawOutlineRoundedRect(mod.getX() - 2, mod.getY() - 2,
+			mod.getWidth() + 4, mod.getHeight() + 4,
+			Math.max(2, 6.5F * mod.getScale()), 1.5F,
+			new java.awt.Color(color, true));
+
+		// Label every enabled module so empty overlays are identifiable.
+		nvg.drawText(mod.getTranslatedName(), mod.getX(),
+			Math.max(0, mod.getY() - 11), 8F,
+			net.wurstclient.hud2.nanovg.HudFonts.REGULAR,
+			new java.awt.Color(0xCCFFFFFF, true));
 	}
 
 	private boolean isVisible()
@@ -300,6 +325,27 @@ public final class HudManager
 		HUDMod mod = mods.get(id);
 		if(mod != null)
 			mod.setEnabled(!mod.isEnabled());
+	}
+
+	public void resetLayout()
+	{
+		for(HUDMod mod : mods.values())
+		{
+			mod.setX(mod.getDefaultX());
+			mod.setY(mod.getDefaultY());
+			mod.setScale(mod.getDefaultScale());
+		}
+
+		HUDMod notifications = mods.get("Notifications");
+		if(notifications != null && WURST.MC.getWindow() != null)
+		{
+			int width = WURST.MC.getWindow().getGuiScaledWidth();
+			int height = WURST.MC.getWindow().getGuiScaledHeight();
+			notifications.setDefaultPosition(Math.max(8, width - 250),
+				Math.max(8, height - 80));
+		}
+
+		saveState();
 	}
 
 	public void moveModule(String id, int x, int y)

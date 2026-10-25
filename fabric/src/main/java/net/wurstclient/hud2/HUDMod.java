@@ -294,7 +294,7 @@ public abstract class HUDMod extends Feature
 			drawShadowScreen(x, y, w, h, radius);
 			roundedRect(x, y, w, h, radius, 0xA8000000);
 			drawRoundedOutline(x, y, w, h, radius, 1,
-				new Color(0x22FFFFFF, true));
+				new Color(0x14FFFFFF, true));
 			break;
 
 			case GLOW:

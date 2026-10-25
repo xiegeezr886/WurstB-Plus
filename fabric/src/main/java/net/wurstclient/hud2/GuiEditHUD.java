@@ -74,7 +74,7 @@ public final class GuiEditHUD extends Screen
 		NanoVGUI.centeredText(
 			"\u5de6\u952e\u62d6\u52a8  |  \u6eda\u8f6e\u7f29\u653e  |  "
 				+ "\u4e2d\u952e\u91cd\u7f6e  |  \u53f3\u952e\u5f00\u5173\u5438\u9644  |  "
-				+ "T \u4e3b\u9898  |  ESC \u5173\u95ed",
+				+ "R \u91cd\u7f6e\u5e03\u5c40  |  T \u4e3b\u9898  |  ESC \u5173\u95ed",
 			width / 2F, height - TOOLBAR_HEIGHT + 10, 0xCCFFFFFF, 9F);
 	}
 
@@ -278,6 +278,11 @@ public final class GuiEditHUD extends Screen
 		if(keyCode == GLFW.GLFW_KEY_T)
 		{
 			manager.setTheme(manager.getTheme().next());
+			return true;
+		}
+		if(keyCode == GLFW.GLFW_KEY_R)
+		{
+			manager.resetLayout();
 			return true;
 		}
 		return super.keyPressed(keyCode, scanCode, modifiers);

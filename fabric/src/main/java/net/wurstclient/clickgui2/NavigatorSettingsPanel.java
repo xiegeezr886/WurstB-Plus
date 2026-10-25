@@ -63,9 +63,9 @@ final class NavigatorSettingsPanel extends Window
 	{
 		prepareForRender();
 		validate();
-		int scroll = isScrollingEnabled() ? getScrollOffset() : 0;
+		float scroll = isScrollingEnabled() ? updateScrollAnimation() : 0;
 		int localMouseX = mouseX - bodyX;
-		int localMouseY = mouseY - bodyY - scroll;
+		int localMouseY = Math.round(mouseY - bodyY - scroll);
 
 		NanoVGUI.pushScissor(bodyX, bodyY, bodyWidth, bodyHeight);
 		NanoVGUI.push();
@@ -86,7 +86,8 @@ final class NavigatorSettingsPanel extends Window
 		if(!isInside(mouseX, mouseY))
 			return false;
 
-		int scroll = isScrollingEnabled() ? getScrollOffset() : 0;
+		float scroll =
+			isScrollingEnabled() ? getAnimatedScrollOffset() : 0;
 		double localMouseX = mouseX - bodyX;
 		double localMouseY = mouseY - bodyY - scroll;
 		for(int index = countChildren() - 1; index >= 0; index--)
@@ -157,7 +158,8 @@ final class NavigatorSettingsPanel extends Window
 			(int)Math.round(bodyHeight * visibleRatio));
 		int scrollRange = Math.max(1, getInnerHeight() - bodyHeight);
 		int thumbY = bodyY + (int)Math.round(
-			-getScrollOffset() / (double)scrollRange * (bodyHeight - thumbHeight));
+			-getAnimatedScrollOffset() / (double)scrollRange
+				* (bodyHeight - thumbHeight));
 		NanoVGUI.fill(bodyX + bodyWidth - 2, bodyY,
 			bodyX + bodyWidth, bodyY + bodyHeight, theme.background(0.2F));
 		FlatRenderer.fillRoundedRect(graphics, bodyX + bodyWidth - 2, thumbY,
