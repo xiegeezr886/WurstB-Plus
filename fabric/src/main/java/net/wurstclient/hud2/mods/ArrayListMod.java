@@ -50,17 +50,13 @@ public final class ArrayListMod extends HUDMod
 		float width = 100;
 		for(HUDMod mod : active)
 			width = Math.max(width, getTextWidth(mod.getTranslatedName(), 9,
-				HudFonts.REGULAR) + 18);
+				HudFonts.REGULAR) + 12);
 
 		float height = 6 + active.size() * 13;
 		drawBackground(width, height);
 		for(int i = 0; i < active.size(); i++)
-		{
-			drawRoundedRect(5, 5 + i * 13, 2, 9, 1,
-				new java.awt.Color(accentColor(255), true));
-			drawText(active.get(i).getTranslatedName(), 11, 4 + i * 13, 9,
+			drawText(active.get(i).getTranslatedName(), 6, 4 + i * 13, 9,
 				HudFonts.REGULAR);
-		}
 		setSize(Math.round(width), Math.round(height));
 	}
 }
