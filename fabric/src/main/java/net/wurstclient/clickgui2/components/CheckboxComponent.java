@@ -16,6 +16,7 @@ import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.clickgui2.ClickGuiIcons;
 import net.wurstclient.clickgui2.Component;
 import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.CheckboxSetting;
 
 public final class CheckboxComponent extends Component
@@ -93,15 +94,9 @@ public final class CheckboxComponent extends Component
 
 		String name = setting.getTranslatedName();
 		int textRight = hasChildren ? x2 - 14 : x2;
-		float scale = 0.75F;
-		String trimmedName = TR.plainSubstrByWidth(name,
-			Math.round((textRight - x3 - 4) / scale));
-		context.pose().pushPose();
-		context.pose().scale(scale, scale, 1);
-		context.drawString(TR, trimmedName,
-			Math.round((x3 + 2) / scale),
-			Math.round((y1 + 2) / scale), GUI.getTxtColor(), false);
-		context.pose().popPose();
+		String trimmedName = NanoVGUI.plainSubstrByWidth(name,
+			textRight - x3 - 4, 8F);
+		NanoVGUI.text(trimmedName, x3 + 2, y1 + 2, GUI.getTxtColor(), 8F);
 
 		if(hasChildren)
 		{
@@ -109,7 +104,7 @@ public final class CheckboxComponent extends Component
 			int arrowColor = mouseX >= arrowX && hovering
 				? 0xFFFFFFFF : 0xFF888888;
 			String arrow = setting.isExpanded() ? "\u25BC" : "\u25B6";
-			context.drawCenteredString(TR, arrow, arrowX + 3, y1 + 2, arrowColor);
+			NanoVGUI.centeredText(arrow, arrowX + 3, y1 + 2, arrowColor, 9F);
 		}
 	}
 

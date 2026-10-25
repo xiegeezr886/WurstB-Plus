@@ -188,4 +188,25 @@ public abstract class GameRendererMixin implements AutoCloseable
 		if(WurstClient.INSTANCE.getHax().noHurtcamHack.isEnabled())
 			ci.cancel();
 	}
+
+	/**
+	 * Draws the NanoVG HUD after Minecraft has finished the GUI pass.
+	 * The HUD renders into its own framebuffer and is then composited onto
+	 * the main target, so it cannot disturb the vanilla render pipeline.
+	 */
+	@Inject(at = @At("HEAD"), method = "render(FJZ)V")
+	private void onPrepareHud(float partialTick, long nanoTime,
+		boolean renderLevel, CallbackInfo ci)
+	{
+		if(WurstClient.INSTANCE.getHudManager() != null)
+			WurstClient.INSTANCE.getHudManager().prepareFrame(partialTick);
+	}
+
+	@Inject(at = @At("TAIL"), method = "render(FJZ)V")
+	private void onRenderHud(float partialTick, long nanoTime,
+		boolean renderLevel, CallbackInfo ci)
+	{
+		if(WurstClient.INSTANCE.getHudManager() != null)
+			WurstClient.INSTANCE.getHudManager().renderFrame(partialTick);
+	}
 }

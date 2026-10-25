@@ -24,6 +24,10 @@ repositories {
 	}
 }
 
+configurations {
+	hudNatives
+}
+
 dependencies {
 	// Minecraft + Mojang official mappings (matches Forge port source)
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -50,6 +54,17 @@ dependencies {
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"
 	annotationProcessor "io.github.llamalad7:mixinextras-common:0.5.4"
+
+	// NanoVG HUD renderer (LWJGL 3 module matching Minecraft 1.20.1)
+	include implementation("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}")
+
+	// Native libraries are unpacked into the mod jar by processResources.
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
 }
 
 loom {
@@ -69,6 +84,11 @@ processResources {
 	inputs.property "version", project.version
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version
+	}
+
+	from({ configurations.hudNatives.collect { zipTree(it) } }) {
+		include "windows/**", "linux/**", "macos/**"
+		into "assets/wurstpenguin/nanovg/natives"
 	}
 }
 

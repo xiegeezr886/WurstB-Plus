@@ -4,17 +4,22 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import net.minecraft.client.gui.Font;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
-import net.wurstclient.events.GUIRenderListener;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 
-public final class HudNotificationRenderer implements GUIRenderListener
+/**
+ * Notification cards drawn by {@link NotificationHudElement}. The renderer
+ * keeps Soar v7's bottom-stacked card style but no longer owns a screen
+ * position, so the notification HUD is draggable and scalable like every
+ * other HUD mod.
+ */
+public final class HudNotificationRenderer
 {
 	private final ArrayList<NotificationEntry> entries = new ArrayList<>();
 	private static final int MIN_WIDTH = 180;
 	private static final int PADDING = 8;
-	private static final int CARD_RADIUS = 4;
+	private static final int CARD_HEIGHT = 38;
 	private static final int CARD_GAP = 4;
 	static final long DURATION_NANOS = 3_000_000_000L;
 	private static final int MAX_NOTIFICATIONS = 8;
@@ -28,8 +33,8 @@ public final class HudNotificationRenderer implements GUIRenderListener
 		{
 			if(severity == NotificationSeverity.ENABLED
 				|| severity == NotificationSeverity.DISABLED)
-				for(Iterator<NotificationEntry> it = entries.iterator();
-					it.hasNext();)
+				for(Iterator<NotificationEntry> it = entries.iterator(); it
+					.hasNext();)
 				{
 					NotificationEntry e = it.next();
 					if(e.message.equals(message))
@@ -42,41 +47,14 @@ public final class HudNotificationRenderer implements GUIRenderListener
 		}
 	}
 
-	void renderPreview(GuiGraphicsExtractor graphics, int x, int y)
+	public void renderAt(GuiGraphicsExtractor graphics, int x, int y)
 	{
-		NotificationEntry preview = new NotificationEntry("Notifications",
-			"HUD notification preview", NotificationSeverity.INFO);
-		drawCard(graphics, preview, x, y, x + MIN_WIDTH,
-			y + PADDING * 2 + 22, 1, 0.62F);
-	}
-
-	@Override
-	public void onRenderGUI(GuiGraphicsExtractor graphics, float partialTicks)
-	{
-		if(!WurstClient.INSTANCE.isEnabled())
-			return;
-
-		HudLayout layout = WurstClient.INSTANCE.getHudManager().getLayout();
-		HudLayout.HudElementConfig config = layout.get("notifications");
-		if(config == null || !config.isEnabled())
-			return;
-
-		int screenW = graphics.guiWidth();
-		int screenH = graphics.guiHeight();
-
-		float posY;
-		if(config.getVerticalAlignment()
-			.equals(HudLayout.HudElementConfig.VERTICAL_BOTTOM))
-			posY = screenH - config.getVerticalOffset();
-		else
-			posY = config.getVerticalOffset();
-
 		long now = System.nanoTime();
-
+		float offsetY = 0;
 		synchronized(entries)
 		{
-			for(Iterator<NotificationEntry> it = entries.iterator();
-				it.hasNext();)
+			for(Iterator<NotificationEntry> it = entries.iterator(); it
+				.hasNext();)
 			{
 				NotificationEntry entry = it.next();
 				float visibility = entry.update(now);
@@ -84,67 +62,60 @@ public final class HudNotificationRenderer implements GUIRenderListener
 
 				if(lifetimeProgress >= 1 && entry.active)
 					entry.active = false;
-
 				if(!entry.active && visibility <= 0)
 				{
 					it.remove();
 					continue;
 				}
 
-				float entryW = entry.getWidth();
-				float entryH = PADDING * 2 + 22;
-				float slide = (entryW + CARD_GAP) * (1 - visibility);
-
-				float x1, x2;
-				if(config.getHorizontalAlignment()
-					.equals(HudLayout.HudElementConfig.HORIZONTAL_RIGHT))
-				{
-					x2 = screenW - config.getHorizontalOffset() + slide;
-					x1 = x2 - entryW;
-				}else
-				{
-					x1 = config.getHorizontalOffset() - slide;
-					x2 = x1 + entryW;
-				}
-
-				float cardY;
-				if(config.getVerticalAlignment()
-					.equals(HudLayout.HudElementConfig.VERTICAL_BOTTOM))
-					cardY = posY - entryH * visibility;
-				else
-					cardY = posY;
-
-				int top = Math.round(cardY);
-				int bottom = top + Math.round(entryH);
-				int left = Math.round(x1);
-				int right = Math.round(x2);
-
-				drawCard(graphics, entry, left, top, right, bottom,
-					visibility, lifetimeProgress);
-
-				if(config.getVerticalAlignment()
-					.equals(HudLayout.HudElementConfig.VERTICAL_BOTTOM))
-					posY -= (entryH + CARD_GAP) * visibility;
-				else
-					posY += (entryH + CARD_GAP) * visibility;
+				int width = Math.round(entry.getWidth());
+				int top = Math.round(y + offsetY);
+				int alpha = Math.round(255 * visibility);
+				drawCard(graphics, entry, x, top, x + width,
+					top + CARD_HEIGHT, visibility, lifetimeProgress, alpha);
+				offsetY += (CARD_HEIGHT + CARD_GAP) * visibility;
 			}
 		}
 	}
 
-	private void drawCard(GuiGraphicsExtractor graphics, NotificationEntry entry,
-		int left, int top, int right, int bottom, float visibility,
-		float lifetimeProgress)
+	public void renderPreview(GuiGraphicsExtractor graphics, int x, int y)
 	{
-		FlatRenderer.fillRoundedRect(graphics, left, top, right, bottom,
-			CARD_RADIUS, withAlpha(0x050505, Math.round(173 * visibility)));
+		NotificationEntry preview = new NotificationEntry("Notifications",
+			"HUD notification preview", NotificationSeverity.INFO);
+		drawCard(graphics, preview, x, y, x + MIN_WIDTH, y + CARD_HEIGHT,
+			1, 0.62F, 255);
+	}
 
-		FlatRenderer.drawRoundedOutline(graphics, left, top, right, bottom,
-			CARD_RADIUS, withAlpha(0xFFFFFF, Math.round(16 * visibility)));
+	public int getVisibleHeight()
+	{
+		synchronized(entries)
+		{
+			return Math.max(CARD_HEIGHT,
+				entries.size() * (CARD_HEIGHT + CARD_GAP) - CARD_GAP);
+		}
+	}
+
+	public int getVisibleWidth()
+	{
+		synchronized(entries)
+		{
+			return entries.stream().mapToInt(e -> Math.round(e.getWidth()))
+				.max().orElse(MIN_WIDTH);
+		}
+	}
+
+	private void drawCard(GuiGraphicsExtractor graphics,
+		NotificationEntry entry, int left, int top, int right, int bottom,
+		float visibility, float lifetimeProgress, int alpha)
+	{
+		FlatRenderer.fillRoundedRect(graphics, left, top + 1, right, bottom + 2,
+			6, withAlpha(0x000000, Math.round(20 * visibility)));
+		FlatRenderer.fillRoundedRect(graphics, left, top, right, bottom, 6,
+			withAlpha(0x000000, Math.round(100 * visibility)));
 
 		int accColor = getAccentColor(entry.severity);
 		FlatRenderer.fillRoundedRect(graphics, left + 1, top + 2, left + 3,
-			bottom - 2, 1,
-			withAlpha(accColor, Math.round(240 * visibility)));
+			bottom - 2, 1, withAlpha(accColor, Math.round(240 * visibility)));
 
 		Font font = WurstClient.MC.font;
 		String title = truncate(entry.title, 26);
@@ -156,19 +127,18 @@ public final class HudNotificationRenderer implements GUIRenderListener
 		graphics.text(font, title, textX + 1, titleY + 1,
 			withAlpha(0, Math.round(145 * visibility)), false);
 		graphics.text(font, title, textX, titleY,
-			withAlpha(0xFFF2F4F7, Math.round(255 * visibility)), false);
+			withAlpha(0xFFFFFF, alpha), false);
 
 		graphics.text(font, message, textX + 1, titleY + font.lineHeight + 1,
 			withAlpha(0, Math.round(145 * visibility)), false);
 		graphics.text(font, message, textX, titleY + font.lineHeight,
-			withAlpha(0xFF727B88, Math.round(255 * visibility)), false);
+			withAlpha(0xCCFFFFFF, alpha), false);
 
 		int barLeft = left + PADDING;
 		int barRight = right - PADDING;
 		int barTop = bottom - 4;
 		FlatRenderer.fillRoundedRect(graphics, barLeft, barTop, barRight,
-			barTop + 2, 1,
-			withAlpha(0x2A3036, Math.round(170 * visibility)));
+			barTop + 2, 1, withAlpha(0x2A3036, Math.round(170 * visibility)));
 		int progressRight = barLeft
 			+ Math.round((barRight - barLeft) * lifetimeProgress);
 		if(progressRight > barLeft)
@@ -188,8 +158,7 @@ public final class HudNotificationRenderer implements GUIRenderListener
 		if(severity == NotificationSeverity.DISABLED
 			|| severity == NotificationSeverity.ERROR)
 			return 0xFFFFFFFF;
-		WurstClient.INSTANCE.getGui().updateColors();
-		return WurstClient.INSTANCE.getGui().getTheme().accent(1);
+		return HUDMod.accentColor(255);
 	}
 
 	private static String truncate(String text, int maxLen)

@@ -141,13 +141,11 @@ public abstract class Hack extends Feature
 
 			try
 			{
-				updateHudState();
 				onEnable();
 			}catch(RuntimeException | Error e)
 			{
 				this.enabled = false;
 				WURST.getHackConflictManager().release(this);
-				updateHudState();
 				throw e;
 			}
 		}
@@ -157,7 +155,6 @@ public abstract class Hack extends Feature
 
 			try
 			{
-				updateHudState();
 				onDisable();
 			}finally
 			{
@@ -173,12 +170,6 @@ public abstract class Hack extends Feature
 			WURST.getHudManager().addNotification(this);
 	}
 
-	private void updateHudState()
-	{
-		if(!(this instanceof ClickGuiHack || this instanceof NavigatorHack))
-			WURST.getHud().getHackList().updateState(this);
-	}
-	
 	@Override
 	public final String getPrimaryAction()
 	{

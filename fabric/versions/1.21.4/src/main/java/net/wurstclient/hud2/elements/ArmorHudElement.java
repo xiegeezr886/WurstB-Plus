@@ -4,52 +4,59 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.WurstClient;
-import net.wurstclient.hud2.HudElement;
-import net.wurstclient.hud2.HudLayout.HudElementConfig;
+import net.wurstclient.hud2.HUDMod;
+import net.wurstclient.util.RenderUtils;
 
-public final class ArmorHudElement extends HudElement
+public final class ArmorHudElement extends HUDMod
 {
 	public ArmorHudElement()
 	{
 		super("armor", "Armor");
+		setDefaultPosition(3, 500);
 	}
 
 	@Override
-	public int getWidth()
-	{
-		return 72;
-	}
-
-	@Override
-	public int getHeight()
-	{
-		return 18;
-	}
-
-	@Override
-	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
+	protected void draw()
 	{
 		if(WurstClient.MC.player == null)
 			return;
-		List<ItemStack> armor = new ArrayList<>();
-		WurstClient.MC.player.getArmorSlots().forEach(armor::add);
-		Collections.reverse(armor);
+		List<ItemStack> armor = getArmor();
+		if(armor.isEmpty())
+			return;
+
+		int width = armor.size() * 20 + 8;
+		int height = 28;
+		drawBackground(width, height);
+
+		graphics.pose().pushPose();
+		graphics.pose().translate(getX(), getY(), 0);
+		graphics.pose().scale(getScale(), getScale(), 1);
 		for(int index = 0; index < armor.size(); index++)
-		{
-			ItemStack stack = armor.get(index);
-			int itemX = x + index * 18;
-			graphics.renderItem(stack, itemX, y);
-			graphics.renderItemDecorations(WurstClient.MC.font, stack, itemX, y);
-		}
+			RenderUtils.drawItem(graphics, armor.get(index), 6 + index * 20, 6,
+				false);
+		graphics.pose().popPose();
+
+		setSize(width, height);
 	}
 
-	@Override
-	public HudElementConfig getDefaultLayout()
+	private List<ItemStack> getArmor()
 	{
-		return new HudElementConfig(HudElementConfig.HORIZONTAL_LEFT,
-			HudElementConfig.VERTICAL_BOTTOM, 3, 22);
+		if(WurstClient.MC.player == null)
+			return Collections.emptyList();
+		List<ItemStack> armor = new ArrayList<>();
+		for(var slot : new net.minecraft.world.entity.EquipmentSlot[]{
+			net.minecraft.world.entity.EquipmentSlot.FEET,
+			net.minecraft.world.entity.EquipmentSlot.LEGS,
+			net.minecraft.world.entity.EquipmentSlot.CHEST,
+			net.minecraft.world.entity.EquipmentSlot.HEAD})
+		{
+			ItemStack stack = WurstClient.MC.player.getItemBySlot(slot);
+			if(!stack.isEmpty())
+				armor.add(stack);
+		}
+		Collections.reverse(armor);
+		return armor;
 	}
 }

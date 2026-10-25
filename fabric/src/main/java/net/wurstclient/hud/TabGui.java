@@ -7,13 +7,11 @@
  */
 package net.wurstclient.hud;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.Category;
 import net.wurstclient.Feature;
@@ -21,6 +19,7 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.events.KeyPressListener;
 import net.wurstclient.hacks.TooManyHaxHack;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.other_features.TabGuiOtf;
 import net.wurstclient.util.ChatUtils;
 import net.wurstclient.util.RenderUtils;
@@ -118,68 +117,70 @@ public final class TabGui implements KeyPressListener
 			}
 	}
 	
+	public boolean isVisible()
+	{
+		return !tabGuiOtf.isHidden();
+	}
+
 	public void render(GuiGraphics context, float partialTicks)
 	{
-		if(tabGuiOtf.isHidden())
+		if(!isVisible())
 			return;
 		
-		PoseStack matrixStack = context.pose();
-		matrixStack.pushPose();
-		matrixStack.translate(4, 28, 100);
-		
+		NanoVGUI.push();
+		NanoVGUI.translate(4, 28);
+
 		drawBox(context, 0, 0, width, height);
 		selectionY = animate(selectionY, selected * 10, true);
 		drawSelection(context, 2, Math.round(selectionY), width - 2,
 			Math.round(selectionY) + 10);
-		context.enableScissor(4, 28, 4 + width, 28 + height);
-		
+		NanoVGUI.pushScissor(0, 0, width, height);
+
 		int textY = 1;
 		int txtColor = WURST.getGui().getTxtColor();
-		Font tr = MC.font;
 		for(int i = 0; i < tabs.size(); i++)
 		{
 			String tabName = tabs.get(i).name;
-			context.drawString(tr, tabName, 6, textY, txtColor, false);
+			NanoVGUI.text(tabName, 6, textY, txtColor, 9F);
 			if(i == selected)
-				context.drawString(tr, tabOpened ? "<" : ">", width - 9,
-					textY, txtColor, false);
+				NanoVGUI.text(tabOpened ? "<" : ">", width - 9, textY,
+					txtColor, 9F);
 			textY += 10;
 		}
-		
-		context.disableScissor();
-		
+
+		NanoVGUI.popScissor();
+
 		if(tabOpened)
 		{
 			Tab tab = tabs.get(selected);
-			
-			matrixStack.pushPose();
-			matrixStack.translate(width + 2, 0, 0);
-			
+
+			NanoVGUI.push();
+			NanoVGUI.translate(width + 2, 0);
+
 			drawBox(context, 0, 0, tab.width, tab.height);
 			tab.selectionY = animate(tab.selectionY, tab.selected * 10, false);
 			drawSelection(context, 2, Math.round(tab.selectionY), tab.width - 2,
 				Math.round(tab.selectionY) + 10);
-			context.enableScissor(width + 6, 28, width + 6 + tab.width,
-				28 + tab.height);
-			
+			NanoVGUI.pushScissor(width + 2, 0, tab.width, tab.height);
+
 			int tabTextY = 1;
 			for(int i = 0; i < tab.features.size(); i++)
 			{
 				Feature feature = tab.features.get(i);
 				String fName = feature.getDisplayName();
-				
+
 				if(feature.isEnabled())
 					fName = "\u00a7a" + fName + "\u00a7r";
-				
-				context.drawString(tr, fName, 6, tabTextY, txtColor, false);
+
+				NanoVGUI.text(fName, 6, tabTextY, txtColor, 9F);
 				tabTextY += 10;
 			}
-			
-			context.disableScissor();
-			matrixStack.popPose();
+
+			NanoVGUI.popScissor();
+			NanoVGUI.pop();
 		}
-		
-		matrixStack.popPose();
+
+		NanoVGUI.pop();
 	}
 	
 	private void drawBox(GuiGraphics context, int x1, int y1, int x2, int y2)

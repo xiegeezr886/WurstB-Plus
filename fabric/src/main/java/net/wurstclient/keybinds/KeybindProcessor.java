@@ -178,6 +178,13 @@ public final class KeybindProcessor implements KeyPressListener
 
 			if(hack == null)
 			{
+				net.wurstclient.hud2.HUDMod hud = WurstClient.INSTANCE
+					.getHudManager().getModule(cmd);
+				if(hud != null)
+				{
+					hud.setEnabled(!hud.isEnabled());
+					return;
+				}
 				cmdProcessor.process(cmd);
 				return;
 			}

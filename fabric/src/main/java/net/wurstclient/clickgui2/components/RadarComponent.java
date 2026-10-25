@@ -7,8 +7,6 @@
  */
 package net.wurstclient.clickgui2.components;
 
-import org.joml.Quaternionf;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
@@ -25,6 +23,7 @@ import net.wurstclient.clickgui2.Component;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.theme.FlatTheme;
 import net.wurstclient.hacks.RadarHack;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.util.EntityUtils;
 
 public final class RadarComponent extends Component
@@ -80,21 +79,19 @@ public final class RadarComponent extends Component
 			return;
 		}
 
-		PoseStack matrixStack = context.pose();
-		matrixStack.pushPose();
-		matrixStack.translate(middleX, middleY, 0);
-		
+		NanoVGUI.push();
+		NanoVGUI.translate(middleX, middleY);
+
 		if(!hack.isRotateEnabled())
-			matrixStack.mulPose(new Quaternionf().rotationZ(
-				(180 + player.getYRot()) * Mth.DEG_TO_RAD));
-		
+			NanoVGUI.rotate(180 + player.getYRot());
+
 		FlatRenderer.fillRoundedRect(context, -5, -5, 5, 5, 5,
 			theme.background(0.92F));
 		FlatRenderer.drawRoundedOutline(context, -5, -5, 5, 5, 5,
 			theme.accent(0.42F));
 		ClickGuiIcons.drawRadarArrow(context, -3, -4, 3, 4);
-		
-		matrixStack.popPose();
+
+		NanoVGUI.pop();
 		Vec3 lerpedPlayerPos = EntityUtils.getLerpedPos(player, partialTicks);
 		
 		int entityCount = 0;
@@ -143,9 +140,9 @@ public final class RadarComponent extends Component
 				centerY + ringRadius, ringRadius, theme.accent(0.09F));
 		}
 
-		context.fill(centerX, centerY - radius + 3, centerX + 1,
+		NanoVGUI.fill(centerX, centerY - radius + 3, centerX + 1,
 			centerY + radius - 3, theme.accent(0.1F));
-		context.fill(centerX - radius + 3, centerY,
+		NanoVGUI.fill(centerX - radius + 3, centerY,
 			centerX + radius - 3, centerY + 1, theme.accent(0.1F));
 		FlatRenderer.fillRoundedRect(context, centerX - 1,
 			centerY - radius - 1, centerX + 2, centerY + 3 - radius, 1,
@@ -169,17 +166,17 @@ public final class RadarComponent extends Component
 		int x2, int y2, int entityCount)
 	{
 		int dividerY = y2 - FOOTER_HEIGHT;
-		context.fill(x1 + 5, dividerY, x2 - 5, dividerY + 1,
+		NanoVGUI.fill(x1 + 5, dividerY, x2 - 5, dividerY + 1,
 			theme.accent(0.24F));
 		FlatRenderer.fillRoundedRect(context, x1 + 6, dividerY + 5,
 			x1 + 9, dividerY + 8, 1, theme.accent(1));
 		String radiusText = (int)Math.round(hack.getRadius()) + "m";
-		context.drawString(MC.font, radiusText, x1 + 12, dividerY + 2,
-			theme.text(0.62F), false);
+		NanoVGUI.text(radiusText, x1 + 12, dividerY + 2, theme.text(0.62F),
+			9F);
 		String countText = Integer.toString(entityCount);
-		context.drawString(MC.font, countText,
-			x2 - 6 - MC.font.width(countText), dividerY + 2,
-			theme.text(0.82F), false);
+		NanoVGUI.text(countText,
+			x2 - 6 - NanoVGUI.width(countText, 9F), dividerY + 2,
+			theme.text(0.82F), 9F);
 	}
 	
 	private int getEntityColor(Entity e)

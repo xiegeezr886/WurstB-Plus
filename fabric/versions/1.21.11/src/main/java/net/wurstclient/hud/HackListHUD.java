@@ -26,7 +26,8 @@ public final class HackListHUD implements UpdateListener
 {
 	private final ArrayList<HackListEntry> activeHax = new ArrayList<>();
 	private final HackListOtf otf = WurstClient.INSTANCE.getOtfs().hackListOtf;
-	private static final int ENTRY_HEIGHT = 12;
+	private static final int ENTRY_HEIGHT = 18;
+	private static final int PANEL_HEIGHT = 15;
 	private float posY;
 	private float baseX;
 	private int containerWidth;
@@ -99,17 +100,18 @@ public final class HackListHUD implements UpdateListener
 		Font font = WurstClient.MC.font;
 		if(otf.getMode() == Mode.COUNT)
 			return Math.max(90, font.width(activeHax.size()
-				+ " hacks enabled") + 11);
+				+ " hacks enabled") + 12);
 		return Math.max(90, activeHax.stream()
 			.map(entry -> entry.hack.getDisplayName()).mapToInt(font::width)
-			.max().orElse(font.width("HackList")) + 11);
+			.max().orElse(font.width("HackList")) + 12);
 	}
 
 	public int getHeight()
 	{
 		if(otf.getMode() == Mode.COUNT)
-			return ENTRY_HEIGHT;
-		return Math.max(ENTRY_HEIGHT, activeHax.size() * ENTRY_HEIGHT);
+			return PANEL_HEIGHT;
+		return Math.max(PANEL_HEIGHT,
+			activeHax.size() * ENTRY_HEIGHT - 3);
 	}
 	
 	private void drawCounter(GuiGraphicsExtractor context)
@@ -184,31 +186,18 @@ public final class HackListHUD implements UpdateListener
 		if(!alignRight)
 		{
 			x1 = baseX - slide;
-			x2 = x1 + textWidth + 11;
+			x2 = x1 + textWidth + 12;
 		}
 		else
 		{
 			x2 = baseX + containerWidth + slide;
-			x1 = x2 - textWidth - 11;
+			x1 = x2 - textWidth - 12;
 		}
 
 		int top = Math.round(posY);
-		int bottom = top + 11;
 		int left = Math.round(x1);
-		int right = Math.round(x2);
-		FlatRenderer.fillRoundedRect(context, left, top, right, bottom, 3,
-			withAlpha(0x070B10, Math.round(104 * progress)));
-		FlatRenderer.drawRoundedOutline(context, left, top, right, bottom, 3,
-			withAlpha(0xFFFFFF, Math.round(20 * progress)));
-		int accentX = alignRight ? right - 3 : left + 1;
-		FlatRenderer.fillRoundedRect(context, accentX, top + 2, accentX + 2,
-			bottom - 2, 1, withAlpha(textColor, Math.round(220 * progress)));
-		int textX = alignRight ? left + 4 : left + 6;
-		int textY = top + 2;
-		context.text(font, text, textX + 1, textY + 1,
-			withAlpha(0, Math.round(145 * progress)), false);
-		context.text(font, text, textX, textY,
-			withAlpha(textColor, Math.round(255 * progress)), false);
+		context.text(font, text, left + 6, top + 3,
+			withAlpha(0xFFFFFF, Math.round(255 * progress)), false);
 		posY += ENTRY_HEIGHT * progress;
 	}
 

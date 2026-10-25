@@ -18,6 +18,7 @@ import net.wurstclient.clickgui2.ClickGuiIcons;
 import net.wurstclient.clickgui2.ComboBoxPopup;
 import net.wurstclient.clickgui2.Component;
 import net.wurstclient.clickgui2.FlatRenderer;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.EnumSetting;
 
 public final class ComboBoxComponent<T extends Enum<T>> extends Component
@@ -108,24 +109,25 @@ public final class ComboBoxComponent<T extends Enum<T>> extends Component
 		float hover = hoverAnimation.update(hBox);
 		FlatRenderer.drawControl(context, x1, y1, x2, y2, 3,
 			GUI.getTheme(), hover, isPopupOpen());
-		context.fill(x4, y1 + 2, x4 + 1, y2 - 2,
+		NanoVGUI.fill(x4, y1 + 2, x4 + 1, y2 - 2,
 			GUI.getTheme().accent(0.24F));
-		context.fill(x3, y1 + 2, x3 + 1, y2 - 2,
+		NanoVGUI.fill(x3, y1 + 2, x3 + 1, y2 - 2,
 			GUI.getTheme().accent(0.24F));
-		
+
 		// arrow
 		ClickGuiIcons.drawMinimizeArrow(context, x3, y1 + 0.5F, x2, y2 - 0.5F,
 			hBox, !isPopupOpen());
-		
+
 		// text
 		String name = setting.getTranslatedName();
-		int nameWidth = x4 - x1 - 4;
-		if(TR.width(name) > nameWidth)
-			name = TR.plainSubstrByWidth(name, Math.max(0, nameWidth));
+		float nameWidth = x4 - x1 - 4;
+		if(NanoVGUI.width(name, 9F) > nameWidth)
+			name = NanoVGUI.plainSubstrByWidth(name, Math.max(0, nameWidth),
+				9F);
 		String value = "" + setting.getSelected();
 		int txtColor = GUI.getTxtColor();
-		context.drawString(TR, name, x1, y1 + 2, txtColor, false);
-		context.drawString(TR, value, x4 + 2, y1 + 2, txtColor, false);
+		NanoVGUI.text(name, x1, y1 + 2, txtColor, 9F);
+		NanoVGUI.text(value, x4 + 2, y1 + 2, txtColor, 9F);
 	}
 	
 	@Override

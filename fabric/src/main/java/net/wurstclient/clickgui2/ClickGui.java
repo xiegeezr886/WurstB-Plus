@@ -12,13 +12,12 @@ import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.theme.FlatTheme;
 import net.wurstclient.hacks.ClickGuiHack;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.util.RenderUtils;
 import net.minecraft.util.Mth;
 
@@ -295,15 +294,14 @@ public final class ClickGui
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		PoseStack matrixStack = context.pose();
-		matrixStack.pushPose();
-		
+		NanoVGUI.push();
+
 		tooltip = "";
 		for(Window window : windows)
 		{
 			if(window.isInvisible())
 				continue;
-			
+
 			// dragging
 			if(window.isDragging())
 				if(leftMouseButtonPressed)
@@ -312,22 +310,21 @@ public final class ClickGui
 				{
 					window.stopDragging();
 				}
-			
+
 			// scrollbar dragging
 			if(window.isDraggingScrollbar())
 				if(leftMouseButtonPressed)
 					window.dragScrollbarTo(mouseY);
 				else
 					window.stopDraggingScrollbar();
-				
-			matrixStack.translate(0, 0, 300);
+
 			renderWindow(context, window, mouseX, mouseY, partialTicks);
 		}
-		
+
 		renderPopups(context, mouseX, mouseY);
 		renderTooltip(context, mouseX, mouseY);
-		
-		matrixStack.popPose();
+
+		NanoVGUI.pop();
 	}
 	
 	public void renderBackdrop(GuiGraphics context)
@@ -339,51 +336,49 @@ public final class ClickGui
 	
 	public void renderPopups(GuiGraphics context, int mouseX, int mouseY)
 	{
-		PoseStack matrixStack = context.pose();
 		for(Popup popup : popups)
 		{
 			Component owner = popup.getOwner();
 			Window parent = owner.getParent();
-			
+
 			int x1 = parent.getX() + owner.getX();
 			int y1 =
 				parent.getY() + 13 + parent.getScrollOffset() + owner.getY();
-			
-			matrixStack.pushPose();
-			matrixStack.translate(x1, y1, 300);
-			
+
+			NanoVGUI.push();
+			NanoVGUI.translate(x1, y1);
+
 			int cMouseX = mouseX - x1;
 			int cMouseY = mouseY - y1;
 			FlatRenderer.drawPopup(context, popup.getX(), popup.getY(),
 				popup.getX() + popup.getWidth(), popup.getY() + popup.getHeight(),
 				4, theme);
 			popup.render(context, cMouseX, cMouseY);
-			
-			matrixStack.popPose();
+
+			NanoVGUI.pop();
 		}
 	}
 	
 	public void renderTooltip(GuiGraphics context, int mouseX, int mouseY)
 	{
-		PoseStack matrixStack = context.pose();
-		
 		if(tooltip.isEmpty())
 			return;
-		
+
 		String[] lines = tooltip.split("\n");
-		Font tr = MC.font;
-		
+		final float textSize = 9F;
+		final float lineHeight = 9F;
+
 		int tw = 0;
-		int th = lines.length * tr.lineHeight;
+		int th = Math.round(lines.length * lineHeight);
 		for(String line : lines)
 		{
-			int lw = tr.width(line);
+			int lw = Math.round(NanoVGUI.width(line, textSize));
 			if(lw > tw)
 				tw = lw;
 		}
 		int sw = MC.screen.width;
 		int sh = MC.screen.height;
-		
+
 		int boxWidth = tw + 3;
 		int boxHeight = th + 2;
 
@@ -398,41 +393,40 @@ public final class ClickGui
 
 		int xt2 = xt1 + boxWidth;
 		int yt2 = yt1 + boxHeight;
-		
-		matrixStack.pushPose();
-		matrixStack.translate(0, 0, 300);
-		
+
 		int tooltipColor = theme.tooltipFill();
 		int outlineColor = theme.border(true);
 		FlatRenderer.drawPanel(context, xt1, yt1, xt2, yt2, 4,
 			tooltipColor, outlineColor);
-		
+
 		// text
 		for(int i = 0; i < lines.length; i++)
-			context.drawString(tr, lines[i], xt1 + 2, yt1 + 2 + i * tr.lineHeight,
-				theme.text(), false);
-		
-		matrixStack.popPose();
+			NanoVGUI.text(lines[i], xt1 + 2, yt1 + 2 + i * lineHeight,
+				theme.text(), textSize);
+	}
+
+	public boolean hasVisiblePinnedWindows()
+	{
+		for(Window window : windows)
+			if(window.isPinned() && !window.isInvisible())
+				return true;
+		return false;
 	}
 
 	public void renderPinnedWindows(GuiGraphics context, float partialTicks)
 	{
-		PoseStack matrixStack = context.pose();
-		matrixStack.pushPose();
+		NanoVGUI.push();
 
 		for(Window window : windows)
 		{
 			if(!window.isPinned() || window.isInvisible())
 				continue;
 
-			matrixStack.pushPose();
-			matrixStack.translate(0, 0, 300);
 			renderWindow(context, window, Integer.MIN_VALUE,
 				Integer.MIN_VALUE, partialTicks);
-			matrixStack.popPose();
 		}
 
-		matrixStack.popPose();
+		NanoVGUI.pop();
 	}
 	
 	public void updateColors()
@@ -461,9 +455,7 @@ public final class ClickGui
 			&& windows.get(windows.size() - 1) == window;
 		int windowBgColor = theme.windowBody();
 		int outlineColor = theme.border(focused);
-		
-		PoseStack matrixStack = context.pose();
-		
+
 		if(window.isMinimized())
 			y2 = y3;
 		
@@ -500,20 +492,19 @@ public final class ClickGui
 				int ys4 = ys3 + (int)scrollbarHeight;
 				
 				// window background
-				context.fill(xs2, ys1, xs3, ys2, windowBgColor);
-				context.fill(xs1, ys1, xs2, ys3, windowBgColor);
-				context.fill(xs1, ys4, xs2, ys2, windowBgColor);
-				
+				NanoVGUI.fill(xs2, ys1, xs3, ys2, windowBgColor);
+				NanoVGUI.fill(xs1, ys1, xs2, ys3, windowBgColor);
+				NanoVGUI.fill(xs1, ys4, xs2, ys2, windowBgColor);
+
 				boolean hovering = mouseX >= xs1 && mouseY >= ys3
 					&& mouseX < xs2 && mouseY < ys4;
-				
+
 				// scrollbar
 				int scrollbarColor = theme.accent(hovering ? 0.9F : 0.58F);
-				context.fill(xs1, ys3, xs2, ys4, scrollbarColor);
-				
+				NanoVGUI.fill(xs1, ys3, xs2, ys4, scrollbarColor);
+
 				// outline
-				RenderUtils.drawBorder2D(context, xs1, ys3, xs2, ys4,
-					outlineColor);
+				NanoVGUI.border(xs1, ys3, xs2, ys4, outlineColor);
 			}
 			
 			int x3 = x1 + 2;
@@ -523,14 +514,14 @@ public final class ClickGui
 			
 			// window background
 			// left & right
-			context.fill(x1, y3, x3, y2, windowBgColor);
-			context.fill(x5, y3, x4, y2, windowBgColor);
-			
-			context.enableScissor(x1, y3, x2, y2);
-			
-			matrixStack.pushPose();
-			matrixStack.translate(x1, y4, 0);
-			
+			NanoVGUI.fill(x1, y3, x3, y2, windowBgColor);
+			NanoVGUI.fill(x5, y3, x4, y2, windowBgColor);
+
+			NanoVGUI.pushScissor(x1, y3, x2 - x1, y2 - y3);
+
+			NanoVGUI.push();
+			NanoVGUI.translate(x1, y4);
+
 			// window background
 			// between children
 			int xc1 = 2;
@@ -539,9 +530,9 @@ public final class ClickGui
 			{
 				int yc1 = window.getChild(i).getY();
 				int yc2 = yc1 - 2;
-				context.fill(xc1, yc2, xc2, yc1, windowBgColor);
+				NanoVGUI.fill(xc1, yc2, xc2, yc1, windowBgColor);
 			}
-			
+
 			// window background
 			// bottom
 			int yc1;
@@ -554,17 +545,17 @@ public final class ClickGui
 				yc1 = lastChild.getY() + lastChild.getHeight();
 			}
 			int yc2 = yc1 + 2;
-			context.fill(xc1, yc1, xc2, yc2, windowBgColor);
-			
+			NanoVGUI.fill(xc1, yc1, xc2, yc2, windowBgColor);
+
 			// render children
 			int cMouseX = mouseX - x1;
 			int cMouseY = mouseY - y4;
 			for(int i = 0; i < window.countChildren(); i++)
 				window.getChild(i).render(context, cMouseX, cMouseY,
 					partialTicks);
-			
-			matrixStack.popPose();
-			context.disableScissor();
+
+			NanoVGUI.pop();
+			NanoVGUI.popScissor();
 		}
 		
 		// window outline
@@ -573,7 +564,7 @@ public final class ClickGui
 		
 		// title bar separator line
 		if(!window.isMinimized())
-			RenderUtils.drawLine2D(context, x1 + 4, y3, x2 - 4, y3,
+			NanoVGUI.line(x1 + 4, y3, x2 - 4, y3,
 				theme.accent(focused ? 0.52F : 0.3F));
 		
 		// title bar buttons
@@ -617,20 +608,17 @@ public final class ClickGui
 		// title bar background
 		// above & below buttons
 		int titleBgColor = theme.titleFill(focused);
-		context.fill(x3, y1, x2, y4, titleBgColor);
-		context.fill(x3, y5, x2, y3, titleBgColor);
-		
+		NanoVGUI.fill(x3, y1, x2, y4, titleBgColor);
+		NanoVGUI.fill(x3, y5, x2, y3, titleBgColor);
+
 		// title bar background
 		// behind title
-		context.fill(x1, y1, x3, y3, titleBgColor);
-		
+		NanoVGUI.fill(x1, y1, x3, y3, titleBgColor);
+
 		// window title
-		Font tr = MC.font;
-		String title = tr.substrByWidth(
-			net.minecraft.network.chat.Component.literal(window.getTitle()),
-			x3 - x1 - 6)
-			.getString();
-		context.drawString(tr, title, x1 + 4, y1 + 3, theme.text(), false);
+		String title = NanoVGUI.substrByWidth(window.getTitle(),
+			x3 - x1 - 6, 9F);
+		NanoVGUI.text(title, x1 + 4, y1 + 3, theme.text(), 9F);
 	}
 	
 	private void renderTitleBarButton(GuiGraphics context, int x1, int y1,
@@ -644,11 +632,11 @@ public final class ClickGui
 		
 		// background between buttons
 		int windowBgColor = theme.titleFill(true);
-		context.fill(x2, y1, x3, y2, windowBgColor);
-		
+		NanoVGUI.fill(x2, y1, x3, y2, windowBgColor);
+
 		// button outline
 		int outlineColor = theme.controlBorder(hovering ? 1 : 0, false);
-		RenderUtils.drawBorder2D(context, x1, y1, x2, y2, outlineColor);
+		NanoVGUI.border(x1, y1, x2, y2, outlineColor);
 	}
 	
 	public float[] getBgColor()

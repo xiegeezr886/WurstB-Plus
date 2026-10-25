@@ -158,6 +158,9 @@ public final class GlintColorHack extends Hack
 
 	private boolean uiHidden()
 	{
+		if(net.wurstclient.hud2.HackHudElement.isPreviewRendering())
+			return false;
+
 		try
 		{
 			Object gui = MC.getClass().getField("gui").get(MC);
