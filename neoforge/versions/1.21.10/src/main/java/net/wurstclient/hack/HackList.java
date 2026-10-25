@@ -285,6 +285,12 @@ public final class HackList implements UpdateListener
 	public final AutoBreedHack autoBreedHack = new AutoBreedHack();
 	public final AutoSmelterHack autoSmelterHack = new AutoSmelterHack();
 	public final NotifierHack notifierHack = new NotifierHack();
+	public final YawDisplayHack yawDisplayHack = new YawDisplayHack();
+	public final PitchDisplayHack pitchDisplayHack = new PitchDisplayHack();
+	public final JumpResetIndicatorHack jumpResetIndicatorHack = new JumpResetIndicatorHack();
+	public final SnapTapHack snapTapHack = new SnapTapHack();
+	public final ForceMainHandHack forceMainHandHack = new ForceMainHandHack();
+	public final AutoGGHack autoGGHack = new AutoGGHack();
 	public final EntityCullingHack entityCullingHack = new EntityCullingHack();
 	public final WebBrowserHack webBrowserHack = new WebBrowserHack();
 	public final ViaVersionHack viaVersionHack = new ViaVersionHack();
