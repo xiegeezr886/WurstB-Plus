@@ -414,7 +414,19 @@ public final class HudCompat
 			living.getHealth(), living.getMaxHealth(),
 			WurstClient.MC.player == null ? 0
 				: WurstClient.MC.player.distanceTo(living),
-			skin);
+			skin, living.getArmorValue());
+	}
+
+	/** Editor preview target: the local player. */
+	public static TargetInfo localPlayerTarget()
+	{
+		if(WurstClient.MC.player == null)
+			return null;
+		Player player = WurstClient.MC.player;
+		String skin = player instanceof net.minecraft.client.player.AbstractClientPlayer clientPlayer
+			? clientPlayer.getSkinTextureLocation().toString() : null;
+		return new TargetInfo(player.getName().getString(), player.getHealth(),
+			player.getMaxHealth(), 0, skin, player.getArmorValue());
 	}
 
 	public static String targetName()
@@ -495,7 +507,7 @@ public final class HudCompat
 	{}
 
 	public record TargetInfo(String name, double health, double maxHealth,
-		double distance, String skin)
+		double distance, String skin, int armor)
 	{}
 
 	public record TntInfo(double x, double y, double z, int fuse)
