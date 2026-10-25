@@ -122,7 +122,7 @@ public final class ClickGuiScreen extends Screen
 			if(feature.getCategory() != null)
 				categorized.get(feature.getCategory()).add(feature);
 
-		int requiredWidth = 8 * WINDOW_WIDTH + 7 * WINDOW_GAP;
+		int requiredWidth = 9 * WINDOW_WIDTH + 8 * WINDOW_GAP;
 		layoutStartX = Math.max(0, width - requiredWidth - 31);
 		if(width >= requiredWidth)
 			buildReferenceLayout(categorized);
@@ -132,37 +132,41 @@ public final class ClickGuiScreen extends Screen
 
 	private void buildReferenceLayout(Map<Category, List<Feature>> categorized)
 	{
-		add(new CategoryWindow(columnX(0), START_Y, "视觉类", GuiIcon.RENDER,
+		add(new CategoryWindow(columnX(0), START_Y, "HUD", GuiIcon.CLIENT,
+			categorized.get(Category.HUD), MAX_VISIBLE_ROWS), "hud");
+		add(new CategoryWindow(columnX(1), START_Y, "视觉类", GuiIcon.RENDER,
 			categorized.get(Category.RENDER), MAX_VISIBLE_ROWS), "visual");
-		add(new CategoryWindow(columnX(1), START_Y, "移动类", GuiIcon.MOVEMENT,
+		add(new CategoryWindow(columnX(2), START_Y, "移动类", GuiIcon.MOVEMENT,
 			categorized.get(Category.MOVEMENT), MAX_VISIBLE_ROWS), "movement");
-		CategoryWindow client = add(new CategoryWindow(columnX(2), START_Y,
+		CategoryWindow client = add(new CategoryWindow(columnX(3), START_Y,
 			"客户端", GuiIcon.CLIENT, getInterfaceFeatures(), MAX_VISIBLE_ROWS),
 			"client");
-		add(new CategoryWindow(columnX(2),
+		add(new CategoryWindow(columnX(3),
 			client.y2 + COMBAT_STACK_GAP, "战斗类", GuiIcon.COMBAT,
 			categorized.get(Category.COMBAT), COMBAT_VISIBLE_ROWS), "combat");
-		add(new CategoryWindow(columnX(3), START_Y, "世界类", GuiIcon.WORLD,
+		add(new CategoryWindow(columnX(4), START_Y, "世界类", GuiIcon.WORLD,
 			combine(categorized, Category.BLOCKS, Category.ITEMS),
 			MAX_VISIBLE_ROWS), "world");
-		add(new CategoryWindow(columnX(4), START_Y, "其他类", GuiIcon.MISC,
+		add(new CategoryWindow(columnX(5), START_Y, "其他类", GuiIcon.MISC,
 			getOtherFeatures(categorized),
 			MAX_VISIBLE_ROWS), "other");
-		add(new TargetWindow(columnX(5), START_Y), "target");
-		add(new ConfigWindow(columnX(6), START_Y), "config");
-		add(new FontWindow(columnX(7), START_Y), "font");
+		add(new TargetWindow(columnX(6), START_Y), "target");
+		add(new ConfigWindow(columnX(7), START_Y), "config");
+		add(new FontWindow(columnX(8), START_Y), "font");
 
 		int settingsY = Mth.clamp(Math.round(height * 0.58F), START_Y,
 			Math.max(START_Y, height - 90));
 		int mainY = Mth.clamp(Math.round(height * 0.49F), START_Y,
 			Math.max(START_Y, height - 150));
-		add(new GlobalSettingsWindow(columnX(5), settingsY), "settings");
-		add(new MainMenuWindow(columnX(7), mainY), "main");
+		add(new GlobalSettingsWindow(columnX(6), settingsY), "settings");
+		add(new MainMenuWindow(columnX(8), mainY), "main");
 	}
 
 	private void buildResponsiveLayout(Map<Category, List<Feature>> categorized)
 	{
 		ArrayList<TemplateWindow> all = new ArrayList<>();
+		all.add(new CategoryWindow(0, 0, "HUD", GuiIcon.CLIENT,
+			categorized.get(Category.HUD), MAX_VISIBLE_ROWS));
 		all.add(new CategoryWindow(0, 0, "视觉类", GuiIcon.RENDER,
 			categorized.get(Category.RENDER), MAX_VISIBLE_ROWS));
 		all.add(new CategoryWindow(0, 0, "移动类", GuiIcon.MOVEMENT,
@@ -183,8 +187,8 @@ public final class ClickGuiScreen extends Screen
 		all.add(new GlobalSettingsWindow(0, 0));
 		all.add(new MainMenuWindow(0, 0));
 
-		String[] ids = {"visual", "movement", "client", "combat", "world",
-			"other", "target", "config", "font", "settings", "main"};
+		String[] ids = {"hud", "visual", "movement", "client", "combat",
+			"world", "other", "target", "config", "font", "settings", "main"};
 		int x = 0;
 		int y = START_Y;
 		int rowHeight = 0;

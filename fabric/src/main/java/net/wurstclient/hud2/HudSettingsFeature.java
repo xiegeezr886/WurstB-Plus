@@ -86,7 +86,7 @@ public final class HudSettingsFeature extends Feature
 	@Override
 	public Category getCategory()
 	{
-		return Category.OTHER;
+		return Category.HUD;
 	}
 
 	@Override

@@ -45,10 +45,11 @@ public final class NavigatorScreen extends Screen
 	private static final String[] CATEGORY_NAMES = {
 		"\u5168\u90e8", "\u65b9\u5757", "\u79fb\u52a8", "\u6218\u6597",
 		"\u6e32\u67d3", "\u804a\u5929", "\u5a31\u4e50", "\u7269\u54c1",
-		"\u5176\u4ed6", "\u754c\u9762"};
+		"\u5176\u4ed6", "HUD", "\u754c\u9762"};
 	private static final GuiIcon[] CATEGORY_ICONS = {GuiIcon.MENU, GuiIcon.WORLD,
 		GuiIcon.MOVEMENT, GuiIcon.COMBAT, GuiIcon.RENDER, GuiIcon.PLAYER,
-		GuiIcon.FUN, GuiIcon.BOOK, GuiIcon.MISC, GuiIcon.CLIENT};
+		GuiIcon.FUN, GuiIcon.BOOK, GuiIcon.MISC, GuiIcon.CLIENT,
+		GuiIcon.CLIENT};
 
 	private final List<Feature> visibleFeatures = new ArrayList<>();
 	private ScaledEditBox searchBox;

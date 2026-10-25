@@ -16,7 +16,8 @@ public enum Category
 	CHAT("\u804A\u5929"),
 	FUN("\u5A31\u4E50"),
 	ITEMS("\u7269\u54C1"),
-	OTHER("\u5176\u4ED6");
+	OTHER("\u5176\u4ED6"),
+	HUD("HUD");
 
 	private final String name;
 

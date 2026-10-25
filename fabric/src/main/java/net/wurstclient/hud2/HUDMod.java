@@ -32,7 +32,7 @@ public abstract class HUDMod extends Feature
 	private final String name;
 	private final String description;
 	private String translationKey;
-	private Category category = Category.RENDER;
+	private Category category = Category.HUD;
 
 	private int x = 100;
 	private int y = 100;
@@ -138,7 +138,7 @@ public abstract class HUDMod extends Feature
 
 	public final void setCategory(Category category)
 	{
-		this.category = category == null ? Category.RENDER : category;
+		this.category = category == null ? Category.HUD : category;
 	}
 
 	@Override
