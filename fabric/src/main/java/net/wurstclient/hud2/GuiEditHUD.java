@@ -84,7 +84,11 @@ public final class GuiEditHUD extends Screen
 		for(int i = all.size() - 1; i >= 0; i--)
 		{
 			HUDMod mod = all.get(i);
-			if(!mod.isDraggable())
+			// The editor only draws modules that produced a card. Disabled
+			// modules and modules without a world/player would otherwise keep
+			// an invisible hitbox and steal drags from the visible module
+			// underneath the cursor.
+			if(!mod.isEnabled() || !mod.isDraggable() || !mod.hasContent())
 				continue;
 			if(mouseX >= mod.getX() && mouseY >= mod.getY()
 				&& mouseX < mod.getX() + mod.getWidth()
@@ -220,7 +224,8 @@ public final class GuiEditHUD extends Screen
 		y = mod.getY();
 		for(HUDMod other : mods.values())
 		{
-			if(other == mod)
+			// Only snap to modules that are actually visible in the editor.
+			if(other == mod || !other.isEnabled() || !other.hasContent())
 				continue;
 			int ox = other.getX();
 			int oy = other.getY();

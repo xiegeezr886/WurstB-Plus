@@ -49,6 +49,7 @@ public abstract class HUDMod extends Feature
 	private int draggingX;
 	private int draggingY;
 	private int failures;
+	private boolean drewContent;
 
 	private HudManager manager;
 	private final HudAnimation animation = new HudAnimation();
@@ -196,6 +197,7 @@ public abstract class HUDMod extends Feature
 	{
 		this.nvg = nvg;
 		this.partialTicks = partialTicks;
+		drewContent = false;
 		nvg.save();
 		try
 		{
@@ -217,6 +219,22 @@ public abstract class HUDMod extends Feature
 			nvg.restore();
 			this.nvg = null;
 		}
+	}
+
+	/**
+	 * Whether the module actually drew a card in the last frame. Modules that
+	 * need a world or a player return without drawing, so the editor must not
+	 * draw a selection ring around empty space or let those invisible modules
+	 * steal mouse drags.
+	 */
+	public final boolean hasContent()
+	{
+		return drewContent;
+	}
+
+	protected final void markDrawn()
+	{
+		drewContent = true;
 	}
 
 	public final HudAnimation getAnimation()
@@ -281,6 +299,7 @@ public abstract class HUDMod extends Feature
 		if(width < 0 || height < 0)
 			return;
 
+		drewContent = true;
 		float x = this.x + addX * scale;
 		float y = this.y + addY * scale;
 		float w = width * scale;
