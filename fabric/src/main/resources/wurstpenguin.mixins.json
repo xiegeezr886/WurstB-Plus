@@ -8,7 +8,6 @@
   "mixins": [],
   "client": [
     "AbstractBlockStateMixin",
-    "AbstractContainerScreenMixin",
     "AbstractSelectionListMixin",
     "AbstractSignEditScreenMixin",
     "AbstractSliderButtonAccessor",

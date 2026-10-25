@@ -15,10 +15,13 @@ import java.util.Optional;
 
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -212,12 +215,33 @@ public final class HudCompat
 		if(WurstClient.MC.player == null)
 			return Collections.emptyList();
 		List<EffectInfo> effects = new ArrayList<>();
-		for(MobEffectInstance effect : WurstClient.MC.player
+		for(MobEffectInstance instance : WurstClient.MC.player
 			.getActiveEffects())
-			effects.add(new EffectInfo(
-				effect.getEffect().getDisplayName().getString(),
-				effect.getAmplifier(), effect.getDuration(),
-				effect.getEffect().getColor()));
+		{
+			MobEffect type = instance.getEffect();
+			TextureAtlasSprite sprite =
+				WurstClient.MC.getMobEffectTextures().get(type);
+			int texture = -1;
+			float u0 = 0;
+			float v0 = 0;
+			float u1 = 1;
+			float v1 = 1;
+			if(sprite != null)
+			{
+				AbstractTexture atlas = WurstClient.MC.getTextureManager()
+					.getTexture(sprite.atlasLocation());
+				if(atlas != null)
+					texture = atlas.getId();
+				u0 = sprite.getU0();
+				v0 = sprite.getV0();
+				u1 = sprite.getU1();
+				v1 = sprite.getV1();
+			}
+
+			effects.add(new EffectInfo(type.getDisplayName().getString(),
+				instance.getAmplifier(), instance.getDuration(),
+				type.getColor(), texture, u0, v0, u1, v1));
+		}
 		return effects;
 	}
 
@@ -306,7 +330,8 @@ public final class HudCompat
 		for(PlayerInfo info : WurstClient.MC.getConnection()
 			.getOnlinePlayers())
 			players.add(new PlayerEntry(info.getProfile().getName(),
-				info.getLatency(), info.getSkinLocation().toString()));
+				info.getProfile().getId(), info.getLatency(),
+				info.getSkinLocation().toString()));
 		players.sort(Comparator.comparing(PlayerEntry::name,
 			String.CASE_INSENSITIVE_ORDER));
 		return players;
@@ -315,6 +340,13 @@ public final class HudCompat
 	public static boolean playerListVisible()
 	{
 		return WurstClient.MC.options.keyPlayerList.isDown();
+	}
+
+	public static boolean isHypixel()
+	{
+		ServerData server = WurstClient.MC.getCurrentServer();
+		return server != null && server.ip != null && server.ip
+			.toLowerCase(java.util.Locale.ROOT).contains("hypixel.net");
 	}
 
 	public static List<BossBarInfo> bossBars()
@@ -444,13 +476,15 @@ public final class HudCompat
 	}
 
 	public record EffectInfo(String name, int amplifier, int durationTicks,
-		int color)
+		int color, int iconTexture, float iconU0, float iconV0, float iconU1,
+		float iconV1)
 	{}
 
 	public record ScoreLine(String name, int score)
 	{}
 
-	public record PlayerEntry(String name, int ping, String skin)
+	public record PlayerEntry(String name, java.util.UUID uuid, int ping,
+		String skin)
 	{}
 
 	public record BossBarInfo(String name, float progress, int color)
