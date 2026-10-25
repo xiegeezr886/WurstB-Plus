@@ -210,6 +210,10 @@ public final class TestControlServer
 					handleCommand(exchange, method, query);
 					break;
 
+					case "/screen":
+					handleScreen(exchange, method, query);
+					break;
+
 					case "/screenshot":
 					handleScreenshot(exchange, method, query);
 					break;
@@ -529,6 +533,37 @@ public final class TestControlServer
 				return "{\"ok\":false,\"error\":\"" + escape(t.toString())
 					+ "\"}";
 			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleScreen(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String name = query.getOrDefault("name", "pause");
+		String result = onClientThread(() -> {
+			if(WurstClient.MC == null)
+				return "{\"ok\":false,\"error\":\"no minecraft\"}";
+			switch(name)
+			{
+				case "pause":
+				WurstClient.MC.setScreen(
+					new net.minecraft.client.gui.screens.PauseScreen(true));
+				break;
+
+				case "none":
+				WurstClient.MC.setScreen(null);
+				break;
+
+				default:
+				return "{\"ok\":false,\"error\":\"unknown screen\"}";
+			}
+			return "{\"ok\":true}";
 		});
 		send(exchange, 200, "application/json", result);
 	}

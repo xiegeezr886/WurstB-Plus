@@ -163,19 +163,27 @@ public final class HudManager
 	}
 
 	/**
-	 * Keeps the hotbar replacement visible while a screen (ClickGUI,
-	 * Navigator, inventory, chat, ...) is open.
+	 * HUD elements that stay visible while a screen (game menu, ClickGUI,
+	 * Navigator, ...) is open. They are composited before the screen render,
+	 * so the screen overlay dims them instead of being covered by them.
 	 */
+	private static final String[] SCREEN_PERSISTENT_MODULES = {"Scoreboard",
+		"PotionStatus", "ModernHotbar"};
+
 	private void drawScreenOverlayModules(NanoVGContext nvg, float partialTicks)
 	{
-		HUDMod hotbar = mods.get("ModernHotbar");
-		if(hotbar == null || !hotbar.isEnabled())
-			return;
-
 		int screenWidth = WURST.MC.getWindow().getGuiScaledWidth();
 		int screenHeight = WURST.MC.getWindow().getGuiScaledHeight();
-		hotbar.clampToScreen(screenWidth, screenHeight);
-		hotbar.render(nvg, partialTicks);
+
+		for(String id : SCREEN_PERSISTENT_MODULES)
+		{
+			HUDMod mod = mods.get(id);
+			if(mod == null || !mod.isEnabled())
+				continue;
+
+			mod.clampToScreen(screenWidth, screenHeight);
+			mod.render(nvg, partialTicks);
+		}
 	}
 
 	private void drawModules(NanoVGContext nvg, float partialTicks)

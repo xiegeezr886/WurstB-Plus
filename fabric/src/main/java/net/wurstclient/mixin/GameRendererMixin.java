@@ -202,7 +202,15 @@ public abstract class GameRendererMixin implements AutoCloseable
 			WurstClient.INSTANCE.getHudManager().prepareFrame(partialTick);
 	}
 
-	@Inject(at = @At("TAIL"), method = "render(FJZ)V")
+	/**
+	 * Composites the HUD right after the vanilla GUI pass and before the
+	 * screen render, so open screens (game menu, ClickGUI, Navigator, ...)
+	 * draw their overlay on top of it instead of the HUD floating above them.
+	 */
+	@Inject(at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/gui/Gui;render(Lnet/minecraft/client/gui/GuiGraphics;F)V",
+		shift = At.Shift.AFTER),
+		method = "render(FJZ)V")
 	private void onRenderHud(float partialTick, long nanoTime,
 		boolean renderLevel, CallbackInfo ci)
 	{
