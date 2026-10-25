@@ -288,6 +288,22 @@ public final class HackList implements UpdateListener
 	public final AutoBreedHack autoBreedHack = new AutoBreedHack();
 	public final AutoSmelterHack autoSmelterHack = new AutoSmelterHack();
 	public final NotifierHack notifierHack = new NotifierHack();
+	public final CrosshairHack crosshairHack = new CrosshairHack();
+	public final ReachCirclesHack reachCirclesHack = new ReachCirclesHack();
+	public final ProjectileTrailHack projectileTrailHack = new ProjectileTrailHack();
+	public final JumpCircleHack jumpCircleHack = new JumpCircleHack();
+	public final ClickEffectHack clickEffectHack = new ClickEffectHack();
+	public final ShinyPotsHack shinyPotsHack = new ShinyPotsHack();
+	public final KillSoundsHack killSoundsHack = new KillSoundsHack();
+	public final KillEffectsHack killEffectsHack = new KillEffectsHack();
+	public final MechvibesHack mechvibesHack = new MechvibesHack();
+	public final PackDisplayHack packDisplayHack = new PackDisplayHack();
+	public final FpsBoostHack fpsBoostHack = new FpsBoostHack();
+	public final MinimalViewBobbingHack minimalViewBobbingHack =
+		new MinimalViewBobbingHack();
+	public final ClientSpooferHack clientSpooferHack = new ClientSpooferHack();
+	public final HypixelHack hypixelHack = new HypixelHack();
+	public final MinemenHack minemenHack = new MinemenHack();
 	public final BlockInfoHack blockInfoHack = new BlockInfoHack();
 	public final SpeedometerHack speedometerHack = new SpeedometerHack();
 	public final PlayerCounterHack playerCounterHack = new PlayerCounterHack();
