@@ -8,6 +8,7 @@
 // Ported from Soar Client v7.1.2 (LGPL-3.0).
 package net.wurstclient.hud2.mods;
 
+import java.awt.Color;
 import java.util.List;
 
 import net.wurstclient.hud2.HUDMod;
@@ -44,23 +45,34 @@ public final class ScoreboardMod extends HUDMod
 		}
 
 		float width = Math.max(120,
-			getTextWidth(title, 10, HudFonts.DEMIBOLD) + 12);
+			getLegacyTextWidth(title, 10, HudFonts.DEMIBOLD) + 12);
 		for(HudCompat.ScoreLine line : lines)
-			width = Math.max(width, getTextWidth(text(line), 9,
-				HudFonts.REGULAR) + 12);
+		{
+			float lineWidth = getLegacyTextWidth(line.name(), 9,
+				HudFonts.REGULAR);
+			if(showNumbers.isChecked())
+				lineWidth += 6 + getTextWidth(Integer.toString(line.score()), 9,
+					HudFonts.REGULAR);
+			width = Math.max(width, lineWidth + 12);
+		}
 
 		float height = 8 + 14 + lines.size() * 12;
 		drawBackground(width, height);
-		drawText(title, 6, 4, 10, HudFonts.DEMIBOLD);
+		drawLegacyText(title, 6, 4, 10, HudFonts.DEMIBOLD);
 		for(int i = 0; i < lines.size(); i++)
-			drawText(text(lines.get(i)), 6, 20 + i * 12, 9,
+		{
+			HudCompat.ScoreLine line = lines.get(i);
+			drawLegacyText(line.name(), 6, 20 + i * 12, 9,
 				HudFonts.REGULAR);
-		setSize(Math.round(width), Math.round(height));
-	}
+			if(!showNumbers.isChecked())
+				continue;
 
-	private String text(HudCompat.ScoreLine line)
-	{
-		return showNumbers.isChecked() ? line.name() + "  " + line.score()
-			: line.name();
+			String number = Integer.toString(line.score());
+			float nameWidth = getLegacyTextWidth(line.name(), 9,
+				HudFonts.REGULAR);
+			drawText(number, 6 + nameWidth + 6, 20 + i * 12, 9,
+				HudFonts.REGULAR, new Color(0xFFFF5555));
+		}
+		setSize(Math.round(width), Math.round(height));
 	}
 }

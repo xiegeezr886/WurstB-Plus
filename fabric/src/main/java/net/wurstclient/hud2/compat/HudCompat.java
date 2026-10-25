@@ -11,10 +11,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -238,8 +241,8 @@ public final class HudCompat
 		{
 			String owner = score.getOwner();
 			PlayerTeam team = scoreboard.getPlayersTeam(owner);
-			String name = team == null ? owner
-				: team.getFormattedName(Component.literal(owner)).getString();
+			String name = team == null ? toLegacy(Component.literal(owner))
+				: toLegacy(team.getFormattedName(Component.literal(owner)));
 			lines.add(new ScoreLine(name, score.getScore()));
 			if(lines.size() >= 15)
 				break;
@@ -254,7 +257,45 @@ public final class HudCompat
 		Objective objective = WurstClient.MC.level.getScoreboard()
 			.getDisplayObjective(1);
 		return objective == null ? ""
-			: objective.getDisplayName().getString();
+			: toLegacy(objective.getDisplayName());
+	}
+
+	/**
+	 * Converts a component into a legacy {@code §}-coded string so the HUD can
+	 * keep team colours and per-run formatting when it draws the text itself.
+	 */
+	public static String toLegacy(Component component)
+	{
+		if(component == null)
+			return "";
+
+		StringBuilder builder = new StringBuilder();
+		component.visit((style, text) ->
+		{
+			builder.append('\u00a7').append('r');
+			TextColor color = style.getColor();
+			if(color != null)
+			{
+				int rgb = color.getValue();
+				builder.append("\u00a7x");
+				for(int shift = 20; shift >= 0; shift -= 4)
+					builder.append('\u00a7').append(
+						Character.forDigit(rgb >> shift & 0xF, 16));
+			}
+			if(style.isBold())
+				builder.append("\u00a7l");
+			if(style.isItalic())
+				builder.append("\u00a7o");
+			if(style.isUnderlined())
+				builder.append("\u00a7n");
+			if(style.isStrikethrough())
+				builder.append("\u00a7m");
+			if(style.isObfuscated())
+				builder.append("\u00a7k");
+			builder.append(text);
+			return Optional.empty();
+		}, Style.EMPTY);
+		return builder.toString();
 	}
 
 	public static List<PlayerEntry> tabPlayers()
