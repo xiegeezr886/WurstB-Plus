@@ -52,7 +52,9 @@ public final class TabGui implements KeyPressListener
 		features.addAll(WURST.getHax().getAllHax());
 		features.addAll(WURST.getCmds().getAllCmds());
 		features.addAll(WURST.getOtfs().getAllOtfs());
-		
+		if(WURST.getHudManager() != null)
+			features.addAll(WURST.getHudManager().getAllFeatures());
+
 		for(Feature feature : features)
 			if(feature.getCategory() != null)
 				tabMap.get(feature.getCategory()).add(feature);

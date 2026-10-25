@@ -24,7 +24,6 @@ public final class NotificationsMod extends HUDMod
 			"HUD notification cards.");
 		this.manager = manager;
 		setTranslationKey("notifications");
-		setCategory(Category.OTHER);
 		setSize(190, 34);
 		setDefaultPosition(520, 8);
 		setDefaultEnabled(true);
