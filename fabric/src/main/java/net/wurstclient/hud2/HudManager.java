@@ -216,6 +216,8 @@ public final class HudManager
 	{
 		mod.clampToScreen(screenWidth, screenHeight);
 		mod.render(nvg, partialTicks);
+		if(!mod.hasContent())
+			return;
 
 		// The selection ring sits exactly on the card's edge, using the same
 		// radius as HUDMod.drawBackground(). Drawing it a few pixels outside

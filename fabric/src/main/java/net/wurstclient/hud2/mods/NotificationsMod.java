@@ -46,6 +46,7 @@ public final class NotificationsMod extends HUDMod
 			// notification would slide horizontally and leave the ring behind.
 			float preview = manager.getNotificationRenderer()
 				.renderPreview(nvg, getX(), getY(), scale);
+			markDrawn();
 			setSize(230, Math.max(36,
 				Math.round(preview / Math.max(scale, 0.01F))));
 			return;
@@ -53,6 +54,8 @@ public final class NotificationsMod extends HUDMod
 
 		float height = manager.getNotificationRenderer().render(nvg, getX(),
 			getY(), scale, manager.getSettings().getNotificationDurationMs());
+		if(height > 0)
+			markDrawn();
 		setSize(230, Math.max(36, Math.round(height / Math.max(scale, 0.01F))));
 	}
 }

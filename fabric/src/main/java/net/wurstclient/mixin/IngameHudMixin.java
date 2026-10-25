@@ -17,6 +17,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hack.HackList;
+import net.wurstclient.hud2.HUDMod;
+import net.wurstclient.hud2.HudManager;
 
 @Mixin(Gui.class)
 public class IngameHudMixin
@@ -51,7 +53,32 @@ public class IngameHudMixin
 		HackList hax = WurstClient.INSTANCE.getHax();
 		if(hax == null || !hax.noVignetteHack.isEnabled())
 			return;
-		
+
+		ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"),
+		method = "renderHotbar(FLnet/minecraft/client/gui/GuiGraphics;)V",
+		cancellable = true)
+	private void onRenderHotbar(float partialTicks, GuiGraphics context,
+		CallbackInfo ci)
+	{
+		WurstClient wurst = WurstClient.INSTANCE;
+		if(wurst == null || WurstClient.MC == null)
+			return;
+
+		HudManager hud = wurst.getHudManager();
+		if(hud == null)
+			return;
+
+		HUDMod hotbar = hud.getModule("ModernHotbar");
+		if(hotbar == null || !hotbar.isEnabled())
+			return;
+
+		// Keep the vanilla hotbar while the HUD itself is hidden.
+		if(WurstClient.MC.options.hideGui || WurstClient.MC.screen != null)
+			return;
+
 		ci.cancel();
 	}
 }
