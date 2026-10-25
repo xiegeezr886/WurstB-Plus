@@ -1,258 +1,160 @@
+/*
+ * Copyright (c) 2026 WurstB+ Plus contributors
+ *
+ * This source code is subject to the terms of the GNU Affero General Public
+ * License, version 3. If a copy of the AGPL was not distributed with this
+ * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
+ */
 package net.wurstclient.hud2;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.wurstclient.WurstClient;
-import net.wurstclient.clickgui2.FlatRenderer;
-import net.wurstclient.events.GUIRenderListener;
+import net.wurstclient.hud2.nanovg.HudFonts;
+import net.wurstclient.hud2.nanovg.NanoVGContext;
 
-public final class HudNotificationRenderer implements GUIRenderListener
+/**
+ * NanoVG notification cards.
+ *
+ * <p>Style based on Soar Client v7.1.2's notification renderer; the cards are
+ * owned by the {@code Notifications} HUD module so they can be dragged and
+ * scaled with the rest of the HUD.
+ */
+public final class HudNotificationRenderer
 {
-	private final ArrayList<NotificationEntry> entries = new ArrayList<>();
-	private static final int MIN_WIDTH = 180;
-	private static final int PADDING = 8;
-	private static final int CARD_RADIUS = 4;
-	private static final int CARD_GAP = 4;
-	static final long DURATION_NANOS = 3_000_000_000L;
+	private static final int CARD_WIDTH = 190;
+	private static final int CARD_HEIGHT = 34;
+	private static final int GAP = 4;
 	private static final int MAX_NOTIFICATIONS = 8;
 
-	HudNotificationRenderer() {}
+	private final ArrayList<Entry> entries = new ArrayList<>();
 
-	void addNotification(String title, String message,
+	public HudNotificationRenderer() {}
+
+	public void addNotification(String title, String message,
 		NotificationSeverity severity)
 	{
 		synchronized(entries)
 		{
 			if(severity == NotificationSeverity.ENABLED
 				|| severity == NotificationSeverity.DISABLED)
-				for(Iterator<NotificationEntry> it = entries.iterator();
-					it.hasNext();)
+				for(Iterator<Entry> it = entries.iterator(); it.hasNext();)
 				{
-					NotificationEntry e = it.next();
-					if(e.message.equals(message))
+					Entry entry = it.next();
+					if(entry.message.equals(message))
 						it.remove();
 				}
 
 			while(entries.size() >= MAX_NOTIFICATIONS)
 				entries.remove(0);
-			entries.add(new NotificationEntry(title, message, severity));
+			entries.add(new Entry(title, message, severity));
 		}
 	}
 
-	void renderPreview(GuiGraphics graphics, int x, int y)
+	public int getCount()
 	{
-		NotificationEntry preview = new NotificationEntry("Notifications",
-			"HUD notification preview", NotificationSeverity.INFO);
-		drawCard(graphics, preview, x, y, x + MIN_WIDTH,
-			y + PADDING * 2 + 22, 1, 0.62F);
+		synchronized(entries)
+		{
+			return entries.size();
+		}
 	}
 
-	@Override
-	public void onRenderGUI(GuiGraphics graphics, float partialTicks)
+	public float getHeight(float scale)
 	{
-		if(!WurstClient.INSTANCE.isEnabled())
-			return;
+		synchronized(entries)
+		{
+			return entries.size() * (CARD_HEIGHT + GAP) * scale;
+		}
+	}
 
-		HudLayout layout = WurstClient.INSTANCE.getHudManager().getLayout();
-		HudLayout.HudElementConfig config = layout.get("notifications");
-		if(config == null || !config.isEnabled())
-			return;
-
-		int screenW = graphics.guiWidth();
-		int screenH = graphics.guiHeight();
-
-		float posY;
-		if(config.getVerticalAlignment()
-			.equals(HudLayout.HudElementConfig.VERTICAL_BOTTOM))
-			posY = screenH - config.getVerticalOffset();
-		else
-			posY = config.getVerticalOffset();
-
-		long now = System.nanoTime();
+	/**
+	 * Draws the notification stack and returns the height it used.
+	 */
+	public float render(NanoVGContext nvg, float x, float y, float scale,
+		long durationMs)
+	{
+		long now = System.currentTimeMillis();
+		float offset = 0;
 
 		synchronized(entries)
 		{
-			for(Iterator<NotificationEntry> it = entries.iterator();
-				it.hasNext();)
+			for(Iterator<Entry> it = entries.iterator(); it.hasNext();)
 			{
-				NotificationEntry entry = it.next();
-				float visibility = entry.update(now);
-				float lifetimeProgress = entry.getLifetimeProgress(now);
-
-				if(lifetimeProgress >= 1 && entry.active)
-					entry.active = false;
-
-				if(!entry.active && visibility <= 0)
+				Entry entry = it.next();
+				long age = now - entry.createdAt;
+				if(age > durationMs + 400)
 				{
 					it.remove();
 					continue;
 				}
 
-				float entryW = entry.getWidth();
-				float entryH = PADDING * 2 + 22;
-				float slide = (entryW + CARD_GAP) * (1 - visibility);
+				float fadeIn = Math.min(1, age / 150F);
+				float fadeOut = Math.min(1,
+					Math.max(0, durationMs + 300 - age) / 300F);
+				float visibility = Math.max(0, Math.min(fadeIn, fadeOut));
+				float slide = (1 - fadeIn) * 24 * scale;
 
-				float x1, x2;
-				if(config.getHorizontalAlignment()
-					.equals(HudLayout.HudElementConfig.HORIZONTAL_RIGHT))
-				{
-					x2 = screenW - config.getHorizontalOffset() + slide;
-					x1 = x2 - entryW;
-				}else
-				{
-					x1 = config.getHorizontalOffset() - slide;
-					x2 = x1 + entryW;
-				}
+				float cardX = x + slide;
+				float cardY = y + offset;
+				float width = CARD_WIDTH * scale;
+				float height = CARD_HEIGHT * scale;
+				int alpha = Math.round(255 * visibility);
 
-				float cardY;
-				if(config.getVerticalAlignment()
-					.equals(HudLayout.HudElementConfig.VERTICAL_BOTTOM))
-					cardY = posY - entryH * visibility;
-				else
-					cardY = posY;
+				nvg.drawRoundedRect(cardX, cardY, width, height, 5 * scale,
+					toColor(withAlpha(0xE6141414, alpha)));
+				nvg.drawRoundedRect(cardX, cardY, 3 * scale, height,
+					2 * scale, toColor(withAlpha(
+						severityColor(entry.severity), alpha)));
+				nvg.drawText(entry.title, cardX + 10 * scale,
+					cardY + 5 * scale, 9 * scale, HudFonts.DEMIBOLD,
+					toColor(withAlpha(0xFFFFFFFF, alpha)));
+				nvg.drawText(entry.message, cardX + 10 * scale,
+					cardY + 17 * scale, 8 * scale, HudFonts.REGULAR,
+					toColor(withAlpha(0xFFB8B8B8, alpha)));
 
-				int top = Math.round(cardY);
-				int bottom = top + Math.round(entryH);
-				int left = Math.round(x1);
-				int right = Math.round(x2);
-
-				drawCard(graphics, entry, left, top, right, bottom,
-					visibility, lifetimeProgress);
-
-				if(config.getVerticalAlignment()
-					.equals(HudLayout.HudElementConfig.VERTICAL_BOTTOM))
-					posY -= (entryH + CARD_GAP) * visibility;
-				else
-					posY += (entryH + CARD_GAP) * visibility;
+				offset += (CARD_HEIGHT + GAP) * scale * visibility;
 			}
+		}
+
+		return offset;
+	}
+
+	private static int severityColor(NotificationSeverity severity)
+	{
+		try
+		{
+			return 0xFF000000 | Color.decode(severity.getColorHex()).getRGB()
+				& 0xFFFFFF;
+		}catch(NumberFormatException e)
+		{
+			return 0xFF4677FF;
 		}
 	}
 
-	private void drawCard(GuiGraphics graphics, NotificationEntry entry,
-		int left, int top, int right, int bottom, float visibility,
-		float lifetimeProgress)
+	private static int withAlpha(int argb, int alpha)
 	{
-		FlatRenderer.fillRoundedRect(graphics, left, top, right, bottom,
-			CARD_RADIUS, withAlpha(0x050505, Math.round(173 * visibility)));
-
-		FlatRenderer.drawRoundedOutline(graphics, left, top, right, bottom,
-			CARD_RADIUS, withAlpha(0xFFFFFF, Math.round(16 * visibility)));
-
-		int accColor = getAccentColor(entry.severity);
-		FlatRenderer.fillRoundedRect(graphics, left + 1, top + 2, left + 3,
-			bottom - 2, 1,
-			withAlpha(accColor, Math.round(240 * visibility)));
-
-		Font font = WurstClient.MC.font;
-		String title = truncate(entry.title, 26);
-		String message = truncate(entry.message, 34);
-
-		int textX = left + PADDING;
-		int titleY = top + (bottom - top - font.lineHeight * 2 + 2) / 2;
-
-		graphics.drawString(font, title, textX + 1, titleY + 1,
-			withAlpha(0, Math.round(145 * visibility)), false);
-		graphics.drawString(font, title, textX, titleY,
-			withAlpha(0xFFF2F4F7, Math.round(255 * visibility)), false);
-
-		graphics.drawString(font, message, textX + 1, titleY + font.lineHeight + 1,
-			withAlpha(0, Math.round(145 * visibility)), false);
-		graphics.drawString(font, message, textX, titleY + font.lineHeight,
-			withAlpha(0xFF727B88, Math.round(255 * visibility)), false);
-
-		int barLeft = left + PADDING;
-		int barRight = right - PADDING;
-		int barTop = bottom - 4;
-		FlatRenderer.fillRoundedRect(graphics, barLeft, barTop, barRight,
-			barTop + 2, 1,
-			withAlpha(0x2A3036, Math.round(170 * visibility)));
-		int progressRight = barLeft
-			+ Math.round((barRight - barLeft) * lifetimeProgress);
-		if(progressRight > barLeft)
-			FlatRenderer.fillRoundedRect(graphics, barLeft, barTop,
-				progressRight, barTop + 2, 1,
-				withAlpha(accColor, Math.round(230 * visibility)));
+		return (argb & 0xFFFFFF) | Math.max(0, Math.min(255, alpha)) << 24;
 	}
 
-	static float lifetimeProgress(long spawnNanos, long nowNanos)
+	private static Color toColor(int argb)
 	{
-		return Math.max(0, Math.min(1,
-			(float)(nowNanos - spawnNanos) / DURATION_NANOS));
+		return new Color(argb, true);
 	}
 
-	private static int getAccentColor(NotificationSeverity severity)
+	private static final class Entry
 	{
-		if(severity == NotificationSeverity.DISABLED
-			|| severity == NotificationSeverity.ERROR)
-			return 0xFFFFFFFF;
-		WurstClient.INSTANCE.getGui().updateColors();
-		return WurstClient.INSTANCE.getGui().getTheme().accent(1);
-	}
+		private final String title;
+		private final String message;
+		private final NotificationSeverity severity;
+		private final long createdAt = System.currentTimeMillis();
 
-	private static String truncate(String text, int maxLen)
-	{
-		if(text.length() <= maxLen)
-			return text;
-		return text.substring(0, maxLen - 1) + "\u2026";
-	}
-
-	private static int withAlpha(int color, int alpha)
-	{
-		return Math.max(0, Math.min(255, alpha)) << 24 | color & 0xFFFFFF;
-	}
-
-	private static final class NotificationEntry
-	{
-		final String title;
-		final String message;
-		final NotificationSeverity severity;
-		boolean active = true;
-		final long spawnNanos = System.nanoTime();
-		private float progress;
-		private long lastUpdateNanos;
-
-		NotificationEntry(String title, String message,
+		private Entry(String title, String message,
 			NotificationSeverity severity)
 		{
 			this.title = title;
 			this.message = message;
 			this.severity = severity;
-		}
-
-		float getWidth()
-		{
-			Font font = WurstClient.MC.font;
-			float w = font.width(truncate(title, 26));
-			float mw = font.width(truncate(message, 34));
-			float contentW = Math.max(w, mw) + PADDING * 2 + 3;
-			return Math.max(MIN_WIDTH, contentW);
-		}
-
-		float update(long now)
-		{
-			if(lastUpdateNanos == 0)
-			{
-				lastUpdateNanos = now;
-				return progress;
-			}
-
-			float frameTime = Math.min(0.05F,
-				(now - lastUpdateNanos) / 1_000_000_000F);
-			lastUpdateNanos = now;
-			float target = active ? 1 : 0;
-			progress += (target - progress)
-				* (1 - (float)Math.exp(-16 * frameTime));
-			if(Math.abs(target - progress) < 0.002F)
-				progress = target;
-			return progress;
-		}
-
-		float getLifetimeProgress(long now)
-		{
-			return lifetimeProgress(spawnNanos, now);
 		}
 	}
 }

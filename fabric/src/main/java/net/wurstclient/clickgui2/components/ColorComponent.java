@@ -15,6 +15,7 @@ import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.clickgui2.Component;
 import net.wurstclient.clickgui2.screens.EditColorScreen;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.util.ColorUtils;
 import net.wurstclient.util.RenderUtils;
@@ -85,10 +86,10 @@ public final class ColorComponent extends Component
 		// text
 		String name = setting.getTranslatedName();
 		String value = ColorUtils.toHex(setting.getColor());
-		int valueWidth = TR.width(value);
+		float valueWidth = NanoVGUI.width(value, 9F);
 		int txtColor = GUI.getTxtColor();
-		context.drawString(TR, name, x1, y1 + 2, txtColor, false);
-		context.drawString(TR, value, x2 - valueWidth, y1 + 2, txtColor, false);
+		NanoVGUI.text(name, x1, y1 + 2, txtColor, 9F);
+		NanoVGUI.text(value, x2 - valueWidth, y1 + 2, txtColor, 9F);
 	}
 	
 	private String getColorTooltip()

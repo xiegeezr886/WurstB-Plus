@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2026 WurstB+ Plus contributors
+ *
+ * This source code is subject to the terms of the GNU Affero General Public
+ * License, version 3. If a copy of the AGPL was not distributed with this
+ * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
+ */
 package net.wurstclient.hud2;
 
 import java.io.IOException;
@@ -5,128 +12,223 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import com.mojang.blaze3d.pipeline.RenderTarget;
+
+import org.lwjgl.opengl.GL11;
+
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
-import net.wurstclient.event.EventManager;
-import net.wurstclient.events.GUIRenderListener;
-import net.wurstclient.hack.Hack;
-import net.wurstclient.hud2.HudLayout.HudElementConfig;
+import net.wurstclient.hud2.mods.NotificationsMod;
+import net.wurstclient.hud2.nanovg.GlStateGuard;
+import net.wurstclient.hud2.nanovg.NanoVGContext;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
-import net.wurstclient.hud2.elements.CoordsHudElement;
-import net.wurstclient.hud2.elements.ClockHudElement;
-import net.wurstclient.hud2.elements.ArmorHudElement;
-import net.wurstclient.hud2.elements.ComboHudElement;
-import net.wurstclient.hud2.elements.FpsHudElement;
-import net.wurstclient.hud2.elements.InventoryHudElement;
-import net.wurstclient.hud2.elements.KeystrokesHudElement;
-import net.wurstclient.hud2.elements.MinimapHudElement;
-import net.wurstclient.hud2.elements.PingHudElement;
-import net.wurstclient.hud2.elements.PotionHudElement;
-import net.wurstclient.hud2.elements.TargetHudElement;
-import net.wurstclient.hud2.elements.ServerHudElement;
-import net.wurstclient.hud2.elements.SpeedHudElement;
-import net.wurstclient.hud2.elements.TpsHudElement;
-import net.wurstclient.util.ScreenRegistry;
 
-public final class HudManager implements GUIRenderListener
+/**
+ * Soar v7 style HUD manager.
+ *
+ * <p>Owns every {@link HUDMod}, loads/saves the absolute position, scale and
+ * enabled state, and draws the whole HUD through NanoVG after the vanilla GUI
+ * pass.
+ */
+public final class HudManager
 {
 	private static final WurstClient WURST = WurstClient.INSTANCE;
-	private final Map<String, HudElement> elements = new LinkedHashMap<>();
-	private final HudLayout layout = new HudLayout();
-	private final Map<String, String> elementDisplayNames = new LinkedHashMap<>();
-	private final HudNotificationRenderer notificationRenderer;
-	private Path layoutFile;
+	private static final Map<String, String> LEGACY_IDS = Map.ofEntries(
+		Map.entry("fps", "FPSDisplay"),
+		Map.entry("coords", "Coords"),
+		Map.entry("coordinates", "Coords"),
+		Map.entry("ping", "PingDisplay"),
+		Map.entry("tps", "Tps"),
+		Map.entry("speed", "Speedometer"),
+		Map.entry("server", "ServerIPDisplay"),
+		Map.entry("clock", "Clock"),
+		Map.entry("armor", "ArmorStatus"),
+		Map.entry("potions", "PotionStatus"),
+		Map.entry("potion_effects", "PotionStatus"),
+		Map.entry("combo", "ComboCounter"),
+		Map.entry("keystrokes", "Keystrokes"),
+		Map.entry("target_hud", "TargetInfo"),
+		Map.entry("inventory", "InventoryDisplay"),
+		Map.entry("minimap", "Minimap"),
+		Map.entry("notifications", "Notifications"),
+		Map.entry("hacklist", "ArrayList"),
+		Map.entry("logo", "Logo"));
+
+	private final Map<String, HUDMod> mods = new LinkedHashMap<>();
+	private final HudSettingsFeature settings = new HudSettingsFeature();
+	private final HudNotificationRenderer notificationRenderer =
+		new HudNotificationRenderer();
+
+	private Path stateFile;
+	private boolean started;
+	private boolean stopping;
 
 	public HudManager()
 	{
-		notificationRenderer = new HudNotificationRenderer();
+		registerDefaults();
 	}
 
 	public void start()
 	{
-		layoutFile = WURST.getWurstFolder().resolve("hud-layout.json");
-		loadLayout();
-		registerDefaultElements();
-		migrateLegacyLayout();
+		stateFile = WURST.getWurstFolder().resolve("soar-hud.json");
+		loadState();
+		HUDMod.setTheme(settings.getTheme());
 
-		for(HudElement element : elements.values())
-		{
-			HudElementConfig config = layout.get(element.getId());
-			if(config != null && config.isEnabled())
-				element.onEnable(this);
-		}
+		for(HUDMod mod : mods.values())
+			if(mod.isEnabled())
+				try
+				{
+					mod.onEnable();
+				}catch(Throwable t)
+				{
+					System.err.println("[HUD] " + mod.getId()
+						+ " failed to enable at startup");
+					t.printStackTrace();
+				}
 
-		EventManager eventManager = WURST.getEventManager();
-		if(eventManager != null)
-			eventManager.add(GUIRenderListener.class, this);
-
-		System.out.println("[HUD] Notification system started");
+		started = true;
+		System.out.println("[HUD] Soar v7 HUD started (" + mods.size()
+			+ " modules)");
 	}
 
 	public void stop()
 	{
-		saveLayout();
-		EventManager eventManager = WURST.getEventManager();
-		if(eventManager != null)
-			eventManager.remove(GUIRenderListener.class, this);
-		for(HudElement element : elements.values())
-		{
-			HudElementConfig config = layout.get(element.getId());
-			if(config != null && config.isEnabled())
-				element.onDisable(this);
-		}
+		stopping = true;
+		saveState();
+		for(HUDMod mod : mods.values())
+			if(mod.isEnabled())
+				mod.onDisable();
+		stopping = false;
+		started = false;
 	}
 
-	@Override
-	public void onRenderGUI(net.minecraft.client.gui.GuiGraphics graphics,
-		float partialTicks)
+	public boolean isStopping()
 	{
-		if(ScreenRegistry.HUD_EDITOR.isOpen())
+		return stopping;
+	}
+
+	public void prepareFrame(float partialTicks)
+	{
+		// Reserved for texture/item capture scheduling.
+	}
+
+	public void renderFrame(float partialTicks)
+	{
+		if(!started || !isVisible()
+			|| WURST.MC.screen instanceof GuiEditHUD)
 			return;
 
-		for(HudElement element : elements.values())
+		NanoVGContext nvg = NanoVGContext.get();
+		if(!nvg.create())
+			return;
+
+		net.wurstclient.hud2.compat.HudItemIcons.capturePending(nvg, 6);
+
+		try(GlStateGuard ignored = GlStateGuard.capture())
 		{
-			HudElementConfig config = layout.get(element.getId());
-			if(config == null || !config.isEnabled()
-				|| element.getId().equals("notifications"))
-				continue;
-			int x = getElementX(config, graphics.guiWidth(), element.getWidth());
-			int y = getElementY(config, graphics.guiHeight(), element.getHeight());
-			element.render(graphics, x, y, partialTicks);
+			if(!nvg.beginFrame())
+				return;
+
+			try
+			{
+				drawModules(nvg, partialTicks);
+			}finally
+			{
+				nvg.endFrame();
+			}
+
+			RenderTarget target = WURST.MC.getMainRenderTarget();
+			target.bindWrite(false);
+			GL11.glViewport(0, 0, target.width, target.height);
+			nvg.composite();
+		}catch(Throwable t)
+		{
+			System.err.println("[HUD] Render failed");
+			t.printStackTrace();
 		}
-		notificationRenderer.onRenderGUI(graphics, partialTicks);
 	}
 
-	public int getElementX(HudElementConfig config, int screenWidth,
-		int elementWidth)
+	private void drawModules(NanoVGContext nvg, float partialTicks)
 	{
-		if(config.getHorizontalAlignment()
-			.equals(HudElementConfig.HORIZONTAL_RIGHT))
-			return screenWidth - elementWidth - config.getHorizontalOffset();
-		return config.getHorizontalOffset();
+		int screenWidth = WURST.MC.getWindow().getGuiScaledWidth();
+		int screenHeight = WURST.MC.getWindow().getGuiScaledHeight();
+
+		for(HUDMod mod : mods.values())
+		{
+			if(!mod.isEnabled())
+				continue;
+
+			mod.clampToScreen(screenWidth, screenHeight);
+			mod.render(nvg, partialTicks);
+		}
 	}
 
-	public int getElementY(HudElementConfig config, int screenHeight,
-		int elementHeight)
+	/**
+	 * Draws all modules (including disabled previews), the editor outlines and
+	 * the snap guides inside the editor's own NanoVG pass.
+	 */
+	public void renderEditor(NanoVGContext nvg, GuiEditHUD editor,
+		float partialTicks)
 	{
-		if(config.getVerticalAlignment().equals(HudElementConfig.VERTICAL_BOTTOM))
-			return screenHeight - elementHeight - config.getVerticalOffset();
-		return config.getVerticalOffset();
+		int screenWidth = WURST.MC.getWindow().getGuiScaledWidth();
+		int screenHeight = WURST.MC.getWindow().getGuiScaledHeight();
+
+		for(HUDMod mod : mods.values())
+		{
+			mod.clampToScreen(screenWidth, screenHeight);
+			if(!mod.isEnabled())
+				nvg.setAlpha(0.35F);
+			mod.render(nvg, partialTicks);
+			nvg.setAlpha(1F);
+
+			boolean hovered = mod.getId().equals(editor.getHoveredId());
+			int color = hovered ? 0xC8FFFFFF : 0x55000000;
+			nvg.drawOutlineRoundedRect(mod.getX() - 2, mod.getY() - 2,
+				mod.getWidth() + 4, mod.getHeight() + 4,
+				Math.max(2, 6.5F * mod.getScale()), 1.5F,
+				new java.awt.Color(color, true));
+		}
+
+		if(editor.getSnapLineX() >= 0)
+			nvg.drawRect(editor.getSnapLineX(), 0, 1, screenHeight,
+				new java.awt.Color(217, 60, 255));
+		if(editor.getSnapLineY() >= 0)
+			nvg.drawRect(0, editor.getSnapLineY(), screenWidth, 1,
+				new java.awt.Color(217, 60, 255));
+	}
+
+	private boolean isVisible()
+	{
+		if(WURST.MC == null || WURST.MC.level == null
+			|| WURST.MC.player == null)
+			return false;
+		if(WURST.MC.options.hideGui)
+			return false;
+		if(settings.hideWithDebug() && WURST.MC.options.renderDebug)
+			return false;
+
+		if(WURST.MC.screen != null
+			&& !(WURST.MC.screen instanceof GuiEditHUD)
+			&& settings.hideWithChat())
+			return false;
+
+		return true;
 	}
 
 	public void addNotification(String title, String message,
 		NotificationSeverity severity)
 	{
-		notificationRenderer.addNotification(title, message, severity);
+		if(settings.showNotifications())
+			notificationRenderer.addNotification(title, message, severity);
 	}
 
 	public void addNotification(Feature feature)
@@ -134,257 +236,299 @@ public final class HudManager implements GUIRenderListener
 		NotificationSeverity severity = feature.isEnabled()
 			? NotificationSeverity.ENABLED : NotificationSeverity.DISABLED;
 		String title = feature.isEnabled() ? "Enabled" : "Disabled";
-		notificationRenderer.addNotification(title, feature.getDisplayName(), severity);
+		addNotification(title, feature.getDisplayName(), severity);
 	}
 
-	public void updateElementLayout(String elementId, String horizontalAlignment,
-		String verticalAlignment, int horizontalOffset, int verticalOffset)
+	void onModuleEnabledChanged(HUDMod mod)
 	{
-		HudElementConfig config = layout.getOrCreate(elementId);
-		config.setHorizontalAlignment(horizontalAlignment);
-		config.setVerticalAlignment(verticalAlignment);
-		config.setHorizontalOffset(horizontalOffset);
-		config.setVerticalOffset(verticalOffset);
-		saveLayout();
+		saveState();
 	}
 
-	void toggleElementEnabled(String elementId)
+	public Map<String, HUDMod> getMods()
 	{
-		HudElementConfig config = layout.get(elementId);
-		if(config != null)
-		{
-			config.setEnabled(!config.isEnabled());
-			HudElement element = elements.get(elementId);
-			if(element != null)
-			{
-				if(config.isEnabled())
-					element.onEnable(this);
-				else
-					element.onDisable(this);
-			}
-			saveLayout();
-		}
+		return mods;
 	}
 
-	public HudLayout getLayout()
+	public HUDMod getModule(String id)
 	{
-		return layout;
+		return mods.get(id);
 	}
 
-	public Map<String, HudElement> getElements()
+	public List<Feature> getAllFeatures()
 	{
-		return elements;
+		List<Feature> features = new ArrayList<>(mods.values());
+		features.add(settings);
+		return features;
 	}
 
-	public void registerElement(HudElement element)
+	public int getFeatureCount()
 	{
-		elements.put(element.getId(), element);
-		elementDisplayNames.put(element.getId(), element.getTranslatedName());
-		layout.addElement(element);
+		return mods.size() + 1;
 	}
 
-	private void registerDefaultElements()
+	public HudSettingsFeature getSettings()
 	{
-		registerElement(new FpsHudElement());
-		registerElement(new CoordsHudElement());
-		registerElement(new PingHudElement());
-		registerElement(new TpsHudElement());
-		registerElement(new SpeedHudElement());
-		registerElement(new ServerHudElement());
-		registerElement(new ClockHudElement());
-		registerElement(new ArmorHudElement());
-		registerElement(new InventoryHudElement());
-		registerElement(new PotionHudElement());
-		registerElement(new ComboHudElement());
-		registerElement(new KeystrokesHudElement());
-		registerElement(new TargetHudElement());
-		registerElement(new MinimapHudElement());
-
-		registerElement(new HudElement("hacklist", "Hack List")
-		{
-			@Override
-			public int getWidth()
-			{
-				return WURST.getHud().getHackList().getWidth();
-			}
-
-			@Override
-			public int getHeight()
-			{
-				return WURST.getHud().getHackList().getHeight();
-			}
-
-			@Override
-			public void render(net.minecraft.client.gui.GuiGraphics graphics,
-				int x, int y, float partialTicks)
-			{
-				HudElementConfig config = layout.get(getId());
-				boolean right = config != null && config
-					.getHorizontalAlignment()
-					.equals(HudElementConfig.HORIZONTAL_RIGHT);
-				if(ScreenRegistry.HUD_EDITOR.isOpen())
-					WURST.getHud().getHackList()
-						.renderPreview(graphics, x, y, right);
-				else
-					WURST.getHud().getHackList().renderAt(graphics,
-						partialTicks, x, y, right);
-			}
-
-			@Override
-			public HudElementConfig getDefaultLayout()
-			{
-				return new HudElementConfig(HudElementConfig.HORIZONTAL_LEFT,
-					HudElementConfig.VERTICAL_TOP, 3, 28);
-			}
-		});
-
-		registerElement(new HudElement("logo", "Logo")
-		{
-			@Override
-			public int getWidth()
-			{
-				return WURST.getHud().getWurstLogo().getWidth();
-			}
-
-			@Override
-			public int getHeight()
-			{
-				return WURST.getHud().getWurstLogo().getHeight();
-			}
-
-			@Override
-			public void render(net.minecraft.client.gui.GuiGraphics graphics,
-				int x, int y, float partialTicks)
-			{
-				WURST.getHud().getWurstLogo().renderAt(graphics, x, y);
-			}
-
-			@Override
-			public HudElementConfig getDefaultLayout()
-			{
-				return new HudElementConfig(HudElementConfig.HORIZONTAL_LEFT,
-					HudElementConfig.VERTICAL_TOP, 4, 4);
-			}
-		});
-
-		registerElement(new HudElement("notifications", "Notifications")
-		{
-			@Override
-			public int getWidth()
-			{
-				return 180;
-			}
-			@Override
-			public int getHeight()
-			{
-				return 38;
-			}
-			@Override
-			public void render(net.minecraft.client.gui.GuiGraphics graphics,
-				int x, int y, float partialTicks)
-			{
-				if(ScreenRegistry.HUD_EDITOR.isOpen())
-					notificationRenderer.renderPreview(graphics, x, y);
-			}
-			@Override
-			public HudElementConfig getDefaultLayout()
-			{
-				return new HudElementConfig(
-					HudElementConfig.HORIZONTAL_RIGHT,
-					HudElementConfig.VERTICAL_BOTTOM, 15, 5);
-			}
-		});
+		return settings;
 	}
 
-	private void migrateLegacyLayout()
+	public HudNotificationRenderer getNotificationRenderer()
 	{
-		HudElementConfig hackList = layout.get("hacklist");
-		HudElementConfig logo = layout.get("logo");
-		if(hackList == null || logo == null || !logo.isEnabled())
+		return notificationRenderer;
+	}
+
+	public HudTheme getTheme()
+	{
+		return settings.getTheme();
+	}
+
+	public void setTheme(HudTheme theme)
+	{
+		settings.setTheme(theme);
+		HUDMod.setTheme(theme);
+		saveState();
+	}
+
+	public void setModuleEnabled(String id, boolean enabled)
+	{
+		HUDMod mod = mods.get(id);
+		if(mod != null)
+			mod.setEnabled(enabled);
+	}
+
+	public void toggleModule(String id)
+	{
+		HUDMod mod = mods.get(id);
+		if(mod != null)
+			mod.setEnabled(!mod.isEnabled());
+	}
+
+	public void moveModule(String id, int x, int y)
+	{
+		HUDMod mod = mods.get(id);
+		if(mod == null)
 			return;
-		if(hackList.getHorizontalOffset() == 3
-			&& hackList.getVerticalOffset() == 3)
-		{
-			hackList.setVerticalOffset(28);
-			saveLayout();
-		}
+		mod.setX(x);
+		mod.setY(y);
+		saveState();
 	}
 
-	private void loadLayout()
+	public void scaleModule(String id, float scale)
 	{
-		if(!Files.isRegularFile(layoutFile))
+		HUDMod mod = mods.get(id);
+		if(mod == null)
 			return;
-
-		try
-		{
-			JsonElement json = JsonUtils.parseFile(layoutFile);
-			if(!json.isJsonObject())
-				return;
-
-			JsonObject root = json.getAsJsonObject();
-			JsonArray elems = root.getAsJsonArray("elements");
-			if(elems == null)
-				return;
-
-			for(JsonElement el : elems)
-			{
-				JsonObject obj = el.getAsJsonObject();
-				String id = obj.get("id").getAsString();
-				HudElementConfig config = layout.getOrCreate(id);
-				if(obj.has("enabled"))
-					config.setEnabled(obj.get("enabled").getAsBoolean());
-				if(obj.has("horizontalAlignment"))
-					config.setHorizontalAlignment(
-						obj.get("horizontalAlignment").getAsString());
-				if(obj.has("verticalAlignment"))
-					config.setVerticalAlignment(
-						obj.get("verticalAlignment").getAsString());
-				if(obj.has("horizontalOffset"))
-					config.setHorizontalOffset(
-						obj.get("horizontalOffset").getAsInt());
-				if(obj.has("verticalOffset"))
-					config.setVerticalOffset(
-						obj.get("verticalOffset").getAsInt());
-			}
-		}catch(IOException | JsonException e)
-		{
-			System.err.println(
-				"[HUD] Failed to load layout: " + e.getMessage());
-		}
+		mod.setScale(scale);
+		saveState();
 	}
 
-	private void saveLayout()
+	private void register(HUDMod mod)
 	{
-		if(layoutFile == null)
+		mod.bindManager(this);
+		mods.put(mod.getId(), mod);
+	}
+
+	private void registerDefaults()
+	{
+		register(new NotificationsMod(this));
+		register(new net.wurstclient.hud2.mods.FPSDisplayMod());
+		register(new net.wurstclient.hud2.mods.PingDisplayMod());
+		register(new net.wurstclient.hud2.mods.CoordsMod());
+		register(new net.wurstclient.hud2.mods.ClockMod());
+		register(new net.wurstclient.hud2.mods.DayCounterMod());
+		register(new net.wurstclient.hud2.mods.GameModeDisplayMod());
+		register(new net.wurstclient.hud2.mods.HealthDisplayMod());
+		register(new net.wurstclient.hud2.mods.ServerIPDisplayMod());
+		register(new net.wurstclient.hud2.mods.SpeedometerMod());
+		register(new net.wurstclient.hud2.mods.WeatherDisplayMod());
+		register(new net.wurstclient.hud2.mods.PlayerCounterMod());
+		register(new net.wurstclient.hud2.mods.MemoryUsageMod());
+		register(new net.wurstclient.hud2.mods.PlayTimeDisplayMod());
+		register(new net.wurstclient.hud2.mods.NameDisplayMod());
+		register(new net.wurstclient.hud2.mods.TpsMod());
+		register(new net.wurstclient.hud2.mods.ArmorStatusMod());
+		register(new net.wurstclient.hud2.mods.PotionStatusMod());
+		register(new net.wurstclient.hud2.mods.KeystrokesMod());
+		register(new net.wurstclient.hud2.mods.MouseStrokesMod());
+		register(new net.wurstclient.hud2.mods.CPSDisplayMod());
+		register(new net.wurstclient.hud2.mods.ComboCounterMod());
+		register(new net.wurstclient.hud2.mods.ReachDisplayMod());
+		register(new net.wurstclient.hud2.mods.ToggleSprintMod());
+		register(new net.wurstclient.hud2.mods.SessionInfoMod());
+		register(new net.wurstclient.hud2.mods.TNTTimerMod());
+		register(new net.wurstclient.hud2.mods.StopwatchMod());
+		register(new net.wurstclient.hud2.mods.BlockInfoMod());
+		register(new net.wurstclient.hud2.mods.ItemInfoMod());
+		register(new net.wurstclient.hud2.mods.TargetInfoMod());
+		register(new net.wurstclient.hud2.mods.ScoreboardMod());
+		register(new net.wurstclient.hud2.mods.PlayerListMod());
+		register(new net.wurstclient.hud2.mods.BossHealthMod());
+		register(new net.wurstclient.hud2.mods.HorseStatsMod());
+		register(new net.wurstclient.hud2.mods.PotionCounterMod());
+		register(new net.wurstclient.hud2.mods.ArrayListMod());
+		register(new net.wurstclient.hud2.mods.LogoMod());
+		register(new net.wurstclient.hud2.mods.PlayerDisplayMod());
+		register(new net.wurstclient.hud2.mods.PackDisplayMod());
+		register(new net.wurstclient.hud2.mods.CalendarMod());
+		register(new net.wurstclient.hud2.mods.CompassMod());
+		register(new net.wurstclient.hud2.mods.PitchDisplayMod());
+		register(new net.wurstclient.hud2.mods.YawDisplayMod());
+		register(new net.wurstclient.hud2.mods.JumpResetIndicatorMod());
+		register(new net.wurstclient.hud2.mods.ViaVersionMod());
+		register(new net.wurstclient.hud2.mods.UHCOverlayMod());
+		register(new net.wurstclient.hud2.mods.AppleSkinMod());
+		register(new net.wurstclient.hud2.mods.InventoryDisplayMod());
+		register(new net.wurstclient.hud2.mods.ModernHotbarMod());
+		register(new net.wurstclient.hud2.mods.MinimapMod());
+		register(new net.wurstclient.hud2.mods.RearviewMod());
+		register(new net.wurstclient.hud2.mods.MusicInfoMod());
+		register(new net.wurstclient.hud2.mods.WebBrowserMod());
+		register(new net.wurstclient.hud2.mods.GodbridgeAssistMod());
+		register(new net.wurstclient.hud2.mods.Skin3DMod());
+		register(new net.wurstclient.hud2.mods.ImageDisplayMod());
+		register(new net.wurstclient.hud2.mods.SoundSubtitlesMod());
+		register(new net.wurstclient.hud2.mods.WaypointMod());
+		register(new net.wurstclient.hud2.mods.TabEditorMod());
+	}
+
+	public void saveState()
+	{
+		if(stateFile == null)
 			return;
 
 		JsonObject root = new JsonObject();
-		JsonArray arr = new JsonArray();
-		for(Map.Entry<String, HudElementConfig> entry : layout.getElements()
-			.entrySet())
+		root.addProperty("schema", 2);
+		root.addProperty("theme", getTheme().getId());
+		JsonArray array = new JsonArray();
+		for(HUDMod mod : mods.values())
 		{
-			JsonObject el = new JsonObject();
-			el.addProperty("id", entry.getKey());
-			el.addProperty("enabled", entry.getValue().isEnabled());
-			el.addProperty("horizontalAlignment",
-				entry.getValue().getHorizontalAlignment());
-			el.addProperty("verticalAlignment",
-				entry.getValue().getVerticalAlignment());
-			el.addProperty("horizontalOffset",
-				entry.getValue().getHorizontalOffset());
-			el.addProperty("verticalOffset",
-				entry.getValue().getVerticalOffset());
-			arr.add(el);
+			JsonObject obj = new JsonObject();
+			obj.addProperty("id", mod.getId());
+			obj.addProperty("x", mod.getX());
+			obj.addProperty("y", mod.getY());
+			obj.addProperty("scale", mod.getScale());
+			obj.addProperty("enabled", mod.isEnabled());
+			array.add(obj);
 		}
-		root.add("elements", arr);
+		root.add("mods", array);
 
 		try
 		{
-			JsonUtils.toJson(root, layoutFile);
+			JsonUtils.toJson(root, stateFile);
 		}catch(IOException | JsonException e)
 		{
-			System.err.println(
-				"[HUD] Failed to save layout: " + e.getMessage());
+			System.err.println("[HUD] Failed to save state: "
+				+ e.getMessage());
 		}
+	}
+
+	private void loadState()
+	{
+		if(stateFile == null || !Files.isRegularFile(stateFile))
+		{
+			loadLegacyLayout();
+			return;
+		}
+
+		try
+		{
+			JsonElement json = JsonUtils.parseFile(stateFile);
+			if(!json.isJsonObject())
+				return;
+			JsonObject root = json.getAsJsonObject();
+
+			if(root.has("theme"))
+				settings.setTheme(HudTheme.byId(root.get("theme").getAsString()));
+
+			JsonArray array = root.getAsJsonArray("mods");
+			if(array == null)
+				return;
+
+			for(JsonElement element : array)
+			{
+				JsonObject obj = element.getAsJsonObject();
+				if(!obj.has("id"))
+					continue;
+				String id = resolveId(obj.get("id").getAsString());
+				HUDMod mod = mods.get(id);
+				if(mod == null)
+					continue;
+
+				if(obj.has("x"))
+					mod.setX(obj.get("x").getAsInt());
+				if(obj.has("y"))
+					mod.setY(obj.get("y").getAsInt());
+				if(obj.has("scale"))
+					mod.setScale(obj.get("scale").getAsFloat());
+				if(obj.has("enabled"))
+					mod.setEnabledSilently(obj.get("enabled").getAsBoolean());
+			}
+		}catch(IOException | JsonException e)
+		{
+			System.err.println("[HUD] Failed to load state: "
+				+ e.getMessage());
+		}
+	}
+
+	private void loadLegacyLayout()
+	{
+		Path legacy = WURST.getWurstFolder().resolve("hud-layout.json");
+		if(!Files.isRegularFile(legacy))
+			return;
+
+		try
+		{
+			JsonElement json = JsonUtils.parseFile(legacy);
+			if(!json.isJsonObject())
+				return;
+			JsonArray elements = json.getAsJsonObject()
+				.getAsJsonArray("elements");
+			if(elements == null)
+				return;
+
+			for(JsonElement element : elements)
+			{
+				JsonObject obj = element.getAsJsonObject();
+				if(!obj.has("id"))
+					continue;
+				HUDMod mod = mods.get(resolveId(obj.get("id").getAsString()));
+				if(mod == null)
+					continue;
+
+				if(obj.has("enabled"))
+					mod.setEnabledSilently(obj.get("enabled").getAsBoolean());
+				if(obj.has("horizontalOffset"))
+					mod.setX(obj.get("horizontalOffset").getAsInt());
+				if(obj.has("verticalOffset"))
+					mod.setY(obj.get("verticalOffset").getAsInt());
+			}
+		}catch(IOException | JsonException e)
+		{
+			System.err.println("[HUD] Failed to migrate hud-layout.json: "
+				+ e.getMessage());
+		}
+	}
+
+	private String resolveId(String rawId)
+	{
+		if(mods.containsKey(rawId))
+			return rawId;
+
+		String id = rawId;
+		if(id.startsWith("hack."))
+			id = id.substring(5);
+
+		String legacy = LEGACY_IDS.get(id.toLowerCase(Locale.ROOT));
+		if(legacy != null)
+			id = legacy;
+
+		for(String candidate : mods.keySet())
+			if(candidate.equalsIgnoreCase(id))
+				return candidate;
+
+		for(HUDMod mod : mods.values())
+			if(mod.getTranslationKey().equalsIgnoreCase(id))
+				return mod.getId();
+
+		return rawId;
 	}
 }

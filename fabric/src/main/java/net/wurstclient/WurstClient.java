@@ -142,7 +142,8 @@ public enum WurstClient
 
 		Path settingsFile = wurstFolder.resolve("settings.json");
 		settingsProfileFolder = wurstFolder.resolve("settings");
-		this.settingsFile = new SettingsFile(settingsFile, hax, cmds, otfs);
+		this.settingsFile = new SettingsFile(settingsFile, hax, cmds, otfs,
+			hudManager);
 		this.settingsFile.load();
 		hax.tooManyHaxHack.loadBlockedHacksFile();
 
@@ -247,6 +248,8 @@ public enum WurstClient
 	}
 	public void shutdown()
 	{
+		if(hudManager != null)
+			hudManager.saveState();
 		shutdownBaritoneExecutor();
 		if(discordRpcManager != null)
 			discordRpcManager.shutdown();

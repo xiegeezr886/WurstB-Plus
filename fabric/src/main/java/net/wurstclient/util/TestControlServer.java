@@ -40,6 +40,9 @@ import com.sun.net.httpserver.HttpServer;
 
 import net.wurstclient.WurstClient;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.hud2.GuiEditHUD;
+import net.wurstclient.hud2.HUDMod;
+import net.wurstclient.hud2.HudManager;
 
 public final class TestControlServer
 {
@@ -165,9 +168,45 @@ public final class TestControlServer
 				handleAll(exchange, method, false);
 				break;
 
-				case "/logs":
-				handleLogs(exchange, query);
-				break;
+					case "/hud":
+					send(exchange, 200, "application/json", listHud());
+					break;
+
+					case "/hud/enableAll":
+					handleHudAll(exchange, method, true);
+					break;
+
+					case "/hud/disableAll":
+					handleHudAll(exchange, method, false);
+					break;
+
+					case "/hud/toggle":
+					handleHudToggle(exchange, method, query);
+					break;
+
+					case "/hud/move":
+					handleHudMove(exchange, method, query);
+					break;
+
+					case "/hud/scale":
+					handleHudScale(exchange, method, query);
+					break;
+
+					case "/hud/open":
+					handleHudEditor(exchange, method, true);
+					break;
+
+					case "/hud/close":
+					handleHudEditor(exchange, method, false);
+					break;
+
+					case "/world/enter":
+					handleWorldEnter(exchange, method, query);
+					break;
+
+					case "/logs":
+					handleLogs(exchange, query);
+					break;
 
 				default:
 				send(exchange, 404, "text/plain", "not found");
@@ -273,6 +312,179 @@ public final class TestControlServer
 					.append('"');
 			}
 			return json.append("]}").toString();
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static String listHud()
+	{
+		HudManager manager = WurstClient.INSTANCE.getHudManager();
+		StringBuilder json = new StringBuilder("{\"modules\":[");
+		boolean first = true;
+		for(HUDMod mod : manager.getMods().values())
+		{
+			if(!first)
+				json.append(',');
+			first = false;
+			json.append("{\"id\":\"").append(escape(mod.getId()))
+				.append("\",\"name\":\"").append(escape(mod.getDisplayName()))
+				.append("\",\"enabled\":").append(mod.isEnabled())
+				.append(",\"x\":").append(mod.getX())
+				.append(",\"y\":").append(mod.getY())
+				.append(",\"scale\":").append(mod.getScale())
+				.append(",\"width\":").append(mod.getWidth())
+				.append(",\"height\":").append(mod.getHeight())
+				.append('}');
+		}
+		return json.append("]}").toString();
+	}
+
+	private static void handleHudAll(HttpExchange exchange, String method,
+		boolean enable) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			int changed = 0;
+			int failed = 0;
+			for(HUDMod mod : WurstClient.INSTANCE.getHudManager().getMods()
+				.values())
+			{
+				try
+				{
+					mod.setEnabled(enable);
+					if(mod.isEnabled() == enable)
+						changed++;
+					else
+						failed++;
+				}catch(Throwable t)
+				{
+					failed++;
+				}
+			}
+			return "{\"ok\":true,\"changed\":" + changed + ",\"failed\":"
+				+ failed + "}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleHudToggle(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String id = query.get("id");
+		boolean enabled = Boolean.parseBoolean(query.getOrDefault("enabled",
+			"true"));
+		String result = onClientThread(() -> {
+			HUDMod mod = WurstClient.INSTANCE.getHudManager().getModule(id);
+			if(mod == null)
+				return "{\"ok\":false,\"error\":\"unknown hud module\"}";
+			mod.setEnabled(enabled);
+			return "{\"ok\":true,\"id\":\"" + escape(mod.getId())
+				+ "\",\"enabled\":" + mod.isEnabled() + "}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleHudMove(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String result = onClientThread(() -> {
+			HUDMod mod = WurstClient.INSTANCE.getHudManager()
+				.getModule(query.get("id"));
+			if(mod == null)
+				return "{\"ok\":false,\"error\":\"unknown hud module\"}";
+			try
+			{
+				mod.setX(Integer.parseInt(query.getOrDefault("x",
+					Integer.toString(mod.getX()))));
+				mod.setY(Integer.parseInt(query.getOrDefault("y",
+					Integer.toString(mod.getY()))));
+				WurstClient.INSTANCE.getHudManager().saveState();
+				return "{\"ok\":true}";
+			}catch(NumberFormatException e)
+			{
+				return "{\"ok\":false,\"error\":\"invalid coordinates\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleHudScale(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String result = onClientThread(() -> {
+			HUDMod mod = WurstClient.INSTANCE.getHudManager()
+				.getModule(query.get("id"));
+			if(mod == null)
+				return "{\"ok\":false,\"error\":\"unknown hud module\"}";
+			try
+			{
+				mod.setScale(Float.parseFloat(query.getOrDefault("scale",
+					Float.toString(mod.getScale()))));
+				WurstClient.INSTANCE.getHudManager().saveState();
+				return "{\"ok\":true}";
+			}catch(NumberFormatException e)
+			{
+				return "{\"ok\":false,\"error\":\"invalid scale\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleHudEditor(HttpExchange exchange, String method,
+		boolean open) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String result = onClientThread(() -> {
+			WurstClient.MC.setScreen(open ? new GuiEditHUD() : null);
+			return "{\"ok\":true}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleWorldEnter(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String name = query.getOrDefault("name", "xray-test");
+		String result = onClientThread(() -> {
+			try
+			{
+				WurstClient.MC.createWorldOpenFlows()
+					.loadLevel(WurstClient.MC.screen, name);
+				return "{\"ok\":true,\"world\":\"" + escape(name) + "\"}";
+			}catch(Throwable t)
+			{
+				return "{\"ok\":false,\"error\":\"" + escape(t.toString())
+					+ "\"}";
+			}
 		});
 		send(exchange, 200, "application/json", result);
 	}

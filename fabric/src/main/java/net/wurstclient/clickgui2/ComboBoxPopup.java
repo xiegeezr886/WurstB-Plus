@@ -11,6 +11,7 @@ import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.EnumSetting;
 
 public final class ComboBoxPopup<T extends Enum<T>> extends Popup
@@ -85,8 +86,8 @@ public final class ComboBoxPopup<T extends Enum<T>> extends Popup
 			FlatRenderer.drawControl(context, x1 + 1, yi1, x2 - 1, yi2,
 				2, GUI.getTheme(), hValue ? 1 : 0, false);
 			
-			context.drawString(TR, value.toString(), x1 + 2, yi1 + 2,
-				GUI.getTxtColor(), false);
+			NanoVGUI.text(value.toString(), x1 + 2, yi1 + 2,
+				GUI.getTxtColor(), 9F);
 		}
 	}
 	

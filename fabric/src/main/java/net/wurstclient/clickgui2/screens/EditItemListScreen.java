@@ -25,9 +25,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.ItemListSetting;
 import net.wurstclient.util.ItemUtils;
-import net.wurstclient.util.RenderUtils;
 
 public final class EditItemListScreen extends Screen
 {
@@ -136,51 +136,53 @@ public final class EditItemListScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		PoseStack matrixStack = context.pose();
+		NanoVGUI.clearDeferred();
 		listGui.render(context, mouseX, mouseY, partialTicks);
-		
-		context.drawCenteredString(minecraft.font,
-			itemList.getTranslatedName() + " (" + itemList.getItemNames().size() + ")",
-			width / 2, 12, 0xFFFFFF);
-		
-		matrixStack.pushPose();
-		matrixStack.translate(0, 0, 300);
-		
 		itemNameField.render(context, mouseX, mouseY, partialTicks);
 		super.render(context, mouseX, mouseY, partialTicks);
-		
-		matrixStack.pushPose();
-		matrixStack.translate(-64 + width / 2 - 152, 0, 0);
-		
-		if(itemNameField.getValue().isEmpty() && !itemNameField.isFocused())
-		{
-			matrixStack.pushPose();
-			matrixStack.translate(0, 0, 300);
-			context.drawString(minecraft.font, "物品名称或ID",
-				68, height - 50, 0x808080);
-			matrixStack.popPose();
-		}
-		
-		int border = itemNameField.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0;
-		int black = 0xFF000000;
-		
-		context.fill(48, height - 56, 64, height - 36, border);
-		context.fill(49, height - 55, 65, height - 37, black);
-		context.fill(214, height - 56, 244, height - 55, border);
-		context.fill(214, height - 37, 244, height - 36, border);
-		context.fill(244, height - 56, 246, height - 36, border);
-		context.fill(213, height - 55, 243, height - 52, black);
-		context.fill(213, height - 40, 243, height - 37, black);
-		context.fill(213, height - 55, 216, height - 37, black);
-		context.fill(242, height - 55, 245, height - 37, black);
-		
-		matrixStack.popPose();
-		
-		RenderUtils.drawItem(context,
-			itemToAdd == null ? ItemStack.EMPTY : new ItemStack(itemToAdd),
-			width / 2 - 164, height - 52, false);
-		
-		matrixStack.popPose();
+
+		NanoVGUI.pass(context, () -> {
+			NanoVGUI.pushScissor(0, 32, width, height - 96);
+			NanoVGUI.runDeferred();
+			NanoVGUI.popScissor();
+
+			NanoVGUI.centeredText(itemList.getTranslatedName() + " ("
+				+ itemList.getItemNames().size() + ")", width / 2, 12,
+				0xFFFFFFFF, 9F);
+
+			int baseX = -64 + width / 2 - 152;
+
+			if(itemNameField.getValue().isEmpty()
+				&& !itemNameField.isFocused())
+				NanoVGUI.text("物品名称或ID", baseX + 68, height - 50,
+					0x808080, 9F);
+
+			int border = itemNameField.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0;
+			int black = 0xFF000000;
+
+			NanoVGUI.fill(baseX + 48, height - 56, baseX + 64, height - 36,
+				border);
+			NanoVGUI.fill(baseX + 49, height - 55, baseX + 65, height - 37,
+				black);
+			NanoVGUI.fill(baseX + 214, height - 56, baseX + 244,
+				height - 55, border);
+			NanoVGUI.fill(baseX + 214, height - 37, baseX + 244,
+				height - 36, border);
+			NanoVGUI.fill(baseX + 244, height - 56, baseX + 246,
+				height - 36, border);
+			NanoVGUI.fill(baseX + 213, height - 55, baseX + 243,
+				height - 52, black);
+			NanoVGUI.fill(baseX + 213, height - 40, baseX + 243,
+				height - 37, black);
+			NanoVGUI.fill(baseX + 213, height - 55, baseX + 216,
+				height - 37, black);
+			NanoVGUI.fill(baseX + 242, height - 55, baseX + 245,
+				height - 37, black);
+
+			NanoVGUI.item(context,
+				itemToAdd == null ? ItemStack.EMPTY : new ItemStack(itemToAdd),
+				width / 2 - 164, height - 52, false);
+		});
 	}
 	
 	@Override
@@ -229,14 +231,14 @@ public final class EditItemListScreen extends Screen
 		{
 			Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(itemName));
 			ItemStack stack = new ItemStack(item);
-			Font tr = minecraft.font;
-			
-			RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
-			context.drawString(tr, getDisplayName(stack), x + 28, y, 0xF0F0F0,
-				false);
-			context.drawString(tr, itemName, x + 28, y + 9, 0xA0A0A0, false);
-			context.drawString(tr, getIdText(item), x + 28, y + 18, 0xA0A0A0,
-				false);
+
+			NanoVGUI.defer(() -> {
+				NanoVGUI.item(context, stack, x + 1, y + 1, true);
+				NanoVGUI.text(getDisplayName(stack), x + 28, y, 0xF0F0F0,
+					9F);
+				NanoVGUI.text(itemName, x + 28, y + 9, 0xA0A0A0, 9F);
+				NanoVGUI.text(getIdText(item), x + 28, y + 18, 0xA0A0A0, 9F);
+			});
 		}
 		
 		private String getDisplayName(ItemStack stack)

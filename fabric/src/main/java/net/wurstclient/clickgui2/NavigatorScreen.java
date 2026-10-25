@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -17,6 +16,7 @@ import net.wurstclient.Category;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.theme.FlatTheme;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import org.lwjgl.glfw.GLFW;
 
 public final class NavigatorScreen extends Screen
@@ -28,7 +28,6 @@ public final class NavigatorScreen extends Screen
 	private static final int MODULE_HEIGHT = 25;
 	private static final int MODULE_GAP = 4;
 	private static final int CATEGORY_HEIGHT = 13;
-	private static final float TEXT_SCALE = 0.75F;
 	private static final float SEARCH_TEXT_SCALE = 0.72F;
 
 	private static final int OVERLAY = 0x18000000;
@@ -153,42 +152,52 @@ public final class NavigatorScreen extends Screen
 	{
 		updateDimensions();
 		WURST.getGui().updateColors();
-		graphics.fill(0, 0, width, height, OVERLAY);
-		FlatUiRenderer.panel(graphics, panelX, panelY, panelX + panelWidth,
-			panelY + panelHeight, 8, PANEL, 0xFF202020);
-		FlatUiRenderer.fill(graphics, panelX + 1, panelY + 1,
-			panelX + sidebarWidth, panelY + panelHeight - 1, 7, SIDEBAR);
-		graphics.fill(panelX + sidebarWidth, panelY + 1,
-			panelX + panelWidth - 1, panelY + panelHeight - 1, CONTENT);
-		graphics.fill(panelX + sidebarWidth, panelY + 10,
-			panelX + sidebarWidth + 1, panelY + panelHeight - 10, DIVIDER);
 
-		renderSidebar(graphics, mouseX, mouseY, partialTicks);
-		if(settingsPanel == null)
-			renderModules(graphics, mouseX, mouseY);
-		else
-			renderSettings(graphics, mouseX, mouseY, partialTicks);
+		NanoVGUI.pass(graphics, () -> {
+			NanoVGUI.fill(0, 0, width, height, OVERLAY);
+			FlatUiRenderer.panel(graphics, panelX, panelY,
+				panelX + panelWidth, panelY + panelHeight, 8, PANEL,
+				0xFF202020);
+			FlatUiRenderer.fill(graphics, panelX + 1, panelY + 1,
+				panelX + sidebarWidth, panelY + panelHeight - 1, 7, SIDEBAR);
+			NanoVGUI.fill(panelX + sidebarWidth, panelY + 1,
+				panelX + panelWidth - 1, panelY + panelHeight - 1, CONTENT);
+			NanoVGUI.fill(panelX + sidebarWidth, panelY + 10,
+				panelX + sidebarWidth + 1, panelY + panelHeight - 10,
+				DIVIDER);
 
-		WURST.getGui().renderPopups(graphics, mouseX, mouseY);
-		WURST.getGui().renderTooltip(graphics, mouseX, mouseY);
+			renderSidebar(graphics, mouseX, mouseY, partialTicks);
+		});
+
+		if(searchBox.visible)
+			searchBox.render(graphics, mouseX, mouseY, partialTicks);
+
+		NanoVGUI.pass(graphics, () -> {
+			if(settingsPanel == null)
+				renderModules(graphics, mouseX, mouseY);
+			else
+				renderSettings(graphics, mouseX, mouseY, partialTicks);
+
+			WURST.getGui().renderPopups(graphics, mouseX, mouseY);
+			WURST.getGui().renderTooltip(graphics, mouseX, mouseY);
+		});
 	}
 
 	private void renderSidebar(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		Font font = MC.font;
-		String brand = WurstClient.CLIENT_NAME;
 		String brandPrefix = "WurstB+ ";
 		String brandAccent = "Plus";
-		float brandScale = Math.min(1,
-			(sidebarWidth - 16F) / Math.max(1, font.width(brand)));
-		graphics.pose().pushPose();
-		graphics.pose().translate(panelX + 8, panelY + 9, 0);
-		graphics.pose().scale(brandScale, 1, 1);
-		graphics.drawString(font, brandPrefix, 0, 0, TEXT, false);
-		graphics.drawString(font, brandAccent, font.width(brandPrefix), 0,
-			ACCENT, false);
-		graphics.pose().popPose();
+		float brandSize = 11F;
+		float brandWidth = NanoVGUI.width(brandPrefix, brandSize)
+			+ NanoVGUI.width(brandAccent, brandSize);
+		float brandScale = Math.min(1F,
+			(sidebarWidth - 16F) / Math.max(1F, brandWidth));
+		brandSize *= brandScale;
+		NanoVGUI.text(brandPrefix, panelX + 8, panelY + 9, TEXT, brandSize);
+		NanoVGUI.text(brandAccent,
+			panelX + 8 + NanoVGUI.width(brandPrefix, brandSize), panelY + 9,
+			ACCENT, brandSize);
 
 		int searchX = panelX + 12;
 		int searchY = panelY + 27;
@@ -197,16 +206,14 @@ public final class NavigatorScreen extends Screen
 		searchBox.setY(searchY);
 		searchBox.setWidth(Math.max(12, sidebarWidth - 40));
 		searchBox.visible = settingsPanel == null;
-		if(searchBox.visible)
-			searchBox.render(graphics, mouseX, mouseY, partialTicks);
 
 		int top = panelY + 43;
 		int bottom = panelY + panelHeight - 8;
 		int visibleRows = Math.max(1, (bottom - top) / CATEGORY_HEIGHT);
 		categoryScroll = Mth.clamp(categoryScroll, 0,
 			Math.max(0, CATEGORY_NAMES.length - visibleRows));
-		graphics.enableScissor(panelX + 4, top, panelX + sidebarWidth - 4,
-			bottom);
+		NanoVGUI.pushScissor(panelX + 4, top, sidebarWidth - 8,
+			bottom - top);
 		for(int row = 0; row < visibleRows; row++)
 		{
 			int index = row + categoryScroll;
@@ -221,18 +228,18 @@ public final class NavigatorScreen extends Screen
 			{
 				int selectionRight = Math.min(panelX + sidebarWidth - 8,
 					panelX + 26
-						+ Math.round(font.width(CATEGORY_NAMES[index])
-							* TEXT_SCALE));
+						+ Math.round(NanoVGUI.width(CATEGORY_NAMES[index],
+							8F)));
 				FlatUiRenderer.fill(graphics, panelX + 8, y,
 					selectionRight, y + 12, 2,
 					selected ? accentColor() : 0xFF151515);
 			}
 			int color = selected ? TEXT : MUTED;
 			CATEGORY_ICONS[index].draw(graphics, panelX + 10, y + 2, 8, color);
-			drawText(graphics, font, CATEGORY_NAMES[index], panelX + 21, y + 3,
-				TEXT);
+			NanoVGUI.text(CATEGORY_NAMES[index], panelX + 21, y + 3, TEXT,
+				8F);
 		}
-		graphics.disableScissor();
+		NanoVGUI.popScissor();
 	}
 
 	private void renderModules(GuiGraphics graphics, int mouseX, int mouseY)
@@ -245,7 +252,7 @@ public final class NavigatorScreen extends Screen
 			(listBottom - listTop + MODULE_GAP) / (MODULE_HEIGHT + MODULE_GAP));
 		moduleScroll = Mth.clamp(moduleScroll, 0,
 			Math.max(0, visibleFeatures.size() - visibleRows));
-		graphics.enableScissor(left, listTop, right, listBottom);
+		NanoVGUI.pushScissor(left, listTop, right - left, listBottom - listTop);
 		for(int row = 0; row < visibleRows; row++)
 		{
 			int index = row + moduleScroll;
@@ -255,7 +262,7 @@ public final class NavigatorScreen extends Screen
 			renderModule(graphics, visibleFeatures.get(index), left, y, right,
 				mouseX, mouseY);
 		}
-		graphics.disableScissor();
+		NanoVGUI.popScissor();
 		if(visibleFeatures.size() > visibleRows)
 		{
 			int trackHeight = listBottom - listTop;
@@ -265,14 +272,14 @@ public final class NavigatorScreen extends Screen
 			int maxScroll = visibleFeatures.size() - visibleRows;
 			int thumbY = listTop + Math.round((trackHeight - thumbHeight)
 				* moduleScroll / (float)Math.max(1, maxScroll));
-			graphics.fill(right - 2, listTop, right, listBottom, 0xFF111111);
-			graphics.fill(right - 2, thumbY, right, thumbY + thumbHeight,
+			NanoVGUI.fill(right - 2, listTop, right, listBottom, 0xFF111111);
+			NanoVGUI.fill(right - 2, thumbY, right, thumbY + thumbHeight,
 				accentColor());
 		}
 
 		if(visibleFeatures.isEmpty())
-			graphics.drawCenteredString(MC.font, "\u6ca1\u6709\u5339\u914d\u7684\u529f\u80fd",
-				(left + right) / 2, listTop + 28, MUTED);
+			NanoVGUI.centeredText("\u6ca1\u6709\u5339\u914d\u7684\u529f\u80fd",
+				(left + right) / 2, listTop + 28, MUTED, 9F);
 	}
 
 	private void renderModule(GuiGraphics graphics, Feature feature, int left,
@@ -283,16 +290,14 @@ public final class NavigatorScreen extends Screen
 		FlatUiRenderer.fill(graphics, left, y, right, y + MODULE_HEIGHT, 4,
 			hovering ? ROW_HOVER : ROW);
 
-		Font font = MC.font;
 		int textWidth = Math.max(40, right - left - 56);
-		String name = font.plainSubstrByWidth(feature.getDisplayName(),
-			Math.round(textWidth / TEXT_SCALE));
-		String description = font.plainSubstrByWidth(
-			FeatureMenuSupport.getOneLineDescription(feature),
-			Math.round(textWidth / TEXT_SCALE));
-		drawText(graphics, font, name, left + 7, y + 4,
-			feature.isEnabled() ? accentColor() : TEXT);
-		drawText(graphics, font, description, left + 7, y + 15, MUTED);
+		String name = NanoVGUI.plainSubstrByWidth(feature.getDisplayName(),
+			textWidth, 8F);
+		String description = NanoVGUI.plainSubstrByWidth(
+			FeatureMenuSupport.getOneLineDescription(feature), textWidth, 8F);
+		NanoVGUI.text(name, left + 7, y + 4,
+			feature.isEnabled() ? accentColor() : TEXT, 8F);
+		NanoVGUI.text(description, left + 7, y + 15, MUTED, 8F);
 		if(!feature.getSettings().isEmpty())
 			GuiIcon.CHEVRON.drawRotated(graphics, right - 13, y + 9, 7, MUTED,
 				-90);
@@ -311,11 +316,10 @@ public final class NavigatorScreen extends Screen
 		FlatUiRenderer.fill(graphics, left, top - 3, left + 20, top + 17, 3,
 			backHover ? ROW_HOVER : ROW);
 		GuiIcon.CHEVRON.drawRotated(graphics, left + 6, top + 3, 8, TEXT, 90);
-		graphics.drawString(MC.font, feature.getDisplayName(), left + 29, top,
-			feature.isEnabled() ? accentColor() : TEXT, false);
-		graphics.drawString(MC.font,
-			settingsPanel.getVisibleSettingCount() + " settings", left + 29,
-			top + 14, MUTED, false);
+		NanoVGUI.text(feature.getDisplayName(), left + 29, top,
+			feature.isEnabled() ? accentColor() : TEXT, 9F);
+		NanoVGUI.text(settingsPanel.getVisibleSettingCount() + " settings",
+			left + 29, top + 14, MUTED, 9F);
 
 		int toggleX = right - 32;
 		FlatUiRenderer.fill(graphics, toggleX, top + 3, right, top + 15, 6,
@@ -584,15 +588,6 @@ public final class NavigatorScreen extends Screen
 		return x >= left && x < right && y >= top && y < bottom;
 	}
 
-	private static void drawText(GuiGraphics graphics, Font font, String text,
-		int x, int y, int color)
-	{
-		graphics.pose().pushPose();
-		graphics.pose().translate(x, y, 0);
-		graphics.pose().scale(TEXT_SCALE, TEXT_SCALE, 1);
-		graphics.drawString(font, text, 0, 0, color, false);
-		graphics.pose().popPose();
-	}
 
 	private int accentColor()
 	{

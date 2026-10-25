@@ -19,8 +19,8 @@ import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.Window;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
 import net.wurstclient.clickgui2.screens.EditBlockScreen;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.BlockSetting;
-import net.wurstclient.util.RenderUtils;
 
 public final class BlockComponent extends Component
 {
@@ -79,16 +79,16 @@ public final class BlockComponent extends Component
 		float hover = hoverAnimation.update(hBlock);
 		FlatRenderer.drawControl(context, x1, y1, x2, y2, 3,
 			GUI.getTheme(), hover, false);
-		context.fill(x3, y1 + 3, x3 + 1, y2 - 3,
+		NanoVGUI.fill(x3, y1 + 3, x3 + 1, y2 - 3,
 			GUI.getTheme().accent(0.22F));
-		
+
 		// text
 		String name = setting.getTranslatedName() + ":";
-		context.drawString(TR, name, x1, y1 + 2, GUI.getTxtColor(), false);
-		
+		NanoVGUI.text(name, x1, y1 + 2, GUI.getTxtColor(), 9F);
+
 		// block
 		ItemStack stack = new ItemStack(setting.getBlock());
-		RenderUtils.drawItem(context, stack, x3 + 4, y1 + 4, true);
+		NanoVGUI.item(context, stack, x3 + 4, y1 + 4, true);
 	}
 	
 	private boolean isHovering(int mouseX, int mouseY, int x1, int y1, int x2,

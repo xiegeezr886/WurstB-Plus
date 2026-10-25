@@ -30,6 +30,7 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.GuiPreferences.TargetType;
 import net.wurstclient.clickgui2.window.Window;
 import net.wurstclient.hacks.TooManyHaxHack;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.keybinds.PossibleKeybind;
 import net.wurstclient.options.EnterProfileNameScreen;
 import net.wurstclient.util.ChatUtils;
@@ -49,7 +50,7 @@ public final class ClickGuiScreen extends Screen
 	private static final int SEARCH_WIDTH = 140;
 	private static final int MAX_VISIBLE_ROWS = 18;
 	private static final int COMBAT_VISIBLE_ROWS = 15;
-	private static final float TEXT_SCALE = 0.75F;
+	private static final float ROW_TEXT_SIZE = 8F;
 	private static final int WINDOW_FILL = 0xFF050505;
 	private static final int HEADER_FILL = 0xFF090909;
 	private static final int ROW_FILL = 0xFF111111;
@@ -252,21 +253,28 @@ public final class ClickGuiScreen extends Screen
 		float partialTicks)
 	{
 		ClickGui gui = WURST.getGui();
-		gui.renderBackdrop(graphics);
+
+		NanoVGUI.pass(graphics, () -> {
+			gui.renderBackdrop(graphics);
+			if(searchVisible)
+				FlatRenderer.drawControl(graphics, searchBox.getX() - 3,
+					searchBox.getY() - 2,
+					searchBox.getX() + searchBox.getWidth() + 3,
+					searchBox.getY() + searchBox.getHeight() + 2, 2,
+					gui.getTheme(), searchBox.isFocused() ? 1 : 0, false);
+		});
+
 		if(searchVisible)
 		{
-			FlatRenderer.drawControl(graphics, searchBox.getX() - 3,
-				searchBox.getY() - 2,
-				searchBox.getX() + searchBox.getWidth() + 3,
-				searchBox.getY() + searchBox.getHeight() + 2, 2, gui.getTheme(),
-				searchBox.isFocused() ? 1 : 0, false);
 			searchBox.setTextColor(gui.getTheme().text());
 			searchBox.render(graphics, mouseX, mouseY, partialTicks);
 		}
 
-		for(TemplateWindow window : windows)
-			window.render(graphics, mouseX, mouseY, partialTicks);
-		gui.render(graphics, mouseX, mouseY, partialTicks);
+		NanoVGUI.pass(graphics, () -> {
+			for(TemplateWindow window : windows)
+				window.render(graphics, mouseX, mouseY, partialTicks);
+			gui.render(graphics, mouseX, mouseY, partialTicks);
+		});
 	}
 
 	@Override
@@ -609,22 +617,22 @@ public final class ClickGuiScreen extends Screen
 			FlatRenderer.fillRoundedRect(graphics, x1 + 1, y1 + 1, x2 - 1,
 				y1 + HEADER_HEIGHT - 1, 2, HEADER_FILL);
 			if(open)
-				graphics.fill(x1 + 1, y1 + HEADER_HEIGHT / 2, x2 - 1,
+				NanoVGUI.fill(x1 + 1, y1 + HEADER_HEIGHT / 2, x2 - 1,
 					y1 + HEADER_HEIGHT - 1, HEADER_FILL);
-			graphics.fill(x1 + 1, y1 + HEADER_HEIGHT - 1, x2 - 1,
+			NanoVGUI.fill(x1 + 1, y1 + HEADER_HEIGHT - 1, x2 - 1,
 				y1 + HEADER_HEIGHT, BORDER);
-			Font font = MC.font;
 			int titleY = y1 + 3;
 			icon.draw(graphics, x1 + 4, y1 + 3, 8, accentColor());
-			String visibleTitle = font.plainSubstrByWidth(title,
-				Math.round((windowWidth - 27) / TEXT_SCALE));
-			drawText(graphics, font, visibleTitle, x1 + 15, titleY, TEXT);
+			String visibleTitle = NanoVGUI.plainSubstrByWidth(title,
+				windowWidth - 27, ROW_TEXT_SIZE);
+			NanoVGUI.text(visibleTitle, x1 + 15, titleY, TEXT, ROW_TEXT_SIZE);
 			GuiIcon.CHEVRON.drawRotated(graphics, x2 - 10, y1 + 3, 8, TEXT,
 				open ? 0 : -90);
 			if(!open)
 				return;
 
-			graphics.enableScissor(x1 + 1, y1 + HEADER_HEIGHT, x2 - 1, y2 - 1);
+			NanoVGUI.pushScissor(x1 + 1, y1 + HEADER_HEIGHT, x2 - x1 - 2,
+				y2 - y1 - HEADER_HEIGHT - 1);
 			for(int row = 0; row < visibleRows(); row++)
 			{
 				int index = row + scrollOffset;
@@ -635,7 +643,7 @@ public final class ClickGuiScreen extends Screen
 					&& mouseY >= rowY && mouseY < rowY + ROW_HEIGHT - 1;
 				renderRow(graphics, index, rowY, hovering);
 			}
-			graphics.disableScissor();
+			NanoVGUI.popScissor();
 		}
 	}
 
@@ -669,17 +677,18 @@ public final class ClickGuiScreen extends Screen
 			int badgeWidth = getKeyBadgeWidth(keyLabel);
 			int badgeRight = x2 - (feature.getSettings().isEmpty() ? 3 : 10);
 			int badgeLeft = badgeRight - badgeWidth;
-			String name = MC.font.plainSubstrByWidth(feature.getDisplayName(),
-				Math.round((badgeLeft - x1 - 6) / TEXT_SCALE));
-			drawText(graphics, MC.font, name, x1 + 4, rowY + 3, TEXT);
+			String name = NanoVGUI.plainSubstrByWidth(feature.getDisplayName(),
+				badgeLeft - x1 - 6, ROW_TEXT_SIZE);
+			NanoVGUI.text(name, x1 + 4, rowY + 3, TEXT, ROW_TEXT_SIZE);
 			FlatRenderer.fillRoundedRect(graphics, badgeLeft, rowY + 3,
 				badgeRight, rowY + 11, 3, KEYBIND_FILL);
-			String visibleKey = MC.font.plainSubstrByWidth(keyLabel,
-				Math.round((badgeWidth - 4) / TEXT_SCALE));
-			int textWidth = Math.round(MC.font.width(visibleKey) * TEXT_SCALE);
-			drawText(graphics, MC.font, visibleKey,
+			String visibleKey = NanoVGUI.plainSubstrByWidth(keyLabel,
+				badgeWidth - 4, ROW_TEXT_SIZE);
+			float textWidth = NanoVGUI.width(visibleKey, ROW_TEXT_SIZE);
+			NanoVGUI.text(visibleKey,
 				badgeLeft + Math.max(2, (badgeWidth - textWidth) / 2), rowY + 3,
-				bindingFeature == feature ? TEXT : KEYBIND_TEXT);
+				bindingFeature == feature ? TEXT : KEYBIND_TEXT,
+				ROW_TEXT_SIZE);
 			if(!feature.getSettings().isEmpty())
 				GuiIcon.CHEVRON.drawRotated(graphics, x2 - 9, rowY + 3, 7,
 					0xFFD8D8D8, -90);
@@ -722,8 +731,8 @@ public final class ClickGuiScreen extends Screen
 
 		private int getKeyBadgeWidth(String label)
 		{
-			return Mth.clamp(Math.round(MC.font.width(label) * TEXT_SCALE) + 6,
-				12, 25);
+			return Mth.clamp(Math.round(NanoVGUI.width(label, ROW_TEXT_SIZE))
+				+ 6, 12, 25);
 		}
 	}
 
@@ -758,10 +767,10 @@ public final class ClickGuiScreen extends Screen
 			else
 				rowColor = hovering ? ROW_HOVER : ROW_FILL;
 			fillRow(graphics, index, rowY, rowColor);
-			String label = MC.font.plainSubstrByWidth(row.label.get(),
-				Math.round((windowWidth - 8) / TEXT_SCALE));
-			drawText(graphics, MC.font, label, x1 + 4, rowY + 3,
-				row.kind == RowKind.DISABLED ? MUTED : TEXT);
+			String label = NanoVGUI.plainSubstrByWidth(row.label.get(),
+				windowWidth - 8, ROW_TEXT_SIZE);
+			NanoVGUI.text(label, x1 + 4, rowY + 3,
+				row.kind == RowKind.DISABLED ? MUTED : TEXT, ROW_TEXT_SIZE);
 			if(row.kind == RowKind.SWITCH)
 			{
 				boolean active = row.active.getAsBoolean();
@@ -998,7 +1007,7 @@ public final class ClickGuiScreen extends Screen
 					}),
 				actionRow("SortGui", () -> false, ClickGuiScreen.this::sortWindows),
 				actionRow("HUD编辑器", () -> false,
-					() -> MC.setScreen(new net.wurstclient.hud2.HudEditorScreen())));
+					() -> MC.setScreen(new net.wurstclient.hud2.GuiEditHUD())));
 		}
 	}
 
@@ -1068,17 +1077,6 @@ public final class ClickGuiScreen extends Screen
 	{
 		return name.toLowerCase(Locale.ROOT).endsWith(".json")
 			? name.substring(0, name.length() - 5) : name;
-	}
-
-	private static void drawText(GuiGraphics graphics, Font font, String text,
-		int x, int y, int color)
-	{
-		graphics.pose().pushPose();
-		graphics.pose().translate(x, y, 0);
-		graphics.pose().scale(TEXT_SCALE, TEXT_SCALE, 1);
-		graphics.drawString(font,
-			WURST.getGuiPreferences().styleText(text), 0, 0, color, false);
-		graphics.pose().popPose();
 	}
 
 	private int accentColor()
