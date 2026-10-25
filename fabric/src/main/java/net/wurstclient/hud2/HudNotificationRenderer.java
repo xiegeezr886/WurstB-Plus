@@ -77,7 +77,7 @@ public final class HudNotificationRenderer
 	{
 		float cardWidth = CARD_WIDTH * scale;
 		float cardHeight = CARD_HEIGHT * scale;
-		int iconArgb = iconColor(NotificationSeverity.INFO, 255);
+		int iconArgb = severityColor(NotificationSeverity.INFO);
 
 		nvg.drawShadow(x + 2 * scale, y + 3 * scale, cardWidth, cardHeight,
 			6 * scale);
@@ -170,7 +170,7 @@ public final class HudNotificationRenderer
 		float cardX = x + slide;
 		float cardY = y;
 		int alpha = Math.round(255 * visibility);
-		int iconArgb = iconColor(entry.severity, alpha);
+		int iconArgb = withAlpha(severityColor(entry.severity), alpha);
 
 		nvg.drawShadow(cardX + 2 * scale, cardY + 3 * scale, cardWidth,
 			cardHeight, 6 * scale);
@@ -255,26 +255,6 @@ public final class HudNotificationRenderer
 		}catch(NumberFormatException e)
 		{
 			return 0xFF4677FF;
-		}
-	}
-
-	/**
-	 * Enabled notifications use the theme accent, disabled notifications use
-	 * white, and informational notifications keep their severity colour.
-	 */
-	private static int iconColor(NotificationSeverity severity, int alpha)
-	{
-		switch(severity)
-		{
-			case SUCCESS:
-			case ENABLED:
-			return withAlpha(HUDMod.accentColor(255), alpha);
-			case ERROR:
-			case DISABLED:
-			return withAlpha(0xFFFFFFFF, alpha);
-			case INFO:
-			default:
-			return withAlpha(severityColor(severity), alpha);
 		}
 	}
 
