@@ -62,8 +62,8 @@ public final class KeystrokesMod extends HUDMod
 			drawRoundedRect(0, 64, 92, 22, 6,
 				getFontColor((int)(120 * animations[4].getValue())));
 			restore();
-			if(!unmarkedSetting.isChecked())
-				drawCenteredText("SPACE", 46, 68, 10, HudFonts.REGULAR);
+			// The space bar shows a horizontal bar rather than a text label.
+			drawRoundedRect(26, 73.5F, 40, 3, 1.5F, getFontColor(200));
 		}
 
 		setSize(92, spaceSetting.isChecked() ? 86 : 60);
