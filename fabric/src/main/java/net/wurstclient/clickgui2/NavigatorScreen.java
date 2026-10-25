@@ -15,6 +15,7 @@ import net.minecraft.util.Mth;
 import net.wurstclient.Category;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
+import net.wurstclient.clickgui2.animation.SmoothScroll;
 import net.wurstclient.clickgui2.theme.FlatTheme;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 import org.lwjgl.glfw.GLFW;
@@ -58,6 +59,8 @@ public final class NavigatorScreen extends Screen
 	private int selectedCategory = 3;
 	private int moduleScroll;
 	private int categoryScroll;
+	private final SmoothScroll moduleSmooth = new SmoothScroll();
+	private final SmoothScroll categorySmooth = new SmoothScroll();
 	private int panelX;
 	private int panelY;
 	private int panelWidth;
@@ -137,6 +140,7 @@ public final class NavigatorScreen extends Screen
 			&& !visibleFeatures.contains(settingsPanel.getFeature()))
 			closeSettings();
 		moduleScroll = 0;
+		moduleSmooth.snapTo(0);
 	}
 
 	private List<Feature> getInterfaceFeatures()
@@ -213,14 +217,20 @@ public final class NavigatorScreen extends Screen
 		int visibleRows = Math.max(1, (bottom - top) / CATEGORY_HEIGHT);
 		categoryScroll = Mth.clamp(categoryScroll, 0,
 			Math.max(0, CATEGORY_NAMES.length - visibleRows));
+		categorySmooth.setTarget(categoryScroll * (float)CATEGORY_HEIGHT);
+
+		float offset = categorySmooth.update();
+		int baseIndex = (int)Math.floor(offset / CATEGORY_HEIGHT);
+		float subOffset = offset - baseIndex * CATEGORY_HEIGHT;
+
 		NanoVGUI.pushScissor(panelX + 4, top, sidebarWidth - 8,
 			bottom - top);
-		for(int row = 0; row < visibleRows; row++)
+		for(int row = -1; row <= visibleRows; row++)
 		{
-			int index = row + categoryScroll;
-			if(index >= CATEGORY_NAMES.length)
-				break;
-			int y = top + row * CATEGORY_HEIGHT;
+			int index = baseIndex + row;
+			if(index < 0 || index >= CATEGORY_NAMES.length)
+				continue;
+			int y = Math.round(top + row * CATEGORY_HEIGHT - subOffset);
 			boolean selected = searchBox.getValue().isBlank()
 				&& selectedCategory == index;
 			boolean hovering = inside(mouseX, mouseY, panelX + 8, y,
@@ -253,13 +263,20 @@ public final class NavigatorScreen extends Screen
 			(listBottom - listTop + MODULE_GAP) / (MODULE_HEIGHT + MODULE_GAP));
 		moduleScroll = Mth.clamp(moduleScroll, 0,
 			Math.max(0, visibleFeatures.size() - visibleRows));
+		int step = MODULE_HEIGHT + MODULE_GAP;
+		moduleSmooth.setTarget(moduleScroll * (float)step);
+
+		float offset = moduleSmooth.update();
+		int baseIndex = (int)Math.floor(offset / step);
+		float subOffset = offset - baseIndex * step;
+
 		NanoVGUI.pushScissor(left, listTop, right - left, listBottom - listTop);
-		for(int row = 0; row < visibleRows; row++)
+		for(int row = -1; row <= visibleRows; row++)
 		{
-			int index = row + moduleScroll;
-			if(index >= visibleFeatures.size())
-				break;
-			int y = listTop + row * (MODULE_HEIGHT + MODULE_GAP);
+			int index = baseIndex + row;
+			if(index < 0 || index >= visibleFeatures.size())
+				continue;
+			int y = Math.round(listTop + row * step - subOffset);
 			renderModule(graphics, visibleFeatures.get(index), left, y, right,
 				mouseX, mouseY);
 		}
@@ -271,8 +288,9 @@ public final class NavigatorScreen extends Screen
 				Math.round(trackHeight * visibleRows
 					/ (float)visibleFeatures.size()));
 			int maxScroll = visibleFeatures.size() - visibleRows;
+			float animatedRow = moduleSmooth.getCurrent() / step;
 			int thumbY = listTop + Math.round((trackHeight - thumbHeight)
-				* moduleScroll / (float)Math.max(1, maxScroll));
+				* animatedRow / (float)Math.max(1, maxScroll));
 			NanoVGUI.fill(right - 2, listTop, right, listBottom, 0xFF111111);
 			NanoVGUI.fill(right - 2, thumbY, right, thumbY + thumbHeight,
 				accentColor());
@@ -423,6 +441,8 @@ public final class NavigatorScreen extends Screen
 				moduleScroll = Math.min(maxScroll, moduleScroll + visibleRows);
 			else
 				scrollbarDragging = true;
+			moduleSmooth.setTarget(moduleScroll
+				* (float)(MODULE_HEIGHT + MODULE_GAP));
 			return true;
 		}
 
@@ -462,6 +482,8 @@ public final class NavigatorScreen extends Screen
 				/ Math.max(1, trackHeight - thumbHeight);
 			moduleScroll = Mth.clamp(Math.round(ratio * maxScroll), 0,
 				maxScroll);
+			moduleSmooth.setTarget(moduleScroll
+				* (float)(MODULE_HEIGHT + MODULE_GAP));
 			return true;
 		}
 
@@ -504,6 +526,7 @@ public final class NavigatorScreen extends Screen
 				(panelHeight - 51) / CATEGORY_HEIGHT);
 			categoryScroll = Mth.clamp(categoryScroll + (delta > 0 ? -1 : 1),
 				0, Math.max(0, CATEGORY_NAMES.length - visibleRows));
+			categorySmooth.setTarget(categoryScroll * (float)CATEGORY_HEIGHT);
 			return true;
 		}
 
@@ -511,6 +534,8 @@ public final class NavigatorScreen extends Screen
 			(panelHeight - 7 + MODULE_GAP) / (MODULE_HEIGHT + MODULE_GAP));
 		moduleScroll = Mth.clamp(moduleScroll + (delta > 0 ? -1 : 1), 0,
 			Math.max(0, visibleFeatures.size() - visibleRows));
+		moduleSmooth.setTarget(moduleScroll
+			* (float)(MODULE_HEIGHT + MODULE_GAP));
 		return true;
 	}
 
@@ -545,9 +570,10 @@ public final class NavigatorScreen extends Screen
 		if(!inside(mouseX, mouseY, panelX + 8, top,
 			panelX + sidebarWidth - 8, bottom))
 			return -1;
-		int row = (int)(mouseY - top) / CATEGORY_HEIGHT;
-		int index = row + categoryScroll;
-		return index < CATEGORY_NAMES.length ? index : -1;
+		float offset = categorySmooth.getCurrent();
+		int index = (int)Math.floor(
+			(mouseY - top + offset) / CATEGORY_HEIGHT);
+		return index >= 0 && index < CATEGORY_NAMES.length ? index : -1;
 	}
 
 	private Feature featureAt(double mouseX, double mouseY)
@@ -558,12 +584,14 @@ public final class NavigatorScreen extends Screen
 		int bottom = panelY + panelHeight - 4;
 		if(!inside(mouseX, mouseY, left, top, right, bottom))
 			return null;
-		int row = (int)(mouseY - top) / (MODULE_HEIGHT + MODULE_GAP);
-		int localY = (int)(mouseY - top) % (MODULE_HEIGHT + MODULE_GAP);
+		int step = MODULE_HEIGHT + MODULE_GAP;
+		float offset = moduleSmooth.getCurrent();
+		int index = (int)Math.floor((mouseY - top + offset) / step);
+		int localY = (int)((mouseY - top + offset) % step);
 		if(localY >= MODULE_HEIGHT)
 			return null;
-		int index = row + moduleScroll;
-		return index < visibleFeatures.size() ? visibleFeatures.get(index) : null;
+		return index >= 0 && index < visibleFeatures.size()
+			? visibleFeatures.get(index) : null;
 	}
 
 	private void openSettings(Feature feature)

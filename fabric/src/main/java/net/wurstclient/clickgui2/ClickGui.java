@@ -188,7 +188,7 @@ public final class ClickGui
 				else
 				{
 					if(window.isScrollingEnabled())
-						cMouseY -= window.getScrollOffset();
+						cMouseY -= Math.round(window.getAnimatedScrollOffset());
 					
 					handleComponentMouseClick(window, cMouseX, cMouseY,
 						mouseButton);
@@ -262,8 +262,8 @@ public final class ClickGui
 		double outerHeight = window.getHeight() - 13;
 		double innerHeight = window.getInnerHeight();
 		double maxScrollbarHeight = outerHeight - 2;
-		int scrollbarY =
-			(int)(outerHeight * (-window.getScrollOffset() / innerHeight) + 1);
+		int scrollbarY = (int)(outerHeight
+			* (-window.getAnimatedScrollOffset() / innerHeight) + 1);
 		int scrollbarHeight =
 			(int)(maxScrollbarHeight * outerHeight / innerHeight);
 		
@@ -465,24 +465,26 @@ public final class ClickGui
 		if(mouseX >= x1 && mouseY >= y1 && mouseX < x2 && mouseY < y2)
 			tooltip = "";
 		
+		float animatedScroll = window.getAnimatedScrollOffset();
 		if(!window.isMinimized())
 		{
 			window.setMaxHeight(window instanceof SettingsWindow
 				? maxSettingsHeight : maxHeight);
 			window.validate();
-			
+			animatedScroll = window.updateScrollAnimation();
+
 			// scrollbar
 			if(window.isScrollingEnabled())
 			{
 				int xs1 = x2 - 3;
 				int xs2 = xs1 + 2;
 				int xs3 = x2;
-				
+
 				double outerHeight = y2 - y3;
 				double innerHeight = window.getInnerHeight();
 				double maxScrollbarHeight = outerHeight - 2;
 				double scrollbarY =
-					outerHeight * (-window.getScrollOffset() / innerHeight) + 1;
+					outerHeight * (-animatedScroll / innerHeight) + 1;
 				double scrollbarHeight =
 					maxScrollbarHeight * outerHeight / innerHeight;
 				
@@ -510,8 +512,8 @@ public final class ClickGui
 			int x3 = x1 + 2;
 			int x4 = window.isScrollingEnabled() ? x2 - 3 : x2;
 			int x5 = x4 - 2;
-			int y4 = y3 + window.getScrollOffset();
-			
+			float y4 = y3 + animatedScroll;
+
 			// window background
 			// left & right
 			NanoVGUI.fill(x1, y3, x3, y2, windowBgColor);
@@ -549,7 +551,7 @@ public final class ClickGui
 
 			// render children
 			int cMouseX = mouseX - x1;
-			int cMouseY = mouseY - y4;
+			int cMouseY = Math.round(mouseY - y4);
 			for(int i = 0; i < window.countChildren(); i++)
 				window.getChild(i).render(context, cMouseX, cMouseY,
 					partialTicks);

@@ -28,6 +28,7 @@ import net.wurstclient.Category;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.GuiPreferences.TargetType;
+import net.wurstclient.clickgui2.animation.SmoothScroll;
 import net.wurstclient.clickgui2.window.Window;
 import net.wurstclient.hacks.TooManyHaxHack;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
@@ -489,6 +490,7 @@ public final class ClickGuiScreen extends Screen
 		protected boolean open;
 		private boolean visible = true;
 		private int scrollOffset;
+		private final SmoothScroll smoothScroll = new SmoothScroll();
 		private int homeX;
 		private int homeY;
 
@@ -507,7 +509,7 @@ public final class ClickGuiScreen extends Screen
 		protected abstract int rowCount();
 
 		protected abstract void renderRow(GuiGraphics graphics, int rowIndex,
-			int rowY, boolean hovering);
+			float rowY, boolean hovering);
 
 		protected abstract boolean clickRow(int rowIndex, int visualRow,
 			double mouseX, int button);
@@ -530,6 +532,7 @@ public final class ClickGuiScreen extends Screen
 		{
 			int maxOffset = Math.max(0, rowCount() - visibleRows());
 			scrollOffset = Mth.clamp(scrollOffset, 0, maxOffset);
+			smoothScroll.setTarget(scrollOffset * (float)ROW_HEIGHT);
 			y2 = y1 + HEADER_HEIGHT
 				+ (open ? visibleRows() * ROW_HEIGHT + 1 : 0);
 		}
@@ -581,10 +584,13 @@ public final class ClickGuiScreen extends Screen
 
 		private boolean clickBody(double mouseX, double mouseY, int button)
 		{
-			int row = (int)(mouseY - y1 - HEADER_HEIGHT) / ROW_HEIGHT;
-			int index = row + scrollOffset;
+			float offset = smoothScroll.getCurrent();
+			int baseIndex = (int)Math.floor(offset / ROW_HEIGHT);
+			int index = (int)Math.floor((mouseY - y1 - HEADER_HEIGHT + offset)
+				/ ROW_HEIGHT);
+			int visualRow = index - baseIndex;
 			return index >= 0 && index < rowCount()
-				&& clickRow(index, row, mouseX, button);
+				&& clickRow(index, visualRow, mouseX, button);
 		}
 
 		private boolean scroll(double mouseX, double mouseY, double delta)
@@ -594,14 +600,16 @@ public final class ClickGuiScreen extends Screen
 			int direction = delta > 0 ? -1 : 1;
 			scrollOffset = Mth.clamp(scrollOffset + direction, 0,
 				rowCount() - visibleRows());
+			smoothScroll.setTarget(scrollOffset * (float)ROW_HEIGHT);
 			return true;
 		}
 
-		protected void fillRow(GuiGraphics graphics, int index, int rowY,
+		protected void fillRow(GuiGraphics graphics, int index, float rowY,
 			int color)
 		{
-			int rowBottom = rowY + ROW_HEIGHT - 1;
-			FlatRenderer.fillRoundedRect(graphics, x1 + 2, rowY + 1, x2 - 2,
+			int top = Math.round(rowY);
+			int rowBottom = top + ROW_HEIGHT - 1;
+			FlatRenderer.fillRoundedRect(graphics, x1 + 2, top + 1, x2 - 2,
 				rowBottom, 3, color);
 		}
 
@@ -635,14 +643,20 @@ public final class ClickGuiScreen extends Screen
 			if(!open)
 				return;
 
+			float offset = smoothScroll.update();
+			int baseIndex = (int)Math.floor(offset / ROW_HEIGHT);
+			float subOffset = offset - baseIndex * ROW_HEIGHT;
+			int rows = visibleRows();
+
 			NanoVGUI.pushScissor(x1 + 1, y1 + HEADER_HEIGHT, x2 - x1 - 2,
 				y2 - y1 - HEADER_HEIGHT - 1);
-			for(int row = 0; row < visibleRows(); row++)
+			for(int row = -1; row <= rows; row++)
 			{
-				int index = row + scrollOffset;
-				if(index >= rowCount())
-					break;
-				int rowY = y1 + HEADER_HEIGHT + row * ROW_HEIGHT;
+				int index = baseIndex + row;
+				if(index < 0 || index >= rowCount())
+					continue;
+				float rowY = y1 + HEADER_HEIGHT + row * ROW_HEIGHT
+					- subOffset;
 				boolean hovering = mouseX >= x1 + 1 && mouseX < x2 - 1
 					&& mouseY >= rowY && mouseY < rowY + ROW_HEIGHT - 1;
 				renderRow(graphics, index, rowY, hovering);
@@ -669,32 +683,33 @@ public final class ClickGuiScreen extends Screen
 		}
 
 		@Override
-		protected void renderRow(GuiGraphics graphics, int index, int rowY,
+		protected void renderRow(GuiGraphics graphics, int index, float rowY,
 			boolean hovering)
 		{
+			int y = Math.round(rowY);
 			Feature feature = features.get(index);
 			int rowColor = feature.isEnabled() ? accentColor()
 				: hovering ? ROW_HOVER : ROW_FILL;
-			FlatRenderer.fillRoundedRect(graphics, x1 + 2, rowY + 1, x2 - 2,
-				rowY + ROW_HEIGHT - 1, 3, rowColor);
+			FlatRenderer.fillRoundedRect(graphics, x1 + 2, y + 1, x2 - 2,
+				y + ROW_HEIGHT - 1, 3, rowColor);
 			String keyLabel = getKeyLabel(feature);
 			int badgeWidth = getKeyBadgeWidth(keyLabel);
 			int badgeRight = x2 - (feature.getSettings().isEmpty() ? 3 : 10);
 			int badgeLeft = badgeRight - badgeWidth;
 			String name = NanoVGUI.plainSubstrByWidth(feature.getDisplayName(),
 				badgeLeft - x1 - 6, ROW_TEXT_SIZE);
-			NanoVGUI.text(name, x1 + 4, rowY + 3, TEXT, ROW_TEXT_SIZE);
-			FlatRenderer.fillRoundedRect(graphics, badgeLeft, rowY + 3,
-				badgeRight, rowY + 11, 3, KEYBIND_FILL);
+			NanoVGUI.text(name, x1 + 4, y + 3, TEXT, ROW_TEXT_SIZE);
+			FlatRenderer.fillRoundedRect(graphics, badgeLeft, y + 3,
+				badgeRight, y + 11, 3, KEYBIND_FILL);
 			String visibleKey = NanoVGUI.plainSubstrByWidth(keyLabel,
 				badgeWidth - 4, ROW_TEXT_SIZE);
 			float textWidth = NanoVGUI.width(visibleKey, ROW_TEXT_SIZE);
 			NanoVGUI.text(visibleKey,
-				badgeLeft + Math.max(2, (badgeWidth - textWidth) / 2), rowY + 3,
+				badgeLeft + Math.max(2, (badgeWidth - textWidth) / 2), y + 3,
 				bindingFeature == feature ? TEXT : KEYBIND_TEXT,
 				ROW_TEXT_SIZE);
 			if(!feature.getSettings().isEmpty())
-				GuiIcon.CHEVRON.drawRotated(graphics, x2 - 9, rowY + 3, 7,
+				GuiIcon.CHEVRON.drawRotated(graphics, x2 - 9, y + 3, 7,
 					0xFFD8D8D8, -90);
 		}
 
@@ -757,9 +772,10 @@ public final class ClickGuiScreen extends Screen
 		}
 
 		@Override
-		protected void renderRow(GuiGraphics graphics, int index, int rowY,
+		protected void renderRow(GuiGraphics graphics, int index, float rowY,
 			boolean hovering)
 		{
+			int y = Math.round(rowY);
 			PanelRow row = rows().get(index);
 			int rowColor;
 			if(row.kind == RowKind.SECTION)
@@ -773,18 +789,18 @@ public final class ClickGuiScreen extends Screen
 			fillRow(graphics, index, rowY, rowColor);
 			String label = NanoVGUI.plainSubstrByWidth(row.label.get(),
 				windowWidth - 8, ROW_TEXT_SIZE);
-			NanoVGUI.text(label, x1 + 4, rowY + 3,
+			NanoVGUI.text(label, x1 + 4, y + 3,
 				row.kind == RowKind.DISABLED ? MUTED : TEXT, ROW_TEXT_SIZE);
 			if(row.kind == RowKind.SWITCH)
 			{
 				boolean active = row.active.getAsBoolean();
 				int switchX = x2 - 15;
-				FlatRenderer.fillRoundedRect(graphics, switchX, rowY + 4,
-					x2 - 4, rowY + 10, 3,
+				FlatRenderer.fillRoundedRect(graphics, switchX, y + 4,
+					x2 - 4, y + 10, 3,
 					active ? accentColor() : 0xFF3A3A3A);
 				int knobX = active ? x2 - 8 : switchX + 1;
-				FlatRenderer.fillRoundedRect(graphics, knobX, rowY + 5,
-					knobX + 4, rowY + 9, 2, 0xFFF0F0F0);
+				FlatRenderer.fillRoundedRect(graphics, knobX, y + 5,
+					knobX + 4, y + 9, 2, 0xFFF0F0F0);
 			}
 		}
 

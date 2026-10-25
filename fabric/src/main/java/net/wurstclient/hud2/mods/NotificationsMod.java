@@ -24,8 +24,15 @@ public final class NotificationsMod extends HUDMod
 			"HUD notification cards.");
 		this.manager = manager;
 		setTranslationKey("notifications");
-		setSize(190, 34);
-		setDefaultPosition(520, 8);
+		setSize(230, 36);
+		boolean hasWindow = WURST.MC != null
+			&& WURST.MC.getWindow() != null;
+		int screenWidth = hasWindow
+			? WURST.MC.getWindow().getGuiScaledWidth() : 800;
+		int screenHeight = hasWindow
+			? WURST.MC.getWindow().getGuiScaledHeight() : 600;
+		setDefaultPosition(Math.max(8, screenWidth - 250),
+			Math.max(8, screenHeight - 80));
 		setDefaultEnabled(true);
 	}
 
@@ -33,8 +40,17 @@ public final class NotificationsMod extends HUDMod
 	protected void draw()
 	{
 		float scale = getScale();
+		if(isEditing() && manager.getNotificationRenderer().getCount() == 0)
+		{
+			float preview = manager.getNotificationRenderer()
+				.renderPreview(nvg, getX(), getY(), scale);
+			setSize(230, Math.max(36,
+				Math.round(preview / Math.max(scale, 0.01F))));
+			return;
+		}
+
 		float height = manager.getNotificationRenderer().render(nvg, getX(),
 			getY(), scale, manager.getSettings().getNotificationDurationMs());
-		setSize(190, Math.max(34, Math.round(height / Math.max(scale, 0.01F))));
+		setSize(230, Math.max(36, Math.round(height / Math.max(scale, 0.01F))));
 	}
 }

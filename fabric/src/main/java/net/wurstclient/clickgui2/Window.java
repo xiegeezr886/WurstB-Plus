@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import net.minecraft.client.gui.Font;
 import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
+import net.wurstclient.clickgui2.animation.SmoothScroll;
 
 public class Window
 {
@@ -45,6 +46,7 @@ public class Window
 	private int innerHeight;
 	private int maxInnerHeight;
 	private int scrollOffset;
+	private final SmoothScroll smoothScroll = new SmoothScroll();
 	private boolean scrollingEnabled;
 	
 	private boolean draggingScrollbar;
@@ -215,7 +217,8 @@ public class Window
 		scrollOffset = Math.min(scrollOffset, 0);
 		scrollOffset = Math.max(scrollOffset,
 			-innerHeight + height - TITLE_BAR_HEIGHT);
-		
+		smoothScroll.setTarget(scrollOffset);
+
 		for(Component c : children)
 			c.setWidth(cWidth);
 		
@@ -418,6 +421,17 @@ public class Window
 	public final void setScrollOffset(int scrollOffset)
 	{
 		this.scrollOffset = scrollOffset;
+		smoothScroll.setTarget(scrollOffset);
+	}
+
+	public final float updateScrollAnimation()
+	{
+		return smoothScroll.update();
+	}
+
+	public final float getAnimatedScrollOffset()
+	{
+		return smoothScroll.getCurrent();
 	}
 	
 	public final boolean isScrollingEnabled()
@@ -447,6 +461,7 @@ public class Window
 		scrollOffset = Math.min(scrollOffset, 0);
 		scrollOffset = Math.max(scrollOffset,
 			-innerHeight + height - TITLE_BAR_HEIGHT);
+		smoothScroll.setTarget(scrollOffset);
 	}
 	
 	public final void stopDraggingScrollbar()
