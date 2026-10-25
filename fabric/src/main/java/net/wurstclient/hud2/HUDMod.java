@@ -477,6 +477,15 @@ public abstract class HUDMod extends Feature
 				width * scale, height * scale);
 	}
 
+	public void drawImageRegion(int texture, float addX, float addY,
+		float width, float height, float u0, float v0, float u1, float v1)
+	{
+		if(nvg != null)
+			nvg.drawImageRegion(texture, x + addX * scale,
+				y + addY * scale, width * scale, height * scale, u0, v0, u1,
+				v1);
+	}
+
 	public void drawCircle(float addX, float addY, float radius, Color color)
 	{
 		if(nvg != null)

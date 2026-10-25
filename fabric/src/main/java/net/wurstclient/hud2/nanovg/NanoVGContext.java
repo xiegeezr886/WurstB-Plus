@@ -1011,6 +1011,32 @@ public final class NanoVGContext
 		drawRoundedImage(texture, x, y, width, height, radius, 1F);
 	}
 
+	/**
+	 * Draws a normalised sub-rectangle of a texture, such as a sprite from the
+	 * GUI atlas. UVs use the same top-left convention as
+	 * {@code TextureAtlasSprite#getU0()}.
+	 */
+	public void drawImageRegion(int texture, float x, float y, float width,
+		float height, float u0, float v0, float u1, float v1)
+	{
+		if(texture <= 0 || width <= 0 || height <= 0 || u1 <= u0 || v1 <= v0)
+			return;
+
+		int image = textureImage(texture, width, height);
+		if(image == 0)
+			return;
+
+		float scaleX = width / (u1 - u0);
+		float scaleY = height / (v1 - v0);
+		NVGPaint paint = scratchPaint;
+		NanoVG.nvgImagePattern(vg, x - u0 * scaleX, y - v0 * scaleY, scaleX,
+			scaleY, 0, image, 1F, paint);
+		NanoVG.nvgBeginPath(vg);
+		NanoVG.nvgRect(vg, x, y, width, height);
+		NanoVG.nvgFillPaint(vg, paint);
+		NanoVG.nvgFill(vg);
+	}
+
 	public void drawRoundedImage(String path, float x, float y, float width,
 		float height, float radius)
 	{
