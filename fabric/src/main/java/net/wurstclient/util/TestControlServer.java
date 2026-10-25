@@ -206,6 +206,10 @@ public final class TestControlServer
 					handleWorldEnter(exchange, method, query);
 					break;
 
+					case "/command":
+					handleCommand(exchange, method, query);
+					break;
+
 					case "/screenshot":
 					handleScreenshot(exchange, method, query);
 					break;
@@ -486,6 +490,40 @@ public final class TestControlServer
 				WurstClient.MC.createWorldOpenFlows()
 					.loadLevel(WurstClient.MC.screen, name);
 				return "{\"ok\":true,\"world\":\"" + escape(name) + "\"}";
+			}catch(Throwable t)
+			{
+				return "{\"ok\":false,\"error\":\"" + escape(t.toString())
+					+ "\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleCommand(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String command = query.get("cmd");
+		if(command == null || command.isBlank())
+		{
+			send(exchange, 400, "text/plain", "cmd required");
+			return;
+		}
+		String normalized = command.startsWith("/")
+			? command.substring(1) : command;
+
+		String result = onClientThread(() -> {
+			if(WurstClient.MC.player == null
+				|| WurstClient.MC.player.connection == null)
+				return "{\"ok\":false,\"error\":\"no player\"}";
+			try
+			{
+				WurstClient.MC.player.connection.sendCommand(normalized);
+				return "{\"ok\":true}";
 			}catch(Throwable t)
 			{
 				return "{\"ok\":false,\"error\":\"" + escape(t.toString())

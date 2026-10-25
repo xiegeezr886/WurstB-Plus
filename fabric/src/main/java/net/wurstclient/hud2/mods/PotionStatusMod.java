@@ -45,13 +45,20 @@ public final class PotionStatusMod extends HUDMod
 		float width = 100;
 		for(HudCompat.EffectInfo effect : effects)
 			width = Math.max(width,
-				getTextWidth(line(effect), 9, HudFonts.REGULAR) + 12);
+				getTextWidth(line(effect), 9, HudFonts.REGULAR) + 25);
 
 		float height = 6 + effects.size() * 13;
 		drawBackground(width, height);
 		for(int i = 0; i < effects.size(); i++)
-			drawText(line(effects.get(i)), 6, 4 + i * 13, 9,
-				HudFonts.REGULAR);
+		{
+			HudCompat.EffectInfo effect = effects.get(i);
+			int y = 4 + i * 13;
+			if(effect.iconTexture() > 0)
+				drawImageRegion(effect.iconTexture(), 6, y + 1, 10, 10,
+					effect.iconU0(), effect.iconV0(), effect.iconU1(),
+					effect.iconV1());
+			drawText(line(effect), 19, y, 9, HudFonts.REGULAR);
+		}
 		setSize(Math.round(width), Math.round(height));
 	}
 
