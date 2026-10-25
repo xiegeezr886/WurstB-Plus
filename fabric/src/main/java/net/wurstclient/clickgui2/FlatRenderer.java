@@ -1,9 +1,7 @@
 package net.wurstclient.clickgui2;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.theme.FlatTheme;
-import net.wurstclient.gui.MainMenuBackground;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.util.RenderUtils;
 
@@ -23,9 +21,7 @@ public final class FlatRenderer
 	public static void drawBackdrop(GuiGraphics context, int width, int height,
 		FlatTheme theme)
 	{
-		MainMenuBackground.render(width, height,
-			WurstClient.MC.level != null ? MainMenuBackground.INGAME_ALPHA
-				: MainMenuBackground.MENU_ALPHA);
+		NanoVGUI.fill(0, 0, width, height, 0x18000000);
 	}
 
 	public static void drawWindowPanel(GuiGraphics context, int x1, int y1,
