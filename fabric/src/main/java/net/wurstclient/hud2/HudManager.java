@@ -412,6 +412,7 @@ public final class HudManager
 		register(new net.wurstclient.hud2.mods.ScoreboardMod());
 		register(new net.wurstclient.hud2.mods.PlayerListMod());
 		register(new net.wurstclient.hud2.mods.BossHealthMod());
+		register(new net.wurstclient.hud2.mods.BedwarsStatsOverlayMod());
 		register(new net.wurstclient.hud2.mods.HorseStatsMod());
 		register(new net.wurstclient.hud2.mods.PotionCounterMod());
 		register(new net.wurstclient.hud2.mods.ArrayListMod());

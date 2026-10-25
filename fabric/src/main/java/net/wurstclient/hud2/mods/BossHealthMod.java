@@ -14,10 +14,18 @@ import java.util.List;
 import net.wurstclient.hud2.HUDMod;
 import net.wurstclient.hud2.compat.HudCompat;
 import net.wurstclient.hud2.nanovg.HudFonts;
+import net.wurstclient.settings.CheckboxSetting;
 
 public final class BossHealthMod extends HUDMod
 {
 	private static final float WIDTH = 180;
+	private static BossHealthMod instance;
+
+	private final CheckboxSetting vanillaPosition = new CheckboxSetting(
+		"Vanilla position",
+		"Keep the boss bar at the vanilla position instead of drawing it as a"
+			+ " HUD module.",
+		true);
 
 	public BossHealthMod()
 	{
@@ -25,11 +33,29 @@ public final class BossHealthMod extends HUDMod
 			"Shows the vanilla boss bars.");
 		setTranslationKey("boss_health");
 		setDefaultPosition(180, 300);
+		addSetting(vanillaPosition);
+		instance = this;
+	}
+
+	public static BossHealthMod getInstance()
+	{
+		return instance;
+	}
+
+	public boolean isVanillaPosition()
+	{
+		return vanillaPosition.isChecked();
 	}
 
 	@Override
 	protected void draw()
 	{
+		if(vanillaPosition.isChecked())
+		{
+			setSize(120, 20);
+			return;
+		}
+
 		List<HudCompat.BossBarInfo> bars = HudCompat.bossBars();
 		if(bars.isEmpty())
 		{
