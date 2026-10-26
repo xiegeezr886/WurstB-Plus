@@ -432,17 +432,45 @@ Legit 的九道 return 是顺序敏感的（先冷却再撞墙……），搬进
 
 ### 另两个候选的结论（本轮不做，附证据）
 
-**ScaffoldWalk（暂缓）**：它和前面六个模块不同 —— hack 里**根本没有 switch**，模式只出现在两处布尔判断：
-`onUpdate()` 里的 `towerActive`（L156，之后分别调 `doScaffold()` / `doTower()`），以及
-`shouldSafeWalk()` 里的 `mode.getSelected() == Mode.NORMAL`（L322，只有 Normal 模式才要求 SafeWalk）。
-也就是说"动作"其实已经分开了，缺的只是"把它放进类里"。之所以暂缓：`doScaffold()`/`doTower()`
-依赖的**共享机械**才是这个 hack 的主体 —— 状态 `placementCooldown` / `currentPlan` /
-`rotationQueue` 三个字段，加上 `findBlockSlot()` / `swapToSlot()` / `resetSlot()` /
-`placePlan()` / `updateTowerMotion()` 五个方法，以及 8 个设置（placeDelay、silentSwap、
-searchRange、prediction、requireLineOfSight、safeWalk、towerMotion、swingHand）。把它们都开成 public
-访问器，会让两个模式类几乎每一行都要回调 hack —— 那是"为了形状而重构"，比现在更难读。
-真要做，应先把这套共享机械抽成独立的 `ScaffoldPlacementContext`（一次更大的重构），
-而不是先把入口方法搬出去。
+**ScaffoldWalk（已完成，参考 OpenOpal ScaffoldModule）**：不再沿用原来的
+`EnumSetting + switch`，而是按 OpenOpal 的「模块 + 每个模式一个类」结构拆成
+`hacks.scaffold` 包：
+
+| 文件 | 内容 |
+| --- | --- |
+| `ScaffoldWalkHack` | 共享机械：候选点生成、BFS 搜索/预算、支撑面排序、`getFastRotation` + 面内穷举、放置校验、同 Y 自动跳、Movement intelligence、槽位切换、渲染 overlay |
+| `ScaffoldMode` | 模式生命周期接口（`onTick` / `onPostMotion` / `onBlockPlaced` / `getPacketRotation`） |
+| `SimpleTowerMode` | Vanilla / Anti Gaming Chair / Watchdog / Bloxd（塔跳动作与 Bloxd 额外交互包、+2 脱困） |
+| `TellyScaffoldMode` | Telly：目标 Y 层、地面/空中旋转规则、自动跳、灵敏度栅格化 |
+| `HeypixelScaffoldMode` | Heypixel 完整流程：眼位扫描（d ≤ 6 的菱形）、正/反 yaw 射线、偏移回退、面内穷举、duplicate rot jitter、telly/bridge 两条路径、UpTellyBypass |
+| `HypixelScaffoldMode` | 继承 Heypixel，常开 telly、5 ticks、180°/tick、Sideways 基准 yaw |
+| `SilenceTellyScaffoldMode` | 完整的 request → 写入移动包 → PostMotion 校验 → armed placement 状态机，以及 rescue、eagle、parkour jump、block fly、rotation abuse |
+| `ScaffoldUtils` / `ScaffoldRotationModel` | 旋转/射线/方块筛选与 OpenOpal 的五种旋转模型（Scaffold 用到的 Instant / Heypixel / Linear / Sideways） |
+| `SilenceTellyRaycast` / `SilenceTellyRotation` / `SilenceTellyFallingPlayer` | SilenceTelly 的体素 DDA、面内最近旋转、下落预测 |
+
+**有意不搬的部分（有据可查）**：
+1. **StuckModule / SkipTickUtility 的 Self rescue**：Wurst 没有 stuck/skip-tick 模块，
+   `Self rescue mode` 设置也没有保留，避免留下永远不生效的开关。
+2. **OutboundNetworkBlockage**：OpenOpal 的 SilenceTelly 在扣包期间会丢弃已 arm 的放置；
+   Wurst 有 `BlinkHack` 等扣包能力，但没有同口径的 `isAnyBlockages()` 查询，因此这里不拦截。
+3. **MoveInput 取消**：没有 OpenOpal 的 `MoveInputEvent`，`ST` 的 `movementCancelTicks`
+   只能直接把 `input.forwardImpulse/leftImpulse` 置 0；随后原版 `input.tick()` 可能覆盖，
+   属于**尽力而为**，不是逐位等价。
+4. **`ST Keep FOV` / `ST FOV`**：OpenOpal 是在 `GameRendererMixin` 里乘 FOV，
+   本工程没有对应 mixin；为避免死开关，未加入这两个设置。
+5. **面内穷举的采样密度**：OpenOpal 的 `getRotationFromRaycastedBlock` 在每个轴取
+   24 个点（24³ ≈ 13.8k 次世界射线）。作为 fast path 失败后的兜底，这个密度在
+   1.20.1 单线程客户端上可能单独吃掉一个 tick；这里改成每轴 12 个点（12³ ≈ 1.7k），
+   仍是同一套穷举结构，只降低采样密度。
+6. **`ST Spoof Item` 的静默切槽**：OpenOpal 的 SlotHelper 不改客户端槽位；这里在
+   `tryPlaceArmed()` 内临时把客户端选中槽切到方块槽，调用 `useItemOn` 后立即切回并
+   补发 `SetCarriedItem` 包。效果等价（同一 tick 内客户端看不到切槽），但实现路径不同。
+
+**验证边界**：`compileJava` 通过（JDK 21 运行 Gradle、release 17）；真实客户端到达主菜单
+并稳定运行 25 秒（无 mixin/启动错误）。**进世界验证被仓库既有的 Baritone Fabric mixin
+问题挡住**（`mixins.baritone.json:MixinPalettedContainer$Data` 的 `@Accessor("palette")`
+找不到目标，`class_2837` 未重映射），该崩溃发生在 Scaffold 代码执行之前，与本次改动无关；
+因此各模式的实战手感（telly 提前量、SilenceTelly 的 arm 时机、Hypixel 落点）**尚未实机确认**。
 
 **BunnyHop（不适用）**：`JumpIf` 的枚举常量自带 `Predicate<LocalPlayer> condition`
 （L58 直接 `jumpIf.getSelected().condition.test(player)`），这已经是"每个模式自带行为"的形态，
@@ -500,3 +528,84 @@ searchRange、prediction、requireLineOfSight、safeWalk、towerMotion、swingHa
    `SlowdownEvent`、`SlotChangeEvent`、`ChatReceivedEvent`。按"有 hack 需要"逐个补，不做全量。
 5. **模块模式类化**：`Criticals`、`Velocity`、`Flight`、`Speed`、`NoSlow` 这几组模式多的模块，
    每个模式拆成一个类（对应 OpenOpal 的 `impl` 目录）。
+
+## 第 8 项：Scaffold 逐行对齐 OpenOpal（进行中）
+
+第 7 项之前 Scaffold 虽然已经按 OpenOpal 拆好了类，但为了适配 Wurst 的
+`RotationFaker`/事件系统做了若干近似，用户实机反馈「不是脚底下搭方块，而是乱搭」。
+本轮按 `reference/clients/OpenOpal`（与上游 `ZSZ7/OpenOpal` 当前 HEAD 内容一致）
+逐段对齐，并用真实客户端 + 真实世界验证。
+
+### 已对齐/新增的基础设施
+
+| 内容 | 文件 | 说明 |
+| --- | --- | --- |
+| 移动输入事件 | `events/MoveInputListener` + `mixin/KeyboardInputMixin` | 在 `KeyboardInput.tick()` 之后派发，可改 forward/sideways/jump/sneak，对应 OpenOpal 的 `MoveInputEvent` |
+| 假旋转跟踪 | `hacks/scaffold/ScaffoldRotationHandler` | 只维护「要发给服务端的旋转」，**不改真实客户端朝向**。OpenOpal 改真实朝向再用 Movement Fix 把移动方向拉回来；Wurst 的 `RotationFaker` 本来就是发包层伪造，这样移动方向与 OpenOpal 的最终效果一致且不会偏航 |
+| 下落模拟 | `hacks/scaffold/PlayerSimulation` | 克隆本地玩家为 `RemotePlayer`，用 `travel()` 推进；取代之前的弹道近似 |
+| 旋转数学 | `ScaffoldUtils` | 新增 `getVanillaRotation` / `getSentRotation` / `getCursorDelta` / `getDuplicateWrapped` / `getRotationDifference`，射线候选按 OpenOpal 的 `getRotationDifference` 排序（yaw 取绝对值） |
+| 旋转模型 | `ScaffoldRotationModel` | Instant / Heypixel / Linear / Organic / Sideways 五种；另加 Hypixel 动态速度模型 |
+| 真实堆叠数量 | `ScaffoldWalkHack.realStackSizeMap` | 放置扣 1、拾取包加回，`getPlaceableBlock()` 用它而不是直接读堆叠数 |
+| 交互 CPS | `ScaffoldWalkHack` + 「Interact CPS」设置 | 没有缓存目标时按 CPS 模拟右键（对应 OpenOpal 的 `simulateClick`） |
+| 右键抑制 | `ScaffoldWalkHack.onRightClick` | 启用时屏蔽原版右键，对应 OpenOpal 的 `MouseButton.setDisabled()` |
+
+### 关键行为修正（附原因）
+
+1. **放置时点**：从 `PostMotion`（移动包之后）改到 `HandleInput`（玩家 tick 之前，
+   等价于 OpenOpal 的 `PreGameTick` + `MouseHandleInputEvent` 顺序）。
+2. **不再覆盖 `MC.hitResult`**：之前用 `blockCache.hit()` 覆盖准星并在后续 tick
+   被 `simulateClick` 当成真实准星，导致在玩家没看的地方放方块。现在通过参数
+   直接使用缓存命中；准星保持原版。
+3. **同一个 Y 层**：非 Telly 模式的候选点只取「玩家所在柱 + 移动方向前方 1/2/3 格」，
+   搜索深度改为 0，并禁止搜索比目标层更高的位置。OpenOpal 原始的 3×3 脚部候选 + 深度 4
+   BFS 在 1.20.1 实机里会合法地选中侧方/上方方块，表现为 3 格宽铺路和「楼梯」。
+   这是**有意偏离**，目的是保证用户要求的「脚底下搭」。
+4. **缓存层校验**：`sameYPos` 改变后，旧 `blockCache` 若不在当前层会被丢弃，避免
+   一次意外高处的放置被持续复用。
+5. **下落模拟只在真正下落时运行**，且目标 Y 不高于 `sameYPos - 1`；否则跳跃上升阶段
+   会在跳跃高度铺一层，然后踩着它继续升高（实机复现到的「楼梯」根因之一）。
+
+### 实机验证（2026-10-26，Fabric 1.20.1 dev 客户端）
+
+- 先修了 dev 环境的 Baritone 映射问题：`fabric/build.gradle` 把 Baritone 从
+  `include implementation(...)` 改成 `modImplementation` + `include`，并把
+  `dev.babbaj:nether-pathfinder` 单独放到 dev classpath。不改的话进世界会崩在
+  `MixinPalettedContainer$Data` 的 `@Accessor("palette")`（Yarn 名在 Mojmap dev
+  环境解析不到）。生产包仍然把 Baritone 作为 JiJ 打进 jar。
+- 测试环境：`xray-test` 世界，独立平台 `y=100`，用 `TestControlServer` 新增的
+  测试端点驱动输入：
+  - `POST /input?key=forward&down=true|false`（模拟按键）
+  - `POST /rotation?yaw=&pitch=`（仅测试用，直接设客户端旋转）
+  - `GET /player`（客户端位置/朝向/选中槽/主手）
+  - `POST /setting?hack=ScaffoldWalk&name=mode&value=Watchdog`（运行时改设置）
+- **Watchdog**：从平台边缘向东走 1.2 秒，桥面为 `x=2001..2009, y=100, z=2014`
+  的单宽直线，探针 `Y_100` 命中、`Y_101/102/103` 全部未命中；玩家始终在这条桥上方，
+  没有侧向漂移或爬升。
+- **Telly**：同场景开 `Auto jump`，桥面同样是 y=100 的直线，玩家在 y≈102 的跳跃高度，
+  无异常。
+- **Heypixel**（关闭 Uitems Telly）：桥面 `x=2001..2006, y=100, z=2011`，无异常。
+- **SilenceTelly**：最初只能放前 5 格后坠落的根因是 **用移动后的眼位去验证移动前算出的旋转**，
+  射线必然打偏，`onPostMotion` 每次都判定 “sent rot misses”。现在 request 时记录眼位，
+  post-movement 校验/武装/放置都用这个眼位（与 OpenOpal 的 `packetEyePos` 同构），
+  实机从平台边缘连续放置到 `x=2009`，玩家稳定站在 `y=101` 的桥上，不再坠落。
+
+### 尚未对齐 / 已知限制
+
+- **SilenceTelly 高级开关**：`StuckModule`/`SkipTickUtility` 的 Self rescue、
+  `OutboundNetworkBlockage` 的「扣包期间不放置」、`ST Keep FOV`/`ST FOV` 的
+  `GameRenderer` mixin 仍未接入；默认 Telly 路径已实机验证。
+- **SlotHelper**：目前是「切到方块槽并保持」，OpenOpal 是每 tick 切换再还原、
+  并且有 NORMAL/HOTBAR/FULL 的视觉槽位静默；服务端看到的放置槽一致，但发包序列不同。
+- **Hypixel addons「Boost」**：仅在检测到 Hypixel 时显示，尚未接入实际行为。
+- **Organic 模型**：目前用共享随机源近似，OpenOpal 每个实例有独立的频率/相位。
+
+### 复现命令
+
+```powershell
+# 只编译
+.\fabric\gradlew.bat -p fabric compileJava
+
+# 真实客户端（需要 JDK 21；本机 JAVA_HOME 默认是 25，Gradle 8.11 不认）
+$env:JAVA_HOME='C:\Users\ui863\.jdks\jdk21.0.12_12'
+.\fabric\gradlew.bat -p fabric runClient "-PspWorld=xray-test" "-PspLog=$env:TEMP\scaffold-sp.json"
+```
