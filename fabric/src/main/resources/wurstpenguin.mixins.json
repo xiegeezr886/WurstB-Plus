@@ -47,6 +47,7 @@
     "IngameHudMixin",
     "InGameOverlayRendererMixin",
     "KeyBindingMixin",
+    "KeyboardInputMixin",
     "KeyboardMixin",
     "LanguageManagerMixin",
     "LightmapTextureManagerMixin",
