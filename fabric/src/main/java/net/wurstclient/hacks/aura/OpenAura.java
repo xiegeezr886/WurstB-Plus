@@ -344,6 +344,31 @@ public final class OpenAura
 		bufferSource.endBatch(layer);
 	}
 
+	public static void drawBox(PoseStack matrices, AABB box, int color)
+	{
+		Vec3 offset = RenderUtils.getCameraPos().reverse();
+		AABB moved = box.move(offset);
+
+		Vec3[] corners = {new Vec3(moved.minX, moved.minY, moved.minZ),
+			new Vec3(moved.maxX, moved.minY, moved.minZ),
+			new Vec3(moved.maxX, moved.minY, moved.maxZ),
+			new Vec3(moved.minX, moved.minY, moved.maxZ),
+			new Vec3(moved.minX, moved.maxY, moved.minZ),
+			new Vec3(moved.maxX, moved.maxY, moved.minZ),
+			new Vec3(moved.maxX, moved.maxY, moved.maxZ),
+			new Vec3(moved.minX, moved.maxY, moved.maxZ)};
+		int[][] edges = {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6},
+			{6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
+
+		MultiBufferSource.BufferSource bufferSource = RenderUtils.getVCP();
+		RenderType layer = WurstRenderLayers.getLines(false);
+		VertexConsumer buffer = bufferSource.getBuffer(layer);
+		for(int[] edge : edges)
+			RenderUtils.drawLine(matrices, buffer, corners[edge[0]],
+				corners[edge[1]], color);
+		bufferSource.endBatch(layer);
+	}
+
 	public static void drawBox(PoseStack matrices, Vec3 pos,
 		LivingEntity target, int color)
 	{
