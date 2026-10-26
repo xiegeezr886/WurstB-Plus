@@ -45,7 +45,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.events.HandleInputListener;
 import net.wurstclient.events.MoveInputListener;
 import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.events.PacketInputListener.PacketInputEvent;
@@ -54,6 +53,7 @@ import net.wurstclient.events.PreMotionListener;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.RightClickListener;
 import net.wurstclient.events.RightClickListener.RightClickEvent;
+import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hacks.aura.OpenAura;
 import net.wurstclient.hacks.scaffold.HeypixelScaffoldMode;
@@ -83,7 +83,7 @@ import net.wurstclient.util.Rotation;
 @SearchTags({"scaffold walk", "BridgeWalk", "bridge walk", "AutoBridge",
 	"auto bridge", "tower", "telly"})
 public final class ScaffoldWalkHack extends Hack
-	implements HandleInputListener, MoveInputListener, PreMotionListener,
+	implements UpdateListener, MoveInputListener, PreMotionListener,
 	PostMotionListener, RenderListener, RightClickListener,
 	PacketInputListener
 {
@@ -302,6 +302,8 @@ public final class ScaffoldWalkHack extends Hack
 
 	private BlockData blockCache;
 	private BlockData lastOverlayData;
+	private BlockHitResult pendingPlacement;
+	private boolean pendingSimulatedClick;
 	private Rotation rotation;
 	private Rotation lastRotation;
 	private Rotation requestedRotation;
@@ -435,7 +437,7 @@ public final class ScaffoldWalkHack extends Hack
 		rotationHandler.reset();
 		lastActiveMode = mode.getSelected();
 
-		EVENTS.add(HandleInputListener.class, this);
+		EVENTS.add(UpdateListener.class, this);
 		EVENTS.add(MoveInputListener.class, this);
 		EVENTS.add(PreMotionListener.class, this);
 		EVENTS.add(PostMotionListener.class, this);
@@ -448,7 +450,7 @@ public final class ScaffoldWalkHack extends Hack
 	@Override
 	protected void onDisable()
 	{
-		EVENTS.remove(HandleInputListener.class, this);
+		EVENTS.remove(UpdateListener.class, this);
 		EVENTS.remove(MoveInputListener.class, this);
 		EVENTS.remove(PreMotionListener.class, this);
 		EVENTS.remove(PostMotionListener.class, this);
@@ -478,12 +480,13 @@ public final class ScaffoldWalkHack extends Hack
 	}
 
 	/**
-	 * OpenOpal's {@code PreGameTickEvent} + {@code MouseHandleInputEvent} in
-	 * one hook: both run before the player tick, and Wurst's
-	 * {@code HandleInputEvent} is fired at exactly that point.
+	 * Computes this tick's target during the player tick, then
+	 * {@link #onPostMotion()} executes the placement after the movement packet
+	 * has been sent. This is the timing the previous test client used and
+	 * avoids placing at the pre-move height while falling.
 	 */
 	@Override
-	public void onHandleInput()
+	public void onUpdate()
 	{
 		if(MC.player == null || MC.level == null || MC.gameMode == null
 			|| MC.player.isSpectator() || MC.player.isFallFlying())
@@ -492,13 +495,16 @@ public final class ScaffoldWalkHack extends Hack
 			return;
 		}
 
+		pendingPlacement = null;
+		pendingSimulatedClick = false;
+
 		if(mode.getSelected() != lastActiveMode)
 		{
 			if(lastActiveMode != null)
 				modes.get(lastActiveMode).onDisable();
 			lastActiveMode = mode.getSelected();
 			blockCache = null;
-				rotation = null;
+			rotation = null;
 			requestedRotation = null;
 			packetRotation = null;
 			packetRotationTicks = 0;
@@ -528,7 +534,7 @@ public final class ScaffoldWalkHack extends Hack
 			if(!updateHeldBlockSlot())
 				return;
 			impl.onTick();
-			trySharedPlacement(true);
+			queueSharedPlacement(true);
 			return;
 		}
 
@@ -536,7 +542,7 @@ public final class ScaffoldWalkHack extends Hack
 		if(!updateHeldBlockSlot())
 			return;
 		runSharedPreTick(effective);
-		trySharedPlacement(false);
+		queueSharedPlacement(false);
 	}
 
 	@Override
@@ -614,6 +620,17 @@ public final class ScaffoldWalkHack extends Hack
 	public void onPostMotion()
 	{
 		activeMode().onPostMotion();
+
+		BlockHitResult hitResult = pendingPlacement;
+		pendingPlacement = null;
+		if(hitResult != null)
+			placeBlock(hitResult);
+
+		if(pendingSimulatedClick)
+		{
+			pendingSimulatedClick = false;
+			simulateClick();
+		}
 	}
 
 	@Override
@@ -698,15 +715,21 @@ public final class ScaffoldWalkHack extends Hack
 	}
 
 	/**
-	 * OpenOpal's {@code MouseHandleInputEvent} placement branch.
+	 * Chooses this tick's placement target. The actual {@code useItemOn} is
+	 * deferred to {@link #onPostMotion()} so it runs after the movement packet,
+	 * matching the previous test client's timing.
 	 */
-	private void trySharedPlacement(boolean telly)
+	private void queueSharedPlacement(boolean telly)
 	{
 		boolean isBlock = hasHeldPlaceableBlock();
 		if(blockCache == null)
 		{
-			if(isBlock)
-				simulateClick();
+			// Only simulate a click while the user is actually holding the use
+			// button. Without this gate the fallback fires every tick at
+			// whatever the crosshair touches, so looking at a wall makes the
+			// hack build along that wall.
+			if(isBlock && MC.options.keyUse.isDown())
+				pendingSimulatedClick = true;
 			return;
 		}
 
@@ -740,7 +763,7 @@ public final class ScaffoldWalkHack extends Hack
 		if(ScaffoldUtils.isBlockInteractable(blockOver))
 			return;
 
-		placeBlock(hitResult);
+		pendingPlacement = hitResult;
 	}
 
 	private boolean simulateClick()
@@ -1287,6 +1310,12 @@ public final class ScaffoldWalkHack extends Hack
 		net.minecraft.world.entity.player.Player entity)
 	{
 		if(!ScaffoldUtils.isReplaceable(target))
+			return null;
+		// Never place at or above the player's current feet in the normal
+		// bridging modes. If sameYPos is stale (for example while falling next
+		// to a cliff), the search would otherwise attach blocks to the wall at
+		// the old level, which users see as "building a wall".
+		if(!isTellyMode() && target.getY() > Mth.floor(MC.player.getY()) - 1)
 			return null;
 
 		boolean canUseCache = entity == MC.player;

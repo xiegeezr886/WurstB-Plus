@@ -77,6 +77,7 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 	private Rotation lastTargetRotation;
 	private Rotation lastValidPlaceRotation;
 	private BlockHitResult lastHitResult;
+	private BlockHitResult pendingPlace;
 	private int rotateCount;
 	private boolean checkedBlock;
 	private int stuckTicks;
@@ -122,7 +123,8 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 			rotateCount = 0;
 			checkedBlock = false;
 			lastHitResult = null;
-				airTick = 0;
+			pendingPlace = null;
+			airTick = 0;
 			blockPos = null;
 			enumFacing = null;
 		}
@@ -147,6 +149,7 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 		rotateCount = 0;
 		checkedBlock = false;
 		lastHitResult = null;
+		pendingPlace = null;
 		upTellyRotateTick = 0;
 		upTellyJumpTick = 0;
 	}
@@ -351,8 +354,11 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 			return false;
 
 		if(!checkRotation)
-			return performPlace(new BlockHitResult(getVec3(blockPos, enumFacing),
-				enumFacing, blockPos, false));
+		{
+			pendingPlace = new BlockHitResult(getVec3(blockPos, enumFacing),
+				enumFacing, blockPos, false);
+			return true;
+		}
 
 		Rotation current = lastValidPlaceRotation != null
 			? lastValidPlaceRotation
@@ -364,7 +370,8 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 			&& hitResult.getDirection() == enumFacing)
 		{
 			lastValidPlaceRotation = current;
-			return performPlace(hitResult);
+			pendingPlace = hitResult;
+			return true;
 		}
 
 		if((isTellyEnabled() || hack.overrideRaycast.isChecked())
@@ -373,9 +380,19 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 			&& lastHitResult.getDirection() == enumFacing)
 		{
 			lastValidPlaceRotation = lastTargetRotation;
-			return performPlace(lastHitResult);
+			pendingPlace = lastHitResult;
+			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public void onPostMotion()
+	{
+		BlockHitResult hitResult = pendingPlace;
+		pendingPlace = null;
+		if(hitResult != null)
+			performPlace(hitResult);
 	}
 
 	private boolean performPlace(BlockHitResult hitResult)
