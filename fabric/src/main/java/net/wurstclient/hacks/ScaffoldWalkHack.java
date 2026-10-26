@@ -23,6 +23,7 @@ import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
@@ -66,8 +67,15 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	private static final double MAX_PLACEMENT_DISTANCE_SQ = 20.25D;
 
 	private final EnumSetting<Mode> mode = new EnumSetting<>("Mode",
-		"Vanilla places normally, Telly keeps jumping while bridging.",
-		Mode.values(), Mode.VANILLA);
+		"Server-specific bridging behaviour.", Mode.values(),
+		Mode.WATCHDOG);
+
+	private final SliderSetting tellyTick = new SliderSetting("Telly ticks",
+		"Rotation smoothing ticks used by telly modes.", 5, 0, 10, 1,
+		ValueDisplay.INTEGER);
+
+	private final CheckboxSetting stNoSwing = new CheckboxSetting(
+		"ST No Swing", "SilenceTelly: skips the swing animation.", false);
 
 	private final CheckboxSetting tower = new CheckboxSetting("Tower",
 		"Hold jump to tower up.", false);
@@ -110,6 +118,8 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	private int oldSlot = -1;
 	private int placementCooldown;
 	private int sameYPos;
+	private int groundTicks;
+	private int airTicks;
 	private final ArrayDeque<BlockPos> lastPlaced = new ArrayDeque<>();
 
 	public ScaffoldWalkHack()
@@ -120,6 +130,8 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		addSetting(tower);
 		addSetting(switchMode);
 		addSetting(swingHand);
+		addSetting(tellyTick);
+		addSetting(stNoSwing);
 		addSetting(snapRotations);
 		addSetting(sameY);
 		addSetting(autoJump);
@@ -184,6 +196,16 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			return;
 		}
 
+		if(player.onGround())
+		{
+			groundTicks++;
+			airTicks = 0;
+		}else
+		{
+			airTicks++;
+			groundTicks = 0;
+		}
+
 		if(!updateHeldBlockSlot())
 			return;
 
@@ -192,8 +214,8 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			updateTowerMotion(player);
 
 		updateSameY(player, towerActive);
-		if(!towerActive && mode.getSelected() == Mode.TELLY
-			&& sameY.isChecked() && autoJump.isChecked())
+		if(!towerActive && isTellyMode() && sameY.isChecked()
+			&& autoJump.isChecked())
 			tryAutoJump(player);
 
 		BlockData data = towerActive ? findTowerData() : findBlockData();
@@ -203,10 +225,14 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			return;
 		}
 
-		if(snapRotations.isChecked())
-			rotationQueue.setRotation(data.rotation());
+		Rotation rotation = adjustRotation(data.rotation());
+		boolean snap = snapRotations.isChecked()
+			|| mode.getSelected() == Mode.SILENCE_TELLY;
+		if(snap)
+			rotationQueue.setRotation(rotation);
 		else
-			rotationQueue.add(data.rotation(), 1);
+			rotationQueue.add(rotation,
+				isTellyMode() ? tellyTick.getValueI() : 1);
 
 		boolean wasSprinting = player.isSprinting();
 		InteractionHand hand = isBlockItem(player.getMainHandItem())
@@ -219,9 +245,12 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			return;
 		}
 
-		swingHand.swing(hand);
+		if(mode.getSelected() != Mode.SILENCE_TELLY
+			|| !stNoSwing.isChecked())
+			swingHand.swing(hand);
 		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC)
 			.setRightClickDelay(4);
+		onTowerJump(data, hand);
 
 		lastPlaced.addLast(data.target());
 		while(lastPlaced.size() > 4)
@@ -238,6 +267,58 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		if(!sameY.isChecked() || towerActive || player.onGround()
 			|| Math.abs(Mth.floor(player.getY()) - sameYPos) > 3)
 			sameYPos = Mth.floor(player.getY());
+	}
+
+	private boolean isTellyMode()
+	{
+		Mode selected = mode.getSelected();
+		return selected == Mode.TELLY || selected == Mode.HEYPIXEL
+			|| selected == Mode.HYPIXEL || selected == Mode.SILENCE_TELLY;
+	}
+
+	/**
+	 * OpenOpal's telly rotation rules: look almost straight down on the
+	 * ground and limit the yaw change in the air.
+	 */
+	private Rotation adjustRotation(Rotation rotation)
+	{
+		if(!isTellyMode())
+			return rotation;
+
+		float yaw = rotation.yaw();
+		float pitch = rotation.pitch();
+		if(MC.player.onGround())
+			pitch = 75.5F;
+		else
+		{
+			float limit = airTicks == 1 ? 90F : 50F;
+			float delta = Mth.wrapDegrees(yaw - MC.player.getYRot());
+			yaw = MC.player.getYRot() + Mth.clamp(delta, -limit, limit);
+		}
+		pitch = Mth.clamp(pitch, -89.5F, 89.5F);
+		return Rotation.wrapped(yaw, pitch);
+	}
+
+	private void onTowerJump(BlockData data, InteractionHand hand)
+	{
+		if(!tower.isChecked() || !MC.options.keyJump.isDown()
+			|| MC.options.keyUse.isDown()
+			|| MC.player.hasEffect(MobEffects.JUMP))
+			return;
+
+		if(mode.getSelected() == Mode.BLOXD)
+		{
+			BlockPos above = data.hit().getBlockPos().above();
+			MC.player.connection.send(new net.minecraft.network.protocol.game.ServerboundUseItemOnPacket(
+				hand, new BlockHitResult(
+					data.hit().getLocation().add(0, 1, 0),
+					data.hit().getDirection(), above, false),
+				0));
+			return;
+		}
+
+		Vec3 velocity = MC.player.getDeltaMovement();
+		MC.player.setDeltaMovement(velocity.x, 0.42D, velocity.z);
 	}
 
 	private void tryAutoJump(LocalPlayer player)
@@ -581,7 +662,13 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	public enum Mode
 	{
 		VANILLA("Vanilla"),
-		TELLY("Telly");
+		ANTI_GAMING_CHAIR("Anti Gaming Chair"),
+		WATCHDOG("Watchdog"),
+		BLOXD("Bloxd"),
+		TELLY("Telly"),
+		HEYPIXEL("Heypixel"),
+		HYPIXEL("Hypixel"),
+		SILENCE_TELLY("SilenceTelly");
 
 		private final String name;
 
