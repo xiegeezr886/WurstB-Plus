@@ -32,7 +32,8 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 >
 > **v1.5.1 Release（Navy，2026-10-26）** 基于提交 `4686900`，资产为
 > `WurstB+.Plus-1.5.1-Fabric-1.20.1.jar` 与 GitHub 自动生成的源码包（zip / tar.gz）。
-> 该提交之后的 Scaffold 搭高/双击疾跑修复**不在**此 Release 中。
+> 其中 jar 已于 2026-10-26T11:18Z 重传为包含 Scaffold 搭高/双击疾跑修复的构建
+> （SHA256 `afbd8380…e3ca17`）；Release 记录的提交仍为 `4686900`，tag 未移动。
 
 ## 渲染兼容性（X-Ray / Vulkan）
 
@@ -645,9 +646,10 @@ Minecraft / Mixin hook
 | ScaffoldWalk | OpenOpal 共享搜索/旋转/放置引擎 + 8 个模式类；同 Y 自动跳、手动跳搭高、双击 W 疾跑、静默换槽、区块覆盖显示 |
 | InvWalk | 统一识别 ClickGUI、Navigator、全部设置子页、HUD 编辑器和客户端选项页；这些页面不暂停单人集成服务器，并按真实键盘状态恢复移动、跳跃、潜行与疾跑输入 |
 
-#### ScaffoldWalk 修复（v1.5.1 之后，2026-10-26）
+#### ScaffoldWalk 修复（v1.5.1，2026-10-26）
 
-> 本节修复在已发布的 v1.5.1（提交 `4686900`）之后完成，尚未进入任何 Release。
+> 本节修复已包含在 v1.5.1 Release 重传的资产中（SHA256 `afbd8380…e3ca17`）；
+> Release 记录的提交仍为 `4686900`，tag 未移动。
 
 - **关闭 Auto jump 时手动跳也能搭高**：站立按住空格，目标层跟随跳跃高度，脚下连续放块
   （Fabric 1.20.1 dev 客户端实测连续 5 格）。
