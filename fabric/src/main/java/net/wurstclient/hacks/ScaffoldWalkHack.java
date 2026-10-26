@@ -16,10 +16,13 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -31,11 +34,13 @@ import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hacks.aura.OpenAura;
@@ -55,7 +60,8 @@ import net.wurstclient.util.RotationQueue;
  */
 @SearchTags({"scaffold walk", "BridgeWalk", "bridge walk", "AutoBridge",
 	"auto bridge", "tower"})
-public final class ScaffoldWalkHack extends Hack implements UpdateListener
+public final class ScaffoldWalkHack extends Hack
+	implements UpdateListener, RenderListener
 {
 	private static final Direction[] SUPPORT_DIRECTIONS = {Direction.DOWN,
 		Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH,
@@ -100,6 +106,14 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		"Override raycast", "Validates every placement with a block raycast.",
 		true);
 
+	private final CheckboxSetting interactBeforePlace = new CheckboxSetting(
+		"Interact before place",
+		"Sends an extra interact packet before placing.", false);
+
+	private final CheckboxSetting blockOverlay = new CheckboxSetting(
+		"Block overlay", "Outlines the block that is about to be placed.",
+		true);
+
 	private final CheckboxSetting safeWalk = new CheckboxSetting("SafeWalk",
 		"Prevents walking off the scaffold edge.", true);
 
@@ -120,6 +134,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	private int sameYPos;
 	private int groundTicks;
 	private int airTicks;
+	private BlockPos lastTarget;
 	private final ArrayDeque<BlockPos> lastPlaced = new ArrayDeque<>();
 
 	public ScaffoldWalkHack()
@@ -136,6 +151,8 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		addSetting(sameY);
 		addSetting(autoJump);
 		addSetting(overrideRaycast);
+		addSetting(interactBeforePlace);
+		addSetting(blockOverlay);
 		addSetting(safeWalk);
 		addSetting(keepSprint);
 		addSetting(range);
@@ -153,18 +170,21 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	{
 		oldSlot = -1;
 		placementCooldown = 0;
+		lastTarget = null;
 		lastPlaced.clear();
 		sameYPos = MC.player == null ? 0 : Mth.floor(MC.player.getY());
 		rotationQueue = new RotationQueue(
 			RotationQueue.Priority.BLOCK_PLACEMENT);
 		rotationQueue.start();
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(RenderListener.class, this);
 	}
 
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(RenderListener.class, this);
 		resetSlot();
 		lastPlaced.clear();
 		if(rotationQueue != null)
@@ -221,9 +241,11 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		BlockData data = towerActive ? findTowerData() : findBlockData();
 		if(data == null)
 		{
+			lastTarget = null;
 			resetSlot();
 			return;
 		}
+		lastTarget = data.target();
 
 		Rotation rotation = adjustRotation(data.rotation());
 		boolean snap = snapRotations.isChecked()
@@ -237,6 +259,9 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		boolean wasSprinting = player.isSprinting();
 		InteractionHand hand = isBlockItem(player.getMainHandItem())
 			? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+		if(interactBeforePlace.isChecked())
+			player.connection.send(
+				new ServerboundUseItemOnPacket(hand, data.hit(), 0));
 		InteractionResult result = MC.gameMode.useItemOn(player, hand,
 			data.hit());
 		if(!result.consumesAction())
@@ -294,6 +319,22 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			float limit = airTicks == 1 ? 90F : 50F;
 			float delta = Mth.wrapDegrees(yaw - MC.player.getYRot());
 			yaw = MC.player.getYRot() + Mth.clamp(delta, -limit, limit);
+		}
+		pitch = Mth.clamp(pitch, -89.5F, 89.5F);
+
+		// OpenOpal's patchConstantRotation: quantise to the sensitivity step
+		// so the rotation matches what a real mouse movement can produce.
+		double sensitivity = MC.options.sensitivity().get() * 0.6D + 0.2D;
+		double multiplier = sensitivity * sensitivity * sensitivity * 8.0D;
+		double divisor = multiplier * 0.15D;
+		if(divisor > 1.0E-5D)
+		{
+			float refYaw = MC.player.getYRot();
+			float refPitch = MC.player.getXRot();
+			yaw = refYaw + (float)(Math
+				.round((yaw - refYaw) / divisor) * divisor);
+			pitch = refPitch + (float)(Math
+				.round((pitch - refPitch) / divisor) * divisor);
 		}
 		pitch = Mth.clamp(pitch, -89.5F, 89.5F);
 		return Rotation.wrapped(yaw, pitch);
@@ -478,7 +519,7 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 
 	private BlockData placementAt(BlockPos target, int raytraceBudget)
 	{
-		if(raytraceBudget <= 0)
+		if(raytraceBudget <= 0 || collidesWithPlayer(target))
 			return null;
 
 		BlockData best = null;
@@ -515,6 +556,29 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			}
 		}
 		return best;
+	}
+
+	private boolean collidesWithPlayer(BlockPos target)
+	{
+		AABB blockBox = new AABB(target);
+		AABB playerBox = MC.player.getBoundingBox();
+		Vec3 velocity = MC.player.getDeltaMovement();
+		AABB predicted = playerBox
+			.expandTowards(velocity.x, velocity.y, velocity.z).inflate(0.001D);
+		if(!blockBox.intersects(predicted))
+			return false;
+
+		// Placing the block directly under the feet is the landing case.
+		return blockBox.maxY > playerBox.minY + 0.01D;
+	}
+
+	@Override
+	public void onRender(PoseStack matrices, float partialTicks)
+	{
+		if(!blockOverlay.isChecked() || lastTarget == null || MC.level == null)
+			return;
+		OpenAura.drawBox(matrices, new AABB(lastTarget),
+			WURST.getGui().getTheme().accent(0.75F));
 	}
 
 	private List<BlockHitResult> hitCandidates(BlockPos target,
