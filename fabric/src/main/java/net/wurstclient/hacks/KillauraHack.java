@@ -50,7 +50,7 @@ public final class KillauraHack extends Hack
 		new EnumSetting<>("Mode", Mode.values(), Mode.SWITCH);
 
 	private final SliderSetting range = new SliderSetting("Range",
-		"How far the aura can attack.", 3, 3, 6, 0.1, ValueDisplay.DECIMAL);
+		"How far the aura can attack.", 6, 3, 10, 0.1, ValueDisplay.DECIMAL);
 	private final SliderSetting rotationRange = new SliderSetting(
 		"Rotation range",
 		"How far the aura will look at targets without attacking.", 5, 3, 8,
