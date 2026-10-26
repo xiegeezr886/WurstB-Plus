@@ -93,10 +93,46 @@ public final class TestControlServer
 			server.start();
 			System.out.println("[WurstTest] listening on http://127.0.0.1:"
 				+ server.getAddress().getPort() + "/");
+			startPauseKeepAlive();
 		}catch(Throwable t)
 		{
 			System.out.println("[WurstTest] failed to start: " + t);
 		}
+	}
+
+	/**
+	 * Dev clients launched from a terminal lose focus between test commands,
+	 * which opens the pause screen and makes every synthetic key press get
+	 * released before it can be observed. Closing auto-pause screens keeps the
+	 * world ticking while the test server is enabled.
+	 */
+	private static void startPauseKeepAlive()
+	{
+		Thread thread = new Thread(() -> {
+			while(true)
+			{
+				try
+				{
+					Thread.sleep(250L);
+				}catch(InterruptedException e)
+				{
+					return;
+				}
+				try
+				{
+					WurstClient.MC.execute(() -> {
+						if(WurstClient.MC.level != null
+							&& !WurstClient.MC.isWindowActive()
+							&& WurstClient.MC.screen != null
+							&& WurstClient.MC.screen.isPauseScreen())
+							WurstClient.MC.setScreen(null);
+					});
+				}catch(Throwable ignored)
+				{}
+			}
+		}, "Wurst-TestKeepAlive");
+		thread.setDaemon(true);
+		thread.start();
 	}
 
 	private static Properties loadConfig() throws IOException
@@ -216,6 +252,14 @@ public final class TestControlServer
 
 				case "/player":
 				handlePlayer(exchange, method);
+				break;
+
+				case "/block":
+				handleBlock(exchange, method, query);
+				break;
+
+				case "/column":
+				handleColumn(exchange, method, query);
 				break;
 
 				case "/setting":
@@ -605,7 +649,100 @@ public final class TestControlServer
 				+ escape(player.getMainHandItem().getItem().toString())
 				+ "\",\"offHand\":\""
 				+ escape(player.getOffhandItem().getItem().toString())
-				+ "\"}";
+				+ "\",\"sprinting\":" + player.isSprinting()
+				+ ",\"jumping\":" + player.input.jumping
+				+ ",\"forward\":" + player.input.forwardImpulse
+				+ ",\"sideways\":" + player.input.leftImpulse
+				+ ",\"vy\":" + player.getDeltaMovement().y
+				+ ",\"fallDistance\":" + player.fallDistance
+				+ ",\"horizontalCollision\":" + player.horizontalCollision
+				+ ",\"tickCount\":" + player.tickCount
+				+ ",\"paused\":" + WurstClient.MC.isPaused()
+				+ ",\"screen\":" + (WurstClient.MC.screen == null ? "null"
+					: "\"" + escape(
+						WurstClient.MC.screen.getClass().getSimpleName())
+						+ "\"")
+				+ ",\"pauseOnLostFocus\":"
+				+ WurstClient.MC.options.pauseOnLostFocus
+				+ ",\"serverYaw\":"
+				+ WurstClient.INSTANCE.getRotationFaker().getServerYaw()
+				+ ",\"serverPitch\":"
+				+ WurstClient.INSTANCE.getRotationFaker().getServerPitch()
+				+ ",\"modelRotation\":"
+				+ WurstClient.INSTANCE.getRotationFaker()
+					.isModelRotationActive()
+				+ "}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleBlock(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"GET".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "GET required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			if(WurstClient.MC.level == null)
+				return "{\"ok\":false,\"error\":\"no level\"}";
+			try
+			{
+				int x = Integer.parseInt(query.get("x"));
+				int y = Integer.parseInt(query.get("y"));
+				int z = Integer.parseInt(query.get("z"));
+				var pos = new net.minecraft.core.BlockPos(x, y, z);
+				var state = WurstClient.MC.level.getBlockState(pos);
+				return "{\"ok\":true,\"x\":" + x + ",\"y\":" + y + ",\"z\":"
+					+ z + ",\"block\":\""
+					+ escape(state.getBlock().toString())
+					+ "\",\"replaceable\":" + state.canBeReplaced()
+					+ ",\"air\":" + state.isAir() + "}";
+			}catch(NumberFormatException e)
+			{
+				return "{\"ok\":false,\"error\":\"invalid coordinates\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleColumn(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"GET".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "GET required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			if(WurstClient.MC.level == null)
+				return "{\"ok\":false,\"error\":\"no level\"}";
+			try
+			{
+				int x = Integer.parseInt(query.get("x"));
+				int z = Integer.parseInt(query.get("z"));
+				int y0 = Integer.parseInt(query.get("y0"));
+				int y1 = Integer.parseInt(query.get("y1"));
+				StringBuilder json = new StringBuilder("{\"ok\":true,\"x\":")
+					.append(x).append(",\"z\":").append(z)
+					.append(",\"y0\":").append(y0)
+					.append(",\"blocks\":[");
+				for(int y = y0; y <= y1 && y - y0 < 256; y++)
+				{
+					if(y > y0)
+						json.append(',');
+					json.append('"').append(escape(WurstClient.MC.level
+						.getBlockState(new net.minecraft.core.BlockPos(x, y, z))
+						.getBlock().toString())).append('"');
+				}
+				return json.append("]}").toString();
+			}catch(NumberFormatException e)
+			{
+				return "{\"ok\":false,\"error\":\"invalid coordinates\"}";
+			}
 		});
 		send(exchange, 200, "application/json", result);
 	}

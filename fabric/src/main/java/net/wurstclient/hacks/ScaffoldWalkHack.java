@@ -324,6 +324,8 @@ public final class ScaffoldWalkHack extends Hack
 	private int lastAutoJumpStateAge = -1;
 	private boolean simulatedJump;
 	private boolean simulatedSneak;
+	private boolean lastForwardDown;
+	private int lastForwardTapAge = -100;
 
 	private int oldSlot = -1;
 	private int silentSlot = -1;
@@ -431,6 +433,8 @@ public final class ScaffoldWalkHack extends Hack
 		autoJumpAirTicks = 0;
 		lastAutoJumpAge = -20;
 		lastAutoJumpStateAge = -1;
+		lastForwardDown = false;
+		lastForwardTapAge = -100;
 		oldSlot = -1;
 		silentSlot = -1;
 		realStackSizeMap = new HashMap<>();
@@ -549,6 +553,7 @@ public final class ScaffoldWalkHack extends Hack
 	public void onMoveInput(MoveInputListener.MoveInputEvent event)
 	{
 		activeMode().onMoveInput(event);
+		updateDoubleTapSprint(event);
 
 		if(isUitemsMode() || isSilenceTellyMode()
 			|| mode.getSelected() == Mode.TELLY)
@@ -659,8 +664,14 @@ public final class ScaffoldWalkHack extends Hack
 	{
 		boolean autoJumpActive = isSameYAutoJumpActive();
 		boolean manualJump = MC.options.keyJump.isDown();
-		boolean updateY = !sameY.isChecked()
-			|| autoJump.isChecked() && manualJump && !isRecentAutoJump()
+		// Manual jumps tower only while standing still: the target level has to
+		// follow the player up so a block lands under the feet ("jump up but
+		// no block under the feet" when Auto jump is off). While moving, keep
+		// the level fixed - following a held jump key made the player climb
+		// into the air while bridging and broke sprint against the new blocks.
+		boolean manualJumpUpdateY = manualJump && !isRecentAutoJump()
+			&& !ScaffoldUtils.isMoving();
+		boolean updateY = !sameY.isChecked() || manualJumpUpdateY
 			|| MC.player.onGround() && !autoJumpActive
 			|| Math.abs(Math.floor(MC.player.getY()) - sameYPos) > 3
 			|| WURST.getHax().longJumpHack.isEnabled()
@@ -825,6 +836,44 @@ public final class ScaffoldWalkHack extends Hack
 		return Math.abs(event.getForward()) > 1.0E-4F
 			|| Math.abs(event.getSideways()) > 1.0E-4F
 			|| ScaffoldUtils.isMoving();
+	}
+
+	/**
+	 * Vanilla's double-tap sprint only starts when the second tap happens on
+	 * the ground. Scaffold's automatic or manual bunny hops keep the player
+	 * airborne, so that second tap usually lands in mid-air and sprinting
+	 * never starts. Start it on the same conditions vanilla's sprint key path
+	 * uses, minus the ground requirement.
+	 */
+	private void updateDoubleTapSprint(
+		MoveInputListener.MoveInputEvent event)
+	{
+		if(MC.player == null)
+			return;
+
+		boolean forwardDown = event.getForward() >= 0.8F
+			&& !event.isSneak();
+		if(forwardDown && !lastForwardDown)
+		{
+			int age = MC.player.tickCount;
+			if(age - lastForwardTapAge <= 8)
+				startSprinting();
+			lastForwardTapAge = age;
+		}
+		lastForwardDown = forwardDown;
+	}
+
+	private void startSprinting()
+	{
+		var player = MC.player;
+		if(player == null || player.isSprinting() || player.isPassenger()
+			|| player.isFallFlying() || player.isUsingItem()
+			|| player.isShiftKeyDown()
+			|| player.hasEffect(MobEffects.BLINDNESS)
+			|| !player.getAbilities().mayfly
+				&& player.getFoodData().getFoodLevel() <= 6)
+			return;
+		player.setSprinting(true);
 	}
 
 	private boolean isUitemsMode()
