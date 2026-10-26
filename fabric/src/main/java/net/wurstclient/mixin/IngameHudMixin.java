@@ -76,8 +76,9 @@ public class IngameHudMixin
 		if(hotbar == null || !hotbar.isEnabled())
 			return;
 
-		// Keep the vanilla hotbar while the HUD itself is hidden.
-		if(WurstClient.MC.options.hideGui || WurstClient.MC.screen != null)
+		// Hide the vanilla hotbar behind screens as well; the modern hotbar is
+		// still rendered below the screen overlay.
+		if(WurstClient.MC.options.hideGui)
 			return;
 
 		ci.cancel();
