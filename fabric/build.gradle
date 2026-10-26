@@ -49,7 +49,14 @@ dependencies {
 	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
 
 	// Baritone is bundled from the checked-in local Maven repository.
-	include implementation("baritone:baritone-api-fabric:1.10.3")
+	// modImplementation (not implementation) so Loom remaps its intermediary
+	// mixin/accessor descriptors to Mojang mappings in the dev runtime.
+	modImplementation "baritone:baritone-api-fabric:1.10.3"
+	// Loom's remapped dev jar drops Baritone's nested nether-pathfinder, so
+	// put the same artifact on the dev classpath explicitly. The shipped jar
+	// still gets the copy nested inside Baritone via the include below.
+	modImplementation "dev.babbaj:nether-pathfinder:1.4.1"
+	include "baritone:baritone-api-fabric:1.10.3"
 
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"

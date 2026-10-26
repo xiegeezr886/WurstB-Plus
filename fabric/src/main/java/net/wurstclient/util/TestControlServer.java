@@ -202,13 +202,29 @@ public final class TestControlServer
 					handleHudEditor(exchange, method, false);
 					break;
 
-					case "/world/enter":
-					handleWorldEnter(exchange, method, query);
-					break;
+				case "/world/enter":
+				handleWorldEnter(exchange, method, query);
+				break;
 
-					case "/command":
-					handleCommand(exchange, method, query);
-					break;
+				case "/input":
+				handleInput(exchange, method, query);
+				break;
+
+				case "/rotation":
+				handleRotation(exchange, method, query);
+				break;
+
+				case "/player":
+				handlePlayer(exchange, method);
+				break;
+
+				case "/setting":
+				handleSetting(exchange, method, query);
+				break;
+
+				case "/command":
+				handleCommand(exchange, method, query);
+				break;
 
 					case "/screen":
 					handleScreen(exchange, method, query);
@@ -499,6 +515,147 @@ public final class TestControlServer
 				return "{\"ok\":false,\"error\":\"" + escape(t.toString())
 					+ "\"}";
 			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleInput(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+
+		String key = query.get("key");
+		boolean down = Boolean.parseBoolean(query.getOrDefault("down", "true"));
+		String result = onClientThread(() -> {
+			net.minecraft.client.KeyMapping mapping = switch(key == null ? ""
+				: key)
+			{
+				case "forward", "up" -> WurstClient.MC.options.keyUp;
+				case "back", "down" -> WurstClient.MC.options.keyDown;
+				case "left" -> WurstClient.MC.options.keyLeft;
+				case "right" -> WurstClient.MC.options.keyRight;
+				case "jump" -> WurstClient.MC.options.keyJump;
+				case "sneak", "shift" -> WurstClient.MC.options.keyShift;
+				case "use" -> WurstClient.MC.options.keyUse;
+				case "attack" -> WurstClient.MC.options.keyAttack;
+				case "sprint" -> WurstClient.MC.options.keySprint;
+				default -> null;
+			};
+			if(mapping == null)
+				return "{\"ok\":false,\"error\":\"unknown key\"}";
+			mapping.setDown(down);
+			return "{\"ok\":true,\"key\":\"" + escape(key)
+				+ "\",\"down\":" + down + "}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleRotation(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			if(WurstClient.MC.player == null)
+				return "{\"ok\":false,\"error\":\"no player\"}";
+			try
+			{
+				float yaw = Float.parseFloat(query.getOrDefault("yaw",
+					Float.toString(WurstClient.MC.player.getYRot())));
+				float pitch = Float.parseFloat(query.getOrDefault("pitch",
+					Float.toString(WurstClient.MC.player.getXRot())));
+				WurstClient.MC.player.setYRot(yaw);
+				WurstClient.MC.player.setXRot(pitch);
+				return "{\"ok\":true,\"yaw\":" + yaw + ",\"pitch\":" + pitch
+					+ "}";
+			}catch(NumberFormatException e)
+			{
+				return "{\"ok\":false,\"error\":\"invalid rotation\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handlePlayer(HttpExchange exchange, String method)
+		throws Exception
+	{
+		if(!"GET".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "GET required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			if(WurstClient.MC.player == null)
+				return "{\"ok\":false,\"error\":\"no player\"}";
+			var player = WurstClient.MC.player;
+			return "{\"ok\":true,\"x\":" + player.getX() + ",\"y\":"
+				+ player.getY() + ",\"z\":" + player.getZ() + ",\"yaw\":"
+				+ player.getYRot() + ",\"pitch\":" + player.getXRot()
+				+ ",\"onGround\":" + player.onGround() + ",\"selected\":"
+				+ player.getInventory().selected + ",\"mainHand\":\""
+				+ escape(player.getMainHandItem().getItem().toString())
+				+ "\",\"offHand\":\""
+				+ escape(player.getOffhandItem().getItem().toString())
+				+ "\"}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleSetting(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String hackName = query.get("hack");
+		String settingName = query.get("name");
+		String value = query.get("value");
+		if(hackName == null || settingName == null || value == null)
+		{
+			send(exchange, 400, "text/plain", "hack, name and value required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			Hack hack = WurstClient.INSTANCE.getHax().getHackByName(hackName);
+			if(hack == null)
+				return "{\"ok\":false,\"error\":\"unknown hack\"}";
+			net.wurstclient.settings.Setting setting =
+				hack.getSettings().get(settingName.toLowerCase());
+			if(setting == null)
+				return "{\"ok\":false,\"error\":\"unknown setting\"}";
+			if(setting instanceof net.wurstclient.settings.EnumSetting<?> e)
+				return e.setSelected(value)
+					? "{\"ok\":true,\"value\":\"" + escape(value) + "\"}"
+					: "{\"ok\":false,\"error\":\"invalid enum value\"}";
+			if(setting instanceof net.wurstclient.settings.SliderSetting s)
+			{
+				try
+				{
+					s.setValue(Double.parseDouble(value));
+					return "{\"ok\":true,\"value\":" + s.getValue() + "}";
+				}catch(NumberFormatException e)
+				{
+					return "{\"ok\":false,\"error\":\"invalid number\"}";
+				}
+			}
+			if(setting instanceof net.wurstclient.settings.CheckboxSetting c)
+			{
+				c.setChecked(Boolean.parseBoolean(value));
+				return "{\"ok\":true,\"value\":" + c.isChecked() + "}";
+			}
+			return "{\"ok\":false,\"error\":\"unsupported setting type\"}";
 		});
 		send(exchange, 200, "application/json", result);
 	}
