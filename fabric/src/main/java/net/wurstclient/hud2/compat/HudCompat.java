@@ -398,15 +398,24 @@ public final class HudCompat
 		return new HorseInfo(horse.getHealth(), maxHealth, jump, speed);
 	}
 
-	public static TargetInfo target()
+	public static LivingEntity targetEntity()
 	{
 		Entity entity = WurstClient.MC.crosshairPickEntity;
 		if(entity == null
 			&& WurstClient.MC.hitResult instanceof EntityHitResult hit)
 			entity = hit.getEntity();
-		if(!(entity instanceof LivingEntity living))
-			return null;
+		return entity instanceof LivingEntity living && living.isAlive()
+			? living : null;
+	}
 
+	public static TargetInfo target()
+	{
+		LivingEntity living = targetEntity();
+		return living == null ? null : infoFor(living);
+	}
+
+	public static TargetInfo infoFor(LivingEntity living)
+	{
 		String skin = living
 			instanceof net.minecraft.client.player.AbstractClientPlayer player
 				? player.getSkinTextureLocation().toString() : null;
@@ -422,11 +431,7 @@ public final class HudCompat
 	{
 		if(WurstClient.MC.player == null)
 			return null;
-		Player player = WurstClient.MC.player;
-		String skin = player instanceof net.minecraft.client.player.AbstractClientPlayer clientPlayer
-			? clientPlayer.getSkinTextureLocation().toString() : null;
-		return new TargetInfo(player.getName().getString(), player.getHealth(),
-			player.getMaxHealth(), 0, skin, player.getArmorValue());
+		return infoFor(WurstClient.MC.player);
 	}
 
 	public static String targetName()
