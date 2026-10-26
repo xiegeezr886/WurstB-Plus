@@ -352,7 +352,7 @@ public final class KillauraHack extends Hack
 		return flags;
 	}
 
-	private double getRange()
+	public double getRange()
 	{
 		return range.getValue();
 	}
