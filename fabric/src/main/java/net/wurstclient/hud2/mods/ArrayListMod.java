@@ -32,17 +32,12 @@ public final class ArrayListMod extends HUDMod
 		if(getManager() == null)
 			return;
 
-		// The module list covers every enabled feature: hacks as well as HUD
-		// modules (previously only HUD modules were listed).
+		// Only gameplay modules belong in this list; HUD elements do not.
 		List<Feature> active = new ArrayList<>();
 		if(WURST.getHax() != null)
 			for(Hack hack : WURST.getHax().getAllHax())
 				if(hack.isEnabled())
 					active.add(hack);
-
-		for(HUDMod mod : getManager().getMods().values())
-			if(mod != this && mod.isEnabled())
-				active.add(mod);
 
 		active.sort(Comparator.comparing(Feature::getDisplayName,
 			String.CASE_INSENSITIVE_ORDER));

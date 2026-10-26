@@ -9,29 +9,45 @@
 package net.wurstclient.hud2.mods;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 import org.joml.Vector3f;
 
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.wurstclient.hacks.KillauraHack;
 import net.wurstclient.hud2.HUDMod;
 import net.wurstclient.hud2.compat.HudCompat;
 import net.wurstclient.hud2.nanovg.HudFonts;
 import net.wurstclient.hud2.nanovg.HudIcon;
+import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.EntityUtils;
 
 public final class TargetInfoMod extends HUDMod
 {
 	private static final float RING_RADIUS = 9F;
 
+	private final SliderSetting range = new SliderSetting("Range",
+		"How far to search for nearby entities.", 12, 1, 32, 1,
+		ValueDisplay.INTEGER);
+	private final SliderSetting maxTargets = new SliderSetting("Max targets",
+		"How many entity cards to show.", 5, 1, 10, 1,
+		ValueDisplay.INTEGER);
+
 	public TargetInfoMod()
 	{
 		super("TargetInfo", "Target Info",
-			"Shows information about the entity being looked at.");
+			"Shows nearby entities and the pursuit target.");
 		setTranslationKey("target_info");
 		setDefaultPosition(180, 54);
+		addSetting(range);
+		addSetting(maxTargets);
 	}
 
 	@Override
@@ -51,20 +67,60 @@ public final class TargetInfoMod extends HUDMod
 			return;
 		}
 
-		Entity target = resolveTarget();
-		if(!(target instanceof LivingEntity living) || !living.isAlive())
+		List<LivingEntity> targets = collectTargets();
+		if(targets.isEmpty())
 		{
 			setSize(0, 0);
 			return;
 		}
 
-		HudCompat.TargetInfo info = HudCompat.infoFor(living);
-		float[] screen = project(living);
-		if(screen == null)
+		for(LivingEntity entity : targets)
+			drawEntityCard(entity);
+		setSize(140, 46);
+	}
+
+	/**
+	 * Killaura's current target first, then every other living entity within
+	 * the configured player range. Both are capped by the target limit.
+	 */
+	private List<LivingEntity> collectTargets()
+	{
+		if(MC.player == null || MC.level == null)
+			return List.of();
+
+		List<LivingEntity> result = new ArrayList<>();
+		double searchRange = range.getValue();
+
+		KillauraHack aura = WURST.getHax().killauraHack;
+		if(aura != null && aura.isEnabled())
 		{
-			setSize(0, 0);
-			return;
+			searchRange = Math.max(searchRange, aura.getRange());
+			Entity auraTarget = aura.getCurrentTarget();
+			if(auraTarget instanceof LivingEntity living && living.isAlive()
+				&& living != MC.player)
+				result.add(living);
 		}
+
+		AABB area = MC.player.getBoundingBox().inflate(searchRange);
+		for(LivingEntity entity : MC.level.getEntitiesOfClass(
+			LivingEntity.class, area, e -> e != MC.player && e.isAlive()
+				&& !e.isSpectator()))
+			if(!result.contains(entity))
+				result.add(entity);
+
+		result.sort(Comparator
+			.comparingDouble(e -> MC.player.distanceToSqr(e)));
+		int limit = maxTargets.getValueI();
+		return result.size() > limit
+			? new ArrayList<>(result.subList(0, limit)) : result;
+	}
+
+	private void drawEntityCard(LivingEntity entity)
+	{
+		HudCompat.TargetInfo info = HudCompat.infoFor(entity);
+		float[] screen = project(entity);
+		if(screen == null)
+			return;
 
 		float width = computeWidth(info);
 		int cardWidth = Math.round(width * getScale());
@@ -89,19 +145,6 @@ public final class TargetInfoMod extends HUDMod
 			setX(oldX);
 			setY(oldY);
 		}
-	}
-
-	private Entity resolveTarget()
-	{
-		LivingEntity auraTarget = null;
-		if(WURST.getHax().killauraHack.isEnabled())
-		{
-			Entity entity = WURST.getHax().killauraHack.getCurrentTarget();
-			if(entity instanceof LivingEntity living && living.isAlive())
-				auraTarget = living;
-		}
-
-		return auraTarget != null ? auraTarget : HudCompat.targetEntity();
 	}
 
 	private float computeWidth(HudCompat.TargetInfo target)
