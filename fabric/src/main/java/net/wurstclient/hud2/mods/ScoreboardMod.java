@@ -37,10 +37,16 @@ public final class ScoreboardMod extends HUDMod
 		String title = HudCompat.scoreboardTitle();
 		if(lines.isEmpty())
 		{
-			drawBackground(120, 20);
-			drawText("No scoreboard", 6, 5, 9, HudFonts.REGULAR,
-				getFontColor(200));
-			setSize(120, 20);
+			// Nothing to show in-game; keep a preview only in the editor so
+			// the module can still be positioned.
+			if(isEditing())
+			{
+				drawBackground(120, 20);
+				drawText("No scoreboard", 6, 5, 9, HudFonts.REGULAR,
+					getFontColor(200));
+				setSize(120, 20);
+			}else
+				setSize(0, 0);
 			return;
 		}
 

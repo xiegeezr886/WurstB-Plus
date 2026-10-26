@@ -35,10 +35,16 @@ public final class PotionStatusMod extends HUDMod
 		List<HudCompat.EffectInfo> effects = HudCompat.effects();
 		if(effects.isEmpty())
 		{
-			drawBackground(110, 20);
-			drawText("No effects", 6, 5, 9, HudFonts.REGULAR,
-				getFontColor(200));
-			setSize(110, 20);
+			// Nothing to show in-game; keep a preview only in the editor so
+			// the module can still be positioned.
+			if(isEditing())
+			{
+				drawBackground(110, 20);
+				drawText("No effects", 6, 5, 9, HudFonts.REGULAR,
+					getFontColor(200));
+				setSize(110, 20);
+			}else
+				setSize(0, 0);
 			return;
 		}
 
