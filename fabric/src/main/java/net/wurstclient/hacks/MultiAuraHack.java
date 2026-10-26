@@ -1,342 +1,158 @@
 /*
- * This file contains a Forge/Mojmap adaptation of FDPClient's KillAura
- * multi-target mode and LiquidBounce Nextgen's click scheduler.
+ * Copyright (c) 2026 WurstB+ Plus contributors
  *
- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
- * Copyright (c) 2015-2026 CCBlueX
- * Copyright (c) 2025-2026 Penguin
- *
- * This source code is subject to the terms of the GNU General Public
- * License, version 3. If a copy of the GPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+ * This source code is subject to the terms of the GNU Affero General Public
+ * License, version 3. If a copy of the AGPL was not distributed with this
+ * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
  */
 package net.wurstclient.hacks;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.PosRot;
-import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
-import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
-import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket.Action;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.MilkBucketItem;
 import net.minecraft.world.item.PotionItem;
-import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.UseAnim;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
 import net.wurstclient.events.HandleInputListener;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictGroup;
-import net.wurstclient.mixin.LivingEntityAccessor;
-import net.wurstclient.mixin.PlayerEntityAccessor;
-import net.wurstclient.mixinterface.IClientPlayerInteractionManager;
-import net.wurstclient.mixinterface.IMinecraftClient;
-import net.wurstclient.settings.AimAtSetting;
+import net.wurstclient.hacks.aura.OpenAura;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.settings.SwingHandSetting;
-import net.wurstclient.settings.SwingHandSetting.SwingHand;
-import net.wurstclient.settings.filterlists.EntityFilterList;
-import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.ClickPattern;
-import net.wurstclient.util.CombatAimPointPlanner;
-import net.wurstclient.util.CombatAimPointPlanner.AimPoint;
-import net.wurstclient.util.CombatActionPolicy;
-import net.wurstclient.util.CombatClickScheduler;
-import net.wurstclient.util.CombatTargetUtils;
-import net.wurstclient.util.MultiTargetAttackPlanner;
-import net.wurstclient.util.Rotation;
+import net.wurstclient.util.EntityUtils;
+import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.RotationQueue;
-import net.wurstclient.util.RotationSmoothing;
-import net.wurstclient.util.RotationUtils;
-import net.wurstclient.util.render.AuraRangeRenderer;
 
-@SearchTags({"multi aura", "ForceField", "force field"})
+/**
+ * Multi-target aura built on OpenOpal's targeting, rotation and attack-window
+ * logic. It attacks every valid target up to the configured limit per swing.
+ */
 public final class MultiAuraHack extends Hack
 	implements UpdateListener, HandleInputListener, RenderListener
 {
-	private final SliderSetting range = new SliderSetting("Range", 3.7, 1,
-		8, 0.05, ValueDisplay.DECIMAL.withSuffix(" blocks"));
-	private final SliderSetting scanRange = new SliderSetting("Scan range", 2,
-		0, 10, 0.1, ValueDisplay.DECIMAL.withSuffix(" blocks"));
-	private final SliderSetting throughWallsRange = new SliderSetting(
-		"Through walls range", 3, 0, 8, 0.05,
-		ValueDisplay.DECIMAL.withSuffix(" blocks"));
-	private final SliderSetting sprintRangeReduction = new SliderSetting(
-		"Sprint range reduction", 0, 0, 0.4, 0.05,
-		ValueDisplay.DECIMAL.withSuffix(" blocks"));
-	private final SliderSetting rangeChance = new SliderSetting("Range chance",
-		100, 1, 100, 1, ValueDisplay.PERCENTAGE);
+	private final SliderSetting range = new SliderSetting("Range",
+		"How far the aura can attack.", 3, 3, 6, 0.1, ValueDisplay.DECIMAL);
+	private final SliderSetting rotationRange = new SliderSetting(
+		"Rotation range",
+		"How far the aura will look at targets without attacking.", 5, 3, 8,
+		0.1, ValueDisplay.DECIMAL);
+	private final EnumSetting<CpsMode> cpsMode = new EnumSetting<>("CPS mode",
+		"Auto follows the weapon's attack speed; Manual uses a fixed CPS.",
+		CpsMode.values(), CpsMode.AUTO);
+	private final SliderSetting attackCps = new SliderSetting("Attack CPS",
+		"Multi-target swings per second in manual mode.", 10, 1, 20, 1,
+		ValueDisplay.INTEGER)
+			.visibleWhen(() -> cpsMode.getSelected() == CpsMode.MANUAL);
+	private final SliderSetting maxTargets = new SliderSetting("Max targets",
+		"How many entities to attack per swing.", 5, 1, 10, 1,
+		ValueDisplay.INTEGER);
 
-	private final SliderSetting minCps = new SliderSetting("Minimum CPS", 5,
-		1, 60, 1, ValueDisplay.INTEGER.withSuffix(" clicks"));
-	private final SliderSetting maxCps = new SliderSetting("Maximum CPS", 8,
-		1, 60, 1, ValueDisplay.INTEGER.withSuffix(" clicks"));
-	private final EnumSetting<ClickPattern> clickPattern = new EnumSetting<>(
-		"Click technique", ClickPattern.values(), ClickPattern.STABILIZED);
-	private final CheckboxSetting attackCooldown = new CheckboxSetting(
-		"Attack cooldown", true);
-	private final SliderSetting minimumCooldown = new SliderSetting(
-		"Minimum item cooldown", 1, 0, 2, 0.05, ValueDisplay.PERCENTAGE);
-	private final SliderSetting maximumCooldown = new SliderSetting(
-		"Maximum item cooldown", 1, 0, 2, 0.05, ValueDisplay.PERCENTAGE);
-	private final CheckboxSetting ignoreCooldownWhenExitingRange =
-		new CheckboxSetting("Ignore cooldown when exiting range", true);
+	private final CheckboxSetting requireWeapon = new CheckboxSetting(
+		"Require weapon",
+		"Only attacks while holding a sword, axe or pickaxe.", false);
+	private final CheckboxSetting requireAttackKey = new CheckboxSetting(
+		"Require attack key", "Only attacks while the attack key is held.",
+		false);
+	private final CheckboxSetting hitSelect = new CheckboxSetting("Hit Select",
+		"Skips attacks while you are taking knockback.", false);
 
-	private final SliderSetting hurtTime = new SliderSetting("Hurt time", 10,
-		0, 10, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
-	private final CheckboxSetting hitSelect = new CheckboxSetting("Hit select",
-		"Only attacks when the hit can actually land: waits for the target to leave"
-			+ " its invulnerability window (latency-aware), or attacks immediately"
-			+ " while you are in your own hurt window (trading).",
+	private final CheckboxSetting targetPlayers = new CheckboxSetting(
+		"Target players", "Attacks other players.", true);
+	private final CheckboxSetting targetHostile = new CheckboxSetting(
+		"Target hostile", "Attacks hostile mobs.", false);
+	private final CheckboxSetting targetPassive = new CheckboxSetting(
+		"Target passive", "Attacks passive animals.", false);
+	private final CheckboxSetting targetFriendly = new CheckboxSetting(
+		"Target friendly",
+		"Attacks other living entities (villagers, golems).", true);
+
+	private final SliderSetting fov = new SliderSetting("FOV",
+		"Only targets inside this field of view.", 180, 1, 180, 1,
+		ValueDisplay.INTEGER);
+	private final CheckboxSetting overrideRaycast = new CheckboxSetting(
+		"Override raycast", "Aims exactly at the primary target.",
 		true);
-	private final SliderSetting maxTargets = new SliderSetting("Target limit",
-		0, 0, 50, 1, ValueDisplay.INTEGER.withLabel(0, "unlimited"));
-	private final EnumSetting<TargetPriority> priority = new EnumSetting<>(
-		"Priority", TargetPriority.values(), TargetPriority.ARMOR);
-	private final SliderSetting fov = new SliderSetting("FOV", 180, 0, 180,
-		5, ValueDisplay.DEGREES);
-	private final AimAtSetting aimAt = new AimAtSetting(
-		"Preferred point in the primary target's predicted hitbox.");
-	private final SliderSetting targetPrediction = new SliderSetting(
-		"Target prediction", 1, 0, 3, 0.1,
-		ValueDisplay.DECIMAL.withSuffix(" ticks"));
-	private final SliderSetting selfPrediction = new SliderSetting(
-		"Self prediction", 1, 0, 5, 1,
-		ValueDisplay.INTEGER.withSuffix(" ticks"));
-	private final CheckboxSetting checkLOS = new CheckboxSetting(
-		"Check line of sight", true);
+	private final CheckboxSetting throughWalls = new CheckboxSetting(
+		"Through Walls", "Attacks targets without line of sight.", false);
 
-	private final EnumSetting<RaycastMode> raycastMode = new EnumSetting<>(
-		"Raycast", RaycastMode.values(), RaycastMode.ENEMY);
-	private final CheckboxSetting raycastIgnored = new CheckboxSetting(
-		"Raycast ignored", false)
-			.visibleWhen(() -> raycastMode.getSelected() != RaycastMode.NONE);
-	private final CheckboxSetting livingRaycast = new CheckboxSetting(
-		"Living raycast", true)
-			.visibleWhen(() -> raycastMode.getSelected() != RaycastMode.NONE);
-	private final EnumSetting<RaytraceMode> raytraceMode = new EnumSetting<>(
-		"Raytrace mode", RaytraceMode.values(), RaytraceMode.NORMAL)
-			.visibleWhen(() -> raycastMode.getSelected() != RaycastMode.NONE);
-	private final EnumSetting<RotationMode> rotationMode = new EnumSetting<>(
-		"Rotation mode", RotationMode.values(), RotationMode.SILENT);
-	private final EnumSetting<RotationTiming> rotationTiming = new EnumSetting<>(
-		"Rotation timing", RotationTiming.values(), RotationTiming.NORMAL)
-			.visibleWhen(() -> rotationMode.getSelected() != RotationMode.NONE);
-	private final SliderSetting rotationSmooth = new SliderSetting(
-		"Rotation smooth", 0.5, 0, 1, 0.05, ValueDisplay.PERCENTAGE)
-			.visibleWhen(() -> rotationMode.getSelected() != RotationMode.NONE);
-	private final EnumSetting<RotationSmoothing> rotationCurve =
-		new EnumSetting<>("Rotation smoothing", RotationSmoothing.values(),
-			RotationSmoothing.EASE_IN_OUT)
-				.visibleWhen(() -> rotationMode.getSelected() != RotationMode.NONE);
-
-	private final CheckboxSetting activationSlot = new CheckboxSetting(
-		"Activation slot", false);
-	private final SliderSetting preferredSlot = new SliderSetting(
-		"Preferred slot", 1, 1, 9, 1, ValueDisplay.INTEGER)
-			.visibleWhen(activationSlot::isChecked);
-	private final CheckboxSetting clickOnly = new CheckboxSetting("Click only",
-		false);
-	private final CheckboxSetting onSwording = new CheckboxSetting(
-		"Require sword", true);
-	private final CheckboxSetting onScaffold = new CheckboxSetting(
-		"Allow on scaffold", false);
-	private final CheckboxSetting onDestroyBlock = new CheckboxSetting(
-		"Allow while breaking", false);
-	private final CheckboxSetting noScaffold = new CheckboxSetting(
-		"Disable on scaffold", false);
-	private final CheckboxSetting noFly = new CheckboxSetting("Disable on fly",
-		false);
-	private final CheckboxSetting noEat = new CheckboxSetting(
-		"Disable while eating", false);
-	private final CheckboxSetting noBlocking = new CheckboxSetting(
-		"Disable while using blocks", false);
-	private final CheckboxSetting blinkCheck = new CheckboxSetting(
-		"Disable on blink", false);
-	private final CheckboxSetting attackWhileUsing = new CheckboxSetting(
-		"Attack while using items", false);
-	private final CheckboxSetting ignoreOpenInventory = new CheckboxSetting(
-		"Ignore open inventory", true);
-	private final CheckboxSetting simulateInventoryClosing = new CheckboxSetting(
-		"Simulate inventory closing", true);
-
+	private final EnumSetting<AutoblockMode> autoblock =
+		new EnumSetting<>("Autoblock", AutoblockMode.values(),
+			AutoblockMode.OFF);
 	private final CheckboxSetting keepSprint = new CheckboxSetting(
-		"Keep sprint", true);
-	private final SwingHandSetting swingHand = new SwingHandSetting(
-		SwingHandSetting.genericCombatDescription(this), SwingHand.CLIENT);
-	private final CheckboxSetting failSwing = new CheckboxSetting("Fail swing",
+		"Keep Sprint", "Keeps sprinting after an attack.", false);
+	private final CheckboxSetting grimKeepSprint = new CheckboxSetting(
+		"Grim Keep Sprint", "Keeps sprinting after an attack (Grim).", false);
+	private final CheckboxSetting smartWeapon = new CheckboxSetting(
+		"SmartWeapon", "Switches to an axe when a target is shielding.",
 		false);
-	private final CheckboxSetting rangeAura = new CheckboxSetting("Range aura",
-		"Shows the configured attack distance as a theme-colored ring.", true)
-			.aliases("range indicator", "attack range display", "范围光环");
 
-	private final EnumSetting<AutoBlockMode> autoBlock = new EnumSetting<>(
-		"Auto block", AutoBlockMode.values(), AutoBlockMode.PACKET);
-	private final SliderSetting blockMaxRange = new SliderSetting(
-		"Block max range", 3, 0, 8, 0.05,
-		ValueDisplay.DECIMAL.withSuffix(" blocks"))
-			.visibleWhen(() -> autoBlock.getSelected() == AutoBlockMode.PACKET);
-	private final EnumSetting<UnblockMode> unblockMode = new EnumSetting<>(
-		"Unblock mode", UnblockMode.values(), UnblockMode.STOP)
-			.visibleWhen(() -> autoBlock.getSelected() == AutoBlockMode.PACKET);
-	private final CheckboxSetting releaseAutoBlock = new CheckboxSetting(
-		"Release before attack", true)
-			.visibleWhen(() -> autoBlock.getSelected() == AutoBlockMode.PACKET);
-	private final CheckboxSetting ignoreTickRule = new CheckboxSetting(
-		"Ignore tick rule", false)
-			.visibleWhen(() -> autoBlock.getSelected() == AutoBlockMode.PACKET);
-	private final SliderSetting blockRate = new SliderSetting("Block rate", 100,
-		1, 100, 1, ValueDisplay.PERCENTAGE)
-			.visibleWhen(() -> autoBlock.getSelected() == AutoBlockMode.PACKET);
-	private final CheckboxSetting interactAutoBlock = new CheckboxSetting(
-		"Interact auto block", true)
-			.visibleWhen(() -> autoBlock.getSelected() == AutoBlockMode.PACKET);
-	private final CheckboxSetting smartAutoBlock = new CheckboxSetting(
-		"Smart auto block", false)
-			.visibleWhen(() -> autoBlock.getSelected() == AutoBlockMode.PACKET);
-	private final CheckboxSetting forceBlockWhenStill = new CheckboxSetting(
-		"Force block when still", true).visibleWhen(smartAutoBlock::isChecked);
-	private final CheckboxSetting checkEnemyWeapon = new CheckboxSetting(
-		"Check enemy weapon", true).visibleWhen(smartAutoBlock::isChecked);
-	private final SliderSetting blockRange = new SliderSetting("Block range",
-		3.7, 1, 8, 0.05, ValueDisplay.DECIMAL.withSuffix(" blocks"))
-			.visibleWhen(smartAutoBlock::isChecked);
-	private final SliderSetting maxOwnHurtTime = new SliderSetting(
-		"Maximum own hurt time", 3, 0, 10, 1,
-		ValueDisplay.INTEGER.withSuffix(" ticks"))
-			.visibleWhen(smartAutoBlock::isChecked);
-	private final SliderSetting maxOpponentDirectionDiff = new SliderSetting(
-		"Opponent direction difference", 60, 30, 180, 5,
-		ValueDisplay.DEGREES).visibleWhen(smartAutoBlock::isChecked);
-	private final SliderSetting maxOpponentSwingProgress = new SliderSetting(
-		"Opponent swing progress", 1, 0, 5, 1, ValueDisplay.INTEGER)
-			.visibleWhen(smartAutoBlock::isChecked);
+	private final CheckboxSetting visualsBox = new CheckboxSetting("Box",
+		"Draws a box around each target.", false);
+	private final CheckboxSetting visualsHalo = new CheckboxSetting("Halo",
+		"Draws a ring around the primary target.", true);
 
-	private final EntityFilterList entityFilters = EntityFilterList.genericCombat();
-	private final CombatClickScheduler clickScheduler =
-		new CombatClickScheduler();
-	private final Random random = new Random();
-	private List<Entity> targets = List.of();
-	private Entity currentTarget;
-	private Entity pendingPrimary;
-	private Rotation plannedRotation;
 	private RotationQueue rotationQueue;
-	private boolean pendingFailSwing;
-	private boolean blockVisual;
-	private InteractionHand blockingHand;
-	private float rolledRange = -1;
-	private int rangeRollCounter;
-
-	/** 轮转攻击的目标游标，见 {@link #nextRoundRobinTarget(List)}。 */
-	private int roundRobinIndex;
+	private final List<OpenAura.Target> targets = new ArrayList<>();
+	private Entity renderTarget;
+	private long nextAttackTime;
+	private boolean pendingAttack;
+	private boolean fakeBlocking;
 
 	public MultiAuraHack()
 	{
 		super("MultiAura");
 		setCategory(Category.COMBAT);
 		addConflictGroup(HackConflictGroup.COMBAT_TARGETING);
+
 		addSetting(range);
-		addSetting(scanRange);
-		addSetting(throughWallsRange);
-		addSetting(sprintRangeReduction);
-		addSetting(rangeChance);
-		addSetting(minCps);
-		addSetting(maxCps);
-		addSetting(clickPattern);
-		addSetting(attackCooldown);
-		addSetting(minimumCooldown);
-		addSetting(maximumCooldown);
-		addSetting(ignoreCooldownWhenExitingRange);
-		addSetting(hurtTime);
-		addSetting(hitSelect);
+		addSetting(rotationRange);
+		addSetting(cpsMode);
+		addSetting(attackCps);
 		addSetting(maxTargets);
-		addSetting(priority);
+		addSetting(requireWeapon);
+		addSetting(requireAttackKey);
+		addSetting(hitSelect);
+		addSetting(targetPlayers);
+		addSetting(targetHostile);
+		addSetting(targetPassive);
+		addSetting(targetFriendly);
 		addSetting(fov);
-		addSetting(aimAt);
-		addSetting(targetPrediction);
-		addSetting(selfPrediction);
-		addSetting(checkLOS);
-		addSetting(raycastMode);
-		addSetting(raycastIgnored);
-		addSetting(livingRaycast);
-		addSetting(raytraceMode);
-		addSetting(rotationMode);
-		addSetting(rotationTiming);
-		addSetting(rotationSmooth);
-		addSetting(rotationCurve);
-		addSetting(activationSlot);
-		addSetting(preferredSlot);
-		addSetting(clickOnly);
-		addSetting(onSwording);
-		addSetting(onScaffold);
-		addSetting(onDestroyBlock);
-		addSetting(noScaffold);
-		addSetting(noFly);
-		addSetting(noEat);
-		addSetting(noBlocking);
-		addSetting(blinkCheck);
-		addSetting(attackWhileUsing);
-		addSetting(ignoreOpenInventory);
-		addSetting(simulateInventoryClosing);
+		addSetting(overrideRaycast);
+		addSetting(throughWalls);
+		addSetting(autoblock);
 		addSetting(keepSprint);
-		addSetting(swingHand);
-		addSetting(failSwing);
-		addSetting(rangeAura);
-		addSetting(autoBlock);
-		addSetting(blockMaxRange);
-		addSetting(unblockMode);
-		addSetting(releaseAutoBlock);
-		addSetting(ignoreTickRule);
-		addSetting(blockRate);
-		addSetting(interactAutoBlock);
-		addSetting(smartAutoBlock);
-		addSetting(forceBlockWhenStill);
-		addSetting(checkEnemyWeapon);
-		addSetting(blockRange);
-		addSetting(maxOwnHurtTime);
-		addSetting(maxOpponentDirectionDiff);
-		addSetting(maxOpponentSwingProgress);
-		entityFilters.forEach(this::addSetting);
+		addSetting(grimKeepSprint);
+		addSetting(smartWeapon);
+		addSetting(visualsBox);
+		addSetting(visualsHalo);
 	}
 
 	@Override
 	protected void onEnable()
 	{
-		clearTargets();
-		roundRobinIndex = 0;
-		clickScheduler.reset(minCps.getValueI(), maxCps.getValueI(),
-			clickPattern.getSelected(), minimumCooldown.getValueF(),
-			maximumCooldown.getValueF(), System.currentTimeMillis());
+		targets.clear();
+		renderTarget = null;
+		pendingAttack = false;
+		fakeBlocking = false;
+		nextAttackTime = 0;
 		rotationQueue = new RotationQueue(RotationQueue.Priority.COMBAT);
 		rotationQueue.start();
 		EVENTS.add(UpdateListener.class, this);
@@ -350,620 +166,296 @@ public final class MultiAuraHack extends Hack
 		EVENTS.remove(UpdateListener.class, this);
 		EVENTS.remove(HandleInputListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
-		stopBlocking(true);
 		if(rotationQueue != null)
 		{
 			rotationQueue.stop();
 			rotationQueue = null;
 		}
-		clearTargets();
+		stopBlocking();
+		targets.clear();
+		renderTarget = null;
+		pendingAttack = false;
 	}
 
 	@Override
 	public void onUpdate()
 	{
-		configureClicker();
-		clickScheduler.advanceTick();
-		pendingPrimary = null;
-		pendingFailSwing = false;
-		if(shouldCancel())
-		{
-			stopBlocking(false);
-			clearTargets();
-			return;
-		}
-		if(autoBlock.getSelected() != AutoBlockMode.PACKET
-			&& blockingHand != null)
-			stopBlocking(false);
-		if(autoBlock.getSelected() == AutoBlockMode.OFF)
-			blockVisual = false;
-
-		currentTarget = selectPrimaryTarget();
-		if(currentTarget == null)
-		{
-			targets = List.of();
-			plannedRotation = null;
-			blockVisual = false;
-			rotationQueue.clear();
-			stopBlocking(false);
-			return;
-		}
-
-		WURST.getHax().autoSwordHack.setSlot(currentTarget);
-		TargetPlan scanPlan = createPlan(currentTarget, getMaximumRange());
-		if(scanPlan == null)
+		pendingAttack = false;
+		targets.clear();
+		renderTarget = null;
+		if(!requirementsMet())
 		{
 			clearTargets();
 			return;
 		}
-		updateRotation(scanPlan.aimPoint().point(), isClickTick());
-		targets = collectAttackTargets();
 
-		TargetPlan attackPlan = createPlan(currentTarget, rolledRangeFor());
-		boolean hittable = attackPlan != null
-			&& isLookingAtPrimary(currentTarget, rotationForAttack(attackPlan));
-		if(isClickTick() && hittable)
-			pendingPrimary = currentTarget;
-		else if(isClickTick() && failSwing.isChecked())
-			pendingFailSwing = true;
-		else
-			startBlocking(currentTarget);
+		List<OpenAura.Target> found = OpenAura.collect(attackConfig());
+		found.sort(Comparator.comparingDouble(t ->
+			(t.entity instanceof Player ? 0.0D : 1000.0D)
+				+ t.entity.getHealth()));
+		int limit = Math.min(maxTargets.getValueI(), found.size());
+		targets.addAll(found.subList(0, limit));
+
+		if(targets.isEmpty())
+		{
+			OpenAura.Target rotationTarget =
+				OpenAura.selectNearest(OpenAura.collect(rotationConfig()));
+			if(rotationTarget != null)
+				rotationQueue.setRotation(rotationTarget.rotation);
+			else
+				rotationQueue.clear();
+			updateAutoblock();
+			return;
+		}
+
+		OpenAura.Target primary = targets.get(0);
+		renderTarget = primary.entity;
+		rotationQueue.setRotation(primary.rotation);
+		updateAutoblock();
+
+		if(!isClickReady())
+			return;
+		if(hitSelect.isChecked() && MC.player.hurtTime > 0)
+			return;
+		if(targets.stream().noneMatch(OpenAura.Target::isAttackAvailable))
+			return;
+
+		pendingAttack = true;
 	}
 
 	@Override
 	public void onHandleInput()
 	{
-		Entity primary = pendingPrimary;
-		boolean fakeSwing = pendingFailSwing;
-		pendingPrimary = null;
-		pendingFailSwing = false;
-		if(shouldCancel())
+		if(!pendingAttack || targets.isEmpty() || MC.player == null)
 			return;
-		if(primary != null)
-			performClickCycles(primary);
-		else if(fakeSwing)
-			performFailSwing();
-	}
 
-	private void performClickCycles(Entity primary)
-	{
-		long now = System.currentTimeMillis();
-		int clicks = clickScheduler.getClickAmount(this::isItemCooldownPassed,
-			now);
-		clickScheduler.beginClickTick();
-		for(int click = 0; click < clicks; click++)
+		pendingAttack = false;
+		OpenAura.Target primary = targets.get(0);
+		rotationQueue.setRotation(primary.rotation);
+
+		if(MC.player.isUsingItem())
+			MC.gameMode.releaseUsingItem(MC.player);
+
+		boolean wasSprinting = MC.player.isSprinting();
+		boolean attacked = false;
+
+		for(OpenAura.Target target : targets)
 		{
-			if(attackCooldown.isChecked()
-				&& CombatActionPolicy.isAttackMissCooldownActive(
-					((IMinecraftClient)MC).getMissTime()))
-				continue;
-			if(!isItemCooldownPassed(0))
+			LivingEntity entity = target.entity;
+			if(!entity.isAlive() || !target.isAttackAvailable())
 				continue;
 
-			TargetPlan refreshed = createPlan(primary, rolledRangeFor());
-			if(refreshed == null)
-				continue;
-			Rotation attackRotation = rotationForAttack(refreshed);
-			Entity raycastTarget = resolveRaycastTarget(primary, attackRotation);
-			if(raycastMode.getSelected() != RaycastMode.NONE
-				&& raycastTarget != primary)
+			if(overrideRaycast.isChecked())
 			{
-				if(raycastIgnored.isChecked() && raycastTarget != null
-					&& isValidScanTarget(raycastTarget))
-				{
-					primary = raycastTarget;
-					currentTarget = raycastTarget;
-					refreshed = createPlan(primary, rolledRangeFor());
-					if(refreshed == null)
-						continue;
-					attackRotation = rotationForAttack(refreshed);
-				}else if(raytraceMode.getSelected() == RaytraceMode.STRICT)
+				EntityHitResult hit = OpenAura.raycastEntity(entity,
+					MC.player.getEyePosition(), target.rotation,
+					range.getValue());
+				if(hit == null)
+					continue;
+				if(!throughWalls.isChecked() && !OpenAura
+					.hasLineOfSight(MC.player.getEyePosition(),
+						hit.getLocation()))
 					continue;
 			}
-			if(!isLookingAtPrimary(primary, attackRotation))
-				continue;
 
-			if(isBlocking() && releaseAutoBlock.isChecked()
-				&& autoBlock.getSelected() == AutoBlockMode.PACKET)
-			{
-				boolean stopped = stopBlocking(false);
-				if(stopped && !ignoreTickRule.isChecked())
-					continue;
-			}
-			if(MC.player.isUsingItem() && !attackWhileUsing.isChecked()
-				&& !isBlocking())
-				continue;
+			if(smartWeapon.isChecked())
+				switchToAxe(entity);
 
-			if(shouldSimulateInventoryClose())
-				MC.player.connection.send(new ServerboundContainerClosePacket(
-					MC.player.containerMenu.containerId));
-			boolean onTick = rotationMode.getSelected() != RotationMode.NONE
-				&& rotationTiming.getSelected() == RotationTiming.ON_TICK;
-			if(onTick)
-				sendFullRotation(attackRotation);
-
-			List<Entity> freshTargets = collectAttackTargets();
-			Entity attackTarget = nextRoundRobinTarget(freshTargets);
-			boolean attacked = false;
-			if(attackTarget != null)
-			{
-				boolean wasSprinting = MC.player.isSprinting();
-				MC.gameMode.attack(MC.player, attackTarget);
-				if(keepSprint.isChecked() && wasSprinting)
-					restoreSprint();
-				attacked = true;
-			}
-			if(attacked)
-				swingHand.swing(InteractionHand.MAIN_HAND);
-
-			if(onTick)
-				sendFullRotation(
-					new Rotation(MC.player.getYRot(), MC.player.getXRot()));
-			if(attacked)
-			{
-				clickScheduler.recordSuccessfulClick(now);
-				startBlocking(primary);
-			}
+			MC.gameMode.attack(MC.player, entity);
+			target.onAttack();
+			attacked = true;
 		}
-	}
 
-	private void performFailSwing()
-	{
-		long now = System.currentTimeMillis();
-		int clicks = clickScheduler.getClickAmount(this::isItemCooldownPassed,
-			now);
-		clickScheduler.beginClickTick();
-		for(int click = 0; click < clicks; click++)
-		{
-			if(!isItemCooldownPassed(0) || MC.hitResult == null
-				|| MC.hitResult.getType() != HitResult.Type.MISS)
-				continue;
-			if(attackCooldown.isChecked()
-				&& CombatActionPolicy.isAttackMissCooldownActive(
-					((IMinecraftClient)MC).getMissTime()))
-				continue;
-			if(attackCooldown.isChecked())
-				((IMinecraftClient)MC).setMissTime(10);
-			swingHand.swing(InteractionHand.MAIN_HAND);
-			clickScheduler.recordSuccessfulClick(now);
-		}
-	}
-
-	private Entity nextRoundRobinTarget(List<Entity> targets)
-	{
-		int index = CombatActionPolicy.findNextEligibleIndex(roundRobinIndex,
-			targets.size(), i -> isValidAttackTarget(targets.get(i))
-				&& isHitSelectWindowOpen(targets.get(i)));
-		if(index < 0)
-			return null;
-
-		roundRobinIndex = index + 1;
-		return targets.get(index);
-	}
-
-	private boolean isHitSelectWindowOpen(Entity target)
-	{
-		if(!hitSelect.isChecked() || !(target instanceof LivingEntity living))
-			return true;
-
-		return CombatActionPolicy.isHitSelectWindowOpen(living.hurtTime,
-			getLatencyTicks(), MC.player.hurtTime);
-	}
-
-	private int getLatencyTicks()
-	{
-		if(MC.getConnection() == null || MC.player == null)
-			return 0;
-		var info = MC.getConnection().getPlayerInfo(MC.player.getUUID());
-		return info == null ? 0 : info.getLatency() / 50;
-	}
-
-	private Entity selectPrimaryTarget()
-	{
-		List<Entity> candidates = CombatTargetUtils.getList(getMaximumRange(),
-			fov.getValue() * 2, this::getPredictedAimPoint, entityFilters, false,
-			net.wurstclient.util.CombatTargetUtils.Priority.DISTANCE,
-			Integer.MAX_VALUE);
-		Comparator<Entity> comparator = Comparator
-			.comparingInt(this::getTargetTypeWeight)
-			.thenComparing(priority.getSelected().comparator(this))
-			.thenComparingDouble(CombatTargetUtils::distanceToBoxSqr)
-			.thenComparingInt(Entity::getId);
-		for(Entity entity : candidates.stream()
-			.filter(LivingEntity.class::isInstance).sorted(comparator).toList())
-			if(createPlan(entity, getMaximumRange()) != null)
-				return entity;
-		return null;
-	}
-
-	private List<Entity> collectAttackTargets()
-	{
-		if(MC.level == null)
-			return List.of();
-		List<Entity> worldOrder = new ArrayList<>();
-		for(Entity entity : MC.level.entitiesForRendering())
-			if(entity instanceof LivingEntity)
-				worldOrder.add(entity);
-		return MultiTargetAttackPlanner.plan(worldOrder,
-			this::isValidAttackTarget, this::getHurtTime, hurtTime.getValueI(),
-			maxTargets.getValueI());
-	}
-
-	private boolean isValidScanTarget(Entity entity)
-	{
-		return CombatTargetUtils.isValid(entity, getMaximumRange(),
-			fov.getValue() * 2, this::getPredictedAimPoint, entityFilters, false)
-			&& getHurtTime(entity) <= hurtTime.getValueI();
-	}
-
-	private boolean isValidAttackTarget(Entity entity)
-	{
-		if(!isValidScanTarget(entity))
-			return false;
-		double distanceSq = CombatTargetUtils.distanceToBoxSqr(entity);
-		double attackRange = getMultiAttackRange(entity);
-		if(distanceSq > attackRange * attackRange)
-			return false;
-		if(!checkLOS.isChecked())
-			return true;
-		Vec3 point = getPredictedAimPoint(entity);
-		return BlockUtils.hasLineOfSight(point)
-			|| distanceSq <= throughWallsRange.getValueSq();
-	}
-
-	private TargetPlan createPlan(Entity entity, double planRange)
-	{
-		if(entity == null || !isValidScanTarget(entity))
-			return null;
-		AABB box = entity.getBoundingBox().move(
-			entity.getDeltaMovement().scale(targetPrediction.getValue()));
-		Vec3 futureEyes = RotationUtils.getEyesPos().add(
-			MC.player.getDeltaMovement().scale(selfPrediction.getValue()));
-		AimPoint point = CombatAimPointPlanner.find(box, futureEyes,
-			getPredictedAimPoint(entity), planRange,
-			Math.min(planRange, throughWallsRange.getValue()),
-			candidate -> BlockUtils.hasLineOfSight(RotationUtils.getEyesPos(),
-				candidate),
-			candidate -> currentServerRotation().getAngleTo(
-				RotationUtils.getNeededRotations(candidate)));
-		return point == null ? null : new TargetPlan(entity, point);
-	}
-
-	private Vec3 getPredictedAimPoint(Entity entity)
-	{
-		return aimAt.getAimPoint(entity).add(
-			entity.getDeltaMovement().scale(targetPrediction.getValue()));
-	}
-
-	private int getHurtTime(Entity entity)
-	{
-		return entity instanceof LivingEntity living ? living.hurtTime : 0;
-	}
-
-	private double rolledRangeFor()
-	{
-		if(rangeChance.getValueI() >= 100)
-			return range.getValue();
-		if(rolledRange < 0 || --rangeRollCounter <= 0)
-		{
-			rolledRange = random.nextInt(100) < rangeChance.getValueI()
-				? range.getValueF() : Math.min(range.getValueF(), 3);
-			rangeRollCounter = 10;
-		}
-		return Math.min(rolledRange, range.getValue());
-	}
-
-	private double getMaximumRange()
-	{
-		return Math.max(range.getValue() + scanRange.getValue(),
-			throughWallsRange.getValue());
-	}
-
-	private double getMultiAttackRange(Entity entity)
-	{
-		double distance = Math.sqrt(CombatTargetUtils.distanceToBoxSqr(entity));
-		double value = distance >= throughWallsRange.getValue()
-			? range.getValue() + scanRange.getValue()
-			: throughWallsRange.getValue();
-		if(MC.player.isSprinting())
-			value -= sprintRangeReduction.getValue();
-		return Math.max(0, value);
-	}
-
-	private boolean shouldCancel()
-	{
-		if(MC.player == null || MC.level == null || MC.gameMode == null
-			|| MC.player.isDeadOrDying() || MC.player.isSpectator())
-			return true;
-		if(activationSlot.isChecked()
-			&& MC.player.getInventory().selected != preferredSlot.getValueI() - 1)
-			return true;
-		if(clickOnly.isChecked() && !MC.options.keyAttack.isDown())
-			return true;
-		if(onSwording.isChecked()
-			&& !(MC.player.getMainHandItem().getItem() instanceof SwordItem))
-			return true;
-		if(WURST.getHax().scaffoldWalkHack.isEnabled()
-			&& (!onScaffold.isChecked() || noScaffold.isChecked()))
-			return true;
-		if(!onDestroyBlock.isChecked() && ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying())
-			return true;
-		if(noFly.isChecked() && WURST.getHax().flightHack.isEnabled())
-			return true;
-		if(blinkCheck.isChecked() && WURST.getHax().blinkHack.isEnabled())
-			return true;
-		if(noEat.isChecked() && isConsumingItem())
-			return true;
-		if(noBlocking.isChecked() && MC.player.isUsingItem()
-			&& MC.player.getUseItem().getItem() instanceof BlockItem)
-			return true;
-		if(isInventoryOpen() && !ignoreOpenInventory.isChecked())
-			return true;
-		return MC.player.isUsingItem() && !attackWhileUsing.isChecked()
-			&& !isBlocking();
-	}
-
-	private boolean isConsumingItem()
-	{
-		if(!MC.player.isUsingItem())
-			return false;
-		ItemStack stack = MC.player.getUseItem();
-		return stack.isEdible() || stack.getItem() instanceof MilkBucketItem
-			|| stack.getItem() instanceof PotionItem;
-	}
-
-	private boolean isInventoryOpen()
-	{
-		return MC.screen instanceof AbstractContainerScreen;
-	}
-
-	private boolean shouldSimulateInventoryClose()
-	{
-		return simulateInventoryClosing.isChecked() && isInventoryOpen();
-	}
-
-	private void configureClicker()
-	{
-		clickScheduler.configure(minCps.getValueI(), maxCps.getValueI(),
-			clickPattern.getSelected(), minimumCooldown.getValueF(),
-			maximumCooldown.getValueF());
-	}
-
-	private boolean isClickTick()
-	{
-		return clickScheduler.willClickAt(this::isItemCooldownPassed,
-			System.currentTimeMillis(), 0);
-	}
-
-	private boolean isItemCooldownPassed(int ticks)
-	{
-		PlayerEntityAccessor player = (PlayerEntityAccessor)MC.player;
-		LivingEntityAccessor living = (LivingEntityAccessor)MC.player;
-		float delay = player.wurst_getCurrentItemAttackStrengthDelay();
-		float progress = delay <= 0 ? Float.POSITIVE_INFINITY
-			: (living.wurst_getAttackStrengthTicker() + ticks) / delay;
-		return clickScheduler.isCooldownPassed(progress)
-			|| ignoreCooldownWhenExitingRange.isChecked()
-				&& predictExitingRange(1 + ticks);
-	}
-
-	private boolean predictExitingRange(double ticks)
-	{
-		if(currentTarget == null)
-			return false;
-		Vec3 futureEyes = RotationUtils.getEyesPos().add(
-			MC.player.getDeltaMovement().scale(ticks));
-		AABB futureBox = currentTarget.getBoundingBox().move(
-			currentTarget.getDeltaMovement().scale(ticks));
-		Vec3 nearest = new Vec3(
-			Math.max(futureBox.minX, Math.min(futureEyes.x, futureBox.maxX)),
-			Math.max(futureBox.minY, Math.min(futureEyes.y, futureBox.maxY)),
-			Math.max(futureBox.minZ, Math.min(futureEyes.z, futureBox.maxZ)));
-		return futureEyes.distanceToSqr(nearest)
-			> getMultiAttackRange(currentTarget) * getMultiAttackRange(currentTarget);
-	}
-
-	private void updateRotation(Vec3 point, boolean clickReady)
-	{
-		RotationMode mode = rotationMode.getSelected();
-		if(mode == RotationMode.NONE)
-		{
-			plannedRotation = null;
-			rotationQueue.clear();
+		if(!attacked)
 			return;
-		}
-		Rotation start = plannedRotation != null ? plannedRotation
-			: currentServerRotation();
-		Rotation needed = RotationUtils.getNeededRotations(point);
-		float maxChange = 180 - rotationSmooth.getValueF() * 175;
-		int ticks = Math.max(1,
-			(int)Math.ceil(start.getAngleTo(needed) / maxChange));
-		if(rotationTiming.getSelected() == RotationTiming.SNAP && !clickReady
-			&& !clickScheduler.willClickAt(this::isItemCooldownPassed,
-				System.currentTimeMillis(), ticks))
-			return;
-		if(rotationTiming.getSelected() == RotationTiming.ON_TICK && ticks <= 1)
+
+		MC.player.swing(InteractionHand.MAIN_HAND);
+		if(keepSprint.isChecked() || grimKeepSprint.isChecked())
+			keepSprint(wasSprinting);
+		nextAttackTime = System.currentTimeMillis() + clickDelay();
+	}
+
+	@Override
+	public void onRender(PoseStack matrices, float partialTicks)
+	{
+		int color = WURST.getGui().getTheme().accent(0.85F);
+
+		for(OpenAura.Target target : targets)
 		{
-			plannedRotation = needed;
-			rotationQueue.clear();
-			return;
+			Entity entity = target.entity;
+			if(!entity.isAlive())
+				continue;
+
+			Vec3 pos = EntityUtils.getLerpedPos(entity, partialTicks)
+				.subtract(RenderUtils.getCameraPos());
+
+			if(visualsBox.isChecked())
+			{
+				double half = entity.getBbWidth() / 2.0D;
+				drawBox(matrices, pos.x - half, pos.y, pos.z - half,
+					pos.x + half, pos.y + entity.getBbHeight(),
+					pos.z + half, color);
+			}
+
+			if(visualsHalo.isChecked() && entity == renderTarget)
+				drawHalo(matrices, pos, entity, color);
 		}
-		plannedRotation = RotationSmoothing.smooth(start, needed, maxChange,
-			rotationCurve.getSelected());
-		if(mode == RotationMode.SILENT)
-			rotationQueue.setRotation(plannedRotation);
-		else
+	}
+
+	public Entity getCurrentTarget()
+	{
+		return renderTarget;
+	}
+
+	public boolean shouldRenderFakeBlock()
+	{
+		return isEnabled() && autoblock.getSelected() == AutoblockMode.FAKE
+			&& fakeBlocking && findBlockableHand() != null;
+	}
+
+	public InteractionHand getFakeBlockingHand()
+	{
+		return shouldRenderFakeBlock() ? findBlockableHand() : null;
+	}
+
+	private OpenAura.Config attackConfig()
+	{
+		return new OpenAura.Config(range.getValue(), fov.getValue(),
+			targetFlags(), throughWalls.isChecked());
+	}
+
+	private OpenAura.Config rotationConfig()
+	{
+		return new OpenAura.Config(rotationRange.getValue(), fov.getValue(),
+			targetFlags(), throughWalls.isChecked());
+	}
+
+	private int targetFlags()
+	{
+		int flags = 0;
+		if(targetPlayers.isChecked())
+			flags |= OpenAura.TARGET_PLAYERS;
+		if(targetHostile.isChecked())
+			flags |= OpenAura.TARGET_HOSTILE;
+		if(targetPassive.isChecked())
+			flags |= OpenAura.TARGET_PASSIVE;
+		if(targetFriendly.isChecked())
+			flags |= OpenAura.TARGET_FRIENDLY;
+		return flags;
+	}
+
+	private boolean requirementsMet()
+	{
+		if(MC.player == null || MC.level == null || MC.screen != null)
+			return false;
+		if(isConsumingFoodOrPotion())
+			return false;
+		if(requireAttackKey.isChecked() && !MC.options.keyAttack.isDown())
+			return false;
+		if(requireWeapon.isChecked())
 		{
-			rotationQueue.clear();
-			MC.player.setYRot(plannedRotation.yaw());
-			MC.player.setXRot(plannedRotation.pitch());
-		}
-	}
-
-	private Rotation rotationForAttack(TargetPlan plan)
-	{
-		if(rotationMode.getSelected() == RotationMode.NONE)
-			return new Rotation(MC.player.getYRot(), MC.player.getXRot());
-		if(rotationTiming.getSelected() == RotationTiming.ON_TICK)
-			return RotationUtils.getNeededRotations(plan.aimPoint().point());
-		return currentServerRotation();
-	}
-
-	private Rotation currentServerRotation()
-	{
-		Vec3 look = RotationUtils.getServerLookVec();
-		return RotationUtils.getNeededRotations(
-			RotationUtils.getEyesPos().add(look));
-	}
-
-	private Entity resolveRaycastTarget(Entity selected, Rotation rotation)
-	{
-		if(raycastMode.getSelected() == RaycastMode.NONE)
-			return selected;
-		double reach = rolledRangeFor();
-		Vec3 start = RotationUtils.getEyesPos();
-		Vec3 look = rotation.toLookVec();
-		Vec3 end = start.add(look.scale(reach));
-		AABB search = MC.player.getBoundingBox()
-			.expandTowards(look.scale(reach)).inflate(1);
-		EntityHitResult hit = ProjectileUtil.getEntityHitResult(MC.player, start,
-			end, search, entity -> !entity.isSpectator() && entity.isPickable()
-				&& (!livingRaycast.isChecked()
-					|| entity instanceof LivingEntity)
-				&& (raycastMode.getSelected() == RaycastMode.ALL
-					|| isValidScanTarget(entity)), reach * reach);
-		return hit == null ? null : hit.getEntity();
-	}
-
-	private boolean isLookingAtPrimary(Entity entity, Rotation rotation)
-	{
-		if(rotationMode.getSelected() == RotationMode.NONE)
-			return CombatTargetUtils.distanceToBoxSqr(entity)
-				<= rolledRangeFor() * rolledRangeFor();
-		Vec3 start = RotationUtils.getEyesPos();
-		Vec3 end = start.add(rotation.toLookVec().scale(rolledRangeFor()));
-		Vec3 hit = entity.getBoundingBox().inflate(entity.getPickRadius())
-			.clip(start, end).orElse(null);
-		if(hit == null)
-			return false;
-		double distanceSq = start.distanceToSqr(hit);
-		if(distanceSq <= throughWallsRange.getValueSq())
-			return true;
-		return BlockUtils.raycast(start, hit).getType() == HitResult.Type.MISS;
-	}
-
-	private boolean startBlocking(Entity target)
-	{
-		AutoBlockMode mode = autoBlock.getSelected();
-		if(mode == AutoBlockMode.OFF || target == null)
-			return false;
-		blockVisual = true;
-		if(mode == AutoBlockMode.FAKE)
-			return false;
-		if(!canBlock(target) || random.nextInt(100) > blockRate.getValueI())
-			return false;
-		if(blockingHand != null || isBlocking())
-			return false;
-		InteractionHand hand = findBlockableHand();
-		if(hand == null)
-			return false;
-		if(interactAutoBlock.isChecked())
-		{
-			EntityHitResult hit = new EntityHitResult(target,
-				target.getBoundingBox().getCenter());
-			MC.gameMode.interactAt(MC.player, target, hit, hand);
-		}
-		((IClientPlayerInteractionManager)MC.gameMode)
-			.sendPlayerUseItemPacket(hand);
-		blockingHand = hand;
-		return true;
-	}
-
-	private boolean canBlock(Entity target)
-	{
-		if(CombatTargetUtils.distanceToBoxSqr(target)
-			> blockMaxRange.getValueSq())
-			return false;
-		if(!smartAutoBlock.isChecked())
-			return true;
-		boolean moving = MC.player.getDeltaMovement().horizontalDistanceSqr()
-			>= 1.0E-4;
-		if(moving && forceBlockWhenStill.isChecked())
-			return false;
-		if(checkEnemyWeapon.isChecked() && target instanceof LivingEntity living)
-		{
-			ItemStack held = living.getMainHandItem();
-			if(!(held.getItem() instanceof SwordItem)
-				&& !(held.getItem() instanceof AxeItem))
+			ItemStack held = MC.player.getMainHandItem();
+			if(!held.is(ItemTags.SWORDS) && !held.is(ItemTags.AXES)
+				&& !held.is(ItemTags.PICKAXES))
 				return false;
 		}
-		if(MC.player.hurtTime > maxOwnHurtTime.getValueI()
-			|| CombatTargetUtils.distanceToBoxSqr(target)
-				> Math.pow(Math.min(blockRange.getValue(), range.getValue()), 2))
-			return false;
-		if(target instanceof LivingEntity living
-			&& ((LivingEntityAccessor)living).wurst_getSwingTime()
-				> maxOpponentSwingProgress.getValueI())
-			return false;
-		Vec3 toPlayer = MC.player.getEyePosition()
-			.subtract(target.getEyePosition()).normalize();
-		double angle = Math.toDegrees(Math.acos(Math.max(-1,
-			Math.min(1, target.getLookAngle().dot(toPlayer)))));
-		return angle <= maxOpponentDirectionDiff.getValue();
-	}
-
-	private boolean stopBlocking(boolean force)
-	{
-		if(!force)
-			blockVisual = false;
-		if(blockingHand == null)
-			return false;
-		switch(unblockMode.getSelected())
-		{
-			case STOP -> sendReleaseUsingItemPacket();
-			case SWITCH -> {
-				int selected = MC.player.getInventory().selected;
-				MC.player.connection.send(
-					new ServerboundSetCarriedItemPacket((selected + 1) % 9));
-				MC.player.connection.send(
-					new ServerboundSetCarriedItemPacket(selected));
-			}
-			case EMPTY -> {
-				int empty = findEmptyHotbarSlot();
-				if(empty < 0)
-					sendReleaseUsingItemPacket();
-				else
-				{
-					int selected = MC.player.getInventory().selected;
-					MC.player.connection.send(
-						new ServerboundSetCarriedItemPacket(empty));
-					MC.player.connection.send(
-						new ServerboundSetCarriedItemPacket(selected));
-				}
-			}
-		}
-		blockingHand = null;
 		return true;
 	}
 
-	private void sendReleaseUsingItemPacket()
+	private boolean isConsumingFoodOrPotion()
 	{
-		((IClientPlayerInteractionManager)MC.gameMode)
-			.sendPlayerActionC2SPacket(
-				ServerboundPlayerActionPacket.Action.RELEASE_USE_ITEM,
-				BlockPos.ZERO, Direction.DOWN);
+		if(MC.player == null || !MC.player.isUsingItem())
+			return false;
+		ItemStack stack = MC.player.getUseItem();
+		return !stack.isEmpty()
+			&& (stack.isEdible() || stack.getItem() instanceof PotionItem);
 	}
 
-	private int findEmptyHotbarSlot()
+	private boolean isClickReady()
 	{
-		for(int slot = 0; slot < 9; slot++)
-			if(MC.player.getInventory().getItem(slot).isEmpty())
-				return slot;
-		return -1;
+		// Auto mode waits for the held weapon's attack cooldown, so the
+		// effective CPS follows the weapon's attack speed.
+		if(cpsMode.getSelected() == CpsMode.AUTO)
+			return MC.player != null
+				&& MC.player.getAttackStrengthScale(0.5F) >= 1.0F;
+		return System.currentTimeMillis() >= nextAttackTime;
+	}
+
+	private long clickDelay()
+	{
+		return Math.max(1, 1000 / attackCps.getValueI());
+	}
+
+	private void switchToAxe(LivingEntity target)
+	{
+		if(!target.isBlocking())
+			return;
+
+		for(int i = 0; i < 9; i++)
+		{
+			ItemStack stack = MC.player.getInventory().getItem(i);
+			if(!(stack.getItem() instanceof AxeItem))
+				continue;
+			if(MC.player.getInventory().selected == i)
+				return;
+
+			MC.player.getInventory().selected = i;
+			MC.player.connection
+				.send(new ServerboundSetCarriedItemPacket(i));
+			return;
+		}
+	}
+
+	private void keepSprint(boolean wasSprinting)
+	{
+		if(!wasSprinting || MC.player.hasEffect(MobEffects.BLINDNESS))
+			return;
+
+		Vec3 velocity = MC.player.getDeltaMovement();
+		MC.player.setDeltaMovement(velocity.x * 0.6D, velocity.y,
+			velocity.z * 0.6D);
+		MC.player.setSprinting(true);
+	}
+
+	private void updateAutoblock()
+	{
+		AutoblockMode selected = autoblock.getSelected();
+		if(selected == AutoblockMode.OFF || targets.isEmpty())
+		{
+			stopBlocking();
+			return;
+		}
+
+		if(selected == AutoblockMode.FAKE)
+		{
+			fakeBlocking = findBlockableHand() != null;
+			return;
+		}
+
+		fakeBlocking = false;
+		if(!MC.player.getMainHandItem().is(ItemTags.SWORDS))
+		{
+			stopBlocking();
+			return;
+		}
+
+		InteractionHand hand = findBlockableHand();
+		if(hand != null && !MC.player.isUsingItem())
+			MC.gameMode.useItem(MC.player, hand);
+	}
+
+	private void stopBlocking()
+	{
+		fakeBlocking = false;
+		if(MC.player != null && MC.player.isUsingItem()
+			&& MC.player.getUseItem().getUseAnimation() == UseAnim.BLOCK)
+			MC.gameMode.releaseUsingItem(MC.player);
 	}
 
 	private InteractionHand findBlockableHand()
 	{
+		if(MC.player == null)
+			return null;
 		for(InteractionHand hand : InteractionHand.values())
 		{
 			ItemStack stack = MC.player.getItemInHand(hand);
@@ -974,92 +466,64 @@ public final class MultiAuraHack extends Hack
 		return null;
 	}
 
-	private boolean isBlocking()
-	{
-		return blockingHand != null || MC.player.isUsingItem()
-			&& MC.player.getUseItem().getUseAnimation() == UseAnim.BLOCK;
-	}
-
-	public boolean shouldRenderFakeBlock()
-	{
-		return isEnabled() && autoBlock.getSelected() != AutoBlockMode.OFF
-			&& blockVisual && (blockingHand != null || findBlockableHand() != null);
-	}
-
-	public InteractionHand getFakeBlockingHand()
-	{
-		if(!shouldRenderFakeBlock())
-			return null;
-		return blockingHand != null ? blockingHand : findBlockableHand();
-	}
-
-	private int getTargetTypeWeight(Entity entity)
-	{
-		return entity instanceof Player ? 0 : 1;
-	}
-
-	private double getArmorScore(Entity entity)
-	{
-		if(!(entity instanceof LivingEntity living))
-			return Double.MAX_VALUE;
-		return living.getArmorValue();
-	}
-
-	private void restoreSprint()
-	{
-		MC.player.setSprinting(true);
-		MC.player.connection.send(new ServerboundPlayerCommandPacket(MC.player,
-			Action.START_SPRINTING));
-	}
-
-	private void sendFullRotation(Rotation rotation)
-	{
-		MC.player.connection.send(new PosRot(MC.player.getX(), MC.player.getY(),
-			MC.player.getZ(), rotation.yaw(), rotation.pitch(),
-			MC.player.onGround()));
-	}
-
 	private void clearTargets()
 	{
-		targets = List.of();
-		currentTarget = null;
-		pendingPrimary = null;
-		pendingFailSwing = false;
-		plannedRotation = null;
-		blockVisual = false;
-		rolledRange = -1;
-		rangeRollCounter = 0;
+		targets.clear();
+		renderTarget = null;
+		pendingAttack = false;
 		if(rotationQueue != null)
 			rotationQueue.clear();
+		stopBlocking();
 	}
 
-	public Entity getCurrentTarget()
+	private void drawBox(PoseStack matrices, double x1, double y1, double z1,
+		double x2, double y2, double z2, int color)
 	{
-		return currentTarget;
+		Vec3[] corners = {new Vec3(x1, y1, z1), new Vec3(x2, y1, z1),
+			new Vec3(x2, y1, z2), new Vec3(x1, y1, z2),
+			new Vec3(x1, y2, z1), new Vec3(x2, y2, z1),
+			new Vec3(x2, y2, z2), new Vec3(x1, y2, z2)};
+		int[][] edges = {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6},
+			{6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
+
+		for(int[] edge : edges)
+			RenderUtils.drawLine(matrices, corners[edge[0]],
+				corners[edge[1]], color, false);
 	}
 
-	@Override
-	public void onRender(PoseStack poseStack, float partialTicks)
+	private void drawHalo(PoseStack matrices, Vec3 pos, Entity target,
+		int color)
 	{
-		if(MC.player == null || !rangeAura.isChecked())
-			return;
-		AuraRangeRenderer.render(poseStack, MC.player, partialTicks,
-			getMaximumRange(), WURST.getGui().getTheme().accent(1),
-			currentTarget != null);
+		double now = System.currentTimeMillis() / 1000.0D;
+		double radius = Math.max(0.52D, target.getBbWidth() * 0.85D);
+		double y = pos.y + target.getBbHeight() * 0.5D
+			+ Math.sin(now * 4.0D) * 0.45D + 0.22D;
+		int segments = 48;
+
+		for(int i = 0; i < segments; i++)
+		{
+			double a1 = Math.PI * 2 * i / segments;
+			double a2 = Math.PI * 2 * (i + 1) / segments;
+			Vec3 start = new Vec3(pos.x + Math.sin(a1) * radius, y,
+				pos.z + Math.cos(a1) * radius);
+			Vec3 end = new Vec3(pos.x + Math.sin(a2) * radius, y,
+				pos.z + Math.cos(a2) * radius);
+			RenderUtils.drawLine(matrices, start, end, color, false);
+		}
 	}
 
-	private record TargetPlan(Entity entity, AimPoint aimPoint)
+	public enum CpsMode
 	{
-	}
+		AUTO("Auto"),
+		MANUAL("Manual");
 
-	private enum RaycastMode
-	{
-		NONE("None"), ENEMY("Enemy"), ALL("All");
 		private final String name;
-		RaycastMode(String name)
+
+		private CpsMode(String name)
 		{
 			this.name = name;
 		}
+
 		@Override
 		public String toString()
 		{
@@ -1067,132 +531,17 @@ public final class MultiAuraHack extends Hack
 		}
 	}
 
-	private enum RotationMode
+	public enum AutoblockMode
 	{
-		SILENT("Silent"), VISIBLE("Visible"), NONE("None");
-		private final String name;
-		RotationMode(String name)
-		{
-			this.name = name;
-		}
-		@Override
-		public String toString()
-		{
-			return name;
-		}
-	}
-
-	private enum RaytraceMode
-	{
-		NORMAL("Normal"), STRICT("Strict");
-		private final String name;
-		RaytraceMode(String name)
-		{
-			this.name = name;
-		}
-		@Override
-		public String toString()
-		{
-			return name;
-		}
-	}
-
-	private enum RotationTiming
-	{
-		NORMAL("Normal"), SNAP("Snap"), ON_TICK("OnTick");
-		private final String name;
-		RotationTiming(String name)
-		{
-			this.name = name;
-		}
-		@Override
-		public String toString()
-		{
-			return name;
-		}
-	}
-
-	private enum AutoBlockMode
-	{
-		OFF("Off"), PACKET("Packet"), FAKE("Fake");
-		private final String name;
-		AutoBlockMode(String name)
-		{
-			this.name = name;
-		}
-		@Override
-		public String toString()
-		{
-			return name;
-		}
-	}
-
-	private enum UnblockMode
-	{
-		STOP("Stop"), SWITCH("Switch"), EMPTY("Empty");
-		private final String name;
-		UnblockMode(String name)
-		{
-			this.name = name;
-		}
-		@Override
-		public String toString()
-		{
-			return name;
-		}
-	}
-
-	private enum TargetPriority
-	{
-		HEALTH("Health"), DISTANCE("Distance"), DIRECTION("Direction"),
-		LIVING_TIME("Living time"), ARMOR("Armor"),
-		HURT_RESISTANCE("Hurt resistance"), HURT_TIME("Hurt time"),
-		HEALTH_ABSORPTION("Health absorption"),
-		REGEN_AMPLIFIER("Regeneration amplifier"), ON_LADDER("On ladder"),
-		IN_LIQUID("In liquid"), IN_WEB("In web");
+		OFF("Off"),
+		VANILLA("Vanilla"),
+		FAKE("Fake");
 
 		private final String name;
-		TargetPriority(String name)
+
+		private AutoblockMode(String name)
 		{
 			this.name = name;
-		}
-
-		private Comparator<Entity> comparator(MultiAuraHack aura)
-		{
-			return switch(this)
-			{
-				case HEALTH -> Comparator.comparingDouble(entity ->
-					entity instanceof LivingEntity living ? living.getHealth()
-						: Double.MAX_VALUE);
-				case DISTANCE -> Comparator.comparingDouble(
-					CombatTargetUtils::distanceToBoxSqr);
-				case DIRECTION -> Comparator.comparingDouble(entity ->
-					RotationUtils.getAngleToLookVec(aura.getPredictedAimPoint(entity)));
-				case LIVING_TIME -> Comparator.comparingInt(
-					(Entity entity) -> entity.tickCount)
-					.reversed();
-				case ARMOR -> Comparator.comparingDouble(aura::getArmorScore);
-				case HURT_RESISTANCE -> Comparator.comparingInt(entity ->
-					entity instanceof LivingEntity living ? living.invulnerableTime : 0);
-				case HURT_TIME -> Comparator.comparingInt(aura::getHurtTime);
-				case HEALTH_ABSORPTION -> Comparator.comparingDouble(entity ->
-					entity instanceof LivingEntity living ? living.getHealth()
-						+ living.getAbsorptionAmount() : Double.MAX_VALUE);
-				case REGEN_AMPLIFIER -> Comparator.comparingInt(entity -> {
-					if(!(entity instanceof LivingEntity living))
-						return Integer.MAX_VALUE;
-					MobEffectInstance effect = living.getEffect(MobEffects.REGENERATION);
-					return effect == null ? -1 : effect.getAmplifier();
-				});
-				case ON_LADDER -> Comparator.comparingInt(entity ->
-					entity instanceof LivingEntity living && living.onClimbable() ? 0 : 1);
-				case IN_LIQUID -> Comparator.comparingInt(entity ->
-					entity instanceof LivingEntity living
-						&& (living.isInWaterOrBubble() || living.isInLava()) ? 0 : 1);
-				case IN_WEB -> Comparator.comparingInt(entity ->
-					aura.MC.level.getBlockState(entity.blockPosition())
-						.is(Blocks.COBWEB) ? 0 : 1);
-			};
 		}
 
 		@Override
