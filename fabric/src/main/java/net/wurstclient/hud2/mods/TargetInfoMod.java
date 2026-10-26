@@ -18,6 +18,9 @@ import org.joml.Vector3f;
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.hacks.KillauraHack;
@@ -25,6 +28,7 @@ import net.wurstclient.hud2.HUDMod;
 import net.wurstclient.hud2.compat.HudCompat;
 import net.wurstclient.hud2.nanovg.HudFonts;
 import net.wurstclient.hud2.nanovg.HudIcon;
+import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.EntityUtils;
@@ -40,6 +44,16 @@ public final class TargetInfoMod extends HUDMod
 		"How many entity cards to show.", 5, 1, 10, 1,
 		ValueDisplay.INTEGER);
 
+	private final CheckboxSetting targetPlayers = new CheckboxSetting(
+		"Target players", "Shows other players.", true);
+	private final CheckboxSetting targetHostile = new CheckboxSetting(
+		"Target hostile", "Shows hostile mobs.", true);
+	private final CheckboxSetting targetPassive = new CheckboxSetting(
+		"Target passive", "Shows passive animals.", true);
+	private final CheckboxSetting targetFriendly = new CheckboxSetting(
+		"Target friendly",
+		"Shows other living entities (villagers, golems).", true);
+
 	public TargetInfoMod()
 	{
 		super("TargetInfo", "Target Info",
@@ -48,6 +62,10 @@ public final class TargetInfoMod extends HUDMod
 		setDefaultPosition(180, 54);
 		addSetting(range);
 		addSetting(maxTargets);
+		addSetting(targetPlayers);
+		addSetting(targetHostile);
+		addSetting(targetPassive);
+		addSetting(targetFriendly);
 	}
 
 	@Override
@@ -97,14 +115,14 @@ public final class TargetInfoMod extends HUDMod
 			searchRange = Math.max(searchRange, aura.getRange());
 			Entity auraTarget = aura.getCurrentTarget();
 			if(auraTarget instanceof LivingEntity living && living.isAlive()
-				&& living != MC.player)
+				&& living != MC.player && isValidTarget(living))
 				result.add(living);
 		}
 
 		AABB area = MC.player.getBoundingBox().inflate(searchRange);
 		for(LivingEntity entity : MC.level.getEntitiesOfClass(
 			LivingEntity.class, area, e -> e != MC.player && e.isAlive()
-				&& !e.isSpectator()))
+				&& !e.isSpectator() && isValidTarget(e)))
 			if(!result.contains(entity))
 				result.add(entity);
 
@@ -113,6 +131,17 @@ public final class TargetInfoMod extends HUDMod
 		int limit = maxTargets.getValueI();
 		return result.size() > limit
 			? new ArrayList<>(result.subList(0, limit)) : result;
+	}
+
+	private boolean isValidTarget(LivingEntity entity)
+	{
+		if(entity instanceof Player)
+			return targetPlayers.isChecked();
+		if(entity instanceof Enemy)
+			return targetHostile.isChecked();
+		if(entity instanceof Animal)
+			return targetPassive.isChecked();
+		return targetFriendly.isChecked();
 	}
 
 	private void drawEntityCard(LivingEntity entity)
