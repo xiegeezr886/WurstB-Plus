@@ -44,13 +44,14 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge
 | Release | 内容 | 说明 |
 | --- | --- | --- |
 | [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 个资产 | 全部版本的主力发布 |
+| [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | Fabric 1.20.1 | 最新发布（Navy），1 个产物 jar + 2 个源码包 |
 | [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | 预发布（prerelease），含 v1.6 新子系统 |
 
 > **说明：** 1.20.1 的三个工程并不都是 v1.5。**根目录 Forge 1.20.1 是 v1.6.0**（唯一带 v1.6 新子系统的
-> 工程），`fabric/` 与 `neoforge/` 的当前源码为 **v1.5.1**（尚未单独发布）。v1.5.0 Release 里的
+> 工程），`fabric/` 与 `neoforge/` 的当前源码为 **v1.5.1**。v1.5.0 Release 里的
 > `WurstB+.Plus-1.5.0-Forge-1.20.1.jar` 是 1.5.0 时期的产物（该工程已升级，无法再逐字节重建那一份），
 > 予以保留；想要 v1.6 的 1.20.1 Forge，请取 v1.6.0 Release。其余 64 个版本工程的源码同属
-> **v1.5.1** 开发线，v1.5.1 资产尚未发布到 GitHub Release。
+> **v1.5.1** 开发线，但 v1.5.1 Release 目前只发布了 Fabric 1.20.1 一个产物。
 
 ---
 

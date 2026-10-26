@@ -15,7 +15,7 @@
 WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **67 个独立 Gradle 构建工程**，全部已有打包产物：
 
 - **64 个版本工程**：`versions/` 20（Forge）+ `fabric/versions/` 22 + `neoforge/versions/` 22，覆盖 MC 1.20.2–1.20.6、1.21–1.21.11、26.1、26.1.1、26.1.2、26.2、26.3（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）；
-- **3 个 1.20.1 根工程**：根目录 Forge（**v1.6.0**）、`fabric/` 与 `neoforge/`（后两个当前源码为 **v1.5.1**，未单独发布）。
+- **3 个 1.20.1 根工程**：根目录 Forge（**v1.6.0**）、`fabric/` 与 `neoforge/`（后两个当前源码为 **v1.5.1**；v1.5.1 Release 已发布 Fabric 1.20.1 产物）。
 
 **67 个工程中，66 个的 v1.5.0 产物已在 v1.5.0 发布时按当时源码重新构建**，并与留存的原 1.20.1 Forge 产物一起发布在 GitHub Release
 [**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（**共 67 个资产**，命名统一为
@@ -27,8 +27,12 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 详细文件索引见 [PROJECT_INDEX.md](../PROJECT_INDEX.md)，版本变更见 [CHANGELOG.md](../CHANGELOG.md)，移植计划与逐版本状态见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)。
 
 > **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
-> 其余 **66 个工程的当前源码均为 v1.5.1 形态**（v1.5.1 资产尚未发布到 GitHub Release），
-> v1.6 子系统尚未移植，见「v1.6 新增子系统」。
+> 其余 **66 个工程的当前源码均为 v1.5.1 形态**，但 v1.5.1 Release 目前只发布了
+> **Fabric 1.20.1** 一个产物；v1.6 子系统尚未移植，见「v1.6 新增子系统」。
+>
+> **v1.5.1 Release（Navy，2026-10-26）** 基于提交 `4686900`，资产为
+> `WurstB+.Plus-1.5.1-Fabric-1.20.1.jar` 与 GitHub 自动生成的源码包（zip / tar.gz）。
+> 该提交之后的 Scaffold 搭高/双击疾跑修复**不在**此 Release 中。
 
 ## 渲染兼容性（X-Ray / Vulkan）
 
@@ -641,7 +645,9 @@ Minecraft / Mixin hook
 | ScaffoldWalk | OpenOpal 共享搜索/旋转/放置引擎 + 8 个模式类；同 Y 自动跳、手动跳搭高、双击 W 疾跑、静默换槽、区块覆盖显示 |
 | InvWalk | 统一识别 ClickGUI、Navigator、全部设置子页、HUD 编辑器和客户端选项页；这些页面不暂停单人集成服务器，并按真实键盘状态恢复移动、跳跃、潜行与疾跑输入 |
 
-#### ScaffoldWalk 修复（2026-10-26）
+#### ScaffoldWalk 修复（v1.5.1 之后，2026-10-26）
+
+> 本节修复在已发布的 v1.5.1（提交 `4686900`）之后完成，尚未进入任何 Release。
 
 - **关闭 Auto jump 时手动跳也能搭高**：站立按住空格，目标层跟随跳跃高度，脚下连续放块
   （Fabric 1.20.1 dev 客户端实测连续 5 格）。

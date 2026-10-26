@@ -46,15 +46,16 @@ WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.0-Forge-1.21
 | Release | Contents | Notes |
 | --- | --- | --- |
 | [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 assets | The main release, covering every version |
+| [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | Fabric 1.20.1 | Latest release (Navy), one artifact jar + two source archives |
 | [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | Prerelease, carries the new v1.6 subsystems |
 
 > **Note:** Not all three 1.20.1 projects are v1.5. The **root Forge 1.20.1 project is v1.6.0**
 > (the only one with the v1.6 subsystems), while the current source of `fabric/` and `neoforge/`
-> is **v1.5.1** (not released separately yet). The `WurstB+.Plus-1.5.0-Forge-1.20.1.jar` asset in
+> is **v1.5.1**. The `WurstB+.Plus-1.5.0-Forge-1.20.1.jar` asset in
 > the v1.5.0 release is the artifact from that release (the project has since moved on, so it
 > cannot be rebuilt byte-for-byte) and is kept as-is. For a v1.6 Forge 1.20.1 build, use the
-> v1.6.0 release. The other 64 version projects are also on the **v1.5.1** development line;
-> v1.5.1 assets have not been published to GitHub Releases yet.
+> v1.6.0 release. The other 64 version projects are also on the **v1.5.1** development line,
+> but the v1.5.1 release only ships the Fabric 1.20.1 artifact for now.
 
 ---
 
