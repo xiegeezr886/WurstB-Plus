@@ -8,16 +8,23 @@
 package net.wurstclient.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.gui.screens.achievement.StatsScreen;
+import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
+import net.minecraft.client.gui.screens.inventory.BookEditScreen;
+import net.minecraft.client.gui.screens.inventory.BookViewScreen;
 import net.wurstclient.WurstClient;
 import net.wurstclient.gui.ButtonStyleRenderer;
 import net.wurstclient.gui.MainMenuBackground;
@@ -41,12 +48,35 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 			return;
 		}
 
-		if(screen instanceof TitleScreen || screen instanceof PauseScreen
-			|| screen instanceof AbstractContainerScreen)
+		if(shouldKeepVanillaBackground(screen))
 			return;
 
 		MainMenuBackground.render(context, screen);
 		ci.cancel();
+	}
+
+	/**
+	 * Gameplay and editor screens keep their own background. Painting the
+	 * title-menu gradient over an inventory, book, sign or chat screen hides
+	 * the world and makes those functional screens harder to use.
+	 */
+	@Unique
+	private static boolean shouldKeepVanillaBackground(Screen screen)
+	{
+		if(screen instanceof TitleScreen || screen instanceof PauseScreen)
+			return true;
+
+		if(screen instanceof AbstractContainerScreen
+			|| screen instanceof BookViewScreen
+			|| screen instanceof BookEditScreen
+			|| screen instanceof AbstractSignEditScreen
+			|| screen instanceof ChatScreen || screen instanceof StatsScreen
+			|| screen instanceof AdvancementsScreen)
+			return true;
+
+		String name = screen.getClass().getName();
+		return name.startsWith("net.minecraft.client.gui.screens.inventory.")
+			|| name.startsWith("net.wurstclient.clickgui2.screens.");
 	}
 
 	@Inject(at = @At("HEAD"),
@@ -60,17 +90,10 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 
 		if(WurstClient.INSTANCE.getHax().noBackgroundHack
 			.shouldCancelBackground(screen))
-		{
 			ci.cancel();
-			return;
-		}
 
-		if(screen instanceof TitleScreen || screen instanceof PauseScreen
-			|| screen instanceof AbstractContainerScreen)
-			return;
-
-		MainMenuBackground.render(graphics, screen);
-		ci.cancel();
+		// Screens that explicitly ask for the dirt background (book offer
+		// editor, vanilla menus without a world) keep that background.
 	}
 
 	@Inject(at = @At("HEAD"),
