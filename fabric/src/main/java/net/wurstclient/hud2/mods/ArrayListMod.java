@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import net.wurstclient.Feature;
+import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.HUDMod;
 import net.wurstclient.hud2.nanovg.HudFonts;
 
@@ -19,8 +21,7 @@ public final class ArrayListMod extends HUDMod
 {
 	public ArrayListMod()
 	{
-		super("ArrayList", "ArrayList",
-			"Lists all enabled HUD modules.");
+		super("ArrayList", "ArrayList", "Lists all enabled modules.");
 		setTranslationKey("array_list");
 		setDefaultPosition(700, 10);
 	}
@@ -31,11 +32,19 @@ public final class ArrayListMod extends HUDMod
 		if(getManager() == null)
 			return;
 
-		List<HUDMod> active = new ArrayList<>();
+		// The module list covers every enabled feature: hacks as well as HUD
+		// modules (previously only HUD modules were listed).
+		List<Feature> active = new ArrayList<>();
+		if(WURST.getHax() != null)
+			for(Hack hack : WURST.getHax().getAllHax())
+				if(hack.isEnabled())
+					active.add(hack);
+
 		for(HUDMod mod : getManager().getMods().values())
 			if(mod != this && mod.isEnabled())
 				active.add(mod);
-		active.sort(Comparator.comparing(HUDMod::getTranslatedName,
+
+		active.sort(Comparator.comparing(Feature::getDisplayName,
 			String.CASE_INSENSITIVE_ORDER));
 
 		if(active.isEmpty())
@@ -48,14 +57,15 @@ public final class ArrayListMod extends HUDMod
 		}
 
 		float width = 100;
-		for(HUDMod mod : active)
-			width = Math.max(width, getTextWidth(mod.getTranslatedName(), 9,
-				HudFonts.REGULAR) + 12);
+		for(Feature feature : active)
+			width = Math.max(width,
+				getTextWidth(feature.getDisplayName(), 9, HudFonts.REGULAR)
+					+ 12);
 
 		float height = 6 + active.size() * 13;
 		drawBackground(width, height);
 		for(int i = 0; i < active.size(); i++)
-			drawText(active.get(i).getTranslatedName(), 6, 4 + i * 13, 9,
+			drawText(active.get(i).getDisplayName(), 6, 4 + i * 13, 9,
 				HudFonts.REGULAR);
 		setSize(Math.round(width), Math.round(height));
 	}
