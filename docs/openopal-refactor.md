@@ -546,24 +546,31 @@ Legit 的九道 return 是顺序敏感的（先冷却再撞墙……），搬进
 | 旋转数学 | `ScaffoldUtils` | 新增 `getVanillaRotation` / `getSentRotation` / `getCursorDelta` / `getDuplicateWrapped` / `getRotationDifference`，射线候选按 OpenOpal 的 `getRotationDifference` 排序（yaw 取绝对值） |
 | 旋转模型 | `ScaffoldRotationModel` | Instant / Heypixel / Linear / Organic / Sideways 五种；另加 Hypixel 动态速度模型 |
 | 真实堆叠数量 | `ScaffoldWalkHack.realStackSizeMap` | 放置扣 1、拾取包加回，`getPlaceableBlock()` 用它而不是直接读堆叠数 |
-| 交互 CPS | `ScaffoldWalkHack` + 「Interact CPS」设置 | 没有缓存目标时按 CPS 模拟右键（对应 OpenOpal 的 `simulateClick`） |
+| 交互 CPS | `ScaffoldWalkHack` + 「Interact CPS」设置 | 没有缓存目标时按 CPS 模拟右键（对应 OpenOpal 的 `simulateClick`）。**必须按住右键才触发**：否则每 tick 都会按真实准星放块，看向墙面时会沿墙铺成一面墙 |
 | 右键抑制 | `ScaffoldWalkHack.onRightClick` | 启用时屏蔽原版右键，对应 OpenOpal 的 `MouseButton.setDisabled()` |
 
 ### 关键行为修正（附原因）
 
-1. **放置时点**：从 `PostMotion`（移动包之后）改到 `HandleInput`（玩家 tick 之前，
-   等价于 OpenOpal 的 `PreGameTick` + `MouseHandleInputEvent` 顺序）。
+1. **放置时点**：目标在玩家 tick 内计算（`UpdateEvent`），实际 `useItemOn` 仍在
+   `PostMotion`（移动包之后）执行。曾尝试按 OpenOpal 提前到 `HandleInput`，但在
+   1.20.1 的坠落/落差场景会在移动前的旧高度连续放块，表现为“搭墙”；因此保留上一个
+   测试客户端的执行时点（方案 B）。
 2. **不再覆盖 `MC.hitResult`**：之前用 `blockCache.hit()` 覆盖准星并在后续 tick
    被 `simulateClick` 当成真实准星，导致在玩家没看的地方放方块。现在通过参数
    直接使用缓存命中；准星保持原版。
-3. **同一个 Y 层**：非 Telly 模式的候选点只取「玩家所在柱 + 移动方向前方 1/2/3 格」，
+3. **CPS 兜底必须按住右键**：`simulateClick()` 现在只在 `MC.options.keyUse.isDown()`
+   时排队。这是“看向方块就搭墙”的直接原因——旧逻辑每 tick 都按真实准星放块，
+   第一人称看墙面时就会沿着墙面连续放置。
+4. **同一个 Y 层**：非 Telly 模式的候选点只取「玩家所在柱 + 移动方向前方 1/2/3 格」，
    搜索深度改为 0，并禁止搜索比目标层更高的位置。OpenOpal 原始的 3×3 脚部候选 + 深度 4
    BFS 在 1.20.1 实机里会合法地选中侧方/上方方块，表现为 3 格宽铺路和「楼梯」。
    这是**有意偏离**，目的是保证用户要求的「脚底下搭」。
-4. **缓存层校验**：`sameYPos` 改变后，旧 `blockCache` 若不在当前层会被丢弃，避免
+5. **缓存层校验**：`sameYPos` 改变后，旧 `blockCache` 若不在当前层会被丢弃，避免
    一次意外高处的放置被持续复用。
-5. **下落模拟只在真正下落时运行**，且目标 Y 不高于 `sameYPos - 1`；否则跳跃上升阶段
+6. **下落模拟只在真正下落时运行**，且目标 Y 不高于 `sameYPos - 1`；否则跳跃上升阶段
    会在跳跃高度铺一层，然后踩着它继续升高（实机复现到的「楼梯」根因之一）。
+7. **不在脚部以上放置**：非 Telly 模式的目标 Y 若高于 `floor(玩家当前 Y) - 1` 直接丢弃，
+   避免 `sameYPos` 在坠落时滞后导致方块沿墙叠高。
 
 ### 实机验证（2026-10-26，Fabric 1.20.1 dev 客户端）
 
@@ -581,6 +588,9 @@ Legit 的九道 return 是顺序敏感的（先冷却再撞墙……），搬进
 - **Watchdog**：从平台边缘向东走 1.2 秒，桥面为 `x=2001..2009, y=100, z=2014`
   的单宽直线，探针 `Y_100` 命中、`Y_101/102/103` 全部未命中；玩家始终在这条桥上方，
   没有侧向漂移或爬升。
+- **看向墙面**：站定、准星正对 2 格外的石墙、不按右键等待 1.2 秒，墙面内侧
+  `x=3000, y=100..102` 无任何新方块（`LOOK_*` 全部未命中）；随后按住右键 0.6 秒，
+  `USE_101` 命中，说明手动放置仍然正常。这就是“看向方块就搭墙”的回归测试。
 - **Telly**：同场景开 `Auto jump`，桥面同样是 y=100 的直线，玩家在 y≈102 的跳跃高度，
   无异常。
 - **Heypixel**（关闭 Uitems Telly）：桥面 `x=2001..2006, y=100, z=2011`，无异常。
