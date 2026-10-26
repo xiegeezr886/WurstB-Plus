@@ -62,7 +62,7 @@ public final class MultiAuraHack extends Hack
 		ValueDisplay.INTEGER)
 			.visibleWhen(() -> cpsMode.getSelected() == CpsMode.MANUAL);
 	private final SliderSetting maxTargets = new SliderSetting("Max targets",
-		"How many entities to attack per swing.", 5, 1, 10, 1,
+		"How many entities to attack per swing.", 10, 1, 10, 1,
 		ValueDisplay.INTEGER);
 
 	private final CheckboxSetting requireWeapon = new CheckboxSetting(
