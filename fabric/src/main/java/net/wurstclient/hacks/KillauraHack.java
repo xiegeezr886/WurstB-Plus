@@ -36,6 +36,7 @@ import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
+import net.wurstclient.util.Rotation;
 import net.wurstclient.util.RotationQueue;
 
 /**
@@ -127,6 +128,7 @@ public final class KillauraHack extends Hack
 	private long nextSwingTime;
 	private boolean pendingAttack;
 	private boolean fakeBlocking;
+	private int grimKeepTicks;
 
 	public KillauraHack()
 	{
@@ -199,6 +201,13 @@ public final class KillauraHack extends Hack
 	public void onUpdate()
 	{
 		pendingAttack = false;
+		if(grimKeepTicks > 0)
+		{
+			grimKeepTicks--;
+			if(MC.player != null)
+				MC.player.setSprinting(true);
+		}
+
 		if(!requirementsMet())
 		{
 			clearTarget();
@@ -262,7 +271,15 @@ public final class KillauraHack extends Hack
 		if(MC.player.isUsingItem())
 			MC.gameMode.releaseUsingItem(MC.player);
 
-		rotationQueue.setRotation(target.rotation);
+		Rotation attackRotation = target.rotation;
+		if(heypixelBypass.isChecked())
+		{
+			float jitter = (float)((Math.random() - 0.5D) * 0.1D);
+			attackRotation = Rotation.wrapped(
+				attackRotation.yaw() + jitter,
+				attackRotation.pitch() + jitter);
+		}
+		rotationQueue.setRotation(attackRotation);
 
 		boolean wasSprinting = MC.player.isSprinting();
 		MC.gameMode.attack(MC.player, target.entity);
@@ -270,6 +287,8 @@ public final class KillauraHack extends Hack
 
 		if(keepSprintFov.isChecked() || grimKeepSprint.isChecked())
 			keepSprint(wasSprinting);
+		if(grimKeepSprint.isChecked() && wasSprinting)
+			grimKeepTicks = 2;
 
 		target.onAttack();
 		nextAttackTime = System.currentTimeMillis() + clickDelay();
@@ -278,23 +297,17 @@ public final class KillauraHack extends Hack
 	@Override
 	public void onRender(PoseStack matrices, float partialTicks)
 	{
-		if(renderTarget == null || !renderTarget.isAlive())
+		if(!(renderTarget instanceof LivingEntity living) || !living.isAlive())
 			return;
 
-		Vec3 pos = EntityUtils.getLerpedPos(renderTarget, partialTicks)
+		Vec3 pos = EntityUtils.getLerpedPos(living, partialTicks)
 			.subtract(RenderUtils.getCameraPos());
 		int color = WURST.getGui().getTheme().accent(0.85F);
 
 		if(visualsBox.isChecked())
-		{
-			double half = renderTarget.getBbWidth() / 2.0D;
-			drawBox(matrices, pos.x - half, pos.y, pos.z - half,
-				pos.x + half, pos.y + renderTarget.getBbHeight(),
-				pos.z + half, color);
-		}
-
+			OpenAura.drawBox(matrices, pos, living, color);
 		if(visualsHalo.isChecked())
-			drawHalo(matrices, pos, renderTarget, color);
+			OpenAura.drawHalo(matrices, pos, living);
 	}
 
 	public Entity getCurrentTarget()
@@ -490,42 +503,6 @@ public final class KillauraHack extends Hack
 		if(rotationQueue != null)
 			rotationQueue.clear();
 		stopBlocking();
-	}
-
-	private void drawBox(PoseStack matrices, double x1, double y1, double z1,
-		double x2, double y2, double z2, int color)
-	{
-		Vec3[] corners = {new Vec3(x1, y1, z1), new Vec3(x2, y1, z1),
-			new Vec3(x2, y1, z2), new Vec3(x1, y1, z2),
-			new Vec3(x1, y2, z1), new Vec3(x2, y2, z1),
-			new Vec3(x2, y2, z2), new Vec3(x1, y2, z2)};
-		int[][] edges = {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6},
-			{6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
-
-		for(int[] edge : edges)
-			RenderUtils.drawLine(matrices, corners[edge[0]],
-				corners[edge[1]], color, false);
-	}
-
-	private void drawHalo(PoseStack matrices, Vec3 pos, Entity target,
-		int color)
-	{
-		double now = System.currentTimeMillis() / 1000.0D;
-		double radius = Math.max(0.52D, target.getBbWidth() * 0.85D);
-		double y = pos.y + target.getBbHeight() * 0.5D
-			+ Math.sin(now * 4.0D) * 0.45D + 0.22D;
-		int segments = 48;
-
-		for(int i = 0; i < segments; i++)
-		{
-			double a1 = Math.PI * 2 * i / segments;
-			double a2 = Math.PI * 2 * (i + 1) / segments;
-			Vec3 start = new Vec3(pos.x + Math.sin(a1) * radius, y,
-				pos.z + Math.cos(a1) * radius);
-			Vec3 end = new Vec3(pos.x + Math.sin(a2) * radius, y,
-				pos.z + Math.cos(a2) * radius);
-			RenderUtils.drawLine(matrices, start, end, color, false);
-		}
 	}
 
 	public enum CpsMode
