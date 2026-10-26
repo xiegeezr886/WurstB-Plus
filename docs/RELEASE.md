@@ -15,9 +15,9 @@
 WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **67 个独立 Gradle 构建工程**，全部已有打包产物：
 
 - **64 个版本工程**：`versions/` 20（Forge）+ `fabric/versions/` 22 + `neoforge/versions/` 22，覆盖 MC 1.20.2–1.20.6、1.21–1.21.11、26.1、26.1.1、26.1.2、26.2、26.3（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）；
-- **3 个 1.20.1 根工程**：根目录 Forge（**v1.6.0**）、`fabric/` 与 `neoforge/`（后两个是 **v1.5.0**）。
+- **3 个 1.20.1 根工程**：根目录 Forge（**v1.6.0**）、`fabric/` 与 `neoforge/`（后两个当前源码为 **v1.5.1**；v1.5.1 Release 已发布 Fabric 1.20.1 产物）。
 
-**67 个工程中，66 个的 v1.5.0 产物已按当前源码重新构建**，并与留存的原 1.20.1 Forge 产物一起发布在 GitHub Release
+**67 个工程中，66 个的 v1.5.0 产物已在 v1.5.0 发布时按当时源码重新构建**，并与留存的原 1.20.1 Forge 产物一起发布在 GitHub Release
 [**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（**共 67 个资产**，命名统一为
 `WurstB+.Plus-<版本>-<加载器>-<mc>.jar`）。每个 jar 都做过打包校验（zip 完好、含加载器元数据与 Mixin 配置、含主类）。
 游戏内启动验证覆盖 1.21.11 / 26.2 的六个工程，以及 2026-10-22 的 X-Ray/Vulkan 矩阵（见下节）；其余组合仍只有编译/打包校验——详见[多版本平行移植](#多版本平行移植)与[验证状态](#验证状态)。
@@ -27,7 +27,13 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 详细文件索引见 [PROJECT_INDEX.md](../PROJECT_INDEX.md)，版本变更见 [CHANGELOG.md](../CHANGELOG.md)，移植计划与逐版本状态见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)。
 
 > **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
-> 其余 **66 个工程均为 v1.5.0 形态**，v1.6 子系统尚未移植，见「v1.6 新增子系统」。
+> 其余 **66 个工程的当前源码均为 v1.5.1 形态**，但 v1.5.1 Release 目前只发布了
+> **Fabric 1.20.1** 一个产物；v1.6 子系统尚未移植，见「v1.6 新增子系统」。
+>
+> **v1.5.1 Release（Latest，2026-10-26）** 基于提交 `4686900`，资产为
+> `WurstB+.Plus-1.5.1-Fabric-1.20.1.jar` 与 GitHub 自动生成的源码包（zip / tar.gz）。
+> 其中 jar 已于 2026-10-26T11:18Z 重传为包含 Scaffold 搭高/双击疾跑修复的构建
+> （SHA256 `afbd8380…e3ca17`）；Release 记录的提交仍为 `4686900`，tag 未移动。
 
 ## 渲染兼容性（X-Ray / Vulkan）
 
@@ -599,7 +605,7 @@ Minecraft / Mixin hook
 - Hitboxes 与客户端连接方向判定已移入 `net.wurstclient.util` 普通策略类；Mixin 本体不再暴露包级静态辅助方法，Mixin 专用包也不再混入普通类，兼容 Forge 47.4.10 内置 Mixin 0.8.5 的方法可见性与包隔离校验。
 - KillAura 已替换为 LiquidBounce Nextgen 的 Forge 1.20.1 行为等价执行链：3 格原版距离加成、随机扫描距离、交互/穿墙距离分离、HurtTime 与实体过滤、目标及自身运动预测、预测 AABB 命中点采样、Normal/Snap/OnTick 旋转时序、Enemy/All Raycast、逐 Tick 点击数组与未截断物品冷却、Click/Weapon/EmptyHand/VanillaName/NotBreaking 条件、库存模拟关闭、随机 FailSwing 范围、Basic/Interact/Fake 格挡模式、三种解锁方式、随机重挡/暂停、危险判定、KeepSprint、AutoSword/Criticals 协同和每次点击前复验。可关闭的 `Range aura` 使用当前主题色显示实际交互距离，距离设置变化会实时缩放渐变环带。
 - CrystalAura 每 Tick 最多执行一次引爆或放置，按最低目标伤害、自伤上限、伤害优势、反自杀和水晶年龄统一评分；无效水晶不再阻塞后续放置。
-- ScaffoldWalk 使用 `PlacementPlan` 预测水平落点，对目标位置、支撑面、视线、距离和连续性评分，再通过方块放置优先级旋转执行。
+- ScaffoldWalk 已按 OpenOpal 的「共享模块 + 每模式一个实现类」重写：共享候选点/BFS 搜索、支撑面排序、面内射线旋转与放置校验；模式覆盖 Vanilla、Anti Gaming Chair、Watchdog、Bloxd、Telly、Heypixel、Hypixel、SilenceTelly，非 Telly 模式只搭建玩家所在柱与前进方向，保持同 Y。
 - AutoTotem 使用单次 SWAP 原子交换副手；AutoArmor 支持低耐久保护、鞘翅保持、绑定诅咒过滤和队列化换装。
 - AnchorAura 使用 PLACE、CHARGE、DETONATE 单步状态机，等待服务端方块状态确认并按目标伤害、自伤上限和反自杀条件规划锚点。
 - `DamageUtils` 区分末影水晶与重生锚爆炸威力，并统一计算难度、护甲韧性、爆炸保护和抗性效果减伤。
@@ -637,8 +643,23 @@ Minecraft / Mixin hook
 | NoSlowdown | 按物品动作区分盾牌与普通使用，覆盖六类减速方块，并重算主手物品的负移动速度属性 |
 | Step | Simple 一至五格步高与 Legit 分段位置包；保存/恢复原步高，并限制碰撞、液体、跳跃和执行冷却 |
 | SafeWalk | 地面/跳跃条件控制、边缘裁剪和可选可见潜行，释放时恢复真实键盘状态 |
-| ScaffoldWalk | 预测落点评分、视线与支撑面检查、最大方块堆选择、静默换槽恢复、交互结果确认、内置 SafeWalk 和 Tower 模式 |
+| ScaffoldWalk | OpenOpal 共享搜索/旋转/放置引擎 + 8 个模式类；同 Y 自动跳、手动跳搭高、双击 W 疾跑、静默换槽、区块覆盖显示 |
 | InvWalk | 统一识别 ClickGUI、Navigator、全部设置子页、HUD 编辑器和客户端选项页；这些页面不暂停单人集成服务器，并按真实键盘状态恢复移动、跳跃、潜行与疾跑输入 |
+
+#### ScaffoldWalk 修复（v1.5.1，2026-10-26）
+
+> 本节修复已包含在 v1.5.1 Release 重传的资产中（SHA256 `afbd8380…e3ca17`）；
+> Release 记录的提交仍为 `4686900`，tag 未移动。
+
+- **关闭 Auto jump 时手动跳也能搭高**：站立按住空格，目标层跟随跳跃高度，脚下连续放块
+  （Fabric 1.20.1 dev 客户端实测连续 5 格）。
+- **自动跳跃下不再叠“空中楼梯”**：`Auto jump` + 前进时不再把目标层抬到跳跃高度，
+  消除边搭桥边爬升的“鬼畜”行为；站立手动跳仍可搭高。
+- **双击 W 疾跑**：原版要求第二击落地，Scaffold 的自动/手动连跳让人物长期离地，
+  双击起跑因此失败。现在按原版 Ctrl 疾跑路径的条件（前进 ≥0.8、非潜行、非使用物品、
+  非骑乘/鞘翅、食物与失明检查）在 Scaffold 内直接起跑。
+- **验证**：真实客户端 + 真实输入 + 方块列探测；搭高 5 格、自动跳跃前进 2 秒高度稳定在
+  150–151.25、双击与 Ctrl 疾跑状态均为 true。
 
 ### ESP 与视觉
 
