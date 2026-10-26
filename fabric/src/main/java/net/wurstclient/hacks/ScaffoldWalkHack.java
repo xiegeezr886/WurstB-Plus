@@ -1,29 +1,43 @@
 /*
- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
- * Copyright (c) 2025 Penguin
+ * Copyright (c) 2026 WurstB+ Plus contributors
  *
- * This source code is subject to the terms of the GNU General Public
- * License, version 3. If a copy of the GPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+ * This source code is subject to the terms of the GNU Affero General Public
+ * License, version 3. If a copy of the AGPL was not distributed with this
+ * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.core.BlockPos;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Set;
+
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.hacks.aura.OpenAura;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
@@ -31,69 +45,89 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.PlacementPlan;
+import net.wurstclient.util.Rotation;
 import net.wurstclient.util.RotationQueue;
-import net.wurstclient.util.ScaffoldPlacementPlanner;
 
+/**
+ * Scaffold ported from OpenOpal's ScaffoldModule core (candidate search,
+ * support raytracing and placement), exposed with Wurst's settings system.
+ */
 @SearchTags({"scaffold walk", "BridgeWalk", "bridge walk", "AutoBridge",
 	"auto bridge", "tower"})
 public final class ScaffoldWalkHack extends Hack implements UpdateListener
 {
+	private static final Direction[] SUPPORT_DIRECTIONS = {Direction.DOWN,
+		Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH,
+		Direction.UP};
+	private static final double[] FOOT_OFFSETS = {0, 0.301D, -0.301D};
+	private static final double[] LOOKAHEAD_STEPS = {0, 0.35D, 0.7D, 1.05D,
+		1.4D};
+	private static final double[] HIT_OFFSETS = {0, 0.24D, -0.24D};
+	private static final double MAX_PLACEMENT_DISTANCE_SQ = 20.25D;
+
 	private final EnumSetting<Mode> mode = new EnumSetting<>("Mode",
-		"\u00a7lNormal\u00a7r - Standard scaffold placement.\n"
-			+ "\u00a7lTower\u00a7r - Hold jump key to tower up.",
-		Mode.values(), Mode.NORMAL);
+		"Vanilla places normally, Telly keeps jumping while bridging.",
+		Mode.values(), Mode.VANILLA);
 
-	private final SliderSetting placeDelay = new SliderSetting("Place delay",
-		"Delay between block placements in ticks.\nLower = faster.",
-		1, 0, 5, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting tower = new CheckboxSetting("Tower",
+		"Hold jump to tower up.", false);
 
-	private final CheckboxSetting silentSwap = new CheckboxSetting(
-		"Silent swap",
-		"Temporarily changes the server slot while preserving the visible slot.",
-		true);
-
-	private final SliderSetting searchRange = new SliderSetting("Search range",
-		"How many hotbar slots to search for blocks.",
-		9, 1, 9, 1, ValueDisplay.INTEGER);
-
-	private final SliderSetting prediction = new SliderSetting("Prediction",
-		"Plans placements around the player's predicted horizontal position.",
-		1, 0, 2, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
-
-	private final CheckboxSetting requireLineOfSight = new CheckboxSetting(
-		"Require line of sight",
-		"Only uses support faces that are visible from the player's eyes.",
-		true);
-
-	private final CheckboxSetting safeWalk = new CheckboxSetting("Safe walk",
-		"Prevents walking off the scaffold edge in Normal mode.", true);
-
-	private final SliderSetting towerMotion = new SliderSetting("Tower motion",
-		"Upward velocity used by Tower mode.", 0.42, 0.2, 1, 0.01,
-		ValueDisplay.DECIMAL);
+	private final EnumSetting<SwitchMode> switchMode =
+		new EnumSetting<>("Switch mode", SwitchMode.values(),
+			SwitchMode.HOTBAR);
 
 	private final SwingHandSetting swingHand =
 		new SwingHandSetting(this, SwingHand.CLIENT);
 
+	private final CheckboxSetting snapRotations =
+		new CheckboxSetting("Snap rotations", false);
+
+	private final CheckboxSetting sameY = new CheckboxSetting("Same Y",
+		"Keeps placing at the same Y level while bridging.", true);
+
+	private final CheckboxSetting autoJump = new CheckboxSetting("Auto jump",
+		"Jumps automatically to keep the same Y.", true);
+
+	private final CheckboxSetting overrideRaycast = new CheckboxSetting(
+		"Override raycast", "Validates every placement with a block raycast.",
+		true);
+
+	private final CheckboxSetting safeWalk = new CheckboxSetting("SafeWalk",
+		"Prevents walking off the scaffold edge.", true);
+
+	private final CheckboxSetting keepSprint = new CheckboxSetting(
+		"Keep Sprint FOV", "Keeps sprinting after a placement.", false);
+
+	private final SliderSetting range = new SliderSetting("Range",
+		"How far to reach when placing blocks.", 4.5, 3, 6, 0.05,
+		ValueDisplay.DECIMAL);
+
+	private final SliderSetting placeDelay = new SliderSetting("Place delay",
+		"Delay between block placements in ticks.", 0, 0, 5, 1,
+		ValueDisplay.INTEGER);
+
+	private RotationQueue rotationQueue;
 	private int oldSlot = -1;
 	private int placementCooldown;
-	private PlacementPlan currentPlan;
-	private RotationQueue rotationQueue;
+	private int sameYPos;
+	private final ArrayDeque<BlockPos> lastPlaced = new ArrayDeque<>();
 
 	public ScaffoldWalkHack()
 	{
 		super("ScaffoldWalk");
 		setCategory(Category.BLOCKS);
 		addSetting(mode);
-		addSetting(placeDelay);
-		addSetting(silentSwap);
-		addSetting(searchRange);
-		addSetting(prediction);
-		addSetting(requireLineOfSight);
-		addSetting(safeWalk);
-		addSetting(towerMotion);
+		addSetting(tower);
+		addSetting(switchMode);
 		addSetting(swingHand);
+		addSetting(snapRotations);
+		addSetting(sameY);
+		addSetting(autoJump);
+		addSetting(overrideRaycast);
+		addSetting(safeWalk);
+		addSetting(keepSprint);
+		addSetting(range);
+		addSetting(placeDelay);
 	}
 
 	@Override
@@ -107,7 +141,8 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	{
 		oldSlot = -1;
 		placementCooldown = 0;
-		currentPlan = null;
+		lastPlaced.clear();
+		sameYPos = MC.player == null ? 0 : Mth.floor(MC.player.getY());
 		rotationQueue = new RotationQueue(
 			RotationQueue.Priority.BLOCK_PLACEMENT);
 		rotationQueue.start();
@@ -119,10 +154,12 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 	{
 		EVENTS.remove(UpdateListener.class, this);
 		resetSlot();
-		currentPlan = null;
+		lastPlaced.clear();
 		if(rotationQueue != null)
+		{
 			rotationQueue.stop();
-		rotationQueue = null;
+			rotationQueue = null;
+		}
 	}
 
 	@Override
@@ -141,103 +178,358 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 			return;
 		}
 
-		boolean towerActive = mode.getSelected() == Mode.TOWER
-			&& MC.options.keyJump.isDown();
-		if(towerActive && findBlockSlot() != -1)
-			updateTowerMotion(player);
-
 		if(placementCooldown > 0)
 		{
 			placementCooldown--;
 			return;
 		}
 
-		boolean placed = towerActive ? doTower() : doScaffold();
-		if(placed)
-			placementCooldown = placeDelay.getValueI();
-	}
+		if(!updateHeldBlockSlot())
+			return;
 
-	private boolean doScaffold()
-	{
-		Vec3 movement = MC.player.getDeltaMovement();
-		int ticks = prediction.getValueI();
-		Vec3 predictedPosition = MC.player.position().add(movement.x * ticks,
-			0, movement.z * ticks);
-		PlacementPlan plan = ScaffoldPlacementPlanner.find(predictedPosition,
-			currentPlan, requireLineOfSight.isChecked());
-		if(plan == null)
-		{
-			currentPlan = null;
-			return false;
-		}
+		boolean towerActive = tower.isChecked() && MC.options.keyJump.isDown();
+		if(towerActive)
+			updateTowerMotion(player);
 
-		int newSlot = findBlockSlot();
-		if(newSlot == -1)
-			return false;
+		updateSameY(player, towerActive);
+		if(!towerActive && mode.getSelected() == Mode.TELLY
+			&& sameY.isChecked() && autoJump.isChecked())
+			tryAutoJump(player);
 
-		swapToSlot(newSlot);
-		try
-		{
-			return placePlan(plan);
-		}finally
+		BlockData data = towerActive ? findTowerData() : findBlockData();
+		if(data == null)
 		{
 			resetSlot();
-		}
-	}
-
-	private boolean doTower()
-	{
-		BlockPos towerPos =
-			BlockPos.containing(MC.player.position()).below();
-		PlacementPlan plan = ScaffoldPlacementPlanner.findAt(towerPos,
-			currentPlan, requireLineOfSight.isChecked());
-		if(plan == null)
-		{
-			currentPlan = null;
-			return false;
+			return;
 		}
 
-		int newSlot = findBlockSlot();
-		if(newSlot == -1)
-			return false;
+		if(snapRotations.isChecked())
+			rotationQueue.setRotation(data.rotation());
+		else
+			rotationQueue.add(data.rotation(), 1);
 
-		swapToSlot(newSlot);
-		try
-		{
-			return placePlan(plan);
-		}finally
+		boolean wasSprinting = player.isSprinting();
+		InteractionHand hand = isBlockItem(player.getMainHandItem())
+			? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+		InteractionResult result = MC.gameMode.useItemOn(player, hand,
+			data.hit());
+		if(!result.consumesAction())
 		{
 			resetSlot();
+			return;
 		}
+
+		swingHand.swing(hand);
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC)
+			.setRightClickDelay(4);
+
+		lastPlaced.addLast(data.target());
+		while(lastPlaced.size() > 4)
+			lastPlaced.removeFirst();
+		if(keepSprint.isChecked() && wasSprinting)
+			player.setSprinting(true);
+
+		placementCooldown = placeDelay.getValueI();
+		resetSlot();
+	}
+
+	private void updateSameY(LocalPlayer player, boolean towerActive)
+	{
+		if(!sameY.isChecked() || towerActive || player.onGround()
+			|| Math.abs(Mth.floor(player.getY()) - sameYPos) > 3)
+			sameYPos = Mth.floor(player.getY());
+	}
+
+	private void tryAutoJump(LocalPlayer player)
+	{
+		if(!player.onGround() || !MC.options.keyUp.isDown())
+			return;
+		if(player.input.forwardImpulse == 0 && player.input.leftImpulse == 0)
+			return;
+
+		Vec3 velocity = player.getDeltaMovement();
+		if(Math.abs(velocity.x) + Math.abs(velocity.z) < 0.02D)
+			return;
+		player.setDeltaMovement(velocity.x, 0.42D, velocity.z);
 	}
 
 	private void updateTowerMotion(LocalPlayer player)
 	{
-		Vec3 movement = player.getDeltaMovement();
+		Vec3 velocity = player.getDeltaMovement();
 		if(player.onGround())
-			player.setDeltaMovement(movement.x, towerMotion.getValue(), movement.z);
-		else if(movement.y < 0 && BlockUtils
+			player.setDeltaMovement(velocity.x, 0.42D, velocity.z);
+		else if(velocity.y < 0 && BlockUtils
 			.getState(BlockPos.containing(player.position()).below())
 			.canBeReplaced())
-			player.setDeltaMovement(movement.x, -0.15, movement.z);
+			player.setDeltaMovement(velocity.x, -0.15D, velocity.z);
+	}
+
+	private BlockData findBlockData()
+	{
+		BlockPos base = new BlockPos(Mth.floor(MC.player.getX()), sameYPos,
+			Mth.floor(MC.player.getZ())).below();
+		for(BlockPos candidate : targetCandidates(base))
+		{
+			if(!isReplaceable(candidate))
+				continue;
+			BlockData data = searchPlacement(candidate);
+			if(data != null)
+				return data;
+		}
+		return null;
+	}
+
+	private BlockData findTowerData()
+	{
+		BlockPos base = BlockPos.containing(MC.player.position()).below();
+		if(!isReplaceable(base))
+			return null;
+		return searchPlacement(base);
+	}
+
+	private List<BlockPos> targetCandidates(BlockPos base)
+	{
+		LinkedHashSet<BlockPos> candidates = new LinkedHashSet<>();
+		candidates.add(base.immutable());
+		addLastPlacedCandidate(candidates, base);
+
+		Vec3 velocity = MC.player.getDeltaMovement();
+		for(double step : LOOKAHEAD_STEPS)
+			addFootCandidates(candidates, MC.player.position()
+				.add(velocity.x * step, 0, velocity.z * step), base.getY());
+
+		double speed = Math.hypot(velocity.x, velocity.z);
+		if(speed > 0.01D)
+		{
+			double dirX = velocity.x / speed;
+			double dirZ = velocity.z / speed;
+			addFootCandidates(candidates, MC.player.position()
+				.add(dirX * 0.35D, 0, dirZ * 0.35D), base.getY());
+			addFootCandidates(candidates, MC.player.position()
+				.add(dirX * 0.65D, 0, dirZ * 0.65D), base.getY());
+			addFootCandidates(candidates, MC.player.position()
+				.add(dirX * 1.05D, 0, dirZ * 1.05D), base.getY());
+			addFootCandidates(candidates, MC.player.position()
+				.add(dirX * 1.45D, 0, dirZ * 1.45D), base.getY());
+
+			double sideX = -dirZ;
+			double sideZ = dirX;
+			addFootCandidates(candidates, MC.player.position().add(
+				dirX * 0.85D + sideX * 0.32D, 0,
+				dirZ * 0.85D + sideZ * 0.32D), base.getY());
+			addFootCandidates(candidates, MC.player.position().add(
+				dirX * 0.85D - sideX * 0.32D, 0,
+				dirZ * 0.85D - sideZ * 0.32D), base.getY());
+		}
+		return new ArrayList<>(candidates);
+	}
+
+	private void addLastPlacedCandidate(Set<BlockPos> candidates,
+		BlockPos base)
+	{
+		if(lastPlaced.size() < 2)
+			return;
+
+		var iterator = lastPlaced.descendingIterator();
+		BlockPos last = iterator.next();
+		BlockPos previous = iterator.next();
+		int dx = Integer.compare(last.getX() - previous.getX(), 0);
+		int dz = Integer.compare(last.getZ() - previous.getZ(), 0);
+		if(dx != 0 || dz != 0)
+			candidates.add(new BlockPos(last.getX() + dx, base.getY(),
+				last.getZ() + dz));
+	}
+
+	private void addFootCandidates(Set<BlockPos> candidates, Vec3 pos, int y)
+	{
+		for(double xOffset : FOOT_OFFSETS)
+			for(double zOffset : FOOT_OFFSETS)
+				candidates.add(BlockPos.containing(pos.x + xOffset, y,
+					pos.z + zOffset));
+	}
+
+	private BlockData searchPlacement(BlockPos origin)
+	{
+		int maxDepth = mode.getSelected() == Mode.TELLY ? 3 : 4;
+		int visitBudget = mode.getSelected() == Mode.TELLY ? 96 : 160;
+		int raytraceBudget = mode.getSelected() == Mode.TELLY ? 24 : 48;
+
+		PriorityQueue<PlacementCandidate> queue = new PriorityQueue<>(
+			Comparator
+				.comparingDouble((PlacementCandidate c) -> c.pos()
+					.distSqr(origin))
+				.thenComparingInt(PlacementCandidate::depth));
+		Set<BlockPos> visited = new HashSet<>();
+		queue.add(new PlacementCandidate(origin, 0));
+		visited.add(origin);
+
+		int visitedCount = 0;
+		int raytraceCount = 0;
+		while(!queue.isEmpty() && visitedCount++ < visitBudget)
+		{
+			PlacementCandidate candidate = queue.poll();
+			if(candidate.depth() > maxDepth
+				|| candidate.pos().distSqr(origin) > MAX_PLACEMENT_DISTANCE_SQ
+				|| !isReplaceable(candidate.pos()))
+				continue;
+
+			BlockData data = placementAt(candidate.pos(), raytraceBudget
+				- raytraceCount);
+			raytraceCount += 16;
+			if(data != null)
+				return data;
+
+			if(candidate.depth() >= maxDepth)
+				continue;
+			for(Direction direction : SUPPORT_DIRECTIONS)
+			{
+				BlockPos next = candidate.pos().relative(direction);
+				if(visited.size() >= visitBudget
+					|| next.distSqr(origin) > MAX_PLACEMENT_DISTANCE_SQ
+					|| !visited.add(next) || !isReplaceable(next))
+					continue;
+				queue.add(new PlacementCandidate(next,
+					candidate.depth() + 1));
+			}
+		}
+		return null;
+	}
+
+	private BlockData placementAt(BlockPos target, int raytraceBudget)
+	{
+		if(raytraceBudget <= 0)
+			return null;
+
+		BlockData best = null;
+		double bestAngle = Double.MAX_VALUE;
+		Rotation current = new Rotation(MC.player.getYRot(),
+			MC.player.getXRot());
+		Vec3 eye = MC.player.getEyePosition();
+
+		for(Direction direction : SUPPORT_DIRECTIONS)
+		{
+			BlockPos support = target.relative(direction);
+			if(!isValidSupport(support))
+				continue;
+			Direction side = direction.getOpposite();
+
+			for(BlockHitResult hit : hitCandidates(target, support, side))
+			{
+				if(eye.distanceTo(hit.getLocation()) > range.getValue())
+					continue;
+
+				Rotation rotation = OpenAura.rotationTo(eye,
+					hit.getLocation());
+				if(overrideRaycast.isChecked() && !isValidRaycast(support,
+					side, hit.getLocation()))
+					continue;
+
+				double angle = rotation.getAngleTo(current);
+				if(angle < bestAngle)
+				{
+					bestAngle = angle;
+					best = new BlockData(target, hit, rotation);
+				}
+				break;
+			}
+		}
+		return best;
+	}
+
+	private List<BlockHitResult> hitCandidates(BlockPos target,
+		BlockPos support, Direction side)
+	{
+		Vec3 center = Vec3.atCenterOf(target);
+		Vec3 normal = new Vec3(side.getStepX(), side.getStepY(),
+			side.getStepZ());
+		Vec3 face = center.add(normal.scale(0.5D));
+
+		Vec3 tangentA;
+		Vec3 tangentB;
+		if(side.getAxis() == Direction.Axis.Y)
+		{
+			tangentA = new Vec3(1, 0, 0);
+			tangentB = new Vec3(0, 0, 1);
+		}else
+		{
+			tangentA = new Vec3(0, 1, 0);
+			tangentB = new Vec3(-normal.z, 0, normal.x);
+		}
+
+		List<BlockHitResult> hits = new ArrayList<>();
+		for(double a : HIT_OFFSETS)
+			for(double b : HIT_OFFSETS)
+				hits.add(new BlockHitResult(
+					face.add(tangentA.scale(a)).add(tangentB.scale(b)),
+					side, support, false));
+		return hits;
+	}
+
+	private boolean isValidRaycast(BlockPos support, Direction side,
+		Vec3 point)
+	{
+		BlockHitResult hit = MC.level.clip(
+			new ClipContext(MC.player.getEyePosition(), point,
+				ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE,
+				MC.player));
+		return hit.getType() != HitResult.Type.MISS
+			&& hit.getBlockPos().equals(support)
+			&& hit.getDirection() == side;
+	}
+
+	private boolean isReplaceable(BlockPos pos)
+	{
+		return MC.level.isInWorldBounds(pos)
+			&& BlockUtils.getState(pos).canBeReplaced();
+	}
+
+	private boolean isValidSupport(BlockPos pos)
+	{
+		if(!MC.level.isInWorldBounds(pos))
+			return false;
+
+		BlockState state = BlockUtils.getState(pos);
+		return !state.isAir() && !state.canBeReplaced()
+			&& state.getFluidState().isEmpty()
+			&& !state.getCollisionShape(MC.level, pos).isEmpty()
+			&& state.getMenuProvider(MC.level, pos) == null;
+	}
+
+	private boolean updateHeldBlockSlot()
+	{
+		if(isBlockItem(MC.player.getMainHandItem()))
+			return true;
+
+		int slot = findBlockSlot();
+		if(slot == -1)
+			return isBlockItem(MC.player.getOffhandItem());
+
+		if(slot != MC.player.getInventory().selected)
+		{
+			if(switchMode.getSelected() != SwitchMode.NORMAL)
+				oldSlot = MC.player.getInventory().selected;
+			MC.player.getInventory().selected = slot;
+			MC.player.connection
+				.send(new ServerboundSetCarriedItemPacket(slot));
+		}
+		return true;
 	}
 
 	private int findBlockSlot()
 	{
-		int maxSlot = (int)searchRange.getValueI();
 		int bestSlot = -1;
 		int bestCount = -1;
-		for(int i = 0; i < maxSlot; i++)
+		for(int i = 0; i < 9; i++)
 		{
 			ItemStack stack = MC.player.getInventory().getItem(i);
-			if(stack.isEmpty() || !(stack.getItem() instanceof BlockItem))
+			if(!isBlockItem(stack))
 				continue;
 
 			Block block = Block.byItem(stack.getItem());
 			BlockState state = block.defaultBlockState();
-			if(!state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO))
+			if(!state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE,
+				BlockPos.ZERO))
 				continue;
-
 			if(block instanceof FallingBlock && FallingBlock
 				.isFree(BlockUtils.getState(
 					BlockPos.containing(MC.player.position()).below(2))))
@@ -252,21 +544,9 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		return bestSlot;
 	}
 
-	private void swapToSlot(int newSlot)
+	private boolean isBlockItem(ItemStack stack)
 	{
-		if(newSlot == MC.player.getInventory().selected)
-		{
-			oldSlot = -1;
-			return;
-		}
-
-		if(silentSwap.isChecked())
-		{
-			oldSlot = MC.player.getInventory().selected;
-			MC.player.getInventory().selected = newSlot;
-		}
-		else
-			MC.player.getInventory().selected = newSlot;
+		return !stack.isEmpty() && stack.getItem() instanceof BlockItem;
 	}
 
 	private void resetSlot()
@@ -284,41 +564,48 @@ public final class ScaffoldWalkHack extends Hack implements UpdateListener
 		oldSlot = -1;
 	}
 
-	private boolean placePlan(PlacementPlan plan)
-	{
-		if(!BlockUtils.getState(plan.target()).canBeReplaced())
-		{
-			currentPlan = null;
-			return false;
-		}
-
-		rotationQueue.setRotation(plan.rotation());
-		InteractionResult result = IMC.getInteractionManager().rightClickBlock(
-			plan.neighbor(), plan.side(), plan.hitVec());
-		if(!result.consumesAction())
-			return false;
-		if(result.shouldSwing())
-			swingHand.swing(InteractionHand.MAIN_HAND);
-		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
-		currentPlan = plan;
-		return true;
-	}
-
 	public boolean shouldSafeWalk()
 	{
-		return isEnabled() && safeWalk.isChecked()
-			&& mode.getSelected() == Mode.NORMAL && MC.player != null
-			&& MC.player.onGround() && !MC.player.input.jumping;
+		return isEnabled() && safeWalk.isChecked() && !tower.isChecked()
+			&& MC.player != null && MC.player.onGround()
+			&& !MC.player.input.jumping;
 	}
 
-	private enum Mode
+	private record BlockData(BlockPos target, BlockHitResult hit,
+		Rotation rotation)
+	{}
+
+	private record PlacementCandidate(BlockPos pos, int depth)
+	{}
+
+	public enum Mode
 	{
-		NORMAL("Normal"),
-		TOWER("Tower");
+		VANILLA("Vanilla"),
+		TELLY("Telly");
 
 		private final String name;
 
-		Mode(String name)
+		private Mode(String name)
+		{
+			this.name = name;
+		}
+
+		@Override
+		public String toString()
+		{
+			return name;
+		}
+	}
+
+	public enum SwitchMode
+	{
+		NORMAL("Normal"),
+		HOTBAR("Hotbar"),
+		FULL("Full");
+
+		private final String name;
+
+		private SwitchMode(String name)
 		{
 			this.name = name;
 		}
