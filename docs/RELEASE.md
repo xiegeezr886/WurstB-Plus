@@ -30,7 +30,7 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 > 其余 **66 个工程的当前源码均为 v1.5.1 形态**，但 v1.5.1 Release 目前只发布了
 > **Fabric 1.20.1** 一个产物；v1.6 子系统尚未移植，见「v1.6 新增子系统」。
 >
-> **v1.5.1 Release（Navy，2026-10-26）** 基于提交 `4686900`，资产为
+> **v1.5.1 Release（Latest，2026-10-26）** 基于提交 `4686900`，资产为
 > `WurstB+.Plus-1.5.1-Fabric-1.20.1.jar` 与 GitHub 自动生成的源码包（zip / tar.gz）。
 > 其中 jar 已于 2026-10-26T11:18Z 重传为包含 Scaffold 搭高/双击疾跑修复的构建
 > （SHA256 `afbd8380…e3ca17`）；Release 记录的提交仍为 `4686900`，tag 未移动。
