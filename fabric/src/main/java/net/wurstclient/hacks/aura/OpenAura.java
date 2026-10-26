@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,6 +31,8 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
+import net.wurstclient.WurstRenderLayers;
+import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.Rotation;
 
 /**
@@ -291,5 +298,76 @@ public final class OpenAura
 		double difference = Math.abs(
 			Mth.wrapDegrees(player.getYRot() - needed.yaw()));
 		return difference < fov;
+	}
+
+	// ------------------------------------------------------------- visuals
+	/**
+	 * OpenOpal-style halo: 64 animated segments with five glow layers.
+	 */
+	public static void drawHalo(PoseStack matrices, Vec3 pos, LivingEntity target)
+	{
+		double now = System.currentTimeMillis() / 1000.0D;
+		double ringY = pos.y + target.getBbHeight() * 0.5D
+			+ Math.sin(now * 4.0D) * 0.45D + 0.22D;
+		double radius = Math.max(0.52D, target.getBbWidth() * 0.85D);
+		int segments = 64;
+		int glowLayers = 5;
+
+		MultiBufferSource.BufferSource bufferSource = RenderUtils.getVCP();
+		RenderType layer = WurstRenderLayers.getLines(false);
+		VertexConsumer buffer = bufferSource.getBuffer(layer);
+
+		for(int glow = 0; glow < glowLayers; glow++)
+		{
+			float alpha = 0.85F * (float)Math.pow(0.72D, glow);
+			double y = ringY + glow * 0.012D;
+
+			for(int i = 0; i < segments; i++)
+			{
+				double a1 = Math.PI * 2 * i / segments;
+				double a2 = Math.PI * 2 * (i + 1) / segments;
+				Vec3 start = new Vec3(pos.x + Math.sin(a1) * radius, y,
+					pos.z + Math.cos(a1) * radius);
+				Vec3 end = new Vec3(pos.x + Math.sin(a2) * radius, y,
+					pos.z + Math.cos(a2) * radius);
+
+				float raw = (float)(((now * 0.75D)
+					+ ((double)i / segments)) % 1.0D);
+				float pingpong = raw < 0.5F ? raw * 2F
+					: 1F - (raw - 0.5F) * 2F;
+				int color = WurstClient.INSTANCE.getGui().getTheme()
+					.accent(alpha * (0.45F + 0.55F * pingpong));
+				RenderUtils.drawLine(matrices, buffer, start, end, color);
+			}
+		}
+
+		bufferSource.endBatch(layer);
+	}
+
+	public static void drawBox(PoseStack matrices, Vec3 pos,
+		LivingEntity target, int color)
+	{
+		double half = target.getBbWidth() / 2.0D;
+		double x1 = pos.x - half;
+		double x2 = pos.x + half;
+		double y1 = pos.y;
+		double y2 = pos.y + target.getBbHeight();
+		double z1 = pos.z - half;
+		double z2 = pos.z + half;
+
+		Vec3[] corners = {new Vec3(x1, y1, z1), new Vec3(x2, y1, z1),
+			new Vec3(x2, y1, z2), new Vec3(x1, y1, z2),
+			new Vec3(x1, y2, z1), new Vec3(x2, y2, z1),
+			new Vec3(x2, y2, z2), new Vec3(x1, y2, z2)};
+		int[][] edges = {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6},
+			{6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
+
+		MultiBufferSource.BufferSource bufferSource = RenderUtils.getVCP();
+		RenderType layer = WurstRenderLayers.getLines(false);
+		VertexConsumer buffer = bufferSource.getBuffer(layer);
+		for(int[] edge : edges)
+			RenderUtils.drawLine(matrices, buffer, corners[edge[0]],
+				corners[edge[1]], color);
+		bufferSource.endBatch(layer);
 	}
 }
