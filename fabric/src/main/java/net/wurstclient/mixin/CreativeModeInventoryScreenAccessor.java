@@ -17,5 +17,8 @@ import net.minecraft.world.item.CreativeModeTab;
 public interface CreativeModeInventoryScreenAccessor
 {
 	@Accessor("selectedTab")
-	CreativeModeTab getSelectedTab();
+	static CreativeModeTab getSelectedTab()
+	{
+		throw new AssertionError();
+	}
 }
