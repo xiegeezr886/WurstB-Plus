@@ -40,6 +40,22 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 本节记录 2026-10-22 对 X-Ray 渲染链路做的逐版本源码核对与真实客户端验证，以及 Minecraft
 26.2/26.3 的实验性 Vulkan 后端测试。
 
+### Android / LWJGL 3.3.3（NanoVG，2026-10-27）
+
+Android 启动器（Zalith/Pojav）使用 LWJGL 3.3.3-snapshot。LWJGL 3.3.3 的
+`Struct` 移除了 `wrap(...)`，而 1.20.1 Fabric 内嵌的 `lwjgl-nanovg 3.3.2` 的
+`NVGPaint.create()` 仍调用该方法，标题界面渲染时抛 `NoSuchMethodError` 并崩溃。
+修复内容：
+
+- `lwjgl_nanovg_version` 升到 **3.3.3**（实测兼容 core 3.3.1 / 3.3.2 / 3.3.3）。
+- Gradle 依赖关闭传递依赖，避免 dev 运行时把 LWJGL core 升到 3.3.3 而 GLFW 仍为 3.3.2
+  （`GLFWVidMode.wrap` 缺失）。
+- `NVGPaint` 的创建移入 `create()` 的 try 块；版本不匹配时只禁用 HUD，不再类初始化崩溃。
+- Android 不解压桌面 glibc 原生库，改用启动器自带 bionic 库；缺失时 HUD 自动禁用。
+
+Windows dev 客户端验证：日志出现 `NanoVG native extracted ... 3.3.3` 与
+`NanoVG GL3 context created`，进入世界无 NoSuchMethodError。
+
 ### 渲染管线修复
 
 - **NeoForge 26.1–26.3、1.21.6–1.21.11**：NeoForge 补丁后的区块渲染走 6 参
