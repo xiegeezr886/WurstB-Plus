@@ -23,8 +23,12 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 - `NVGPaint` 改为在 `create()` 的 try 块内创建：版本不匹配时只禁用 HUD，不再在类初始化
   阶段崩游戏。
 - Android 上不再解压桌面 glibc 原生库，改用启动器自带的 bionic 库；缺失时 HUD 自动禁用。
+- **修复 Windows 颜色缓存清理崩溃**：`NVGColor.create()` 返回的是 GC 管理的 direct
+  ByteBuffer，`Struct.free()` 会把该地址交给 jemalloc；颜色缓存达到 1024 时触发清理，
+  JVM 在 `jemalloc.dll` 中访问冲突（`EXCEPTION_ACCESS_VIOLATION`）。现在只清空缓存，
+  由 GC 回收。
 - **验证**：Windows dev 客户端进入世界，日志出现 `NanoVG native extracted ... 3.3.3` 与
-  `NanoVG GL3 context created`，无 NoSuchMethodError。
+  `NanoVG GL3 context created`，无 NoSuchMethodError；`NVGColor.create()` 不再手动 free。
 
 ---
 
