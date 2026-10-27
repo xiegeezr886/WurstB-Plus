@@ -69,7 +69,7 @@ public final class NanoVGContext
 	private final Map<String, Integer> images = new HashMap<>();
 	private final Map<String, Long> imageTimestamps = new HashMap<>();
 	private final Map<Long, Integer> textureImages = new HashMap<>();
-	private final NVGPaint scratchPaint = NVGPaint.create();
+	private NVGPaint scratchPaint;
 
 	private NanoVGContext() {}
 
@@ -116,6 +116,12 @@ public final class NanoVGContext
 
 		try
 		{
+			// Create LWJGL structs inside the try block: a mismatched LWJGL
+			// core/nanovg pair throws NoSuchMethodError here, which must
+			// disable the HUD instead of crashing during class initialisation.
+			if(scratchPaint == null)
+				scratchPaint = NVGPaint.create();
+
 			vg = NanoVGGL3.nvgCreate(
 				NanoVGGL3.NVG_ANTIALIAS | NanoVGGL3.NVG_STENCIL_STROKES);
 			if(vg == 0)

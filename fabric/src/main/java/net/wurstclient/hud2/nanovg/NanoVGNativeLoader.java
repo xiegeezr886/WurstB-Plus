@@ -36,7 +36,7 @@ import org.lwjgl.system.Configuration;
 public final class NanoVGNativeLoader
 {
 	/** Replaced by the propagation script for each Minecraft version. */
-	private static final String LIB_VERSION = "3.3.2";
+	private static final String LIB_VERSION = "3.3.3";
 	private static final String LIBRARY_NAME = "lwjgl_nanovg";
 
 	private static boolean attempted;
@@ -61,6 +61,13 @@ public final class NanoVGNativeLoader
 				return loaded = false;
 			}
 
+			// The natives bundled in the mod are desktop builds (glibc /
+			// macOS / Windows). Android needs the launcher's bionic build,
+			// which is already on LWJGL's library path; extracting ours
+			// would shadow it with an unloadable glibc .so.
+			if(isAndroid())
+				return loaded = true;
+
 			Path directory = extractNative(classifier);
 			if(directory != null)
 			{
@@ -77,6 +84,13 @@ public final class NanoVGNativeLoader
 			t.printStackTrace();
 			return loaded = false;
 		}
+	}
+
+	private static boolean isAndroid()
+	{
+		return System.getProperty("os.version", "").startsWith("Android")
+			|| System.getenv("POJAV_NATIVEDIR") != null
+			|| System.getenv("ANDROID_ROOT") != null;
 	}
 
 	private static String classifier()
