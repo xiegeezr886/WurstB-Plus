@@ -8,6 +8,14 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ---
 
+## 未发布 — InvWalk accessor Mixin 警告（2026-10-27）
+
+- `CreativeModeInventoryScreenAccessor.getSelectedTab()` 改为 `static`（目标
+  `selectedTab` 是静态字段），消除启动时 “should be static as its target is” 警告；
+  `InvWalkHack` 的调用点同步改为静态访问，并去掉不再需要的屏幕实例转换。
+
+---
+
 ## v1.5.1 — Android / LWJGL 3.3.3 NanoVG 兼容修复（2026-10-27）
 
 > v1.5.1 Release 的资产已于 2026-10-27T12:20Z 再次重传，包含本节与 Scaffold 修复
