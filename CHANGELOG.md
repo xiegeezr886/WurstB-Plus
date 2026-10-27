@@ -8,7 +8,10 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ---
 
-## 未发布 — Android / LWJGL 3.3.3 NanoVG 兼容修复（2026-10-27）
+## v1.5.1 — Android / LWJGL 3.3.3 NanoVG 兼容修复（2026-10-27）
+
+> v1.5.1 Release 的资产已于 2026-10-27T12:13Z 再次重传，包含本节与 Scaffold 修复
+> （SHA256 `cf659b4d…386e0c`）；Release 记录的提交仍为 `4686900`，tag 未移动。
 
 - **修复 Android 启动器标题界面崩溃**：1.20.1 Fabric 内嵌的 `lwjgl-nanovg` 从 3.3.2
   升级到 **3.3.3**。LWJGL 3.3.3 的 `Struct` 移除了 `wrap(...)`，3.3.2 的
@@ -27,8 +30,8 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ## v1.5.1 — Scaffold 搭高与疾跑修复（2026-10-26）
 
-> v1.5.1 Release 的资产已于 2026-10-26T11:18Z 重传为包含本节修复的构建
-> （SHA256 `afbd8380…e3ca17`）；Release 记录的提交仍为 `4686900`，tag 未移动。
+> v1.5.1 Release 的资产已于 2026-10-27T12:13Z 再次重传，当前构建同时包含本节与
+> NanoVG 修复（SHA256 `cf659b4d…386e0c`）；Release 记录的提交仍为 `4686900`，tag 未移动。
 
 - **关闭 Auto jump 时手动跳跃也能搭高**：站立按住空格，目标层跟随跳跃高度，
   脚下连续放块（真实客户端实测连续搭高 5 格）。
