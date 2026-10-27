@@ -15,8 +15,6 @@ import net.wurstclient.util.ScreenRegistry;
 
 public final class IngameHUD implements GUIRenderListener
 {
-	private final WurstLogo wurstLogo = new WurstLogo();
-	private final HackListHUD hackList = new HackListHUD();
 	private TabGui tabGui;
 	
 	@Override
@@ -39,13 +37,4 @@ public final class IngameHUD implements GUIRenderListener
 			clickGui.renderPinnedWindows(context, partialTicks);
 	}
 	
-	public HackListHUD getHackList()
-	{
-		return hackList;
-	}
-
-	public WurstLogo getWurstLogo()
-	{
-		return wurstLogo;
-	}
 }

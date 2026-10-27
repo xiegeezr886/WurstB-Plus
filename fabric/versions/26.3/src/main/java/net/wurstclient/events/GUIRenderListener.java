@@ -1,6 +1,4 @@
 /*
-
-import net.wurstclient.hud2.HackHudElement;
  * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
@@ -14,6 +12,7 @@ import java.util.ArrayList;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.wurstclient.event.Event;
 import net.wurstclient.event.Listener;
+import net.wurstclient.hud2.HackHudElement;
 
 public interface GUIRenderListener extends Listener
 {

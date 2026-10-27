@@ -51,7 +51,6 @@ import net.minecraft.client.Screenshot;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hud2.HUDMod;
-import net.wurstclient.hud2.HackHudElement;
 import net.wurstclient.hud2.GuiEditHUD;
 import net.wurstclient.hud2.HudManager;
 import net.wurstclient.hud2.HudTheme;
@@ -343,10 +342,7 @@ public final class TestControlServer
 				.append(",\"scale\":").append(mod.getScale())
 				.append(",\"width\":").append(mod.getWidth())
 				.append(",\"height\":").append(mod.getHeight())
-				.append(",\"hack\":").append(mod instanceof HackHudElement);
-			if(mod instanceof HackHudElement hackElement)
-				json.append(",\"hackEnabled\":")
-					.append(hackElement.getHack().isEnabled());
+				.append(",\"hack\":false");
 			json.append('}');
 		}
 		return json.append(']').toString();
