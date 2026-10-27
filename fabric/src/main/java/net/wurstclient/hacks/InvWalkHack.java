@@ -20,6 +20,7 @@ import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.mixin.CreativeModeInventoryScreenAccessor;
 import net.wurstclient.mixinterface.IKeyBinding;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.ScreenRegistry;
@@ -114,11 +115,11 @@ public final class InvWalkHack extends Hack implements UpdateListener
 	
 	private boolean isCreativeSearchBarOpen(Screen screen)
 	{
-		if(!(screen instanceof CreativeModeInventoryScreen creativeScreen))
+		if(!(screen instanceof CreativeModeInventoryScreen))
 			return false;
 		
-		return ((net.wurstclient.mixin.CreativeModeInventoryScreenAccessor)(Object)creativeScreen)
-			.getSelectedTab() == CreativeModeTabs.searchTab();
+		return CreativeModeInventoryScreenAccessor.getSelectedTab()
+			== CreativeModeTabs.searchTab();
 	}
 	
 	private boolean hasTextBox(Screen screen)
