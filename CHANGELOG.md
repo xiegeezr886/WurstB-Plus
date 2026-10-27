@@ -8,6 +8,23 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ---
 
+## 未发布 — Android / LWJGL 3.3.3 NanoVG 兼容修复（2026-10-27）
+
+- **修复 Android 启动器标题界面崩溃**：1.20.1 Fabric 内嵌的 `lwjgl-nanovg` 从 3.3.2
+  升级到 **3.3.3**。LWJGL 3.3.3 的 `Struct` 移除了 `wrap(...)`，3.3.2 的
+  `NVGPaint.create()` 在 3.3.3 核心上抛 `NoSuchMethodError`，导致 `NVGPaint` 字段初始化
+  时直接崩溃（Zalith/Pojav 的 LWJGL 3.3.3-snapshot）。
+- 已验证 **nanovg 3.3.3 兼容 LWJGL core 3.3.1 / 3.3.2 / 3.3.3**；
+  `lwjgl-nanovg` 关闭 Gradle 传递依赖，避免 dev 运行时把 core 升到 3.3.3 而
+  GLFW 仍是 3.3.2（`GLFWVidMode.wrap` 缺失）。
+- `NVGPaint` 改为在 `create()` 的 try 块内创建：版本不匹配时只禁用 HUD，不再在类初始化
+  阶段崩游戏。
+- Android 上不再解压桌面 glibc 原生库，改用启动器自带的 bionic 库；缺失时 HUD 自动禁用。
+- **验证**：Windows dev 客户端进入世界，日志出现 `NanoVG native extracted ... 3.3.3` 与
+  `NanoVG GL3 context created`，无 NoSuchMethodError。
+
+---
+
 ## v1.5.1 — Scaffold 搭高与疾跑修复（2026-10-26）
 
 > v1.5.1 Release 的资产已于 2026-10-26T11:18Z 重传为包含本节修复的构建
