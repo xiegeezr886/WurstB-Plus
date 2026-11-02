@@ -20,12 +20,20 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import com.mojang.blaze3d.opengl.GlDevice;
+import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuTexture;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
+import net.minecraft.client.gui.GuiGraphics;
+import net.wurstclient.events.GUIRenderListener;
+import net.wurstclient.event.EventManager;
 import net.wurstclient.hud2.mods.NotificationsMod;
 import net.wurstclient.hud2.nanovg.GlStateGuard;
 import net.wurstclient.hud2.nanovg.NanoVGContext;
@@ -39,7 +47,7 @@ import net.wurstclient.util.json.JsonUtils;
  * enabled state, and draws the whole HUD through NanoVG after the vanilla GUI
  * pass.
  */
-public final class HudManager
+public final class HudManager implements GUIRenderListener
 {
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private static final Map<String, String> LEGACY_IDS = Map.ofEntries(
@@ -96,6 +104,9 @@ public final class HudManager
 				}
 
 		started = true;
+		EventManager eventManager = WURST.getEventManager();
+		if(eventManager != null)
+			eventManager.add(GUIRenderListener.class, this);
 		System.out.println("[HUD] Soar v7 HUD started (" + mods.size()
 			+ " modules)");
 	}
@@ -103,6 +114,9 @@ public final class HudManager
 	public void stop()
 	{
 		stopping = true;
+		EventManager eventManager = WURST.getEventManager();
+		if(eventManager != null)
+			eventManager.remove(GUIRenderListener.class, this);
 		saveState();
 		for(HUDMod mod : mods.values())
 			if(mod.isEnabled())
@@ -119,6 +133,12 @@ public final class HudManager
 	public void prepareFrame(float partialTicks)
 	{
 		// Reserved for texture/item capture scheduling.
+	}
+
+	@Override
+	public void onRenderGUI(net.minecraft.client.gui.GuiGraphics graphics, float partialTicks)
+	{
+		renderFrame(partialTicks);
 	}
 
 	public void renderFrame(float partialTicks)
@@ -152,6 +172,19 @@ public final class HudManager
 			}
 
 			RenderTarget target = WURST.MC.getMainRenderTarget();
+			int targetFbo = 0;
+			try
+			{
+				GlDevice device = (GlDevice)RenderSystem.getDevice();
+				GpuTexture depth = target.getDepthTexture();
+				targetFbo = ((GlTexture)target.getColorTexture()).getFbo(
+					device.directStateAccess(),
+					depth instanceof GlTexture ? (GlTexture)depth : null);
+			}catch(Throwable ignored2)
+			{
+				targetFbo = 0;
+			}
+			GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, targetFbo);
 			GL11.glViewport(0, 0, target.width, target.height);
 			nvg.composite();
 		}catch(Throwable t)

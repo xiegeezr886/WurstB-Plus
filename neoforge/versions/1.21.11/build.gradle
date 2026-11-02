@@ -192,3 +192,10 @@ if(project.hasProperty("spWorld")) {
 		}
 	}
 }
+
+processResources {
+    from({ configurations.hudNatives.collect { zipTree(it) } }) {
+        include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+        exclude "META-INF/**", "module-info.class", "**/*.signature"
+    }
+}

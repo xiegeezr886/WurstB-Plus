@@ -21,6 +21,10 @@ param(
     [int]$SettleSeconds = 20,
     [string]$QuickPlayWorld = "",
     [string]$BaritoneCommand = "",
+    [string]$GraphicsBackend = "",
+    [string]$ScreenshotDir = "",
+    [switch]$VerifyNanoVg,
+    [switch]$VisibleWindow,
     [switch]$BuildOutputs,
     [switch]$KeepOldJars,
     [switch]$Quiet
@@ -465,10 +469,62 @@ function Send-GameText($process, $text) {
     }
     # 发送完成立即最小化窗口：MC 窗口获得焦点会 grab 鼠标，
     # 最小化后失焦释放鼠标，避免测试期间系统操作被接管。
-    if ($process.MainWindowHandle -ne [IntPtr]::Zero) {
+    if (-not $VisibleWindow -and
+        $process.MainWindowHandle -ne [IntPtr]::Zero) {
         [WurstTestWindow]::ShowWindow($process.MainWindowHandle, 6) | Out-Null
     }
     return $sent
+}
+
+function Save-GameWindowScreenshot($process, [string]$outPath) {
+    Add-Type -AssemblyName System.Drawing -ErrorAction SilentlyContinue
+    if (-not ("WurstShotWindow" -as [type])) {
+        Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public static class WurstShotWindow {
+    [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdc, uint flags);
+    [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT r);
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+    [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
+    public const uint PW_RENDERFULLCONTENT = 0x2;
+}
+"@
+    }
+    $process.Refresh()
+    $hwnd = $process.MainWindowHandle
+    if ($hwnd -eq [IntPtr]::Zero) { return $false }
+    [void][WurstShotWindow]::ShowWindow($hwnd, 9)
+    [void][WurstShotWindow]::SetForegroundWindow($hwnd)
+    Start-Sleep -Seconds 2
+    $r = New-Object WurstShotWindow+RECT
+    [void][WurstShotWindow]::GetWindowRect($hwnd, [ref]$r)
+    $w = $r.Right - $r.Left
+    $h = $r.Bottom - $r.Top
+    if ($w -le 0 -or $h -le 0) { return $false }
+    $bmp = New-Object System.Drawing.Bitmap $w, $h
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $hdc = $g.GetHdc()
+    $ok = [WurstShotWindow]::PrintWindow($hwnd, $hdc,
+        [WurstShotWindow]::PW_RENDERFULLCONTENT)
+    $g.ReleaseHdc($hdc)
+    $g.Dispose()
+    $saved = $false
+    if ($ok) {
+        $dir = Split-Path -Parent $outPath
+        if ($dir -and -not (Test-Path $dir)) {
+            New-Item -ItemType Directory -Force -Path $dir | Out-Null
+        }
+        $bmp.Save($outPath, [System.Drawing.Imaging.ImageFormat]::Png)
+        $saved = $true
+    }
+    $bmp.Dispose()
+    if (-not $VisibleWindow -and
+        $process.MainWindowHandle -ne [IntPtr]::Zero) {
+        [void][WurstShotWindow]::ShowWindow($process.MainWindowHandle, 6)
+    }
+    return $saved
 }
 
 function Test-EmbeddedBaritone($jarPath) {
@@ -655,6 +711,10 @@ function Test-Version($jarPath, $instanceDir) {
     if ($QuickPlayWorld -and $j.mainClass -eq "net.neoforged.fml.startup.Client") {
         $gameArgs = Add-RawArgumentSeparatorAfterNamedPairs $gameArgs $loaderGameOptions
     }
+    # 26.x defaults to RenderPearl's preferred backend; NanoVG needs OpenGL.
+    if ($GraphicsBackend -and $mcVersion -like '26.*') {
+        $gameArgs = @($gameArgs) + @("--graphicsBackend", $GraphicsBackend)
+    }
 
     # Jars listed on the module path (-p) must NOT also be on -cp (JPMS error)
     for ($i = 0; $i -lt $jvmArgs.Count; $i++) {
@@ -701,9 +761,10 @@ function Test-Version($jarPath, $instanceDir) {
     $argList | Set-Content -LiteralPath (Join-Path $outDir "launch-args.txt") -Encoding UTF8
 
     Write-Info "  [launch] $($j.mainClass) args... (pid tracking)"
+    $windowStyle = if ($VisibleWindow) { 'Normal' } else { 'Minimized' }
     $p = Start-Process -FilePath $java -ArgumentList $argList -PassThru `
         -RedirectStandardOutput $stdout -RedirectStandardError $stderr `
-        -WindowStyle Minimized
+        -WindowStyle $windowStyle
     $p.Id | Set-Content -LiteralPath $pidFile -Encoding ASCII
 
     # 7. poll for result
@@ -716,6 +777,7 @@ function Test-Version($jarPath, $instanceDir) {
     $baritoneSeen = $false
     $worldLoaded = $false
     $worldLoadedAt = $null
+    $nanoVgSeen = $false
     $commandSent = $false
     $commandSentAt = $null
     $commandResponseSeen = $false
@@ -728,7 +790,8 @@ function Test-Version($jarPath, $instanceDir) {
     while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $TimeoutSeconds)) {
         # 周期压制：MC 窗口若自行弹出前台会 grab 鼠标，
         # 每轮强制最小化，保证测试期间系统操作不被接管。
-        if ($p.MainWindowHandle -ne [IntPtr]::Zero) {
+        if (-not $VisibleWindow -and
+            $p.MainWindowHandle -ne [IntPtr]::Zero) {
             [WurstTestWindow]::ShowWindow($p.MainWindowHandle, 6) | Out-Null
         }
         $newCrash = @(Get-ChildItem -LiteralPath $crashDir -Filter "*.txt" -ErrorAction SilentlyContinue |
@@ -768,6 +831,13 @@ function Test-Version($jarPath, $instanceDir) {
                 $worldLoadedAt = Get-Date
                 Write-Info "  [progress] world loaded"
             }
+            if ($log -match '\[HUD\] NanoVG GL3 context created') {
+                $nanoVgSeen = $true
+            }
+            if ($log -match '\[HUD\] NanoVG disabled|\[HUD\] Render failed|\[GUI\] NanoVG pass failed') {
+                $result = @{ Status = 'FAIL'; Note = 'NanoVG HUD failure reported in log' }
+                break
+            }
             if ($commandSent -and $BaritoneCommand -and
                 $log -match $commandResponsePattern) {
                 $commandResponseSeen = $true
@@ -791,12 +861,43 @@ function Test-Version($jarPath, $instanceDir) {
             Write-Info "  [progress] sent Baritone command: $BaritoneCommand"
         }
         if ($QuickPlayWorld -and $worldLoaded -and $wurstSeen -and $baritoneSeen) {
-            if (-not $BaritoneCommand -and (Get-Date) - $worldLoadedAt -gt (New-TimeSpan -Seconds $SettleSeconds)) {
-                $result = @{ Status = "PASS"; Note = "world loaded; WurstB+ Plus and Baritone loaded" }
+            $settled = (Get-Date) - $worldLoadedAt -gt (New-TimeSpan -Seconds $SettleSeconds)
+            if ($VerifyNanoVg -and $settled -and -not $nanoVgSeen) {
+                $result = @{ Status = 'FAIL'; Note = 'world loaded but NanoVG context was not created' }
+                break
+            }
+            if (-not $BaritoneCommand -and $settled) {
+                $note = 'world loaded; WurstB+ Plus and Baritone loaded'
+                if ($nanoVgSeen) { $note += '; NanoVG GL3 context created' }
+                if ($ScreenshotDir) {
+                    $safeName = ($name -replace '[^\w.-]', '_')
+                    $shotPath = Join-Path $ScreenshotDir ($safeName + '.png')
+                    if (Save-GameWindowScreenshot $p $shotPath) {
+                        $note += "; screenshot=$shotPath"
+                    } else {
+                        $note += '; screenshot=failed'
+                    }
+                }
+                $result = @{ Status = "PASS"; Note = $note }
                 break
             }
             if ($BaritoneCommand -and $commandResponseSeen) {
-                $result = @{ Status = "PASS"; Note = "world loaded; Baritone command succeeded: $BaritoneCommand" }
+                if ($VerifyNanoVg -and -not $nanoVgSeen) {
+                    $result = @{ Status = 'FAIL'; Note = 'Baritone responded but NanoVG context was not created' }
+                    break
+                }
+                $note = "world loaded; Baritone command succeeded: $BaritoneCommand"
+                if ($nanoVgSeen) { $note += '; NanoVG GL3 context created' }
+                if ($ScreenshotDir) {
+                    $safeName = ($name -replace '[^\w.-]', '_')
+                    $shotPath = Join-Path $ScreenshotDir ($safeName + '.png')
+                    if (Save-GameWindowScreenshot $p $shotPath) {
+                        $note += "; screenshot=$shotPath"
+                    } else {
+                        $note += '; screenshot=failed'
+                    }
+                }
+                $result = @{ Status = "PASS"; Note = $note }
                 break
             }
         }
@@ -879,6 +980,25 @@ foreach ($jar in $jars) {
 
     Write-Host "[$($jar.Name)] -> $((Split-Path $instanceDir -Leaf))"
     $r = Test-Version $jar.FullName $instanceDir
+    if ($ScreenshotDir) {
+        New-Item -ItemType Directory -Force -Path $ScreenshotDir | Out-Null
+        $instanceLabel = Split-Path $instanceDir -Leaf
+        $srcLog = Join-Path $instanceDir "logs\latest.log"
+        if (Test-Path -LiteralPath $srcLog) {
+            Copy-Item -LiteralPath $srcLog `
+                -Destination (Join-Path $ScreenshotDir ($instanceLabel + '.log')) -Force
+        }
+        $crashDir = Join-Path $instanceDir "crash-reports"
+        if (Test-Path -LiteralPath $crashDir) {
+            $newCrash = @(Get-ChildItem -LiteralPath $crashDir -Filter '*.txt' -ErrorAction SilentlyContinue |
+                Sort-Object LastWriteTime -Descending | Select-Object -First 1)
+            if ($newCrash.Count -gt 0 -and
+                $newCrash[0].LastWriteTime -gt (Get-Date).AddMinutes(-10)) {
+                Copy-Item -LiteralPath $newCrash[0].FullName `
+                    -Destination (Join-Path $ScreenshotDir ($instanceLabel + '-crash.txt')) -Force
+            }
+        }
+    }
     $r.Jar = $jar.Name
     $r.Version = $info.MC
     $r.Loader = $info.Loader

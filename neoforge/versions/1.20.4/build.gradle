@@ -156,3 +156,10 @@ jar {
 	exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/mods.toml', 'module-info.class'
 	exclude "intentionally_untranslated.json"
 }
+
+processResources {
+    from({ configurations.hudNatives.collect { zipTree(it) } }) {
+        include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+        exclude "META-INF/**", "module-info.class", "**/*.signature"
+    }
+}

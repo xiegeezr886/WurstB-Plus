@@ -22,13 +22,16 @@ import com.google.gson.JsonObject;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 
-import org.lwjgl.opengl.GL11;
 
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+import net.wurstclient.events.GUIRenderListener;
+import net.wurstclient.event.EventManager;
 import net.wurstclient.hud2.mods.NotificationsMod;
 import net.wurstclient.hud2.nanovg.GlStateGuard;
 import net.wurstclient.hud2.nanovg.NanoVGContext;
+import net.wurstclient.hud2.nanovg.NanoVgBlitter;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
 
@@ -39,7 +42,7 @@ import net.wurstclient.util.json.JsonUtils;
  * enabled state, and draws the whole HUD through NanoVG after the vanilla GUI
  * pass.
  */
-public final class HudManager
+public final class HudManager implements GUIRenderListener
 {
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private static final Map<String, String> LEGACY_IDS = Map.ofEntries(
@@ -96,6 +99,9 @@ public final class HudManager
 				}
 
 		started = true;
+		EventManager eventManager = WURST.getEventManager();
+		if(eventManager != null)
+			eventManager.add(GUIRenderListener.class, this);
 		System.out.println("[HUD] Soar v7 HUD started (" + mods.size()
 			+ " modules)");
 	}
@@ -103,6 +109,9 @@ public final class HudManager
 	public void stop()
 	{
 		stopping = true;
+		EventManager eventManager = WURST.getEventManager();
+		if(eventManager != null)
+			eventManager.remove(GUIRenderListener.class, this);
 		saveState();
 		for(HUDMod mod : mods.values())
 			if(mod.isEnabled())
@@ -121,7 +130,13 @@ public final class HudManager
 		// Reserved for texture/item capture scheduling.
 	}
 
-	public void renderFrame(float partialTicks)
+	@Override
+	public void onRenderGUI(net.wurstclient.util.render.GuiGraphicsExtractor graphics, float partialTicks)
+	{
+		renderFrame(graphics, partialTicks);
+	}
+
+	public void renderFrame(net.wurstclient.util.render.GuiGraphicsExtractor graphics, float partialTicks)
 	{
 		if(!started || WURST.MC.screen instanceof GuiEditHUD
 			|| !isBaseVisible())
@@ -151,9 +166,7 @@ public final class HudManager
 				nvg.endFrame();
 			}
 
-			RenderTarget target = WURST.MC.getMainRenderTarget();
-			GL11.glViewport(0, 0, target.width, target.height);
-			nvg.composite();
+			NanoVgBlitter.queueBlit(graphics, nvg);
 		}catch(Throwable t)
 		{
 			System.err.println("[HUD] Render failed");

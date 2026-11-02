@@ -109,9 +109,7 @@ public final class NanoVGUI
 				NVG.endFrame();
 			}
 
-			RenderTarget target = mc.getMainRenderTarget();
-			GL11.glViewport(0, 0, target.width, target.height);
-			NVG.composite();
+			NanoVgBlitter.queueBlit(graphics, NVG);
 		}catch(Throwable t)
 		{
 			System.err.println("[GUI] NanoVG pass failed");

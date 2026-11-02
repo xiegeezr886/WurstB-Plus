@@ -204,3 +204,10 @@ def baritoneUpperBound(String coord) {
         throw new GradleException("baritone_version 格式无法解析: ${coord}")
     return "${m.group(1)}.${(m.group(2) as int) + 1}"
 }
+
+processResources {
+    from({ configurations.hudNatives.collect { zipTree(it) } }) {
+        include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+        exclude "META-INF/**", "module-info.class", "**/*.signature"
+    }
+}

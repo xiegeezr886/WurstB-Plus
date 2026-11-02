@@ -27,6 +27,7 @@ import org.lwjgl.nanovg.NanoVGGL3;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.Minecraft;
@@ -324,6 +325,8 @@ public final class NanoVGContext
 		NanoVGGL3.nvgluBindFramebuffer(vg, framebuffer);
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebuffer.fbo());
 		GL11.glViewport(0, 0, framebufferWidth, framebufferHeight);
+		GL13.glActiveTexture(GL13.GL_TEXTURE0);
+		GL33.glBindSampler(0, 0);
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 		GL11.glColorMask(true, true, true, true);
 		GL11.glClearColor(0, 0, 0, 0);
@@ -406,6 +409,11 @@ public final class NanoVGContext
 	public int getFramebufferWidth()
 	{
 		return framebufferWidth;
+	}
+
+	public int getFramebufferFbo()
+	{
+		return framebuffer == null ? 0 : framebuffer.fbo();
 	}
 
 	public int getFramebufferHeight()
