@@ -6,6 +6,7 @@ buildscript {
         }
     }
     dependencies {
+
         classpath "org.spongepowered:mixingradle:0.7-SNAPSHOT"
     }
 }
@@ -27,9 +28,6 @@ base {
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-
-sourceSets.main.output.resourcesDir =
-    sourceSets.main.java.destinationDirectory.get().asFile
 
 sourceSets {
     main {
@@ -62,6 +60,10 @@ minecraft {
     }
 }
 
+configurations {
+	hudNatives
+}
+
 repositories {
     maven {
         name = "BundledBaritone"
@@ -80,6 +82,21 @@ repositories {
 jarJar.enable()
 
 dependencies {
+    implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+
     minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
 
     implementation fg.deobf(
@@ -128,6 +145,7 @@ java {
 
 jar {
 	archiveClassifier = "dev"
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	manifest {
         attributes(
             "MixinConfigs": "wurst.mixins.json",
@@ -144,9 +162,15 @@ jar {
     }
 
     exclude "intentionally_untranslated.json"
-    finalizedBy "reobfJar"
 }
 
 tasks.named("jarJar").configure {
     archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
+}
+
+processResources {
+    from({ configurations.hudNatives.collect { zipTree(it) } }) {
+        include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+        exclude "META-INF/**", "module-info.class", "**/*.signature"
+    }
 }
