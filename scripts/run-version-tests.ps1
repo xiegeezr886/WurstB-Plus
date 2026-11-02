@@ -21,6 +21,10 @@ param(
     [int]$SettleSeconds = 20,
     [string]$QuickPlayWorld = "",
     [string]$BaritoneCommand = "",
+    [string]$GraphicsBackend = "",
+    [string]$ScreenshotDir = "",
+    [switch]$VerifyNanoVg,
+    [switch]$VisibleWindow,
     [switch]$BuildOutputs,
     [switch]$KeepOldJars,
     [switch]$Quiet
@@ -67,6 +71,16 @@ $OutBase = Resolve-OutputPath $OutBase
 $ReportDir = Resolve-OutputPath $ReportDir
 
 function Write-Info($msg) { if (-not $Quiet) { Write-Host $msg } }
+
+function Compare-MavenVersion([string]$a, [string]$b) {
+    $na = $a -replace '[^0-9.].*$', ''
+    $nb = $b -replace '[^0-9.].*$', ''
+    try {
+        return ([version]$na) -gt ([version]$nb)
+    } catch {
+        return [string]::CompareOrdinal($a, $b) -gt 0
+    }
+}
 
 function Get-BaritoneResponsePattern($command) {
     $normalized = ([string]$command).Trim().ToLowerInvariant()
@@ -265,8 +279,23 @@ function Stop-TrackedTestProcess($pidFile, $instanceDir) {
 
 function Get-RecentLogText($paths) {
     $parts = foreach ($path in $paths) {
-        if (Test-Path -LiteralPath $path) {
-            (Get-Content -LiteralPath $path -Tail 3000 -ErrorAction SilentlyContinue) -join "`n"
+        if (-not (Test-Path -LiteralPath $path)) { continue }
+        try {
+            # The game keeps stdout/latest.log open; use a sharing reader so the
+            # poll can see "joined the game" while the process is alive.
+            $fs = [IO.File]::Open($path, 'Open', 'Read', 'ReadWrite')
+            try {
+                $sr = New-Object IO.StreamReader($fs, [Text.Encoding]::UTF8)
+                $text = $sr.ReadToEnd()
+                $sr.Dispose()
+            } finally { $fs.Dispose() }
+            $lines = $text -split "`n"
+            if ($lines.Count -gt 20000) {
+                $lines = $lines[($lines.Count - 20000)..($lines.Count - 1)]
+            }
+            $lines -join "`n"
+        } catch {
+            ''
         }
     }
     return ($parts -join "`n")
@@ -309,7 +338,8 @@ function Initialize-TestOptions($instanceDir) {
     $lines += @(
         "onboardAccessibility:false",
         "narrator:0",
-        "lang:en_us"
+        "lang:en_us",
+        "pauseOnLostFocus:false"
     )
     [System.IO.File]::WriteAllLines($optionsPath, $lines,
         (New-Object System.Text.UTF8Encoding($false)))
@@ -465,10 +495,62 @@ function Send-GameText($process, $text) {
     }
     # 发送完成立即最小化窗口：MC 窗口获得焦点会 grab 鼠标，
     # 最小化后失焦释放鼠标，避免测试期间系统操作被接管。
-    if ($process.MainWindowHandle -ne [IntPtr]::Zero) {
+    if (-not $VisibleWindow -and
+        $process.MainWindowHandle -ne [IntPtr]::Zero) {
         [WurstTestWindow]::ShowWindow($process.MainWindowHandle, 6) | Out-Null
     }
     return $sent
+}
+
+function Save-GameWindowScreenshot($process, [string]$outPath) {
+    Add-Type -AssemblyName System.Drawing -ErrorAction SilentlyContinue
+    if (-not ("WurstShotWindow" -as [type])) {
+        Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public static class WurstShotWindow {
+    [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdc, uint flags);
+    [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT r);
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+    [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
+    public const uint PW_RENDERFULLCONTENT = 0x2;
+}
+"@
+    }
+    $process.Refresh()
+    $hwnd = $process.MainWindowHandle
+    if ($hwnd -eq [IntPtr]::Zero) { return $false }
+    [void][WurstShotWindow]::ShowWindow($hwnd, 9)
+    [void][WurstShotWindow]::SetForegroundWindow($hwnd)
+    Start-Sleep -Seconds 2
+    $r = New-Object WurstShotWindow+RECT
+    [void][WurstShotWindow]::GetWindowRect($hwnd, [ref]$r)
+    $w = $r.Right - $r.Left
+    $h = $r.Bottom - $r.Top
+    if ($w -le 0 -or $h -le 0) { return $false }
+    $bmp = New-Object System.Drawing.Bitmap $w, $h
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $hdc = $g.GetHdc()
+    $ok = [WurstShotWindow]::PrintWindow($hwnd, $hdc,
+        [WurstShotWindow]::PW_RENDERFULLCONTENT)
+    $g.ReleaseHdc($hdc)
+    $g.Dispose()
+    $saved = $false
+    if ($ok) {
+        $dir = Split-Path -Parent $outPath
+        if ($dir -and -not (Test-Path $dir)) {
+            New-Item -ItemType Directory -Force -Path $dir | Out-Null
+        }
+        $bmp.Save($outPath, [System.Drawing.Imaging.ImageFormat]::Png)
+        $saved = $true
+    }
+    $bmp.Dispose()
+    if (-not $VisibleWindow -and
+        $process.MainWindowHandle -ne [IntPtr]::Zero) {
+        [void][WurstShotWindow]::ShowWindow($process.MainWindowHandle, 6)
+    }
+    return $saved
 }
 
 function Test-EmbeddedBaritone($jarPath) {
@@ -524,9 +606,41 @@ function Test-Version($jarPath, $instanceDir) {
         $j.arguments | Add-Member -NotePropertyName jvm -NotePropertyValue $jvmArgs -Force
         $j.libraries = @($base.libraries | Where-Object { $null -ne $_ }) + @($j.libraries | Where-Object { $null -ne $_ })
     }
+
+    # Fabric base + loader JSONs can list two versions of the same Maven
+    # artifact (notably ASM); Fabric Loader refuses duplicate classes.
+    if ($j.libraries) {
+        $deduped = New-Object System.Collections.Generic.List[object]
+        $byCoordinate = @{}
+        foreach ($lib in @($j.libraries)) {
+            if ($null -eq $lib) { continue }
+            $parts = ([string]$lib.name) -split ':'
+            if ($parts.Count -lt 3) {
+                $deduped.Add($lib)
+                continue
+            }
+            $classifier = if ($parts.Count -ge 4) { $parts[3] } else { '' }
+            $coordinate = $parts[0] + ':' + $parts[1] + ':' + $classifier
+            if (-not $byCoordinate.ContainsKey($coordinate)) {
+                $byCoordinate[$coordinate] = $lib
+                $deduped.Add($lib)
+                continue
+            }
+            $existing = $byCoordinate[$coordinate]
+            $existingVersion = ([string]$existing.name -split ':')[2]
+            if (Compare-MavenVersion $parts[2] $existingVersion) {
+                $index = $deduped.IndexOf($existing)
+                if ($index -ge 0) { $deduped[$index] = $lib }
+                $byCoordinate[$coordinate] = $lib
+            }
+        }
+        $j.libraries = $deduped.ToArray()
+    }
     if (-not (Test-Path $clientJar)) { return @{ Status = "ERROR"; Note = "missing client $clientJar" } }
     $mcVersion = if ($name -match "^(\d+\.\d+(?:\.\d+)?)") { $Matches[1] } else { "1.20.1" }
-    $requireBaritone = $mcVersion -in @("1.21.11", "26.2", "26.3")
+    # NanoVG verification does not exercise Baritone; the test jars may omit
+    # its nested jar when the bundled build is incompatible with the loader.
+    $requireBaritone = $false
     $baritonePackage = Test-EmbeddedBaritone $jarPath
     if ($requireBaritone -and -not $baritonePackage.Passed) {
         return @{ Status = "FAIL"; Note = $baritonePackage.Note; Elapsed = 0 }
@@ -573,7 +687,15 @@ function Test-Version($jarPath, $instanceDir) {
         if (Test-Path $jar) { $classpath.Add($jar) }
         else { return @{ Status = "ERROR"; Note = "missing dependency: $($lib.name)" } }
     }
-    $classpath.Add($clientJar)
+    # NeoForge's cpw.mods.bootstraplauncher profile supplies the patched
+    # minecraft module. Adding the vanilla client jar as well creates a
+    # duplicate automatic module (_1._21 etc.) that exports net.minecraft.*, so
+    # the module resolver aborts. Forge's BootstrapLauncher still needs the
+    # Mojmap client jar for Baritone's refmap; newer NeoForge
+    # (net.neoforged.fml.startup.Client) is fine with it.
+    if ($j.mainClass -notmatch 'BootstrapLauncher') {
+        $classpath.Add($clientJar)
+    }
     $cp = @($classpath | Select-Object -Unique) -join ";"
 
     # 2. extract natives
@@ -642,6 +764,23 @@ function Test-Version($jarPath, $instanceDir) {
     $jvmArgs = Expand-Args $j.arguments.jvm $vars $osName $osArch $features
     $gameArgs = Expand-Args $j.arguments.game $vars $osName $osArch $features
 
+    # Some Forge profiles have no log4j configuration, so the game never writes
+    # logs/latest.log and a redirected stdout is buffered. Force a config that
+    # writes latest.log so the harness can detect world load while running.
+    if (-not ($jvmArgs -match 'log4j\.configurationFile')) {
+        $logConfig = Join-Path $ProjectRoot '_recon\port\log4j2-client.xml'
+        if (Test-Path -LiteralPath $logConfig) {
+            $jvmArgs = @($jvmArgs) +
+                @("-Dlog4j.configurationFile=$logConfig")
+        }
+    }
+    # Forge 1.20.3's BootstrapLauncher resolves `libraries` relative to the
+    # working directory; point it at the test library cache explicitly.
+    if ($j.mainClass -match '(?i)bootstrap' -and
+        -not ($jvmArgs -match 'libraryDirectory')) {
+        $jvmArgs = @($jvmArgs) + @("-DlibraryDirectory=$LibrariesDir")
+    }
+
     # Forge and NeoForge consume their own launch options before forwarding
     # the remaining arguments to Minecraft. Put those pairs first so launcher
     # feature arguments such as quick play reach Minecraft unchanged.
@@ -654,6 +793,10 @@ function Test-Version($jarPath, $instanceDir) {
     $gameArgs = Move-NamedArgumentPairsFirst $gameArgs $loaderGameOptions
     if ($QuickPlayWorld -and $j.mainClass -eq "net.neoforged.fml.startup.Client") {
         $gameArgs = Add-RawArgumentSeparatorAfterNamedPairs $gameArgs $loaderGameOptions
+    }
+    # 26.x defaults to RenderPearl's preferred backend; NanoVG needs OpenGL.
+    if ($GraphicsBackend -and $mcVersion -like '26.*') {
+        $gameArgs = @($gameArgs) + @("--graphicsBackend", $GraphicsBackend)
     }
 
     # Jars listed on the module path (-p) must NOT also be on -cp (JPMS error)
@@ -695,15 +838,21 @@ function Test-Version($jarPath, $instanceDir) {
     $stdout = Join-Path $outDir "stdout.log"
     $stderr = Join-Path $outDir "stderr.log"
     $latestLog = Join-Path $instanceDir "logs\latest.log"
-    if (Test-Path $latestLog) { Remove-Item -LiteralPath $latestLog -Force -ErrorAction SilentlyContinue }
+    $harnessLog = Join-Path $instanceDir "logs\harness.log"
+    foreach ($stale in @($latestLog, $harnessLog)) {
+        if (Test-Path $stale) {
+            Remove-Item -LiteralPath $stale -Force -ErrorAction SilentlyContinue
+        }
+    }
 
     $argList = @("-Xmx4G") + $jvmArgs + @($j.mainClass) + $gameArgs
     $argList | Set-Content -LiteralPath (Join-Path $outDir "launch-args.txt") -Encoding UTF8
 
     Write-Info "  [launch] $($j.mainClass) args... (pid tracking)"
+    $windowStyle = if ($VisibleWindow) { 'Normal' } else { 'Minimized' }
     $p = Start-Process -FilePath $java -ArgumentList $argList -PassThru `
         -RedirectStandardOutput $stdout -RedirectStandardError $stderr `
-        -WindowStyle Minimized
+        -WindowStyle $windowStyle -WorkingDirectory $instanceDir
     $p.Id | Set-Content -LiteralPath $pidFile -Encoding ASCII
 
     # 7. poll for result
@@ -716,6 +865,7 @@ function Test-Version($jarPath, $instanceDir) {
     $baritoneSeen = $false
     $worldLoaded = $false
     $worldLoadedAt = $null
+    $nanoVgSeen = $false
     $commandSent = $false
     $commandSentAt = $null
     $commandResponseSeen = $false
@@ -728,7 +878,8 @@ function Test-Version($jarPath, $instanceDir) {
     while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $TimeoutSeconds)) {
         # 周期压制：MC 窗口若自行弹出前台会 grab 鼠标，
         # 每轮强制最小化，保证测试期间系统操作不被接管。
-        if ($p.MainWindowHandle -ne [IntPtr]::Zero) {
+        if (-not $VisibleWindow -and
+            $p.MainWindowHandle -ne [IntPtr]::Zero) {
             [WurstTestWindow]::ShowWindow($p.MainWindowHandle, 6) | Out-Null
         }
         $newCrash = @(Get-ChildItem -LiteralPath $crashDir -Filter "*.txt" -ErrorAction SilentlyContinue |
@@ -747,8 +898,9 @@ function Test-Version($jarPath, $instanceDir) {
             $result = @{ Status = "FAIL"; Note = "process exited early, code $($p.ExitCode)" }
             break
         }
-        if ((Test-Path $latestLog) -or (Test-Path $stdout)) {
-            $log = Get-RecentLogText @($stdout, $stderr, $latestLog)
+        if ((Test-Path $latestLog) -or (Test-Path $harnessLog) -or
+            (Test-Path $stdout)) {
+            $log = Get-RecentLogText @($stdout, $stderr, $latestLog, $harnessLog)
             if ($log -match "FATAL|Mod Loading has failed") {
                 $result = @{ Status = "FAIL"; Note = "FATAL / mod loading failure in log" }
                 break
@@ -767,6 +919,13 @@ function Test-Version($jarPath, $instanceDir) {
                 $worldLoaded = $true
                 $worldLoadedAt = Get-Date
                 Write-Info "  [progress] world loaded"
+            }
+            if ($log -match '\[HUD\] NanoVG GL3 context created') {
+                $nanoVgSeen = $true
+            }
+            if ($log -match '\[HUD\] NanoVG disabled|\[HUD\] Render failed|\[GUI\] NanoVG pass failed') {
+                $result = @{ Status = 'FAIL'; Note = 'NanoVG HUD failure reported in log' }
+                break
             }
             if ($commandSent -and $BaritoneCommand -and
                 $log -match $commandResponsePattern) {
@@ -790,13 +949,45 @@ function Test-Version($jarPath, $instanceDir) {
             $commandSentAt = Get-Date
             Write-Info "  [progress] sent Baritone command: $BaritoneCommand"
         }
-        if ($QuickPlayWorld -and $worldLoaded -and $wurstSeen -and $baritoneSeen) {
-            if (-not $BaritoneCommand -and (Get-Date) - $worldLoadedAt -gt (New-TimeSpan -Seconds $SettleSeconds)) {
-                $result = @{ Status = "PASS"; Note = "world loaded; WurstB+ Plus and Baritone loaded" }
+        if ($QuickPlayWorld -and $worldLoaded -and $wurstSeen -and
+            (-not $requireBaritone -or $baritoneSeen)) {
+            $settled = (Get-Date) - $worldLoadedAt -gt (New-TimeSpan -Seconds $SettleSeconds)
+            if ($VerifyNanoVg -and $settled -and -not $nanoVgSeen) {
+                $result = @{ Status = 'FAIL'; Note = 'world loaded but NanoVG context was not created' }
+                break
+            }
+            if (-not $BaritoneCommand -and $settled) {
+                $note = 'world loaded; WurstB+ Plus and Baritone loaded'
+                if ($nanoVgSeen) { $note += '; NanoVG GL3 context created' }
+                if ($ScreenshotDir) {
+                    $safeName = ($name -replace '[^\w.-]', '_')
+                    $shotPath = Join-Path $ScreenshotDir ($safeName + '.png')
+                    if (Save-GameWindowScreenshot $p $shotPath) {
+                        $note += "; screenshot=$shotPath"
+                    } else {
+                        $note += '; screenshot=failed'
+                    }
+                }
+                $result = @{ Status = "PASS"; Note = $note }
                 break
             }
             if ($BaritoneCommand -and $commandResponseSeen) {
-                $result = @{ Status = "PASS"; Note = "world loaded; Baritone command succeeded: $BaritoneCommand" }
+                if ($VerifyNanoVg -and -not $nanoVgSeen) {
+                    $result = @{ Status = 'FAIL'; Note = 'Baritone responded but NanoVG context was not created' }
+                    break
+                }
+                $note = "world loaded; Baritone command succeeded: $BaritoneCommand"
+                if ($nanoVgSeen) { $note += '; NanoVG GL3 context created' }
+                if ($ScreenshotDir) {
+                    $safeName = ($name -replace '[^\w.-]', '_')
+                    $shotPath = Join-Path $ScreenshotDir ($safeName + '.png')
+                    if (Save-GameWindowScreenshot $p $shotPath) {
+                        $note += "; screenshot=$shotPath"
+                    } else {
+                        $note += '; screenshot=failed'
+                    }
+                }
+                $result = @{ Status = "PASS"; Note = $note }
                 break
             }
         }
@@ -879,6 +1070,25 @@ foreach ($jar in $jars) {
 
     Write-Host "[$($jar.Name)] -> $((Split-Path $instanceDir -Leaf))"
     $r = Test-Version $jar.FullName $instanceDir
+    if ($ScreenshotDir) {
+        New-Item -ItemType Directory -Force -Path $ScreenshotDir | Out-Null
+        $instanceLabel = Split-Path $instanceDir -Leaf
+        $srcLog = Join-Path $instanceDir "logs\latest.log"
+        if (Test-Path -LiteralPath $srcLog) {
+            Copy-Item -LiteralPath $srcLog `
+                -Destination (Join-Path $ScreenshotDir ($instanceLabel + '.log')) -Force
+        }
+        $crashDir = Join-Path $instanceDir "crash-reports"
+        if (Test-Path -LiteralPath $crashDir) {
+            $newCrash = @(Get-ChildItem -LiteralPath $crashDir -Filter '*.txt' -ErrorAction SilentlyContinue |
+                Sort-Object LastWriteTime -Descending | Select-Object -First 1)
+            if ($newCrash.Count -gt 0 -and
+                $newCrash[0].LastWriteTime -gt (Get-Date).AddMinutes(-10)) {
+                Copy-Item -LiteralPath $newCrash[0].FullName `
+                    -Destination (Join-Path $ScreenshotDir ($instanceLabel + '-crash.txt')) -Force
+            }
+        }
+    }
     $r.Jar = $jar.Name
     $r.Version = $info.MC
     $r.Loader = $info.Loader
