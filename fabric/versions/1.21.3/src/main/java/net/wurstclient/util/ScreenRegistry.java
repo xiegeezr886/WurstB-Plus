@@ -16,7 +16,7 @@ import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.wurstclient.clickgui2.ClickGuiScreen;
 import net.wurstclient.clickgui2.NavigatorScreen;
-import net.wurstclient.hud2.HudEditorScreen;
+import net.wurstclient.hud2.GuiEditHUD;
 
 public enum ScreenRegistry
 {
@@ -37,8 +37,8 @@ public enum ScreenRegistry
 		(client, parent) -> new ClickGuiScreen()),
 	NAVIGATOR(NavigatorScreen.class,
 		(client, parent) -> new NavigatorScreen()),
-	HUD_EDITOR(HudEditorScreen.class,
-		(client, parent) -> new HudEditorScreen());
+	HUD_EDITOR(GuiEditHUD.class,
+		(client, parent) -> new GuiEditHUD());
 
 	private final Class<? extends Screen> screenType;
 	private final BiFunction<Minecraft, Screen, Screen> factory;
