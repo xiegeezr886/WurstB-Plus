@@ -16,9 +16,6 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 // Include generated resources
 sourceSets.main.resources { srcDir 'src/generated/resources' }
-sourceSets.main.output.resourcesDir =
-    sourceSets.main.java.destinationDirectory.get().asFile
-
 configurations {
 	hudNatives
     allJarEmbed

@@ -5,6 +5,7 @@ param(
     [string]$Only = '',
     [switch]$SkipExisting,
     [switch]$Clean,
+    [switch]$Offline,
     [switch]$DryRun
 )
 
@@ -103,8 +104,11 @@ foreach ($p in $projects) {
     Push-Location $p.FullPath
     try {
         $tasks = if ($Clean) { @('clean', $p.BuildTask) } else { @($p.BuildTask) }
-        & .\gradlew.bat @tasks --init-script $init --console=plain `
-            --no-configuration-cache 2>&1 | Out-File -FilePath $log -Encoding UTF8
+        $gradleArgs = @($tasks) + @('--init-script', $init, '--console=plain',
+            '--no-configuration-cache', '--no-build-cache')
+        if ($Offline) { $gradleArgs += '--offline' }
+        & .\gradlew.bat @gradleArgs 2>&1 |
+            Out-File -FilePath $log -Encoding UTF8
         $code = $LASTEXITCODE
     } finally {
         Pop-Location

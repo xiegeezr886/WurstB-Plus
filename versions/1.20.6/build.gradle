@@ -29,9 +29,6 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-sourceSets.main.output.resourcesDir =
-    sourceSets.main.java.destinationDirectory.get().asFile
-
 sourceSets {
     main {
         java {
@@ -148,6 +145,7 @@ java {
 
 jar {
 	archiveClassifier = "dev"
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	manifest {
         attributes(
             "MixinConfigs": "wurst.mixins.json",
@@ -164,7 +162,6 @@ jar {
     }
 
     exclude "intentionally_untranslated.json"
-    finalizedBy "reobfJar"
 }
 
 tasks.named("jarJar").configure {

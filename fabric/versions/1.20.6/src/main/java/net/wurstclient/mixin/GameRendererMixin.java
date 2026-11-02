@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -55,7 +56,7 @@ public abstract class GameRendererMixin implements AutoCloseable
 		ordinal = 0),
 		method = "renderLevel(FJ)V")
 	private void onRenderWorldViewBobbing(float tickDelta, long limitTime,
-		PoseStack matrices, CallbackInfo ci)
+		CallbackInfo ci, @Local(ordinal = 0) PoseStack matrices)
 	{
 		WurstClient.INSTANCE.getHax().freelookHack
 			.applyCameraRotation(matrices);

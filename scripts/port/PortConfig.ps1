@@ -61,9 +61,11 @@ function Get-PortBuildTask([string]$Loader, [string]$McVersion, [string]$Relativ
         if ([version]$McVersion -le [version]'1.21.1') { return 'jarJar' }
         return 'allJar'
     }
-    # NeoForge root 1.20.1 is actually ForgeGradle.
+    # NeoForge root 1.20.1 is actually ForgeGradle and needs jarJar. ModDevGradle
+    # projects produce the complete jar (classes, resources, META-INF/jarjar)
+    # with the plain `jar` task; their jarJar task is only a finalizer.
     if ($RelativePath -eq 'neoforge') { return 'jarJar' }
-    return 'build'
+    return 'jar'
 }
 
 function Get-PortProjects {

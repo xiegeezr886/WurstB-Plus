@@ -3,6 +3,7 @@
 param(
     [string]$Band = '',
     [string]$Only = '',
+    [string]$JarDir = '',
     [int]$SettleSeconds = 30,
     [int]$TimeoutSeconds = 300,
     [switch]$SkipPassed
@@ -13,7 +14,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 . (Join-Path $PSScriptRoot 'PortConfig.ps1')
 
 $repo = $script:RepoRoot
-$jarDir = Join-Path $repo '_recon\port\jars'
+$jarDir = if ($JarDir) { $JarDir } else { Join-Path $repo '_recon\port\jars' }
 $evidence = Join-Path $repo '_recon\port\evidence\nanovg'
 $outDir = Join-Path $repo '_recon\port\test-matrix'
 $runner = Join-Path $repo 'scripts\run-version-tests.ps1'
@@ -68,6 +69,12 @@ function Get-InstanceDir($mc, $loader) {
 }
 
 $rows = @()
+$merged = @{}
+if (Test-Path -LiteralPath $reportPath) {
+    foreach ($r in @(Import-Csv -LiteralPath $reportPath -Delimiter "`t" -Encoding UTF8)) {
+        $merged[$r.Project] = $r
+    }
+}
 foreach ($p in $projects) {
     if ($SkipPassed) {
         $prev = @($previous | Where-Object { $_.Project -eq $p.RelativePath -and $_.Status -eq 'PASS' })
@@ -112,18 +119,24 @@ foreach ($p in $projects) {
         continue
     }
 
-    # 26.x needs the RenderPearl OpenGL backend and a visible window; reuse the
-    # already-upgraded dev world so no "upgrade this world?" dialog appears.
-    if ($p.McVersion -like '26.*') {
-        $devWorld = Join-Path $repo ('fabric\versions\' + $p.McVersion +
-            '\run\saves\WurstSmokeFresh')
-        if (Test-Path -LiteralPath $devWorld) {
-            $destWorld = Join-Path $instance 'saves\WurstSmokeFresh'
-            if (Test-Path -LiteralPath $destWorld) {
-                Remove-Item -LiteralPath $destWorld -Recurse -Force
-            }
-            Copy-Item -LiteralPath $devWorld -Destination $destWorld -Recurse -Force
+    # Reuse the Fabric dev world for this exact MC version. The flat xray-test
+    # world avoids the Forge 1.21.4 LootModifierManager leaf-tick bug and the
+    # 26.x "upgrade this world?" dialogs.
+    $saves = Join-Path $repo ('fabric\versions\' + $p.McVersion + '\run\saves')
+    $devWorld = $null
+    foreach ($candidate in @('xray-test', 'WurstSmokeFresh')) {
+        $path = Join-Path $saves $candidate
+        if (Test-Path -LiteralPath (Join-Path $path 'level.dat')) {
+            $devWorld = $path
+            break
         }
+    }
+    if ($devWorld) {
+        $destWorld = Join-Path $instance 'saves\WurstSmokeFresh'
+        if (Test-Path -LiteralPath $destWorld) {
+            Remove-Item -LiteralPath $destWorld -Recurse -Force
+        }
+        Copy-Item -LiteralPath $devWorld -Destination $destWorld -Recurse -Force
     }
 
     $log = Join-Path $outDir ($p.RelativePath.Replace('/', '__') + '.log')
@@ -162,8 +175,10 @@ foreach ($p in $projects) {
     Write-Output ("{0,-28} {1}" -f $p.RelativePath, $status)
 }
 
-$rows | Export-Csv -LiteralPath $reportPath -NoTypeInformation -Delimiter "`t" -Encoding UTF8
-$pass = @($rows | Where-Object { $_.Status -eq 'PASS' }).Count
-$fail = @($rows | Where-Object { $_.Status -ne 'PASS' }).Count
-Write-Output ("PASS={0} OTHER={1} TOTAL={2} report={3}" -f $pass, $fail, $rows.Count, $reportPath)
+foreach ($r in $rows) { $merged[$r.Project] = $r }
+$final = @($merged.Values | Sort-Object Project)
+$final | Export-Csv -LiteralPath $reportPath -NoTypeInformation -Delimiter "`t" -Encoding UTF8
+$pass = @($final | Where-Object { $_.Status -eq 'PASS' }).Count
+$fail = @($final | Where-Object { $_.Status -ne 'PASS' }).Count
+Write-Output ("PASS={0} OTHER={1} TOTAL={2} report={3}" -f $pass, $fail, $final.Count, $reportPath)
 if ($fail -gt 0) { exit 1 }

@@ -15,9 +15,6 @@ base {
 // Mojang ships Java 25 to end users in 26.1+
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
-sourceSets.main.output.resourcesDir =
-    sourceSets.main.java.destinationDirectory.get().asFile
-
 // Include generated resources
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 

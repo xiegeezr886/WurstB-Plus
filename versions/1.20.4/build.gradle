@@ -29,9 +29,6 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-sourceSets.main.output.resourcesDir =
-    sourceSets.main.java.destinationDirectory.get().asFile
-
 sourceSets {
     main {
         java {

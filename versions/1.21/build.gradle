@@ -29,9 +29,6 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-sourceSets.main.output.resourcesDir =
-	sourceSets.main.java.destinationDirectory.get().asFile
-
 minecraft {
 	mappings channel: "official", version: project.minecraft_version
 	accessTransformer = file(
