@@ -6,6 +6,7 @@ buildscript {
 		}
 	}
 	dependencies {
+
 		classpath "org.spongepowered:mixingradle:0.7-SNAPSHOT"
 	}
 }
@@ -27,9 +28,6 @@ base {
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-
-sourceSets.main.output.resourcesDir =
-	sourceSets.main.java.destinationDirectory.get().asFile
 
 minecraft {
 	mappings channel: "official", version: project.minecraft_version
@@ -54,6 +52,10 @@ minecraft {
 	}
 }
 
+configurations {
+	hudNatives
+}
+
 repositories {
 	maven {
 		name = "Sponge"
@@ -73,6 +75,21 @@ configurations.configureEach {
 }
 
 dependencies {
+    implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+
 	minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
 
 	implementation fg.deobf(
@@ -155,4 +172,11 @@ jar {
 
 tasks.named("jarJar").configure {
 	archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
+}
+
+processResources {
+    from({ configurations.hudNatives.collect { zipTree(it) } }) {
+        include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+        exclude "META-INF/**", "module-info.class", "**/*.signature"
+    }
 }
