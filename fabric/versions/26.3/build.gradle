@@ -9,6 +9,10 @@ base {
 	archivesName = project.archives_base_name
 }
 
+configurations {
+	hudNatives
+}
+
 repositories {
 	maven {
 		name = "BundledBaritone"
@@ -49,6 +53,22 @@ dependencies {
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"
 	annotationProcessor "io.github.llamalad7:mixinextras-common:0.5.4"
+
+	// NanoVG HUD renderer
+	implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
 }
 
 loom {
@@ -59,6 +79,13 @@ processResources {
 	inputs.property "version", project.version
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version
+	}
+
+	// Ship the NanoVG classes and native libraries inside the mod jar. This
+	// avoids loader-specific nested-jar handling and matches NanoVGNativeLoader.
+	from({ configurations.hudNatives.collect { zipTree(it) } }) {
+		include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+		exclude "META-INF/**", "module-info.class", "**/*.signature"
 	}
 }
 

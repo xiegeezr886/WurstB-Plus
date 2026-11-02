@@ -1,53 +1,73 @@
+/*
+ * Copyright (c) 2026 WurstB+ Plus contributors
+ *
+ * This source code is subject to the terms of the GNU Affero General Public
+ * License, version 3. If a copy of the AGPL was not distributed with this
+ * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
+ */
 package net.wurstclient.hud2;
 
+import java.awt.Color;
 import java.util.Locale;
 
-import net.minecraft.client.gui.Font;
-import net.wurstclient.WurstClient;
-import net.wurstclient.clickgui2.FlatRenderer;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.Category;
+import net.wurstclient.Feature;
+import net.wurstclient.hud2.nanovg.HudFont;
+import net.wurstclient.hud2.nanovg.HudFonts;
+import net.wurstclient.hud2.nanovg.NanoVGContext;
 
 /**
- * HUD base class ported from Soar Client v7.1.2
- * ({@code me.eldodebug.soar.management.mods.HUDMod}).
+ * Base class for every HUD module.
  *
- * <p>
- * HUD mods own an absolute position and a scale factor, draw a themed rounded
- * background, and expose the same save/restore/scale/draw helper surface as
- * Soar so the ported HUD modules can keep their original drawing logic.
+ * <p>Ported from Soar Client v7.1.2
+ * ({@code me.eldodebug.soar.management.mods.HUDMod}) and extended so the
+ * module is also a Wurst {@link Feature}, which makes it visible in the
+ * existing ClickGUI and gives it the standard settings persistence.
  */
-public abstract class HUDMod
+public abstract class HUDMod extends Feature
 {
-	protected static final WurstClient WURST = WurstClient.INSTANCE;
-
 	private static HudTheme theme = HudTheme.NORMAL;
-	private static final float DEFAULT_SCALE = 1.0F;
-	private static final int DEFAULT_SIZE = 100;
+	private static final int[] LEGACY_COLORS = {0x000000, 0x0000AA,
+		0x00AA00, 0x00AAAA, 0xAA0000, 0xAA00AA, 0xFFAA00, 0xAAAAAA,
+		0x555555, 0x5555FF, 0x55FF55, 0x55FFFF, 0xFF5555, 0xFF55FF,
+		0xFFFF55, 0xFFFFFF};
 
 	private final String id;
 	private final String name;
+	private final String description;
+	private String translationKey;
+	private Category category = Category.HUD;
+
 	private int x = 100;
 	private int y = 100;
-	private int width = DEFAULT_SIZE;
-	private int height = DEFAULT_SIZE;
+	private int width = 100;
+	private int height = 100;
 	private int defaultX = 100;
 	private int defaultY = 100;
-	private float scale = DEFAULT_SCALE;
-	private float defaultScale = DEFAULT_SCALE;
-	private boolean enabled = true;
-	private boolean defaultEnabled = true;
+	private float scale = 1F;
+	private float defaultScale = 1F;
+	private boolean enabled;
+	private boolean defaultEnabled;
 	private boolean dragging;
 	private boolean draggable = true;
 	private int draggingX;
 	private int draggingY;
+	private int failures;
+	private boolean drewContent;
 
-	protected GuiGraphicsExtractor graphics;
+	private HudManager manager;
+	private final HudAnimation animation = new HudAnimation();
+
+	protected NanoVGContext nvg;
 	protected float partialTicks;
 
-	protected HUDMod(String id, String name)
+	protected HUDMod(String id, String name, String description)
 	{
 		this.id = id;
 		this.name = name;
+		this.description = description;
+		this.translationKey = id.toLowerCase(Locale.ROOT)
+			.replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
 	}
 
 	public final String getId()
@@ -55,39 +75,178 @@ public abstract class HUDMod
 		return id;
 	}
 
-	public final String getName()
+	public final String getTranslationKey()
+	{
+		return translationKey;
+	}
+
+	protected final void setTranslationKey(String key)
+	{
+		translationKey = key;
+	}
+
+	public final String getRawName()
 	{
 		return name;
 	}
 
 	public final String getTranslatedName()
 	{
-		String key = "hud.name." + name.toLowerCase(Locale.ROOT)
-			.replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
+		String key = "hud.name." + translationKey;
 		String translated = WURST.translate(key);
 		return translated.equals(key) ? name : translated;
 	}
 
-	/** Draws this HUD mod. Called once per frame while the mod is enabled. */
-	protected abstract void draw();
-
-	public void onEnable(HudManager manager) {}
-
-	public void onDisable(HudManager manager) {}
-
-	public final void render(GuiGraphicsExtractor graphics, float partialTicks)
+	@Override
+	public final String getName()
 	{
-		this.graphics = graphics;
-		this.partialTicks = partialTicks;
-		try
+		return id;
+	}
+
+	@Override
+	public String getDisplayName()
+	{
+		return getTranslatedName();
+	}
+
+	@Override
+	public String getRenderName()
+	{
+		return getTranslatedName();
+	}
+
+	@Override
+	public String getDescription()
+	{
+		String key = "hud.description." + translationKey;
+		String translated = WURST.translate(key);
+		return translated.equals(key) ? description : translated;
+	}
+
+	@Override
+	public String getPrimaryAction()
+	{
+		return "Toggle";
+	}
+
+	@Override
+	public void doPrimaryAction()
+	{
+		setEnabled(!enabled);
+	}
+
+	@Override
+	public Category getCategory()
+	{
+		return category;
+	}
+
+	public final void setCategory(Category category)
+	{
+		this.category = category == null ? Category.HUD : category;
+	}
+
+	@Override
+	public boolean isEnabled()
+	{
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled)
+	{
+		if(this.enabled == enabled)
+			return;
+
+		if(enabled && WURST.getHax() != null
+			&& WURST.getHax().tooManyHaxHack.isEnabled()
+			&& WURST.getHax().tooManyHaxHack.isBlocked(this))
+			return;
+
+		this.enabled = enabled;
+		if(enabled)
+			onEnable();
+		else
+			onDisable();
+
+		if(manager != null)
 		{
-			draw();
-		}finally
-		{
-			this.graphics = null;
+			manager.onModuleEnabledChanged(this);
+			manager.addNotification(this);
 		}
 	}
 
+	public final void setEnabledSilently(boolean enabled)
+	{
+		this.enabled = enabled;
+	}
+
+	protected void onEnable() {}
+
+	protected void onDisable() {}
+
+	final void bindManager(HudManager manager)
+	{
+		this.manager = manager;
+	}
+
+	public final HudManager getManager()
+	{
+		return manager;
+	}
+
+	/** Draws the module. Called once per frame while it is enabled. */
+	protected abstract void draw();
+
+	public final void render(NanoVGContext nvg, float partialTicks)
+	{
+		this.nvg = nvg;
+		this.partialTicks = partialTicks;
+		drewContent = false;
+		nvg.save();
+		try
+		{
+			draw();
+		}catch(Throwable t)
+		{
+			if(++failures <= 3)
+			{
+				System.err.println("[HUD] Module " + id + " failed to draw");
+				t.printStackTrace();
+			}
+			if(failures == 4)
+				System.err.println("[HUD] Module " + id
+					+ " keeps failing; disabling it");
+			if(failures >= 4)
+				setEnabledSilently(false);
+		}finally
+		{
+			nvg.restore();
+			this.nvg = null;
+		}
+	}
+
+	/**
+	 * Whether the module actually drew a card in the last frame. Modules that
+	 * need a world or a player return without drawing, so the editor must not
+	 * draw a selection ring around empty space or let those invisible modules
+	 * steal mouse drags.
+	 */
+	public final boolean hasContent()
+	{
+		return drewContent;
+	}
+
+	protected final void markDrawn()
+	{
+		drewContent = true;
+	}
+
+	public final HudAnimation getAnimation()
+	{
+		return animation;
+	}
+
+	// ---------------------------------------------------------------- theme
 	public static HudTheme getTheme()
 	{
 		return theme;
@@ -98,27 +257,30 @@ public abstract class HUDMod
 		theme = newTheme == null ? HudTheme.NORMAL : newTheme;
 	}
 
-	public void save()
+	public static int accentColor(int alpha)
 	{
-		graphics.pose().pushMatrix();
+		WURST.getGui().updateColors();
+		float a = Math.max(0, Math.min(255, alpha)) / 255F;
+		return WURST.getGui().getTheme().accent(a);
 	}
 
-	public void restore()
+	public static int accentColor2(int alpha)
 	{
-		graphics.pose().popMatrix();
+		int first = accentColor(alpha);
+		int r = first >> 16 & 0xFF;
+		int g = first >> 8 & 0xFF;
+		int b = first & 0xFF;
+		r = Math.round(r + (255 - r) * 0.35F);
+		g = Math.round(g + (255 - g) * 0.35F);
+		b = Math.round(b + (255 - b) * 0.35F);
+		return alpha << 24 | r << 16 | g << 8 | b;
 	}
 
-	public void scale(float addX, float addY, float width, float height,
-		float extraScale)
+	private static Color color(int argb)
 	{
-		float centerX = x + (addX + width / 2F) * scale;
-		float centerY = y + (addY + height / 2F) * scale;
-		graphics.pose().translate(centerX, centerY);
-		graphics.pose().scale(extraScale, extraScale);
-		graphics.pose().translate(-centerX, -centerY);
+		return new Color(argb, true);
 	}
 
-	// ------------------------------------------------------------ backgrounds
 	public void drawBackground(float width, float height)
 	{
 		drawBackground(0, 0, width, height, 6 * scale);
@@ -141,6 +303,7 @@ public abstract class HUDMod
 		if(width < 0 || height < 0)
 			return;
 
+		drewContent = true;
 		float x = this.x + addX * scale;
 		float y = this.y + addY * scale;
 		float w = width * scale;
@@ -148,14 +311,19 @@ public abstract class HUDMod
 
 		int color1 = accentColor(220);
 		int color2 = accentColor2(220);
-		int shadow = 0x3C000000;
 		int black = 0x64000000;
 
 		switch(theme)
 		{
 			case NORMAL:
 			drawShadowScreen(x, y, w, h, radius);
-			gradientRoundedRect(x, y, w, h, radius, color1, color2);
+			roundedRect(x, y, w, h, radius, 0xA8000000);
+			// Absolute coordinates: the public drawRoundedOutline() expects
+			// module-relative addX/addY and scaled sizes, so calling it here
+			// shifted the border by the module position a second time.
+			if(nvg != null)
+				nvg.drawOutlineRoundedRect(x, y, w, h, radius, scale,
+					new Color(0x14FFFFFF, true));
 			break;
 
 			case GLOW:
@@ -204,229 +372,344 @@ public abstract class HUDMod
 		}
 	}
 
-	public void drawShadow(float addX, float addY, float width, float height,
-		float radius)
+	private void drawShadowScreen(float x, float y, float width,
+		float height, float radius)
 	{
-		float x = this.x + addX * scale;
-		float y = this.y + addY * scale;
-		float w = width * scale;
-		float h = height * scale;
-		drawShadowScreen(x, y, w, h, radius * scale);
-	}
-
-	private void drawShadowScreen(float x, float y, float width, float height,
-		float radius)
-	{
-		if(width <= 0 || height <= 0)
+		if(nvg == null || width <= 0 || height <= 0)
 			return;
-
-		float expand = Math.max(1, scale);
-		FlatRenderer.fillRoundedRect(graphics, (int)(x - expand * 4),
-			(int)(y - expand * 2), (int)(x + width + expand * 4),
-			(int)(y + height + expand * 2), (int)(radius + expand * 4),
-			0x14000000);
-		FlatRenderer.fillRoundedRect(graphics, (int)(x - expand * 3),
-			(int)(y - expand), (int)(x + width + expand * 3),
-			(int)(y + height + expand), (int)(radius + expand * 3),
-			0x1E000000);
-		FlatRenderer.fillRoundedRect(graphics, (int)(x - expand * 2),
-			(int)(y - expand), (int)(x + width + expand * 2),
-			(int)(y + height + expand), (int)(radius + expand * 2),
-			0x2A000000);
+		nvg.drawShadow(x, y, width, height, radius);
 	}
 
 	private void gradientShadow(float x, float y, float width, float height,
 		float radius)
 	{
-		gradientRoundedRect(x - 4 * scale, y - 3 * scale, width + 8 * scale,
-			height + 6 * scale, radius + 4 * scale, accentColor(40),
-			accentColor2(40));
-		gradientRoundedRect(x - 2 * scale, y - 2 * scale, width + 4 * scale,
-			height + 4 * scale, radius + 2 * scale, accentColor(55),
-			accentColor2(55));
-	}
-
-	// ---------------------------------------------------------------- drawing
-	public void drawRect(float addX, float addY, float width, float height,
-		int color)
-	{
-		graphics.fill((int)(x + addX * scale), (int)(y + addY * scale),
-			(int)(x + (addX + width) * scale),
-			(int)(y + (addY + height) * scale), color);
-	}
-
-	public void drawRoundedRect(float addX, float addY, float width,
-		float height, float radius, int color)
-	{
-		if(width < 0 || height < 0)
+		if(nvg == null)
 			return;
-		FlatRenderer.fillRoundedRect(graphics, (int)(x + addX * scale),
-			(int)(y + addY * scale), (int)(x + (addX + width) * scale),
-			(int)(y + (addY + height) * scale), Math.round(radius * scale),
-			color);
-	}
-
-	public void drawRoundedOutline(float addX, float addY, float width,
-		float height, float radius, float strokeWidth, int color)
-	{
-		FlatRenderer.drawRoundedOutline(graphics,
-			(int)(x + addX * scale), (int)(y + addY * scale),
-			(int)(x + (addX + width) * scale),
-			(int)(y + (addY + height) * scale), Math.round(radius * scale),
-			color);
+		nvg.drawGradientShadow(x - 4 * scale, y - 3 * scale,
+			width + 8 * scale, height + 6 * scale, radius + 4 * scale,
+			color(accentColor(40)), color(accentColor2(40)));
+		nvg.drawGradientShadow(x - 2 * scale, y - 2 * scale,
+			width + 4 * scale, height + 4 * scale, radius + 2 * scale,
+			color(accentColor(55)), color(accentColor2(55)));
 	}
 
 	private void roundedRect(float x, float y, float width, float height,
-		float radius, int color)
+		float radius, int argb)
 	{
-		FlatRenderer.fillRoundedRect(graphics, (int)x, (int)y,
-			(int)(x + width), (int)(y + height), Math.max(0, (int)radius),
-			color);
+		if(nvg != null)
+			nvg.drawRoundedRect(x, y, width, height, radius, color(argb));
 	}
 
 	private void gradientRoundedRect(float x, float y, float width,
 		float height, float radius, int top, int bottom)
 	{
-		if(width <= 0 || height <= 0)
-			return;
-
-		int topY = (int)y;
-		int bottomY = (int)(y + height);
-		int left = (int)x;
-		int right = (int)(x + width);
-		float r = Math.max(0, Math.min(radius, Math.min(width, height) / 2F));
-		int rows = Math.max(1, bottomY - topY);
-		for(int row = 0; row < rows; row++)
-		{
-			float progress = rows <= 1 ? 0 : row / (float)(rows - 1);
-			double dy = 0;
-			if(row < r)
-				dy = r - row - 0.5;
-			else if(row >= rows - r)
-				dy = row - (rows - r) + 0.5;
-			int inset = 0;
-			if(dy > 0)
-				inset = (int)Math.ceil(r - Math.sqrt(Math.max(0, r * r
-					- dy * dy)));
-			graphics.fill(left + inset, topY + row, right - inset,
-				topY + row + 1, lerpColor(top, bottom, progress));
-		}
+		if(nvg != null)
+			nvg.drawGradientRoundedRect(x, y, width, height, radius,
+				color(top), color(bottom));
 	}
 
 	private void gradientOutline(float x, float y, float width, float height,
 		float radius, float strokeWidth, int color1, int color2)
 	{
-		FlatRenderer.drawRoundedOutline(graphics, (int)x, (int)y,
-			(int)(x + width), (int)(y + height), Math.max(0, (int)radius),
-			color1);
-		int inset = Math.max(1, Math.round(strokeWidth));
-		FlatRenderer.drawRoundedOutline(graphics, (int)x + inset,
-			(int)y + inset, (int)(x + width) - inset,
-			(int)(y + height) - inset, Math.max(0, (int)radius - inset),
-			color2);
+		if(nvg != null)
+			nvg.drawGradientOutlineRoundedRect(x, y, width, height, radius,
+				strokeWidth, color(color1), color(color2));
 	}
 
-	// ------------------------------------------------------------------- text
+	// --------------------------------------------------------------- drawing
+	public void save()
+	{
+		if(nvg != null)
+			nvg.save();
+	}
+
+	public void restore()
+	{
+		if(nvg != null)
+			nvg.restore();
+	}
+
+	public void scissor(float addX, float addY, float width, float height)
+	{
+		if(nvg != null)
+			nvg.scissor(x + addX * scale, y + addY * scale, width * scale,
+				height * scale);
+	}
+
+	public void scale(float addX, float addY, float width, float height,
+		float extraScale)
+	{
+		if(nvg != null)
+			nvg.scale(x + addX * scale, y + addY * scale, width * scale,
+				height * scale, extraScale);
+	}
+
+	public void drawRect(float addX, float addY, float width, float height,
+		Color color)
+	{
+		if(nvg != null)
+			nvg.drawRect(x + addX * scale, y + addY * scale, width * scale,
+				height * scale, color);
+	}
+
+	public void drawRoundedRect(float addX, float addY, float width,
+		float height, float radius, Color color)
+	{
+		if(nvg != null && width >= 0 && height >= 0)
+			nvg.drawRoundedRect(x + addX * scale, y + addY * scale,
+				width * scale, height * scale, radius * scale, color);
+	}
+
+	public void drawRoundedOutline(float addX, float addY, float width,
+		float height, float radius, float strokeWidth, Color color)
+	{
+		if(nvg != null)
+			nvg.drawOutlineRoundedRect(x + addX * scale, y + addY * scale,
+				width * scale, height * scale, radius * scale,
+				strokeWidth * scale, color);
+	}
+
+	public void drawImage(int image, float addX, float addY, float width,
+		float height)
+	{
+		if(nvg != null)
+			nvg.drawImage(image, x + addX * scale, y + addY * scale,
+				width * scale, height * scale);
+	}
+
+	public void drawImageRegion(int texture, float addX, float addY,
+		float width, float height, float u0, float v0, float u1, float v1)
+	{
+		if(nvg != null)
+			nvg.drawImageRegion(texture, x + addX * scale,
+				y + addY * scale, width * scale, height * scale, u0, v0, u1,
+				v1);
+	}
+
+	public void drawCircle(float addX, float addY, float radius, Color color)
+	{
+		if(nvg != null)
+			nvg.drawCircle(x + addX * scale, y + addY * scale,
+				radius * scale, color);
+	}
+
+	public void drawArc(float addX, float addY, float radius, float startAngle,
+		float endAngle, float strokeWidth, Color color)
+	{
+		if(nvg != null)
+			nvg.drawArc(x + addX * scale, y + addY * scale, radius * scale,
+				startAngle, endAngle, strokeWidth * scale, color);
+	}
+
 	public void drawText(String text, float addX, float addY, float size,
-		int color)
+		HudFont font, Color color)
 	{
-		if(text == null || text.isEmpty())
-			return;
-
-		Font font = WurstClient.MC.font;
-		float fontScale = size * scale / 9F;
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(x + addX * scale, y + addY * scale);
-		graphics.pose().scale(fontScale, fontScale);
-		graphics.text(font, text, 0, 0, color, false);
-		graphics.pose().popMatrix();
+		if(nvg != null)
+			nvg.drawText(text, x + addX * scale, y + addY * scale, color,
+				size * scale, font);
 	}
 
-	public void drawText(String text, float addX, float addY, float size)
+	public void drawText(String text, float addX, float addY, float size,
+		HudFont font)
 	{
-		drawText(text, addX, addY, size, getFontColor());
+		drawText(text, addX, addY, size, font, getFontColor());
 	}
 
 	public void drawCenteredText(String text, float addX, float addY,
-		float size, int color)
+		float size, HudFont font, Color color)
 	{
-		if(text == null || text.isEmpty())
-			return;
-
-		Font font = WurstClient.MC.font;
-		float fontScale = size * scale / 9F;
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(x + addX * scale, y + addY * scale);
-		graphics.pose().scale(fontScale, fontScale);
-		graphics.text(font, text, -font.width(text) / 2, 0, color, false);
-		graphics.pose().popMatrix();
+		if(nvg != null)
+			nvg.drawCenteredText(text, x + addX * scale,
+				y + addY * scale, color, size * scale, font);
 	}
 
 	public void drawCenteredText(String text, float addX, float addY,
-		float size)
+		float size, HudFont font)
 	{
-		drawCenteredText(text, addX, addY, size, getFontColor());
+		drawCenteredText(text, addX, addY, size, font, getFontColor());
 	}
 
-	public float getTextWidth(String text, float size)
+	/**
+	 * Draws text that may contain legacy {@code §}-colour codes. Used by HUD
+	 * modules that show server-provided text, such as the scoreboard.
+	 */
+	public void drawLegacyText(String text, float addX, float addY, float size,
+		HudFont font)
 	{
-		return WurstClient.MC.font.width(text) * size / 9F;
+		if(nvg == null || text == null || text.isEmpty())
+			return;
+
+		float cursor = x + addX * scale;
+		float baseY = y + addY * scale;
+		float fontSize = size * scale;
+		Color base = getFontColor();
+		Color current = base;
+		StringBuilder segment = new StringBuilder();
+
+		for(int i = 0; i < text.length(); i++)
+		{
+			char c = text.charAt(i);
+			if(c != '\u00a7' || i + 1 >= text.length())
+			{
+				segment.append(c);
+				continue;
+			}
+
+			if(segment.length() > 0)
+			{
+				cursor = drawLegacySegment(segment.toString(), cursor, baseY,
+					fontSize, font, current);
+				segment.setLength(0);
+			}
+
+			char code = Character.toLowerCase(text.charAt(++i));
+			if(code == 'r')
+			{
+				current = base;
+			}else if(code == 'x')
+			{
+				int rgb = 0;
+				boolean valid = true;
+				for(int digit = 0; digit < 6; digit++)
+				{
+					if(i + 2 >= text.length()
+						|| text.charAt(i + 1) != '\u00a7')
+					{
+						valid = false;
+						break;
+					}
+					int value = Character.digit(
+						Character.toLowerCase(text.charAt(i + 2)), 16);
+					if(value < 0)
+					{
+						valid = false;
+						break;
+					}
+					rgb = rgb << 4 | value;
+					i += 2;
+				}
+				if(valid)
+					current = new Color(0xFF000000 | rgb);
+			}else
+			{
+				int index = legacyColorIndex(code);
+				if(index >= 0)
+					current = new Color(0xFF000000 | LEGACY_COLORS[index]);
+			}
+		}
+
+		if(segment.length() > 0)
+			drawLegacySegment(segment.toString(), cursor, baseY, fontSize, font,
+				current);
 	}
 
-	public float getTextHeight(float size)
+	private float drawLegacySegment(String text, float cursor, float y,
+		float fontSize, HudFont font, Color color)
 	{
-		return size;
+		nvg.drawText(text, cursor, y, color, fontSize, font);
+		return cursor + nvg.getTextWidth(text, fontSize, font);
 	}
 
-	// ----------------------------------------------------------------- colors
-	public int getFontColor(int alpha)
+	public float getLegacyTextWidth(String text, float size, HudFont font)
+	{
+		return getTextWidth(stripLegacy(text), size, font);
+	}
+
+	public static String stripLegacy(String text)
+	{
+		if(text == null || text.indexOf('\u00a7') < 0)
+			return text == null ? "" : text;
+
+		StringBuilder out = new StringBuilder(text.length());
+		for(int i = 0; i < text.length(); i++)
+		{
+			char c = text.charAt(i);
+			if(c == '\u00a7' && i + 1 < text.length())
+			{
+				i++;
+				continue;
+			}
+			out.append(c);
+		}
+		return out.toString();
+	}
+
+	private static int legacyColorIndex(char code)
+	{
+		if(code >= '0' && code <= '9')
+			return code - '0';
+		if(code >= 'a' && code <= 'f')
+			return 10 + code - 'a';
+		return -1;
+	}
+
+	/**
+	 * Measures text in the module's own (unscaled) coordinate space.
+	 *
+	 * <p>Callers feed the result straight back into {@link #drawBackground} and
+	 * {@link #drawText}, which apply {@link #getScale()} themselves. Scaling the
+	 * size here as well would double-scale every generated card.
+	 */
+	public float getTextWidth(String text, float size, HudFont font)
+	{
+		return nvg == null ? 0 : nvg.getTextWidth(text, size, font);
+	}
+
+	public float getTextHeight(String text, float size, HudFont font)
+	{
+		return nvg == null ? 0 : nvg.getTextHeight(text, size, font);
+	}
+
+	public void drawRoundedImage(String path, float addX, float addY,
+		float width, float height, float radius)
+	{
+		if(nvg != null)
+			nvg.drawRoundedImage(path, x + addX * scale, y + addY * scale,
+				width * scale, height * scale, radius * scale);
+	}
+
+	public void drawRoundedImage(java.io.File file, float addX, float addY,
+		float width, float height, float radius)
+	{
+		if(nvg != null)
+			nvg.drawRoundedImage(file, x + addX * scale, y + addY * scale,
+				width * scale, height * scale, radius * scale);
+	}
+
+	public void drawRoundedImage(int texture, float addX, float addY,
+		float width, float height, float radius)
+	{
+		if(nvg != null)
+			nvg.drawRoundedImage(texture, x + addX * scale,
+				y + addY * scale, width * scale, height * scale,
+				radius * scale);
+	}
+
+	public void drawPlayerHead(String texturePath, float addX, float addY,
+		float width, float height, float radius)
+	{
+		if(nvg != null)
+			nvg.drawPlayerHead(texturePath, x + addX * scale,
+				y + addY * scale, width * scale, height * scale,
+				radius * scale);
+	}
+
+	public Color getFontColor(int alpha)
 	{
 		if(theme == HudTheme.DARK || theme == HudTheme.LIGHT)
-			return accentColor(alpha);
-		return alpha << 24 | 0xFFFFFF;
+			return color(accentColor(alpha));
+		return new Color(255, 255, 255, Math.max(0, Math.min(255, alpha)));
 	}
 
-	public int getFontColor()
+	public Color getFontColor()
 	{
 		return getFontColor(255);
 	}
 
-	public static int accentColor(int alpha)
-	{
-		WURST.getGui().updateColors();
-		float a = Math.max(0, Math.min(255, alpha)) / 255F;
-		return WURST.getGui().getTheme().accent(a);
-	}
-
-	public static int accentColor2(int alpha)
-	{
-		int first = accentColor(alpha);
-		int r = first >> 16 & 0xFF;
-		int g = first >> 8 & 0xFF;
-		int b = first & 0xFF;
-		r = Math.round(r + (255 - r) * 0.35F);
-		g = Math.round(g + (255 - g) * 0.35F);
-		b = Math.round(b + (255 - b) * 0.35F);
-		return alpha << 24 | r << 16 | g << 8 | b;
-	}
-
-	public static int lerpColor(int from, int to, float progress)
-	{
-		float p = Math.max(0, Math.min(1, progress));
-		int a = Math.round((from >>> 24) + ((to >>> 24) - (from >>> 24)) * p);
-		int r = Math.round((from >> 16 & 0xFF) + ((to >> 16 & 0xFF)
-			- (from >> 16 & 0xFF)) * p);
-		int g = Math.round((from >> 8 & 0xFF) + ((to >> 8 & 0xFF)
-			- (from >> 8 & 0xFF)) * p);
-		int b = Math.round((from & 0xFF) + ((to & 0xFF) - (from & 0xFF))
-			* p);
-		return a << 24 | r << 16 | g << 8 | b;
-	}
-
-	// ------------------------------------------------------------------ state
+	// ----------------------------------------------------------------- state
 	public boolean isEditing()
 	{
-		return WurstClient.MC.screen instanceof GuiEditHUD;
+		return MC.gui.screen() instanceof GuiEditHUD;
 	}
 
 	public int getX()
@@ -492,7 +775,7 @@ public abstract class HUDMod
 
 	public void setScale(float scale)
 	{
-		this.scale = Math.max(0.2F, Math.min(5.0F, scale));
+		this.scale = Math.max(0.2F, Math.min(5F, scale));
 	}
 
 	public float getDefaultScale()
@@ -500,32 +783,10 @@ public abstract class HUDMod
 		return defaultScale;
 	}
 
-	public void setDefaultScale(float defaultScale)
+	public void setDefaultScale(float scale)
 	{
-		this.defaultScale = defaultScale;
-		this.scale = defaultScale;
-	}
-
-	public boolean isEnabled()
-	{
-		return enabled;
-	}
-
-	public void setEnabled(boolean enabled)
-	{
-		if(this.enabled == enabled)
-			return;
-		this.enabled = enabled;
-		onEnabledChanged(enabled);
-	}
-
-	public void setEnabledSilently(boolean enabled)
-	{
-		this.enabled = enabled;
-	}
-
-	protected void onEnabledChanged(boolean enabled)
-	{
+		this.defaultScale = Math.max(0.2F, Math.min(5F, scale));
+		this.scale = this.defaultScale;
 	}
 
 	public boolean isDefaultEnabled()
@@ -533,10 +794,10 @@ public abstract class HUDMod
 		return defaultEnabled;
 	}
 
-	public void setDefaultEnabled(boolean defaultEnabled)
+	public void setDefaultEnabled(boolean enabled)
 	{
-		this.defaultEnabled = defaultEnabled;
-		this.enabled = defaultEnabled;
+		this.defaultEnabled = enabled;
+		this.enabled = enabled;
 	}
 
 	public int getDefaultX()
@@ -601,5 +862,25 @@ public abstract class HUDMod
 	{
 		x = Math.max(0, Math.min(x, screenWidth - getWidth()));
 		y = Math.max(0, Math.min(y, screenHeight - getHeight()));
+	}
+
+	public static HudFont regularFont()
+	{
+		return HudFonts.REGULAR;
+	}
+
+	public static HudFont mediumFont()
+	{
+		return HudFonts.MEDIUM;
+	}
+
+	public static HudFont demiboldFont()
+	{
+		return HudFonts.DEMIBOLD;
+	}
+
+	public static HudFont iconFont()
+	{
+		return HudFonts.ICON;
 	}
 }

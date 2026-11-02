@@ -1010,7 +1010,7 @@ public final class ClickGuiScreen extends Screen
 					}),
 				actionRow("SortGui", () -> false, ClickGuiScreen.this::sortWindows),
 				actionRow("HUD编辑器", () -> false,
-					() -> MC.setScreenAndShow(new net.wurstclient.hud2.HudEditorScreen())));
+					() -> MC.setScreenAndShow(new net.wurstclient.hud2.GuiEditHUD())));
 		}
 	}
 
