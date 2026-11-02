@@ -16,10 +16,8 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 // Include generated resources
 sourceSets.main.resources { srcDir 'src/generated/resources' }
-sourceSets.main.output.resourcesDir =
-    sourceSets.main.java.destinationDirectory.get().asFile
-
 configurations {
+	hudNatives
     allJarEmbed
 }
 
@@ -83,6 +81,22 @@ repositories {
 }
 
 dependencies {
+    implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+
+
     implementation minecraft.dependency("net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}")
 
     implementation "io.github.llamalad7:mixinextras-forge:${project.mixinextras_version}"
@@ -180,4 +194,11 @@ if(project.hasProperty("spWorld")) {
 		args "--quickPlaySingleplayer", project.property("spWorld")
 		args "--quickPlayPath", project.property("spLog")
 	}
+}
+
+processResources {
+    from({ configurations.hudNatives.collect { zipTree(it) } }) {
+        include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+        exclude "META-INF/**", "module-info.class", "**/*.signature"
+    }
 }
