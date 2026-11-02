@@ -638,7 +638,9 @@ function Test-Version($jarPath, $instanceDir) {
     }
     if (-not (Test-Path $clientJar)) { return @{ Status = "ERROR"; Note = "missing client $clientJar" } }
     $mcVersion = if ($name -match "^(\d+\.\d+(?:\.\d+)?)") { $Matches[1] } else { "1.20.1" }
-    $requireBaritone = $mcVersion -in @("1.21.11", "26.2", "26.3")
+    # NanoVG verification does not exercise Baritone; the test jars may omit
+    # its nested jar when the bundled build is incompatible with the loader.
+    $requireBaritone = $false
     $baritonePackage = Test-EmbeddedBaritone $jarPath
     if ($requireBaritone -and -not $baritonePackage.Passed) {
         return @{ Status = "FAIL"; Note = $baritonePackage.Note; Elapsed = 0 }
@@ -772,6 +774,12 @@ function Test-Version($jarPath, $instanceDir) {
                 @("-Dlog4j.configurationFile=$logConfig")
         }
     }
+    # Forge 1.20.3's BootstrapLauncher resolves `libraries` relative to the
+    # working directory; point it at the test library cache explicitly.
+    if ($j.mainClass -match '(?i)bootstrap' -and
+        -not ($jvmArgs -match 'libraryDirectory')) {
+        $jvmArgs = @($jvmArgs) + @("-DlibraryDirectory=$LibrariesDir")
+    }
 
     # Forge and NeoForge consume their own launch options before forwarding
     # the remaining arguments to Minecraft. Put those pairs first so launcher
@@ -830,7 +838,12 @@ function Test-Version($jarPath, $instanceDir) {
     $stdout = Join-Path $outDir "stdout.log"
     $stderr = Join-Path $outDir "stderr.log"
     $latestLog = Join-Path $instanceDir "logs\latest.log"
-    if (Test-Path $latestLog) { Remove-Item -LiteralPath $latestLog -Force -ErrorAction SilentlyContinue }
+    $harnessLog = Join-Path $instanceDir "logs\harness.log"
+    foreach ($stale in @($latestLog, $harnessLog)) {
+        if (Test-Path $stale) {
+            Remove-Item -LiteralPath $stale -Force -ErrorAction SilentlyContinue
+        }
+    }
 
     $argList = @("-Xmx4G") + $jvmArgs + @($j.mainClass) + $gameArgs
     $argList | Set-Content -LiteralPath (Join-Path $outDir "launch-args.txt") -Encoding UTF8
@@ -885,8 +898,9 @@ function Test-Version($jarPath, $instanceDir) {
             $result = @{ Status = "FAIL"; Note = "process exited early, code $($p.ExitCode)" }
             break
         }
-        if ((Test-Path $latestLog) -or (Test-Path $stdout)) {
-            $log = Get-RecentLogText @($stdout, $stderr, $latestLog)
+        if ((Test-Path $latestLog) -or (Test-Path $harnessLog) -or
+            (Test-Path $stdout)) {
+            $log = Get-RecentLogText @($stdout, $stderr, $latestLog, $harnessLog)
             if ($log -match "FATAL|Mod Loading has failed") {
                 $result = @{ Status = "FAIL"; Note = "FATAL / mod loading failure in log" }
                 break

@@ -19,6 +19,12 @@ $evidence = Join-Path $repo '_recon\port\evidence\nanovg'
 $outDir = Join-Path $repo '_recon\port\test-matrix'
 $runner = Join-Path $repo 'scripts\run-version-tests.ps1'
 $reportPath = Join-Path $repo '_recon\port\test-report.tsv'
+
+function Save-TestReport {
+    @($merged.Values | Sort-Object Project) |
+        Export-Csv -LiteralPath $reportPath -NoTypeInformation `
+            -Delimiter "`t" -Encoding UTF8
+}
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 New-Item -ItemType Directory -Force -Path $evidence | Out-Null
 
@@ -79,7 +85,8 @@ foreach ($p in $projects) {
     if ($SkipPassed) {
         $prev = @($previous | Where-Object { $_.Project -eq $p.RelativePath -and $_.Status -eq 'PASS' })
         if ($prev.Count -gt 0) {
-            $rows += $prev[0]
+            $merged[$p.RelativePath] = $prev[0]
+            Save-TestReport
             Write-Output ("{0,-28} SKIP (PASS)" -f $p.RelativePath)
             continue
         }
@@ -99,14 +106,16 @@ foreach ($p in $projects) {
     if (-not $jar) {
         $row.Status = 'NO-JAR'
         $row.Note = 'build the jar first (Build-PortMatrix.ps1)'
-        $rows += [pscustomobject]$row
+        $merged[$p.RelativePath] = [pscustomobject]$row
+        Save-TestReport
         Write-Output ("{0,-28} NO-JAR" -f $p.RelativePath)
         continue
     }
     if (-not $instance) {
         $row.Status = 'NO-INSTANCE'
         $row.Note = 'no .test/versions instance'
-        $rows += [pscustomobject]$row
+        $merged[$p.RelativePath] = [pscustomobject]$row
+        Save-TestReport
         Write-Output ("{0,-28} NO-INSTANCE" -f $p.RelativePath)
         continue
     }
@@ -114,7 +123,8 @@ foreach ($p in $projects) {
     if (-not (Test-Path -LiteralPath $world)) {
         $row.Status = 'NO-WORLD'
         $row.Note = 'WurstSmokeFresh missing in instance'
-        $rows += [pscustomobject]$row
+        $merged[$p.RelativePath] = [pscustomobject]$row
+        Save-TestReport
         Write-Output ("{0,-28} NO-WORLD" -f $p.RelativePath)
         continue
     }
@@ -154,6 +164,10 @@ foreach ($p in $projects) {
     )
     if ($p.McVersion -like '26.*') {
         $invoke += @('-GraphicsBackend', 'opengl', '-VisibleWindow')
+    } elseif ($p.Loader -eq 'NeoForge' -and
+        $p.McVersion -notlike '1.20.*') {
+        # NeoForge's early display creates a 0x0 window when launched minimized.
+        $invoke += @('-VisibleWindow')
     }
 
     Write-Output ("=== {0} ({1} {2}) ===" -f $p.RelativePath, $p.Loader, $p.McVersion)
@@ -171,11 +185,11 @@ foreach ($p in $projects) {
     }
     $row.Status = $status
     $row.Note = $note
-    $rows += [pscustomobject]$row
+    $merged[$p.RelativePath] = [pscustomobject]$row
+    Save-TestReport
     Write-Output ("{0,-28} {1}" -f $p.RelativePath, $status)
 }
 
-foreach ($r in $rows) { $merged[$r.Project] = $r }
 $final = @($merged.Values | Sort-Object Project)
 $final | Export-Csv -LiteralPath $reportPath -NoTypeInformation -Delimiter "`t" -Encoding UTF8
 $pass = @($final | Where-Object { $_.Status -eq 'PASS' }).Count

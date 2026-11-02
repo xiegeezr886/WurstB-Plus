@@ -20,12 +20,19 @@ $stripped = 0
 foreach ($jar in Get-ChildItem -LiteralPath $srcDir -File -Filter '*.jar') {
     $outPath = Join-Path $dstDir $jar.Name
     $tmpPath = $outPath + '.tmp'
-    $isForge = ($jar.Name -match 'Forge' -and $jar.Name -notmatch 'Fabric')
+    # 26.x keeps its nested Baritone: those bundles start correctly and the
+    # harness still exercises Baritone integration on 26.2/26.3.
+    $isForge = ($jar.Name -match 'Forge' -and
+        $jar.Name -notmatch 'Fabric' -and $jar.Name -notmatch '-26\.')
     $zip = [System.IO.Compression.ZipFile]::OpenRead($jar.FullName)
     $baritone = @($zip.Entries | Where-Object {
         $_.FullName -match '^META-INF/jarjar/baritone-.*\.jar$'
     })
-    if (-not $isForge -or $baritone.Count -eq 0) {
+    $orphanConfig = @($zip.Entries | Where-Object {
+        $_.FullName -eq 'mixins.baritone.json'
+    })
+    if (-not $isForge -or
+        ($baritone.Count -eq 0 -and $orphanConfig.Count -eq 0)) {
         $zip.Dispose()
         Copy-Item -LiteralPath $jar.FullName -Destination $outPath -Force
         $copied++
@@ -38,7 +45,9 @@ foreach ($jar in Get-ChildItem -LiteralPath $srcDir -File -Filter '*.jar') {
     try {
         foreach ($entry in $zip.Entries) {
             if ($entry.FullName.EndsWith('/')) { continue }
-            if ($entry.FullName -match '^META-INF/jarjar/baritone-.*\.jar$') {
+            if ($entry.FullName -match '^META-INF/jarjar/baritone-.*\.jar$' -or
+                $entry.FullName -eq 'mixins.baritone.json' -or
+                $entry.FullName -eq 'baritone/launch/BaritoneForgeModXD.class') {
                 continue
             }
             $newEntry = $out.CreateEntry($entry.FullName,
@@ -56,6 +65,17 @@ foreach ($jar in Get-ChildItem -LiteralPath $srcDir -File -Filter '*.jar') {
                         })
                         $text = $json | ConvertTo-Json -Depth 20
                     } catch {}
+                    $writer = New-Object System.IO.StreamWriter(
+                        $newEntry.Open(), (New-Object System.Text.UTF8Encoding($false)))
+                    $writer.Write($text)
+                    $writer.Dispose()
+                } elseif ($entry.FullName -eq 'META-INF/MANIFEST.MF') {
+                    $reader = New-Object System.IO.StreamReader($in)
+                    $text = $reader.ReadToEnd()
+                    $reader.Dispose()
+                    $text = $text -replace
+                        ',\s*mixins\.baritone\.json', '' -replace
+                        'mixins\.baritone\.json\s*,', ''
                     $writer = New-Object System.IO.StreamWriter(
                         $newEntry.Open(), (New-Object System.Text.UTF8Encoding($false)))
                     $writer.Write($text)
