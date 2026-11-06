@@ -10,7 +10,7 @@ displayName="${mod_name}"
 logoFile="assets/wurst/icon.png"
 authors="${mod_authors}"
 description='''
-WurstB+ Plus for Minecraft 1.20.2 (NeoForge).
+WurstB+ Plus for Minecraft 1.20.4 (NeoForge).
 '''
 
 [[mixins]]
@@ -21,14 +21,14 @@ file="META-INF/accesstransformer.cfg"
 
 [[dependencies.${mod_id}]]
     modId="neoforge"
-    type="required"
+    mandatory=true
     versionRange="${neo_version_range}"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
     modId="minecraft"
-    type="required"
+    mandatory=true
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"
