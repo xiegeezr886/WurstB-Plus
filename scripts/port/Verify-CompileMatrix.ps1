@@ -2,7 +2,8 @@
 # ASCII only.
 param(
     [string]$Band = '',
-    [string]$Only = ''
+    [string]$Only = '',
+    [switch]$Offline
 )
 
 $ErrorActionPreference = 'Stop'
@@ -37,7 +38,10 @@ foreach ($p in $projects) {
     $log = Join-Path $outDir ($name + '.log')
     Push-Location $p.FullPath
     try {
-        & .\gradlew.bat compileJava --init-script $init --console=plain --no-configuration-cache 2>&1 |
+        $gradleArgs = @('compileJava', '--init-script', $init, '--console=plain',
+            '--no-configuration-cache')
+        if ($Offline) { $gradleArgs += '--offline' }
+        & .\gradlew.bat @gradleArgs 2>&1 |
             Out-File -FilePath $log -Encoding UTF8
         $code = $LASTEXITCODE
     } finally {
