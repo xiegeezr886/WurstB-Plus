@@ -1,7 +1,36 @@
 # 全版本 compileJava 矩阵（65 / 65）
 
-日期：2026-10-27
+复验日期：2026-11-06
+首次矩阵：2026-10-27
 范围：除根目录 Forge 1.20.1（v1.6.0）外的全部 65 个 v1.5.1 工程。
+
+## 2026-11-06 复验结果
+
+在当前源码（含 1.20.5/1.20.6 的 `@Local` 尾置参数修复、26.1/26.2 的
+GpuSampler blitter、Forge refmap/classes 打包修复）上重新执行 compileJava：
+
+| 分组 | 工程数 | PASS |
+| --- | ---: | ---: |
+| Fabric（1.20.2–26.3） | 22 | 22 |
+| Forge（1.20.2–26.3） | 20 | 20 |
+| NeoForge（根 1.20.1 + 1.20.2–26.3） | 23 | 23 |
+| **合计** | **65** | **65** |
+
+NeoForge 1.20.2–1.20.6（userdev）在当前网络下无法访问
+`maven.neoforged.net`，复验时使用：
+
+1. `_recon/port/neoforge-maven` 本地仓库（从 Gradle 模块缓存镜像，并为缺少
+   POM 的 artifact 生成最小 POM）。
+2. `_recon/port/neoforge-local-repo.gradle`：本地仓库置前、移除不可达的
+   NeoForged 仓库、补 `groovydslimprover:base`。
+3. `_recon/port/skip-neo-cache.gradle`：跳过会删除离线缓存的
+   `cacheVersion*` 任务。
+4. 手动把 vanilla `client.jar` 放入
+   `neoforge/versions/<mc>/.gradle/caches/minecraft/versions/<mc>/client.jar`。
+5. 在线运行 `compileJava`，让 `neoFormListLibraries` 从 Mojang 下载 MC 库。
+
+NeoForge 1.21+（ModDevGradle）与 26.x 可用 `--offline` 直接编译；
+根 `neoforge/` 1.20.1 在线编译。
 
 ## 结果
 
@@ -41,7 +70,7 @@ JDK 21 全带。
   - `lwjgl_nanovg_version`：1.20.1=3.3.1，1.20.2–1.20.4=3.3.2，
     1.20.5–1.21.11=3.3.3，26.1–26.2=3.4.1，26.3=3.4.3
 
-## 本轮未做的事（按“先 compileJava，冒烟后面再说”）
+## 2026-10-27 首轮未做的事（后续进展见上）
 
 - 未移植 Fabric 1.20.1 的 ClickGUI / 标题界面 NanoVG 重构。
 - 未移植 Scaffold 新实现、OpenAura、IMG G*/TP hack、目标 HUD 新模块
@@ -61,6 +90,8 @@ powershell -ExecutionPolicy Bypass -File scripts\port\Verify-CompileMatrix.ps1 -
 powershell -ExecutionPolicy Bypass -File scripts\port\Verify-CompileMatrix.ps1 -Band 21
 # JDK 25 带
 powershell -ExecutionPolicy Bypass -File scripts\port\Verify-CompileMatrix.ps1 -Band 25
+# 仅 NeoForge 1.21+ / 26.x（离线）
+powershell -ExecutionPolicy Bypass -File scripts\port\Verify-CompileMatrix.ps1 -Only "neoforge/versions/1.21*" -Offline
 ```
 
 每个工程的完整日志在 `_recon/port/compile-matrix/<project>.log`，
