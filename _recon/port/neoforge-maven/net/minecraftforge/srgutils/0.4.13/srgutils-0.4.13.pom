@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.minecraftforge</groupId>
+  <artifactId>srgutils</artifactId>
+  <version>0.4.13</version>
+  <name>SRG Utils</name>
+  <description>Library for managing java obfuscation mappings in various formats.</description>
+  <url>https://github.com/MinecraftForge/SrgUtils</url>
+  <licenses>
+    <license>
+      <name>LGPLv2.1</name>
+      <url>https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>LexManos</id>
+      <name>LexManos</name>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/MinecraftForge/SrgUtils.git</connection>
+    <developerConnection>scm:git:git@github.com:MinecraftForge/SrgUtils.git</developerConnection>
+    <url>https://github.com/MinecraftForge/SrgUtils</url>
+  </scm>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/MinecraftForge/SrgUtils/issues</url>
+  </issueManagement>
+</project>

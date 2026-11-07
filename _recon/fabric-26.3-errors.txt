@@ -1,0 +1,133 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At line:1 char:135
++ ... ions\26.3"; .\gradlew.bat compileJava --init-script ..\..\..\gradle\i ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/ui863/.gradle/wrapper/dists/gradle-9.6.0-bin/3yr5qo1p853jn7m5o1j0u2qkd/gradle-9.6.0/lib/nativ
+e-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+
+> Configure project :
+Fabric Loom: 1.17.17
+
+> Task :compileJava
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\ScreenActionsHack.j
+ava:11: 错误: 程序包org.lwjgl.glfw不存在
+import org.lwjgl.glfw.GLFW;
+                     ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\ScreenActionsHack.j
+ava:19: 错误: 找不到符号
+import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+                                          ^
+  符号:   类 ServerboundSwingPacket
+  位置: 程序包 net.minecraft.network.protocol.game
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\MobHudHack.java:22:
+ 错误: 找不到符号
+import net.minecraft.world.entity.monster.EnderMan;
+                                         ^
+  符号:   类 EnderMan
+  位置: 程序包 net.minecraft.world.entity.monster
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\GAntiExplosionHack.
+java:21: 错误: 找不到符号
+import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+                                          ^
+  符号:   类 ServerboundSwingPacket
+  位置: 程序包 net.minecraft.network.protocol.game
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\FoKillAuraHack.java
+:17: 错误: 找不到符号
+import net.minecraft.world.item.AxeItem;
+                               ^
+  符号:   类 AxeItem
+  位置: 程序包 net.minecraft.world.item
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\BacktrackHack.java:
+25: 错误: 找不到符号
+import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+                                          ^
+  符号:   类 ServerboundSwingPacket
+  位置: 程序包 net.minecraft.network.protocol.game
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\MaceAuraHack.java:1
+6: 错误: 找不到符号
+import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+                                          ^
+  符号:   类 ServerboundSwingPacket
+  位置: 程序包 net.minecraft.network.protocol.game
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\CrossbowAuraHack.ja
+va:16: 错误: 程序包org.lwjgl.glfw不存在
+import org.lwjgl.glfw.GLFW;
+                     ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\AttractAuraHack.jav
+a:12: 错误: 程序包org.lwjgl.glfw不存在
+import org.lwjgl.glfw.GLFW;
+                     ^
+9 个错误
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/ui863/Documents/trae_projects/VAP/fabric/versions/26.3/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\ScreenActionsHack
+.java:19: 错误: 找不到符号
+  import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+                                            ^
+    符号:   类 ServerboundSwingPacket
+    位置: 程序包 net.minecraft.network.protocol.game
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\MobHudHack.java:2
+2: 错误: 找不到符号
+  import net.minecraft.world.entity.monster.EnderMan;
+                                           ^
+    符号:   类 EnderMan
+    位置: 程序包 net.minecraft.world.entity.monster
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\GAntiExplosionHac
+k.java:21: 错误: 找不到符号
+  import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+                                            ^
+    符号:   类 ServerboundSwingPacket
+    位置: 程序包 net.minecraft.network.protocol.game
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\FoKillAuraHack.ja
+va:17: 错误: 找不到符号
+  import net.minecraft.world.item.AxeItem;
+                                 ^
+    符号:   类 AxeItem
+    位置: 程序包 net.minecraft.world.item
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\BacktrackHack.jav
+a:25: 错误: 找不到符号
+  import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+                                            ^
+    符号:   类 ServerboundSwingPacket
+    位置: 程序包 net.minecraft.network.protocol.game
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\MaceAuraHack.java
+:16: 错误: 找不到符号
+  import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+                                            ^
+    符号:   类 ServerboundSwingPacket
+    位置: 程序包 net.minecraft.network.protocol.game
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\ScreenActionsHack
+.java:11: 错误: 程序包org.lwjgl.glfw不存在
+  import org.lwjgl.glfw.GLFW;
+                       ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\CrossbowAuraHack.
+java:16: 错误: 程序包org.lwjgl.glfw不存在
+  import org.lwjgl.glfw.GLFW;
+                       ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.3\src\main\java\net\wurstclient\hacks\AttractAuraHack.j
+ava:12: 错误: 程序包org.lwjgl.glfw不存在
+  import org.lwjgl.glfw.GLFW;
+                       ^
+  9 个错误
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 8s
+1 actionable task: 1 executed

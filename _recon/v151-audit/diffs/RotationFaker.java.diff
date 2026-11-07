@@ -1,0 +1,220 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\RotationFaker.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\RotationFaker.java"
+index 42a11edb..ba6cd03e 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\RotationFaker.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\RotationFaker.java"
+@@ -8,84 +8,173 @@
+ package net.wurstclient;
+ 
+-import net.minecraft.client.network.ClientPlayerEntity;
+-import net.minecraft.util.math.Vec3d;
++import net.minecraft.client.player.LocalPlayer;
++import net.minecraft.network.protocol.Packet;
++import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
++import net.minecraft.util.Mth;
++import net.minecraft.world.phys.Vec3;
++import net.wurstclient.events.PacketOutputListener;
++import net.wurstclient.events.PacketOutputListener.PacketOutputEvent;
+ import net.wurstclient.events.PostMotionListener;
+-import net.wurstclient.events.PreMotionListener;
+ import net.wurstclient.util.Rotation;
+ import net.wurstclient.util.RotationUtils;
+ 
+ public final class RotationFaker
+-	implements PreMotionListener, PostMotionListener
++	implements PostMotionListener, PacketOutputListener
+ {
+-	private boolean fakeRotation;
++	private LocalPlayer trackedPlayer;
++	private Rotation currentRotation;
+ 	private float serverYaw;
+ 	private float serverPitch;
+-	private float realYaw;
+-	private float realPitch;
++	private float previousServerYaw;
++	private float previousServerPitch;
++	private boolean serverRotationKnown;
++	private boolean modelRotationActive;
+ 	
+ 	@Override
+-	public void onPreMotion()
++	public void onPostMotion()
+ 	{
+-		if(!fakeRotation)
+-			return;
+-		
+-		ClientPlayerEntity player = WurstClient.MC.player;
+-		realYaw = player.getYaw();
+-		realPitch = player.getPitch();
+-		player.setYaw(serverYaw);
+-		player.setPitch(serverPitch);
++		ensureTrackedPlayer();
++		currentRotation = null;
+ 	}
+-	
++
+ 	@Override
+-	public void onPostMotion()
++	public void onSentPacket(PacketOutputEvent event)
+ 	{
+-		if(!fakeRotation)
++		if(!(event.getPacket() instanceof ServerboundMovePlayerPacket))
+ 			return;
+-		
+-		ClientPlayerEntity player = WurstClient.MC.player;
+-		player.setYaw(realYaw);
+-		player.setPitch(realPitch);
+-		fakeRotation = false;
++
++		event.runAfterSend(() -> trackSentRotation(event.getPacket()));
+ 	}
+ 	
+-	public void faceVectorPacket(Vec3d vec)
++	public void faceVectorPacket(Vec3 vec)
+ 	{
+ 		Rotation needed = RotationUtils.getNeededRotations(vec);
+-		ClientPlayerEntity player = WurstClient.MC.player;
++		LocalPlayer player = WurstClient.MC.player;
++		if(player == null)
++			return;
+ 		
+-		fakeRotation = true;
+-		serverYaw =
+-			RotationUtils.limitAngleChange(player.getYaw(), needed.yaw());
+-		serverPitch = needed.pitch();
++		setRotationPacket(new Rotation(
++			RotationUtils.limitAngleChange(getServerYaw(), needed.yaw()),
++			needed.pitch()));
++	}
++
++	public void setRotationPacket(Rotation rotation)
++	{
++		ensureTrackedPlayer();
++		if(trackedPlayer == null || rotation == null)
++			return;
++
++		currentRotation = normalize(rotation.yaw(), rotation.pitch());
++	}
++
++	public Rotation getCurrentRotation()
++	{
++		ensureTrackedPlayer();
++		return currentRotation;
+ 	}
+ 	
+-	public void faceVectorClient(Vec3d vec)
++	public void faceVectorClient(Vec3 vec)
+ 	{
+ 		Rotation needed = RotationUtils.getNeededRotations(vec);
+ 		
+-		ClientPlayerEntity player = WurstClient.MC.player;
+-		player.setYaw(
+-			RotationUtils.limitAngleChange(player.getYaw(), needed.yaw()));
+-		player.setPitch(needed.pitch());
++		LocalPlayer player = WurstClient.MC.player;
++		player.setYRot(
++			RotationUtils.limitAngleChange(player.getYRot(), needed.yaw()));
++		player.setXRot(needed.pitch());
+ 	}
+ 	
+-	public void faceVectorClientIgnorePitch(Vec3d vec)
++	public void faceVectorClientIgnorePitch(Vec3 vec)
+ 	{
+ 		Rotation needed = RotationUtils.getNeededRotations(vec);
+ 		
+-		ClientPlayerEntity player = WurstClient.MC.player;
+-		player.setYaw(
+-			RotationUtils.limitAngleChange(player.getYaw(), needed.yaw()));
+-		player.setPitch(0);
++		LocalPlayer player = WurstClient.MC.player;
++		player.setYRot(
++			RotationUtils.limitAngleChange(player.getYRot(), needed.yaw()));
++		player.setXRot(0);
+ 	}
+ 	
+ 	public float getServerYaw()
+ 	{
+-		return fakeRotation ? serverYaw : WurstClient.MC.player.getYaw();
++		ensureTrackedPlayer();
++		return serverRotationKnown ? serverYaw
++			: trackedPlayer == null ? 0 : trackedPlayer.getYRot();
+ 	}
+ 	
+ 	public float getServerPitch()
+ 	{
+-		return fakeRotation ? serverPitch : WurstClient.MC.player.getPitch();
++		ensureTrackedPlayer();
++		return serverRotationKnown ? serverPitch
++			: trackedPlayer == null ? 0 : trackedPlayer.getXRot();
++	}
++
++	public boolean hasServerRotation()
++	{
++		ensureTrackedPlayer();
++		return serverRotationKnown;
++	}
++
++	public boolean isModelRotationActive()
++	{
++		ensureTrackedPlayer();
++		return modelRotationActive && serverRotationKnown;
++	}
++
++	public float getInterpolatedServerYaw(float partialTicks)
++	{
++		ensureTrackedPlayer();
++		return serverRotationKnown ? Mth.rotLerp(partialTicks,
++			previousServerYaw, serverYaw) : getServerYaw();
++	}
++
++	public float getInterpolatedServerPitch(float partialTicks)
++	{
++		ensureTrackedPlayer();
++		return serverRotationKnown ? Mth.lerp(partialTicks,
++			previousServerPitch, serverPitch) : getServerPitch();
++	}
++
++	private void trackSentRotation(Packet<?> sentPacket)
++	{
++		if(!(sentPacket instanceof ServerboundMovePlayerPacket movementPacket)
++			|| !movementPacket.hasRotation())
++			return;
++
++		ensureTrackedPlayer();
++		float fallbackYaw = serverRotationKnown ? serverYaw
++			: trackedPlayer == null ? 0 : trackedPlayer.getYRot();
++		float fallbackPitch = serverRotationKnown ? serverPitch
++			: trackedPlayer == null ? 0 : trackedPlayer.getXRot();
++		Rotation sentRotation = normalize(
++			movementPacket.getYRot(fallbackYaw),
++			movementPacket.getXRot(fallbackPitch));
++
++		previousServerYaw = fallbackYaw;
++		previousServerPitch = fallbackPitch;
++		serverYaw = sentRotation.yaw();
++		serverPitch = sentRotation.pitch();
++		serverRotationKnown = true;
++		modelRotationActive = currentRotation != null;
++	}
++
++	private void ensureTrackedPlayer()
++	{
++		LocalPlayer player = WurstClient.MC.player;
++		if(player == trackedPlayer)
++			return;
++
++		trackedPlayer = player;
++		currentRotation = null;
++		serverRotationKnown = false;
++		modelRotationActive = false;
++		serverYaw = 0;
++		serverPitch = 0;
++		previousServerYaw = 0;
++		previousServerPitch = 0;
++	}
++
++	private Rotation normalize(float yaw, float pitch)
++	{
++		return new Rotation(Mth.wrapDegrees(yaw),
++			Mth.clamp(Mth.wrapDegrees(pitch), -90, 90));
+ 	}
+ }
