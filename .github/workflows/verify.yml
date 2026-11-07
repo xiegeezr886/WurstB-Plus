@@ -47,6 +47,10 @@ jobs:
         shell: pwsh
         run: ./scripts/check-licenses.ps1 -Quiet
 
+      - name: 全版本注册表 / 渲染入口对齐闸门
+        shell: pwsh
+        run: ./scripts/check-parity.ps1 -Check
+
   compile:
     name: 根工程 compileJava
     runs-on: ubuntu-latest

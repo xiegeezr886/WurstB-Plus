@@ -1,0 +1,37 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\Category.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\Category.java"
+index 34584ec1..a2137ad4 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\Category.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\Category.java"
+@@ -10,20 +10,21 @@ package net.wurstclient;
+ public enum Category
+ {
+-	BLOCKS("Blocks"),
+-	MOVEMENT("Movement"),
+-	COMBAT("Combat"),
+-	RENDER("Render"),
+-	CHAT("Chat"),
+-	FUN("Fun"),
+-	ITEMS("Items"),
+-	OTHER("Other");
+-	
++	BLOCKS("\u65B9\u5757"),
++	MOVEMENT("\u79FB\u52A8"),
++	COMBAT("\u6218\u6597"),
++	RENDER("\u6E32\u67D3"),
++	CHAT("\u804A\u5929"),
++	FUN("\u5A31\u4E50"),
++	ITEMS("\u7269\u54C1"),
++	OTHER("\u5176\u4ED6"),
++	HUD("HUD");
++
+ 	private final String name;
+-	
++
+ 	private Category(String name)
+ 	{
+ 		this.name = name;
+ 	}
+-	
++
+ 	public String getName()
+ 	{

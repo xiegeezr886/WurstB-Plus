@@ -1,0 +1,27 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\SearchTags.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\SearchTags.java"
+index b94565d7..06c94c95 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\SearchTags.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\SearchTags.java"
+@@ -15,16 +15,16 @@ import java.lang.annotation.Target;
+ /**
+  * Adds search tags to a Wurst feature so that it can be found through the
+- * search bar in the Navigator GUI.
++ * search bar in the ClickGUI.
+  *
+  * <p>
+- * Navigator can already find features by their name and description, so
++ * ClickGUI can already find features by their name and description, so
+  * repeating that information in the search tags is pointless. However, names
+- * and descriptions of settings are not used by Navigator, so repeating those
++ * and descriptions of settings are not used by ClickGUI, so repeating those
+  * can make sense if people are likely to search for them.
+  *
+  * <p>
+- * Navigator is not case-sensitive, so for example "NukerLegit" and "nukerlegit"
+- * are treated the same. However, Navigator struggles with spaces and the order
+- * of words, for example "NukerLegit", "Nuker Legit" and "Legit Nuker" are all
++ * ClickGUI is not case-sensitive, so for example "NukerLegit" and "nukerlegit"
++ * are treated the same. Search still preserves spaces and word order, so for
++ * example "NukerLegit", "Nuker Legit" and "Legit Nuker" are all
+  * treated differently.
+  *
