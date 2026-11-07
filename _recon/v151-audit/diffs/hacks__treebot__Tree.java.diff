@@ -1,0 +1,104 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/treebot/Tree.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/treebot/Tree.java"
+index 86944f66..5ff07793 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/treebot/Tree.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/treebot/Tree.java"
+@@ -1,50 +1,49 @@
+-/*
+- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+- *
+- * This source code is subject to the terms of the GNU General Public
+- * License, version 3. If a copy of the GPL was not distributed with this
+- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+- */
+-package net.wurstclient.hacks.treebot;
+-
+-import java.util.ArrayList;
+-import java.util.List;
+-
+-import net.minecraft.client.util.math.MatrixStack;
+-import net.minecraft.util.math.BlockPos;
+-import net.minecraft.util.math.Box;
+-import net.wurstclient.util.RenderUtils;
+-
+-public class Tree
+-{
+-	private final BlockPos stump;
+-	private final ArrayList<BlockPos> logs;
+-	
+-	public Tree(BlockPos stump, ArrayList<BlockPos> logs)
+-	{
+-		this.stump = stump;
+-		this.logs = logs;
+-	}
+-	
+-	public void draw(MatrixStack matrixStack)
+-	{
+-		int green = 0x8000FF00;
+-		Box box = new Box(BlockPos.ORIGIN).contract(1 / 16.0);
+-		
+-		Box stumpBox = box.offset(stump);
+-		RenderUtils.drawCrossBox(matrixStack, stumpBox, green, false);
+-		
+-		List<Box> logBoxes = logs.stream().map(pos -> box.offset(pos)).toList();
+-		RenderUtils.drawOutlinedBoxes(matrixStack, logBoxes, green, false);
+-	}
+-	
+-	public BlockPos getStump()
+-	{
+-		return stump;
+-	}
+-	
+-	public ArrayList<BlockPos> getLogs()
+-	{
+-		return logs;
+-	}
+-}
++/*
++ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
++ *
++ * This source code is subject to the terms of the GNU General Public
++ * License, version 3. If a copy of the GPL was not distributed with this
++ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
++ */
++package net.wurstclient.hacks.treebot;
++
++import com.mojang.blaze3d.vertex.PoseStack;
++import java.util.ArrayList;
++import java.util.List;
++import net.minecraft.core.BlockPos;
++import net.minecraft.world.phys.AABB;
++import net.wurstclient.util.RenderUtils;
++
++public class Tree
++{
++	private final BlockPos stump;
++	private final ArrayList<BlockPos> logs;
++	
++	public Tree(BlockPos stump, ArrayList<BlockPos> logs)
++	{
++		this.stump = stump;
++		this.logs = logs;
++	}
++	
++	public void draw(PoseStack matrixStack)
++	{
++		int green = 0x8000FF00;
++		AABB box = new AABB(BlockPos.ZERO).deflate(1 / 16.0);
++		
++		AABB stumpBox = box.move(stump);
++		RenderUtils.drawCrossBox(matrixStack, stumpBox, green, false);
++		
++		List<AABB> logBoxes = logs.stream().map(pos -> box.move(pos)).toList();
++		RenderUtils.drawOutlinedBoxes(matrixStack, logBoxes, green, false);
++	}
++	
++	public BlockPos getStump()
++	{
++		return stump;
++	}
++	
++	public ArrayList<BlockPos> getLogs()
++	{
++		return logs;
++	}
++}

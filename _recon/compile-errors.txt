@@ -1,0 +1,22 @@
+﻿To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.9.2
+
+> Task :compileJava
+.\gradlew.bat : 注: 某些输入文件使用或覆盖了已过时的 API。
+At line:1 char:110
++ ... 1.0.12_12'; .\gradlew.bat compileJava --console=plain --no-daemon 2>& ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (注: 某些输入文件使用或覆盖了已过时的 API。:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+注: C:\Users\ui863\Documents\trae_projects\VAP\fabric\src\main\java\net\wurstclient\settings\CheckboxSetting.java使用了未经检查
+或不安全的操作。
+注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[Incubating] Problems report is available at: file:///C:/Users/ui863/Documents/trae_projects/VAP/fabric/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 38s
+1 actionable task: 1 executed

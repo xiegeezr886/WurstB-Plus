@@ -191,6 +191,7 @@ public final class AutoArmorHack extends Hack
 			
 			int inventorySlot = slot;
 			ItemStack expectedArmor = inventory.getItem(inventorySlot).copy();
+			ItemStack expectedEquipped = oldArmor.copy();
 
 			// hotbar fix
 			if(slot < 9)
@@ -203,7 +204,14 @@ public final class AutoArmorHack extends Hack
 				() -> MC.player != null
 					&& MC.player.containerMenu.containerId == 0
 					&& ItemStack.isSameItemSameComponents(expectedArmor,
-						MC.player.getInventory().getItem(inventorySlot)),
+						MC.player.getInventory().getItem(inventorySlot))
+					// The equipment slot can change between planning and the next
+					// queue tick (manual swap, ChestSwap, elytra). Never run a stale
+					// plan against a different piece.
+					&& ItemStack.isSameItemSameComponents(expectedEquipped,
+						MC.player.getInventory().getItem(36 + type))
+					&& !(keepElytra.isChecked()
+						&& MC.player.getInventory().getItem(36 + type).is(Items.ELYTRA)),
 				hasOldArmor
 					? new Runnable[]{() -> IMC.getInteractionManager()
 						.windowClick_QUICK_MOVE(armorSlot),

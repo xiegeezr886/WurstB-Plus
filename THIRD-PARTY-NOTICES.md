@@ -23,6 +23,12 @@
 | **FO** 部分模块 | **CC0-1.0** | 上游 <https://github.com/jialebot6666/FO>；可自由改编 |
 | **InvincibleMachineGun** 部分模块 | **GPL-3.0** | 上游 <https://github.com/adaxiaohu/InvincibleMachineGun>；与整体 AGPL-3.0 兼容 |
 | **LeavesHack** 部分模块 | **AGPL-3.0** | 上游 <https://github.com/MrBZBZ/LeavesHack>；与整体许可一致 |
+| **Meteor Client** 部分模块 | **GPL-3.0** | Copyright (c) Meteor Development；上游 <https://github.com/MeteorDevelopment/meteor-client>；按现有 Wurst 模块合并或原生移植 |
+
+2026-11-07 的 v1.5.1 移植批次在全部 66 个目标工程的
+`src/main/resources/META-INF/licenses/{fo,invincible-machine-gun,leaves-hack,meteor-client}/`
+附带对应源码快照的完整 `UPSTREAM-LICENSE.txt` 和 `ATTRIBUTION.txt`。
+归属文件列出已移植行为、原始模块 SHA-256 和本地适配说明；这不表示四个客户端已完成全量行为移植。
 
 ### 移植的第三方源码：LumaGlass
 

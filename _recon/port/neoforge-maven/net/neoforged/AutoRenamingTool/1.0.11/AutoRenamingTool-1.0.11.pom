@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.neoforged</groupId>
+  <artifactId>AutoRenamingTool</artifactId>
+  <version>1.0.11</version>
+  <name>Auto Renaming Tool</name>
+  <description>A tool that renames java bytecode elements.</description>
+  <url>https://github.com/NeoForged/AutoRenamingTool</url>
+  <licenses>
+    <license>
+      <name>LGPL-2.1-only</name>
+      <url>https://spdx.org/licenses/LGPL-2.1-only</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>neoforged</id>
+      <name>NeoForged</name>
+      <email>contact@neoforged.net</email>
+      <url>https://github.com/neoforged</url>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/NeoForged/AutoRenamingTool.git</connection>
+    <developerConnection>scm:git:git@github.com:NeoForged/AutoRenamingTool.git</developerConnection>
+    <url>https://github.com/NeoForged/AutoRenamingTool</url>
+  </scm>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/NeoForged/AutoRenamingTool/issues</url>
+  </issueManagement>
+  <dependencies>
+    <dependency>
+      <groupId>net.minecraftforge</groupId>
+      <artifactId>srgutils</artifactId>
+      <version>0.5.1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.jopt-simple</groupId>
+      <artifactId>jopt-simple</artifactId>
+      <version>6.0-alpha-3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>9.5</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>9.5</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-tree</artifactId>
+      <version>9.5</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.neoforged.javadoctor</groupId>
+      <artifactId>gson-io</artifactId>
+      <version>2.0.0</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>
