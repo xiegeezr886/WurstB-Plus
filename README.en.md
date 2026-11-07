@@ -57,23 +57,6 @@ WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.1-Forge-1.21
 
 ---
 
-## Rendering and compatibility
-
-- **The HUD and ClickGUI render entirely through NanoVG.** Panels and controls use the vector
-  rounded rectangles of `NanoVGUI.fillRounded` / `outlineRounded` (backed by
-  `nvgRoundedRect`); active GUI code no longer calls vanilla `GuiGraphics.fill/blit/drawString`.
-- **Android / OpenGL ES:** when an `OpenGL ES` context is detected the client switches to the
-  `NanoVGGLES3` backend. The offscreen FBO is checked for completeness and the composite step
-  checks GL errors and degrades instead of painting black; `-Dwurst.nanovg=false` disables NanoVG
-  entirely.
-- **1.21.11:** the missing `wurst:core/fogless_lines` shaders are shipped, so the ESP line
-  pipelines compile again; unregistered accessors such as `ToastComponentAccessor` were added to
-  `wurst.mixins.json` to stop `IllegalClassLoadError` crashes.
-- **lwjgl-nanovg:** Fabric 1.20.1–1.20.4 use 3.3.3 with transitive dependencies disabled, which
-  avoids the Android `Struct.wrap` `NoSuchMethodError`.
-
----
-
 ## Repository layout
 
 ```text
@@ -106,7 +89,7 @@ distribution resolves even offline.
 | [docs/STATUS.md](docs/STATUS.md) | **Authoritative status numbers (generated, do not edit)**: project inventory, toolchains, test counts, v1.6 gaps |
 | [CHANGELOG.md](CHANGELOG.md) | Version history, including known limitations and deviations |
 | [PROJECT_INDEX.md](PROJECT_INDEX.md) | Per-project index: toolchain, source file count, entry classes, artifact names |
-| [docs/RELEASE.md](docs/RELEASE.md) | **Release and maintenance handbook** (the original README): **feature documentation** (new subsystems, the new-hack inventory, HUD elements, refactored internals, architecture), **installation**, **building and running**, artifact matrix, packaging validation, verification status, **rendering compatibility (X-Ray / Vulkan)** |
+| [docs/RELEASE.md](docs/RELEASE.md) | **Release and maintenance handbook** (the original README): **feature documentation** (new subsystems, the new-hack inventory, HUD elements, refactored internals, architecture), **installation**, **building and running**, artifact matrix, packaging validation, verification status, **rendering compatibility (NanoVG / X-Ray / Vulkan)** |
 | [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) | Porting plan and per-version status for the new-version projects |
 | [docs/PORTING-1.21.11-26.2.md](docs/PORTING-1.21.11-26.2.md) | Render pipeline and porting notes for 1.21.11 / 26.2 |
 | [PORTING_TASK.md](PORTING_TASK.md) | Porting tasks and open items |
