@@ -1,0 +1,128 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\mixin/BackgroundRendererMixin.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\mixin/BackgroundRendererMixin.java"
+index e7f32c2f..89d15a65 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\mixin/BackgroundRendererMixin.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\mixin/BackgroundRendererMixin.java"
+@@ -1,62 +1,61 @@
+-/*
+- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+- *
+- * This source code is subject to the terms of the GNU General Public
+- * License, version 3. If a copy of the GPL was not distributed with this
+- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+- */
+-package net.wurstclient.mixin;
+-
+-import org.spongepowered.asm.mixin.Mixin;
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.Inject;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+-
+-import com.mojang.blaze3d.systems.RenderSystem;
+-
+-import net.minecraft.client.render.BackgroundRenderer;
+-import net.minecraft.client.render.BackgroundRenderer.StatusEffectFogModifier;
+-import net.minecraft.client.render.Camera;
+-import net.minecraft.client.render.CameraSubmersionType;
+-import net.minecraft.entity.Entity;
+-import net.wurstclient.WurstClient;
+-
+-@Mixin(BackgroundRenderer.class)
+-public abstract class BackgroundRendererMixin
+-{
+-	/**
+-	 * Makes the distance fog 100% transparent when NoFog is enabled,
+-	 * effectively removing it.
+-	 */
+-	@Inject(at = @At("HEAD"),
+-		method = "applyFog(Lnet/minecraft/client/render/Camera;Lnet/minecraft/client/render/BackgroundRenderer$FogType;FZF)V")
+-	private static void onApplyFog(Camera camera,
+-		BackgroundRenderer.FogType fogType, float viewDistance,
+-		boolean thickFog, float tickDelta, CallbackInfo ci)
+-	{
+-		if(!WurstClient.INSTANCE.getHax().noFogHack.isEnabled()
+-			|| fogType != BackgroundRenderer.FogType.FOG_TERRAIN)
+-			return;
+-		
+-		CameraSubmersionType cameraSubmersionType = camera.getSubmersionType();
+-		if(cameraSubmersionType != CameraSubmersionType.NONE)
+-			return;
+-		
+-		Entity entity = camera.getFocusedEntity();
+-		if(BackgroundRenderer.getFogModifier(entity, tickDelta) != null)
+-			return;
+-		
+-		RenderSystem.setShaderFogColor(0, 0, 0, 0);
+-	}
+-	
+-	@Inject(at = @At("HEAD"),
+-		method = "getFogModifier(Lnet/minecraft/entity/Entity;F)Lnet/minecraft/client/render/BackgroundRenderer$StatusEffectFogModifier;",
+-		cancellable = true)
+-	private static void onGetFogModifier(Entity entity, float tickDelta,
+-		CallbackInfoReturnable<StatusEffectFogModifier> ci)
+-	{
+-		if(WurstClient.INSTANCE.getHax().antiBlindHack.isEnabled())
+-			ci.setReturnValue(null);
+-	}
+-}
++/*
++ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
++ *
++ * This source code is subject to the terms of the GNU General Public
++ * License, version 3. If a copy of the GPL was not distributed with this
++ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
++ */
++package net.wurstclient.mixin;
++
++import org.spongepowered.asm.mixin.Mixin;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++
++import com.mojang.blaze3d.systems.RenderSystem;
++import net.minecraft.client.Camera;
++import net.minecraft.client.renderer.FogRenderer;
++import net.minecraft.world.entity.Entity;
++import net.minecraft.world.level.material.FogType;
++import net.wurstclient.WurstClient;
++
++@Mixin(FogRenderer.class)
++public abstract class BackgroundRendererMixin
++{
++	/**
++	 * Makes the distance fog 100% transparent when NoFog is enabled,
++	 * effectively removing it.
++	 */
++	@Inject(at = @At("HEAD"),
++		method = "setupFog(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/FogRenderer$FogMode;FZF)V")
++	private static void onApplyFog(Camera camera,
++		FogRenderer.FogMode fogType, float viewDistance,
++		boolean thickFog, float tickDelta, CallbackInfo ci)
++	{
++		if(!WurstClient.INSTANCE.getHax().noFogHack.isEnabled()
++			|| fogType != FogRenderer.FogMode.FOG_TERRAIN)
++			return;
++		
++		FogType cameraSubmersionType = camera.getFluidInCamera();
++		if(cameraSubmersionType != FogType.NONE)
++			return;
++		
++		Entity entity = camera.getEntity();
++		if(net.wurstclient.mixin.FogRendererAccessor
++			.invokeGetPriorityFogFunction(entity, tickDelta) != null)
++			return;
++		
++		RenderSystem.setShaderFogColor(0, 0, 0, 0);
++	}
++	
++	@Inject(at = @At("HEAD"),
++		method = "getPriorityFogFunction(Lnet/minecraft/world/entity/Entity;F)Lnet/minecraft/client/renderer/FogRenderer$MobEffectFogFunction;",
++		cancellable = true)
++	private static void onGetFogModifier(Entity entity, float tickDelta,
++		CallbackInfoReturnable<Object> ci)
++	{
++		if(WurstClient.INSTANCE.getHax().antiBlindHack.isEnabled())
++			ci.setReturnValue(null);
++	}
++}

@@ -1,0 +1,307 @@
+---- Minecraft Crash Report ----
+// Don't do that.
+
+Time: 2026-11-02 19:04:57
+Description: Initializing game
+
+java.lang.NoClassDefFoundError: baritone/api/BaritoneAPI
+	at TRANSFORMER/minecraft@26.2/net.minecraft.client.Minecraft.handler$zzh000$wurstpenguin$wurst$initializeBaritone(Minecraft.java:3620) [minecraft-client-patched-26.2.0.54-beta.jar:?] {neoforge:access_transformer,neoforge:access_transformer,neoforge:mixin[APP:mixins.iris.json:MixinOptions_Entrypoint from mod iris,APP:wurst.mixins.json:BaritoneMinecraftMixin from mod wurstpenguin,APP:wurst.mixins.json:MinecraftClientMixin from mod wurstpenguin,APP:sodium-common.mixins.json:core.MinecraftMixin from mod sodium,APP:sodium-common.mixins.json:features.gui.hooks.debug.MinecraftRenderFrameMixin from mod sodium,APP:sodium-neoforge.mixins.json:platform.neoforge.EntrypointMixin from mod sodium,APP:mixins.iris.json:MixinMinecraft_Images from mod iris,APP:mixins.iris.json:MixinMinecraft_Keybinds from mod iris,APP:mixins.iris.json:MixinMinecraft_PipelineManagement from mod iris,APP:xaerohud.mixins.json:MixinMinecraftClient from mod xaerominimap]}
+	at TRANSFORMER/minecraft@26.2/net.minecraft.client.Minecraft.<init>(Minecraft.java:765) [minecraft-client-patched-26.2.0.54-beta.jar:?] {neoforge:access_transformer,neoforge:access_transformer,neoforge:mixin[APP:mixins.iris.json:MixinOptions_Entrypoint from mod iris,APP:wurst.mixins.json:BaritoneMinecraftMixin from mod wurstpenguin,APP:wurst.mixins.json:MinecraftClientMixin from mod wurstpenguin,APP:sodium-common.mixins.json:core.MinecraftMixin from mod sodium,APP:sodium-common.mixins.json:features.gui.hooks.debug.MinecraftRenderFrameMixin from mod sodium,APP:sodium-neoforge.mixins.json:platform.neoforge.EntrypointMixin from mod sodium,APP:mixins.iris.json:MixinMinecraft_Images from mod iris,APP:mixins.iris.json:MixinMinecraft_Keybinds from mod iris,APP:mixins.iris.json:MixinMinecraft_PipelineManagement from mod iris,APP:xaerohud.mixins.json:MixinMinecraftClient from mod xaerominimap]}
+	at TRANSFORMER/minecraft@26.2/net.minecraft.client.main.Main.main(Main.java:280) [minecraft-client-patched-26.2.0.54-beta.jar:?] {}
+	at net.neoforged.fml.startup.Client.main(Client.java:19) [loader-11.0.16.jar:11.0] {}
+Caused by: java.lang.ClassNotFoundException: baritone.api.BaritoneAPI
+	at java.base/java.net.URLClassLoader.findClass(URLClassLoader.java:377) ~[?:?] {}
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:557) ~[?:?] {}
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:490) ~[?:?] {}
+	at net.neoforged.fml.classloading.ModuleClassLoader.loadClass(ModuleClassLoader.java:247) ~[loader-11.0.16.jar:11.0] {}
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:490) ~[?:?] {}
+	... 4 more
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Stacktrace:
+	at TRANSFORMER/minecraft@26.2/net.minecraft.client.Minecraft.handler$zzh000$wurstpenguin$wurst$initializeBaritone(Minecraft.java:3620) ~[minecraft-client-patched-26.2.0.54-beta.jar:?] {neoforge:access_transformer,neoforge:access_transformer,neoforge:mixin[APP:mixins.iris.json:MixinOptions_Entrypoint from mod iris,APP:wurst.mixins.json:BaritoneMinecraftMixin from mod wurstpenguin,APP:wurst.mixins.json:MinecraftClientMixin from mod wurstpenguin,APP:sodium-common.mixins.json:core.MinecraftMixin from mod sodium,APP:sodium-common.mixins.json:features.gui.hooks.debug.MinecraftRenderFrameMixin from mod sodium,APP:sodium-neoforge.mixins.json:platform.neoforge.EntrypointMixin from mod sodium,APP:mixins.iris.json:MixinMinecraft_Images from mod iris,APP:mixins.iris.json:MixinMinecraft_Keybinds from mod iris,APP:mixins.iris.json:MixinMinecraft_PipelineManagement from mod iris,APP:xaerohud.mixins.json:MixinMinecraftClient from mod xaerominimap]}
+	at TRANSFORMER/minecraft@26.2/net.minecraft.client.Minecraft.<init>(Minecraft.java:765) ~[minecraft-client-patched-26.2.0.54-beta.jar:?] {neoforge:access_transformer,neoforge:access_transformer,neoforge:mixin[APP:mixins.iris.json:MixinOptions_Entrypoint from mod iris,APP:wurst.mixins.json:BaritoneMinecraftMixin from mod wurstpenguin,APP:wurst.mixins.json:MinecraftClientMixin from mod wurstpenguin,APP:sodium-common.mixins.json:core.MinecraftMixin from mod sodium,APP:sodium-common.mixins.json:features.gui.hooks.debug.MinecraftRenderFrameMixin from mod sodium,APP:sodium-neoforge.mixins.json:platform.neoforge.EntrypointMixin from mod sodium,APP:mixins.iris.json:MixinMinecraft_Images from mod iris,APP:mixins.iris.json:MixinMinecraft_Keybinds from mod iris,APP:mixins.iris.json:MixinMinecraft_PipelineManagement from mod iris,APP:xaerohud.mixins.json:MixinMinecraftClient from mod xaerominimap]}
+-- Initialization --
+Details:
+	Modules: 
+		ADVAPI32.dll:高级 Windows 32 基本 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		AVRT.dll:多媒体实时运行时:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		COMCTL32.dll:用户体验控件库:6.10 (WinBuild.160101.0800):Microsoft Corporation
+		COMDLG32.dll:Common Dialogs DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPT32.dll:加密 API32:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPTBASE.DLL:Base cryptographic API DLL:10.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPTSP.dll:Cryptographic Service Provider API:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		CoreMessaging.dll:Microsoft CoreMessaging Dll:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		DBGHELP.DLL:Windows Image Helper:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		DEVOBJ.dll:Device Information Set DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		DNSAPI.dll:DNS 客户端 API DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		DSPARSE.dll:Active Directory Domain Services API:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		DWrite.dll:Microsoft DirectX 版式服务:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		GDI32.dll:GDI Client DLL:10.0.26100.8328 (WinBuild.160101.0800):Microsoft Corporation
+		GLU32.dll:OpenGL 实用工具库 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		IMM32.DLL:Multi-User Windows IMM32 API Client DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		IPHLPAPI.DLL:IP 帮助程序 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		IntelControlLib.dll:Intel Graphics Control Lib Runtime:1.2.253:
+		KERNEL32.DLL:Windows NT 基本 API 客户端 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		KERNELBASE.dll:Windows NT 基本 API 客户端 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		MMDevApi.dll:MMDevice API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		MSCTF.dll:MSCTF 服务器 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		Microsoft.Internal.WarpPal.dll
+		MpOav.dll:IOfficeAntiVirus Module:4.18.26100.4 (79b015c6fabb20b1ccd067f376e490f0bac19809):Microsoft Corporation
+		NSI.dll:NSI User-mode interface DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		NTASN1.dll:Microsoft ASN.1 API:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		NvMemMapStoragex.dll
+		NvMessageBus.dll:NVIDIA Message Bus::NVIDIA Corporation
+		OLEAUT32.dll:OLEAUT32.DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		Oleacc.dll:Active Accessibility Core Component:7.2.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		OpenAL.dll:Main implementation library:1.25.1:
+		POWRPROF.dll:电源配置文件帮助程序 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		PSAPI.DLL:Process Status Helper:10.0.26100.8521 (WinBuild.160101.0800):Microsoft Corporation
+		RPCRT4.dll:远程过程调用运行时:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		SETUPAPI.dll:Windows 安装程序 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		SHCORE.dll:SHCORE:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		SHELL32.dll:Windows Shell 公用 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		SspiCli.dll:Security Support Provider Interface:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		UMPDC.dll:User Mode Power Dependency Coordinator:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		USER32.dll:多用户 Windows 用户 API 客户端 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		USERENV.dll:Userenv:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		USP10.dll:Uniscribe Unicode script processor:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		VCRUNTIME140.dll:Microsoft® C Runtime Library:14.44.35211.0:Microsoft Corporation
+		VERSION.dll:Version Checking and File Installation Libraries:10.0.26100.1150 (WinBuild.160101.0800):Microsoft Corporation
+		WINMM.dll:MCI API DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		WINSTA.dll:Winstation Library:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		WINTRUST.dll:Microsoft Trust Verification APIs:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		WS2_32.dll:Windows Socket 2.0 32 位 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		WTSAPI32.dll:Windows Remote Desktop Session Host Server SDK APIs:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		amsi.dll:Anti-Malware Scan Interface:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		apphelp.dll:应用程序兼容性客户端库:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		bcrypt.dll:Windows 加密基元库:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		bcryptPrimitives.dll:Windows Cryptographic Primitives Library:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		cfgmgr32.dll:Configuration Manager DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		clbcatq.dll:COM+ Configuration Catalog:2001.12.10941.16384 (WinBuild.160101.0800):Microsoft Corporation
+		combase.dll:用于 Windows 的 Microsoft COM:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		cryptnet.dll:Crypto Network Related API:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		d3d11.dll:Direct3D 11 Runtime:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		dbgcore.DLL:Windows Core Debugging Helpers:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		dcomp.dll:Microsoft DirectComposition Library:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		dinput8.dll:Microsoft DirectInput:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		directxdatabasehelper.dll:DirectXDatabaseHelper:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		drvstore.dll:Driver Store API:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		dwmapi.dll:Microsoft 桌面窗口管理器 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		dxcore.dll:DXCore:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		dxgi.dll:DirectX Graphics Infrastructure:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		extnet.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		fastprox.dll:WMI Custom Marshaller:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		freetype.dll:Font Rendering Library:2.14.1:The FreeType Project
+		fwpuclnt.dll:FWP/IPsec 用户模式 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		gdi32full.dll:GDI Client DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		glfw.dll:GLFW 3.5.0 DLL:3.5.0:GLFW
+		icm32.dll:Microsoft Color Management Module (CMM):10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		iertutil.dll:Internet Explorer 的运行时实用程序:11.00.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		igc64.dll:Intel Graphics Shader Compiler for Intel(R) Graphics Accelerator:32.0.101.7077:Intel Corporation
+		igd10iumd64.dll:User Mode Driver for Intel(R) Graphics Technology:32.0.101.7077:Intel Corporation
+		igd10um64xe.DLL:User Mode Driver for Intel(R) Graphics Technology:32.0.101.7077:Intel Corporation
+		igdgmm2_64.dll:User Mode Driver for Intel(R) Graphics Technology:32.0.101.7077:Intel Corporation
+		igdgmm64.dll:User Mode Driver for Intel(R) Graphics Technology:32.0.101.7077:Intel Corporation
+		imagehlp.dll:Windows NT Image Helper:10.0.26100.4202 (WinBuild.160101.0800):Microsoft Corporation
+		inputhost.dll:InputHost:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		java.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		java.exe:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		jemalloc.dll
+		jimage.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		jli.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		jna4155797055772080345.dll:JNA native library:7.0.2:Java(TM) Native Access (JNA)
+		jvm.dll:OpenJDK 64-Bit server VM:25.0.4.1:Amazon.com Inc.
+		kernel.appcore.dll:AppModel API Host:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		lwjgl.dll
+		lwjgl_opengl.dll
+		lwjgl_stb.dll
+		lwjgl_tinyfd.dll
+		lwjgl_vma.dll
+		management.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		management_ext.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		msasn1.dll:ASN.1 Runtime APIs:10.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		mscms.dll:Microsoft 颜色匹配系统 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		msvcp140.dll:Microsoft® C Runtime Library:14.44.35211.0:Microsoft Corporation
+		msvcp_win.dll:Microsoft® C Runtime Library:10.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		msvcrt.dll:Windows NT CRT DLL:7.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		mswsock.dll:Microsoft Windows Sockets 2.0 服务提供程序:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		napinsp.dll:电子邮件命名填充提供程序:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		ncrypt.dll:Windows NCrypt 路由器:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		net.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		netutils.dll:Net Win32 API Helpers DLL:10.0.26100.1882 (WinBuild.160101.0800):Microsoft Corporation
+		nio.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		nlansp_c.dll:NLA Namespace Service Provider DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		ntdll.dll:NT 层 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		ntmarta.dll:Windows NT MARTA 提供程序:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		nvapi64.dll:NVIDIA NVAPI Library, Version 592.19 :32.0.15.9219:NVIDIA Corporation
+		nvgpucomp64.dll:NVIDIA GPU Compiler Driver, Version 592.19 :32.0.15.9219:NVIDIA Corporation
+		nvldumdx.dll:NVIDIA Driver Loader, Version 592.19 :32.0.15.9219:NVIDIA Corporation
+		nvoglv64.dll:NVIDIA Compatible OpenGL ICD:32.0.15.9219:NVIDIA Corporation
+		nvppex.dll:NVIDIA Driver, Version 592.19 :32.0.15.9219:NVIDIA Corporation
+		nvspcap64.dll:NVIDIA Game Proxy\x008\x16\x01FileVersion\x00\x001:11.0.3.232\x00\x008\x16\x01Produc:NVIDIA Corporation\x00\x00L$\x01FileDescriptio
+		nvwgf2umx.dll:NVIDIA D3D10 Driver, Version 592.19 :32.0.15.9219:NVIDIA Corporation
+		ole32.dll:用于 Windows 的 Microsoft OLE:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		opengl32.dll:OpenGL Client DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		pdh.dll:Windows 性能数据助手 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		perfos.dll:Windows 系统性能对象 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		perfproc.dll:Windows 系统进程性能对象 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		pfclient.dll:SysMain Client:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		profapi.dll:User Profile Basic API:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		rasadhlp.dll:Remote Access AutoDial Helper:10.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		rsaenh.dll:Microsoft Enhanced Cryptographic Provider:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		sapi.dll:语音 API:5.3.32214.00 (WinBuild.160101.0800):Microsoft Corporation
+		sechost.dll:Host for SCM/SDDL/LSA Lookup APIs:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		shaderc.dll
+		shlwapi.dll:外壳简易实用工具库:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		spirv-cross.dll
+		srvcli.dll:Server Service Client DLL:10.0.26100.1150 (WinBuild.160101.0800):Microsoft Corporation
+		sunmscapi.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		textinputframework.dll:"TextInputFramework.DYNLINK":10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		ucrtbase.dll:Microsoft® C Runtime Library:10.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		urlmon.dll:Win32 的 OLE32 扩展:11.00.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		uxtheme.dll:Microsoft UxTheme 库:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		vcruntime140_1.dll:Microsoft® C Runtime Library:14.44.35211.0:Microsoft Corporation
+		verify.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+		vulkan-1.dll:Vulkan Loader:1.4.321.0:
+		wbemcomn.dll:WMI:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		wbemprox.dll:WMI:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		wbemsvc.dll:WMI:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		win32u.dll:Win32u:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		windows.staterepositorycore.dll:Windows StateRepository API Core:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		windows.storage.dll:Microsoft WinRT Storage API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		winrnr.dll:LDAP RnR Provider DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		wldp.dll:Windows 锁定策略:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		wshbth.dll:Windows Sockets Helper DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		wshunix.dll:AF_UNIX Winsock2 Helper DLL:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		xinput1_4.dll:Microsoft 公共控制器 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		zip.dll:OpenJDK Platform binary:25.0.4.1:Amazon.com Inc.
+Stacktrace:
+	at TRANSFORMER/minecraft@26.2/net.minecraft.client.main.Main.main(Main.java:280) [minecraft-client-patched-26.2.0.54-beta.jar:?] {}
+	at net.neoforged.fml.startup.Client.main(Client.java:19) [loader-11.0.16.jar:11.0] {}
+
+
+-- System Details --
+Details:
+	Minecraft Version: 26.2
+	Minecraft Version ID: 26.2
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 25.0.4.1, Amazon.com Inc.
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode, sharing), Amazon.com Inc.
+	Memory: 55161656 bytes (52 MiB) / 461373440 bytes (440 MiB) up to 4294967296 bytes (4096 MiB)
+	Memory (heap): init: 508MiB, used: 386MiB, committed: 440MiB, max: 4096MiB
+	Memory (non-head): init: 007MiB, used: 173MiB, committed: 175MiB, max: 000MiB
+	CPUs: 32
+	Processor Vendor: GenuineIntel
+	Processor Name: Intel(R) Core(TM) i9-14900HX
+	Identifier: Intel64 Family 6 Model 183 Stepping 1
+	Microarchitecture: Raptor Lake
+	Frequency (GHz): 2.42
+	Number of physical packages: 1
+	Number of physical CPUs: 24
+	Number of logical CPUs: 32
+	Graphics card #0 name: NVIDIA GeForce RTX 5070 Laptop GPU
+	Graphics card #0 vendor: NVIDIA
+	Graphics card #0 VRAM (MiB): 8151.00
+	Graphics card #0 deviceId: VideoController1
+	Graphics card #0 versionInfo: 32.0.15.9219
+	Graphics card #1 name: Intel(R) UHD Graphics
+	Graphics card #1 vendor: Intel Corporation
+	Graphics card #1 VRAM (MiB): 2048.00
+	Graphics card #1 deviceId: VideoController2
+	Graphics card #1 versionInfo: 32.0.101.7077
+	Memory slot #0 capacity (MiB): 16384.00
+	Memory slot #0 clockSpeed (GHz): 5.60
+	Memory slot #0 type: DDR5
+	Memory slot #1 capacity (MiB): 16384.00
+	Memory slot #1 clockSpeed (GHz): 5.60
+	Memory slot #1 type: DDR5
+	Virtual memory max (MiB): 46732.75
+	Virtual memory used (MiB): 40819.20
+	Swap memory total (MiB): 14336.00
+	Swap memory used (MiB): 1042.70
+	Space in storage for jna.tmpdir (MiB): available: 42033.53, total: 975538.00
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): available: 42033.53, total: 975538.00
+	Space in storage for io.netty.native.workdir (MiB): available: 42033.53, total: 975538.00
+	Space in storage for java.io.tmpdir (MiB): available: 42033.53, total: 975538.00
+	Space in storage for workdir (MiB): available: 42033.53, total: 975538.00
+	Operating System Version: Microsoft Windows 11 (Home) build 26300
+	Process Elevated: false
+	Process Loads: Uptime: 25s, user: 49s (199.55%), kernel: 10s (41.17%), total: 59s (240.72%)
+	Process Virtual Size (MiB): 264.40
+	Process Resident Size (MiB): 1061.05
+	JVM Flags: 2 total; -Xmx4G -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump
+	Debug Flags: 0 total; 
+	Loaded Shaderpack: (off)
+	Launched Version: 26.2-NeoForge_26.2.0.54-beta
+	Launcher name: TestRunner
+	Backend library: LWJGL version 3.4.1+2
+	Window size: <not initialized>
+	Surface Info: <no surface>
+	GFLW Platform: win32
+	Graphics Device: NVIDIA GeForce RTX 5070 Laptop GPU/PCIe/SSE2
+	Graphics Backend: OpenGL
+	Graphics Vendor: NVIDIA Corporation
+	Graphics Drivers: 3.3.0 NVIDIA 592.19
+	Graphics Device Extensions: GL_ARB_multi_draw_indirect, GL_ARB_buffer_storage, GL_ARB_shader_draw_parameters, GL_ARB_base_instance, GL_KHR_debug, GL_ARB_draw_indirect, GL_ARB_clip_control, GL_ARB_vertex_attrib_binding, GL_ARB_direct_state_access, GL_EXT_texture_filter_anisotropic
+	Graphics Device Type: OTHER
+	Graphics Device Features: DeviceFeatures[shaderDrawParameters=true, multiDrawDirectInterleaved=false, multiDrawDirectSeparate=true, multiDrawIndirect=true, drawIndirect=true, nonZeroFirstInstance=true, persistentMapping=true]
+	GL debug messages: 
+	Is Modded: Definitely; Client brand changed to 'neoforge'
+	Universe: 404
+	Type: Client
+	Locale: zh_CN
+	System encoding: GBK
+	File encoding: UTF-8
+	CPU: 32x Intel(R) Core(TM) i9-14900HX
+	Class Processors: 
+		00.00%: neoforge:computing_frames (marker)
+		00.00%: neoforge:runtime_enum_extender
+		04.91%: neoforge:access_transformer
+		02.28%: neoforge:mixin
+		00.00%: neoforge:simple_processors_default (marker)
+		00.01%: neoforge.coremods:field_to_getter.net.minecraft.world.level.biome.biome
+		00.01%: neoforge.coremods:field_to_getter.net.minecraft.world.level.block.flowerpotblock
+		00.01%: neoforge.coremods:field_to_getter.net.minecraft.world.level.levelgen.structure.structure
+		00.19%: neoforge.coremods:method_redirector
+	Mod List: 
+		iris-neoforge-1.11.2+mc26.2.jar                   |Iris                          |iris                          |1.11.2+mc26.2       |Manifest: d30e423e9bc052301a8f98c8043e2af27ca9bda1e11538e550074b4da5c8d69e
+		Jade-mc26.2-NeoForge-26.2.10.jar                  |Jade                          |jade                          |26.2.10+neoforge    |Manifest: 4827911473610ff1529abb5cfe1a74ece2d838f297c57591a82d211222623417
+		jei-26.2-neoforge-30.24.0.176.jar                 |Just Enough Items             |jei                           |30.24.0.176         |Manifest: 2d8e7d85cdeee10e8a4e26df5b305af57abf2cace446a27f119b2e83d1b5d341
+		minecraft-client-patched-26.2.0.54-beta.jar       |Minecraft                     |minecraft                     |26.2                |Manifest: 46fb0b7a9cd56e8c5d0a173b75deae6eac74ea1135ec0b2e7b06ee593ff309f7
+		neoforge-26.2.0.54-beta-universal.jar             |NeoForge                      |neoforge                      |26.2.0.54-beta      |Manifest: fe9bf0ea9030bcd89a7397a59f5336e0f813b189beb9ec92144707331459a0ef
+		net.caffeinemc.sodium-neoforge-0.9.1+mc26.2-mod.ja|Sodium                        |sodium                        |0.9.1+mc26.2        |Manifest: c696c9a1f32755a9c6a73dc48e18e035aa719b5164472a9e35b283382ff11cb0
+		WurstB+ Plus-v1.5.1-NeoForge-26.2.jar             |WurstB+ Plus                  |wurstpenguin                  |1.5.1               |Manifest: 00daf66f3f29cc9c1d2797abda11780291271acad9c6f144a1d4ab7acc8610bd
+		xaerominimap-neoforge-26.2-26.4.2.jar             |Xaero's Minimap               |xaerominimap                  |26.4.2              |Manifest: a152682af3b576e78cc80913060f6cebaf86158a7690580671e45c0e96e8cce7
+		xaerolib-neoforge-26.2-1.7.1.jar                  |XaeroLib                      |xaerolib                      |1.7.1               |Manifest: 53c17712fc219347d30f8406634b7624ad33a3be46c53a10c8083e23a99c522f
+	Crash Report UUID: 379ab335-c5be-43ec-a0a7-a730cf8bf14c
+	FML: 11.0.16
+	NeoForge: 26.2.0.54-beta
+	Class Processors: 
+		00.00%: neoforge:computing_frames (marker)
+		00.00%: neoforge:runtime_enum_extender
+		04.91%: neoforge:access_transformer
+		02.28%: neoforge:mixin
+		00.00%: neoforge:simple_processors_default (marker)
+		00.01%: neoforge.coremods:field_to_getter.net.minecraft.world.level.biome.biome
+		00.01%: neoforge.coremods:field_to_getter.net.minecraft.world.level.block.flowerpotblock
+		00.01%: neoforge.coremods:field_to_getter.net.minecraft.world.level.levelgen.structure.structure
+		00.19%: neoforge.coremods:method_redirector
+	Mod List: 
+		iris-neoforge-1.11.2+mc26.2.jar                   |Iris                          |iris                          |1.11.2+mc26.2       |Manifest: d30e423e9bc052301a8f98c8043e2af27ca9bda1e11538e550074b4da5c8d69e
+		Jade-mc26.2-NeoForge-26.2.10.jar                  |Jade                          |jade                          |26.2.10+neoforge    |Manifest: 4827911473610ff1529abb5cfe1a74ece2d838f297c57591a82d211222623417
+		jei-26.2-neoforge-30.24.0.176.jar                 |Just Enough Items             |jei                           |30.24.0.176         |Manifest: 2d8e7d85cdeee10e8a4e26df5b305af57abf2cace446a27f119b2e83d1b5d341
+		minecraft-client-patched-26.2.0.54-beta.jar       |Minecraft                     |minecraft                     |26.2                |Manifest: 46fb0b7a9cd56e8c5d0a173b75deae6eac74ea1135ec0b2e7b06ee593ff309f7
+		neoforge-26.2.0.54-beta-universal.jar             |NeoForge                      |neoforge                      |26.2.0.54-beta      |Manifest: fe9bf0ea9030bcd89a7397a59f5336e0f813b189beb9ec92144707331459a0ef
+		net.caffeinemc.sodium-neoforge-0.9.1+mc26.2-mod.ja|Sodium                        |sodium                        |0.9.1+mc26.2        |Manifest: c696c9a1f32755a9c6a73dc48e18e035aa719b5164472a9e35b283382ff11cb0
+		WurstB+ Plus-v1.5.1-NeoForge-26.2.jar             |WurstB+ Plus                  |wurstpenguin                  |1.5.1               |Manifest: 00daf66f3f29cc9c1d2797abda11780291271acad9c6f144a1d4ab7acc8610bd
+		xaerominimap-neoforge-26.2-26.4.2.jar             |Xaero's Minimap               |xaerominimap                  |26.4.2              |Manifest: a152682af3b576e78cc80913060f6cebaf86158a7690580671e45c0e96e8cce7
+		xaerolib-neoforge-26.2-1.7.1.jar                  |XaeroLib                      |xaerolib                      |1.7.1               |Manifest: 53c17712fc219347d30f8406634b7624ad33a3be46c53a10c8083e23a99c522f
+	Crash Report UUID: d78cd449-3c0c-467c-95b9-2a35e379cea9
+	FML: 11.0.16
+	NeoForge: 26.2.0.54-beta

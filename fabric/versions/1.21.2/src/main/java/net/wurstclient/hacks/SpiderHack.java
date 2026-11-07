@@ -12,13 +12,20 @@ import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
 public final class SpiderHack extends Hack implements UpdateListener
 {
+	private final SliderSetting climbSpeed = new SliderSetting("Climb speed",
+		"Upward velocity while climbing a wall.", 0.2, 0, 5, 0.01,
+		ValueDisplay.DECIMAL);
+
 	public SpiderHack()
 	{
 		super("Spider");
 		setCategory(Category.MOVEMENT);
+		addSetting(climbSpeed);
 	}
 	
 	@Override
@@ -37,13 +44,13 @@ public final class SpiderHack extends Hack implements UpdateListener
 	public void onUpdate()
 	{
 		LocalPlayer player = MC.player;
-		if(!player.horizontalCollision)
+		if(player == null || MC.level == null || !player.horizontalCollision)
 			return;
 		
 		Vec3 velocity = player.getDeltaMovement();
 		if(velocity.y >= 0.2)
 			return;
 		
-		player.setDeltaMovement(velocity.x, 0.2, velocity.z);
+		player.setDeltaMovement(velocity.x, climbSpeed.getValue(), velocity.z);
 	}
 }

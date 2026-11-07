@@ -1,0 +1,373 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At line:1 char:135
++ ... ions\26.1"; .\gradlew.bat compileJava --init-script ..\..\..\gradle\i ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/ui863/.gradle/wrapper/dists/gradle-9.6.0-bin/3yr5qo1p853jn7m5o1j0u2qkd/gradle-9.6.0/lib/nativ
+e-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+
+> Configure project :
+Fabric Loom: 1.17.17
+
+> Task :compileJava
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\NotifierHack.java:2
+5: 错误: 找不到符号
+import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+                                            ^
+  符号:   类 ThrownEnderpearl
+  位置: 程序包 net.minecraft.world.entity.projectile
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ScreenActionsHack.j
+ava:23: 错误: 找不到符号
+import net.minecraft.world.inventory.ClickType;
+                                    ^
+  符号:   类 ClickType
+  位置: 程序包 net.minecraft.world.inventory
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\SonarBypassHack.jav
+a:14: 错误: 找不到符号
+import net.minecraft.resources.ResourceLocation;
+                              ^
+  符号:   类 ResourceLocation
+  位置: 程序包 net.minecraft.resources
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\SprintStatusHack.ja
+va:21: 错误: 找不到符号
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                  ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 程序包 net.wurstclient.util.render
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\KillFxHack.java:19:
+ 错误: 找不到符号
+import net.minecraft.resources.ResourceLocation;
+                              ^
+  符号:   类 ResourceLocation
+  位置: 程序包 net.minecraft.resources
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack.j
+ava:21: 错误: 找不到符号
+import net.minecraft.resources.ResourceLocation;
+                              ^
+  符号:   类 ResourceLocation
+  位置: 程序包 net.minecraft.resources
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack.j
+ava:35: 错误: 找不到符号
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                  ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 程序包 net.wurstclient.util.render
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:44
+: 错误: 找不到符号
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                  ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 程序包 net.wurstclient.util.render
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:37:
+ 错误: 找不到符号
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                  ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 程序包 net.wurstclient.util.render
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgChamsHack.java:2
+1: 错误: 找不到符号
+import net.minecraft.world.entity.npc.Villager;
+                                     ^
+  符号:   类 Villager
+  位置: 程序包 net.minecraft.world.entity.npc
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgChamsHack.java:2
+2: 错误: 找不到符号
+import net.minecraft.world.entity.npc.WanderingTrader;
+                                     ^
+  符号:   类 WanderingTrader
+  位置: 程序包 net.minecraft.world.entity.npc
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\CustomItemEspHack.j
+ava:24: 错误: 找不到符号
+import net.minecraft.resources.ResourceLocation;
+                              ^
+  符号:   类 ResourceLocation
+  位置: 程序包 net.minecraft.resources
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AmbienceHack.java:2
+6: 错误: 找不到符号
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                  ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 程序包 net.wurstclient.util.render
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:27: 错误: 找不到符号
+import net.minecraft.world.inventory.ClickType;
+                                    ^
+  符号:   类 ClickType
+  位置: 程序包 net.minecraft.world.inventory
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\BetterBeaconsHack.j
+ava:22: 错误: 找不到符号
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                  ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 程序包 net.wurstclient.util.render
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoBrewerHack.java
+:17: 错误: 找不到符号
+import net.minecraft.world.inventory.ClickType;
+                                    ^
+  符号:   类 ClickType
+  位置: 程序包 net.minecraft.world.inventory
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\BetterBeaconsHack.j
+ava:58: 错误: 找不到符号
+	public void onRenderGUI(GuiGraphicsExtractor graphics, float partialTicks)
+	                        ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 BetterBeaconsHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AmbienceHack.java:1
+27: 错误: 找不到符号
+	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+	                        ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 AmbienceHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:281
+: 错误: 找不到符号
+	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+	                        ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 MobHudHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:388
+: 错误: 找不到符号
+	private void renderEntityInfo(GuiGraphicsExtractor context,
+	                              ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 MobHudHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:422
+: 错误: 找不到符号
+	private void renderNavigation(GuiGraphicsExtractor context,
+	                              ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 MobHudHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:459
+: 错误: 找不到符号
+	private void drawTextWithBox(GuiGraphicsExtractor context, String text,
+	                             ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 MobHudHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:37
+2: 错误: 找不到符号
+	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+	                        ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 ImgTipsHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:45
+3: 错误: 找不到符号
+	private void drawString(GuiGraphicsExtractor context, String text,
+	                        ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 ImgTipsHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack.j
+ava:234: 错误: 找不到符号
+	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+	                        ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 ImgWorldStatsHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack.j
+ava:339: 错误: 找不到符号
+	private int stat(ResourceLocation id)
+	                 ^
+  符号:   类 ResourceLocation
+  位置: 类 ImgWorldStatsHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack.j
+ava:344: 错误: 找不到符号
+	private void renderBackground(GuiGraphicsExtractor context)
+	                              ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 ImgWorldStatsHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\SprintStatusHack.ja
+va:87: 错误: 找不到符号
+	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+	                        ^
+  符号:   类 GuiGraphicsExtractor
+  位置: 类 SprintStatusHack
+28 个错误
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/ui863/Documents/trae_projects/VAP/fabric/versions/26.1/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\NotifierHack.java
+:25: 错误: 找不到符号
+  import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+                                              ^
+    符号:   类 ThrownEnderpearl
+    位置: 程序包 net.minecraft.world.entity.projectile
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ScreenActionsHack
+.java:23: 错误: 找不到符号
+  import net.minecraft.world.inventory.ClickType;
+                                      ^
+    符号:   类 ClickType
+    位置: 程序包 net.minecraft.world.inventory
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\SonarBypassHack.j
+ava:14: 错误: 找不到符号
+  import net.minecraft.resources.ResourceLocation;
+                                ^
+    符号:   类 ResourceLocation
+    位置: 程序包 net.minecraft.resources
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\SprintStatusHack.
+java:21: 错误: 找不到符号
+  import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                    ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 程序包 net.wurstclient.util.render
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\KillFxHack.java:1
+9: 错误: 找不到符号
+  import net.minecraft.resources.ResourceLocation;
+                                ^
+    符号:   类 ResourceLocation
+    位置: 程序包 net.minecraft.resources
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack
+.java:21: 错误: 找不到符号
+  import net.minecraft.resources.ResourceLocation;
+                                ^
+    符号:   类 ResourceLocation
+    位置: 程序包 net.minecraft.resources
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack
+.java:35: 错误: 找不到符号
+  import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                    ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 程序包 net.wurstclient.util.render
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:
+44: 错误: 找不到符号
+  import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                    ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 程序包 net.wurstclient.util.render
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:3
+7: 错误: 找不到符号
+  import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                    ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 程序包 net.wurstclient.util.render
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgChamsHack.java
+:21: 错误: 找不到符号
+  import net.minecraft.world.entity.npc.Villager;
+                                       ^
+    符号:   类 Villager
+    位置: 程序包 net.minecraft.world.entity.npc
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgChamsHack.java
+:22: 错误: 找不到符号
+  import net.minecraft.world.entity.npc.WanderingTrader;
+                                       ^
+    符号:   类 WanderingTrader
+    位置: 程序包 net.minecraft.world.entity.npc
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\CustomItemEspHack
+.java:24: 错误: 找不到符号
+  import net.minecraft.resources.ResourceLocation;
+                                ^
+    符号:   类 ResourceLocation
+    位置: 程序包 net.minecraft.resources
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AmbienceHack.java
+:26: 错误: 找不到符号
+  import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                    ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 程序包 net.wurstclient.util.render
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:27: 错误: 找不到符号
+  import net.minecraft.world.inventory.ClickType;
+                                      ^
+    符号:   类 ClickType
+    位置: 程序包 net.minecraft.world.inventory
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\BetterBeaconsHack
+.java:22: 错误: 找不到符号
+  import net.wurstclient.util.render.GuiGraphicsExtractor;
+                                    ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 程序包 net.wurstclient.util.render
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoBrewerHack.ja
+va:17: 错误: 找不到符号
+  import net.minecraft.world.inventory.ClickType;
+                                      ^
+    符号:   类 ClickType
+    位置: 程序包 net.minecraft.world.inventory
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\BetterBeaconsHack
+.java:58: 错误: 找不到符号
+  	public void onRenderGUI(GuiGraphicsExtractor graphics, float partialTicks)
+  	                        ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 BetterBeaconsHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AmbienceHack.java
+:127: 错误: 找不到符号
+  	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+  	                        ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 AmbienceHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:2
+81: 错误: 找不到符号
+  	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+  	                        ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 MobHudHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:3
+88: 错误: 找不到符号
+  	private void renderEntityInfo(GuiGraphicsExtractor context,
+  	                              ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 MobHudHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:4
+22: 错误: 找不到符号
+  	private void renderNavigation(GuiGraphicsExtractor context,
+  	                              ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 MobHudHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:4
+59: 错误: 找不到符号
+  	private void drawTextWithBox(GuiGraphicsExtractor context, String text,
+  	                             ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 MobHudHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:
+372: 错误: 找不到符号
+  	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+  	                        ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 ImgTipsHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:
+453: 错误: 找不到符号
+  	private void drawString(GuiGraphicsExtractor context, String text,
+  	                        ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 ImgTipsHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack
+.java:234: 错误: 找不到符号
+  	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+  	                        ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 ImgWorldStatsHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack
+.java:339: 错误: 找不到符号
+  	private int stat(ResourceLocation id)
+  	                 ^
+    符号:   类 ResourceLocation
+    位置: 类 ImgWorldStatsHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack
+.java:344: 错误: 找不到符号
+  	private void renderBackground(GuiGraphicsExtractor context)
+  	                              ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 ImgWorldStatsHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\SprintStatusHack.
+java:87: 错误: 找不到符号
+  	public void onRenderGUI(GuiGraphicsExtractor context, float partialTicks)
+  	                        ^
+    符号:   类 GuiGraphicsExtractor
+    位置: 类 SprintStatusHack
+  28 个错误
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 6s
+1 actionable task: 1 executed

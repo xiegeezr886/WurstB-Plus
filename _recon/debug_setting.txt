@@ -1,0 +1,5 @@
+translate: '仅当 按住 右 点击'
+snake: only_when_holding_right_click
+occurrences: 1
+line: "setting.name.only_when_holding_right_click": "仅when holding 右 点击",
+new: "setting.name.only_when_holding_right_click": "仅当 按住 右 点击",
