@@ -1,0 +1,8 @@
+// Print the resolved compile classpath for the NeoForge userdev projects.
+gradle.beforeProject { p ->
+    p.tasks.register('printCompileClasspath') {
+        doLast {
+            p.configurations.compileClasspath.files.each { println it }
+        }
+    }
+}

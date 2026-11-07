@@ -1,0 +1,371 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/CriticalsHack.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/CriticalsHack.java"
+index 587dd2c6..a5320d43 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/CriticalsHack.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/CriticalsHack.java"
+@@ -1,128 +1,238 @@
+-/*
+- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+- *
+- * This source code is subject to the terms of the GNU General Public
+- * License, version 3. If a copy of the GPL was not distributed with this
+- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+- */
+-package net.wurstclient.hacks;
+-
+-import net.minecraft.entity.Entity;
+-import net.minecraft.entity.LivingEntity;
+-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket.PositionAndOnGround;
+-import net.wurstclient.Category;
+-import net.wurstclient.SearchTags;
+-import net.wurstclient.events.PlayerAttacksEntityListener;
+-import net.wurstclient.hack.Hack;
+-import net.wurstclient.settings.EnumSetting;
+-
+-@SearchTags({"Crits"})
+-public final class CriticalsHack extends Hack
+-	implements PlayerAttacksEntityListener
+-{
+-	private final EnumSetting<Mode> mode = new EnumSetting<>("Mode",
+-		"\u00a7lPacket\u00a7r mode sends packets to server without actually moving you at all.\n\n"
+-			+ "\u00a7lMini Jump\u00a7r mode does a tiny jump that is just enough to get a critical hit.\n\n"
+-			+ "\u00a7lFull Jump\u00a7r mode makes you jump normally.",
+-		Mode.values(), Mode.PACKET);
+-	
+-	public CriticalsHack()
+-	{
+-		super("Criticals");
+-		setCategory(Category.COMBAT);
+-		addSetting(mode);
+-	}
+-	
+-	@Override
+-	public String getRenderName()
+-	{
+-		return getName() + " [" + mode.getSelected() + "]";
+-	}
+-	
+-	@Override
+-	protected void onEnable()
+-	{
+-		EVENTS.add(PlayerAttacksEntityListener.class, this);
+-	}
+-	
+-	@Override
+-	protected void onDisable()
+-	{
+-		EVENTS.remove(PlayerAttacksEntityListener.class, this);
+-	}
+-	
+-	@Override
+-	public void onPlayerAttacksEntity(Entity target)
+-	{
+-		if(!(target instanceof LivingEntity))
+-			return;
+-		
+-		if(!MC.player.isOnGround())
+-			return;
+-		
+-		if(MC.player.isTouchingWater() || MC.player.isInLava())
+-			return;
+-		
+-		switch(mode.getSelected())
+-		{
+-			case PACKET:
+-			doPacketJump();
+-			break;
+-			
+-			case MINI_JUMP:
+-			doMiniJump();
+-			break;
+-			
+-			case FULL_JUMP:
+-			doFullJump();
+-			break;
+-		}
+-	}
+-	
+-	private void doPacketJump()
+-	{
+-		sendFakeY(0.0625, true);
+-		sendFakeY(0, false);
+-		sendFakeY(1.1e-5, false);
+-		sendFakeY(0, false);
+-	}
+-	
+-	private void sendFakeY(double offset, boolean onGround)
+-	{
+-		MC.player.networkHandler
+-			.sendPacket(new PositionAndOnGround(MC.player.getX(),
+-				MC.player.getY() + offset, MC.player.getZ(), onGround));
+-	}
+-	
+-	private void doMiniJump()
+-	{
+-		MC.player.addVelocity(0, 0.1, 0);
+-		MC.player.fallDistance = 0.1F;
+-		MC.player.setOnGround(false);
+-	}
+-	
+-	private void doFullJump()
+-	{
+-		MC.player.jump();
+-	}
+-	
+-	private enum Mode
+-	{
+-		PACKET("Packet"),
+-		MINI_JUMP("Mini Jump"),
+-		FULL_JUMP("Full Jump");
+-		
+-		private final String name;
+-		
+-		private Mode(String name)
+-		{
+-			this.name = name;
+-		}
+-		
+-		@Override
+-		public String toString()
+-		{
+-			return name;
+-		}
+-	}
+-}
++/*
++ * This file contains a Forge/Mojmap adaptation of LiquidBounce's Criticals
++ * module and packet profiles.
++ *
++ * Copyright (c) 2015-2026 CCBlueX
++ * Copyright (c) 2025 Penguin
++ *
++ * This source code is subject to the terms of the GNU General Public
++ * License, version 3. If a copy of the GPL was not distributed with this
++ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
++ */
++package net.wurstclient.hacks;
++
++import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.Pos;
++import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
++import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket.Action;
++import net.minecraft.world.effect.MobEffects;
++import net.minecraft.world.entity.Entity;
++import net.minecraft.world.entity.LivingEntity;
++import net.wurstclient.Category;
++import net.wurstclient.SearchTags;
++import net.wurstclient.events.PlayerAttacksEntityListener;
++import net.wurstclient.hack.Hack;
++import net.wurstclient.settings.CheckboxSetting;
++import net.wurstclient.settings.EnumSetting;
++import net.wurstclient.settings.SliderSetting;
++import net.wurstclient.settings.SliderSetting.ValueDisplay;
++import net.wurstclient.util.CombatActionPolicy;
++import net.wurstclient.util.CombatActionPolicy.CriticalState;
++
++@SearchTags({"Crits", "critical"})
++public final class CriticalsHack extends Hack
++	implements PlayerAttacksEntityListener
++{
++	private final EnumSetting<Mode> mode = new EnumSetting<>("Mode",
++		Mode.values(), Mode.PACKET);
++
++	private final EnumSetting<PacketProfile> packetProfile = new EnumSetting<>(
++		"Packet profile", PacketProfile.values(), PacketProfile.WURST)
++			.visibleWhen(() -> mode.getSelected() == Mode.PACKET);
++
++	private final SliderSetting jumpHeight = new SliderSetting("Jump height",
++		"Vertical motion used by Mini jump mode.", 0.1, 0.1, 0.42, 0.01,
++		ValueDisplay.DECIMAL).visibleWhen(() -> mode.getSelected() == Mode.MINI_JUMP);
++
++	private final CheckboxSetting onlyReady = new CheckboxSetting(
++		"Only when ready", "Requires at least 90% attack cooldown.", false);
++
++	private final CheckboxSetting stopSprinting = new CheckboxSetting(
++		"Stop sprinting", "Stops sprinting before spoofing a critical hit.",
++		true);
++
++	private final CheckboxSetting particles = new CheckboxSetting(
++		"Critical particles", "Shows the vanilla critical hit particles.", true);
++
++	public CriticalsHack()
++	{
++		super("Criticals");
++		setCategory(Category.COMBAT);
++		addSetting(mode);
++		addSetting(packetProfile);
++		addSetting(jumpHeight);
++		addSetting(onlyReady);
++		addSetting(stopSprinting);
++		addSetting(particles);
++	}
++
++	@Override
++	public String getRenderName()
++	{
++		return getName() + " [" + mode.getSelected() + "]";
++	}
++
++	@Override
++	protected void onEnable()
++	{
++		EVENTS.add(PlayerAttacksEntityListener.class, this);
++	}
++
++	@Override
++	protected void onDisable()
++	{
++		EVENTS.remove(PlayerAttacksEntityListener.class, this);
++	}
++
++	@Override
++	public void onPlayerAttacksEntity(Entity target)
++	{
++		if(!(target instanceof LivingEntity) || MC.player == null)
++			return;
++
++		CriticalState state = getState();
++		if(!CombatActionPolicy.canCritical(state, true,
++			stopSprinting.isChecked()))
++			return;
++		if(stopSprinting.isChecked() && MC.player.isSprinting())
++		{
++			MC.player.connection.send(new ServerboundPlayerCommandPacket(
++				MC.player, Action.STOP_SPRINTING));
++			MC.player.setSprinting(false);
++		}
++
++		switch(mode.getSelected())
++		{
++			case PACKET -> sendPacketProfile(packetProfile.getSelected());
++			case NO_GROUND -> sendOffset(-0.000001, false);
++			case MINI_JUMP -> {
++				if(!MC.player.onGround())
++					return;
++				MC.player.push(0, jumpHeight.getValue(), 0);
++				MC.player.fallDistance = 0.1F;
++				MC.player.setOnGround(false);
++				sendOffset(jumpHeight.getValue(), false);
++				sendOffset(0.000001, false);
++			}
++			case JUMP -> {
++				if(!MC.player.onGround())
++					return;
++				MC.player.jumpFromGround();
++				sendOffset(0.42, false);
++				sendOffset(0.000001, false);
++			}
++		}
++
++		if(particles.isChecked())
++			MC.player.crit(target);
++	}
++
++	private CriticalState getState()
++	{
++		float attackStrength = onlyReady.isChecked()
++			? MC.player.getAttackStrengthScale(0.5F) : 1;
++		return new CriticalState(MC.player.onGround(),
++			MC.player.isInWaterOrBubble() || MC.player.isInLava(),
++			MC.player.onClimbable(), MC.player.isPassenger(),
++			MC.player.getAbilities().flying, MC.player.isFallFlying(),
++			MC.player.isNoGravity(), MC.player.isHandsBusy(),
++			MC.player.hasEffect(MobEffects.BLINDNESS),
++			MC.player.hasEffect(MobEffects.LEVITATION),
++			MC.player.hasEffect(MobEffects.SLOW_FALLING), attackStrength,
++			MC.player.isSprinting());
++	}
++
++	private void sendPacketProfile(PacketProfile profile)
++	{
++		switch(profile)
++		{
++			case WURST -> {
++				// Upstream Wurst7 1.20.1 / WurstCN packet sequence:
++				// the first packet claims onGround=true while moving up,
++				// then the server sees the player leave the ground.
++				sendOffset(0.0625, true);
++				sendOffset(0, false);
++				sendOffset(1.1E-5, false);
++				sendOffset(0, false);
++			}
++			case VANILLA -> {
++				sendOffset(0.2, false);
++				sendOffset(0.01, false);
++			}
++			case NO_CHEAT_PLUS -> {
++				sendOffset(0.11, false);
++				sendOffset(0.1100013579, false);
++				sendOffset(0.0000013579, false);
++			}
++			case FALLING -> {
++				sendOffset(0.0625, false);
++				sendOffset(0.0625013579, false);
++				sendOffset(0.0000013579, false);
++			}
++			case LOW -> {
++				sendOffset(1.0E-9, false);
++				sendOffset(0, false);
++			}
++			case DOWN -> sendOffset(-1.0E-9, false);
++			case GRIM -> sendOffset(-0.000001, false);
++			case GRIMAC -> {
++				// LiquidBounce CriticalsPacket "Grim": only while airborne.
++				// A tiny downward nudge keeps fallDistance > 0 without
++				// tripping Grim's movement simulation.
++				if(!MC.player.onGround())
++					sendOffset(-0.000001, false);
++			}
++		}
++	}
++
++	private void sendOffset(double offset, boolean onGround)
++	{
++		MC.player.connection.send(new Pos(MC.player.getX(),
++			MC.player.getY() + offset, MC.player.getZ(), onGround));
++	}
++
++	private enum Mode
++	{
++		PACKET("Packet"),
++		NO_GROUND("NoGround"),
++		MINI_JUMP("Mini jump"),
++		JUMP("Jump");
++
++		private final String name;
++
++		Mode(String name)
++		{
++			this.name = name;
++		}
++
++		@Override
++		public String toString()
++		{
++			return name;
++		}
++	}
++
++	private enum PacketProfile
++	{
++		WURST("Wurst"),
++		GRIMAC("GrimAC"),
++		VANILLA("Vanilla"),
++		NO_CHEAT_PLUS("NoCheatPlus"),
++		FALLING("Falling"),
++		LOW("Low"),
++		DOWN("Down"),
++		GRIM("Grim");
++
++		private final String name;
++
++		PacketProfile(String name)
++		{
++			this.name = name;
++		}
++
++		@Override
++		public String toString()
++		{
++			return name;
++		}
++	}
++}

@@ -1,0 +1,146 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "net.neoforged.accesstransformers",
+    "module": "at-cli",
+    "version": "11.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.7"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "net.neoforged",
+          "module": "accesstransformers",
+          "version": {
+            "requires": "11.0.0"
+          }
+        },
+        {
+          "group": "net.sf.jopt-simple",
+          "module": "jopt-simple",
+          "version": {
+            "requires": "6.0-alpha-3"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "at-cli-11.0.0.jar",
+          "url": "at-cli-11.0.0.jar",
+          "size": 8276,
+          "sha512": "481cfa506e90cc7037de013e15d8af9caaf0939fec4113d01a1a61ac0aa23934e65fe4c19d1efb02b26df4941bda47ac24c88faae0ab413a024c613df29f5e21",
+          "sha256": "9823cd64b8d441ad393f3409d77823a72c69ca33faf8f2d8f92da2ba06c6cf3b",
+          "sha1": "6b359d88d26e1366ed2d349f2b47b8aceab32c4d",
+          "md5": "eeac22ca4568c30c1c7c0057d7bdb921"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-api",
+          "version": {
+            "requires": "2.12.4"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-core",
+          "version": {
+            "requires": "2.12.4"
+          }
+        },
+        {
+          "group": "net.neoforged",
+          "module": "accesstransformers",
+          "version": {
+            "requires": "11.0.0"
+          }
+        },
+        {
+          "group": "net.sf.jopt-simple",
+          "module": "jopt-simple",
+          "version": {
+            "requires": "6.0-alpha-3"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "at-cli-11.0.0.jar",
+          "url": "at-cli-11.0.0.jar",
+          "size": 8276,
+          "sha512": "481cfa506e90cc7037de013e15d8af9caaf0939fec4113d01a1a61ac0aa23934e65fe4c19d1efb02b26df4941bda47ac24c88faae0ab413a024c613df29f5e21",
+          "sha256": "9823cd64b8d441ad393f3409d77823a72c69ca33faf8f2d8f92da2ba06c6cf3b",
+          "sha1": "6b359d88d26e1366ed2d349f2b47b8aceab32c4d",
+          "md5": "eeac22ca4568c30c1c7c0057d7bdb921"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "at-cli-11.0.0-sources.jar",
+          "url": "at-cli-11.0.0-sources.jar",
+          "size": 3758,
+          "sha512": "70ad618a5bb589be4909db50c541c95f63b0c5412a1f8ccd8aa6d58d57813284a5fabf135f8af4350384712fc517d0ca7a55e7f31ff9483c617fe3f935bd7caf",
+          "sha256": "ab246c17111a9622d843908c98154ce14aa793be62ccbdf18e273b4c22c1e554",
+          "sha1": "020b6d653d2524def4511ea416807dd954d2da0e",
+          "md5": "2aa8a3b0b1ba9090eaf8b27eb225d426"
+        }
+      ]
+    },
+    {
+      "name": "shadowRuntimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "shadowed",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "at-cli-11.0.0-fatjar.jar",
+          "url": "at-cli-11.0.0-fatjar.jar",
+          "size": 2356108,
+          "sha512": "ef4d9482aac4423c16bb1f86a0cb55eb01b5248de637e88d13d11de1c0b0d9320d6fa2249a1447a67841c9eeec6d172a6c17d0ddb51270376344fd8e6115dc9b",
+          "sha256": "7e0d1427b3559f965e589d429eafaa536301c440eb55e3dad25793fbbd21e6ec",
+          "sha1": "e08593eeb94cbb5c6826735c8bc3c0a1a4850c52",
+          "md5": "772f93710a751629cdb960e83d955e1e"
+        }
+      ]
+    }
+  ]
+}

@@ -767,7 +767,11 @@ function Test-Version($jarPath, $instanceDir) {
     # Some Forge profiles have no log4j configuration, so the game never writes
     # logs/latest.log and a redirected stdout is buffered. Force a config that
     # writes latest.log so the harness can detect world load while running.
-    if (-not ($jvmArgs -match 'log4j\.configurationFile')) {
+    # NeoForge ships a log4j configuration with its own context selector;
+    # overriding it breaks 1.21.9/26.3 logging and can kill startup early.
+    $isNeoForge = $name -match '(?i)neoforge'
+    if (-not $isNeoForge -and
+        -not ($jvmArgs -match 'log4j\.configurationFile')) {
         $logConfig = Join-Path $ProjectRoot '_recon\port\log4j2-client.xml'
         if (Test-Path -LiteralPath $logConfig) {
             $jvmArgs = @($jvmArgs) +

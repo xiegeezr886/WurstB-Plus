@@ -1,0 +1,47 @@
+fix(structure): 补回 fabric / neoforge 被共享源码提取删掉的 586 个源文件
+
+## 问题
+
+HEAD 里的 fabric 与 neoforge 各缺 293 个源文件。后果是**任何人克隆 HEAD 都
+编译不过** —— 因为这两个工程的 build.gradle 里也没有 common/ 的挂载，那些
+文件既不在 git 里、也没有替代来源。
+
+    fabric/src/main/java    git 跟踪 473 个 / 磁盘 766 个   -> 缺 293
+    neoforge/src/main/java  同上                          -> 缺 293
+    git status 里 547 条未跟踪，其中 271+271 在 src 下
+
+## 怎么造成的
+
+  4904bb1e  把 293 个零变体文件提取到 common/（只动了根工程）
+  8c6a8c43  把同样的提取推广到 fabric 与 neoforge：删掉了这两个工程里的
+            293 个副本，并在它们的 build.gradle 里挂上 ../common/src/main/java
+
+后来按"选项 a"回退时，我把 586 个文件**写回了工作区**，但既没有 git add、
+也撤掉了 build.gradle 的挂载 —— 于是工作区能编译（文件在磁盘上），
+而提交历史里这两个工程是残缺的。工作区与 HEAD 从此不一致，且不一致的方向
+是"HEAD 是坏的"。
+
+## 修复
+
+把这 586 个文件补回索引并提交：
+
+    git diff 4904bb1e^ -- fabric/src/main/java neoforge/src/main/java
+    -> 无差异
+
+即内容与提取前逐路径完全一致，不是重新生成的，是原样补回。
+
+    git diff --cached --stat -> 586 files changed, 45290 insertions(+)
+
+## 验证
+
+  * 与提取前（4904bb1e^）逐路径比对：无差异
+  * fabric/build.gradle 与 neoforge/build.gradle 确认已无 common/src/main/java
+    挂载，所以这些文件是唯一来源，必须入库
+  * 两个工程此前已实测可构建（fabric 31s、neoforge 47s，0 error）
+
+## 遗留（未在本次处理）
+
+根工程的 build.gradle **仍然**挂着 common/src/main/java，而 common/ 现在只有
+它一个使用者 —— 单消费者意味着零去重收益，只剩一层多余的间接。
+需要决定：是把 293 个文件还给根工程并删掉 common/，还是重新设计共享源码的
+组织方式。
