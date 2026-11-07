@@ -1,0 +1,402 @@
+[
+  {
+    "name": "1.14.2",
+    "commit": {
+      "sha": "ecba78d93192ba89871fe5af0465c1f07c29852f",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/ecba78d93192ba89871fe5af0465c1f07c29852f"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.14.3",
+    "commit": {
+      "sha": "1d66fc07b1a73fc0666b84175d4b6596d8ea0400",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/1d66fc07b1a73fc0666b84175d4b6596d8ea0400"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.14.4",
+    "commit": {
+      "sha": "1d8e99f2510afc159f424a50eb20c3d8d6e99ec2",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/1d8e99f2510afc159f424a50eb20c3d8d6e99ec2"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.15",
+    "commit": {
+      "sha": "c50c9ef33e864913b3d5f87f558049b6ee4c4438",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/c50c9ef33e864913b3d5f87f558049b6ee4c4438"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.15.1",
+    "commit": {
+      "sha": "fac0a5311d0696e79458417da34234692c26f29f",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/fac0a5311d0696e79458417da34234692c26f29f"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.15.2",
+    "commit": {
+      "sha": "d505c39ce4b96beafe881119ac0c5f1466aead95",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/d505c39ce4b96beafe881119ac0c5f1466aead95"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.16",
+    "commit": {
+      "sha": "7e42d0e540d0e7af1ab23257d5b1a7f7c1589226",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/7e42d0e540d0e7af1ab23257d5b1a7f7c1589226"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.16.1",
+    "commit": {
+      "sha": "dfca2dba22b671005af254b16a9035d3080762b5",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/dfca2dba22b671005af254b16a9035d3080762b5"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.16.2",
+    "commit": {
+      "sha": "4d655bacfaafb1d7c5ff138c316caf95c32ef604",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/4d655bacfaafb1d7c5ff138c316caf95c32ef604"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.16.3",
+    "commit": {
+      "sha": "ab2af7ebd9d5cafd758e1a81aac4384b61d71774",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/ab2af7ebd9d5cafd758e1a81aac4384b61d71774"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.16.4",
+    "commit": {
+      "sha": "e4d7a3aa4afaafa3c8de23cc8543fd00b6056928",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/e4d7a3aa4afaafa3c8de23cc8543fd00b6056928"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.16.5",
+    "commit": {
+      "sha": "576257bc243906aa3690aaa4e5418e591c990a01",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/576257bc243906aa3690aaa4e5418e591c990a01"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.17",
+    "commit": {
+      "sha": "0be62903df6a9f4ed564801e179c99714e257313",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/0be62903df6a9f4ed564801e179c99714e257313"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.17.1",
+    "commit": {
+      "sha": "b76ad3903ddc52862955f194329aec347cc8e4d6",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/b76ad3903ddc52862955f194329aec347cc8e4d6"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.18",
+    "commit": {
+      "sha": "3a7fec30ca5181122abe24409af4ed0fbd3b5bab",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/3a7fec30ca5181122abe24409af4ed0fbd3b5bab"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.18.1",
+    "commit": {
+      "sha": "917d4b945786a0e56522f4f75e41a904938e020a",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/917d4b945786a0e56522f4f75e41a904938e020a"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.18.2",
+    "commit": {
+      "sha": "08c91e374f6fce6cc93e3f0009b9322b08c8119c",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/08c91e374f6fce6cc93e3f0009b9322b08c8119c"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.19",
+    "commit": {
+      "sha": "72e012c53d2df88e79c3e2c3ea6265dcb986554f",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/72e012c53d2df88e79c3e2c3ea6265dcb986554f"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.19.1",
+    "commit": {
+      "sha": "4927f77857f3c31858951b60cc100891021ecb51",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/4927f77857f3c31858951b60cc100891021ecb51"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.19.2",
+    "commit": {
+      "sha": "fd92e7ced9733bd12d0c6b7881ff98194c156cf4",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/fd92e7ced9733bd12d0c6b7881ff98194c156cf4"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.19.3",
+    "commit": {
+      "sha": "ed81edcaf65d17fd83234699ed3371e794b9300f",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/ed81edcaf65d17fd83234699ed3371e794b9300f"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.19.4",
+    "commit": {
+      "sha": "8b4358519cce5342f0df100e145da53821c40e36",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/8b4358519cce5342f0df100e145da53821c40e36"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.20",
+    "commit": {
+      "sha": "1be820df419791aacb08933c4b37472ffea00199",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/1be820df419791aacb08933c4b37472ffea00199"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.20.1",
+    "commit": {
+      "sha": "d3e6eeb25bfa5c6a2497aeb8c6b3a02ca8e512de",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/d3e6eeb25bfa5c6a2497aeb8c6b3a02ca8e512de"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.20.2",
+    "commit": {
+      "sha": "78772ff9dd73aa1ff22e503deb2eb425247aae80",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/78772ff9dd73aa1ff22e503deb2eb425247aae80"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.20.3",
+    "commit": {
+      "sha": "9b600f81e0ec54af1f940968a4543b28ad34fc99",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/9b600f81e0ec54af1f940968a4543b28ad34fc99"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.20.4",
+    "commit": {
+      "sha": "e99120601cb382996f22ef9aa2742dc3163c51df",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/e99120601cb382996f22ef9aa2742dc3163c51df"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.20.5",
+    "commit": {
+      "sha": "f6fb3d8f86a3c72ae4884e77f9b749349b064608",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/f6fb3d8f86a3c72ae4884e77f9b749349b064608"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.20.6",
+    "commit": {
+      "sha": "e08d3c012a45e95a09839d99884f11335e2ca265",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/e08d3c012a45e95a09839d99884f11335e2ca265"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21",
+    "commit": {
+      "sha": "4edc8f8680894bcf64d698a72fd5e5f8311d71d3",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/4edc8f8680894bcf64d698a72fd5e5f8311d71d3"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.1",
+    "commit": {
+      "sha": "3661a42f11ebecc01dc311c5c2d1dcaaab4d61c1",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/3661a42f11ebecc01dc311c5c2d1dcaaab4d61c1"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.2",
+    "commit": {
+      "sha": "32ede630014e4ecfceb706c1282aee1e80190a98",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/32ede630014e4ecfceb706c1282aee1e80190a98"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.3",
+    "commit": {
+      "sha": "dfa924cb6a04e1ec21591f1705c0b845a05792b8",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/dfa924cb6a04e1ec21591f1705c0b845a05792b8"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.4",
+    "commit": {
+      "sha": "27460b9a06e5e57a53ea53eed446dae006c816e0",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/27460b9a06e5e57a53ea53eed446dae006c816e0"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.5",
+    "commit": {
+      "sha": "94b17c193bb102369fb07c65ecaac4317096231c",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/94b17c193bb102369fb07c65ecaac4317096231c"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.6",
+    "commit": {
+      "sha": "523835819da9476b91a0bf9417b76832f2ee6a47",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/523835819da9476b91a0bf9417b76832f2ee6a47"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.7",
+    "commit": {
+      "sha": "529fba8ce7918c4b1300d6ffa4e0be37cbb02570",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/529fba8ce7918c4b1300d6ffa4e0be37cbb02570"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.8",
+    "commit": {
+      "sha": "0efae6fdd8028853863b90c8d59f229c0e2e4e38",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/0efae6fdd8028853863b90c8d59f229c0e2e4e38"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.9",
+    "commit": {
+      "sha": "7204e7e737bf54cffc19039478b9453de18ea0ec",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/7204e7e737bf54cffc19039478b9453de18ea0ec"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.10",
+    "commit": {
+      "sha": "1faf482cc931df7c33eae8dab7edea9876bcf042",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/1faf482cc931df7c33eae8dab7edea9876bcf042"
+    },
+    "protected": false
+  },
+  {
+    "name": "1.21.11",
+    "commit": {
+      "sha": "0395de014ba530c27b32dd9c7ac7131580cba29a",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/0395de014ba530c27b32dd9c7ac7131580cba29a"
+    },
+    "protected": false
+  },
+  {
+    "name": "26.1",
+    "commit": {
+      "sha": "b23332fd53c76797c2f956012a887f1c396c70e4",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/b23332fd53c76797c2f956012a887f1c396c70e4"
+    },
+    "protected": false
+  },
+  {
+    "name": "26.1.1",
+    "commit": {
+      "sha": "39fcbac7307f7b1e6fbd9db17dc9ea151a652458",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/39fcbac7307f7b1e6fbd9db17dc9ea151a652458"
+    },
+    "protected": false
+  },
+  {
+    "name": "26.1.2",
+    "commit": {
+      "sha": "b47be22ae1912c3db4399e2aef79bbc0f5c3817e",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/b47be22ae1912c3db4399e2aef79bbc0f5c3817e"
+    },
+    "protected": false
+  },
+  {
+    "name": "26.2",
+    "commit": {
+      "sha": "578b3c2486e1109db1f68673afd0bbcc6bcbdbf1",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/578b3c2486e1109db1f68673afd0bbcc6bcbdbf1"
+    },
+    "protected": false
+  },
+  {
+    "name": "26.3",
+    "commit": {
+      "sha": "72d231c3df5f10222126056199eac240d2bce6bb",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/72d231c3df5f10222126056199eac240d2bce6bb"
+    },
+    "protected": false
+  },
+  {
+    "name": "26.4",
+    "commit": {
+      "sha": "6652b00d4dc98ea5638b20b10ed96f6c5910b259",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/6652b00d4dc98ea5638b20b10ed96f6c5910b259"
+    },
+    "protected": false
+  },
+  {
+    "name": "master",
+    "commit": {
+      "sha": "fa5a591b4add2a47ff3e22469816d6830984bec0",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/fa5a591b4add2a47ff3e22469816d6830984bec0"
+    },
+    "protected": true
+  },
+  {
+    "name": "v7.56.1-26.3",
+    "commit": {
+      "sha": "bd34c31ac3dff6bd439172dbfd96c9ca1ab05098",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/bd34c31ac3dff6bd439172dbfd96c9ca1ab05098"
+    },
+    "protected": false
+  },
+  {
+    "name": "v7.56.2-26.3",
+    "commit": {
+      "sha": "0a9362e0b631e1b175563948b2b24d3d0771dc14",
+      "url": "https://api.github.com/repos/Wurst-Imperium/Wurst7/commits/0a9362e0b631e1b175563948b2b24d3d0771dc14"
+    },
+    "protected": false
+  }
+]

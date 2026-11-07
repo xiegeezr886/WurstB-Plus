@@ -1,0 +1,154 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "cpw.mods",
+    "module": "modlauncher",
+    "version": "11.0.5",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.3"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.ow2.asm",
+          "module": "asm",
+          "version": {
+            "requires": "9.5"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-tree",
+          "version": {
+            "requires": "9.5"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-commons",
+          "version": {
+            "requires": "9.5"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "modlauncher-11.0.5.jar",
+          "url": "modlauncher-11.0.5.jar",
+          "size": 116486,
+          "sha512": "51ee80b1c428ab79c8306247b41ffbcb180497eddeb5fe74eb068393c2a0b234b0c3ff926f1bb0510194214040b34424c0215ca6f18a390c0a39cad8c17986e5",
+          "sha256": "fd9b9fc7cf043d2264ea0113eac6b258f0a71fece5b00e831bfbdf9726c78a24",
+          "sha1": "b8f0d49294f733fdb6173931b263553e943dc950",
+          "md5": "70fa994f64b2620d20dc325bab758d1b"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "cpw.mods",
+          "module": "securejarhandler",
+          "version": {
+            "requires": "3.0.4"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-api",
+          "version": {
+            "requires": "2.20.0"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-core",
+          "version": {
+            "requires": "2.20.0"
+          }
+        },
+        {
+          "group": "net.sf.jopt-simple",
+          "module": "jopt-simple",
+          "version": {
+            "requires": "5.0.4"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm",
+          "version": {
+            "requires": "9.5"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-tree",
+          "version": {
+            "requires": "9.5"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-commons",
+          "version": {
+            "requires": "9.5"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "modlauncher-11.0.5.jar",
+          "url": "modlauncher-11.0.5.jar",
+          "size": 116486,
+          "sha512": "51ee80b1c428ab79c8306247b41ffbcb180497eddeb5fe74eb068393c2a0b234b0c3ff926f1bb0510194214040b34424c0215ca6f18a390c0a39cad8c17986e5",
+          "sha256": "fd9b9fc7cf043d2264ea0113eac6b258f0a71fece5b00e831bfbdf9726c78a24",
+          "sha1": "b8f0d49294f733fdb6173931b263553e943dc950",
+          "md5": "70fa994f64b2620d20dc325bab758d1b"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "modlauncher-11.0.5-sources.jar",
+          "url": "modlauncher-11.0.5-sources.jar",
+          "size": 68125,
+          "sha512": "0e65abdbbe5c63e8982c1cc06cdd0751a861387fc1ab692a2dfed5db6fc87579d37c3b5d3c3ac2c7dcb011ffaf629b18afe282f369dff7015545b055da72d287",
+          "sha256": "91d7656f7c4113c50ce548e4e242613e1a934bc7e4c1f62f1057a37db6bd11fa",
+          "sha1": "5d96f1d06003174fcf4d212df33c5cc269119bfb",
+          "md5": "b6f9b216ac9f2cfe28fdf917284e3efe"
+        }
+      ]
+    }
+  ]
+}

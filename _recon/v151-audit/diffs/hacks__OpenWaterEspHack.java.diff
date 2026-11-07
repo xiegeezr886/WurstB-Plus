@@ -1,0 +1,148 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/OpenWaterEspHack.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/OpenWaterEspHack.java"
+index 67df5133..7eca95c0 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/OpenWaterEspHack.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/OpenWaterEspHack.java"
+@@ -1,71 +1,72 @@
+-/*
+- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+- *
+- * This source code is subject to the terms of the GNU General Public
+- * License, version 3. If a copy of the GPL was not distributed with this
+- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+- */
+-package net.wurstclient.hacks;
+-
+-import net.minecraft.client.util.math.MatrixStack;
+-import net.minecraft.entity.projectile.FishingBobberEntity;
+-import net.minecraft.util.math.Box;
+-import net.wurstclient.Category;
+-import net.wurstclient.SearchTags;
+-import net.wurstclient.events.RenderListener;
+-import net.wurstclient.hack.Hack;
+-import net.wurstclient.util.RenderUtils;
+-
+-@SearchTags({"open water esp", "AutoFishESP", "auto fish esp"})
+-public final class OpenWaterEspHack extends Hack implements RenderListener
+-{
+-	public OpenWaterEspHack()
+-	{
+-		super("OpenWaterESP");
+-		setCategory(Category.RENDER);
+-	}
+-	
+-	@Override
+-	public String getRenderName()
+-	{
+-		FishingBobberEntity bobber = MC.player.fishHook;
+-		if(bobber == null)
+-			return getName();
+-		
+-		return getName() + (isInOpenWater(bobber) ? " [open]" : " [shallow]");
+-	}
+-	
+-	@Override
+-	protected void onEnable()
+-	{
+-		EVENTS.add(RenderListener.class, this);
+-	}
+-	
+-	@Override
+-	protected void onDisable()
+-	{
+-		EVENTS.remove(RenderListener.class, this);
+-	}
+-	
+-	@Override
+-	public void onRender(MatrixStack matrixStack, float partialTicks)
+-	{
+-		FishingBobberEntity bobber = MC.player.fishHook;
+-		if(bobber == null)
+-			return;
+-		
+-		Box box = new Box(-2, -1, -2, 3, 2, 3).offset(bobber.getBlockPos());
+-		boolean inOpenWater = isInOpenWater(bobber);
+-		int color = inOpenWater ? 0x8000FF00 : 0x80FF0000;
+-		
+-		if(!inOpenWater)
+-			RenderUtils.drawCrossBox(matrixStack, box, color, false);
+-		
+-		RenderUtils.drawOutlinedBox(matrixStack, box, color, false);
+-	}
+-	
+-	private boolean isInOpenWater(FishingBobberEntity bobber)
+-	{
+-		return bobber.isOpenOrWaterAround(bobber.getBlockPos());
+-	}
+-}
++/*
++ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
++ *
++ * This source code is subject to the terms of the GNU General Public
++ * License, version 3. If a copy of the GPL was not distributed with this
++ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
++ */
++package net.wurstclient.hacks;
++
++import com.mojang.blaze3d.vertex.PoseStack;
++import net.minecraft.world.entity.projectile.FishingHook;
++import net.minecraft.world.phys.AABB;
++import net.wurstclient.Category;
++import net.wurstclient.SearchTags;
++import net.wurstclient.events.RenderListener;
++import net.wurstclient.hack.Hack;
++import net.wurstclient.util.RenderUtils;
++
++@SearchTags({"open water esp", "AutoFishESP", "auto fish esp"})
++public final class OpenWaterEspHack extends Hack implements RenderListener
++{
++	public OpenWaterEspHack()
++	{
++		super("OpenWaterESP");
++		setCategory(Category.RENDER);
++	}
++	
++	@Override
++	public String getRenderName()
++	{
++		FishingHook bobber = MC.player.fishing;
++		if(bobber == null)
++			return getName();
++		
++		return getName() + (isInOpenWater(bobber) ? " [open]" : " [shallow]");
++	}
++	
++	@Override
++	protected void onEnable()
++	{
++		EVENTS.add(RenderListener.class, this);
++	}
++	
++	@Override
++	protected void onDisable()
++	{
++		EVENTS.remove(RenderListener.class, this);
++	}
++	
++	@Override
++	public void onRender(PoseStack matrixStack, float partialTicks)
++	{
++		FishingHook bobber = MC.player.fishing;
++		if(bobber == null)
++			return;
++		
++		AABB box = new AABB(-2, -1, -2, 3, 2, 3).move(bobber.blockPosition());
++		boolean inOpenWater = isInOpenWater(bobber);
++		int color = inOpenWater ? 0x8000FF00 : 0x80FF0000;
++		
++		if(!inOpenWater)
++			RenderUtils.drawCrossBox(matrixStack, box, color, false);
++		
++		RenderUtils.drawOutlinedBox(matrixStack, box, color, false);
++	}
++	
++	private boolean isInOpenWater(FishingHook bobber)
++	{
++		return ((net.wurstclient.mixin.FishingHookAccessor)(Object)bobber)
++			.invokeCalculateOpenWater(bobber.blockPosition());
++	}
++}
