@@ -14,6 +14,7 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.MovementPlanner;
+import net.wurstclient.settings.EnumSetting;
 
 @SearchTags({"auto sprint"})
 public final class AutoSprintHack extends Hack
@@ -38,6 +39,12 @@ public final class AutoSprintHack extends Hack
 		"Ignore blindness", "Allows sprinting while blinded.", false);
 
 	private LocalPlayer sprintOwner;
+	private final EnumSetting<SprintMode> sprintMode = new EnumSetting<>("Sprint mode",
+		"Wurst 使用单独设置；Strict 使用常规疾跑条件；Rage 允许全方向和低饥饿疾跑。",
+		SprintMode.values(), SprintMode.WURST);
+	private final CheckboxSetting stopInWater = new CheckboxSetting("Stop in water", true);
+	private final CheckboxSetting stationary = new CheckboxSetting("Sprint while stationary",
+		"Rage 模式下，停止移动时也保持疾跑状态。", false);
 	
 	public AutoSprintHack()
 	{
@@ -49,6 +56,9 @@ public final class AutoSprintHack extends Hack
 		addSetting(whileUsingItems);
 		addSetting(whileSneaking);
 		addSetting(ignoreBlindness);
+		addSetting(sprintMode);
+		addSetting(stopInWater);
+		addSetting(stationary);
 	}
 	
 	@Override
@@ -85,9 +95,18 @@ public final class AutoSprintHack extends Hack
 	private boolean canSprint(LocalPlayer player)
 	{
 		if(!isEnabled() || player == null || player.isPassenger()
-			|| player.isFallFlying()
-			|| player.isInWater() || player.isUnderWater())
+			|| player.isFallFlying())
 			return false;
+		if(stopInWater.isChecked() && (player.isInWater() || player.isUnderWater()))
+			return false;
+		if(sprintMode.getSelected() == SprintMode.RAGE)
+			return stationary.isChecked() || MC.options.keyUp.isDown()
+				|| MC.options.keyDown.isDown() || MC.options.keyLeft.isDown() || MC.options.keyRight.isDown();
+		if(sprintMode.getSelected() == SprintMode.STRICT)
+			return MC.options.keyUp.isDown() && !player.horizontalCollision
+				&& !player.isShiftKeyDown() && !player.isUsingItem()
+				&& !player.hasEffect(MobEffects.BLINDNESS)
+				&& (player.getAbilities().mayfly || player.getFoodData().getFoodLevel() > 6);
 		if(!ignoreCollision.isChecked() && player.horizontalCollision
 			|| !whileSneaking.isChecked() && player.isShiftKeyDown()
 			|| !whileUsingItems.isChecked() && player.isUsingItem()
@@ -115,11 +134,15 @@ public final class AutoSprintHack extends Hack
 	
 	public boolean shouldOmniSprint()
 	{
-		return isEnabled() && allDirections.isChecked();
+		return isEnabled() && (sprintMode.getSelected() == SprintMode.RAGE
+			|| sprintMode.getSelected() == SprintMode.WURST && allDirections.isChecked());
 	}
 	
 	public boolean shouldSprintHungry()
 	{
-		return isEnabled() && hungry.isChecked();
+		return isEnabled() && (sprintMode.getSelected() == SprintMode.RAGE
+			|| sprintMode.getSelected() == SprintMode.WURST && hungry.isChecked());
 	}
+
+	private enum SprintMode {WURST, STRICT, RAGE}
 }

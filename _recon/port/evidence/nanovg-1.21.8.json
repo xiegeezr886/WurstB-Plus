@@ -1,0 +1,15 @@
+﻿{
+    "project":  "fabric\\versions\\1.21.8",
+    "worldLoaded":  false,
+    "nanoVgContext":  false,
+    "hudStarted":  false,
+    "renderFailed":  false,
+    "nanoVgDisabled":  false,
+    "guiPassFailed":  false,
+    "mixinFailed":  false,
+    "crashed":  false,
+    "screenshot":  null,
+    "lines":  [
+
+              ]
+}

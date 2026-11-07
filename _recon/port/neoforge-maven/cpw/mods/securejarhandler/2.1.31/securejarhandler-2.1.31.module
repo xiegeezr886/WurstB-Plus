@@ -1,0 +1,133 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "cpw.mods",
+    "module": "securejarhandler",
+    "version": "2.1.31",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 16,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.ow2.asm",
+          "module": "asm",
+          "version": {
+            "requires": "9.3"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-tree",
+          "version": {
+            "requires": "9.3"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-commons",
+          "version": {
+            "requires": "9.3"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "securejarhandler-2.1.31.jar",
+          "url": "securejarhandler-2.1.31.jar",
+          "size": 105405,
+          "sha512": "7de91cfac4aa473971af80ffc7687b241125c990fdbc2ee71762c4936328a62868d839b089a35b64f74fc33d38b8c79cf6ba971d7e47d67eea1cd593f57b1e47",
+          "sha256": "7caf4cf4b0fab32c83ee4bf888c750f11eff16bc10d61477831d66d02526b394",
+          "sha1": "077b44e5253faa6ba815f1753e422b576df5b488",
+          "md5": "6c4db9b50405883996df0b4bf52ea944"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 16,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains",
+          "module": "annotations",
+          "version": {
+            "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm",
+          "version": {
+            "requires": "9.3"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-tree",
+          "version": {
+            "requires": "9.3"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-commons",
+          "version": {
+            "requires": "9.3"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "securejarhandler-2.1.31.jar",
+          "url": "securejarhandler-2.1.31.jar",
+          "size": 105405,
+          "sha512": "7de91cfac4aa473971af80ffc7687b241125c990fdbc2ee71762c4936328a62868d839b089a35b64f74fc33d38b8c79cf6ba971d7e47d67eea1cd593f57b1e47",
+          "sha256": "7caf4cf4b0fab32c83ee4bf888c750f11eff16bc10d61477831d66d02526b394",
+          "sha1": "077b44e5253faa6ba815f1753e422b576df5b488",
+          "md5": "6c4db9b50405883996df0b4bf52ea944"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "securejarhandler-2.1.31-sources.jar",
+          "url": "securejarhandler-2.1.31-sources.jar",
+          "size": 42763,
+          "sha512": "5bc4d7328ee27b2c6ac3df46961639f9f426cb4be07155e94df2b008647be03cd50e22e9f88c93a2dd6710a123c01035d5c40f9430d110000f318f30f5c43f0e",
+          "sha256": "40cbcc9fe35f11fe67b46e9ffb330f157adc8b0f7f2badb3fd263bf4c56d5222",
+          "sha1": "774b5cc5c511396a413032fd3b08a4797e8cf084",
+          "md5": "fb813ded56fc42748e49e9aad83ceb79"
+        }
+      ]
+    }
+  ]
+}
