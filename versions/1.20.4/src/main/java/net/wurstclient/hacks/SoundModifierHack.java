@@ -17,6 +17,8 @@ import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.settings.TextFieldSetting;
+import net.wurstclient.util.SoundIdFilter;
 
 /**
  * Overrides vanilla sound category volumes.
@@ -44,6 +46,10 @@ public final class SoundModifierHack extends Hack implements UpdateListener
 	private final SliderSetting players = volume("Players", 100);
 	private final SliderSetting ambient = volume("Ambient", 100);
 	private final SliderSetting voice = volume("Voice", 100);
+	// SoundBlocker behavior from Meteor Client (GPL-3.0).
+	private final TextFieldSetting blockedSounds = new TextFieldSetting(
+		"Blocked sounds", "要屏蔽的声音 ID，以逗号或空格分隔，例如 minecraft:entity.enderman.scream。", "");
+	private final SoundIdFilter blockedSoundIds = new SoundIdFilter();
 
 	private final EnumMap<SoundSource, Double> oldVolumes =
 		new EnumMap<>(SoundSource.class);
@@ -62,6 +68,12 @@ public final class SoundModifierHack extends Hack implements UpdateListener
 		addSetting(players);
 		addSetting(ambient);
 		addSetting(voice);
+		addSetting(blockedSounds);
+	}
+
+	public boolean shouldBlock(String soundId)
+	{
+		return isEnabled() && blockedSoundIds.contains(blockedSounds.getValue(), soundId);
 	}
 
 	private SliderSetting volume(String name, int value)

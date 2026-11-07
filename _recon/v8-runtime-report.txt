@@ -1,0 +1,36 @@
+﻿start 2026-10-25T18:35:45
+ping=True
+registered=468
+present=AutoGG,ForceMainHand,JumpResetIndicator,PitchDisplay,SnapTap,YawDisplay
+missing=
+AutoGG ok=True enabled=True error=
+ForceMainHand ok=True enabled=True error=
+JumpResetIndicator ok=True enabled=True error=
+PitchDisplay ok=True enabled=True error=
+SnapTap ok=True enabled=True error=
+YawDisplay ok=True enabled=True error=
+--- errors ---
+
+--- latest.log filtered ---
+[18:35:48] [main/WARN] (FabricLoader/Mixin) Error loading class: net/caffeinemc/mods/sodium/client/render/chunk/occlusion/OcclusionCuller (java.lang.ClassNotFoundException: net/caffeinemc/mods/sodium/client/render/chunk/occlusion/OcclusionCuller)
+[18:35:55] [Download-2/ERROR] (Minecraft) Failed to fetch user properties
+com.mojang.authlib.exceptions.InvalidCredentialsException: Status: 401
+	at knot//com.mojang.authlib.exceptions.MinecraftClientHttpException.toAuthenticationException(MinecraftClientHttpException.java:59)
+Caused by: com.mojang.authlib.exceptions.MinecraftClientHttpException: Status: 401
+[18:35:58] [Download-2/INFO] (Minecraft) Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC
+[18:35:58] [Download-2/ERROR] (Minecraft) Failed to fetch Realms feature flags
+com.mojang.realmsclient.exception.RealmsServiceException: Realms authentication error with message 'java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC'
+[18:36:03] [Download-2/ERROR] (Minecraft) Failed to retrieve profile key pair
+com.mojang.authlib.exceptions.MinecraftClientHttpException: Status: 401
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable AutoGG
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable ForceMainHand
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable JumpResetIndicator
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable PitchDisplay
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable SnapTap
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable YawDisplay
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable AutoGG
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable ForceMainHand
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable JumpResetIndicator
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable PitchDisplay
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable SnapTap
+[18:36:10] [Render thread/INFO] (Minecraft) [STDOUT]: [WurstTest] disable YawDisplay

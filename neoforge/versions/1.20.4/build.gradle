@@ -152,8 +152,10 @@ jar {
 	// jar is not supplied by the loader. Mirrors the working neoforge/versions/1.21.
 	zip64 = true
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-	from { zipTree(baritoneJar) }
-	exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/mods.toml', 'module-info.class'
+	from({ zipTree(baritoneJar) }) {
+		exclude 'META-INF/mods.toml'
+	}
+	exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'module-info.class'
 	exclude "intentionally_untranslated.json"
 }
 

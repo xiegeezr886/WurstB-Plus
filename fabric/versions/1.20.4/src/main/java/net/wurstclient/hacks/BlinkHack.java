@@ -103,7 +103,8 @@ public final class BlinkHack extends Hack
 		if(MC.player == null || MC.level == null
 			|| MC.getConnection() == null)
 		{
-			clearQueuedPackets();
+			// Do not clear the queue here: onDisable() flushes it, and
+			// emptying it first would silently drop every suspended packet.
 			setEnabled(false);
 			return;
 		}

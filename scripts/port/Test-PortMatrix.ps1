@@ -165,8 +165,9 @@ foreach ($p in $projects) {
     if ($p.McVersion -like '26.*') {
         $invoke += @('-GraphicsBackend', 'opengl', '-VisibleWindow')
     } elseif ($p.Loader -eq 'NeoForge' -and
-        $p.McVersion -notlike '1.20.*') {
-        # NeoForge's early display creates a 0x0 window when launched minimized.
+        [version]$p.McVersion -ge [version]'1.20.5') {
+        # NeoForge's early display creates a 0x0 window when launched minimized;
+        # 1.20.5+ also needs the experimental-world confirmation to be visible.
         $invoke += @('-VisibleWindow')
     }
 
