@@ -38,20 +38,33 @@ Minecraft 客户端（utility mod）。同一套功能被移植到 **Forge / Neo
 **下载命名规则**（版本号不带 `v`）：
 
 ```text
-WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.0-Forge-1.21.5.jar
+WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.1-Forge-1.21.5.jar
 ```
 
 | Release | 内容 | 说明 |
 | --- | --- | --- |
-| [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 个资产 | 全部版本的主力发布 |
-| [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | Fabric 1.20.1 | 最新发布（Latest），1 个产物 jar + 2 个源码包 |
+| [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 个资产 | 1.5.0 线的历史主力发布 |
+| [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | **67 个资产（全矩阵）** | **最新发布（Latest）**：66 个 v1.5.1 工程 + 1 个 1.20.1 Forge 修复包，共 67 个 jar |
 | [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | 预发布（prerelease），含 v1.6 新子系统 |
 
-> **说明：** 1.20.1 的三个工程并不都是 v1.5。**根目录 Forge 1.20.1 是 v1.6.0**（唯一带 v1.6 新子系统的
-> 工程），`fabric/` 与 `neoforge/` 的当前源码为 **v1.5.1**。v1.5.0 Release 里的
-> `WurstB+.Plus-1.5.0-Forge-1.20.1.jar` 是 1.5.0 时期的产物（该工程已升级，无法再逐字节重建那一份），
-> 予以保留；想要 v1.6 的 1.20.1 Forge，请取 v1.6.0 Release。其余 64 个版本工程的源码同属
-> **v1.5.1** 开发线，但 v1.5.1 Release 目前只发布了 Fabric 1.20.1 一个产物。
+> **说明：** 66 个 v1.5.1 工程（Fabric 23 + Forge 20 + NeoForge 23）的当前源码均为 **v1.5.1**，
+> v1.5.1 Release 已包含它们的全部 jar；第 67 个是 `VAP-v1.5.0-1.20.1` 工程单独构建的
+> Forge 1.20.1 修复包。根目录 Forge 1.20.1 是 **v1.6.0**（唯一带 v1.6 新子系统的工程），
+> 只随 v1.6.0 Release 发布；v1.5.0 Release 保留 1.5.0 时期的 67 个历史资产。
+
+---
+
+## 渲染与兼容性
+
+- **HUD 与 ClickGUI 全部走 NanoVG**：面板与控件使用 `NanoVGUI.fillRounded` / `outlineRounded`
+  的矢量圆角（底层是 `nvgRoundedRect`），活动 GUI 代码不再调用原版
+  `GuiGraphics.fill/blit/drawString`。
+- **安卓 / OpenGL ES**：检测到 `OpenGL ES` 时切换到 `NanoVGGLES3` 后端；FBO 创建后校验完整性，
+  合成阶段检查 GL 错误并自动降级，避免黑屏；可用 `-Dwurst.nanovg=false` 完全关闭。
+- **1.21.11**：补齐 `wurst:core/fogless_lines` 着色器资源，ESP 线框 pipeline 可正常编译；
+  并修复 `ToastComponentAccessor` 等 accessor 未登记导致的 `IllegalClassLoadError`。
+- **lwjgl-nanovg**：Fabric 1.20.1–1.20.4 统一到 3.3.3 并禁用传递依赖，避免 Android 上
+  `Struct.wrap` 的 `NoSuchMethodError`。
 
 ---
 
@@ -111,9 +124,9 @@ LGPL 2.1 文本，适用于其中所述的 Minecraft Forge / FML 部分（含 MC
 FFmpeg 为 LGPL-2.1 构建，其**对应源码**（构建脚本、`COPYING.*`、JNI shim 源码）
 随仓库提供于 [`native/ffmpeg/`](native/ffmpeg)。
 
-> **验证范围：** 并非所有组合都做过游戏内启动验证；Forge/NeoForge 1.20.x–1.21.1、
-> Forge 1.21.3 等本轮只完成编译/打包验证，**没有游戏内启动验证**。Vulkan 仅 26.2/26.3
-> 支持，且 NeoForge 26.2 的 Vulkan 启动受加载器 bug 阻塞。
+> **验证范围：** 67 个 v1.5.1 资产均完成编译与打包校验，并已上传到 v1.5.1 Release；
+> 游戏内启动验证只覆盖部分组合（1.21.11 / 26.2 等），Forge/NeoForge 1.20.x–1.21.1 等
+> 仍只有编译/打包验证。Vulkan 仅 26.2/26.3 支持，且 NeoForge 26.2 的 Vulkan 启动受加载器 bug 阻塞。
 > 逐版本状态见 [docs/RELEASE.md](docs/RELEASE.md) 的「渲染兼容性（X-Ray / Vulkan）」与
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
 
