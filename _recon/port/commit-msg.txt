@@ -1,0 +1,12 @@
+feat: 将 Fabric 1.20.1 的 NanoVG HUD 同步到 65 个 v1.5.1 工程
+
+- 移植 hud2/nanovg、hud2/compat、60 个 hud2/mods 与 HUD 核心/编辑器
+- 按版本族适配 Category/Hack/IngameHUD/GUIRenderListener，删除旧 HUD
+  元素与 HackListHUD/WurstLogo
+- 各工程加入 lwjgl-nanovg 依赖、native 解包与 lwjgl_nanovg_version
+- 新增 scripts/port 编译矩阵与版本族传播工具
+- 65/65 工程 compileJava 通过（JDK17 10、JDK21 40、JDK25 15）
+- 根目录 Forge 1.20.1（v1.6.0）未改动
+
+尚未完成：渲染合成（1.21.2-1.21.8 为 no-op 桩）、Scaffold/OpenAura/
+IMG/ClickGUI、生产打包与冒烟启动。

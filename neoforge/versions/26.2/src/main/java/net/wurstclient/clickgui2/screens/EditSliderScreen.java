@@ -16,7 +16,7 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.CommonColors;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.MathUtils;
@@ -96,12 +96,12 @@ public final class EditSliderScreen extends Screen
 	public void extractRenderState(GuiGraphicsExtractor context, int mouseX,
 		int mouseY, float partialTicks)
 	{
-		context.centeredText(minecraft.font, slider.getTranslatedName(), width / 2, 20,
-			CommonColors.WHITE);
-		
+		extractBackground(context, mouseX, mouseY, partialTicks);
 		valueField.extractRenderState(context, mouseX, mouseY, partialTicks);
-		for(Renderable drawable : renderables)
-			drawable.extractRenderState(context, mouseX, mouseY, partialTicks);
+		super.extractRenderState(context, mouseX, mouseY, partialTicks);
+
+		NanoVGUI.pass(context, () -> NanoVGUI.centeredText(
+			slider.getTranslatedName(), width / 2, 20, 0xFFFFFFFF, 9F));
 	}
 	
 	@Override

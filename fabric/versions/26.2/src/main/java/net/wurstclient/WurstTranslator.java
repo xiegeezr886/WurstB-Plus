@@ -86,9 +86,15 @@ public class WurstTranslator implements ResourceManagerReloadListener
 	 */
 	public String translateEnglish(String key, Object... args)
 	{
+		// Early in startup (HudManager.start -> HudElement.getTranslatedName)
+		// the resource reload listener has not populated these maps yet.
+		// Returning the key keeps the game alive instead of crashing with an
+		// NPE in ClientLanguage.
 		String string = englishOnlyStrings.get(key);
-		if(string == null)
+		if(string == null && mcEnglish != null)
 			string = mcEnglish.getOrDefault(key);
+		if(string == null)
+			return key;
 		
 		try
 		{
@@ -127,6 +133,8 @@ public class WurstTranslator implements ResourceManagerReloadListener
 	 */
 	public String translateMcEnglish(String key, Object... args)
 	{
+		if(mcEnglish == null)
+			return key;
 		try
 		{
 			return String.format(mcEnglish.getOrDefault(key), args);

@@ -1,0 +1,2 @@
+Summary for C:\Users\ui863\.gradle\caches\fabric-loom\minecraftMaven\net\minecraft\minecraft-merged-deobf\26.1.2\minecraft-merged-deobf-26.1.2.jar
+Decompiled with CFR 0.152

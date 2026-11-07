@@ -58,7 +58,7 @@ public final class EntitySnapshotManager
 				items.add(item);
 		}
 
-		current = new Snapshot(level.getGameTime(), List.copyOf(entities),
+		current = new Snapshot(level.getLevelData().getGameTime(), List.copyOf(entities),
 			List.copyOf(players), List.copyOf(livingEntities),
 			List.copyOf(items));
 	}

@@ -50,6 +50,7 @@ public final class AltsFile
 			return;
 		}
 		
+		boolean loadFailed = false;
 		try
 		{
 			WsonObject wson = encryption.parseFileToObject(path);
@@ -64,10 +65,15 @@ public final class AltsFile
 			System.out.println("Couldn't load " + path.getFileName());
 			e.printStackTrace();
 			
+			loadFailed = true;
 			renameCorrupted();
 		}
 		
-		save(altManager);
+		// Don't immediately overwrite a file we failed to read: the rename
+		// above keeps it recoverable, and writing a blank list here would hide
+		// the real problem on the next launch.
+		if(!loadFailed)
+			save(altManager);
 	}
 	
 	private void renameCorrupted()

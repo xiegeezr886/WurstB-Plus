@@ -1,0 +1,2 @@
+Summary for C:\Users\ui863\Documents\trae_projects\VAP\fabric\.gradle\loom-cache\minecraftMaven\net\minecraft\minecraft-merged-51c8ac2111\1.20.1-loom.mappings.1_20_1.layered+hash.2198-v2\minecraft-merged-51c8ac2111-1.20.1-loom.mappings.1_20_1.layered+hash.2198-v2.jar
+Decompiled with CFR 0.152

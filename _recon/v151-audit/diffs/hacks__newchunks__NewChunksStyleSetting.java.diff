@@ -1,0 +1,95 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/newchunks/NewChunksStyleSetting.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/newchunks/NewChunksStyleSetting.java"
+index f4b46cbf..c3e0bb4e 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/newchunks/NewChunksStyleSetting.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/newchunks/NewChunksStyleSetting.java"
+@@ -1,45 +1,45 @@
+-/*
+- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+- *
+- * This source code is subject to the terms of the GNU General Public
+- * License, version 3. If a copy of the GPL was not distributed with this
+- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+- */
+-package net.wurstclient.hacks.newchunks;
+-
+-import net.wurstclient.settings.EnumSetting;
+-
+-public final class NewChunksStyleSetting
+-	extends EnumSetting<NewChunksStyleSetting.Style>
+-{
+-	public NewChunksStyleSetting()
+-	{
+-		super("Style", Style.values(), Style.OUTLINE);
+-	}
+-	
+-	public static enum Style
+-	{
+-		OUTLINE("Outline", new NewChunksOutlineRenderer()),
+-		SQUARE("Square", new NewChunksSquareRenderer());
+-		
+-		private final String name;
+-		private final NewChunksChunkRenderer chunkRenderer;
+-		
+-		private Style(String name, NewChunksChunkRenderer chunkRenderer)
+-		{
+-			this.name = name;
+-			this.chunkRenderer = chunkRenderer;
+-		}
+-		
+-		@Override
+-		public String toString()
+-		{
+-			return name;
+-		}
+-		
+-		public NewChunksChunkRenderer getChunkRenderer()
+-		{
+-			return chunkRenderer;
+-		}
+-	}
+-}
++/*
++ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
++ *
++ * This source code is subject to the terms of the GNU General Public
++ * License, version 3. If a copy of the GPL was not distributed with this
++ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
++ */
++package net.wurstclient.hacks.newchunks;
++
++import net.wurstclient.settings.EnumSetting;
++
++public final class NewChunksStyleSetting
++	extends EnumSetting<NewChunksStyleSetting.Style>
++{
++	public NewChunksStyleSetting()
++	{
++		super("Style", Style.values(), Style.OUTLINE);
++	}
++	
++	public static enum Style
++	{
++		OUTLINE("Outline", new NewChunksOutlineRenderer()),
++		SQUARE("Square", new NewChunksSquareRenderer());
++		
++		private final String name;
++		private final NewChunksChunkRenderer chunkRenderer;
++		
++		private Style(String name, NewChunksChunkRenderer chunkRenderer)
++		{
++			this.name = name;
++			this.chunkRenderer = chunkRenderer;
++		}
++		
++		@Override
++		public String toString()
++		{
++			return name;
++		}
++		
++		public NewChunksChunkRenderer getChunkRenderer()
++		{
++			return chunkRenderer;
++		}
++	}
++}
