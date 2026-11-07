@@ -1,0 +1,154 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "net.neoforged",
+    "module": "JarJarMetadata",
+    "version": "0.4.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.4.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.apache.maven",
+          "module": "maven-artifact",
+          "version": {
+            "requires": "3.8.1"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.8.5"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "31.0.1-jre"
+          }
+        },
+        {
+          "group": "com.machinezoo.noexception",
+          "module": "noexception",
+          "version": {
+            "requires": "1.7.1"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.30"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "JarJarMetadata-0.4.1.jar",
+          "url": "JarJarMetadata-0.4.1.jar",
+          "size": 15648,
+          "sha512": "7fd01c4ece6417f4231bc3972db44b2df98b499d8205f785f1a130a23a7757f8302d42c3be76fea73e5b08a9251481eb8875e3175d7ac5a76ff111ed47a654bc",
+          "sha256": "05d7b89f09c6de1a9b61d0e786c8fd808aed044babf321653e14abd6740d5546",
+          "sha1": "f8da03683dc81694556dc3e177c5e3bb77ae6fcb",
+          "md5": "c2f30969dd8b1dc8e3f78c731bd2c5c8"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.apache.maven",
+          "module": "maven-artifact",
+          "version": {
+            "requires": "3.8.1"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.8.5"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "31.0.1-jre"
+          }
+        },
+        {
+          "group": "com.machinezoo.noexception",
+          "module": "noexception",
+          "version": {
+            "requires": "1.7.1"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.30"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "JarJarMetadata-0.4.1.jar",
+          "url": "JarJarMetadata-0.4.1.jar",
+          "size": 15648,
+          "sha512": "7fd01c4ece6417f4231bc3972db44b2df98b499d8205f785f1a130a23a7757f8302d42c3be76fea73e5b08a9251481eb8875e3175d7ac5a76ff111ed47a654bc",
+          "sha256": "05d7b89f09c6de1a9b61d0e786c8fd808aed044babf321653e14abd6740d5546",
+          "sha1": "f8da03683dc81694556dc3e177c5e3bb77ae6fcb",
+          "md5": "c2f30969dd8b1dc8e3f78c731bd2c5c8"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "JarJarMetadata-0.4.1-sources.jar",
+          "url": "JarJarMetadata-0.4.1-sources.jar",
+          "size": 8363,
+          "sha512": "631a49898b8ddc488413b4cef675aaf35053a90cb1f8cca632352f2302be30150c1ad7c9d867328b567507957804bf9dd81095761d58e4aabe30fe5e5cb21fe3",
+          "sha256": "883b445334c75200ffedd1da90bcd7bfbdfdb2eed4007ab6c25803c55a50e884",
+          "sha1": "f446dd1aded33f2cc9a59e71026fcec9730a2545",
+          "md5": "56c931ce3eb35dc70fba3f3f45e8194b"
+        }
+      ]
+    }
+  ]
+}

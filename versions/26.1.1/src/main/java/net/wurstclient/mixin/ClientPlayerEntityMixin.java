@@ -103,7 +103,7 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	 */
 	@Inject(at = @At(value = "INVOKE",
 		target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z",
-		ordinal = 0), method = "aiStep()V")
+		ordinal = 0), method = "modifyInput(Lnet/minecraft/world/phys/Vec2;)V")
 	private void onTickMovementItemUse(CallbackInfo ci)
 	{
 		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()

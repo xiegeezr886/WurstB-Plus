@@ -11,6 +11,7 @@ package net.wurstclient.hacks;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ServerboundKeepAlivePacket;
@@ -32,6 +33,7 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.events.PacketOutputListener;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.WorldChangeListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
@@ -40,7 +42,8 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
 @SearchTags({"backtrack", "lag", "reach", "fake lag"})
 public final class BacktrackHack extends Hack
-	implements UpdateListener, PacketInputListener, PacketOutputListener
+	implements UpdateListener, PacketInputListener, PacketOutputListener,
+	WorldChangeListener
 {
 	private final EnumSetting<Mode> mode = new EnumSetting<>("Mode",
 		"\u00a7lLagBehind\u00a7r - Releases queued entity movements gradually.\n"
@@ -145,6 +148,7 @@ public final class BacktrackHack extends Hack
 		EVENTS.add(UpdateListener.class, this);
 		EVENTS.add(PacketInputListener.class, this);
 		EVENTS.add(PacketOutputListener.class, this);
+		EVENTS.add(WorldChangeListener.class, this);
 	}
 
 	@Override
@@ -153,7 +157,20 @@ public final class BacktrackHack extends Hack
 		EVENTS.remove(UpdateListener.class, this);
 		EVENTS.remove(PacketInputListener.class, this);
 		EVENTS.remove(PacketOutputListener.class, this);
+		EVENTS.remove(WorldChangeListener.class, this);
 		flushAll();
+	}
+
+	@Override
+	public void onWorldChange(ClientLevel world)
+	{
+		// Everything queued belongs to the previous connection/world. Never
+		// replay it through the new one, even if the hack keeps its enabled
+		// preference across worlds.
+		packetData.clear();
+		inboundPackets.clear();
+		outboundPackets.clear();
+		shouldBacktrackSmart = false;
 	}
 
 	@Override
@@ -169,6 +186,9 @@ public final class BacktrackHack extends Hack
 			double closestDistance = Double.MAX_VALUE;
 			for(BacktrackData data : packetData)
 			{
+				if(!data.isCurrentWorld())
+					continue;
+
 				Entity entity = MC.level.getEntity(data.entityId);
 				if(entity == null)
 					continue;
@@ -195,6 +215,9 @@ public final class BacktrackHack extends Hack
 			{
 				for(BacktrackData data : packetData)
 				{
+					if(!data.isCurrentWorld())
+						continue;
+
 					for(Packet<?> packet : data.movements)
 						applyInbound(packet);
 					data.movements.clear();
@@ -210,6 +233,9 @@ public final class BacktrackHack extends Hack
 		int releaseThreshold = Math.max(1, randomizedMilliseconds / 50);
 		for(BacktrackData data : packetData)
 		{
+			if(!data.isCurrentWorld())
+				continue;
+
 			if(data.movements.size() < releaseThreshold)
 				continue;
 
@@ -222,6 +248,12 @@ public final class BacktrackHack extends Hack
 	{
 		for(TimedPacket timed : inboundPackets)
 		{
+			if(!timed.isCurrent())
+			{
+				inboundPackets.remove(timed);
+				continue;
+			}
+
 			if(now - timed.time < randomizedMilliseconds)
 				continue;
 
@@ -232,6 +264,12 @@ public final class BacktrackHack extends Hack
 		Vec3 playerPos = MC.player.position();
 		for(TimedPacket timed : outboundPackets)
 		{
+			if(!timed.isCurrent())
+			{
+				outboundPackets.remove(timed);
+				continue;
+			}
+
 			if(now - timed.time < randomizedMilliseconds)
 				continue;
 
@@ -242,7 +280,8 @@ public final class BacktrackHack extends Hack
 				boolean outOfReach = false;
 				for(BacktrackData data : packetData)
 				{
-					if(data.actualPosition == null)
+					if(!data.isCurrentWorld()
+						|| data.actualPosition == null)
 						continue;
 
 					if(data.actualPosition.distanceTo(playerPos) >= maxReach
@@ -300,7 +339,7 @@ public final class BacktrackHack extends Hack
 		if(packet instanceof ServerboundInteractPacket)
 			shouldBacktrackSmart = true;
 
-		outboundPackets.add(new TimedPacket(packet));
+		outboundPackets.add(new TimedPacket(packet, MC.level, MC.getConnection()));
 		event.cancel();
 	}
 
@@ -343,17 +382,22 @@ public final class BacktrackHack extends Hack
 	{
 		for(BacktrackData data : packetData)
 		{
+			if(!data.isCurrentWorld())
+				continue;
+
 			for(Packet<?> packet : data.movements)
 				applyInbound(packet);
 		}
 		packetData.clear();
 
 		for(TimedPacket timed : inboundPackets)
-			applyInbound(timed.packet);
+			if(timed.isCurrent())
+				applyInbound(timed.packet);
 		inboundPackets.clear();
 
 		for(TimedPacket timed : outboundPackets)
-			sendOutbound(timed.packet);
+			if(timed.isCurrent())
+				sendOutbound(timed.packet);
 		outboundPackets.clear();
 	}
 
@@ -394,10 +438,10 @@ public final class BacktrackHack extends Hack
 	private BacktrackData retrieveData(int entityId)
 	{
 		for(BacktrackData data : packetData)
-			if(data.entityId == entityId)
+			if(data.entityId == entityId && data.world == MC.level)
 				return data;
 
-		BacktrackData data = new BacktrackData(entityId);
+		BacktrackData data = new BacktrackData(entityId, MC.level);
 		packetData.add(data);
 		return data;
 	}
@@ -405,13 +449,20 @@ public final class BacktrackHack extends Hack
 	private final class BacktrackData
 	{
 		private final int entityId;
+		private final ClientLevel world;
 		private Vec3 actualPosition;
 		private final List<Packet<?>> movements =
 			new CopyOnWriteArrayList<>();
 
-		private BacktrackData(int entityId)
+		private BacktrackData(int entityId, ClientLevel world)
 		{
 			this.entityId = entityId;
+			this.world = world;
+		}
+
+		private boolean isCurrentWorld()
+		{
+			return world != null && world == MC.level;
 		}
 	}
 
@@ -419,10 +470,21 @@ public final class BacktrackHack extends Hack
 	{
 		private final Packet<?> packet;
 		private final long time = System.currentTimeMillis();
+		private final ClientLevel world;
+		private final ClientPacketListener connection;
 
-		private TimedPacket(Packet<?> packet)
+		private TimedPacket(Packet<?> packet, ClientLevel world,
+			ClientPacketListener connection)
 		{
 			this.packet = packet;
+			this.world = world;
+			this.connection = connection;
+		}
+
+		private boolean isCurrent()
+		{
+			return world != null && world == MC.level && connection != null
+				&& connection == MC.getConnection();
 		}
 	}
 

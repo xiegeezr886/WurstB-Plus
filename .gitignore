@@ -159,3 +159,24 @@ reasonix.toml
 
 # Unrelated local asset pack (not part of the client build)
 /GenshinFontPack/
+
+# Local agent/recon tooling and demo media (not part of the client build)
+_recon/python311/
+_recon/video/
+_recon/_downloads/
+report/*.mp4
+.planning/**/results.json
+
+
+# Generated recon dumps (decompiled MC sources, test worlds, screenshots, local jars)
+_recon/mc-src-26.3/
+_recon/nf-src-26.3/
+_recon/fl-src/
+_recon/pylibs/
+_recon/xray-matrix/
+_recon/xray-visual-test/
+_recon/shots/
+_recon/release-v1.5/
+_recon/release-v1.5.1/
+.planning/
+

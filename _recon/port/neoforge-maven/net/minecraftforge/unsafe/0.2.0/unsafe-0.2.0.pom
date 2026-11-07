@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.minecraftforge</groupId>
+  <artifactId>unsafe</artifactId>
+  <version>0.2.0</version>
+  <name>Unsafe</name>
+  <description>Unsafe hacks for forge</description>
+  <url>https://github.com/MinecraftForge/Unsafe</url>
+  <licenses>
+    <license>
+      <name>LGPLv2.1</name>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>cpw</id>
+      <name>cpw</name>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/MinecraftForge/Unsafe.git</connection>
+    <developerConnection>scm:git:git@github.com:MinecraftForge/Unsafe.git</developerConnection>
+    <url>https://github.com/MinecraftForge/Unsafe</url>
+  </scm>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/MinecraftForge/Unsafe/issues</url>
+  </issueManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.11.+</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.11.+</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

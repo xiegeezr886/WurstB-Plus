@@ -1,0 +1,53 @@
+﻿project	status	enabled	failed	errors	seconds
+fabric	ERROR	0	0	0	184	test control port did not start
+fabric	ERROR	0	0	0	16	Exception calling "ReadAllText" with "2" argument(s): "The process cannot access the file 'C:\Users\ui863\Documents\trae_projects\VAP\fabric\run\logs\latest.log' because it is being used by another process."
+fabric\versions\1.20.2	ERROR	0	0	0	33	Exception calling "ReadAllText" with "2" argument(s): "The process cannot access the file 'C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.2\run\logs\latest.log' because it is being used by another process."
+fabric\versions\1.20.3	ERROR	0	0	0	25	Exception calling "ReadAllText" with "2" argument(s): "The process cannot access the file 'C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.3\run\logs\latest.log' because it is being used by another process."
+fabric\versions\1.20.4	ERROR	0	0	0	24	Exception calling "ReadAllText" with "2" argument(s): "The process cannot access the file 'C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.4\run\logs\latest.log' because it is being used by another process."
+fabric	TIMEOUT	143	29	6	213	world not loaded
+fabric	TIMEOUT	0	0	0	102	world not loaded; hacks were NOT enabled
+fabric	ERROR	0	0	0	7	test control port did not start; BUILD FAILED in 1s
+fabric	FAIL	142	12	15	76	error log lines: 15
+fabric	ERROR	0	29	0	60	无法连接到远程服务器
+fabric	TIMEOUT	0	0	0	152	world not loaded; hacks were NOT enabled
+fabric	TIMEOUT	0	0	0	200	world not loaded; hacks were NOT enabled
+fabric\versions\1.20.2	PASS	147	8	0	70	world loaded; all hacks enabled
+fabric\versions\1.20.3	PASS	138	9	0	66	world loaded; all hacks enabled
+fabric\versions\1.20.4	PASS	137	9	0	65	world loaded; all hacks enabled
+fabric\versions\1.20.5	TIMEOUT	0	0	0	224	world not loaded; hacks were NOT enabled
+fabric\versions\1.20.6	TIMEOUT	0	0	0	208	world not loaded; hacks were NOT enabled
+fabric\versions\1.21	TIMEOUT	0	0	0	208	world not loaded; hacks were NOT enabled
+fabric\versions\1.21.1	TIMEOUT	0	0	0	209	world not loaded; hacks were NOT enabled
+fabric\versions\1.21.2	TIMEOUT	0	0	0	210	world not loaded; hacks were NOT enabled
+fabric\versions\1.21.3	ERROR	0	0	0	27	test control port did not start; BUILD FAILED in 22s
+fabric\versions\1.21.4	ERROR	0	0	0	60	远程服务器返回错误: (500) 内部服务器错误。
+fabric\versions\1.21.5	ERROR	0	0	0	61	远程服务器返回错误: (500) 内部服务器错误。
+fabric\versions\1.21.6	ERROR	0	0	0	19	test control port did not start; BUILD FAILED in 12s
+fabric\versions\1.21.7	ERROR	0	0	0	15	test control port did not start; BUILD FAILED in 9s
+fabric\versions\1.21.8	ERROR	0	0	0	15	test control port did not start; BUILD FAILED in 9s
+fabric\versions\1.21.9	ERROR	0	0	0	15	test control port did not start; BUILD FAILED in 9s
+fabric\versions\1.21.10	ERROR	0	0	0	15	test control port did not start; BUILD FAILED in 9s
+fabric\versions\1.21.4	ERROR	0	0	0	167	远程服务器返回错误: (500) 内部服务器错误。
+fabric\versions\1.21.5	ERROR	0	0	0	166	远程服务器返回错误: (500) 内部服务器错误。
+fabric\versions\1.21.4	ERROR	0	0	0	164	远程服务器返回错误: (500) 内部服务器错误。
+fabric\versions\1.21.4	PASS	148	8	0	55	world loaded; all hacks enabled
+fabric\versions\1.21.5	ERROR	0	9	0	59	无法连接到远程服务器
+fabric\versions\1.21.5	FAIL	137	9	3	55	error log lines: 3
+fabric\versions\1.21.5	PASS	146	9	0	51	world loaded; all hacks enabled
+fabric\versions\1.21.6	PASS	146	9	0	58	world loaded; all hacks enabled
+fabric\versions\1.21.7	PASS	146	9	0	70	world loaded; all hacks enabled
+fabric\versions\1.21.8	PASS	146	9	0	68	world loaded; all hacks enabled
+fabric\versions\1.21.9	FAIL	136	10	24	69	error log lines: 24
+fabric\versions\1.21.10	PASS	146	9	0	69	world loaded; all hacks enabled
+fabric\versions\1.21.9	PASS	146	9	0	58	world loaded; all hacks enabled
+fabric\versions\1.21.11	PASS	145	9	0	59	world loaded; all hacks enabled
+fabric\versions\26.1	PASS	147	9	0	79	world loaded; all hacks enabled
+fabric\versions\26.1.1	PASS	147	9	0	64	world loaded; all hacks enabled
+fabric\versions\26.1.2	PASS	147	9	0	64	world loaded; all hacks enabled
+fabric\versions\26.2	PASS	144	11	0	79	world loaded; all hacks enabled
+fabric\versions\26.3	PASS	143	11	0	86	world loaded; all hacks enabled
+fabric\versions\1.20.5	TIMEOUT	0	0	0	214	world not loaded; hacks were NOT enabled
+fabric\versions\1.20.5	TIMEOUT	0	0	0	209	world not loaded; hacks were NOT enabled
+fabric\versions\1.21.3	TIMEOUT	0	0	0	214	world not loaded; hacks were NOT enabled
+fabric	PASS	143	12	0	79	world loaded; all hacks enabled
+fabric\versions\1.21.5	PASS	146	9	0	63	world loaded; all hacks enabled

@@ -27,29 +27,44 @@ import net.minecraft.client.renderer.state.gui.GuiRenderState;
  */
 public final class NanoVgBlitter
 {
-	private static GpuTexture texture;
-	private static GpuTextureView textureView;
+	private static final int MAX_SLOTS = 8;
+
+	private static final java.util.List<Slot> slots = new java.util.ArrayList<>();
 	private static GpuSampler sampler;
-	private static int textureWidth;
-	private static int textureHeight;
+	private static GuiRenderState currentState;
+	private static int nextSlot;
 
 	private NanoVgBlitter() {}
 
 	public static synchronized void queueBlit(GuiGraphicsExtractor graphics,
 		NanoVGContext ctx)
 	{
-		if(graphics == null || ctx == null || !ensureTexture(ctx))
+		if(graphics == null || ctx == null)
 			return;
 
 		GuiRenderState state = getState(graphics);
 		if(state == null)
 			return;
 
+		// A new GuiRenderState means a new frame. Passes inside one frame must
+		// not share a texture: a later copy would overwrite the image that an
+		// earlier queued blit still references.
+		if(state != currentState)
+		{
+			currentState = state;
+			nextSlot = 0;
+		}
+
+		Slot slot = ensureSlot(nextSlot, ctx);
+		if(slot == null)
+			return;
+		nextSlot = (nextSlot + 1) % MAX_SLOTS;
+
 		int guiWidth = graphics.guiWidth();
 		int guiHeight = graphics.guiHeight();
 		state.addBlitToCurrentLayer(new BlitRenderState(
 			RenderPipelines.GUI_TEXTURED,
-			TextureSetup.singleTexture(textureView, sampler),
+			TextureSetup.singleTexture(slot.view, sampler),
 			new Matrix3x2f(), 0, 0, guiWidth, guiHeight, 0F, 1F, 1F, 0F,
 			0xFFFFFFFF, null));
 	}
@@ -68,41 +83,39 @@ public final class NanoVgBlitter
 		}
 	}
 
-	private static boolean ensureTexture(NanoVGContext ctx)
+	private static Slot ensureSlot(int index, NanoVGContext ctx)
 	{
+		while(slots.size() <= index)
+			slots.add(new Slot());
+
 		int w = ctx.getFramebufferWidth();
 		int h = ctx.getFramebufferHeight();
 		int fbo = ctx.getFramebufferFbo();
 		if(w <= 0 || h <= 0 || fbo == 0)
-			return false;
+			return null;
 
+		Slot slot = slots.get(index);
 		try
 		{
-			if(texture == null || textureWidth != w || textureHeight != h)
+			if(slot.texture == null || slot.width != w || slot.height != h)
 			{
-				if(textureView != null)
-					textureView.close();
-				if(texture != null)
-					texture.close();
-
-				texture = RenderSystem.getDevice().createTexture(
-					"wurst-nanovg",
-					GpuTexture.USAGE_COPY_DST
-						| GpuTexture.USAGE_TEXTURE_BINDING,
+				slot.close();
+				slot.texture = RenderSystem.getDevice().createTexture(
+					"wurst-nanovg-" + index,
+					GpuTexture.USAGE_COPY_DST | GpuTexture.USAGE_TEXTURE_BINDING,
 					TextureFormat.RGBA8, w, h, 1, 1);
-				textureView =
-					RenderSystem.getDevice().createTextureView(texture);
-				textureWidth = w;
-				textureHeight = h;
+				slot.view =
+					RenderSystem.getDevice().createTextureView(slot.texture);
+				slot.width = w;
+				slot.height = h;
 			}
-
 			if(sampler == null)
 				sampler = RenderSystem.getDevice().createSampler(
 					AddressMode.CLAMP_TO_EDGE, AddressMode.CLAMP_TO_EDGE,
 					FilterMode.LINEAR, FilterMode.LINEAR, 1,
 					OptionalDouble.empty());
 
-			GlTexture glTexture = (GlTexture)texture;
+			GlTexture glTexture = (GlTexture)slot.texture;
 			try(GlStateGuard ignored = GlStateGuard.capture())
 			{
 				GL11.glBindTexture(GL11.GL_TEXTURE_2D, glTexture.glId());
@@ -111,12 +124,36 @@ public final class NanoVgBlitter
 				GL11.glCopyTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0, 0, 0,
 					w, h);
 			}
-			return true;
+			return slot;
 		}catch(Throwable t)
 		{
 			System.out.println("[HUD] NanoVG blit setup failed: " + t);
 			t.printStackTrace();
-			return false;
+			return null;
+		}
+	}
+
+	private static final class Slot
+	{
+		private GpuTexture texture;
+		private GpuTextureView view;
+		private int width;
+		private int height;
+
+		private void close()
+		{
+			if(view != null)
+			{
+				view.close();
+				view = null;
+			}
+			if(texture != null)
+			{
+				texture.close();
+				texture = null;
+			}
+			width = 0;
+			height = 0;
 		}
 	}
 
