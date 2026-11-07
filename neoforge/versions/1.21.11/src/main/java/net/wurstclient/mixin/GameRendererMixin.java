@@ -18,6 +18,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.LivingEntity;
@@ -90,13 +91,19 @@ public abstract class GameRendererMixin implements AutoCloseable
 			ci.cancel();
 	}
 
-	@ModifyReturnValue(
-		method = "getFov(Lnet/minecraft/client/Camera;FZ)F",
-		at = @At("RETURN"))
-	private float onGetFov(float original, Camera camera, float partialTicks,
-		boolean useFovSetting)
+	/**
+	 * Draws the NanoVG HUD after Minecraft has finished the GUI pass.
+	 * The HUD renders into its own framebuffer and is then composited onto
+	 * the main target, so it cannot disturb the vanilla render pipeline.
+	 */
+	@Inject(at = @At("HEAD"),
+		method = "render(Lnet/minecraft/client/DeltaTracker;Z)V")
+	private void onPrepareHud(DeltaTracker deltaTracker,
+		boolean renderLevel, CallbackInfo ci)
 	{
-		return (float)WurstClient.INSTANCE.getOtfs().zoomOtf
-			.changeFovBasedOnZoom(original);
+		if(WurstClient.INSTANCE.getHudManager() != null)
+			WurstClient.INSTANCE.getHudManager().prepareFrame(
+				deltaTracker.getGameTimeDeltaPartialTick(false));
 	}
+
 }

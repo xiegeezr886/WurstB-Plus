@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+ * Copyright (c) 2015-2026 CCBlueX
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -21,14 +22,19 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 
+/**
+ * Adds extra lines to item tooltips.
+ *
+ * <p>
+ * {@code ItemStackMixin} calls {@link #appendTooltip} at the end of
+ * {@code ItemStack.getTooltipLines}, which is loader-neutral and therefore
+ * behaves the same on Fabric, Forge and NeoForge.
+ */
 @SearchTags({"better tooltips", "shulker contents", "map scale", "food info",
 	"tooltip"})
 public final class BetterTooltipsHack extends Hack
@@ -51,26 +57,10 @@ public final class BetterTooltipsHack extends Hack
 		addSetting(foodValues);
 	}
 
-	@Override
-	protected void onEnable()
+	public void appendTooltip(ItemStack stack, List<Component> lines)
 	{
-		NeoForge.EVENT_BUS.register(this);
-	}
-
-	@Override
-	protected void onDisable()
-	{
-		NeoForge.EVENT_BUS.unregister(this);
-	}
-
-	@SubscribeEvent
-	public void onItemTooltip(ItemTooltipEvent event)
-	{
-		if(!isEnabled())
+		if(!isEnabled() || stack.isEmpty())
 			return;
-
-		ItemStack stack = event.getItemStack();
-		List<Component> lines = event.getToolTip();
 
 		if(foodValues.isChecked())
 		{

@@ -4,14 +4,14 @@
  */
 package net.wurstclient.clickgui2.window;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
+
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.theme.FlatTheme;
-import net.wurstclient.util.RenderUtils;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,11 +68,11 @@ public class Window {
 			drawContext.pose().pushMatrix();
 			drawContext.pose().translate(x1 + 2, y1 + 2);
 			drawContext.pose().scale(0.6f, 0.6f);
-			RenderUtils.drawItem(drawContext, icon, 0, 0, false);
+			NanoVGUI.item(drawContext, icon, 0, 0, false);
 			drawContext.pose().popMatrix();
 		}
 
-		drawContext.text(MC.font, title, x1 + 14, y1 + 3, -1);
+		NanoVGUI.text(title, x1 + 14, y1 + 3, 0xFFFFFFFF, 9F);
 	}
 
 	protected void drawBackground(GuiGraphicsExtractor drawContext, int mouseX,
@@ -81,7 +81,7 @@ public class Window {
 		boolean focused = selected || isOver(mouseX, mouseY);
 		FlatRenderer.drawWindowPanel(drawContext, x1, y1, x2, y2, 5,
 			theme, focused);
-		drawContext.fill(x1 + 4, y1 + 13, x2 - 4, y1 + 14,
+		NanoVGUI.fill(x1 + 4, y1 + 13, x2 - 4, y1 + 14,
 			theme.accent(focused ? 0.5F : 0.28F));
 	}
 
@@ -116,26 +116,6 @@ public class Window {
 
 	public static void horizontalGradient(GuiGraphicsExtractor g, int x1, int y1,
 		int x2, int y2, int color1, int color2) {
-		int width = Math.max(1, x2 - x1);
-		for(int x = x1; x < x2; x++)
-		{
-			float progress = (x - x1) / (float)width;
-			g.fill(x, y1, x + 1, y2, mixColor(color1, color2, progress));
-		}
-	}
-
-	private static int mixColor(int first, int second, float amount)
-	{
-		float weight = Math.max(0, Math.min(1, amount));
-		float inverse = 1 - weight;
-		int alpha = Math.round((first >>> 24) * inverse
-			+ (second >>> 24) * weight);
-		int red = Math.round((first >> 16 & 0xFF) * inverse
-			+ (second >> 16 & 0xFF) * weight);
-		int green = Math.round((first >> 8 & 0xFF) * inverse
-			+ (second >> 8 & 0xFF) * weight);
-		int blue = Math.round((first & 0xFF) * inverse
-			+ (second & 0xFF) * weight);
-		return alpha << 24 | red << 16 | green << 8 | blue;
+		NanoVGUI.fillHorizontalGradient(x1, y1, x2, y2, color1, color2);
 	}
 }

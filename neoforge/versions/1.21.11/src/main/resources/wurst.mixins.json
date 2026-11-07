@@ -1,4 +1,4 @@
-{
+﻿{
   "required": true,
   "minVersion": "0.8",
   "package": "net.wurstclient.mixin",
@@ -6,6 +6,18 @@
   "plugin": "net.wurstclient.mixin.WurstMixinConfigPlugin",
   "mixins": [],
   "client": [
+    "AutoWalkMovementMixin",
+    "NoMiningTraceMixin",
+    "BeaconPowerButtonMixin",
+    "BetterBeaconsScreenMixin",
+    "FastUseCooldownMixin",
+    "StatusEffectInstanceMixin",
+    "HighJumpMultiplierMixin",
+    "NoInteractMixin",
+    "MultitaskMixin",
+    "TridentBoostMixin",
+    "FastBreakCooldownMixin",
+    "SoundEngineMixin",
     "AvatarMixin",
     "EntityCullingMixin",
     "AbstractContainerScreenAccessor",
@@ -50,6 +62,7 @@
     "sodium/OcclusionCullerMixin",
     "noshieldoverlay/ItemInHandRendererMixin",
     "GuiMixin",
+    "ItemStackMixin",
     "ScreenEffectRendererMixin",
     "KeyBindingMixin",
     "KeyEntryAccessor",
@@ -84,7 +97,13 @@
     "xray.ItemBlockRenderTypesMixin",
     "xray.LiquidBlockRendererMixin",
     "xray.ModelBlockRendererMixin",
-    "LevelRendererMixin"
+    "LevelRendererMixin",
+    "AbstractSelectionListMixin",
+    "AbstractSliderButtonAccessor",
+    "AbstractWidgetMixin",
+    "ClientInputAccessor",
+    "KeyboardInputMixin",
+    "MusicManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

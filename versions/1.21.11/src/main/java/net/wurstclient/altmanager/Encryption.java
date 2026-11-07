@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,6 +24,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
@@ -251,13 +253,62 @@ public final class Encryption
 	private byte[] decryptLegacy(byte[] payload)
 		throws GeneralSecurityException
 	{
-		SecretKey key = legacyKey != null ? legacyKey : masterKey;
-		if(key.getEncoded().length != 16)
-			throw new GeneralSecurityException("Legacy AES key is unavailable");
-		Cipher cipher = Cipher.getInstance("AES/CFB8/NoPadding");
-		cipher.init(Cipher.DECRYPT_MODE, key,
-			new IvParameterSpec(key.getEncoded()));
-		return cipher.doFinal(payload);
+		// Try the real legacy key first, then the master key (which can be the
+		// migrated form of that same key). CFB8 cannot detect a wrong key, so
+		// only accept a candidate whose plaintext actually looks like the JSON
+		// that AltsFile wrote. Otherwise a wrong key silently produces garbage
+		// that the caller would treat as a corrupted alt list.
+		SecretKey[] candidates = legacyKey != null
+			? new SecretKey[] {legacyKey, masterKey}
+			: new SecretKey[] {masterKey};
+
+		for(SecretKey key : candidates)
+		{
+			if(key == null || key.getEncoded().length != 16)
+				continue;
+
+			Cipher cipher = Cipher.getInstance("AES/CFB8/NoPadding");
+			cipher.init(Cipher.DECRYPT_MODE, key,
+				new IvParameterSpec(key.getEncoded()));
+			byte[] plain = cipher.doFinal(payload);
+			if(looksLikeJson(plain))
+				return plain;
+		}
+
+		throw new GeneralSecurityException(
+			"Could not decrypt legacy account data: legacy key unavailable");
+	}
+
+	private static boolean looksLikeJson(byte[] bytes)
+	{
+		int start = 0;
+		int end = bytes.length;
+		while(start < end && isJsonWhitespace(bytes[start]))
+			start++;
+		while(end > start && isJsonWhitespace(bytes[end - 1]))
+			end--;
+
+		if(end - start < 2)
+			return false;
+		if(bytes[start] != '{' && bytes[start] != '[')
+			return false;
+		if(bytes[end - 1] != '}' && bytes[end - 1] != ']')
+			return false;
+
+		try
+		{
+			StandardCharsets.UTF_8.newDecoder()
+				.decode(ByteBuffer.wrap(bytes, start, end - start));
+			return true;
+		}catch(CharacterCodingException e)
+		{
+			return false;
+		}
+	}
+
+	private static boolean isJsonWhitespace(byte b)
+	{
+		return b == ' ' || b == '\t' || b == '\r' || b == '\n';
 	}
 
 	private boolean hasMagic(byte[] payload)
@@ -323,6 +374,13 @@ public final class Encryption
 	{
 		if(!legacyFilesPresent || !masterKeyStoredNatively)
 			return;
+
+		// The legacy key folder is shared by every Minecraft installation of
+		// this user. Deleting it after migrating one file would strand the
+		// account files that other installations have not migrated yet.
+		if(legacyKeyDiffers())
+			return;
+
 		try
 		{
 			Files.deleteIfExists(legacyFolder.resolve("wurst_rsa_public.txt"));
@@ -337,6 +395,13 @@ public final class Encryption
 			System.err.println("Could not remove migrated legacy key files: "
 				+ e.getMessage());
 		}
+	}
+
+
+	private boolean legacyKeyDiffers()
+	{
+		return legacyKey != null
+			&& !Arrays.equals(legacyKey.getEncoded(), masterKey.getEncoded());
 	}
 
 	public static Path chooseEncryptionFolder()

@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+ * Copyright (c) 2015-2026 CCBlueX
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -20,20 +21,21 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.scores.PlayerTeam;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
-import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
-import net.neoforged.neoforge.common.NeoForge;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.event.EventManager;
-import net.wurstclient.events.GUIRenderListener.GUIRenderEvent;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.util.render.GuiGraphicsExtractor;
 
+/**
+ * Replaces the vanilla player list with a more informative one.
+ *
+ * <p>
+ * The vanilla list is cancelled from {@code GuiMixin} (which also fires the
+ * shared {@code GUIRenderEvent} first, so the rest of the HUD keeps rendering).
+ * Keeping the hook in the mixin makes all three loaders behave identically.
+ */
 @SearchTags({"better tab", "player list", "tablist", "ping", "tab health"})
 public final class BetterTabHack extends Hack
 {
@@ -65,32 +67,20 @@ public final class BetterTabHack extends Hack
 		addSetting(showGamemode);
 	}
 
-	@Override
-	protected void onEnable()
-	{
-		NeoForge.EVENT_BUS.register(this);
-	}
-
-	@Override
-	protected void onDisable()
-	{
-		NeoForge.EVENT_BUS.unregister(this);
-	}
-
-	@SubscribeEvent
-	public void onRenderGuiLayer(RenderGuiLayerEvent.Pre event)
+	/**
+	 * Draws the replacement tab list.
+	 *
+	 * @return {@code true} if the list was drawn and the vanilla tab list
+	 *         should be cancelled.
+	 */
+	public boolean renderTabList(GuiGraphics graphics)
 	{
 		if(!isEnabled() || MC.player == null || MC.level == null
 			|| MC.getConnection() == null || MC.options.hideGui)
-			return;
+			return false;
 
-		if(!VanillaGuiLayers.TAB_LIST.equals(event.getName()))
-			return;
-
-		// The layer event is posted even while the list is hidden, so mirror
-		// vanilla's visibility checks before replacing it.
 		if(!MC.options.keyPlayerList.isDown())
-			return;
+			return false;
 
 		List<PlayerInfo> players = MC.getConnection()
 			.getListedOnlinePlayers().stream()
@@ -105,25 +95,11 @@ public final class BetterTabHack extends Hack
 			.limit(tabSize.getValueI()).toList();
 
 		if(players.isEmpty())
-			return;
+			return false;
 
 		if(MC.isLocalServer() && players.size() <= 1)
-			return;
+			return false;
 
-		// Cancelling the layer also skips GuiMixin's GUIRenderEvent at the
-		// head of Gui.renderTabList(), which every Wurst HUD element uses.
-		// Fire it here so the rest of the HUD keeps rendering.
-		if(!MC.debugEntries.isOverlayVisible())
-			EventManager.fire(new GUIRenderEvent(
-				new GuiGraphicsExtractor(event.getGuiGraphics()),
-				event.getPartialTick().getGameTimeDeltaPartialTick(true)));
-
-		event.setCanceled(true);
-		renderTabList(event.getGuiGraphics(), players);
-	}
-
-	private void renderTabList(GuiGraphics graphics, List<PlayerInfo> players)
-	{
 		int rows =
 			Math.min(columnHeight.getValueI(), Math.max(1, players.size()));
 		int columns = (players.size() + rows - 1) / rows;
@@ -157,6 +133,8 @@ public final class BetterTabHack extends Hack
 				0x80000000);
 			graphics.drawString(MC.font, line, x, y, color);
 		}
+
+		return true;
 	}
 
 	private Component buildLine(PlayerInfo info)

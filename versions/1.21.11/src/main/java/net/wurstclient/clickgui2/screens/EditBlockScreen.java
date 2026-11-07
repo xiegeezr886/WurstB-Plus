@@ -7,12 +7,11 @@
  */
 package net.wurstclient.clickgui2.screens;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 import org.joml.Matrix3x2fStack;
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -24,9 +23,9 @@ import net.minecraft.util.CommonColors;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.BlockSetting;
 import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.RenderUtils;
 
 public final class EditBlockScreen extends Screen
 {
@@ -99,56 +98,56 @@ public final class EditBlockScreen extends Screen
 	public void tick()
 	{
 	}
-@Override
+	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
+			partialTicks);
 	}
 
-	private void renderContents(GuiGraphicsExtractor context, int mouseX,
+	private void extractContents(GuiGraphicsExtractor context, int mouseX,
 		int mouseY, float partialTicks)
 	{
-		Matrix3x2fStack matrixStack = context.pose();
-		Font tr = minecraft.font;
-		
-		context.centeredText(tr, setting.getTranslatedName(), width / 2, 20,
-			CommonColors.WHITE);
-		
+		renderBackground(context.getInner(), mouseX, mouseY, partialTicks);
 		blockField.render(context.getInner(), mouseX, mouseY, partialTicks);
-		
-		for(Renderable drawable : renderables)
-			drawable.render(context.getInner(), mouseX, mouseY, partialTicks);
-		
-		matrixStack.pushMatrix();
-		matrixStack.translate(-64 + width / 2 - 100, 115);
-		
-		boolean lblAbove =
-			!blockField.getValue().isEmpty() || blockField.isFocused();
-		String lblText = lblAbove ? "Block ID or number:" : "block ID or number";
-		int lblX = lblAbove ? 50 : 68;
-		int lblY = lblAbove ? -66 : -50;
-		int lblColor = lblAbove ? 0xFFF0F0F0 : CommonColors.GRAY;
-		context.text(tr, lblText, lblX, lblY, lblColor);
-		
-		int border = blockField.isFocused() ? CommonColors.WHITE
-			: CommonColors.LIGHT_GRAY;
-		int black = CommonColors.BLACK;
-		
-		context.fill(48, -56, 64, -36, border);
-		context.fill(49, -55, 65, -37, black);
-		context.fill(242, -56, 246, -36, border);
-		context.fill(241, -55, 245, -37, black);
-		
-		matrixStack.popMatrix();
-		
+		super.render(context.getInner(), mouseX, mouseY, partialTicks);
 		String nameOrId = blockField.getValue();
 		Block blockToAdd = BlockUtils.getBlockFromNameOrID(nameOrId);
-		
+
 		if(blockToAdd == null)
 			blockToAdd = Blocks.AIR;
-		
-		RenderUtils.drawItem(context, new ItemStack(blockToAdd),
-			-64 + width / 2 - 100 + 52, 115 - 52, false);
+
+		Block renderedBlock = blockToAdd;
+		NanoVGUI.pass(context, () -> {
+			NanoVGUI.centeredText(setting.getTranslatedName(), width / 2, 20,
+				0xFFFFFFFF, 9F);
+
+			int baseX = -64 + width / 2 - 100;
+			int baseY = 115;
+
+			boolean lblAbove =
+				!blockField.getValue().isEmpty() || blockField.isFocused();
+			String lblText = lblAbove ? "方块ID或编号:" : "方块ID或编号";
+			int lblX = baseX + (lblAbove ? 50 : 68);
+			int lblY = baseY + (lblAbove ? -66 : -50);
+			int lblColor = lblAbove ? 0xF0F0F0 : 0x808080;
+			NanoVGUI.text(lblText, lblX, lblY, lblColor, 9F);
+
+			int border = blockField.isFocused() ? 0xffffffff : 0xffa0a0a0;
+			int black = 0xff000000;
+
+			NanoVGUI.fill(baseX + 48, baseY - 56, baseX + 64, baseY - 36,
+				border);
+			NanoVGUI.fill(baseX + 49, baseY - 55, baseX + 65, baseY - 37,
+				black);
+			NanoVGUI.fill(baseX + 242, baseY - 56, baseX + 246, baseY - 36,
+				border);
+			NanoVGUI.fill(baseX + 241, baseY - 55, baseX + 245, baseY - 37,
+				black);
+
+			NanoVGUI.item(context, new ItemStack(renderedBlock), baseX + 52,
+				baseY - 52, false);
+		});
 	}
 	
 	@Override

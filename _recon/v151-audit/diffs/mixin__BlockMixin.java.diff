@@ -1,0 +1,133 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\mixin/BlockMixin.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\mixin/BlockMixin.java"
+index 8ee3bd7f..119b7c87 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\mixin/BlockMixin.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\mixin/BlockMixin.java"
+@@ -1,59 +1,69 @@
+-/*
+- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+- *
+- * This source code is subject to the terms of the GNU General Public
+- * License, version 3. If a copy of the GPL was not distributed with this
+- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+- */
+-package net.wurstclient.mixin;
+-
+-import org.spongepowered.asm.mixin.Mixin;
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.Inject;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+-
+-import net.minecraft.block.Block;
+-import net.minecraft.block.BlockState;
+-import net.minecraft.item.ItemConvertible;
+-import net.minecraft.util.math.BlockPos;
+-import net.minecraft.util.math.Direction;
+-import net.minecraft.world.BlockView;
+-import net.wurstclient.WurstClient;
+-import net.wurstclient.event.EventManager;
+-import net.wurstclient.events.ShouldDrawSideListener.ShouldDrawSideEvent;
+-import net.wurstclient.hack.HackList;
+-
+-@Mixin(Block.class)
+-public abstract class BlockMixin implements ItemConvertible
+-{
+-	/**
+-	 * This mixin allows X-Ray to show ores that would normally be obstructed by
+-	 * other blocks.
+-	 */
+-	@Inject(at = @At("HEAD"),
+-		method = "shouldDrawSide(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/Direction;Lnet/minecraft/util/math/BlockPos;)Z",
+-		cancellable = true)
+-	private static void onShouldDrawSide(BlockState state, BlockView world,
+-		BlockPos pos, Direction direction, BlockPos blockPos,
+-		CallbackInfoReturnable<Boolean> cir)
+-	{
+-		ShouldDrawSideEvent event = new ShouldDrawSideEvent(state, pos);
+-		EventManager.fire(event);
+-		
+-		if(event.isRendered() != null)
+-			cir.setReturnValue(event.isRendered());
+-	}
+-	
+-	@Inject(at = @At("HEAD"),
+-		method = "getVelocityMultiplier()F",
+-		cancellable = true)
+-	private void onGetVelocityMultiplier(CallbackInfoReturnable<Float> cir)
+-	{
+-		HackList hax = WurstClient.INSTANCE.getHax();
+-		if(hax == null || !hax.noSlowdownHack.isEnabled())
+-			return;
+-		
+-		if(cir.getReturnValueF() < 1)
+-			cir.setReturnValue(1F);
+-	}
+-}
++/*
++ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
++ *
++ * This source code is subject to the terms of the GNU General Public
++ * License, version 3. If a copy of the GPL was not distributed with this
++ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
++ */
++package net.wurstclient.mixin;
++
++import org.spongepowered.asm.mixin.Mixin;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++import net.minecraft.core.BlockPos;
++import net.minecraft.core.Direction;
++import net.minecraft.world.level.BlockGetter;
++import net.minecraft.world.level.ItemLike;
++import net.minecraft.world.level.block.Block;
++import net.minecraft.world.level.block.Blocks;
++import net.minecraft.world.level.block.state.BlockState;
++import net.wurstclient.WurstClient;
++import net.wurstclient.event.EventManager;
++import net.wurstclient.events.ShouldDrawSideListener.ShouldDrawSideEvent;
++import net.wurstclient.hack.HackList;
++import net.wurstclient.hacks.NoSlowdownHack;
++
++@Mixin(Block.class)
++public abstract class BlockMixin implements ItemLike
++{
++	/**
++	 * This mixin allows X-Ray to show ores that would normally be obstructed by
++	 * other blocks.
++	 */
++	@Inject(at = @At("HEAD"),
++		method = "shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/core/BlockPos;)Z",
++		cancellable = true)
++	private static void onShouldDrawSide(BlockState state, BlockGetter world,
++		BlockPos pos, Direction direction, BlockPos blockPos,
++		CallbackInfoReturnable<Boolean> cir)
++	{
++		ShouldDrawSideEvent event = new ShouldDrawSideEvent(state, pos);
++		EventManager.fire(event);
++		
++		if(event.isRendered() != null)
++			cir.setReturnValue(event.isRendered());
++	}
++	
++	@Inject(at = @At("HEAD"),
++		method = "getSpeedFactor()F",
++		cancellable = true)
++	private void onGetVelocityMultiplier(CallbackInfoReturnable<Float> cir)
++	{
++		HackList hax = WurstClient.INSTANCE.getHax();
++		if(hax == null || !hax.noSlowdownHack.isEnabled())
++			return;
++
++		NoSlowdownHack nsh = hax.noSlowdownHack;
++		Block block = (Block)(Object)this;
++
++		boolean shouldBypass =
++			(block == Blocks.SOUL_SAND && nsh.shouldBypassSoulSand())
++				|| (block == Blocks.HONEY_BLOCK && nsh.shouldBypassHoneyBlock())
++				|| (block == Blocks.SLIME_BLOCK && nsh.shouldBypassSlimeBlock())
++				|| (block == Blocks.COBWEB && nsh.shouldBypassCobweb());
++
++		if(shouldBypass && cir.getReturnValueF() < 1)
++			cir.setReturnValue(1F);
++	}
++}
