@@ -54,20 +54,6 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.1-Forge
 
 ---
 
-## 渲染与兼容性
-
-- **HUD 与 ClickGUI 全部走 NanoVG**：面板与控件使用 `NanoVGUI.fillRounded` / `outlineRounded`
-  的矢量圆角（底层是 `nvgRoundedRect`），活动 GUI 代码不再调用原版
-  `GuiGraphics.fill/blit/drawString`。
-- **安卓 / OpenGL ES**：检测到 `OpenGL ES` 时切换到 `NanoVGGLES3` 后端；FBO 创建后校验完整性，
-  合成阶段检查 GL 错误并自动降级，避免黑屏；可用 `-Dwurst.nanovg=false` 完全关闭。
-- **1.21.11**：补齐 `wurst:core/fogless_lines` 着色器资源，ESP 线框 pipeline 可正常编译；
-  并修复 `ToastComponentAccessor` 等 accessor 未登记导致的 `IllegalClassLoadError`。
-- **lwjgl-nanovg**：Fabric 1.20.1–1.20.4 统一到 3.3.3 并禁用传递依赖，避免 Android 上
-  `Struct.wrap` 的 `NoSuchMethodError`。
-
----
-
 ## 仓库结构
 
 ```text
@@ -98,7 +84,7 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.1-Forge
 | [docs/STATUS.md](docs/STATUS.md) | **权威状态数字（自动生成，请勿手改）**：工程清单、工具链、测试数、v1.6 缺口 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更，含已知局限与偏差 |
 | [docs/PROJECT-STRUCTURE.md](docs/PROJECT-STRUCTURE.md) | 67 工程布局的由来、为何没有共享 sourceSet、如何新增 MC 版本 |
-| [docs/RELEASE.md](docs/RELEASE.md) | **发布与维护手册**（原 README）：**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）、**安装**、**构建与运行**、产物矩阵、打包校验、验证状态、**渲染兼容性（X-Ray / Vulkan）** |
+| [docs/RELEASE.md](docs/RELEASE.md) | **发布与维护手册**（原 README）：**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）、**安装**、**构建与运行**、产物矩阵、打包校验、验证状态、**渲染兼容性（NanoVG / X-Ray / Vulkan）** |
 | [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md) | 新版本工程的移植计划与逐版本状态 |
 | [docs/PORTING-1.21.11-26.2.md](docs/PORTING-1.21.11-26.2.md) | 1.21.11 / 26.2 的渲染管线与移植说明 |
 | [PORTING_TASK.md](PORTING_TASK.md) | 移植任务与未完成项 |
