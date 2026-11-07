@@ -171,9 +171,19 @@ def smoke(proj, version, timeout, settle):
     if home:
         env['JAVA_HOME'] = home
     args = [gradle_command(path), 'runClient', '--init-script', INIT,
-            '--console=plain']
+            '--console=plain', '-Dorg.gradle.jvmargs=-Xmx2G']
     if proj.startswith('fabric/'):
         args.append('-Ploom_libraries_base=https://libraries.minecraft.net/')
+    elif not proj.startswith('neoforge'):
+        # Forge dev runs already get lwjgl-nanovg on the module path; keeping
+        # its classes in processResources makes two modules export the package.
+        args.append('-PdevClient=true')
+        # Incremental processResources never deletes outputs of the old
+        # include pattern, so drop the stale copy before starting.
+        import shutil
+        shutil.rmtree(os.path.join(path, 'build', 'resources', 'main',
+                                   'org', 'lwjgl', 'nanovg'),
+                      ignore_errors=True)
     with open(log, 'w', encoding='utf-8', errors='replace') as fh:
         proc = subprocess.Popen(args, cwd=path, stdout=fh,
                                 stderr=subprocess.STDOUT, env=env,
@@ -253,6 +263,8 @@ def main():
                     help='结果 TSV 追加写到这里，便于中断后 --skip-done 续跑')
     ap.add_argument('--skip-done', action='store_true',
                     help='跳过 --results 里已判成 LAUNCHED 的工程')
+    ap.add_argument('--jobs', type=int, default=1,
+                    help='并行启动的客户端数量（默认 1）')
     args = ap.parse_args()
 
     os.makedirs(LOGDIR, exist_ok=True)
@@ -264,22 +276,43 @@ def main():
     skipped = [t for t in targets if done.get(t[0]) == 'LAUNCHED']
     targets = [t for t in targets if done.get(t[0]) != 'LAUNCHED']
 
-    print('共 %d 个工程，单个超时 %d 秒，越过门槛后需存活 %d 秒'
-          % (len(targets), args.timeout, args.settle)
+    print('共 %d 个工程，并行 %d，单个超时 %d 秒，越过门槛后需存活 %d 秒'
+          % (len(targets), args.jobs, args.timeout, args.settle)
           + ('（已跳过 %d 个 LAUNCHED）' % len(skipped) if skipped else '')
           + '\n')
     results = [(p, v, 'LAUNCHED', 0, '(上次结果)') for p, v in skipped]
     fh = open(args.results, 'a', encoding='utf-8') if args.results else None
-    for proj, version in targets:
-        verdict, elapsed, detail, log = smoke(proj, version, args.timeout,
-                                              args.settle)
+
+    def record(proj, version, verdict, elapsed, detail):
         results.append((proj, version, verdict, elapsed, detail))
-        print('%-8s %-34s %5.0fs  %s' % (verdict, proj, elapsed, detail))
+        print('%-8s %-34s %5.0fs  %s' % (verdict, proj, elapsed, detail),
+              flush=True)
         if fh:
             fh.write('%s\t%s\t%s\t%.0f\t%s\n'
                      % (proj, version, verdict, elapsed,
                         detail.replace('\t', ' ')))
             fh.flush()
+
+    if args.jobs <= 1:
+        for proj, version in targets:
+            verdict, elapsed, detail, log = smoke(proj, version,
+                                                  args.timeout, args.settle)
+            record(proj, version, verdict, elapsed, detail)
+    else:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+            futures = {}
+            for proj, version in targets:
+                fut = pool.submit(smoke, proj, version, args.timeout,
+                                  args.settle)
+                futures[fut] = (proj, version)
+            for fut in as_completed(futures):
+                proj, version = futures[fut]
+                try:
+                    verdict, elapsed, detail, log = fut.result()
+                except Exception as e:  # keep the matrix going
+                    verdict, elapsed, detail = 'ERROR', 0, str(e)[:150]
+                record(proj, version, verdict, elapsed, detail)
     if fh:
         fh.close()
 

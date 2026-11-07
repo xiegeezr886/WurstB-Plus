@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.neoforged</groupId>
+  <artifactId>neoform</artifactId>
+  <version>1.20.3-20231205.165107</version>
+  <packaging>zip</packaging>
+  <name>NeoForm</name>
+  <description>Configuration files used for deobfuscating and modding Minecraft.</description>
+  <url>https://github.com/NeoForged/NeoForm</url>
+  <licenses>
+    <license>
+      <name>All Rights Reserved, No redistribution.</name>
+      <url></url>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:git://github.com/NeoForged/NeoForm.git</connection>
+    <developerConnection>scm:git:git@github.com:NeoForged/NeoForm.git</developerConnection>
+    <url>https://github.com/NeoForged/NeoForm</url>
+  </scm>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/NeoForged/NeoForm/issues</url>
+  </issueManagement>
+</project>

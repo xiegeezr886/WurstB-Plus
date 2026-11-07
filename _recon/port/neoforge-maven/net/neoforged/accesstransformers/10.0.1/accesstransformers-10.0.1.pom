@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.neoforged</groupId>
+  <artifactId>accesstransformers</artifactId>
+  <version>10.0.1</version>
+  <name>Access Transformers</name>
+  <description>Transforms class member access based on specification files</description>
+  <url>https://github.com/NeoForged/AccessTransformers</url>
+  <licenses>
+    <license>
+      <name>MIT</name>
+      <url>https://spdx.org/licenses/MIT</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>cpw</id>
+      <name>cpw</name>
+    </developer>
+    <developer>
+      <id>DemonWav</id>
+      <name>DemonWav</name>
+    </developer>
+    <developer>
+      <id>neoforged</id>
+      <name>NeoForged</name>
+      <email>contact@neoforged.net</email>
+      <url>https://github.com/NeoForged/</url>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/NeoForged/AccessTransformers.git</connection>
+    <developerConnection>scm:git:git@github.com:NeoForged/AccessTransformers.git</developerConnection>
+    <url>https://github.com/NeoForged/AccessTransformers</url>
+  </scm>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/NeoForged/AccessTransformers/issues</url>
+  </issueManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.9</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>9.4</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-tree</artifactId>
+      <version>9.4</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>9.4</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4-runtime</artifactId>
+      <version>4.13.1</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>

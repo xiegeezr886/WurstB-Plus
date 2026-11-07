@@ -1,0 +1,200 @@
+﻿NotifierHack.java:155: 错误: 找不到符号
+PitcherHack.java:512: 错误: 无法将类 StatusOnly中的构造器 StatusOnly应用到给定类型;
+PitcherHack.java:552: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+FlightAntiKickHack.java:129: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+ScreenActionsHack.java:174: 错误: 找不到符号
+ScreenActionsHack.java:228: 错误: 对于ServerboundUseItemPacket(InteractionHand,int,float,float), 找不到合适的构造器
+ScreenActionsHack.java:257: 错误: 找不到符号
+ScreenActionsHack.java:347: 错误: 不兼容的类型: Window无法转换为long
+KnockbackDirectionHack.java:105: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+KnockbackDirectionHack.java:123: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+KillFxHack.java:556: 错误: 找不到符号
+KillFxHack.java:603: 错误: 找不到符号
+KillFxHack.java:604: 错误: 找不到符号
+ImgTotemParticleHack.java:94: 错误: 找不到符号
+ImgTipsHack.java:244: 错误: 找不到符号
+ImgTipsHack.java:357: 错误: 找不到符号
+ImgTipsHack.java:429: 错误: 找不到符号
+ImgTipsHack.java:434: 错误: 找不到符号
+ImgTipsHack.java:437: 错误: 找不到符号
+MineEspHack.java:211: 错误: 找不到符号
+MineEspHack.java:255: 错误: 找不到符号
+CustomItemEspHack.java:188: 错误: 找不到符号
+CustomItemEspHack.java:211: 错误: 找不到符号
+CustomItemEspHack.java:224: 错误: 找不到符号
+BreakEspHack.java:212: 错误: 找不到符号
+BreakEspHack.java:266: 错误: 找不到符号
+AntiLagHack.java:172: 错误: 找不到符号
+AutoKouZiHack.java:207: 错误: 找不到符号
+AutoTPAcceptHack.java:197: 错误: 找不到符号
+AutoTPAcceptHack.java:199: 错误: 找不到符号
+GAntiExplosionHack.java:343: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+GAntiExplosionHack.java:353: 错误: 找不到符号
+GAntiExplosionHack.java:354: 错误: 找不到符号
+GAntiExplosionHack.java:362: 错误: 找不到符号
+FoKillAuraHack.java:184: 错误: 找不到符号
+FoKillAuraHack.java:188: 错误: 找不到符号
+FoKillAuraHack.java:269: 错误: 找不到符号
+SchematicProHack.java:315: 错误: 找不到符号
+AdaAutoHotbarHack.java:184: 错误: 找不到符号
+AdaManualCrystalHack.java:79: 错误: 找不到符号
+AdaManualCrystalHack.java:80: 错误: 找不到符号
+VillagerTraderHack.java:461: 错误: 找不到符号
+AutoInvTotemHack.java:98: 错误: 找不到符号
+AutoFireworkHack.java:110: 错误: 找不到符号
+AutoDoubleHandHack.java:101: 错误: 找不到符号
+AutoChorusHack.java:159: 错误: startUseItem() 在 Minecraft 中是 private 访问控制
+AutoChorusHack.java:180: 错误: startUseItem() 在 Minecraft 中是 private 访问控制
+LegitNoFallHack.java:154: 错误: 找不到符号
+LegitNoFallHack.java:159: 错误: 找不到符号
+LegitNoFallHack.java:165: 错误: 找不到符号
+LegitNoFallHack.java:174: 错误: 找不到符号
+TpMachineGunHack.java:164: 错误: 无法将类 CrossbowItem中的方法 getChargeDuration应用到给定类型;
+TpMachineGunHack.java:326: 错误: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+TpMachineGunHack.java:387: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+TpBowAuraHack.java:259: 错误: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+TpBowAuraHack.java:312: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+TpAnchorHack.java:487: 错误: 找不到符号
+TpAnchorHack.java:489: 错误: 找不到符号
+TpAnchorHack.java:495: 错误: 找不到符号
+TpAnchorHack.java:506: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+TpAnchorHack.java:523: 错误: 找不到符号
+TntBomberHack.java:103: 错误: 找不到符号
+TntBomberHack.java:124: 错误: 找不到符号
+SpearKillHack.java:469: 错误: 找不到符号
+SpearKillHack.java:469: 错误: 找不到符号
+SpearKillHack.java:495: 错误: 无法将类 Entity中的方法 canBeCollidedWith应用到给定类型;
+SpearKillHack.java:620: 错误: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+SpearKillHack.java:625: 错误: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+PistonCrystalHack.java:474: 错误: 找不到符号
+PistonCrystalHack.java:490: 错误: 找不到符号
+PistonCrystalHack.java:530: 错误: 找不到符号
+PistonCrystalHack.java:546: 错误: 找不到符号
+PistonCrystalHack.java:549: 错误: 找不到符号
+PistonCrystalHack.java:579: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+PistonCrystalHack.java:595: 错误: 找不到符号
+MacroAnchorHack.java:113: 错误: 找不到符号
+MacroAnchorHack.java:272: 错误: 找不到符号
+MacroAnchorHack.java:294: 错误: 找不到符号
+MacroAnchorHack.java:314: 错误: 找不到符号
+MacroAnchorHack.java:326: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+MacroAnchorHack.java:335: 错误: 找不到符号
+MacroAnchorHack.java:338: 错误: 找不到符号
+MaceBreakerProHack.java:113: 错误: 找不到符号
+MaceBreakerProHack.java:144: 错误: 找不到符号
+MaceBreakerProHack.java:151: 错误: 找不到符号
+MaceAuraHack.java:117: 错误: 找不到符号
+MaceAuraHack.java:170: 错误: 找不到符号
+MaceAuraHack.java:171: 错误: 找不到符号
+MaceAuraHack.java:264: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+MaceAuraHack.java:298: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+CrossbowAuraHack.java:284: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+AutoChestAuraHack.java:201: 错误: 找不到符号
+AttractAuraHack.java:198: 错误: 无法将类 StatusOnly中的构造器 StatusOnly应用到给定类型;
+FastCrossbowHack.java:125: 错误: 找不到符号
+FastCrossbowHack.java:140: 错误: 找不到符号
+AutoTorchHack.java:168: 错误: 找不到符号
+AutoTorchHack.java:170: 错误: 找不到符号
+AutoTorchHack.java:177: 错误: 找不到符号
+AutoTorchHack.java:178: 错误: 找不到符号
+ReplenishHack.java:99: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ScreenActionsHack.java:228: 错误: 对于ServerboundUseItemPacket(InteractionHand,int,float,float), 找不到合适的构造器
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ScreenActionsHack.java:347: 错误: 不兼容的类型: Window无法转换为long
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ScreenActionsHack.java:174: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ScreenActionsHack.java:257: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:357: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MineEspHack.java:211: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MineEspHack.java:255: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\CustomItemEspHack.java:188: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\CustomItemEspHack.java:211: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\CustomItemEspHack.java:224: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\BreakEspHack.java:212: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\BreakEspHack.java:266: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AntiLagHack.java:172: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoKouZiHack.java:207: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\GAntiExplosionHack.java:353: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\GAntiExplosionHack.java:354: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\GAntiExplosionHack.java:362: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\FoKillAuraHack.java:184: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\FoKillAuraHack.java:188: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\FoKillAuraHack.java:269: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\SchematicProHack.java:315: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AdaAutoHotbarHack.java:184: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AdaManualCrystalHack.java:79: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AdaManualCrystalHack.java:80: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\VillagerTraderHack.java:461: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoFireworkHack.java:110: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoDoubleHandHack.java:101: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\LegitNoFallHack.java:154: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\LegitNoFallHack.java:159: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\LegitNoFallHack.java:165: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\LegitNoFallHack.java:174: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TpAnchorHack.java:487: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TpAnchorHack.java:489: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TpAnchorHack.java:495: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TpAnchorHack.java:523: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TntBomberHack.java:103: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TntBomberHack.java:124: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\SpearKillHack.java:469: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\SpearKillHack.java:469: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\PistonCrystalHack.java:474: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\PistonCrystalHack.java:490: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\PistonCrystalHack.java:530: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\PistonCrystalHack.java:546: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\PistonCrystalHack.java:549: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\PistonCrystalHack.java:595: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MacroAnchorHack.java:113: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MacroAnchorHack.java:272: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MacroAnchorHack.java:294: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MacroAnchorHack.java:314: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MacroAnchorHack.java:335: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MacroAnchorHack.java:338: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MaceBreakerProHack.java:113: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MaceBreakerProHack.java:144: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MaceBreakerProHack.java:151: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MaceAuraHack.java:117: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MaceAuraHack.java:170: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MaceAuraHack.java:171: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoChestAuraHack.java:201: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\FastCrossbowHack.java:125: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\FastCrossbowHack.java:140: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoTorchHack.java:168: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoTorchHack.java:170: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoTorchHack.java:177: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoTorchHack.java:178: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ReplenishHack.java:99: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\PitcherHack.java:512: 错误: 无法将类 StatusOnly中的构造器 StatusOnly应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\PitcherHack.java:552: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\FlightAntiKickHack.java:129: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\KnockbackDirectionHack.java:105: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\KnockbackDirectionHack.java:123: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\GAntiExplosionHack.java:343: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TpMachineGunHack.java:164: 错误: 无法将类 CrossbowItem中的方法 getChargeDuration应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TpMachineGunHack.java:326: 错误: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TpMachineGunHack.java:387: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TpBowAuraHack.java:259: 错误: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TpBowAuraHack.java:312: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\TpAnchorHack.java:506: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\SpearKillHack.java:495: 错误: 无法将类 Entity中的方法 canBeCollidedWith应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\SpearKillHack.java:620: 错误: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\SpearKillHack.java:625: 错误: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\PistonCrystalHack.java:579: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MacroAnchorHack.java:326: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MaceAuraHack.java:264: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\MaceAuraHack.java:298: 错误: 无法将类 Pos中的构造器 Pos应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\CrossbowAuraHack.java:284: 错误: 无法将类 Rot中的构造器 Rot应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AttractAuraHack.java:198: 错误: 无法将类 StatusOnly中的构造器 StatusOnly应用到给定类型;
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\NotifierHack.java:155: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\KillFxHack.java:556: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\KillFxHack.java:603: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\KillFxHack.java:604: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ImgTotemParticleHack.java:94: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:244: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:429: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:434: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:437: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoTPAcceptHack.java:197: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoTPAcceptHack.java:199: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoInvTotemHack.java:98: 错误: 找不到符号
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoChorusHack.java:159: 错误: startUseItem() 在 Minecraft 中是 private 访问控制
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\1.20.5\src\main\java\net\wurstclient\hacks\AutoChorusHack.java:180: 错误: startUseItem() 在 Minecraft 中是 private 访问控制

@@ -10,6 +10,7 @@ package net.wurstclient.addon;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.ServiceConfigurationError;
@@ -30,16 +31,55 @@ public final class AddonManager
 
 	public void discoverAddons()
 	{
+		Iterator<WurstAddon> iterator;
 		try
 		{
-			ServiceLoader<WurstAddon> loader =
-				ServiceLoader.load(WurstAddon.class);
-			for(WurstAddon addon : loader)
-				registerAddon(addon);
+			iterator = ServiceLoader.load(WurstAddon.class).iterator();
 		}catch(ServiceConfigurationError | RuntimeException e)
 		{
 			System.err.println(
-				"[AddonManager] Failed to discover addons: " + e.getMessage());
+				"[AddonManager] Failed to open the addon list: " + e);
+			return;
+		}
+
+		while(true)
+		{
+			boolean hasNext;
+			try
+			{
+				hasNext = iterator.hasNext();
+			}catch(ServiceConfigurationError | RuntimeException e)
+			{
+				// The provider list itself is unreadable; nothing more can be
+				// discovered safely.
+				System.err.println(
+					"[AddonManager] Failed to read the addon list: " + e);
+				return;
+			}
+			if(!hasNext)
+				return;
+
+			WurstAddon addon;
+			try
+			{
+				addon = iterator.next();
+			}catch(ServiceConfigurationError | RuntimeException e)
+			{
+				// Isolate one broken provider so healthy addons after it still
+				// load.
+				System.err.println(
+					"[AddonManager] Skipping a broken addon provider: " + e);
+				continue;
+			}
+
+			try
+			{
+				registerAddon(addon);
+			}catch(RuntimeException | LinkageError e)
+			{
+				System.err.println(
+					"[AddonManager] Addon failed to load: " + e);
+			}
 		}
 	}
 
