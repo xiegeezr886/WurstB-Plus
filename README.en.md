@@ -40,22 +40,37 @@ ship NeoForge and Fabric only.</sub>
 **Asset naming** (the version number carries no `v`):
 
 ```text
-WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.0-Forge-1.21.5.jar
+WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.1-Forge-1.21.5.jar
 ```
 
 | Release | Contents | Notes |
 | --- | --- | --- |
-| [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 assets | The main release, covering every version |
-| [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | Fabric 1.20.1 | Latest release (Latest), one artifact jar + two source archives |
+| [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 assets | The historical release of the 1.5.0 line |
+| [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | **67 assets (full matrix)** | **Latest release**: 66 v1.5.1 projects + one fixed Forge 1.20.1 build, 67 jars in total |
 | [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | Prerelease, carries the new v1.6 subsystems |
 
-> **Note:** Not all three 1.20.1 projects are v1.5. The **root Forge 1.20.1 project is v1.6.0**
-> (the only one with the v1.6 subsystems), while the current source of `fabric/` and `neoforge/`
-> is **v1.5.1**. The `WurstB+.Plus-1.5.0-Forge-1.20.1.jar` asset in
-> the v1.5.0 release is the artifact from that release (the project has since moved on, so it
-> cannot be rebuilt byte-for-byte) and is kept as-is. For a v1.6 Forge 1.20.1 build, use the
-> v1.6.0 release. The other 64 version projects are also on the **v1.5.1** development line,
-> but the v1.5.1 release only ships the Fabric 1.20.1 artifact for now.
+> **Note:** All 66 v1.5.1 projects (Fabric 23 + Forge 20 + NeoForge 23) are on the **v1.5.1**
+> development line and the v1.5.1 release ships every one of their jars. The 67th asset is a
+> fixed Forge 1.20.1 build produced by the separate `VAP-v1.5.0-1.20.1` project. The root
+> Forge 1.20.1 project is **v1.6.0** (the only one with the v1.6 subsystems) and is published
+> only in the v1.6.0 release. The v1.5.0 release keeps its 67 historical 1.5.0 assets.
+
+---
+
+## Rendering and compatibility
+
+- **The HUD and ClickGUI render entirely through NanoVG.** Panels and controls use the vector
+  rounded rectangles of `NanoVGUI.fillRounded` / `outlineRounded` (backed by
+  `nvgRoundedRect`); active GUI code no longer calls vanilla `GuiGraphics.fill/blit/drawString`.
+- **Android / OpenGL ES:** when an `OpenGL ES` context is detected the client switches to the
+  `NanoVGGLES3` backend. The offscreen FBO is checked for completeness and the composite step
+  checks GL errors and degrades instead of painting black; `-Dwurst.nanovg=false` disables NanoVG
+  entirely.
+- **1.21.11:** the missing `wurst:core/fogless_lines` shaders are shipped, so the ESP line
+  pipelines compile again; unregistered accessors such as `ToastComponentAccessor` were added to
+  `wurst.mixins.json` to stop `IllegalClassLoadError` crashes.
+- **lwjgl-nanovg:** Fabric 1.20.1–1.20.4 use 3.3.3 with transitive dependencies disabled, which
+  avoids the Android `Struct.wrap` `NoSuchMethodError`.
 
 ---
 
@@ -88,6 +103,7 @@ distribution resolves even offline.
 
 | Document | Contents |
 | --- | --- |
+| [docs/STATUS.md](docs/STATUS.md) | **Authoritative status numbers (generated, do not edit)**: project inventory, toolchains, test counts, v1.6 gaps |
 | [CHANGELOG.md](CHANGELOG.md) | Version history, including known limitations and deviations |
 | [PROJECT_INDEX.md](PROJECT_INDEX.md) | Per-project index: toolchain, source file count, entry classes, artifact names |
 | [docs/RELEASE.md](docs/RELEASE.md) | **Release and maintenance handbook** (the original README): **feature documentation** (new subsystems, the new-hack inventory, HUD elements, refactored internals, architecture), **installation**, **building and running**, artifact matrix, packaging validation, verification status, **rendering compatibility (X-Ray / Vulkan)** |
@@ -116,12 +132,12 @@ inventoried in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). FFmpeg is an LG
 **corresponding source** (build scripts, `COPYING.*`, the JNI shim source) ships in
 [`native/ffmpeg/`](native/ffmpeg).
 
-> **Verification scope:** not every combination has been launched in game. Forge/NeoForge
-> 1.20.x–1.21.1, Forge 1.21.3 and other listed combinations passed compilation and packaging
-> validation but were **not launched in game** this round. Vulkan is available only on
-> 26.2/26.3, and NeoForge 26.2's Vulkan startup is blocked by a loader bug.
-> Per-version status is in the "Rendering compatibility (X-Ray / Vulkan)" section of
-> [docs/RELEASE.md](docs/RELEASE.md) and in
+> **Verification scope:** all 67 v1.5.1 assets passed compilation and packaging validation and
+> have been uploaded to the v1.5.1 release. In-game launch verification only covers part of the
+> matrix (1.21.11 / 26.2 and others); Forge/NeoForge 1.20.x–1.21.1 combinations still have
+> compile/packaging validation only. Vulkan is available only on 26.2/26.3, and NeoForge 26.2's
+> Vulkan startup is blocked by a loader bug. Per-version status is in the "Rendering
+> compatibility (X-Ray / Vulkan)" section of [docs/RELEASE.md](docs/RELEASE.md) and in
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md).
 
 <div align="center">
