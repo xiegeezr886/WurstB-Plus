@@ -35,10 +35,23 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 > Forge 1.20.1 由 `VAP-v1.5.0-1.20.1` 工程单独构建（修复 accessor 登记）。根目录
 > Forge 1.20.1（v1.6.0）不在此 Release，见 v1.6.0 预发布。tag 仍为 `v1.5.1`。
 
-## 渲染兼容性（X-Ray / Vulkan）
+## 渲染兼容性（NanoVG / X-Ray / Vulkan）
 
 本节记录 2026-10-22 对 X-Ray 渲染链路做的逐版本源码核对与真实客户端验证，以及 Minecraft
 26.2/26.3 的实验性 Vulkan 后端测试。
+
+### NanoVG HUD / ClickGUI（2026-11-07）
+
+- **HUD 与 ClickGUI 全部走 NanoVG**：面板与控件使用 `NanoVGUI.fillRounded` /
+  `outlineRounded` 的矢量圆角（底层是 `nvgRoundedRect`），活动 GUI 代码不再调用原版
+  `GuiGraphics.fill/blit/drawString`。
+- **安卓 / OpenGL ES**：检测到 `OpenGL ES` 上下文时切换到 `NanoVGGLES3` 后端；FBO 创建后
+  校验完整性，合成阶段检查 GL 错误并自动降级，避免黑屏；`-Dwurst.nanovg=false` 可完全关闭。
+- **1.21.11**：补齐 `wurst:core/fogless_lines` 着色器资源，ESP 线框 pipeline 可正常编译；
+  `ToastComponentAccessor` 等未登记的 accessor 已补进 `wurst.mixins.json`，修复
+  `IllegalClassLoadError`。
+- **lwjgl-nanovg**：Fabric 1.20.1–1.20.4 统一到 3.3.3 并禁用传递依赖，避免 Android 上
+  `Struct.wrap` 的 `NoSuchMethodError`。
 
 ### Android / LWJGL 3.3.3（NanoVG，2026-10-27）
 
