@@ -1,0 +1,95 @@
+fix(baritone): 修补 10 个 Forge 版 Baritone 的 onTick 空指针（进服务器后崩溃）
+
+## 症状
+
+进服务器约 2 秒后客户端崩溃：
+
+    java.lang.NullPointerException: Cannot invoke "Object.getClass()" because
+      "baritone.api.utils.IPlayerContext.player().f_108618_" is null
+        at baritone.eq.onTick(Unknown Source)
+    Suspected Mod: Baritone (baritoe), 1.10.1
+
+f_108618_ = LocalPlayer.input（1.20.1 的 SRG 名）。实测崩溃报告四份
+（09-27 的 v1.5.0、10-07 与 10-14 两份 v1.6.0）**异常逐字相同**，
+即与 WurstB+ 的版本无关，是内嵌 Baritone 自己的问题。
+
+## 精确到指令的定位
+
+Baritone 的 InputOverrideHandler.onTick 末尾有两个分支，都在
+player().input 上调 getClass()，而 input 在玩家/世界尚未就绪时可能为 null：
+
+    [TRUE ] input 不是 Baritone 自己的 Input 子类 -> 装上它
+            ctx.player().input.getClass() == OurInput ? return : install
+    [FALSE] input 是 Baritone 自己的类 -> 还原成 KeyboardInput
+            ctx.player().input.getClass() != OurInput ? return : restore
+
+（对比更晚的官方构建，它在这段前面加了冷却计数器来跳过；本仓库这批
+ 没有那个防护。）
+
+## 修法
+
+null 时按「不是我们的类」处理 —— 两个分支本就分别用 if_acmpeq /
+if_acmpne 判断相等性，所以 null 该走哪边是确定的，不需要猜语义：
+
+    GETFIELD input
+    DUP
+    IFNULL Lnull          <- 新入口
+    INVOKEVIRTUAL getClass()   <- 原有
+    ...
+    Lnull: POP; GOTO <notEqual 目标>
+
+改的是第三方混淆 jar 的字节码（ASM），工具见 _recon/BariPatch.java。
+
+## 受影响范围（我写了检测工具扫过全仓库 72 个不同的 Baritone jar）
+
+有该缺陷的 10 个：
+
+    baritone-api-forge-1.20.1.jar                       根工程 Forge 1.20.1
+    baritone-forge-1.10.6-1.20.2.jar                    官方版
+    baritone-forge-1.10.7-1.20.3.jar                    官方版
+    baritone-forge-1.10.7-1.20.4.jar                    官方版
+    baritone-forge-1.10.8-1.20.6.jar                    官方版
+    baritone-api-forge-1.21.1.jar                       neoforge/versions/1.21
+    baritone-api-forge-1.20.1-mc1.20.{2,3,4,6}.jar      versions/1.20.2/.3/.4/.6
+
+其余 62 个干净，**且全部是 Fabric 线** —— 所以这是 Forge 1.10.6–1.10.8
+这段的通病，不是某个自建裁剪版的问题（我一度误判为"499 KB 是被裁剪的
+自建版"，用官方 4.9 MB 的 jar 一测同样命中，该判断已作废）。
+
+## 验证
+
+    * 检测：10 个 jar 全部由 sites=2 变为 CLEAN；
+      git 里这 10 个 jar 都显示为 M
+    * 字节码校验：根工程打补丁后重建并冒烟启动 -> LAUNCHED 93s，
+      日志中**无 VerifyError**，Sound engine started
+    * 抽验版本工程：versions/1.20.2 用打补丁的 -mc1.20.2 jar
+      构建 -> BUILD SUCCESSFUL in 24s，产出 32.3 MB 的 jar
+
+## 走过的弯路（记下来，免得下次重蹈）
+
+前三版补丁全部被 JVM 字节码校验器拒绝，各暴露一层约束：
+
+  1. COMPUTE_FRAMES 但类路径里没有 Minecraft 的类型 ->
+     VerifyError: Instruction type does not match stack map
+  2. 把 getCommonSuperClass 兜底成 java/lang/Object ->
+     ASM 内部 Frame.merge 抛 ArrayIndexOutOfBoundsException
+  3. 改成"只算 maxs、手补帧" -> 新标签成了跳转目标却没有帧 ->
+     VerifyError: Expecting a stackmap frame at branch target
+  4. 手补帧的落点/栈内容对不上 -> 又一个栈不匹配
+
+**最终解法**：把项目的 compileClasspath（130 个条目，含
+forge-...-mapped_official 与 client-extra）作为 --cp 传给 ASM，
+让 getCommonSuperClass 能真正解析 Minecraft 类型，COMPUTE_FRAMES
+一次算对。**手写栈帧这条路在这个工程里是走不通的。**
+
+## 边界
+
+  * 未实测"进服务器"这一步。能确认的是：补丁类通过校验器、
+    客户端正常启动、以及补丁逻辑上把 null 变成「不是我们的类」后
+    两个分支都不再触碰 input 的方法 —— 那处 NPE 结构上不可能再发生。
+    但要完全确认需在真实服务器上验一次。
+  * 只改了 10 个有缺陷的 jar；62 个干净的未动。
+  * 这些是**第三方 jar 的二进制补丁**，不是从源码构建的：上游若有更新
+    版本，应优先换上游，本补丁只作为"在当前版本上止血"。
+  * 未提交 _recon/BariPatch.java（在 _recon 里，不随仓库分发）；
+    需要长期保留的话应移到 scripts/ 并配一条使用说明。

@@ -1,0 +1,635 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At line:1 char:135
++ ... ions\26.2"; .\gradlew.bat compileJava --init-script ..\..\..\gradle\i ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/ui863/.gradle/wrapper/dists/gradle-9.6.0-bin/3yr5qo1p853jn7m5o1j0u2qkd/gradle-9.6.0/lib/nativ
+e-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+
+> Configure project :
+Fabric Loom: 1.17.17
+
+> Task :compileJava
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\KnockbackDirectionH
+ack.java:130: 错误: 找不到符号
+		if(MC.screen != null || MC.player == null)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\KillFxHack.java:262
+: 错误: 找不到符号
+					new LightningBolt(EntityType.LIGHTNING_BOLT, MC.level);
+					                            ^
+  符号:   变量 LIGHTNING_BOLT
+  位置: 类 EntityType
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\MineEspHack.java:21
+1: 错误: 找不到符号
+		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+		                             ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\MineEspHack.java:21
+3: 错误: 找不到符号
+			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+			                               ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\ElytraFollowerHack.
+java:132: 错误: 找不到符号
+			|| MC.screen != null || MC.player == null)
+			     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\CustomItemEspHack.j
+ava:188: 错误: 找不到符号
+		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+		                             ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\CustomItemEspHack.j
+ava:190: 错误: 找不到符号
+			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+			                               ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\BreakEspHack.java:2
+12: 错误: 找不到符号
+		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+		                             ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\BreakEspHack.java:2
+14: 错误: 找不到符号
+			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+			                               ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\GAntiExplosionHack.
+java:137: 错误: 找不到符号
+			&& packet.getType() == EntityType.END_CRYSTAL)
+			                                 ^
+  符号:   变量 END_CRYSTAL
+  位置: 类 EntityType
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\ChatHiderHack.java:
+57: 错误: 找不到符号
+		if(MC.screen instanceof ChatScreen)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\FoKillAuraHack.java
+:148: 错误: 找不到符号
+		if(MC.screen instanceof AbstractContainerScreen)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoMineSandHack.ja
+va:235: 错误: 找不到符号
+		if(MC.screen instanceof ShulkerBoxScreen)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\SchematicProHack.ja
+va:202: 错误: 找不到符号
+		if(MC.screen != null)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\FurnaceUncloggerHac
+k.java:229: 错误: 找不到符号
+		if(MC.screen != null || !autoClean.isChecked())
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\FurnaceUncloggerHac
+k.java:259: 错误: 找不到符号
+		if(MC.screen != null)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:420: 错误: 找不到符号
+		if(!(MC.screen instanceof MerchantScreen))
+		       ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoInvTotemHack.ja
+va:127: 错误: 找不到符号
+		if(!needsTotem || !(MC.screen instanceof InventoryScreen))
+		                      ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\CrystalMacroHack.ja
+va:92: 错误: 找不到符号
+		if(MC.player == null || MC.level == null || MC.screen != null)
+		                                              ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\CrossbowAuraHack.ja
+va:188: 错误: 找不到符号
+		if(!middleClickLock.isChecked() || MC.screen != null
+		                                     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoChestAuraHack.j
+ava:121: 错误: 找不到符号
+			if(MC.screen == null && stuckTimer > 5)
+			     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoChestAuraHack.j
+ava:144: 错误: 找不到符号
+		if(MC.screen != null)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AttractAuraHack.jav
+a:125: 错误: 找不到符号
+		if(!middleClickLock.isChecked() || MC.screen != null)
+		                                     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\ReplenishHack.java:
+84: 错误: 找不到符号
+		if(MC.screen != null || MC.player.containerMenu.containerId != 0
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoVaultHack.java:
+105: 错误: 找不到符号
+		if(MC.screen != null)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoDeoxidizerHack.
+java:92: 错误: 找不到符号
+		if(MC.screen != null)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\FireworkElytraFlyHa
+ck.java:132: 错误: 找不到符号
+			if(MC.screen != null)
+			     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\FireworkElytraFlyHa
+ck.java:140: 错误: 找不到符号
+		if(autoTakeoff.isChecked() && MC.screen == null)
+		                                ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\DeathRenderHack.jav
+a:232: 错误: 找不到符号
+		Vec3 camera = MC.gameRenderer.getMainCamera().position();
+		                             ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\DeathRenderHack.jav
+a:240: 错误: 找不到符号
+				.mulPose(new Quaternionf(MC.gameRenderer.getMainCamera().rotation()));
+				                                        ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoRefreshTradeHac
+k.java:101: 错误: 找不到符号
+		if(MC.player != null && MC.screen instanceof MerchantScreen)
+		                          ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoRefreshTradeHac
+k.java:118: 错误: 找不到符号
+		if(MC.screen != null)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoRefreshTradeHac
+k.java:120: 错误: 找不到符号
+			if(MC.screen instanceof MerchantScreen screen)
+			     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\ItemDespawnTimerHac
+k.java:99: 错误: 找不到符号
+		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+		                             ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\ItemDespawnTimerHac
+k.java:101: 错误: 找不到符号
+			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+			                               ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\EntityTagsHack.java
+:105: 错误: 找不到符号
+		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+		                             ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\EntityTagsHack.java
+:107: 错误: 找不到符号
+			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+			                               ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoOffHandHack.jav
+a:75: 错误: 找不到符号
+		if(MC.screen instanceof AbstractContainerScreen)
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoArmorPlusHack.j
+ava:106: 错误: 找不到符号
+		if(MC.screen instanceof AbstractContainerScreen
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoArmorPlusHack.j
+ava:107: 错误: 找不到符号
+			&& !(MC.screen instanceof InventoryScreen))
+			       ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoTrashHack.java:
+91: 错误: 找不到符号
+		if(MC.screen instanceof AbstractContainerScreen
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoTrashHack.java:
+92: 错误: 找不到符号
+			&& !(MC.screen instanceof InventoryScreen))
+			       ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\InventoryTweaksHack
+.java:94: 错误: 找不到符号
+		boolean open = MC.screen instanceof InventoryScreen
+		                 ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\BookBotHack.java:14
+8: 错误: 找不到符号
+		boolean bookScreenOpen = MC.screen instanceof BookEditScreen;
+		                           ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\BetterBeaconsHack.j
+ava:60: 错误: 找不到符号
+		if(!(MC.screen instanceof BeaconScreen screen))
+		       ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\EntityOwnerHack.jav
+a:63: 错误: 找不到符号
+		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+		                             ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\EntityOwnerHack.jav
+a:65: 错误: 找不到符号
+			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+			                               ^
+  符号:   方法 getMainCamera()
+  位置: 类型为GameRenderer的变量 gameRenderer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\PacketMineHack.java
+:95: 错误: 找不到符号
+		if(MC.screen != null || pauseOnUse.isChecked()
+		     ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoBrewerHack.java
+:95: 错误: 找不到符号
+		if(!(MC.screen instanceof AbstractContainerScreen<?> screen))
+		       ^
+  符号:   变量 screen
+  位置: 类型为Minecraft的变量 MC
+注: 某些输入文件使用或覆盖了已过时的 API。
+注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+注: C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\settings\CheckboxSetti
+ng.java使用了未经检查或不安全的操作。
+注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+49 个错误
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/ui863/Documents/trae_projects/VAP/fabric/versions/26.2/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+  注: C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\settings\CheckboxSet
+ting.java使用了未经检查或不安全的操作。
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\KnockbackDirectio
+nHack.java:130: 错误: 找不到符号
+  		if(MC.screen != null || MC.player == null)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\KillFxHack.java:2
+62: 错误: 找不到符号
+  					new LightningBolt(EntityType.LIGHTNING_BOLT, MC.level);
+  					                            ^
+    符号:   变量 LIGHTNING_BOLT
+    位置: 类 EntityType
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\ElytraFollowerHac
+k.java:132: 错误: 找不到符号
+  			|| MC.screen != null || MC.player == null)
+  			     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\GAntiExplosionHac
+k.java:137: 错误: 找不到符号
+  			&& packet.getType() == EntityType.END_CRYSTAL)
+  			                                 ^
+    符号:   变量 END_CRYSTAL
+    位置: 类 EntityType
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\ChatHiderHack.jav
+a:57: 错误: 找不到符号
+  		if(MC.screen instanceof ChatScreen)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\FoKillAuraHack.ja
+va:148: 错误: 找不到符号
+  		if(MC.screen instanceof AbstractContainerScreen)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoMineSandHack.
+java:235: 错误: 找不到符号
+  		if(MC.screen instanceof ShulkerBoxScreen)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\SchematicProHack.
+java:202: 错误: 找不到符号
+  		if(MC.screen != null)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\FurnaceUncloggerH
+ack.java:229: 错误: 找不到符号
+  		if(MC.screen != null || !autoClean.isChecked())
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\FurnaceUncloggerH
+ack.java:259: 错误: 找不到符号
+  		if(MC.screen != null)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:420: 错误: 找不到符号
+  		if(!(MC.screen instanceof MerchantScreen))
+  		       ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoInvTotemHack.
+java:127: 错误: 找不到符号
+  		if(!needsTotem || !(MC.screen instanceof InventoryScreen))
+  		                      ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\CrystalMacroHack.
+java:92: 错误: 找不到符号
+  		if(MC.player == null || MC.level == null || MC.screen != null)
+  		                                              ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\CrossbowAuraHack.
+java:188: 错误: 找不到符号
+  		if(!middleClickLock.isChecked() || MC.screen != null
+  		                                     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoChestAuraHack
+.java:121: 错误: 找不到符号
+  			if(MC.screen == null && stuckTimer > 5)
+  			     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoChestAuraHack
+.java:144: 错误: 找不到符号
+  		if(MC.screen != null)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AttractAuraHack.j
+ava:125: 错误: 找不到符号
+  		if(!middleClickLock.isChecked() || MC.screen != null)
+  		                                     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\ReplenishHack.jav
+a:84: 错误: 找不到符号
+  		if(MC.screen != null || MC.player.containerMenu.containerId != 0
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoVaultHack.jav
+a:105: 错误: 找不到符号
+  		if(MC.screen != null)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoDeoxidizerHac
+k.java:92: 错误: 找不到符号
+  		if(MC.screen != null)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\FireworkElytraFly
+Hack.java:132: 错误: 找不到符号
+  			if(MC.screen != null)
+  			     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\FireworkElytraFly
+Hack.java:140: 错误: 找不到符号
+  		if(autoTakeoff.isChecked() && MC.screen == null)
+  		                                ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoRefreshTradeH
+ack.java:101: 错误: 找不到符号
+  		if(MC.player != null && MC.screen instanceof MerchantScreen)
+  		                          ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoRefreshTradeH
+ack.java:118: 错误: 找不到符号
+  		if(MC.screen != null)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoRefreshTradeH
+ack.java:120: 错误: 找不到符号
+  			if(MC.screen instanceof MerchantScreen screen)
+  			     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoOffHandHack.j
+ava:75: 错误: 找不到符号
+  		if(MC.screen instanceof AbstractContainerScreen)
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoArmorPlusHack
+.java:106: 错误: 找不到符号
+  		if(MC.screen instanceof AbstractContainerScreen
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoArmorPlusHack
+.java:107: 错误: 找不到符号
+  			&& !(MC.screen instanceof InventoryScreen))
+  			       ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoTrashHack.jav
+a:91: 错误: 找不到符号
+  		if(MC.screen instanceof AbstractContainerScreen
+  		     ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoTrashHack.jav
+a:92: 错误: 找不到符号
+  			&& !(MC.screen instanceof InventoryScreen))
+  			       ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\InventoryTweaksHa
+ck.java:94: 错误: 找不到符号
+  		boolean open = MC.screen instanceof InventoryScreen
+  		                 ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\BookBotHack.java:
+148: 错误: 找不到符号
+  		boolean bookScreenOpen = MC.screen instanceof BookEditScreen;
+  		                           ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\BetterBeaconsHack
+.java:60: 错误: 找不到符号
+  		if(!(MC.screen instanceof BeaconScreen screen))
+  		       ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\PacketMineHack.ja
+va:95: 错误: 找不到符号
+  		if(MC.screen != null || pauseOnUse.isChecked()
+  		     ^
+1 actionable task: 1 executed
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\AutoBrewerHack.ja
+va:95: 错误: 找不到符号
+  		if(!(MC.screen instanceof AbstractContainerScreen<?> screen))
+  		       ^
+    符号:   变量 screen
+    位置: 类型为Minecraft的变量 MC
+  注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+  注: 某些输入文件使用或覆盖了已过时的 API。
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\MineEspHack.java:
+211: 错误: 找不到符号
+  		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+  		                             ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\MineEspHack.java:
+213: 错误: 找不到符号
+  			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+  			                               ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\CustomItemEspHack
+.java:188: 错误: 找不到符号
+  		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+  		                             ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\CustomItemEspHack
+.java:190: 错误: 找不到符号
+  			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+  			                               ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\BreakEspHack.java
+:212: 错误: 找不到符号
+  		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+  		                             ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\BreakEspHack.java
+:214: 错误: 找不到符号
+  			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+  			                               ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\DeathRenderHack.j
+ava:232: 错误: 找不到符号
+  		Vec3 camera = MC.gameRenderer.getMainCamera().position();
+  		                             ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\DeathRenderHack.j
+ava:240: 错误: 找不到符号
+  				.mulPose(new Quaternionf(MC.gameRenderer.getMainCamera().rotation()));
+  				                                        ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\ItemDespawnTimerH
+ack.java:99: 错误: 找不到符号
+  		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+  		                             ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\ItemDespawnTimerH
+ack.java:101: 错误: 找不到符号
+  			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+  			                               ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\EntityTagsHack.ja
+va:105: 错误: 找不到符号
+  		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+  		                             ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\EntityTagsHack.ja
+va:107: 错误: 找不到符号
+  			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+  			                               ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\EntityOwnerHack.j
+ava:63: 错误: 找不到符号
+  		Vec3 camPos = MC.gameRenderer.getMainCamera().position();
+  		                             ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\hacks\EntityOwnerHack.j
+ava:65: 错误: 找不到符号
+  			new Quaternionf(MC.gameRenderer.getMainCamera().rotation());
+  			                               ^
+    符号:   方法 getMainCamera()
+    位置: 类型为GameRenderer的变量 gameRenderer
+  49 个错误
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 11s
