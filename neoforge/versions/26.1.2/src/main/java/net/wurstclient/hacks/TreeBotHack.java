@@ -28,10 +28,15 @@ import net.wurstclient.ai.PathProcessor;
 import net.wurstclient.commands.PathCmd;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.LeftClickListener;
+import net.wurstclient.events.HandleBlockBreakingListener;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hacks.treebot.Tree;
 import net.wurstclient.hacks.treebot.TreeBotUtils;
+import net.wurstclient.hacks.treebot.SaplingFarm;
+import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.settings.Setting;
 import net.wurstclient.settings.FacingSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
@@ -45,7 +50,7 @@ import net.wurstclient.util.OverlayRenderer;
 @SearchTags({"tree bot"})
 @DontSaveState
 public final class TreeBotHack extends Hack
-	implements UpdateListener, RenderListener
+	implements UpdateListener, RenderListener, LeftClickListener, HandleBlockBreakingListener
 {
 	private final SliderSetting range = new SliderSetting("Range",
 		"How far TreeBot will reach to break blocks.", 4.5, 1, 6, 0.05,
@@ -72,6 +77,10 @@ public final class TreeBotHack extends Hack
 	
 	private BlockPos currentBlock;
 	private final OverlayRenderer overlay = new OverlayRenderer();
+	private final CheckboxSetting farmMode = new CheckboxSetting("Sapling farm",
+		"Leaves 自动树场：左键选择或取消种植基座，手持树苗自动补种和施肥。", false);
+	private final SaplingFarm saplingFarm = new SaplingFarm();
+	private boolean farming;
 	
 	public TreeBotHack()
 	{
@@ -80,6 +89,9 @@ public final class TreeBotHack extends Hack
 		addSetting(range);
 		addSetting(facing);
 		addSetting(swingHand);
+		addSetting(farmMode);
+		for(Setting setting : saplingFarm.settings())
+			addSetting(setting);
 	}
 	
 	@Override
@@ -100,10 +112,14 @@ public final class TreeBotHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		treeFinder = new TreeFinder();
+		farming = farmMode.isChecked();
+		saplingFarm.reset();
+		treeFinder = farming ? null : new TreeFinder();
 		
 		EVENTS.add(UpdateListener.class, this);
 		EVENTS.add(RenderListener.class, this);
+		EVENTS.add(LeftClickListener.class, this);
+		EVENTS.add(HandleBlockBreakingListener.class, this);
 	}
 	
 	@Override
@@ -111,6 +127,9 @@ public final class TreeBotHack extends Hack
 	{
 		EVENTS.remove(UpdateListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
+		EVENTS.remove(LeftClickListener.class, this);
+		EVENTS.remove(HandleBlockBreakingListener.class, this);
+		saplingFarm.reset();
 		
 		PathProcessor.releaseControls();
 		treeFinder = null;
@@ -131,6 +150,16 @@ public final class TreeBotHack extends Hack
 	@Override
 	public void onUpdate()
 	{
+		if(farming != farmMode.isChecked())
+		{
+			onDisable();
+			onEnable();
+		}
+		if(farming)
+		{
+			saplingFarm.tick(range.getValue());
+			return;
+		}
 		if(treeFinder != null)
 		{
 			goToTree();
@@ -245,6 +274,11 @@ public final class TreeBotHack extends Hack
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
+		if(farmMode.isChecked())
+		{
+			saplingFarm.render(matrixStack);
+			return;
+		}
 		PathCmd pathCmd = WURST.getCmds().pathCmd;
 		
 		if(treeFinder != null)
@@ -267,6 +301,20 @@ public final class TreeBotHack extends Hack
 			.getAllInBoxStream(pos.offset(-1, -1, -1), pos.offset(1, 1, 1))
 			.filter(TreeBotUtils::isLog)
 			.collect(Collectors.toCollection(ArrayList::new));
+	}
+
+	@Override
+	public void onLeftClick(LeftClickEvent event)
+	{
+		if(farmMode.isChecked() && saplingFarm.select())
+			event.cancel();
+	}
+
+	@Override
+	public void onHandleBlockBreaking(HandleBlockBreakingEvent event)
+	{
+		if(farmMode.isChecked())
+			event.cancel();
 	}
 	
 	private abstract class TreeBotPathFinder extends PathFinder

@@ -1,0 +1,269 @@
+{
+  "spec": 2,
+  "mcp": "net.neoforged:neoform:1.21.11-20251209.172050@zip",
+  "ats": "ats/",
+  "binpatches": "patches.lzma",
+  "binpatcher": {
+    "version": "net.neoforged.installertools:binarypatcher:4.0.6:fatjar",
+    "args": [
+      "--patch",
+      "--base",
+      "{clean}",
+      "--base-type",
+      "JOINED",
+      "--output",
+      "{output}",
+      "--patches",
+      "{patch}"
+    ]
+  },
+  "patches": "patches/",
+  "sources": "net.neoforged:neoforge:21.11.45:sources",
+  "universal": "net.neoforged:neoforge:21.11.45:universal",
+  "libraries": [
+    "net.neoforged.fancymodloader:earlydisplay:10.0.36",
+    "net.neoforged.fancymodloader:loader:10.0.36",
+    "net.neoforged:accesstransformers:11.0.2",
+    "org.ow2.asm:asm-commons:9.8",
+    "net.neoforged:mergetool:2.0.0:api",
+    "org.ow2.asm:asm-util:9.8",
+    "org.ow2.asm:asm-analysis:9.8",
+    "org.ow2.asm:asm-tree:9.8",
+    "net.neoforged:bus:8.0.5",
+    "org.ow2.asm:asm:9.8",
+    "com.electronwill.night-config:toml:3.8.3",
+    "com.electronwill.night-config:core:3.8.3",
+    "net.neoforged:JarJarSelector:0.5.0",
+    "net.neoforged:JarJarMetadata:0.5.0",
+    "org.apache.maven:maven-artifact:3.9.9",
+    "net.jodah:typetools:0.6.3",
+    "net.minecrell:terminalconsoleappender:1.3.0",
+    "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7",
+    "io.github.llamalad7:mixinextras-neoforge:0.5.3",
+    "net.sf.jopt-simple:jopt-simple:5.0.4",
+    "net.neoforged.accesstransformers:at-parser:11.0.2",
+    "org.slf4j:slf4j-api:2.0.17",
+    "com.mojang:logging:1.6.11",
+    "org.apache.logging.log4j:log4j-slf4j2-impl:2.25.2",
+    "org.apache.logging.log4j:log4j-core:2.25.2",
+    "org.apache.logging.log4j:log4j-api:2.25.2",
+    "org.jline:jline-reader:3.20.0",
+    "org.jline:jline-terminal:3.20.0",
+    "commons-io:commons-io:2.20.0",
+    "org.lwjgl:lwjgl-tinyfd:3.3.3",
+    "org.lwjgl:lwjgl:3.3.3",
+    "net.minecraftforge:srgutils:0.4.15",
+    "com.google.guava:guava:33.5.0-jre",
+    "com.google.guava:failureaccess:1.0.3",
+    "com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava",
+    "org.jspecify:jspecify:1.0.0",
+    "com.google.code.gson:gson:2.13.2",
+    "com.google.errorprone:error_prone_annotations:2.41.0",
+    "com.google.j2objc:j2objc-annotations:3.1",
+    "org.codehaus.plexus:plexus-utils:3.5.1",
+    "org.apache.commons:commons-lang3:3.19.0"
+  ],
+  "testLibraries": [
+    "net.neoforged.fancymodloader:junit-fml:10.0.36",
+    "net.neoforged:testframework:21.11.45"
+  ],
+  "runs": {
+    "client": {
+      "singleInstance": true,
+      "main": "net.neoforged.fml.startup.Client",
+      "args": [
+        "--version",
+        "21.11.45",
+        "--assetIndex",
+        "{asset_index}",
+        "--assetsDir",
+        "{assets_root}",
+        "--fml.mcVersion",
+        "1.21.11",
+        "--fml.neoForgeVersion",
+        "21.11.45",
+        "--fml.neoFormVersion",
+        "20251209.172050"
+      ],
+      "jvmArgs": [
+        "--add-opens",
+        "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": true,
+      "server": false,
+      "dataGenerator": false,
+      "gameTest": true,
+      "unitTest": false,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system",
+        "neoforge.enableGameTest": "true"
+      }
+    },
+    "clientData": {
+      "singleInstance": true,
+      "main": "net.neoforged.fml.startup.DataClient",
+      "args": [
+        "--assetIndex",
+        "{asset_index}",
+        "--assetsDir",
+        "{assets_root}",
+        "--fml.mcVersion",
+        "1.21.11",
+        "--fml.neoForgeVersion",
+        "21.11.45",
+        "--fml.neoFormVersion",
+        "20251209.172050"
+      ],
+      "jvmArgs": [
+        "--add-opens",
+        "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": true,
+      "server": false,
+      "dataGenerator": true,
+      "gameTest": false,
+      "unitTest": false,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system"
+      }
+    },
+    "serverData": {
+      "singleInstance": true,
+      "main": "net.neoforged.fml.startup.DataServer",
+      "args": [
+        "--fml.mcVersion",
+        "1.21.11",
+        "--fml.neoForgeVersion",
+        "21.11.45",
+        "--fml.neoFormVersion",
+        "20251209.172050"
+      ],
+      "jvmArgs": [
+        "--add-opens",
+        "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": false,
+      "server": true,
+      "dataGenerator": true,
+      "gameTest": false,
+      "unitTest": false,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system"
+      }
+    },
+    "gameTestServer": {
+      "singleInstance": true,
+      "main": "net.neoforged.fml.startup.GameTestServer",
+      "args": [
+        "--fml.mcVersion",
+        "1.21.11",
+        "--fml.neoForgeVersion",
+        "21.11.45",
+        "--fml.neoFormVersion",
+        "20251209.172050"
+      ],
+      "jvmArgs": [
+        "--add-opens",
+        "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": false,
+      "server": true,
+      "dataGenerator": false,
+      "gameTest": true,
+      "unitTest": false,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system",
+        "neoforge.enableGameTest": "true"
+      }
+    },
+    "server": {
+      "singleInstance": true,
+      "main": "net.neoforged.fml.startup.Server",
+      "args": [
+        "--fml.mcVersion",
+        "1.21.11",
+        "--fml.neoForgeVersion",
+        "21.11.45",
+        "--fml.neoFormVersion",
+        "20251209.172050"
+      ],
+      "jvmArgs": [
+        "--add-opens",
+        "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": false,
+      "server": true,
+      "dataGenerator": false,
+      "gameTest": false,
+      "unitTest": false,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system"
+      }
+    },
+    "junit": {
+      "singleInstance": false,
+      "main": "NONE",
+      "args": [
+        "--version",
+        "21.11.45",
+        "--assetIndex",
+        "{asset_index}",
+        "--assetsDir",
+        "{assets_root}",
+        "--fml.mcVersion",
+        "1.21.11",
+        "--fml.neoForgeVersion",
+        "21.11.45",
+        "--fml.neoFormVersion",
+        "20251209.172050"
+      ],
+      "jvmArgs": [
+        "--add-opens",
+        "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": true,
+      "server": false,
+      "dataGenerator": false,
+      "gameTest": false,
+      "unitTest": true,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system"
+      }
+    }
+  },
+  "modules": [],
+  "features": {
+    "noLegacyClasspath": true,
+    "combinedBinaryPatches": true
+  }
+}

@@ -1,0 +1,2578 @@
+﻿{
+    "BaseCommit":  "356355fcc7f13502f618da781d196ac0688fa9d1",
+    "HeadCommit":  "1959b24eaa30b442e46048f3668ee3ecbf598ccf",
+    "Generated":  "2026-10-26T20:00:54",
+    "Targets":  [
+                    {
+                        "RelativePath":  "fabric/versions/1.20.2",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.20.2",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-17-amd64-windows.2",
+                        "NanoVg":  "3.3.2",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.20.3",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.20.3",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-17-amd64-windows.2",
+                        "NanoVg":  "3.3.2",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.20.4",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.20.4",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-17-amd64-windows.2",
+                        "NanoVg":  "3.3.2",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.20.5",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.20.5",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.20.6",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.20.6",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.1",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.1",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.10",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.10",
+                        "Family":  "wrapper_event",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.11",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.11",
+                        "Family":  "wrapper_event",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.2",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.2",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.3",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.3",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.4",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.4",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.5",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.5",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.6",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.6",
+                        "Family":  "wrapper_old",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.7",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.7",
+                        "Family":  "wrapper_old",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.8",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.8",
+                        "Family":  "wrapper_old",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/1.21.9",
+                        "Loader":  "Fabric",
+                        "McVersion":  "1.21.9",
+                        "Family":  "wrapper_event",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "remapJar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/26.1",
+                        "Loader":  "Fabric",
+                        "McVersion":  "26.1",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "jar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/26.1.1",
+                        "Loader":  "Fabric",
+                        "McVersion":  "26.1.1",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "jar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/26.1.2",
+                        "Loader":  "Fabric",
+                        "McVersion":  "26.1.2",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "jar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/26.2",
+                        "Loader":  "Fabric",
+                        "McVersion":  "26.2",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "jar"
+                    },
+                    {
+                        "RelativePath":  "fabric/versions/26.3",
+                        "Loader":  "Fabric",
+                        "McVersion":  "26.3",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.3",
+                        "BuildTask":  "jar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.20.2",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.20.2",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-17-amd64-windows.2",
+                        "NanoVg":  "3.3.2",
+                        "BuildTask":  "jarJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.20.3",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.20.3",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-17-amd64-windows.2",
+                        "NanoVg":  "3.3.2",
+                        "BuildTask":  "jarJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.20.4",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.20.4",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-17-amd64-windows.2",
+                        "NanoVg":  "3.3.2",
+                        "BuildTask":  "jarJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.20.6",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.20.6",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "jarJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "jarJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21.1",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21.1",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "jarJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21.10",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21.10",
+                        "Family":  "wrapper_event",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21.11",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21.11",
+                        "Family":  "wrapper_event",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21.3",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21.3",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21.4",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21.4",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21.5",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21.5",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21.6",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21.6",
+                        "Family":  "wrapper_old",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21.7",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21.7",
+                        "Family":  "wrapper_old",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21.8",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21.8",
+                        "Family":  "wrapper_old",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/1.21.9",
+                        "Loader":  "Forge",
+                        "McVersion":  "1.21.9",
+                        "Family":  "wrapper_event",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/26.1",
+                        "Loader":  "Forge",
+                        "McVersion":  "26.1",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/26.1.1",
+                        "Loader":  "Forge",
+                        "McVersion":  "26.1.1",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/26.1.2",
+                        "Loader":  "Forge",
+                        "McVersion":  "26.1.2",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/26.2",
+                        "Loader":  "Forge",
+                        "McVersion":  "26.2",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "versions/26.3",
+                        "Loader":  "Forge",
+                        "McVersion":  "26.3",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.3",
+                        "BuildTask":  "allJar"
+                    },
+                    {
+                        "RelativePath":  "neoforge",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.20.1",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-17-amd64-windows.2",
+                        "NanoVg":  "3.3.2",
+                        "BuildTask":  "jarJar"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.20.2",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.20.2",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-17-amd64-windows.2",
+                        "NanoVg":  "3.3.2",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.20.3",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.20.3",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-17-amd64-windows.2",
+                        "NanoVg":  "3.3.2",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.20.4",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.20.4",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-17-amd64-windows.2",
+                        "NanoVg":  "3.3.2",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.20.5",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.20.5",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.20.6",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.20.6",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.1",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.1",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.10",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.10",
+                        "Family":  "wrapper_event",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.11",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.11",
+                        "Family":  "wrapper_event",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.2",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.2",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.3",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.3",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.4",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.4",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.5",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.5",
+                        "Family":  "legacy",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.6",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.6",
+                        "Family":  "wrapper_old",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.7",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.7",
+                        "Family":  "wrapper_old",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.8",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.8",
+                        "Family":  "wrapper_old",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/1.21.9",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "1.21.9",
+                        "Family":  "wrapper_event",
+                        "Jdk":  "C:\\Users\\ui863\\.gradle\\jdks\\eclipse_adoptium-21-amd64-windows.2",
+                        "NanoVg":  "3.3.3",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/26.1",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "26.1",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/26.1.1",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "26.1.1",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/26.1.2",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "26.1.2",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/26.2",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "26.2",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.1",
+                        "BuildTask":  "build"
+                    },
+                    {
+                        "RelativePath":  "neoforge/versions/26.3",
+                        "Loader":  "NeoForge",
+                        "McVersion":  "26.3",
+                        "Family":  "native",
+                        "Jdk":  "C:\\Users\\ui863\\.jdks\\jdk25.0.4_10",
+                        "NanoVg":  "3.4.3",
+                        "BuildTask":  "build"
+                    }
+                ],
+    "Entries":  [
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/build.gradle",
+                        "RelPath":  "build.gradle",
+                        "Category":  "build",
+                        "HeadBlob":  "2682252b3da8fe27041c248e0e0ebf0252e49d51",
+                        "BaseBlob":  "2a200e021290a1f12b0edd3437183e5586aa79aa"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/gradle.properties",
+                        "RelPath":  "gradle.properties",
+                        "Category":  "build",
+                        "HeadBlob":  "5917a995a30ec6cb40587215dab8084c6fac1b3f",
+                        "BaseBlob":  "513f0eb10d79693b0d7897107a10b6ad28ed4686"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/Category.java",
+                        "RelPath":  "src/main/java/net/wurstclient/Category.java",
+                        "Category":  "core",
+                        "HeadBlob":  "a2137ad4f31b4027038ca2c1a2e2cd09169ede5c",
+                        "BaseBlob":  "b2467ca29b0b88e7cc36c5ef73b14bb2eb0d129c"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/WurstClient.java",
+                        "RelPath":  "src/main/java/net/wurstclient/WurstClient.java",
+                        "Category":  "core",
+                        "HeadBlob":  "e1d50eb1cdf07b994b60de9e7210529554dc5bfd",
+                        "BaseBlob":  "1569504f4043c0880fda83fc9afc71debd75c9dc"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/ClickGui.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/ClickGui.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "8c200261aa1a70202e1953a32256d35a4c414653",
+                        "BaseBlob":  "3f0214967e38d8aea50126a18064dcc49bba3bfd"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/ClickGuiIcons.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/ClickGuiIcons.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "2b996134a72ba54168349167b14e74de608c077e",
+                        "BaseBlob":  "9c98390cf23691d40ebdd0046f7627fe03b88fb6"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/ClickGuiScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/ClickGuiScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "ac6aaafa7c76a40cbe89905025fe9769f99ca2ca",
+                        "BaseBlob":  "fb8d1c2861dea4e5b8c518064b967da081c787bb"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/ComboBoxPopup.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/ComboBoxPopup.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "8a4e41b829d7b3b98108fc17ec3fb4112b718abe",
+                        "BaseBlob":  "46d9257602a54822c7adec6b2955d4938bd4032b"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/FeatureMenuSupport.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/FeatureMenuSupport.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "df4e69e6ba326a42f2e5884f220b0f944200e4de",
+                        "BaseBlob":  "b5c6e73ec1c68ff9c90e8dc43517d92587b6e03d"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/FlatRenderer.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/FlatRenderer.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "49c1d9333f1cd42a564764d70b13edb10b310bcb",
+                        "BaseBlob":  "4cfccc249928a45559f71f5397e2f1edcaac8ad6"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/FlatUiRenderer.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/FlatUiRenderer.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "1afd900d04366e891f6b35526a6772e5b99f5d7f",
+                        "BaseBlob":  "54e6381bb58724b695b79c9d1ebddb1111d91a5a"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/GuiIcon.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/GuiIcon.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "96cf1f20743540d91a8933899f79ac9a1295db31",
+                        "BaseBlob":  "3118cb47818367192ca9283a6393ec3bce7a6917"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/NavigatorScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/NavigatorScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "f0dbe4a4a1a90b702befb78d30f87fe5c76a2179",
+                        "BaseBlob":  "1256eff1cb278d2123cd055063ba059fb1219e65"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/NavigatorSettingsPanel.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/NavigatorSettingsPanel.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "6efd4b5fdc04978b9f1117a4a7698afa0cc06e35",
+                        "BaseBlob":  "83e9d7f1e9183b27109d7f8c0cf9c2bbf9d7cbaa"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/RoundedRectRenderer.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/RoundedRectRenderer.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "232bc345231b446eadd442ea0164f8ed92f59dd9",
+                        "BaseBlob":  "c990f1eca153872086d059c35999667574d6a5a0"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/Window.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/Window.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "9783b8e2924c6493b30f762ceb28807f14dba83b",
+                        "BaseBlob":  "e3e07ee36539524f7086f2a1c57215060585865a"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/animation/SmoothScroll.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/animation/SmoothScroll.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "ca3df17d5d57b2f972969a458359103f3fd7ff41",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/components/AbstractListEditButton.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/components/AbstractListEditButton.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "628b5d5d615689cd7e3b38a739ea86c39ceb225e",
+                        "BaseBlob":  "a199d06f1a74cce05ad5cd109925e82b74978d47"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/components/BlockComponent.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/components/BlockComponent.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "6579e40190a2a640ce1faeb401225d42f7b80f57",
+                        "BaseBlob":  "2a5b6e8db60498f211b0b3495f53c798ceccc840"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/components/CheckboxComponent.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/components/CheckboxComponent.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "10fd0906486bc03b276b60a51b3d6e9cfe2566cd",
+                        "BaseBlob":  "36d5835cb98691c39ac042a2db9ba2141bf0bc8d"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/components/ColorComponent.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/components/ColorComponent.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "c29b2ca0ab24a1ca3d301a846cffeb95b52fddbb",
+                        "BaseBlob":  "76ca1bb5d445b2489ed7b02ae902d5f3fff24222"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/components/ComboBoxComponent.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/components/ComboBoxComponent.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "14e533b0a73775946fc393721073e98e38867e67",
+                        "BaseBlob":  "e584aba8facfa8b388e92d17ccce318c995a83e0"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/components/FileComponent.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/components/FileComponent.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "44eddb1287422f02b482346132a85711d0b0451e",
+                        "BaseBlob":  "9c7e300b73678e593274f8e808bd22c6c96b9361"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/components/RadarComponent.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/components/RadarComponent.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "762b64f727b7f42502a1143906fb9d1a085b6394",
+                        "BaseBlob":  "800e1b82727e75936d2690c8f22d782dd5e5c2d7"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/components/SliderComponent.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/components/SliderComponent.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "d9781cec7cbd25530b3d5e1e078aee8d35a90de7",
+                        "BaseBlob":  "9b49a9af14f4ac98957c00ba8dc7903f819ebcd0"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/components/TextFieldEditButton.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/components/TextFieldEditButton.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "26fb3ea3a2edb8fd1ce116cd3237b139d550904e",
+                        "BaseBlob":  "7f99db4b6df1c56affef2f49b38ce1f37ce56dc4"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/screens/AddBookOfferScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/screens/AddBookOfferScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "e446b1755659aa1426b460161754fe3c2a2fe837",
+                        "BaseBlob":  "05f078042a6469e8e6a1c87c90949f6515f2f369"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/screens/EditBlockListScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/screens/EditBlockListScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "b5216b31b22734d1fffc3012b6ae9d22a9bc2480",
+                        "BaseBlob":  "f430dc959478c64ae4178da7426cb911af7f719e"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/screens/EditBlockScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/screens/EditBlockScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "f84137cb4bb4223638c7f4ca6efabf49622ded17",
+                        "BaseBlob":  "f3e24c7321ce21d6e6dd1661375b32af95db38b4"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/screens/EditBookOfferScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/screens/EditBookOfferScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "eb819b9eeb235cae482f7053c6bc8f5e0a3d9de9",
+                        "BaseBlob":  "ec6b8ca2883839445fd7ab69970102f6c6061d6e"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/screens/EditBookOffersScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/screens/EditBookOffersScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "e7042f1e1cd64c6b224385deadbddb16d09a9718",
+                        "BaseBlob":  "4a72ec7ba37775bdca209f7a4427d424714b8522"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/screens/EditColorScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/screens/EditColorScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "ceefc72df176e02bc2a681088a0d8ee5e8e24ecc",
+                        "BaseBlob":  "1442788c5e8183670d28b8be5634bc1ffc6ed169"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/screens/EditItemListScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/screens/EditItemListScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "589eb2d2359e72df91f77e45a7b8177b2d457312",
+                        "BaseBlob":  "4025f1e6136d7493f437b4dc9190f32e29907b1d"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/screens/EditSliderScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/screens/EditSliderScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "09a85532fa6bff9b2b1f89300537f4f7c061266b",
+                        "BaseBlob":  "7431da7fe1052325ca8fb427aca29d6ff5e10628"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/screens/EditTextFieldScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/screens/EditTextFieldScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "d4df094ac5a0e403c49249846a42b088caf79bea",
+                        "BaseBlob":  "f196acdd0b2b85426321db6f2d6d4dfa39b23a62"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/screens/SelectFileScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/screens/SelectFileScreen.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "7251880dcabd94b17701a7d503c9740c7ee46104",
+                        "BaseBlob":  "d5e699bca0a18f637e2a61a1eb530e606c5d7363"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/clickgui2/window/Window.java",
+                        "RelPath":  "src/main/java/net/wurstclient/clickgui2/window/Window.java",
+                        "Category":  "clickgui",
+                        "HeadBlob":  "9d1879db3506e8125b8c337cd1c8bb90df03598c",
+                        "BaseBlob":  "48d52e13556be36250907e1540b16f190ae12da9"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/events/MoveInputListener.java",
+                        "RelPath":  "src/main/java/net/wurstclient/events/MoveInputListener.java",
+                        "Category":  "core",
+                        "HeadBlob":  "bbe7d8cfdf0520b8556b93c528b7c4c724bf39c0",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/gui/ButtonStyleRenderer.java",
+                        "RelPath":  "src/main/java/net/wurstclient/gui/ButtonStyleRenderer.java",
+                        "Category":  "gui",
+                        "HeadBlob":  "1827653e1dfe9e79d07d17d9887e78ed6bd7c532",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/gui/CustomRenderedButton.java",
+                        "RelPath":  "src/main/java/net/wurstclient/gui/CustomRenderedButton.java",
+                        "Category":  "gui",
+                        "HeadBlob":  "ba96bd6f691c21a4ac4b8ab06e2a58bd05b55999",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/gui/MainMenuBackground.java",
+                        "RelPath":  "src/main/java/net/wurstclient/gui/MainMenuBackground.java",
+                        "Category":  "gui",
+                        "HeadBlob":  "f658faff57b46596935bf8032d37309ac678cdfc",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/gui/title/WurstTitleButton.java",
+                        "RelPath":  "src/main/java/net/wurstclient/gui/title/WurstTitleButton.java",
+                        "Category":  "gui",
+                        "HeadBlob":  "156a648d608885fda1b41de2b3102eea4514aaf5",
+                        "BaseBlob":  "0be3c9c4a05e768f642cc65cebf0ed48d5d9c6e0"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/gui/title/WurstTitleMenu.java",
+                        "RelPath":  "src/main/java/net/wurstclient/gui/title/WurstTitleMenu.java",
+                        "Category":  "gui",
+                        "HeadBlob":  "6fd7b43f031ce6a37d0b52f8f80f543bf91ba915",
+                        "BaseBlob":  "606d853191f4d142b136f02ada7ef1f5b7a87647"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hack/Hack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hack/Hack.java",
+                        "Category":  "core",
+                        "HeadBlob":  "aacf2314b4364183178ea9d580e682b97188deed",
+                        "BaseBlob":  "591b7075713f64dfc2a4608cea37d1518c597f56"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hack/HackList.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hack/HackList.java",
+                        "Category":  "core",
+                        "HeadBlob":  "e5c956894f29e1b6d0fe6326e7d60e90e69f67e2",
+                        "BaseBlob":  "e59619c2dc79151f98017a6b06cc438be53c150e"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/AbstractTpAnchorAuraHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/AbstractTpAnchorAuraHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "64818c150d7eea449ae1dff3c62ccd2288ada416",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/AppleSkinHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/AppleSkinHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "0944d052273e048922394618ed03b4f7a42f0567"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/ArmorStatusHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/ArmorStatusHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "af3be53a969c357dd1aee2407960717c2fb84a8f"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/BlockInfoHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/BlockInfoHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "059eb1dd7095a145d01d2df722424037011b31cb"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/BossHealthHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/BossHealthHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "02a91752e62edfa98a9c44ddbcc578af54432165"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/CalendarHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/CalendarHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "603c838890306567968115f3e66e495496623b22"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/ComboCounterHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/ComboCounterHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "1f8f9e7c22e3b496e58c5df7f2ce64629269b97f"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/CompassHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/CompassHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "d0ab0cb694026a213f4f79c127d3c47964771aac"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/CpsDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/CpsDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "bd2852ddc2c73939b8d353e135d4b79201f7fc69"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/DayCounterHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/DayCounterHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "408de8dcd4c1bb31366b8c71fc85386a84b22a2f"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/GAntiLagHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/GAntiLagHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "3129f5c705a3298c25f4021cb764e79ca6217878",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/GLightTpAnchorAuraHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/GLightTpAnchorAuraHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "f12e70f98e22c63e523d4651fb6ff474c0bde883",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/GSuperVClipHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/GSuperVClipHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "8440e36e43950f7d918a7d771f0c434c738d4e95",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/GTpAuraHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/GTpAuraHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "4a0f1f59b6c14fc047bff711480870c8fdc507bb",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/GTpbotHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/GTpbotHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "f82c0b9abeb8c08543a356e7c9abce275edd4644",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/GameModeDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/GameModeDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "72005a49cb702734ab66ee70352b3deb9644b881"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/GcoreGTrapHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/GcoreGTrapHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "660d688319790e83bb597ded94f377dd06f4289d",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/GcoreTpCrystalAuraHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/GcoreTpCrystalAuraHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "6ec35c8b54a326f0b936baa4b385cc8bdbf25215",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/GcoreTpDiagnosticHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/GcoreTpDiagnosticHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "9a05e940b71c3981b0958ecec019d4ba66def18e",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/GcoreWebAuraHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/GcoreWebAuraHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "4004059c27f3c90ae3036c9b5906b86ef197a6dc",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/HorseStatsHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/HorseStatsHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "c4b689a1a956f483cba46c6078d4f77caf45c615"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/ImageDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/ImageDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "16ea802437a74510478889214041b5459707c373"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/InventoryDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/InventoryDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "02453cb5e2f6e3c680a122fb26aa22e6fd605413"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/ItemInfoHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/ItemInfoHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "519285362103032d62db19d2cbdf899d3a402201"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/JumpResetIndicatorHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/JumpResetIndicatorHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "92fc51eea5db69b966052a775dc4ca7ecf12a87e"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/KeystrokesHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/KeystrokesHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "c74b201dff7de1106edbfeb9daee25a6ddde3184"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/KillauraHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/KillauraHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "ba205678ca74dde72c81b848c6e641775995f5f0",
+                        "BaseBlob":  "8d30da97cfcc6623654125d7eb5e8e2a6fe87166"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/MemoryUsageHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/MemoryUsageHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "9fbbe3db02c8bf1d540bc385dc4e533bc8c513a4"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/ModernHotbarHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/ModernHotbarHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "45584fad00d5080b09d4b2d55b49b31c2247eabf"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/MouseStrokesHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/MouseStrokesHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "6573d6ccc402a7b1622bc56d7b8654b719fa03a3"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/MultiAuraHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/MultiAuraHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "b773f5acb0017df209e5b4a627cd4989e9cc9cf1",
+                        "BaseBlob":  "d35a54237e8ff2b98f4623de5e60cbf221c46b0c"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/MusicInfoHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/MusicInfoHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "d00f9a31e3e4adadd11324b6b9950d759be3a3bb"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/NameDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/NameDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "0c656a5aa17a8f840414dd7da85d2e378bc28e43"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/PackDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/PackDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "f05c9c0bb6f3863e8e400668d35cefbbbf7b96aa"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/PitchDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/PitchDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "4caddee11c52509eb9480d5057ad4fc27525460d"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/PlayTimeDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/PlayTimeDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "fe787c9c02e5d6c442e3fbe121ba4fde93d86818"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/PlayerCounterHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/PlayerCounterHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "0055f1a43ad795b00227d6326f1347641c3b1daf"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/PlayerDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/PlayerDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "35fcc244aea80ad321f451d742a0f5231a17c1f5"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/PotionCounterHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/PotionCounterHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "e31fb1a62b58892bb6c363e73d2e3cddbcb3a4be"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/PotionStatusHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/PotionStatusHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "d531fd9ce39450a6fd1b245a78a26146b93cd2ff"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/RearviewHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/RearviewHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "f431ce343b94cac2ef4c2faa2ae3bbdeffa90218"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/ScaffoldWalkHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/ScaffoldWalkHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "8403028a8f8089e62f8519399e4c27171025f2e3",
+                        "BaseBlob":  "dc12baf8fa2e2994b1ba94a771a4ee9a5bf42a16"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/ScoreboardHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/ScoreboardHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "d30e21fd29ac4ad1b29ca56ae858078fdbddae6a"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/ServerIpDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/ServerIpDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "597039d9f2ff53631b1e69ee997fabc36c394713"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/SessionInfoHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/SessionInfoHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "34d1082608e373817e66e0c40293f884c3561075"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/Skin3DHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/Skin3DHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "5c8cec744679d84f0d906f751bb23c447a94921e"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/SoundSubtitlesHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/SoundSubtitlesHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "015461f6200790ec9c148010e616b1b47f1631ef"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/SpeedometerHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/SpeedometerHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "9bf94a5b293d7e2814617ffe839b9d69c222197b"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/SprintStatusHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/SprintStatusHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "09cb0a64f66147053c51608209ed5e85e5fc3858"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/StopwatchHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/StopwatchHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "048b2ddff41d74488e1f3a6befddd55df6159813"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/TPServerEquivalentHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/TPServerEquivalentHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "85fa32060a20108db46ca87776d68feb02bb4727",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/TabEditorHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/TabEditorHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "5e000b8f632d756184ebb62638ebb327dc89f124"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/TargetInfoHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/TargetInfoHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "24fc19a73b13b03524092b566593490fc3d36659"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/TntTimerHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/TntTimerHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "f9e175dde6ee049d709145aeb114a059d2573582"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/TpAnchorAuraHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/TpAnchorAuraHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  "b5c1c277fe61bb6535fd817fd9fe7845557edfbf",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/UHCOverlayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/UHCOverlayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "ac6233997398a9c8cbc9f4dadc617fbe892ffa97"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/ViaVersionHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/ViaVersionHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "e0350a639f3697432f4f31f10b8cd907ce98ffae"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/WaypointHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/WaypointHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "abc944d8975fcb4bf0ec80f4d26c60be0815d4e3"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/WeatherDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/WeatherDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "b1102792a65d296c8d4a91573408f56efa686284"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/WebBrowserHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/WebBrowserHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "73f63e53a62be33c005ed80bf104ac69e3599cc3"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/YawDisplayHack.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/YawDisplayHack.java",
+                        "Category":  "hack",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "58437d29a2133b27ea1622ece40387e090328bfd"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/aura/OpenAura.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/aura/OpenAura.java",
+                        "Category":  "aura",
+                        "HeadBlob":  "3fdad99419652a6040380a7bd5f416a13f71ebdd",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/HeypixelScaffoldMode.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/HeypixelScaffoldMode.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "234a0308127ddcfe9bfa0c2d503e5f7ea63907ac",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/HypixelScaffoldMode.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/HypixelScaffoldMode.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "03d122ebcef6c21177f096d9779bce28e1a1aafe",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/PlayerSimulation.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/PlayerSimulation.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "26a63753854c6d357ed30ec39ea6f0955dec4225",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/ScaffoldMode.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/ScaffoldMode.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "f2ea2904b10ffb5f2e4c43980e487542429f5661",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/ScaffoldRotationHandler.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/ScaffoldRotationHandler.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "2221187e7a44ca4a65f44bee2c58b072e833afca",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/ScaffoldRotationModel.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/ScaffoldRotationModel.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "762305830f6d6efdda8596e00ad097bdb6ae255e",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/ScaffoldUtils.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/ScaffoldUtils.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "1bc6a8684c40a6d21cbb693de8554ed4d6836880",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyFallingPlayer.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyFallingPlayer.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "d1fba58fc97b9e1a7e5ab9d4803490b9690fff29",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyRaycast.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyRaycast.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "5361fbf890520edec3505e46c56765ecc28e5575",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyRotation.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyRotation.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "b071787bd02666c91cfef04f046c3ea24340e2d3",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyScaffoldMode.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyScaffoldMode.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "9d94ec5efe024a8ec43e16e85ba7df7c7e25b4f2",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/SimpleTowerMode.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/SimpleTowerMode.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "0a9f52017b5a751cdb1fc0abd6b897c04a0d436f",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hacks/scaffold/TellyScaffoldMode.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hacks/scaffold/TellyScaffoldMode.java",
+                        "Category":  "scaffold",
+                        "HeadBlob":  "4ae3dd79a9027f7023726c3eceec4d3a24a26f6b",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud/HackListHUD.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud/HackListHUD.java",
+                        "Category":  "core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "2530739965ddd53b1980a2a3e5dcd6df762aa9cb"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud/IngameHUD.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud/IngameHUD.java",
+                        "Category":  "core",
+                        "HeadBlob":  "361ed66228cfdd49d6c15ee2775ed40f0c1584c3",
+                        "BaseBlob":  "f490bcc207ac61bf78a320a8146c2f0154283c32"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud/TabGui.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud/TabGui.java",
+                        "Category":  "core",
+                        "HeadBlob":  "e6188f0b6c9fe085f36de4133822309478062b16",
+                        "BaseBlob":  "f063e7237ca66ba852a58095ab95fcd516b2473b"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud/WurstLogo.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud/WurstLogo.java",
+                        "Category":  "core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "c6e5d7d5918cb0d859b4c9bc440b9f7dd0fc48e2"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/GuiEditHUD.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/GuiEditHUD.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  "9347f16905b2f9fec8045938014f21628e78e15c",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HUDMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HUDMod.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  "0e5ac441e2013e24963b05c0b27557c2d6d43241",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HudAnimation.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HudAnimation.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  "d86b3b116be4bcdc6d7df61c207bac306b6e2308",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HudEditorScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HudEditorScreen.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "934fcf66da0266f653ee0ffb9d1e2efd7024d459"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "e3334c91bb24242db760a232e0540320e7344534"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HudLayout.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HudLayout.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "4388b1d97fdcf2606cf84229cc2d1726bfa64d4e"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HudManager.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HudManager.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  "4ddc27a20f9787f1f500fb5befe5cc6c0bba04ff",
+                        "BaseBlob":  "ade4dc34eb0ca540e6439763f7d7a6cd6f25c006"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HudNotification.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HudNotification.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "7b6ea2e2151c53f95d508227d4a189b4d14fec4d"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HudNotificationRenderer.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HudNotificationRenderer.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  "01895279a0ca063f1b41f783cb8deab055153183",
+                        "BaseBlob":  "d89df5f17d8f0e17e5613bad7f7c5ce8fc9f622e"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HudSettingsFeature.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HudSettingsFeature.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  "7c29dbbb4ac41cdad65278e5baf5f6a2be839d44",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HudTheme.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HudTheme.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  "8f35e4083ad461593f935c108c0f7d207b17eaf2",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/HypixelStatsManager.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/HypixelStatsManager.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  "eda6293be7e9680edc6f19c3e041c32253b7b70a",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/SimpleHUDMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/SimpleHUDMod.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  "dd3023434ff0489698b7a88b54f2381f164640a4",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/compat/HudCompat.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/compat/HudCompat.java",
+                        "Category":  "compat",
+                        "HeadBlob":  "14352dbda4b563a9dd00d08281f27afed2abc246",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/compat/HudItemIcons.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/compat/HudItemIcons.java",
+                        "Category":  "compat",
+                        "HeadBlob":  "781cddb9a4a2e1a9727462982940e8ccfce51b12",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/compat/HudTextures.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/compat/HudTextures.java",
+                        "Category":  "compat",
+                        "HeadBlob":  "dc5cd0aa108a5dafcce187c39210fd1e1f1b6c63",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/ArmorHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/ArmorHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "4108993f93069ac570dc995c75af104abee66c98"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/ClockHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/ClockHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "a986b4ddc83d1b08f2a0521739b0e5f92901e1bd"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/ComboHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/ComboHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "991ef8731ac88632578e41b54c91634cde89d298"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/CoordsHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/CoordsHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "b8eee57c18304af6a873e27034d45c637a5e4be7"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/FpsHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/FpsHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "30b537393fd4e84227a977c9a497cdd0d2b248d7"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/InventoryHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/InventoryHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "4a4d6c270f0f6821a9bef6755f7db4b039eefd31"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/KeystrokesHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/KeystrokesHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "da941db4b491ba7af0148c3635298e51e96b845f"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/MinimapHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/MinimapHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "e5fd5379efce06c73bd8d095c3bde90b1ee88f15"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/MinimapTerrainCache.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/MinimapTerrainCache.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "0f695850ba9f8cc46fbbd0097bdc22b33f36289b"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/PingHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/PingHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "55dd01274063b68e2d39b36ccff111377c0fd7c8"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/PotionHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/PotionHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "863405c0b08ac33fa72cc7e49b05a7dc501cb83b"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/ServerHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/ServerHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "39745e9c731823f52e54e223c63372d2ed3085da"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/SpeedHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/SpeedHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "320b586e6416de1a6f12f5331cdd4763141925a3"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/TargetHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/TargetHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "1041d14abd8fd96e1a7cc2d2fdf5e87ce10c3fb8"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/TextHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/TextHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "a656151a1d5a81363c6d9b05c92f0f56479da0e5"
+                    },
+                    {
+                        "Action":  "D",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/elements/TpsHudElement.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/elements/TpsHudElement.java",
+                        "Category":  "hud-core",
+                        "HeadBlob":  null,
+                        "BaseBlob":  "05f73d9308d14046d29c83e4c3186fe0f0ec482b"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/AppleSkinMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/AppleSkinMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "1b872bea8dad8a20c5681f172532a47bf9f7c6aa",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ArmorStatusMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ArmorStatusMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "0db66a4bc475be000234a2a2f8b1e6269f745bc8",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ArrayListMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ArrayListMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "1009c8d7b0f8f9698bd2c2101deaccb0d2f0b4be",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/BedwarsStatsOverlayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/BedwarsStatsOverlayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "4d33da855f500e0726e74c55a31bebb34f41a124",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/BlockInfoMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/BlockInfoMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "84442ac26a1864800c26f8441c4cb21a607fc5a5",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/BossHealthMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/BossHealthMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "d06ab0546271816ce48b168456d5f01588db3475",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/CPSDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/CPSDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "2f790eb6a3b97a5aaa07bb8d6eabeb62ce5db364",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/CalendarMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/CalendarMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "2865249eafe240fda0a09654ce29ed2735043e66",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ClockMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ClockMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "cd90bd0128c114a13adf24b3931a268a60a03871",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ComboCounterMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ComboCounterMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "b3d617c48c50fa5c35ec4cf7fd1380d49fbad57d",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/CompassMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/CompassMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "da6172f2c04380b129f14ec62229bc990639b597",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/CoordsMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/CoordsMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "fcfa95dd39dd9d18e3439e21435670be974779ca",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/DayCounterMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/DayCounterMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "e18356d4f5c6bb692f7a8941617c8ed2f8c08fdc",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/FPSDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/FPSDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "208b2d8a6a63de60682cf0e9280756d3d291c125",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/GameModeDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/GameModeDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "9a55862215f8a74a68e49d83645d27cb2a82de14",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/GodbridgeAssistMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/GodbridgeAssistMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "781ae2a3c482c94dce268730a86dd35b11e5b94b",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/HealthDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/HealthDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "6c2504f1e361cff50a4c52cc054dbd956b8faeb5",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/HorseStatsMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/HorseStatsMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "699d3a551aad9fb4e060c185ff376ccbc5660290",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ImageDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ImageDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "a38db7cb5a12035fb684efc2f08da1da23d6d913",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/InventoryDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/InventoryDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "7fc6e255db6b1178be5c88e53d7efe59282a1967",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ItemInfoMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ItemInfoMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "c99b9f20f23a643b442b43df4e9e277a9fdaa945",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/JumpResetIndicatorMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/JumpResetIndicatorMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "122a61ad81cc9ebd0588f68a22e18446b2144266",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/KeystrokesMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/KeystrokesMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "399222dc2d3f5f4c192aaa4838004fa5cf2295ec",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/LogoMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/LogoMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "8f600fa52906e8eb392e1bdfc7dbecfa026e0c45",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/MemoryUsageMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/MemoryUsageMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "2f90d737fcd2a7f0305f03816fb1d749040402f1",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/MinimapMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/MinimapMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "b48295bea81b7850d717c35aba8537353a562fc8",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ModernHotbarMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ModernHotbarMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "84bfd204ba32d1a1972f51d3eeae3b5dad0b60d1",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/MouseStrokesMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/MouseStrokesMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "8dd605eaa35d4827e61ba5263f65657de7503588",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/MusicInfoMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/MusicInfoMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "8f7e0269f4db66f541a8f894036ddf057647d702",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/NameDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/NameDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "a33f4765d51aaa1ca22a15b08899cef40388885e",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/NotificationsMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/NotificationsMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "9f557cd47e23f3fc9641ca04e6fdf7e8a78057a5",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/PackDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/PackDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "b2a13c958cca2e831c72a129ab7bc109d1461996",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/PingDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/PingDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "cd1189c5486b7af722cf6d0da64b8d1625201f67",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/PitchDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/PitchDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "7e50dcff05838ba8b897c0227dca713d803585c4",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/PlayTimeDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/PlayTimeDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "16944e2c2d30b174adb7a2205e2469ee467b7cd7",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/PlayerCounterMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/PlayerCounterMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "69db0a4c262594beedd9d3cc17fbdb342486bddc",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/PlayerDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/PlayerDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "1ec38e8a7b0223b3a65c5f857db2f66ca59ddff7",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/PlayerListMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/PlayerListMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "ad9aad629b08cf1611da12956bf1a2e145c28b5d",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/PotionCounterMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/PotionCounterMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "98993c8e340b8367649081c4f1970f76a00df168",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/PotionStatusMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/PotionStatusMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "62ee0b32cef8badb41af64f151d7939448927ab5",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ReachDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ReachDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "7f54d6e529ea7c968a8f8bfdea581710d3082524",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/RearviewMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/RearviewMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "b6561f235bbb4609de77143951c48270b1c53807",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ScoreboardMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ScoreboardMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "5047265422785555568f80bf4e84a64793ddd9ce",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ServerIPDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ServerIPDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "02ff0b7d9be32b3d5145af1b845f4d59e274cee6",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/SessionInfoMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/SessionInfoMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "030044cf31dc494bb10e8c4b2fe235918a8e8f7a",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/Skin3DMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/Skin3DMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "896a4336aae73822d2d64d5082907c098e0dc293",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/SoundSubtitlesMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/SoundSubtitlesMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "47b026943697bf8e3e2347b9961a00b69e520931",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/SpeedometerMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/SpeedometerMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "f002e095b53ca0b8bc83f3bbeb7cd010a09ace26",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/StopwatchMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/StopwatchMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "c8a4eb0e3220505acb257dfdf4bea93f2a8e3afd",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/TNTTimerMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/TNTTimerMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "2f8e7520a012bcaf31eea145de544c41121a26ff",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/TabEditorMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/TabEditorMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "91830927900a44c5eeaa0d3abc3591b5653ea54c",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/TargetInfoMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/TargetInfoMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "ca0f11492049b8dca6f7ff38a88560ae34cb3a1f",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ToggleSprintMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ToggleSprintMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "21fb1f8d9465d97845fdd63957c7c0ec0eb19852",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/TpsMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/TpsMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "8f3c5f4c9cec39d310640e99f0b6356cf71a7dfc",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/UHCOverlayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/UHCOverlayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "9fc50d92fd268b10f7a789a294e106a4be38c982",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/ViaVersionMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/ViaVersionMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "1edf9a1412bbf0e7ec2a55b52c0b4476bdc00318",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/WaypointMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/WaypointMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "13e83a171372f99e403bff2b6365b8c182d24805",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/WeatherDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/WeatherDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "0a8dcc3fea9ccb7cf591ee7d6198dd913f731e1d",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/WebBrowserMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/WebBrowserMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "9b2e4bb77c02ce87c0959bde264ef5e09bcbf3f5",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/mods/YawDisplayMod.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/mods/YawDisplayMod.java",
+                        "Category":  "mods",
+                        "HeadBlob":  "51c8dde2d89db539c37dc4dff1aa6a424ef1114e",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/nanovg/GlStateGuard.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/nanovg/GlStateGuard.java",
+                        "Category":  "nanovg",
+                        "HeadBlob":  "cdf87c276deebcf48456cb086e89b722b2b891fb",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/nanovg/HudFont.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/nanovg/HudFont.java",
+                        "Category":  "nanovg",
+                        "HeadBlob":  "832ea0b6f755de3bcf156a451a7721ff35868ae0",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/nanovg/HudFonts.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/nanovg/HudFonts.java",
+                        "Category":  "nanovg",
+                        "HeadBlob":  "f0c3e9f5bb5093a2bdf8392c7af3519c4a0dfd8e",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/nanovg/HudIcon.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/nanovg/HudIcon.java",
+                        "Category":  "nanovg",
+                        "HeadBlob":  "2f8e6c28a30c52e0501588e4f3c43e6bc6b4cb92",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/nanovg/NanoVGContext.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/nanovg/NanoVGContext.java",
+                        "Category":  "nanovg",
+                        "HeadBlob":  "b124ec902c66e0a6d186259b595011b802215aa9",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/nanovg/NanoVGNativeLoader.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/nanovg/NanoVGNativeLoader.java",
+                        "Category":  "nanovg",
+                        "HeadBlob":  "bbee0c7d4c693d7adb1b4cf3db28c1bcc2195091",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/hud2/nanovg/NanoVGUI.java",
+                        "RelPath":  "src/main/java/net/wurstclient/hud2/nanovg/NanoVGUI.java",
+                        "Category":  "nanovg",
+                        "HeadBlob":  "1b1ea937eee1e40a09aa66243e780a5b28cb6ed7",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/keybinds/KeybindProcessor.java",
+                        "RelPath":  "src/main/java/net/wurstclient/keybinds/KeybindProcessor.java",
+                        "Category":  "core",
+                        "HeadBlob":  "818e40d78e7ea071de5354fa10ce75419accabb7",
+                        "BaseBlob":  "ec0459398937c74339d086c8e9c88cf2fa75ded1"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/AbstractSelectionListMixin.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/AbstractSelectionListMixin.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "f8b44ab0d34ecb3d4ede7554c73c882eb9da6426",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/AbstractSliderButtonAccessor.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/AbstractSliderButtonAccessor.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "bb7cf1decdfa6cbdfdb7976c4edf0a85ac3d946d",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/AbstractWidgetMixin.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/AbstractWidgetMixin.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "f3f77c960eb6b222469a7103950a4edaa1f83500",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/BossHealthOverlayMixin.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/BossHealthOverlayMixin.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "495715f204e4c4d29cedad234e2692159c60a29d",
+                        "BaseBlob":  "0d518c40fd272c389dc124e0db5df04a42f976a0"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/GameRendererMixin.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/GameRendererMixin.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "b5d9fb9a246950cc877f71d4a7f9f909d8ab5540",
+                        "BaseBlob":  "bbb45d5d7df236b0d8a9021d4af598eddb4f3be0"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/IngameHudMixin.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/IngameHudMixin.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "d6ddad7c5dc6625d45c169034911be584ee42abb",
+                        "BaseBlob":  "172c9a063578b100c16506987a717c816aed31a4"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/KeyboardInputMixin.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/KeyboardInputMixin.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "7f81a69db07a6092403ed9742809048610d1de91",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/LivingEntityAccessor.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/LivingEntityAccessor.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "88d083bfc214cbe9068bda0fe3d65b0059c41803",
+                        "BaseBlob":  "fed28dd5e3a44d2f2a83803b93266818eab88134"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/MusicManagerMixin.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/MusicManagerMixin.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "cf781e8c291e159995c5e3796756e35cc87fb485",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/OptionsSubScreenMixin.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/OptionsSubScreenMixin.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "c139a268171f2b4df821921a705e0d28f462ed0e",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/ScreenMixin.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/ScreenMixin.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "8e50dc016b793711a7b4cd52fc04a77cb7f547ef",
+                        "BaseBlob":  "b856e875ec833109b9f5a9f234445ca71be0959a"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/mixin/SelectWorldScreenMixin.java",
+                        "RelPath":  "src/main/java/net/wurstclient/mixin/SelectWorldScreenMixin.java",
+                        "Category":  "mixin",
+                        "HeadBlob":  "9149be607806914c960bf6c075d53f50765d00f0",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/options/WurstOptionsScreen.java",
+                        "RelPath":  "src/main/java/net/wurstclient/options/WurstOptionsScreen.java",
+                        "Category":  "core",
+                        "HeadBlob":  "e04c9beaeec42fcd15c01c0eabfcfccea756ed24",
+                        "BaseBlob":  "7fbf3045ee4f050034da502caf0e4434c830ec30"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/settings/SettingsFile.java",
+                        "RelPath":  "src/main/java/net/wurstclient/settings/SettingsFile.java",
+                        "Category":  "core",
+                        "HeadBlob":  "4d102b8453c16a2778fd51a3c4f69aa7a222926e",
+                        "BaseBlob":  "e1d32bc0473075b6891c040e8bbacf0ad797a1ea"
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/util/ScreenRegistry.java",
+                        "RelPath":  "src/main/java/net/wurstclient/util/ScreenRegistry.java",
+                        "Category":  "core",
+                        "HeadBlob":  "73408e38aa154cd4526091387e72189d2f21acd1",
+                        "BaseBlob":  "2048adf5ae152eed9f053cc31632b4df3f9ac03b"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/util/ServerEquivTp.java",
+                        "RelPath":  "src/main/java/net/wurstclient/util/ServerEquivTp.java",
+                        "Category":  "core",
+                        "HeadBlob":  "d0e76f34fc872ae98c9c8ae4598303bdddfcaa4e",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/util/TestControlServer.java",
+                        "RelPath":  "src/main/java/net/wurstclient/util/TestControlServer.java",
+                        "Category":  "core",
+                        "HeadBlob":  "a166c8d8468d2c2ab14b4f2fffc2eee1c7e133e6",
+                        "BaseBlob":  "b4895ac801fd1cb6658c2848e2a266d3f937ec5f"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/java/net/wurstclient/util/TpCombatUtil.java",
+                        "RelPath":  "src/main/java/net/wurstclient/util/TpCombatUtil.java",
+                        "Category":  "core",
+                        "HeadBlob":  "ace20403c978abd5cb52c7c60855dfddb6d1fc22",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/resources/assets/wurst/translations/zh_cn.json",
+                        "RelPath":  "src/main/resources/assets/wurst/translations/zh_cn.json",
+                        "Category":  "resource",
+                        "HeadBlob":  "052abae52dfdee4dc3e6e88e89a4f8a57564c569",
+                        "BaseBlob":  "bae8ed2261da47e1be0c6debdbec32e5e0202cd1"
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/resources/assets/wurstpenguin/nanovg/fonts/Icon.ttf",
+                        "RelPath":  "src/main/resources/assets/wurstpenguin/nanovg/fonts/Icon.ttf",
+                        "Category":  "resource",
+                        "HeadBlob":  "f5be7e89b96c92df971634420a0a6156f9ab2719",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/resources/assets/wurstpenguin/nanovg/fonts/MiSans-Demibold.ttf",
+                        "RelPath":  "src/main/resources/assets/wurstpenguin/nanovg/fonts/MiSans-Demibold.ttf",
+                        "Category":  "resource",
+                        "HeadBlob":  "39d588724dcaf8d7230c42c41ee246ea28d13d2c",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/resources/assets/wurstpenguin/nanovg/fonts/MiSans-Medium.ttf",
+                        "RelPath":  "src/main/resources/assets/wurstpenguin/nanovg/fonts/MiSans-Medium.ttf",
+                        "Category":  "resource",
+                        "HeadBlob":  "79b9d10dd440070b8c07b2bf520f0b27805837eb",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "A",
+                        "SourcePath":  "fabric/src/main/resources/assets/wurstpenguin/nanovg/fonts/MiSans-Regular.ttf",
+                        "RelPath":  "src/main/resources/assets/wurstpenguin/nanovg/fonts/MiSans-Regular.ttf",
+                        "Category":  "resource",
+                        "HeadBlob":  "9cbfff50be680a0baaf8b08a66f0da132c57df42",
+                        "BaseBlob":  null
+                    },
+                    {
+                        "Action":  "M",
+                        "SourcePath":  "fabric/src/main/resources/wurstpenguin.mixins.json",
+                        "RelPath":  "src/main/resources/wurstpenguin.mixins.json",
+                        "Category":  "resource",
+                        "HeadBlob":  "60802a42791ceccf3abdffa8fa1b89ed5a9e4532",
+                        "BaseBlob":  "1f34cf68b4bea0fb0604fef11ecb39bfa27b13fe"
+                    }
+                ]
+}

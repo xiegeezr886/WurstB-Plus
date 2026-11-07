@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.neoforged</groupId>
+  <artifactId>neoforgespi</artifactId>
+  <version>8.0.0</version>
+  <name>NeoForge Service Provider Interface</name>
+  <description>API for services which can plug into forge, or which are used by forge in other places</description>
+  <url>https://github.com/neoforged/NeoForgeSPI</url>
+  <licenses>
+    <license>
+      <name>LGPLv2.1</name>
+      <url>https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>cpw</id>
+      <name>cpw</name>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/neoforged/NeoForgeSPI.git</connection>
+    <developerConnection>scm:git:git@github.com:neoforged/NeoForgeSPI.git</developerConnection>
+    <url>https://github.com/neoforged/NeoForgeSPI</url>
+  </scm>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/neoforged/NeoForgeSPI/issues</url>
+  </issueManagement>
+  <dependencies>
+    <dependency>
+      <groupId>net.neoforged</groupId>
+      <artifactId>mergetool</artifactId>
+      <version>2.0.0</version>
+      <classifier>api</classifier>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>*</artifactId>
+          <groupId>*</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>cpw.mods</groupId>
+      <artifactId>modlauncher</artifactId>
+      <version>9.0.7</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>9.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>9.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-tree</artifactId>
+      <version>9.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.17.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>3.8.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>cpw.mods</groupId>
+      <artifactId>securejarhandler</artifactId>
+      <version>0.9.52</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

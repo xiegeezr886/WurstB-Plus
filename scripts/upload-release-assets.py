@@ -18,6 +18,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -59,21 +60,32 @@ def api(url, tok, method='GET', data=None, headers=None):
 
 
 def upload_asset(upload_url, tok, path, name):
-    with open(path, 'rb') as fh:
-        data = fh.read()
     # 必须百分号编码：资产名里的 `+` 若原样放进查询串会被解析成空格，
     # GitHub 收到后落盘成 `.`，于是 `WurstB+.Plus-…` 变成 `WurstB.Plus-…`。
     qname = urllib.parse.quote(name, safe='')
-    req = urllib.request.Request(
-        upload_url.replace('{?name,label}', '') + '?name=' + qname,
-        data=data, method='POST')
-    req.add_header('Authorization', 'token ' + tok)
-    req.add_header('Content-Type', 'application/java-archive')
-    req.add_header('Content-Length', str(len(data)))
-    for k, v in UA.items():
-        req.add_header(k, v)
-    with urllib.request.urlopen(req, timeout=900) as r:
-        return json.loads(r.read())
+    url = upload_url.replace('{?name,label}', '') + '?name=' + qname
+    # Python 的 certifi 链在本地 TLS 代理下对 uploads.github.com 会随机
+    # 报 CERTIFICATE_VERIFY_FAILED；curl 用 Windows schannel，
+    # --ssl-no-revoke 跳过代理无法完成的吊销检查。
+    curl = shutil.which('curl.exe') or shutil.which('curl') or 'curl'
+    proxy = (os.environ.get('HTTPS_PROXY')
+             or os.environ.get('https_proxy')
+             or os.environ.get('ALL_PROXY')
+             or os.environ.get('all_proxy'))
+    cmd = [curl, '-sS', '--fail-with-body', '--ssl-no-revoke',
+           '-X', 'POST',
+           '-H', 'Authorization: token ' + tok,
+           '-H', 'Content-Type: application/java-archive',
+           '-H', 'User-Agent: wurstb-release-uploader',
+           '--data-binary', '@' + path]
+    if proxy:
+        cmd += ['-x', proxy]
+    cmd.append(url)
+    p = subprocess.run(cmd, capture_output=True)
+    if p.returncode != 0:
+        raise RuntimeError('curl rc=%d: %s' % (
+            p.returncode, p.stderr.decode('utf-8', 'replace')[:300]))
+    return json.loads(p.stdout)
 
 
 def patch_body_26_3(rel, tok):
@@ -116,6 +128,8 @@ def main():
     ap.add_argument('--tag', default='v1.5.0')
     ap.add_argument('--dry-run', action='store_true')
     ap.add_argument('--only', nargs='*')
+    ap.add_argument('--skip-existing', action='store_true',
+                    help='同名且大小一致的资产跳过（断点续传）')
     ap.add_argument('--add-263-to-body', action='store_true',
                     help='在简介的版本表末尾补上 26.3（本轮要求；其余简介内容不动）')
     ap.add_argument('--body-only', action='store_true',
@@ -156,6 +170,13 @@ def main():
         size = os.path.getsize(path)
         old = existing.get(name)
         action = '替换' if old else '新增'
+        if args.skip_existing and old \
+                and old.get('size') == size \
+                and old.get('state') == 'uploaded':
+            print('  SKIP %-46s 已上传 %8.1f MB' % (name, size / 1e6),
+                  flush=True)
+            ok += 1
+            continue
         if args.dry_run:
             print('  [dry] %-46s %-4s %8.1f MB' % (name, action, size / 1e6))
             continue

@@ -1,0 +1,9 @@
+Upstream: https://github.com/adaxiaohu/InvincibleMachineGun
+Local source snapshot: reference/tools/InvincibleMachineGun-src
+License: GPL-3.0
+License SHA-256: 230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809
+Adapted for WurstB+ Plus v1.5.1 on 2026-11-07.
+AutoMessage -> AutoText/ChatSequence: UTF-8 file sequences, selection prefix, per-message delay, loop/random modes. Non-loop random runs terminate.
+Original notices remain applicable. Local adaptation: WurstB+ Plus contributors.
+Source snapshot module hashes:
+reference/tools/InvincibleMachineGun-src/src/main/java/com/codigohasta/addon/modules/AutoMessage.java SHA-256 f651dd0408973139284e120058db665eb6697e7aaf8e73ca02e1b98c1458ad6b

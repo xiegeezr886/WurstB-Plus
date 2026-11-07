@@ -12,27 +12,26 @@ import java.util.List;
 
 import org.joml.Matrix4f;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-// BufferUploader removed in MC 26.1.2
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
+import net.wurstclient.WurstRenderLayers;
 import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.events.WorldChangeListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.util.RenderUtils;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.ColorSetting;
 
@@ -129,49 +128,35 @@ public final class PopChamsHack extends Hack
 		float g = ((argb >> 8) & 0xFF) / 255F;
 		float b = (argb & 0xFF) / 255F;
 
-		// Blend state managed by render pipeline
-		// Blend state managed by render pipeline
-		// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-		// Shader managed by render pipeline
-		try
+		// Depth/blend state managed by render pipeline
+		MultiBufferSource.BufferSource vcp = RenderUtils.getVCP();
+		RenderType layer = WurstRenderLayers.getQuads(true);
+		VertexConsumer buf = vcp.getBuffer(layer);
+
+		for(PopData pop : pops)
 		{
-			Tesselator tess = Tesselator.getInstance();
-			BufferBuilder buf = tess.begin(VertexFormat.Mode.QUADS,
-				DefaultVertexFormat.POSITION_COLOR);
+			long age = System.currentTimeMillis() - pop.time;
+			float alpha = 1
+				- age / (float)(duration.getValueI() * 1000);
+			if(alpha < 0)
+				continue;
 
-			for(PopData pop : pops)
-			{
-				long age = System.currentTimeMillis() - pop.time;
-				float alpha = 1
-					- age / (float)(duration.getValueI() * 1000);
-				if(alpha < 0)
-					continue;
+			float x = (float)(pop.position.x - cam.x);
+			float y = (float)(pop.position.y
+				+ pop.height * 0.6 * (1 - alpha) - cam.y);
+			float z = (float)(pop.position.z - cam.z);
+			float s = 0.4F * (1 + alpha);
 
-				float x = (float)(pop.position.x - cam.x);
-				float y = (float)(pop.position.y
-					+ pop.height * 0.6 * (1 - alpha) - cam.y);
-				float z = (float)(pop.position.z - cam.z);
-				float s = 0.4F * (1 + alpha);
-
-				buf.addVertex(matrix, x - s, y + s, z)
-					.setColor(r, g, b, alpha);
-				buf.addVertex(matrix, x + s, y + s, z)
-					.setColor(r, g, b, alpha);
-				buf.addVertex(matrix, x + s, y - s, z)
-					.setColor(r, g, b, alpha);
-				buf.addVertex(matrix, x - s, y - s, z)
-					.setColor(r, g, b, alpha);
-			}
-
-			com.mojang.blaze3d.vertex.MeshData rendered = buf.build();
-			if(rendered != null)
-			{
-				// BufferUploader removed in MC 26.1.2
-			}
-		}finally
-		{
+			buf.addVertex(matrix, x - s, y + s, z)
+				.setColor(r, g, b, alpha);
+			buf.addVertex(matrix, x + s, y + s, z)
+				.setColor(r, g, b, alpha);
+			buf.addVertex(matrix, x + s, y - s, z)
+				.setColor(r, g, b, alpha);
+			buf.addVertex(matrix, x - s, y - s, z)
+				.setColor(r, g, b, alpha);
 		}
+		vcp.endBatch(layer);
 	}
 
 	private record PopData(Vec3 position, float height, long time) {}

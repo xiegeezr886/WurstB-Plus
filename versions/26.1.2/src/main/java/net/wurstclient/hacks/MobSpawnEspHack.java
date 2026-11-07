@@ -154,7 +154,7 @@ public final class MobSpawnEspHack extends Hack
 			return false;
 		
 		// Check block light level
-		return MC.level.getBrightness(LightLayer.BLOCK, pos) < 1;
+		return MC.level.getLightEngine().getLayerListener(LightLayer.BLOCK).getLightValue(pos) < 1;
 	}
 	
 	private void buildBuffer(VertexConsumer buffer, ChunkSearcher searcher,
@@ -180,7 +180,7 @@ public final class MobSpawnEspHack extends Hack
 		float z1 = pos.getZ() - region.z();
 		float z2 = z1 + 1;
 		
-		int color = MC.level.getBrightness(LightLayer.SKY, pos) < 8
+		int color = MC.level.getLightEngine().getLayerListener(LightLayer.SKY).getLightValue(pos) < 8
 			? cachedDayColor : cachedNightColor;
 		
 		buffer.addVertex(x1, y, z1).setColor(color).setNormal(1, 0, 1).setLineWidth(2);

@@ -1,0 +1,118 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "net.neoforged",
+    "module": "coremods",
+    "version": "6.0.4",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.4"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "coremods-6.0.4.jar",
+          "url": "coremods-6.0.4.jar",
+          "size": 24182,
+          "sha512": "d8b6160892b8200a242a34d59e35fa870c24929ad01a7a03817aa89b84a27c9956d4445b45868ced8ae70f8791f26ae9146cddef6afb9d8f3bfdcdf91203bc76",
+          "sha256": "6d9f427261c3c3385210c0409a7988a33f87b56d7e1effe822f487d1832390bb",
+          "sha1": "87c17499d9fd2d5c9a220ec653f0e674fb25ccaa",
+          "md5": "bb37b5fbc684dd744cc685a5a79a4d0e"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "cpw.mods",
+          "module": "modlauncher",
+          "version": {
+            "requires": "9.0.24"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-api",
+          "version": {
+            "requires": "2.14.1"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm",
+          "version": {
+            "requires": "9.3"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-commons",
+          "version": {
+            "requires": "9.3"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-tree",
+          "version": {
+            "requires": "9.3"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-util",
+          "version": {
+            "requires": "9.3"
+          }
+        },
+        {
+          "group": "net.neoforged.fancymodloader",
+          "module": "spi",
+          "version": {
+            "requires": "2.0.6"
+          }
+        },
+        {
+          "group": "org.openjdk.nashorn",
+          "module": "nashorn-core",
+          "version": {
+            "requires": "15.4"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "coremods-6.0.4.jar",
+          "url": "coremods-6.0.4.jar",
+          "size": 24182,
+          "sha512": "d8b6160892b8200a242a34d59e35fa870c24929ad01a7a03817aa89b84a27c9956d4445b45868ced8ae70f8791f26ae9146cddef6afb9d8f3bfdcdf91203bc76",
+          "sha256": "6d9f427261c3c3385210c0409a7988a33f87b56d7e1effe822f487d1832390bb",
+          "sha1": "87c17499d9fd2d5c9a220ec653f0e674fb25ccaa",
+          "md5": "bb37b5fbc684dd744cc685a5a79a4d0e"
+        }
+      ]
+    }
+  ]
+}
