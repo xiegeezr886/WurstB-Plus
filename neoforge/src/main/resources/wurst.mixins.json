@@ -7,6 +7,10 @@
   "plugin": "net.wurstclient.mixin.WurstMixinConfigPlugin",
   "mixins": [],
   "client": [
+    "NoRotatePacketMixin",
+    "CollisionsShapeMixin",
+    "CollisionsMovementMixin",
+    "CollisionsBorderMixin",
     "AutoWalkMovementMixin",
     "NoMiningTraceMixin",
     "BeaconPowerButtonMixin",
@@ -90,6 +94,7 @@
     "WorldRendererMixin",
     "AbstractSelectionListMixin",
     "AbstractSliderButtonAccessor",
+    "ToastComponentAccessor",
     "AbstractWidgetMixin",
     "KeyboardInputMixin",
     "MusicManagerMixin",
