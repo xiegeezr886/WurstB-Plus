@@ -1,0 +1,815 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/KillauraHack.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/KillauraHack.java"
+index d9b0f948..ba205678 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/KillauraHack.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/KillauraHack.java"
+@@ -1,245 +1,565 @@
+-/*
+- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+- *
+- * This source code is subject to the terms of the GNU General Public
+- * License, version 3. If a copy of the GPL was not distributed with this
+- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+- */
+-package net.wurstclient.hacks;
+-
+-import java.util.Comparator;
+-import java.util.function.ToDoubleFunction;
+-import java.util.stream.Stream;
+-
+-import net.minecraft.client.util.math.MatrixStack;
+-import net.minecraft.entity.Entity;
+-import net.minecraft.entity.LivingEntity;
+-import net.minecraft.util.Hand;
+-import net.minecraft.util.math.Box;
+-import net.minecraft.util.math.Vec3d;
+-import net.wurstclient.Category;
+-import net.wurstclient.SearchTags;
+-import net.wurstclient.events.HandleInputListener;
+-import net.wurstclient.events.RenderListener;
+-import net.wurstclient.events.UpdateListener;
+-import net.wurstclient.hack.Hack;
+-import net.wurstclient.settings.AttackSpeedSliderSetting;
+-import net.wurstclient.settings.CheckboxSetting;
+-import net.wurstclient.settings.EnumSetting;
+-import net.wurstclient.settings.PauseAttackOnContainersSetting;
+-import net.wurstclient.settings.SliderSetting;
+-import net.wurstclient.settings.SliderSetting.ValueDisplay;
+-import net.wurstclient.settings.SwingHandSetting;
+-import net.wurstclient.settings.SwingHandSetting.SwingHand;
+-import net.wurstclient.settings.filterlists.EntityFilterList;
+-import net.wurstclient.util.BlockUtils;
+-import net.wurstclient.util.EntityUtils;
+-import net.wurstclient.util.RenderUtils;
+-import net.wurstclient.util.RotationUtils;
+-
+-@SearchTags({"kill aura", "ForceField", "force field", "CrystalAura",
+-	"crystal aura", "AutoCrystal", "auto crystal"})
+-public final class KillauraHack extends Hack
+-	implements UpdateListener, HandleInputListener, RenderListener
+-{
+-	private final SliderSetting range = new SliderSetting("Range",
+-		"Determines how far Killaura will reach to attack entities.\n"
+-			+ "Anything that is further away than the specified value will not be attacked.",
+-		5, 1, 10, 0.05, ValueDisplay.DECIMAL);
+-	
+-	private final AttackSpeedSliderSetting speed =
+-		new AttackSpeedSliderSetting();
+-	
+-	private final SliderSetting speedRandMS =
+-		new SliderSetting("Speed randomization",
+-			"Helps you bypass anti-cheat plugins by varying the delay between"
+-				+ " attacks.\n\n" + "\u00b1100ms is recommended for Vulcan.\n\n"
+-				+ "0 (off) is fine for NoCheat+, AAC, Grim, Verus, Spartan, and"
+-				+ " vanilla servers.",
+-			100, 0, 1000, 50, ValueDisplay.INTEGER.withPrefix("\u00b1")
+-				.withSuffix("ms").withLabel(0, "off"));
+-	
+-	private final EnumSetting<Priority> priority = new EnumSetting<>("Priority",
+-		"Determines which entity will be attacked first.\n"
+-			+ "\u00a7lDistance\u00a7r - Attacks the closest entity.\n"
+-			+ "\u00a7lAngle\u00a7r - Attacks the entity that requires the least head movement.\n"
+-			+ "\u00a7lHealth\u00a7r - Attacks the weakest entity.",
+-		Priority.values(), Priority.ANGLE);
+-	
+-	private final SliderSetting fov =
+-		new SliderSetting("FOV", 360, 30, 360, 10, ValueDisplay.DEGREES);
+-	
+-	private final SwingHandSetting swingHand = new SwingHandSetting(
+-		SwingHandSetting.genericCombatDescription(this), SwingHand.CLIENT);
+-	
+-	private final CheckboxSetting damageIndicator = new CheckboxSetting(
+-		"Damage indicator",
+-		"Renders a colored box within the target, inversely proportional to its remaining health.",
+-		true);
+-	
+-	private final PauseAttackOnContainersSetting pauseOnContainers =
+-		new PauseAttackOnContainersSetting(true);
+-	
+-	private final CheckboxSetting checkLOS =
+-		new CheckboxSetting("Check line of sight",
+-			"Ensures that you don't reach through blocks when attacking.\n\n"
+-				+ "Slower but can help with anti-cheat plugins.",
+-			false);
+-	
+-	private final EntityFilterList entityFilters =
+-		EntityFilterList.genericCombat();
+-	
+-	private Entity target;
+-	private Entity renderTarget;
+-	
+-	public KillauraHack()
+-	{
+-		super("Killaura");
+-		setCategory(Category.COMBAT);
+-		
+-		addSetting(range);
+-		addSetting(speed);
+-		addSetting(speedRandMS);
+-		addSetting(priority);
+-		addSetting(fov);
+-		addSetting(swingHand);
+-		addSetting(damageIndicator);
+-		addSetting(pauseOnContainers);
+-		addSetting(checkLOS);
+-		
+-		entityFilters.forEach(this::addSetting);
+-	}
+-	
+-	@Override
+-	protected void onEnable()
+-	{
+-		// disable other killauras
+-		WURST.getHax().aimAssistHack.setEnabled(false);
+-		WURST.getHax().clickAuraHack.setEnabled(false);
+-		WURST.getHax().crystalAuraHack.setEnabled(false);
+-		WURST.getHax().fightBotHack.setEnabled(false);
+-		WURST.getHax().killauraLegitHack.setEnabled(false);
+-		WURST.getHax().multiAuraHack.setEnabled(false);
+-		WURST.getHax().protectHack.setEnabled(false);
+-		WURST.getHax().triggerBotHack.setEnabled(false);
+-		WURST.getHax().tpAuraHack.setEnabled(false);
+-		
+-		speed.resetTimer(speedRandMS.getValue());
+-		EVENTS.add(UpdateListener.class, this);
+-		EVENTS.add(HandleInputListener.class, this);
+-		EVENTS.add(RenderListener.class, this);
+-	}
+-	
+-	@Override
+-	protected void onDisable()
+-	{
+-		EVENTS.remove(UpdateListener.class, this);
+-		EVENTS.remove(HandleInputListener.class, this);
+-		EVENTS.remove(RenderListener.class, this);
+-		
+-		target = null;
+-		renderTarget = null;
+-	}
+-	
+-	@Override
+-	public void onUpdate()
+-	{
+-		speed.updateTimer();
+-		if(!speed.isTimeToAttack())
+-			return;
+-		
+-		if(pauseOnContainers.shouldPause())
+-			return;
+-		
+-		Stream<Entity> stream = EntityUtils.getAttackableEntities();
+-		double rangeSq = range.getValueSq();
+-		stream = stream.filter(e -> MC.player.squaredDistanceTo(e) <= rangeSq);
+-		
+-		if(fov.getValue() < 360.0)
+-			stream = stream.filter(e -> RotationUtils.getAngleToLookVec(
+-				e.getBoundingBox().getCenter()) <= fov.getValue() / 2.0);
+-		
+-		stream = entityFilters.applyTo(stream);
+-		
+-		target = stream.min(priority.getSelected().comparator).orElse(null);
+-		renderTarget = target;
+-		if(target == null)
+-			return;
+-		
+-		WURST.getHax().autoSwordHack.setSlot(target);
+-		
+-		Vec3d hitVec = target.getBoundingBox().getCenter();
+-		if(checkLOS.isChecked() && !BlockUtils.hasLineOfSight(hitVec))
+-		{
+-			target = null;
+-			return;
+-		}
+-		
+-		WURST.getRotationFaker().faceVectorPacket(hitVec);
+-	}
+-	
+-	@Override
+-	public void onHandleInput()
+-	{
+-		if(target == null)
+-			return;
+-		
+-		MC.interactionManager.attackEntity(MC.player, target);
+-		swingHand.swing(Hand.MAIN_HAND);
+-		
+-		target = null;
+-		speed.resetTimer(speedRandMS.getValue());
+-	}
+-	
+-	@Override
+-	public void onRender(MatrixStack matrixStack, float partialTicks)
+-	{
+-		if(renderTarget == null || !damageIndicator.isChecked())
+-			return;
+-		
+-		float p = 1;
+-		if(renderTarget instanceof LivingEntity le && le.getMaxHealth() > 1e-5)
+-			p = 1 - le.getHealth() / le.getMaxHealth();
+-		float red = p * 2F;
+-		float green = 2 - red;
+-		float[] rgb = {red, green, 0};
+-		int quadColor = RenderUtils.toIntColor(rgb, 0.25F);
+-		int lineColor = RenderUtils.toIntColor(rgb, 0.5F);
+-		
+-		Box box = EntityUtils.getLerpedBox(renderTarget, partialTicks);
+-		if(p < 1)
+-			box = box.contract((1 - p) * 0.5 * box.getXLength(),
+-				(1 - p) * 0.5 * box.getYLength(),
+-				(1 - p) * 0.5 * box.getZLength());
+-		
+-		RenderUtils.drawSolidBox(matrixStack, box, quadColor, false);
+-		RenderUtils.drawOutlinedBox(matrixStack, box, lineColor, false);
+-	}
+-	
+-	private enum Priority
+-	{
+-		DISTANCE("Distance", e -> MC.player.squaredDistanceTo(e)),
+-		
+-		ANGLE("Angle",
+-			e -> RotationUtils
+-				.getAngleToLookVec(e.getBoundingBox().getCenter())),
+-		
+-		HEALTH("Health", e -> e instanceof LivingEntity
+-			? ((LivingEntity)e).getHealth() : Integer.MAX_VALUE);
+-		
+-		private final String name;
+-		private final Comparator<Entity> comparator;
+-		
+-		private Priority(String name, ToDoubleFunction<Entity> keyExtractor)
+-		{
+-			this.name = name;
+-			comparator = Comparator.comparingDouble(keyExtractor);
+-		}
+-		
+-		@Override
+-		public String toString()
+-		{
+-			return name;
+-		}
+-	}
+-}
++/*
++ * Copyright (c) 2026 WurstB+ Plus contributors
++ *
++ * This source code is subject to the terms of the GNU Affero General Public
++ * License, version 3. If a copy of the AGPL was not distributed with this
++ * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
++ */
++package net.wurstclient.hacks;
++
++import java.util.List;
++
++import com.mojang.blaze3d.vertex.PoseStack;
++
++import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
++import net.minecraft.tags.ItemTags;
++import net.minecraft.world.InteractionHand;
++import net.minecraft.world.effect.MobEffects;
++import net.minecraft.world.entity.Entity;
++import net.minecraft.world.entity.LivingEntity;
++import net.minecraft.world.item.AxeItem;
++import net.minecraft.world.item.ItemStack;
++import net.minecraft.world.item.PotionItem;
++import net.minecraft.world.item.UseAnim;
++import net.minecraft.world.phys.EntityHitResult;
++import net.minecraft.world.phys.Vec3;
++import net.wurstclient.Category;
++import net.wurstclient.events.HandleInputListener;
++import net.wurstclient.events.RenderListener;
++import net.wurstclient.events.UpdateListener;
++import net.wurstclient.hack.Hack;
++import net.wurstclient.hack.HackConflictGroup;
++import net.wurstclient.hacks.aura.OpenAura;
++import net.wurstclient.settings.CheckboxSetting;
++import net.wurstclient.settings.EnumSetting;
++import net.wurstclient.settings.SliderSetting;
++import net.wurstclient.settings.SliderSetting.ValueDisplay;
++import net.wurstclient.util.EntityUtils;
++import net.wurstclient.util.RenderUtils;
++import net.wurstclient.util.Rotation;
++import net.wurstclient.util.RotationQueue;
++
++/**
++ * KillAura ported from OpenOpal's KillAuraModule
++ * (Single/Switch targeting, raycasted rotations and attack windows).
++ */
++public final class KillauraHack extends Hack
++	implements UpdateListener, HandleInputListener, RenderListener
++{
++	private final EnumSetting<Mode> mode =
++		new EnumSetting<>("Mode", Mode.values(), Mode.SWITCH);
++
++	private final SliderSetting range = new SliderSetting("Range",
++		"How far the aura can attack.", 6, 3, 10, 0.1, ValueDisplay.DECIMAL);
++	private final SliderSetting rotationRange = new SliderSetting(
++		"Rotation range",
++		"How far the aura will look at targets without attacking.", 5, 3, 8,
++		0.1, ValueDisplay.DECIMAL);
++	private final SliderSetting swingRange = new SliderSetting("Swing range",
++		"Range used for fake swings when nothing is being attacked.", 5, 3, 8,
++		0.1, ValueDisplay.DECIMAL);
++
++	private final EnumSetting<CpsMode> cpsMode = new EnumSetting<>("CPS mode",
++		"Auto follows the weapon's attack speed; Manual uses a fixed CPS.",
++		CpsMode.values(), CpsMode.AUTO);
++	private final SliderSetting attackCps = new SliderSetting("Attack CPS",
++		"Attacks per second in manual mode.", 10, 1, 20, 1,
++		ValueDisplay.INTEGER)
++			.visibleWhen(() -> cpsMode.getSelected() == CpsMode.MANUAL);
++	private final SliderSetting swingCps = new SliderSetting("Swing CPS",
++		"Fake swings per second.", 10, 1, 20, 1, ValueDisplay.INTEGER);
++	private final CheckboxSetting hideFakeSwings =
++		new CheckboxSetting("Hide fake swings", true);
++
++	private final CheckboxSetting requireWeapon = new CheckboxSetting(
++		"Require weapon",
++		"Only attacks while holding a sword, axe or pickaxe.", false);
++	private final CheckboxSetting requireAttackKey = new CheckboxSetting(
++		"Require attack key", "Only attacks while the attack key is held.",
++		false);
++	private final CheckboxSetting hitSelect = new CheckboxSetting("Hit Select",
++		"Skips attacks while you are taking knockback.", false);
++
++	private final CheckboxSetting targetPlayers = new CheckboxSetting(
++		"Target players", "Attacks other players.", true);
++	private final CheckboxSetting targetHostile = new CheckboxSetting(
++		"Target hostile", "Attacks hostile mobs.", false);
++	private final CheckboxSetting targetPassive = new CheckboxSetting(
++		"Target passive", "Attacks passive animals.", false);
++	private final CheckboxSetting targetFriendly = new CheckboxSetting(
++		"Target friendly",
++		"Attacks other living entities (villagers, golems).", true);
++
++	private final SliderSetting fov = new SliderSetting("FOV",
++		"Only targets inside this field of view.", 180, 1, 180, 1,
++		ValueDisplay.INTEGER);
++	private final CheckboxSetting overrideRaycast = new CheckboxSetting(
++		"Override raycast", "Aims exactly at the target before attacking.",
++		true);
++	private final CheckboxSetting tickLookahead = new CheckboxSetting(
++		"Tick lookahead", "Uses one tick of look-ahead for moving targets.",
++		false);
++	private final CheckboxSetting throughWalls = new CheckboxSetting(
++		"Through Walls", "Attacks targets without line of sight.", false);
++	private final CheckboxSetting heypixelBypass = new CheckboxSetting(
++		"Heypixel Bypass", "Uses randomised attack timing for Heypixel.",
++		false);
++
++	private final EnumSetting<AutoblockMode> autoblock =
++		new EnumSetting<>("Autoblock", AutoblockMode.values(),
++			AutoblockMode.OFF);
++	private final CheckboxSetting keepSprintFov = new CheckboxSetting(
++		"Keep Sprint FOV", "Keeps sprinting after an attack.", false);
++	private final CheckboxSetting grimKeepSprint = new CheckboxSetting(
++		"Grim Keep Sprint", "Keeps sprinting after an attack (Grim).", false);
++	private final CheckboxSetting smartWeapon = new CheckboxSetting(
++		"SmartWeapon", "Switches to an axe when the target is shielding.",
++		false);
++
++	private final CheckboxSetting visualsBox = new CheckboxSetting("Box",
++		"Draws a box around the target.", false);
++	private final CheckboxSetting visualsHalo = new CheckboxSetting("Halo",
++		"Draws a ring around the target.", true);
++
++	private RotationQueue rotationQueue;
++	private OpenAura.Target currentTarget;
++	private Entity renderTarget;
++	private long nextAttackTime;
++	private long nextSwingTime;
++	private boolean pendingAttack;
++	private boolean fakeBlocking;
++	private int grimKeepTicks;
++
++	public KillauraHack()
++	{
++		super("Killaura");
++		setCategory(Category.COMBAT);
++		addConflictGroup(HackConflictGroup.COMBAT_TARGETING);
++
++		addSetting(mode);
++		addSetting(range);
++		addSetting(rotationRange);
++		addSetting(swingRange);
++		addSetting(cpsMode);
++		addSetting(attackCps);
++		addSetting(swingCps);
++		addSetting(hideFakeSwings);
++		addSetting(requireWeapon);
++		addSetting(requireAttackKey);
++		addSetting(hitSelect);
++		addSetting(targetPlayers);
++		addSetting(targetHostile);
++		addSetting(targetPassive);
++		addSetting(targetFriendly);
++		addSetting(fov);
++		addSetting(overrideRaycast);
++		addSetting(tickLookahead);
++		addSetting(throughWalls);
++		addSetting(heypixelBypass);
++		addSetting(autoblock);
++		addSetting(keepSprintFov);
++		addSetting(grimKeepSprint);
++		addSetting(smartWeapon);
++		addSetting(visualsBox);
++		addSetting(visualsHalo);
++	}
++
++	@Override
++	protected void onEnable()
++	{
++		currentTarget = null;
++		renderTarget = null;
++		pendingAttack = false;
++		fakeBlocking = false;
++		nextAttackTime = 0;
++		nextSwingTime = 0;
++		rotationQueue = new RotationQueue(RotationQueue.Priority.COMBAT);
++		rotationQueue.start();
++		EVENTS.add(UpdateListener.class, this);
++		EVENTS.add(HandleInputListener.class, this);
++		EVENTS.add(RenderListener.class, this);
++	}
++
++	@Override
++	protected void onDisable()
++	{
++		EVENTS.remove(UpdateListener.class, this);
++		EVENTS.remove(HandleInputListener.class, this);
++		EVENTS.remove(RenderListener.class, this);
++		if(rotationQueue != null)
++		{
++			rotationQueue.stop();
++			rotationQueue = null;
++		}
++		stopBlocking();
++		currentTarget = null;
++		renderTarget = null;
++		pendingAttack = false;
++	}
++
++	@Override
++	public void onUpdate()
++	{
++		pendingAttack = false;
++		if(grimKeepTicks > 0)
++		{
++			grimKeepTicks--;
++			if(MC.player != null)
++				MC.player.setSprinting(true);
++		}
++
++		if(!requirementsMet())
++		{
++			clearTarget();
++			return;
++		}
++
++		List<OpenAura.Target> targets = OpenAura.collect(attackConfig());
++		currentTarget = OpenAura.select(targets,
++			mode.getSelected() == Mode.SWITCH);
++		renderTarget = currentTarget == null ? null : currentTarget.entity;
++
++		if(currentTarget == null)
++		{
++			OpenAura.Target rotationTarget =
++				OpenAura.selectNearest(OpenAura.collect(rotationConfig()));
++			if(rotationTarget != null)
++				rotationQueue.setRotation(rotationTarget.rotation);
++			else
++				rotationQueue.clear();
++			updateAutoblock();
++			tryFakeSwing();
++			return;
++		}
++
++		rotationQueue.setRotation(currentTarget.rotation);
++		updateAutoblock();
++
++		if(!isClickReady() || !currentTarget.isAttackAvailable())
++			return;
++		if(hitSelect.isChecked() && MC.player.hurtTime > 0)
++			return;
++
++		pendingAttack = true;
++	}
++
++	@Override
++	public void onHandleInput()
++	{
++		if(!pendingAttack || currentTarget == null || MC.player == null)
++			return;
++
++		OpenAura.Target target = currentTarget;
++		pendingAttack = false;
++		if(!target.entity.isAlive())
++			return;
++
++		if(overrideRaycast.isChecked())
++		{
++			EntityHitResult hit = OpenAura.raycastEntity(target.entity,
++				MC.player.getEyePosition(), target.rotation, getRange());
++			if(hit == null)
++				return;
++			if(!throughWalls.isChecked() && !OpenAura.hasLineOfSight(
++				MC.player.getEyePosition(), hit.getLocation()))
++				return;
++		}
++
++		if(smartWeapon.isChecked())
++			switchToAxe(target.entity);
++
++		if(MC.player.isUsingItem())
++			MC.gameMode.releaseUsingItem(MC.player);
++
++		Rotation attackRotation = target.rotation;
++		if(heypixelBypass.isChecked())
++		{
++			float jitter = (float)((Math.random() - 0.5D) * 0.1D);
++			attackRotation = Rotation.wrapped(
++				attackRotation.yaw() + jitter,
++				attackRotation.pitch() + jitter);
++		}
++		rotationQueue.setRotation(attackRotation);
++
++		boolean wasSprinting = MC.player.isSprinting();
++		MC.gameMode.attack(MC.player, target.entity);
++		MC.player.swing(InteractionHand.MAIN_HAND);
++
++		if(keepSprintFov.isChecked() || grimKeepSprint.isChecked())
++			keepSprint(wasSprinting);
++		if(grimKeepSprint.isChecked() && wasSprinting)
++			grimKeepTicks = 2;
++
++		target.onAttack();
++		nextAttackTime = System.currentTimeMillis() + clickDelay();
++	}
++
++	@Override
++	public void onRender(PoseStack matrices, float partialTicks)
++	{
++		if(!(renderTarget instanceof LivingEntity living) || !living.isAlive())
++			return;
++
++		Vec3 pos = EntityUtils.getLerpedPos(living, partialTicks)
++			.subtract(RenderUtils.getCameraPos());
++		int color = WURST.getGui().getTheme().accent(0.85F);
++
++		if(visualsBox.isChecked())
++			OpenAura.drawBox(matrices, pos, living, color);
++		if(visualsHalo.isChecked())
++			OpenAura.drawHalo(matrices, pos, living);
++	}
++
++	public Entity getCurrentTarget()
++	{
++		return renderTarget;
++	}
++
++	public boolean shouldRenderFakeBlock()
++	{
++		return isEnabled() && autoblock.getSelected() == AutoblockMode.FAKE
++			&& fakeBlocking && findBlockableHand() != null;
++	}
++
++	public InteractionHand getFakeBlockingHand()
++	{
++		return shouldRenderFakeBlock() ? findBlockableHand() : null;
++	}
++
++	private OpenAura.Config attackConfig()
++	{
++		return new OpenAura.Config(getRange(), fov.getValue(),
++			targetFlags(), throughWalls.isChecked());
++	}
++
++	private OpenAura.Config rotationConfig()
++	{
++		return new OpenAura.Config(rotationRange.getValue(), fov.getValue(),
++			targetFlags(), throughWalls.isChecked());
++	}
++
++	private int targetFlags()
++	{
++		int flags = 0;
++		if(targetPlayers.isChecked())
++			flags |= OpenAura.TARGET_PLAYERS;
++		if(targetHostile.isChecked())
++			flags |= OpenAura.TARGET_HOSTILE;
++		if(targetPassive.isChecked())
++			flags |= OpenAura.TARGET_PASSIVE;
++		if(targetFriendly.isChecked())
++			flags |= OpenAura.TARGET_FRIENDLY;
++		return flags;
++	}
++
++	public double getRange()
++	{
++		return range.getValue();
++	}
++
++	private boolean requirementsMet()
++	{
++		if(MC.player == null || MC.level == null || MC.screen != null)
++			return false;
++		if(isConsumingFoodOrPotion())
++			return false;
++		if(requireAttackKey.isChecked() && !MC.options.keyAttack.isDown())
++			return false;
++		if(requireWeapon.isChecked())
++		{
++			ItemStack held = MC.player.getMainHandItem();
++			if(!held.is(ItemTags.SWORDS) && !held.is(ItemTags.AXES)
++				&& !held.is(ItemTags.PICKAXES))
++				return false;
++		}
++		return true;
++	}
++
++	private boolean isConsumingFoodOrPotion()
++	{
++		if(MC.player == null || !MC.player.isUsingItem())
++			return false;
++		ItemStack stack = MC.player.getUseItem();
++		return !stack.isEmpty()
++			&& (stack.isEdible() || stack.getItem() instanceof PotionItem);
++	}
++
++	private boolean isClickReady()
++	{
++		// Auto mode waits for the held weapon's attack cooldown, so the
++		// effective CPS follows the weapon's attack speed.
++		if(cpsMode.getSelected() == CpsMode.AUTO)
++			return MC.player != null
++				&& MC.player.getAttackStrengthScale(0.5F) >= 1.0F;
++		return System.currentTimeMillis() >= nextAttackTime;
++	}
++
++	private long clickDelay()
++	{
++		return Math.max(1, 1000 / attackCps.getValueI());
++	}
++
++	private void tryFakeSwing()
++	{
++		if(hideFakeSwings.isChecked()
++			|| System.currentTimeMillis() < nextSwingTime)
++			return;
++
++		OpenAura.Config config = new OpenAura.Config(swingRange.getValue(),
++			fov.getValue(), targetFlags(), throughWalls.isChecked());
++		if(OpenAura.collect(config).isEmpty())
++			return;
++
++		MC.player.swing(InteractionHand.MAIN_HAND);
++		nextSwingTime = System.currentTimeMillis()
++			+ Math.max(1, 1000 / swingCps.getValueI());
++	}
++
++	private void switchToAxe(LivingEntity target)
++	{
++		if(!target.isBlocking())
++			return;
++
++		for(int i = 0; i < 9; i++)
++		{
++			ItemStack stack = MC.player.getInventory().getItem(i);
++			if(!(stack.getItem() instanceof AxeItem))
++				continue;
++			if(MC.player.getInventory().selected == i)
++				return;
++
++			MC.player.getInventory().selected = i;
++			MC.player.connection
++				.send(new ServerboundSetCarriedItemPacket(i));
++			return;
++		}
++	}
++
++	private void keepSprint(boolean wasSprinting)
++	{
++		if(!wasSprinting || MC.player.hasEffect(MobEffects.BLINDNESS))
++			return;
++
++		Vec3 velocity = MC.player.getDeltaMovement();
++		MC.player.setDeltaMovement(velocity.x * 0.6D, velocity.y,
++			velocity.z * 0.6D);
++		MC.player.setSprinting(true);
++	}
++
++	private void updateAutoblock()
++	{
++		AutoblockMode selected = autoblock.getSelected();
++		if(selected == AutoblockMode.OFF || currentTarget == null)
++		{
++			stopBlocking();
++			return;
++		}
++
++		if(selected == AutoblockMode.FAKE)
++		{
++			fakeBlocking = findBlockableHand() != null;
++			return;
++		}
++
++		fakeBlocking = false;
++		if(!MC.player.getMainHandItem().is(ItemTags.SWORDS))
++		{
++			stopBlocking();
++			return;
++		}
++
++		InteractionHand hand = findBlockableHand();
++		if(hand != null && !MC.player.isUsingItem())
++			MC.gameMode.useItem(MC.player, hand);
++	}
++
++	private void stopBlocking()
++	{
++		fakeBlocking = false;
++		if(MC.player != null && MC.player.isUsingItem()
++			&& MC.player.getUseItem().getUseAnimation() == UseAnim.BLOCK)
++			MC.gameMode.releaseUsingItem(MC.player);
++	}
++
++	private InteractionHand findBlockableHand()
++	{
++		if(MC.player == null)
++			return null;
++		for(InteractionHand hand : InteractionHand.values())
++		{
++			ItemStack stack = MC.player.getItemInHand(hand);
++			if(stack.getUseAnimation() == UseAnim.BLOCK
++				&& !MC.player.getCooldowns().isOnCooldown(stack.getItem()))
++				return hand;
++		}
++		return null;
++	}
++
++	private void clearTarget()
++	{
++		currentTarget = null;
++		renderTarget = null;
++		pendingAttack = false;
++		if(rotationQueue != null)
++			rotationQueue.clear();
++		stopBlocking();
++	}
++
++	public enum CpsMode
++	{
++		AUTO("Auto"),
++		MANUAL("Manual");
++
++		private final String name;
++
++		private CpsMode(String name)
++		{
++			this.name = name;
++		}
++
++		@Override
++		public String toString()
++		{
++			return name;
++		}
++	}
++
++	public enum Mode
++	{
++		SINGLE("Single"),
++		SWITCH("Switch");
++
++		private final String name;
++
++		private Mode(String name)
++		{
++			this.name = name;
++		}
++
++		@Override
++		public String toString()
++		{
++			return name;
++		}
++	}
++
++	public enum AutoblockMode
++	{
++		OFF("Off"),
++		VANILLA("Vanilla"),
++		FAKE("Fake");
++
++		private final String name;
++
++		private AutoblockMode(String name)
++		{
++			this.name = name;
++		}
++
++		@Override
++		public String toString()
++		{
++			return name;
++		}
++	}
++}

@@ -1,0 +1,69 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\command/CmdSyntaxError.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\command/CmdSyntaxError.java"
+index 5644df0b..8019d173 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\command/CmdSyntaxError.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\command/CmdSyntaxError.java"
+@@ -1,32 +1,32 @@
+-/*
+- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+- *
+- * This source code is subject to the terms of the GNU General Public
+- * License, version 3. If a copy of the GPL was not distributed with this
+- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+- */
+-package net.wurstclient.command;
+-
+-import net.wurstclient.util.ChatUtils;
+-
+-public final class CmdSyntaxError extends CmdException
+-{
+-	public CmdSyntaxError()
+-	{}
+-	
+-	public CmdSyntaxError(String message)
+-	{
+-		super(message);
+-	}
+-	
+-	@Override
+-	public void printToChat(Command cmd)
+-	{
+-		String message = getMessage();
+-		if(message != null)
+-			ChatUtils.syntaxError(message);
+-		
+-		for(String line : cmd.getSyntax())
+-			ChatUtils.message(line);
+-	}
+-}
++/*
++ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
++ *
++ * This source code is subject to the terms of the GNU General Public
++ * License, version 3. If a copy of the GPL was not distributed with this
++ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
++ */
++package net.wurstclient.command;
++
++import net.wurstclient.util.ChatUtils;
++
++public final class CmdSyntaxError extends CmdException
++{
++	public CmdSyntaxError()
++	{}
++	
++	public CmdSyntaxError(String message)
++	{
++		super(message);
++	}
++	
++	@Override
++	public void printToChat(Command cmd)
++	{
++		String message = getMessage();
++		if(message != null)
++			ChatUtils.syntaxError(message);
++		
++		for(String line : cmd.getSyntax())
++			ChatUtils.message(line);
++	}
++}

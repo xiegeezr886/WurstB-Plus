@@ -1,0 +1,288 @@
+---- Minecraft Crash Report ----
+// I let you down. Sorry :(
+
+Time: 2026-11-02 16:29:17
+Description: Exception ticking world
+
+java.lang.IllegalStateException: Can not retrieve LootModifierManager until resources have loaded once.
+	at TRANSFORMER/forge@50.2.0/net.minecraftforge.common.ForgeInternalHandler.getLootModifierManager(ForgeInternalHandler.java:110) ~[forge-1.20.6-50.2.0-universal.jar!/:?]
+	at TRANSFORMER/forge@50.2.0/net.minecraftforge.common.ForgeHooks.modifyLoot(ForgeHooks.java:800) ~[forge-1.20.6-50.2.0-universal.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:123) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:117) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.state.BlockBehaviour.getDrops(BlockBehaviour.java:275) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.getDrops(BlockBehaviour.java:747) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.Block.getDrops(Block.java:282) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.Block.dropResources(Block.java:307) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.Block.dropResources(Block.java:302) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.Level.destroyBlock(Level.java:311) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.Block.updateOrDestroy(Block.java:175) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.redstone.NeighborUpdater.executeShapeUpdate(NeighborUpdater.java:37) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.redstone.CollectingNeighborUpdater$ShapeUpdate.runNext(CollectingNeighborUpdater.java:143) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.redstone.CollectingNeighborUpdater.runUpdates(CollectingNeighborUpdater.java:78) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.redstone.CollectingNeighborUpdater.addAndRun(CollectingNeighborUpdater.java:65) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.redstone.CollectingNeighborUpdater.shapeUpdate(CollectingNeighborUpdater.java:32) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.Level.neighborShapeChanged(Level.java:350) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.updateNeighbourShapes(BlockBehaviour.java:706) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.Level.markAndNotifyBlock(Level.java:278) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.Level.setBlock(Level.java:243) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.Level.setBlock(Level.java:212) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.entity.item.FallingBlockEntity.fall(FallingBlockEntity.java:86) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.FallingBlock.tick(FallingBlock.java:48) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.tick(BlockBehaviour.java:731) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.level.ServerLevel.tickBlock(ServerLevel.java:741) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.ticks.LevelTicks.runCollectedTicks(LevelTicks.java:215) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.ticks.LevelTicks.tick(LevelTicks.java:98) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:354) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:997) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:887) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.client.server.IntegratedServer.tickServer(IntegratedServer.java:108) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:695) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:261) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Transformer Audit:
+  net.minecraft.client.server.IntegratedServer
+    REASON: classloading
+    PLUGIN: runtimedistcleaner:AFTER
+  net.minecraft.server.MinecraftServer
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+    REASON: mixin
+    PLUGIN: accesstransformer:BEFORE
+  net.minecraft.server.level.ServerLevel
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+  net.minecraft.world.entity.item.FallingBlockEntity
+    REASON: classloading
+  net.minecraft.world.level.Level
+    REASON: mixin
+    PLUGIN: accesstransformer:BEFORE
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+    PLUGIN: mixin:APP:wurst.mixins.json:WorldMixin
+    PLUGIN: mixin:AFTER
+  net.minecraft.world.level.block.Block
+    REASON: mixin
+    PLUGIN: accesstransformer:BEFORE
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+    PLUGIN: mixin:AFTER
+  net.minecraft.world.level.block.FallingBlock
+    REASON: classloading
+  net.minecraft.world.level.block.state.BlockBehaviour
+    REASON: mixin
+    REASON: classloading
+  net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase
+    REASON: mixin
+    REASON: classloading
+    PLUGIN: mixin:APP:wurst.mixins.json:AbstractBlockStateMixin
+    PLUGIN: mixin:AFTER
+  net.minecraft.world.level.redstone.CollectingNeighborUpdater
+    REASON: classloading
+  net.minecraft.world.level.redstone.CollectingNeighborUpdater$ShapeUpdate
+    REASON: classloading
+  net.minecraft.world.level.redstone.NeighborUpdater
+    REASON: classloading
+  net.minecraft.world.level.storage.loot.LootTable
+    REASON: mixin
+    REASON: classloading
+    PLUGIN: mixin:APP:mixins.baritone.json:MixinLootTable
+    PLUGIN: mixin:AFTER
+  net.minecraft.world.ticks.LevelTicks
+    REASON: classloading
+  net.minecraftforge.common.ForgeHooks
+    REASON: classloading
+  net.minecraftforge.common.ForgeInternalHandler
+    REASON: classloading
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Server thread
+Suspected Mods: NONE
+Stacktrace:
+	at TRANSFORMER/forge@50.2.0/net.minecraftforge.common.ForgeInternalHandler.getLootModifierManager(ForgeInternalHandler.java:110) ~[forge-1.20.6-50.2.0-universal.jar!/:?]
+	at TRANSFORMER/forge@50.2.0/net.minecraftforge.common.ForgeHooks.modifyLoot(ForgeHooks.java:800) ~[forge-1.20.6-50.2.0-universal.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:123) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:117) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.state.BlockBehaviour.getDrops(BlockBehaviour.java:275) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.getDrops(BlockBehaviour.java:747) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.Block.getDrops(Block.java:282) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.Block.dropResources(Block.java:307) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.Block.dropResources(Block.java:302) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.Level.destroyBlock(Level.java:311) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.Block.updateOrDestroy(Block.java:175) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.redstone.NeighborUpdater.executeShapeUpdate(NeighborUpdater.java:37) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.redstone.CollectingNeighborUpdater$ShapeUpdate.runNext(CollectingNeighborUpdater.java:143) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.redstone.CollectingNeighborUpdater.runUpdates(CollectingNeighborUpdater.java:78) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.redstone.CollectingNeighborUpdater.addAndRun(CollectingNeighborUpdater.java:65) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.redstone.CollectingNeighborUpdater.shapeUpdate(CollectingNeighborUpdater.java:32) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.Level.neighborShapeChanged(Level.java:350) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.updateNeighbourShapes(BlockBehaviour.java:706) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.Level.markAndNotifyBlock(Level.java:278) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.Level.setBlock(Level.java:243) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.Level.setBlock(Level.java:212) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.entity.item.FallingBlockEntity.fall(FallingBlockEntity.java:86) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.FallingBlock.tick(FallingBlock.java:48) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.tick(BlockBehaviour.java:731) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.level.ServerLevel.tickBlock(ServerLevel.java:741) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.ticks.LevelTicks.runCollectedTicks(LevelTicks.java:215) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.world.ticks.LevelTicks.tick(LevelTicks.java:98) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+Transformer Audit:
+  net.minecraft.server.level.ServerLevel
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+  net.minecraft.world.entity.item.FallingBlockEntity
+    REASON: classloading
+  net.minecraft.world.level.Level
+    REASON: mixin
+    PLUGIN: accesstransformer:BEFORE
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+    PLUGIN: mixin:APP:wurst.mixins.json:WorldMixin
+    PLUGIN: mixin:AFTER
+  net.minecraft.world.level.block.Block
+    REASON: mixin
+    PLUGIN: accesstransformer:BEFORE
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+    PLUGIN: mixin:AFTER
+  net.minecraft.world.level.block.FallingBlock
+    REASON: classloading
+  net.minecraft.world.level.block.state.BlockBehaviour
+    REASON: mixin
+    REASON: classloading
+  net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase
+    REASON: mixin
+    REASON: classloading
+    PLUGIN: mixin:APP:wurst.mixins.json:AbstractBlockStateMixin
+    PLUGIN: mixin:AFTER
+  net.minecraft.world.level.redstone.CollectingNeighborUpdater
+    REASON: classloading
+  net.minecraft.world.level.redstone.CollectingNeighborUpdater$ShapeUpdate
+    REASON: classloading
+  net.minecraft.world.level.redstone.NeighborUpdater
+    REASON: classloading
+  net.minecraft.world.level.storage.loot.LootTable
+    REASON: mixin
+    REASON: classloading
+    PLUGIN: mixin:APP:mixins.baritone.json:MixinLootTable
+    PLUGIN: mixin:AFTER
+  net.minecraft.world.ticks.LevelTicks
+    REASON: classloading
+  net.minecraftforge.common.ForgeHooks
+    REASON: classloading
+  net.minecraftforge.common.ForgeInternalHandler
+    REASON: classloading
+-- Affected level --
+Details:
+	All players: 1 total; [ServerPlayer['TestRunner'/9, l='ServerLevel[world]', x=-6.50, y=75.00, z=-8.50]]
+	Chunk stats: 1849
+	Level dimension: minecraft:overworld
+	Level spawn location: World: (0,66,0), Section: (at 0,2,0 in 0,4,0; chunk contains blocks 0,-64,0 to 15,319,15), Region: (0,0; contains chunks 0,0 to 31,31, blocks 0,-64,0 to 511,319,511)
+	Level time: 213 game time, 213 day time
+	Level name: world
+	Level game mode: Game mode: survival (ID 0). Hardcore: false. Commands: false
+	Level weather: Rain time: 175996 (now: false), thunder time: 123425 (now: false)
+	Known server brands: vanilla, forge
+	Removed feature flags: 
+	Level was modded: true
+	Level storage version: 0x04ABD - Anvil
+	Loaded entity count: 195
+Stacktrace:
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.level.ServerLevel.fillReportDetails(ServerLevel.java:1709) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:1000) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:887) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.client.server.IntegratedServer.tickServer(IntegratedServer.java:108) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:695) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.20.6/net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:261) ~[forge-1.20.6-50.2.0-client.jar!/:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Transformer Audit:
+  net.minecraft.client.server.IntegratedServer
+    REASON: classloading
+    PLUGIN: runtimedistcleaner:AFTER
+  net.minecraft.server.MinecraftServer
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+    REASON: mixin
+    PLUGIN: accesstransformer:BEFORE
+  net.minecraft.server.level.ServerLevel
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+
+
+-- System Details --
+Details:
+	Minecraft Version: 1.20.6
+	Minecraft Version ID: 1.20.6
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 21.0.12.1, Eclipse Adoptium
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode, sharing), Eclipse Adoptium
+	Memory: 67940520 bytes (64 MiB) / 1010827264 bytes (964 MiB) up to 4294967296 bytes (4096 MiB)
+	CPUs: 32
+	Processor Vendor: GenuineIntel
+	Processor Name: Intel(R) Core(TM) i9-14900HX
+	Identifier: Intel64 Family 6 Model 183 Stepping 1
+	Microarchitecture: Raptor Lake
+	Frequency (GHz): 2.42
+	Number of physical packages: 1
+	Number of physical CPUs: 24
+	Number of logical CPUs: 32
+	Graphics card #0 name: NVIDIA GeForce RTX 5070 Laptop GPU
+	Graphics card #0 vendor: NVIDIA
+	Graphics card #0 VRAM (MB): 8151.00
+	Graphics card #0 deviceId: VideoController1
+	Graphics card #0 versionInfo: 32.0.15.9219
+	Graphics card #1 name: Intel(R) UHD Graphics
+	Graphics card #1 vendor: Intel Corporation
+	Graphics card #1 VRAM (MB): 2048.00
+	Graphics card #1 deviceId: VideoController2
+	Graphics card #1 versionInfo: 32.0.101.7077
+	Memory slot #0 capacity (MB): 16384.00
+	Memory slot #0 clockSpeed (GHz): 5.60
+	Memory slot #0 type: Unknown
+	Memory slot #1 capacity (MB): 16384.00
+	Memory slot #1 clockSpeed (GHz): 5.60
+	Memory slot #1 type: Unknown
+	Virtual memory max (MB): 47763.49
+	Virtual memory used (MB): 45138.35
+	Swap memory total (MB): 15366.74
+	Swap memory used (MB): 523.40
+	JVM Flags: 2 total; -Xmx4G -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump
+	Server Running: true
+	Player Count: 1 / 8; [ServerPlayer['TestRunner'/9, l='ServerLevel[world]', x=-6.50, y=75.00, z=-8.50]]
+	Active Data Packs: vanilla, mod:wurstpenguin (incompatible), mod:baritoe (incompatible), mod:forge (incompatible)
+	Available Data Packs: bundle, mod:baritoe (incompatible), mod:forge (incompatible), mod:wurstpenguin (incompatible), trade_rebalance, update_1_21, vanilla
+	Enabled Feature Flags: minecraft:vanilla
+	World Generation: Stable
+	World Seed: 7629608643648718271
+	Type: Integrated Server (map_client.txt)
+	Is Modded: Definitely; Client brand changed to 'forge'; Server brand changed to 'forge'
+	Launched Version: 1.20.6-forge-50.2.0
+	ModLauncher: 10.2.4
+	ModLauncher launch target: forge_client
+	ModLauncher naming: mcp
+	ModLauncher services: 
+		/ slf4jfixer PLUGINSERVICE 
+		/ runtimedistcleaner PLUGINSERVICE 
+		/ runtime_enum_extender PLUGINSERVICE 
+		/ object_holder_definalize PLUGINSERVICE 
+		/ capability_token_subclass PLUGINSERVICE 
+		/ accesstransformer PLUGINSERVICE 
+		/ eventbus PLUGINSERVICE 
+		/ mixin PLUGINSERVICE 
+		/ fml TRANSFORMATIONSERVICE 
+		/ mixin TRANSFORMATIONSERVICE 
+	FML Language Providers: 
+		lowcodefml@50
+		minecraft@1.0
+		javafml@50.2.0
+	Mod List: 
+		forge-1.20.6-50.2.0-client.jar                    |Minecraft                     |minecraft                     |1.20.6              |DONE      |Manifest: NOSIGNATURE
+		WurstB+ Plus-v1.5.1-Forge-1.20.6.jar              |WurstB+ Plus                  |wurstpenguin                  |1.5.1-Forge-1.20.6  |DONE      |Manifest: NOSIGNATURE
+		baritone-forge-1.10.8-1.20.6.jar                  |Baritone                      |baritoe                       |1.10.8              |DONE      |Manifest: NOSIGNATURE
+		forge-1.20.6-50.2.0-universal.jar                 |Forge                         |forge                         |50.2.0              |DONE      |Manifest: NOSIGNATURE
+	Crash Report UUID: 56ae24ed-10bd-4b50-9534-c8499eff5ce1
+	FML: 0.0
+	Forge: net.minecraftforge:50.2.0

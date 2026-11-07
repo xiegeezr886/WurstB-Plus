@@ -1,0 +1,357 @@
+{
+  "spec": 2,
+  "mcp": "net.neoforged:neoform:1.21.8-20250717.133445@zip",
+  "ats": "ats/",
+  "binpatches": "joined.lzma",
+  "binpatcher": {
+    "version": "net.neoforged.installertools:binarypatcher:3.0.13:fatjar",
+    "args": [
+      "--clean",
+      "{clean}",
+      "--output",
+      "{output}",
+      "--apply",
+      "{patch}"
+    ]
+  },
+  "patches": "patches/",
+  "sources": "net.neoforged:neoforge:21.8.54:sources",
+  "universal": "net.neoforged:neoforge:21.8.54:universal",
+  "libraries": [
+    "net.neoforged.fancymodloader:earlydisplay:9.0.18",
+    "net.neoforged.fancymodloader:loader:9.0.18",
+    "net.neoforged:accesstransformers:11.0.2",
+    "org.ow2.asm:asm-commons:9.8",
+    "net.neoforged:mergetool:2.0.0:api",
+    "org.ow2.asm:asm-util:9.8",
+    "org.ow2.asm:asm-analysis:9.8",
+    "org.ow2.asm:asm-tree:9.8",
+    "net.neoforged:bus:8.0.5",
+    "org.ow2.asm:asm:9.8",
+    "com.electronwill.night-config:toml:3.8.3",
+    "com.electronwill.night-config:core:3.8.3",
+    "net.neoforged:JarJarSelector:0.4.1",
+    "net.neoforged:JarJarMetadata:0.4.1",
+    "org.apache.maven:maven-artifact:3.9.9",
+    "net.jodah:typetools:0.6.3",
+    "net.minecrell:terminalconsoleappender:1.3.0",
+    "net.fabricmc:sponge-mixin:0.15.2+mixin.0.8.7",
+    "net.neoforged.fancymodloader:bootstraplauncher:9.0.18",
+    "net.neoforged.fancymodloader:securejarhandler:9.0.18",
+    "net.neoforged:JarJarFileSystems:0.4.1",
+    "io.github.llamalad7:mixinextras-neoforge:0.5.3",
+    "net.sf.jopt-simple:jopt-simple:5.0.4",
+    "net.neoforged.accesstransformers:at-parser:11.0.2",
+    "org.slf4j:slf4j-api:2.0.16",
+    "com.mojang:logging:1.5.10",
+    "org.apache.logging.log4j:log4j-slf4j2-impl:2.24.1",
+    "org.apache.logging.log4j:log4j-core:2.24.1",
+    "org.apache.logging.log4j:log4j-api:2.24.1",
+    "org.jline:jline-reader:3.20.0",
+    "org.jline:jline-terminal:3.20.0",
+    "commons-io:commons-io:2.17.0",
+    "net.minecraftforge:srgutils:0.4.15",
+    "com.google.guava:guava:33.3.1-jre",
+    "com.google.guava:failureaccess:1.0.2",
+    "com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava",
+    "com.google.code.findbugs:jsr305:3.0.2",
+    "org.checkerframework:checker-qual:3.43.0",
+    "com.google.code.gson:gson:2.11.0",
+    "com.google.errorprone:error_prone_annotations:2.28.0",
+    "com.google.j2objc:j2objc-annotations:3.0.0",
+    "org.codehaus.plexus:plexus-utils:3.5.1",
+    "org.apache.commons:commons-lang3:3.17.0",
+    "com.machinezoo.noexception:noexception:1.7.1"
+  ],
+  "testLibraries": [
+    "net.neoforged.fancymodloader:junit-fml:9.0.18",
+    "org.junit.platform:junit-platform-launcher:1.10.2",
+    "org.junit.platform:junit-platform-engine:1.10.2",
+    "org.junit.platform:junit-platform-commons:1.10.2",
+    "org.opentest4j:opentest4j:1.3.0",
+    "net.neoforged:testframework:21.8.54"
+  ],
+  "runs": {
+    "client": {
+      "singleInstance": true,
+      "main": "cpw.mods.bootstraplauncher.BootstrapLauncher",
+      "args": [
+        "--launchTarget",
+        "neoforgeclientdev",
+        "--version",
+        "21.8.54",
+        "--assetIndex",
+        "{asset_index}",
+        "--assetsDir",
+        "{assets_root}",
+        "--fml.fmlVersion",
+        "9.0.18",
+        "--fml.mcVersion",
+        "1.21.8",
+        "--fml.neoForgeVersion",
+        "21.8.54",
+        "--fml.neoFormVersion",
+        "20250717.133445"
+      ],
+      "jvmArgs": [
+        "-p",
+        "{modules}",
+        "--add-modules",
+        "ALL-MODULE-PATH",
+        "--add-opens",
+        "java.base/java.util.jar=cpw.mods.securejarhandler",
+        "--add-opens",
+        "java.base/java.lang.invoke=cpw.mods.securejarhandler",
+        "--add-exports",
+        "java.base/sun.security.util=cpw.mods.securejarhandler",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": true,
+      "server": false,
+      "dataGenerator": false,
+      "gameTest": true,
+      "unitTest": false,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system",
+        "ignoreList": "mixinextras-neoforge-0.5.3.jar,client-extra,neoforge-",
+        "legacyClassPath.file": "{minecraft_classpath_file}",
+        "neoforge.enableGameTest": "true"
+      }
+    },
+    "clientData": {
+      "singleInstance": true,
+      "main": "cpw.mods.bootstraplauncher.BootstrapLauncher",
+      "args": [
+        "--launchTarget",
+        "neoforgeclientdatadev",
+        "--assetIndex",
+        "{asset_index}",
+        "--assetsDir",
+        "{assets_root}",
+        "--fml.fmlVersion",
+        "9.0.18",
+        "--fml.mcVersion",
+        "1.21.8",
+        "--fml.neoForgeVersion",
+        "21.8.54",
+        "--fml.neoFormVersion",
+        "20250717.133445"
+      ],
+      "jvmArgs": [
+        "-p",
+        "{modules}",
+        "--add-modules",
+        "ALL-MODULE-PATH",
+        "--add-opens",
+        "java.base/java.util.jar=cpw.mods.securejarhandler",
+        "--add-opens",
+        "java.base/java.lang.invoke=cpw.mods.securejarhandler",
+        "--add-exports",
+        "java.base/sun.security.util=cpw.mods.securejarhandler",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": true,
+      "server": false,
+      "dataGenerator": true,
+      "gameTest": false,
+      "unitTest": false,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system",
+        "ignoreList": "mixinextras-neoforge-0.5.3.jar,client-extra,neoforge-",
+        "legacyClassPath.file": "{minecraft_classpath_file}"
+      }
+    },
+    "serverData": {
+      "singleInstance": true,
+      "main": "cpw.mods.bootstraplauncher.BootstrapLauncher",
+      "args": [
+        "--launchTarget",
+        "neoforgeserverdatadev",
+        "--fml.fmlVersion",
+        "9.0.18",
+        "--fml.mcVersion",
+        "1.21.8",
+        "--fml.neoForgeVersion",
+        "21.8.54",
+        "--fml.neoFormVersion",
+        "20250717.133445"
+      ],
+      "jvmArgs": [
+        "-p",
+        "{modules}",
+        "--add-modules",
+        "ALL-MODULE-PATH",
+        "--add-opens",
+        "java.base/java.util.jar=cpw.mods.securejarhandler",
+        "--add-opens",
+        "java.base/java.lang.invoke=cpw.mods.securejarhandler",
+        "--add-exports",
+        "java.base/sun.security.util=cpw.mods.securejarhandler",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": false,
+      "server": true,
+      "dataGenerator": true,
+      "gameTest": false,
+      "unitTest": false,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system",
+        "ignoreList": "mixinextras-neoforge-0.5.3.jar,client-extra,neoforge-",
+        "legacyClassPath.file": "{minecraft_classpath_file}"
+      }
+    },
+    "gameTestServer": {
+      "singleInstance": true,
+      "main": "cpw.mods.bootstraplauncher.BootstrapLauncher",
+      "args": [
+        "--launchTarget",
+        "neoforgegametestserverdev",
+        "--fml.fmlVersion",
+        "9.0.18",
+        "--fml.mcVersion",
+        "1.21.8",
+        "--fml.neoForgeVersion",
+        "21.8.54",
+        "--fml.neoFormVersion",
+        "20250717.133445"
+      ],
+      "jvmArgs": [
+        "-p",
+        "{modules}",
+        "--add-modules",
+        "ALL-MODULE-PATH",
+        "--add-opens",
+        "java.base/java.util.jar=cpw.mods.securejarhandler",
+        "--add-opens",
+        "java.base/java.lang.invoke=cpw.mods.securejarhandler",
+        "--add-exports",
+        "java.base/sun.security.util=cpw.mods.securejarhandler",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": false,
+      "server": true,
+      "dataGenerator": false,
+      "gameTest": true,
+      "unitTest": false,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system",
+        "ignoreList": "mixinextras-neoforge-0.5.3.jar,client-extra,neoforge-",
+        "legacyClassPath.file": "{minecraft_classpath_file}",
+        "neoforge.enableGameTest": "true"
+      }
+    },
+    "server": {
+      "singleInstance": true,
+      "main": "cpw.mods.bootstraplauncher.BootstrapLauncher",
+      "args": [
+        "--launchTarget",
+        "neoforgeserverdev",
+        "--fml.fmlVersion",
+        "9.0.18",
+        "--fml.mcVersion",
+        "1.21.8",
+        "--fml.neoForgeVersion",
+        "21.8.54",
+        "--fml.neoFormVersion",
+        "20250717.133445"
+      ],
+      "jvmArgs": [
+        "-p",
+        "{modules}",
+        "--add-modules",
+        "ALL-MODULE-PATH",
+        "--add-opens",
+        "java.base/java.util.jar=cpw.mods.securejarhandler",
+        "--add-opens",
+        "java.base/java.lang.invoke=cpw.mods.securejarhandler",
+        "--add-exports",
+        "java.base/sun.security.util=cpw.mods.securejarhandler",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": false,
+      "server": true,
+      "dataGenerator": false,
+      "gameTest": false,
+      "unitTest": false,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system",
+        "ignoreList": "mixinextras-neoforge-0.5.3.jar,client-extra,neoforge-",
+        "legacyClassPath.file": "{minecraft_classpath_file}"
+      }
+    },
+    "junit": {
+      "singleInstance": false,
+      "main": "cpw.mods.bootstraplauncher.BootstrapLauncher",
+      "args": [
+        "--launchTarget",
+        "neoforgejunitdev",
+        "--version",
+        "21.8.54",
+        "--assetIndex",
+        "{asset_index}",
+        "--assetsDir",
+        "{assets_root}",
+        "--fml.fmlVersion",
+        "9.0.18",
+        "--fml.mcVersion",
+        "1.21.8",
+        "--fml.neoForgeVersion",
+        "21.8.54",
+        "--fml.neoFormVersion",
+        "20250717.133445"
+      ],
+      "jvmArgs": [
+        "-p",
+        "{modules}",
+        "--add-modules",
+        "ALL-MODULE-PATH",
+        "--add-opens",
+        "java.base/java.util.jar=cpw.mods.securejarhandler",
+        "--add-opens",
+        "java.base/java.lang.invoke=cpw.mods.securejarhandler",
+        "--add-exports",
+        "java.base/sun.security.util=cpw.mods.securejarhandler",
+        "--add-exports",
+        "jdk.naming.dns/com.sun.jndi.dns=java.naming"
+      ],
+      "client": true,
+      "server": false,
+      "dataGenerator": false,
+      "gameTest": false,
+      "unitTest": true,
+      "env": {
+        "MOD_CLASSES": "{source_roots}"
+      },
+      "props": {
+        "java.net.preferIPv6Addresses": "system",
+        "ignoreList": "mixinextras-neoforge-0.5.3.jar,client-extra,neoforge-",
+        "legacyClassPath.file": "{minecraft_classpath_file}"
+      }
+    }
+  },
+  "modules": [
+    "net.neoforged.fancymodloader:bootstraplauncher:9.0.18",
+    "net.neoforged.fancymodloader:securejarhandler:9.0.18",
+    "net.neoforged:JarJarFileSystems:0.4.1"
+  ]
+}

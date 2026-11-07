@@ -9,12 +9,12 @@ package net.wurstclient.clickgui2;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
-import net.wurstclient.util.RenderUtils;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 
 public enum ClickGuiIcons
 {
 	;
-	
+
 	public static void drawMinimizeArrow(GuiGraphics context, float x1,
 		float y1, float x2, float y2, boolean hovering, boolean minimized)
 	{
@@ -27,7 +27,7 @@ public enum ClickGuiIcons
 		float sideY = minimized ? middleY - 1 : middleY + 1;
 		float[][] chevron = {{x1 + 2, sideY}, {middleX, tipY},
 			{x2 - 2, sideY}};
-		RenderUtils.drawLineStrip2D(context, chevron, color);
+		NanoVGUI.polyline(chevron, color);
 	}
 
 	public static void drawWindowToggle(GuiGraphics context, float x1,
@@ -51,11 +51,11 @@ public enum ClickGuiIcons
 		ClickGui gui = WurstClient.INSTANCE.getGui();
 		int arrowColor = gui.getTheme().accent(1);
 		float[][] arrowVertices = {{x3, y1}, {x1, y2}, {x3, y3}, {x2, y2}};
-		RenderUtils.fillQuads2D(context, arrowVertices, arrowColor);
-		
+		NanoVGUI.polygon(arrowVertices, arrowColor);
+
 		// outline
 		int outlineColor = gui.getTheme().background(0.9F);
-		RenderUtils.drawLineStrip2D(context, arrowVertices, outlineColor);
+		NanoVGUI.closedPolyline(arrowVertices, outlineColor);
 	}
 	
 	public static void drawPin(GuiGraphics context, float x1, float y1,
@@ -87,15 +87,18 @@ public enum ClickGuiIcons
 		// check
 		int checkColor =
 			grayedOut ? 0xC0808080 : hovering ? 0xFF00FF00 : 0xFF00D900;
-		float[][] checkVertices = {{xc2, yc3}, {xc1, yc4}, {xc3, yc6},
-			{xc3, yc5}, {xc3, yc5}, {xc3, yc6}, {xc5, yc2}, {xc4, yc1}};
-		RenderUtils.fillQuads2D(context, checkVertices, checkColor);
-		
+		float[][] checkFirst = {{xc2, yc3}, {xc1, yc4}, {xc3, yc6},
+			{xc3, yc5}};
+		float[][] checkSecond = {{xc3, yc5}, {xc3, yc6}, {xc5, yc2},
+			{xc4, yc1}};
+		NanoVGUI.polygon(checkFirst, checkColor);
+		NanoVGUI.polygon(checkSecond, checkColor);
+
 		// outline
 		int outlineColor = 0x80101010;
 		float[][] outlineVertices = {{xc2, yc3}, {xc3, yc5}, {xc4, yc1},
 			{xc5, yc2}, {xc3, yc6}, {xc1, yc4}, {xc2, yc3}};
-		RenderUtils.drawLineStrip2D(context, outlineVertices, outlineColor);
+		NanoVGUI.polyline(outlineVertices, outlineColor);
 	}
 	
 	public static void drawCross(GuiGraphics context, float x1, float y1,
@@ -104,10 +107,8 @@ public enum ClickGuiIcons
 		ClickGui gui = WurstClient.INSTANCE.getGui();
 		int color = hovering ? gui.getTheme().accent(1)
 			: gui.getTheme().text(0.72F);
-		RenderUtils.drawLine2D(context, x1 + 2, y1 + 2, x2 - 2, y2 - 2,
-			color);
-		RenderUtils.drawLine2D(context, x2 - 2, y1 + 2, x1 + 2, y2 - 2,
-			color);
+		NanoVGUI.line(x1 + 2, y1 + 2, x2 - 2, y2 - 2, color);
+		NanoVGUI.line(x2 - 2, y1 + 2, x1 + 2, y2 - 2, color);
 	}
 
 	public static void drawSettingsClose(GuiGraphics context, float x1,
