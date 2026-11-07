@@ -142,7 +142,8 @@ public enum WurstClient
 
 		Path settingsFile = wurstFolder.resolve("settings.json");
 		settingsProfileFolder = wurstFolder.resolve("settings");
-		this.settingsFile = new SettingsFile(settingsFile, hax, cmds, otfs);
+		this.settingsFile = new SettingsFile(settingsFile, hax, cmds, otfs,
+			hudManager);
 		this.settingsFile.load();
 		hax.tooManyHaxHack.loadBlockedHacksFile();
 
@@ -247,6 +248,8 @@ public enum WurstClient
 	}
 	public void shutdown()
 	{
+		if(hudManager != null)
+			hudManager.saveState();
 		shutdownBaritoneExecutor();
 		if(discordRpcManager != null)
 			discordRpcManager.shutdown();
@@ -377,7 +380,17 @@ public enum WurstClient
 			return cmd;
 
 		OtherFeature otf = getOtfs().getOtfByName(name);
-		return otf;
+		if(otf != null)
+			return otf;
+
+		// HUD modules and the HUD settings feature are features too; keybinds
+		// and commands must be able to resolve them by name.
+		if(getHudManager() != null)
+			for(Feature hud : getHudManager().getAllFeatures())
+				if(name.equalsIgnoreCase(hud.getName()))
+					return hud;
+
+		return null;
 	}
 	
 	public KeybindList getKeybinds()

@@ -8,20 +8,29 @@
 package net.wurstclient.hacks;
 
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.PacketInputListener;
+import net.wurstclient.events.WorldChangeListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.InventoryUtils;
+import net.wurstclient.util.AutoLeaveTriggers;
+import net.wurstclient.util.ChatUtils;
 
 @SearchTags({"auto leave", "AutoDisconnect", "auto disconnect", "AutoQuit",
 	"auto quit"})
-public final class AutoLeaveHack extends Hack implements UpdateListener
+public final class AutoLeaveHack extends Hack
+	implements UpdateListener, PacketInputListener, WorldChangeListener
 {
 	private final SliderSetting health = new SliderSetting("Health",
 		"Leaves the server when your health reaches this value or falls below it.",
@@ -50,6 +59,34 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 			+ "11 = always able to leave",
 		11, 0, 11, 1, ValueDisplay.INTEGER.withSuffix(" totems")
 			.withLabel(1, "1 totem").withLabel(11, "ignore"));
+
+	// FO AutoLogPlus conditions, merged without changing the existing health/totem gate.
+	private final CheckboxSetting lowHealth = new CheckboxSetting("Low health", true);
+	private final CheckboxSetting lowY = new CheckboxSetting("Low Y", false);
+	private final SliderSetting yLevel = new SliderSetting("Y threshold",
+		"低于这个 Y 坐标时下线。", 256, -2048, 2048, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting armorDamage = new CheckboxSetting("Armor durability", false);
+	private final CheckboxSetting ignoreElytra = new CheckboxSetting("Ignore elytra", false);
+	private final SliderSetting armorPercent = new SliderSetting("Armor minimum",
+		"护甲剩余耐久低于这个百分比时下线。", 5, 0, 100, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting portalTimeout = new CheckboxSetting("Portal timeout", false);
+	private final SliderSetting portalTicks = new SliderSetting("Portal ticks",
+		"连续处于传送门超过这些 tick 时下线。", 30, 1, 200, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting nearPosition = new CheckboxSetting("Near position", false);
+	private final SliderSetting positionX = new SliderSetting("Target X", 0, -30000000, 30000000, 1, ValueDisplay.INTEGER);
+	private final SliderSetting positionZ = new SliderSetting("Target Z", 0, -30000000, 30000000, 1, ValueDisplay.INTEGER);
+	private final SliderSetting positionRange = new SliderSetting("Target distance",
+		"距目标方块中心的水平距离小于此值时下线。", 100, 0, 1000, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting lowTotems = new CheckboxSetting("Low totems",
+		"独立于生命值：背包和副手图腾不足时下线。", false);
+	private final SliderSetting minimumTotems = new SliderSetting("Minimum totems", 3, 0, 37, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting serverTimeout = new CheckboxSetting("Server timeout", false);
+	private final SliderSetting timeoutSeconds = new SliderSetting("Timeout seconds", 10, 1, 60, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting timeoutReconnect = new CheckboxSetting("Reconnect after timeout", false);
+	private final SliderSetting reconnectSeconds = new SliderSetting("Reconnect delay", 60, 10, 300, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting disableAfterLeave = new CheckboxSetting("Disable after leave", true);
+	private volatile long lastServerTick;
+	private int ticksInPortal;
 	
 	public AutoLeaveHack()
 	{
@@ -59,12 +96,31 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 		addSetting(mode);
 		addSetting(disableAutoReconnect);
 		addSetting(totems);
+		addSetting(lowHealth);
+		addSetting(lowY);
+		addSetting(yLevel);
+		addSetting(armorDamage);
+		addSetting(ignoreElytra);
+		addSetting(armorPercent);
+		addSetting(portalTimeout);
+		addSetting(portalTicks);
+		addSetting(nearPosition);
+		addSetting(positionX);
+		addSetting(positionZ);
+		addSetting(positionRange);
+		addSetting(lowTotems);
+		addSetting(minimumTotems);
+		addSetting(serverTimeout);
+		addSetting(timeoutSeconds);
+		addSetting(timeoutReconnect);
+		addSetting(reconnectSeconds);
+		addSetting(disableAfterLeave);
 	}
 	
 	@Override
 	public String getRenderName()
 	{
-		if(MC.player.getAbilities().instabuild)
+		if(MC.player == null || MC.player.getAbilities().instabuild)
 			return getName() + " (paused)";
 		
 		return getName() + " [" + mode.getSelected() + "]";
@@ -73,20 +129,74 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 	@Override
 	protected void onEnable()
 	{
+		resetSession();
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(PacketInputListener.class, this);
+		EVENTS.add(WorldChangeListener.class, this);
 	}
 	
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(PacketInputListener.class, this);
+		EVENTS.remove(WorldChangeListener.class, this);
+		resetSession();
 	}
 	
 	@Override
 	public void onUpdate()
 	{
+		if(MC.player == null || MC.level == null || MC.getConnection() == null)
+			return;
 		// check gamemode
 		if(MC.player.getAbilities().instabuild)
+			return;
+
+		if(serverTimeout.isChecked() && System.nanoTime() - lastServerTick
+			> timeoutSeconds.getValueI() * 1_000_000_000L)
+		{
+			leave("服务器长时间未发送时钟更新。", timeoutReconnect.isChecked());
+			return;
+		}
+		ticksInPortal = portalTimeout.isChecked() && isInPortal() ? ticksInPortal + 1 : 0;
+		if(portalTimeout.isChecked() && ticksInPortal > portalTicks.getValueI())
+		{
+			leave("传送门停留超时。", false);
+			return;
+		}
+		if(lowY.isChecked() && MC.player.getY() < yLevel.getValue())
+		{
+			leave("低于设定高度。", false);
+			return;
+		}
+		if(lowTotems.isChecked() && InventoryUtils.count(Items.TOTEM_OF_UNDYING, 36, true)
+			< minimumTotems.getValueI())
+		{
+			leave("图腾数量不足。", false);
+			return;
+		}
+		if(armorDamage.isChecked())
+			for(EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.HEAD,
+				EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET})
+			{
+				ItemStack stack = MC.player.getItemBySlot(slot);
+				if(ignoreElytra.isChecked() && stack.is(Items.ELYTRA))
+					continue;
+				if(AutoLeaveTriggers.damagedArmor(stack.getMaxDamage(), stack.getDamageValue(),
+					stack.isDamageableItem(), armorPercent.getValue()))
+				{
+					leave("护甲剩余耐久不足。", false);
+					return;
+				}
+			}
+		if(nearPosition.isChecked() && AutoLeaveTriggers.nearPosition(MC.player.getX(),
+			MC.player.getZ(), positionX.getValueI(), positionZ.getValueI(), positionRange.getValue()))
+		{
+			leave("已到达目标坐标附近。", false);
+			return;
+		}
+		if(!lowHealth.isChecked())
 			return;
 		
 		// check health
@@ -99,14 +209,43 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 			.count(Items.TOTEM_OF_UNDYING, 40, true) > totems.getValueI())
 			return;
 		
-		// leave server
-		mode.getSelected().leave.run();
-		
-		// disable
-		setEnabled(false);
-		
-		if(disableAutoReconnect.isChecked())
+		leave("生命值低于设定阈值。", false);
+	}
+
+	private boolean isInPortal()
+	{
+		return MC.player.portalProcess != null && MC.player.portalProcess.isInsidePortalThisTick();
+	}
+
+	private void leave(String reason, boolean reconnect)
+	{
+		ChatUtils.message("自动下线：" + reason);
+		if(reconnect)
+			WURST.getHax().autoReconnectHack.requestOnce(reconnectSeconds.getValueI());
+		else if(disableAutoReconnect.isChecked())
 			WURST.getHax().autoReconnectHack.setEnabled(false);
+		mode.getSelected().leave.run();
+		if(disableAfterLeave.isChecked())
+			setEnabled(false);
+	}
+
+	private void resetSession()
+	{
+		lastServerTick = System.nanoTime();
+		ticksInPortal = 0;
+	}
+
+	@Override
+	public void onReceivedPacket(PacketInputEvent event)
+	{
+		if(event.getPacket() instanceof ClientboundSetTimePacket)
+			lastServerTick = System.nanoTime();
+	}
+
+	@Override
+	public void onWorldChange(ClientLevel world)
+	{
+		resetSession();
 	}
 	
 	public static enum Mode

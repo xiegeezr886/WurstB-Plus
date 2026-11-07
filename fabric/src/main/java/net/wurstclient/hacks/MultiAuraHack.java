@@ -111,10 +111,10 @@ public final class MultiAuraHack extends Hack implements UpdateListener
 		if(pauseOnContainers.shouldPause())
 			return;
 
-		// Wurst's MultiAura uses the total FOV angle, so convert it to the
-		// half-angle expected by the OpenOpal targeting code.
+		// FOV is the total field of view, same as upstream Wurst's MultiAura;
+		// OpenAura halves it internally.
 		OpenAura.Config config = new OpenAura.Config(range.getValue(),
-			fov.getValue() / 2.0D, targetFlags(), true);
+			fov.getValue(), targetFlags(), true);
 		List<OpenAura.Target> targets = OpenAura.collect(config);
 		if(targets.isEmpty())
 		{

@@ -25,6 +25,8 @@ import net.wurstclient.command.CmdList;
 import net.wurstclient.command.Command;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackList;
+import net.wurstclient.hud2.HUDMod;
+import net.wurstclient.hud2.HudManager;
 import net.wurstclient.other_feature.OtfList;
 import net.wurstclient.other_feature.OtherFeature;
 import net.wurstclient.util.json.JsonException;
@@ -39,27 +41,44 @@ public final class SettingsFile
 	
 	public SettingsFile(Path path, HackList hax, CmdList cmds, OtfList otfs)
 	{
-		this.path = path;
-		featuresWithSettings = createFeatureMap(hax, cmds, otfs);
+		this(path, hax, cmds, otfs, null);
 	}
-	
+
+	public SettingsFile(Path path, HackList hax, CmdList cmds, OtfList otfs,
+		HudManager hudManager)
+	{
+		this.path = path;
+		featuresWithSettings = createFeatureMap(hax, cmds, otfs, hudManager);
+	}
+
 	private Map<String, Feature> createFeatureMap(HackList hax, CmdList cmds,
-		OtfList otfs)
+		OtfList otfs, HudManager hudManager)
 	{
 		LinkedHashMap<String, Feature> map = new LinkedHashMap<>();
-		
+
 		for(Hack hack : hax.getAllHax())
 			if(!hack.getSettings().isEmpty())
 				map.put(hack.getName(), hack);
-			
+
 		for(Command cmd : cmds.getAllCmds())
 			if(!cmd.getSettings().isEmpty())
 				map.put(cmd.getName(), cmd);
-			
+
 		for(OtherFeature otf : otfs.getAllOtfs())
 			if(!otf.getSettings().isEmpty())
 				map.put(otf.getName(), otf);
-			
+
+		if(hudManager != null)
+		{
+			for(HUDMod mod : hudManager.getMods().values())
+				if(!mod.getSettings().isEmpty())
+					map.put(mod.getName(), mod);
+
+			if(!hudManager.getSettings().getSettings().isEmpty())
+				map.put(hudManager.getSettings().getName(),
+					hudManager.getSettings());
+		}
+
 		return Collections.unmodifiableMap(map);
 	}
 	

@@ -19,6 +19,7 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
 @SearchTags({"fast climb", "fast ladder", "climb"})
@@ -26,12 +27,19 @@ public final class FastClimbHack extends Hack implements UpdateListener
 {
 	private final SliderSetting speed = new SliderSetting("Climb Speed",
 		"Your climb speed.", 0.2872, 0, 1, 0.001, ValueDisplay.DECIMAL);
+	private final CheckboxSetting timerMode = new CheckboxSetting("Timer mode",
+		"Speed up client ticks while climbing instead of setting vertical motion.", false);
+	private final SliderSetting timer = new SliderSetting("Timer",
+		"Client tick multiplier while climbing.", 1.436, 1, 10, 0.001,
+		ValueDisplay.DECIMAL);
 
 	public FastClimbHack()
 	{
 		super("FastClimb");
 		setCategory(Category.MOVEMENT);
 		addSetting(speed);
+		addSetting(timerMode);
+		addSetting(timer);
 	}
 
 	@Override
@@ -50,11 +58,23 @@ public final class FastClimbHack extends Hack implements UpdateListener
 	public void onUpdate()
 	{
 		LocalPlayer player = MC.player;
-		if(player == null || !isClimbing(player))
+		if(timerMode.isChecked() || !canClimb() || !isClimbing(player))
 			return;
 
 		Vec3 velocity = player.getDeltaMovement();
 		player.setDeltaMovement(velocity.x, speed.getValue(), velocity.z);
+	}
+
+	public float getTimerMultiplier()
+	{
+		return isEnabled() && timerMode.isChecked() && canClimb() && isClimbing(MC.player)
+			? timer.getValueF() : 1;
+	}
+
+	private boolean canClimb()
+	{
+		return MC.player != null && MC.level != null && MC.gui.screen() == null
+			&& !WURST.getHax().freecamHack.isEnabled();
 	}
 
 	private boolean isClimbing(LocalPlayer player)

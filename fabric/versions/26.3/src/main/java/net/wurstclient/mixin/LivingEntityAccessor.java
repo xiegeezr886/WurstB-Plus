@@ -9,6 +9,7 @@ package net.wurstclient.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.gen.Invoker;
 
 import net.minecraft.world.entity.LivingEntity;
 
@@ -18,7 +19,9 @@ public interface LivingEntityAccessor
 	@Accessor("attackStrengthTicker")
 	public int wurst_getAttackStrengthTicker();
 
-	// 26.3 起 swingTime 换成了对象化的 swingState，ticks 见 SwingStateAccessor
-	@Accessor("swingState")
-	public LivingEntity.SwingState wurst_getSwingState();
+	@Accessor("noJumpDelay")
+	public void wurst_setNoJumpDelay(int delay);
+
+	@Invoker("jumpFromGround")
+	public void wurst_jumpFromGround();
 }

@@ -12,6 +12,7 @@ package net.wurstclient.hacks;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
@@ -21,6 +22,7 @@ import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.WorldChangeListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 
@@ -37,7 +39,7 @@ import net.wurstclient.settings.CheckboxSetting;
 @SearchTags({"no ghost blocks", "ghost blocks", "ghostblock", "desync",
 	"block desync"})
 public final class NoGhostBlocksHack extends Hack
-	implements PacketInputListener, UpdateListener
+	implements PacketInputListener, UpdateListener, WorldChangeListener
 {
 	private static final int MAX_PENDING = 1024;
 	private static final int MAX_PER_TICK = 512;
@@ -48,7 +50,8 @@ public final class NoGhostBlocksHack extends Hack
 	private final CheckboxSetting placing = new CheckboxSetting("Placing",
 		"Refresh blocks that the server says were placed.", true);
 
-	private final Queue<Packet<?>> pending = new ConcurrentLinkedQueue<>();
+	private final Queue<QueuedUpdate> pending =
+		new ConcurrentLinkedQueue<>();
 
 	public NoGhostBlocksHack()
 	{
@@ -64,6 +67,7 @@ public final class NoGhostBlocksHack extends Hack
 		pending.clear();
 		EVENTS.add(PacketInputListener.class, this);
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(WorldChangeListener.class, this);
 	}
 
 	@Override
@@ -71,12 +75,25 @@ public final class NoGhostBlocksHack extends Hack
 	{
 		EVENTS.remove(PacketInputListener.class, this);
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(WorldChangeListener.class, this);
+		pending.clear();
+	}
+
+	@Override
+	public void onWorldChange(ClientLevel world)
+	{
+		// Queued updates belong to the previous world. Applying them to the
+		// new world would write old block states at the same coordinates.
 		pending.clear();
 	}
 
 	@Override
 	public void onReceivedPacket(PacketInputEvent event)
 	{
+		ClientLevel level = MC.level;
+		if(level == null)
+			return;
+
 		Packet<?> packet = event.getPacket();
 
 		if(!(packet instanceof ClientboundBlockUpdatePacket)
@@ -86,7 +103,7 @@ public final class NoGhostBlocksHack extends Hack
 		if(pending.size() >= MAX_PENDING)
 			pending.poll();
 
-		pending.add(packet);
+		pending.add(new QueuedUpdate(level, packet));
 	}
 
 	@Override
@@ -100,10 +117,15 @@ public final class NoGhostBlocksHack extends Hack
 
 		for(int i = 0; i < MAX_PER_TICK; i++)
 		{
-			Packet<?> packet = pending.poll();
-			if(packet == null)
+			QueuedUpdate update = pending.poll();
+			if(update == null)
 				return;
 
+			// Drop updates from a world that is no longer current.
+			if(update.world() != MC.level)
+				continue;
+
+			Packet<?> packet = update.packet();
 			if(packet instanceof ClientboundBlockUpdatePacket blockUpdate)
 				refresh(blockUpdate.getPos(), blockUpdate.getBlockState());
 			else if(packet instanceof ClientboundSectionBlocksUpdatePacket
@@ -129,5 +151,9 @@ public final class NoGhostBlocksHack extends Hack
 		// Apply the server's state on the client thread. Using flag 3 also
 		// notifies neighbours and redraws the affected chunk section.
 		MC.level.setBlock(pos, state, 3);
+	}
+
+	private record QueuedUpdate(ClientLevel world, Packet<?> packet)
+	{
 	}
 }

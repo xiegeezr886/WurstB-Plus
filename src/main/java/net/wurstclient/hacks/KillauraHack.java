@@ -139,8 +139,8 @@ public final class KillauraHack extends Hack
 		.visibleWhen(() -> !stickyTarget.isChecked());
 	private final SliderSetting switchAdvantage = new SliderSetting(
 		"Switch advantage",
-		"How much better another target must rank before switching.", 10, 0,
-		100, 1, ValueDisplay.PERCENTAGE)
+		"How much better another target must rank before switching.", 0.1, 0,
+		1, 0.01, ValueDisplay.PERCENTAGE)
 		.visibleWhen(() -> !stickyTarget.isChecked());
 	private final SliderSetting fov = new SliderSetting("FOV", 180, 0, 180,
 		5, ValueDisplay.DEGREES);

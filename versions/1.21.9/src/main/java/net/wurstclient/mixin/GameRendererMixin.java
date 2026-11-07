@@ -21,6 +21,7 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
@@ -101,81 +102,19 @@ public abstract class GameRendererMixin implements AutoCloseable
 			ci.cancel();
 	}
 
-	@ModifyReturnValue(
-		method = "getFov(Lnet/minecraft/client/Camera;FZ)F",
-		at = @At("RETURN"))
-	private float onGetFov(float original, Camera camera, float partialTicks,
-		boolean useFovSetting)
-	{
-		return (float)WurstClient.INSTANCE.getOtfs().zoomOtf
-			.changeFovBasedOnZoom(original);
-	}
-
-	@WrapOperation(
-		method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/entity/Entity;pick(DFZ)Lnet/minecraft/world/phys/HitResult;",
-			ordinal = 0))
-	private HitResult liquidsRaycast(Entity instance, double maxDistance,
-		float tickDelta, boolean includeFluids, Operation<HitResult> original)
-	{
-		if(!WurstClient.INSTANCE.getHax().liquidsHack.isEnabled())
-			return original.call(instance, maxDistance, tickDelta,
-				includeFluids);
-
-		return original.call(instance, maxDistance, tickDelta, true);
-	}
-
 	/**
-	 * Modifies the block raycast for Freecam so that it starts from the
-	 * camera position instead of the player position.
+	 * Draws the NanoVG HUD after Minecraft has finished the GUI pass.
+	 * The HUD renders into its own framebuffer and is then composited onto
+	 * the main target, so it cannot disturb the vanilla render pipeline.
 	 */
-	@WrapOperation(
-		method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/entity/Entity;pick(DFZ)Lnet/minecraft/world/phys/HitResult;",
-			ordinal = 0))
-	private HitResult modifyBlockRaycast(Entity player, double maxDist,
-		float partialTicks, boolean includeFluids,
-		Operation<HitResult> original)
+	@Inject(at = @At("HEAD"),
+		method = "render(Lnet/minecraft/client/DeltaTracker;Z)V")
+	private void onPrepareHud(DeltaTracker deltaTracker,
+		boolean renderLevel, CallbackInfo ci)
 	{
-		FreecamHack freecam = WurstClient.INSTANCE.getHax().freecamHack;
-		if(!freecam.isClickingFromCamera())
-			return original.call(player, maxDist, partialTicks, includeFluids);
-
-		Vec3 camStart = freecam.getCamPos(partialTicks);
-		Vec3 camEnd = camStart.add(freecam.getScaledCamDir(maxDist));
-		return player.level()
-			.clip(new ClipContext(camStart, camEnd, ClipContext.Block.OUTLINE,
-				includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE,
-				player));
+		if(WurstClient.INSTANCE.getHudManager() != null)
+			WurstClient.INSTANCE.getHudManager().prepareFrame(
+				deltaTracker.getGameTimeDeltaPartialTick(false));
 	}
 
-	/**
-	 * Modifies the entity raycast for Freecam so that it starts from the
-	 * camera position instead of the player position.
-	 */
-	@WrapOperation(
-		method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/entity/projectile/ProjectileUtil;getEntityHitResult(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;D)Lnet/minecraft/world/phys/EntityHitResult;"))
-	private EntityHitResult modifyEntityRaycast(Entity instance, Vec3 start,
-		Vec3 end, AABB bounds, Predicate<Entity> predicate,
-		double maxDistSq, Operation<EntityHitResult> original,
-		@Local(ordinal = 0) double maxDist)
-	{
-		FreecamHack freecam = WurstClient.INSTANCE.getHax().freecamHack;
-		if(!freecam.isClickingFromCamera())
-			return original.call(instance, start, end, bounds, predicate,
-				maxDistSq);
-
-		Vec3 camStart = freecam.getCamPos(1F);
-		Vec3 scaledCamDir = freecam.getScaledCamDir(maxDist);
-		Vec3 camEnd = camStart.add(scaledCamDir);
-		AABB camBounds = EntityType.PLAYER.getDimensions()
-			.makeBoundingBox(camStart).expandTowards(scaledCamDir).inflate(1);
-
-		return original.call(instance, camStart, camEnd, camBounds, predicate,
-			maxDistSq);
-	}
 }

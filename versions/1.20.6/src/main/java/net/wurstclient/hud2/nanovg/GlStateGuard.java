@@ -70,8 +70,11 @@ public final class GlStateGuard implements AutoCloseable
 	private final int program;
 	private final int vertexArray;
 	private final int arrayBuffer;
+	private final int elementArrayBuffer;
 	private final int activeTexture;
 	private final int texture0;
+	private final int activeTextureBinding;
+	private final boolean srgb;
 
 	private final boolean colorMaskR;
 	private final boolean colorMaskG;
@@ -142,10 +145,18 @@ public final class GlStateGuard implements AutoCloseable
 		program = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		vertexArray = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
 		arrayBuffer = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
+		elementArrayBuffer =
+			GL11.glGetInteger(GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING);
 		activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		texture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+		// NanoVG binds its own texture on whatever unit happens to be active.
+		// Restoring only unit 0 leaves the active unit pointing at NanoVG's
+		// image, which makes later draws sample black/garbage on some drivers.
 		GL13.glActiveTexture(activeTexture);
+		activeTextureBinding =
+			GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+		srgb = GL11.glIsEnabled(GL30.GL_FRAMEBUFFER_SRGB);
 	}
 
 	public static GlStateGuard capture()
@@ -167,9 +178,16 @@ public final class GlStateGuard implements AutoCloseable
 		GL20.glUseProgram(program);
 		GL30.glBindVertexArray(vertexArray);
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, arrayBuffer);
+		GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, elementArrayBuffer);
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture0);
 		GL13.glActiveTexture(activeTexture);
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, activeTextureBinding);
+
+		if(srgb)
+			GL11.glEnable(GL30.GL_FRAMEBUFFER_SRGB);
+		else
+			GL11.glDisable(GL30.GL_FRAMEBUFFER_SRGB);
 
 		if(blend)
 			GL11.glEnable(GL11.GL_BLEND);

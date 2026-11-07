@@ -9,6 +9,7 @@ package net.wurstclient.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.gen.Invoker;
 
 import net.minecraft.world.entity.LivingEntity;
 
@@ -20,4 +21,10 @@ public interface LivingEntityAccessor
 
 	@Accessor("swingTime")
 	public int wurst_getSwingTime();
+
+	@Accessor("noJumpDelay")
+	public void wurst_setNoJumpDelay(int delay);
+
+	@Invoker("jumpFromGround")
+	public void wurst_jumpFromGround();
 }

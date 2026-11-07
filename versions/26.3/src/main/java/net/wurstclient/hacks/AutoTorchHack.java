@@ -26,6 +26,10 @@ import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.RenderListener;
+import com.mojang.blaze3d.vertex.PoseStack;
+import java.util.List;
+import net.wurstclient.util.RenderUtils;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
@@ -33,7 +37,7 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.BlockUtils;
 
 @SearchTags({"auto torch", "torch", "light", "AutoTorch"})
-public final class AutoTorchHack extends Hack implements UpdateListener
+public final class AutoTorchHack extends Hack implements UpdateListener, RenderListener
 {
 	private static final double PLACE_RANGE = 4.5;
 
@@ -54,6 +58,17 @@ public final class AutoTorchHack extends Hack implements UpdateListener
 		"Select torch", "Automatically selects a torch from the hotbar.", true);
 
 	private int timer;
+	private final CheckboxSetting onlyRender = new CheckboxSetting("Only render",
+		"只标记暗处，不放置火把。", false);
+	private final CheckboxSetting renderDark = new CheckboxSetting("Show dark spots", true);
+	private final SliderSetting renderRange = new SliderSetting("Render range", 10, 0, 10, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting throughWalls = new CheckboxSetting("Through walls",
+		"允许向被遮挡但仍在范围内的位置放置。", false);
+	private final CheckboxSetting millisecondDelay = new CheckboxSetting("Use millisecond delay", false);
+	private final SliderSetting delayMillis = new SliderSetting("Delay milliseconds", 50, 0, 10000, 10, ValueDisplay.INTEGER);
+	private List<BlockPos> darkSpots = List.of();
+	private net.minecraft.client.multiplayer.ClientLevel renderWorld;
+	private long lastPlacement;
 
 	public AutoTorchHack()
 	{
@@ -63,19 +78,26 @@ public final class AutoTorchHack extends Hack implements UpdateListener
 		addSetting(lightThreshold);
 		addSetting(delay);
 		addSetting(selectTorch);
+		addSetting(onlyRender); addSetting(renderDark); addSetting(renderRange);
+		addSetting(throughWalls); addSetting(millisecondDelay); addSetting(delayMillis);
 	}
 
 	@Override
 	protected void onEnable()
 	{
 		timer = 0;
+		lastPlacement = 0;
+		darkSpots = List.of();
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(RenderListener.class, this);
 	}
 
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(RenderListener.class, this);
+		darkSpots = List.of();
 		timer = 0;
 	}
 
@@ -84,17 +106,46 @@ public final class AutoTorchHack extends Hack implements UpdateListener
 	{
 		if(MC.player == null || MC.level == null)
 			return;
+		if(renderWorld != MC.level)
+		{
+			renderWorld = MC.level; timer = 0; lastPlacement = 0;
+		}
+		darkSpots = renderDark.isChecked() || onlyRender.isChecked()
+			? BlockUtils.getAllInBoxStream(MC.player.blockPosition(), renderRange.getValueI())
+				.filter(p -> MC.level.hasChunkAt(p) && MC.level.isInWorldBounds(p))
+				.filter(p -> MC.player.distanceToSqr(Vec3.atCenterOf(p)) <= renderRange.getValueSq())
+				.filter(p -> MC.level.getBlockState(p).canBeReplaced()
+					&& MC.level.getBrightness(LightLayer.BLOCK, p) <= lightThreshold.getValueI()
+					&& Blocks.TORCH.defaultBlockState().canSurvive(MC.level, p))
+				.map(BlockPos::immutable).toList() : List.of();
+		if(onlyRender.isChecked() || MC.gameMode == null || MC.gui.screen() != null)
+			return;
+		if(millisecondDelay.isChecked() && System.nanoTime() - lastPlacement
+			< delayMillis.getValueI() * 1_000_000L) return;
 
-		if(timer > 0)
+		if(!millisecondDelay.isChecked() && timer > 0)
 		{
 			timer--;
 			return;
 		}
 
 		timer = delay.getValueI();
+		lastPlacement = System.nanoTime();
 		BlockPos pos = findTorchPos();
 		if(pos != null)
 			placeTorch(pos);
+	}
+
+	@Override
+	public void onRender(PoseStack matrices, float partialTicks)
+	{
+		if(MC.level != renderWorld || !(renderDark.isChecked() || onlyRender.isChecked())) return;
+		for(BlockPos pos : darkSpots)
+		{
+			Vec3 start = new Vec3(pos.getX(), pos.getY() + .01, pos.getZ());
+			RenderUtils.drawLine(matrices, start, start.add(1, 0, 1), 0xFFFF0000, true);
+			RenderUtils.drawLine(matrices, start.add(1, 0, 0), start.add(0, 0, 1), 0xFFFF0000, true);
+		}
 	}
 
 	private BlockPos findTorchPos()
@@ -128,7 +179,7 @@ public final class AutoTorchHack extends Hack implements UpdateListener
 
 	private boolean isValidTorchPos(BlockPos pos)
 	{
-		if(!MC.level.isInWorldBounds(pos))
+		if(!MC.level.isInWorldBounds(pos) || !MC.level.hasChunkAt(pos))
 			return false;
 
 		// only empty spots are considered
@@ -152,6 +203,7 @@ public final class AutoTorchHack extends Hack implements UpdateListener
 		Vec3 eyesPos = MC.player.getEyePosition();
 		if(eyesPos.distanceToSqr(hitVec) > PLACE_RANGE * PLACE_RANGE)
 			return false;
+		if(throughWalls.isChecked()) return true;
 
 		BlockHitResult hit = BlockUtils.raycast(eyesPos, hitVec);
 		return hit.getType() == HitResult.Type.MISS
@@ -166,16 +218,18 @@ public final class AutoTorchHack extends Hack implements UpdateListener
 			return;
 
 		int oldSlot = MC.player.getInventory().getSelectedSlot();
-		if(selectTorch.isChecked())
-			MC.player.getInventory().setSelectedSlot(slot);
-		else if(!isTorch(MC.player.getMainHandItem()))
-			return;
-
-		if(isTorch(MC.player.getMainHandItem()))
-			placeOnFloor(pos);
-
-		if(MC.player.getInventory().getSelectedSlot() != oldSlot)
+		try
+		{
+			if(selectTorch.isChecked())
+				MC.player.getInventory().setSelectedSlot(slot);
+			else if(!isTorch(MC.player.getMainHandItem()))
+				return;
+			if(isTorch(MC.player.getMainHandItem()))
+				placeOnFloor(pos);
+		}finally
+		{
 			MC.player.getInventory().setSelectedSlot(oldSlot);
+		}
 	}
 
 	private void placeOnFloor(BlockPos pos)

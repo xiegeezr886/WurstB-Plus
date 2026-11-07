@@ -329,13 +329,21 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 			&& hax.fullbrightHack.isNightVisionActive())
 			return true;
 		
-		if(effect == MobEffects.LEVITATION
-			&& hax.noLevitationHack.isEnabled())
+		if(hax.noLevitationHack.shouldBlock(effect))
 			return false;
 		
 		if(effect == MobEffects.DARKNESS && hax.antiBlindHack.isEnabled())
 			return false;
 		
 		return super.hasEffect(effect);
+	}
+
+	@Override
+	public net.minecraft.world.effect.MobEffectInstance getEffect(MobEffect effect)
+	{
+		var hax = WurstClient.INSTANCE.getHax();
+		if(hax != null && hax.noLevitationHack.shouldBlock(effect))
+			return null;
+		return super.getEffect(effect);
 	}
 }

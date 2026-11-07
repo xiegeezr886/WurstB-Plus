@@ -26,6 +26,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.util.ColorUtils;
 
@@ -170,56 +171,51 @@ public final class EditColorScreen extends Screen
 	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		Font tr = minecraft.font;
-		
-		context.centeredText(minecraft.font,
-			colorSetting.getTranslatedName(), width / 2, 16, 0xFFF0F0F0);
-		
-		// Draw palette
-		int x = paletteX;
-		int y = paletteY;
-		int w = paletteWidth;
-		int h = paletteHeight;
-		int fw = paletteWidth;
-		int fh = paletteHeight;
-		float u = 0;
-		float v = 0;
-		context.blit(RenderPipelines.GUI_TEXTURED, paletteIdentifier, x, y, u, v,
-			w, h, fw, fh);
-		
-		// RGB letters
-		context.text(tr, "#", fieldsX - 3 - tr.width("#"), fieldsY + 6,
-			0xFFF0F0F0, false);
-		context.text(tr, "\u7EA2:", fieldsX - 3 - tr.width("\u7EA2:"),
-			fieldsY + 6 + 35, 0xFFFF0000, false);
-		context.text(tr, "\u7EFF:", fieldsX + 75 - 3 - tr.width("\u7EFF:"),
-			fieldsY + 6 + 35, 0xFF00FF00, false);
-		context.text(tr, "\u84DD:", fieldsX + 150 - 3 - tr.width("\u84DD:"),
-			fieldsY + 6 + 35, 0xFF0000FF, false);
-		
+		renderBackground(context.getInner(), mouseX, mouseY, partialTicks);
 		hexValueField.render(context.getInner(), mouseX, mouseY, partialTicks);
 		redValueField.render(context.getInner(), mouseX, mouseY, partialTicks);
 		greenValueField.render(context.getInner(), mouseX, mouseY, partialTicks);
 		blueValueField.render(context.getInner(), mouseX, mouseY, partialTicks);
-		
-		// Color preview
-		
-		int borderSize = 1;
-		int boxWidth = 92;
-		int boxHeight = 20;
-		int boxX = width / 2 + 8;
-		int boxY = fieldsY;
-		
-		// Border
-		context.fill(boxX - borderSize, boxY - borderSize,
-			boxX + boxWidth + borderSize, boxY + boxHeight + borderSize,
-			0xFFAAAAAA);
-		
-		// Color box
-		context.fill(boxX, boxY, boxX + boxWidth, boxY + boxHeight,
-			color.getRGB());
-		
 		super.render(context.getInner(), mouseX, mouseY, partialTicks);
+
+		NanoVGUI.pass(context, () -> {
+			NanoVGUI.centeredText(colorSetting.getTranslatedName(), width / 2,
+				16, 0xF0F0F0, 9F);
+
+			// Draw palette
+			NanoVGUI.image(paletteIdentifier, paletteX, paletteY,
+				paletteWidth, paletteHeight, 0, 0xFFFFFFFF);
+
+			// RGB letters
+			NanoVGUI.text("#",
+				fieldsX - 3 - NanoVGUI.width("#", 9F), fieldsY + 6,
+				0xF0F0F0, 9F);
+			NanoVGUI.text("\u7EA2:",
+				fieldsX - 3 - NanoVGUI.width("\u7EA2:", 9F),
+				fieldsY + 6 + 35, 0xFF0000, 9F);
+			NanoVGUI.text("\u7EFF:",
+				fieldsX + 75 - 3 - NanoVGUI.width("\u7EFF:", 9F),
+				fieldsY + 6 + 35, 0x00FF00, 9F);
+			NanoVGUI.text("\u84DD:",
+				fieldsX + 150 - 3 - NanoVGUI.width("\u84DD:", 9F),
+				fieldsY + 6 + 35, 0x0000FF, 9F);
+
+			// Color preview
+			int borderSize = 1;
+			int boxWidth = 92;
+			int boxHeight = 20;
+			int boxX = width / 2 + 8;
+			int boxY = fieldsY;
+
+			// Border
+			NanoVGUI.fill(boxX - borderSize, boxY - borderSize,
+				boxX + boxWidth + borderSize, boxY + boxHeight + borderSize,
+				0xFFAAAAAA);
+
+			// Color box
+			NanoVGUI.fill(boxX, boxY, boxX + boxWidth, boxY + boxHeight,
+				color.getRGB());
+		});
 	}
 	
 	@Override

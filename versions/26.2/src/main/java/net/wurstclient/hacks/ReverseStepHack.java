@@ -11,6 +11,9 @@
 package net.wurstclient.hacks;
 
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
@@ -34,6 +37,8 @@ public final class ReverseStepHack extends Hack implements UpdateListener
 
 	private final CheckboxSetting onlyWhileSneaking = new CheckboxSetting(
 		"Only while sneaking", "Only step down while sneaking.", false);
+	private final CheckboxSetting vehicles = new CheckboxSetting("Vehicles",
+		"Apply reverse step to vehicles controlled by you.", false);
 
 	public ReverseStepHack()
 	{
@@ -42,6 +47,7 @@ public final class ReverseStepHack extends Hack implements UpdateListener
 		addSetting(fallSpeed);
 		addSetting(height);
 		addSetting(onlyWhileSneaking);
+		addSetting(vehicles);
 	}
 
 	@Override
@@ -60,10 +66,21 @@ public final class ReverseStepHack extends Hack implements UpdateListener
 	public void onUpdate()
 	{
 		LocalPlayer player = MC.player;
-		if(player == null || MC.level == null)
+		if(player == null || MC.level == null || MC.gui.screen() != null
+			|| WURST.getHax().freecamHack.isEnabled())
 			return;
 
-		if(player.isSpectator() || player.isPassenger()
+		if(player.isPassenger())
+		{
+			Entity vehicle = player.getVehicle();
+			if(vehicles.isChecked() && vehicle != null
+				&& vehicle.getControllingPassenger() == player
+				&& (!onlyWhileSneaking.isChecked() || player.isShiftKeyDown()))
+				snap(vehicle);
+			return;
+		}
+
+		if(player.isSpectator()
 			|| player.isFallFlying() || !player.onGround()
 			|| player.isInWater() || player.isInLava()
 			|| player.onClimbable() || player.noPhysics)
@@ -79,14 +96,30 @@ public final class ReverseStepHack extends Hack implements UpdateListener
 		if(!player.isShiftKeyDown() && player.zza == 0 && player.xxa == 0)
 			return;
 
-		// there must be ground within the configured height below us
-		AABB box = player.getBoundingBox()
-			.move(0, -(height.getValue() + 0.01), 0);
+		// Check the full footprint, including the corners of beds.
+		AABB bounds = player.getBoundingBox();
+		for(int x = (int)Math.floor(bounds.minX); x <= (int)Math.floor(bounds.maxX); x++)
+			for(int z = (int)Math.floor(bounds.minZ); z <= (int)Math.floor(bounds.maxZ); z++)
+				if(MC.level.getBlockState(new BlockPos(x, player.blockPosition().getY(), z))
+					.getBlock() instanceof BedBlock)
+					return;
+		snap(player);
+	}
 
-		if(MC.level.noCollision(player, box))
+	private void snap(Entity entity)
+	{
+		if(!entity.onGround() || entity.isInWater() || entity.isInLava()
+			|| entity.noPhysics || MC.options.keyJump.isDown())
 			return;
 
-		Vec3 velocity = player.getDeltaMovement();
-		player.setDeltaMovement(velocity.x, -fallSpeed.getValue(), velocity.z);
+		// there must be ground within the configured height below us
+		AABB box = entity.getBoundingBox()
+			.move(0, -(height.getValue() + 0.01), 0);
+
+		if(MC.level.noCollision(entity, box))
+			return;
+
+		Vec3 velocity = entity.getDeltaMovement();
+		entity.setDeltaMovement(velocity.x, -fallSpeed.getValue(), velocity.z);
 	}
 }

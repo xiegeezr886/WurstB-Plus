@@ -33,8 +33,8 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.core.Holder;
 import net.minecraft.tags.EnchantmentTags;
 import net.wurstclient.hacks.autolibrarian.BookOffer;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.BookOffersSetting;
-import net.wurstclient.util.RenderUtils;
 
 public final class EditBookOffersScreen extends Screen
 {
@@ -152,19 +152,19 @@ public final class EditBookOffersScreen extends Screen
 	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		Matrix3x2fStack matrixStack = context.pose();
+		NanoVGUI.clearDeferred();
 		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
-		
-		matrixStack.pushMatrix();
-		matrixStack.translate(0, 0);
-		
-		context.centeredText(minecraft.font,
-			bookOffers.getTranslatedName() + " (" + bookOffers.getOffers().size() + ")",
-			width / 2, 12, 0xFFFFFFFF);
-		
 		super.render(context.getInner(), mouseX, mouseY, partialTicks);
-		
-		matrixStack.popMatrix();
+
+		NanoVGUI.pass(context, () -> {
+			NanoVGUI.pushScissor(0, 32, width, height - 96);
+			NanoVGUI.runDeferred();
+			NanoVGUI.popScissor();
+
+			NanoVGUI.centeredText(bookOffers.getTranslatedName() + " ("
+				+ bookOffers.getOffers().size() + ")", width / 2, 12,
+				0xFFFFFFFF, 9F);
+		});
 	}
 	
 	@Override
@@ -217,25 +217,23 @@ public final class EditBookOffersScreen extends Screen
 			int y = getContentY();
 			Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse("enchanted_book"));
 			ItemStack stack = new ItemStack(item);
-			RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
-			
-			Font tr = minecraft.font;
+
 			String name = bookOffer.getEnchantmentNameWithLevel();
-			
 			Holder<Enchantment> enchantment = bookOffer.getEnchantment();
-			int nameColor = enchantment.is(EnchantmentTags.CURSE)
-				? 0xFFFF5555 : 0xFFF0F0F0;
-			context.text(tr, name, x + 28, y, nameColor, false);
-			
-			context.text(tr, bookOffer.id(), x + 28, y + 9, 0xFFA0A0A0,
-				false);
-			
+			int nameColor = enchantment.is(EnchantmentTags.CURSE) ? 0xFF5555 : 0xF0F0F0;
 			String price = getPriceText();
-			context.text(tr, price, x + 28, y + 18, 0xFFA0A0A0, false);
-			
-			if(bookOffer.price() < 64)
-				RenderUtils.drawItem(context, new ItemStack(Items.EMERALD),
-					x + 28 + tr.width(price), y + 16, false);
+			float priceWidth = NanoVGUI.width(price, 9F);
+
+			NanoVGUI.defer(() -> {
+				NanoVGUI.item(context, stack, x + 1, y + 1, true);
+				NanoVGUI.text(name, x + 28, y, nameColor, 9F);
+				NanoVGUI.text(bookOffer.id(), x + 28, y + 9, 0xA0A0A0, 9F);
+				NanoVGUI.text(price, x + 28, y + 18, 0xA0A0A0, 9F);
+
+				if(bookOffer.price() < 64)
+					NanoVGUI.item(context, new ItemStack(Items.EMERALD),
+						Math.round(x + 28 + priceWidth), y + 16, false);
+			});
 		}
 		
 		private String getPriceText()

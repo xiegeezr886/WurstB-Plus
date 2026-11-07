@@ -8,6 +8,8 @@
 // Ported from Meteor Client (GPL-3.0).
 package net.wurstclient.hacks;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
@@ -20,6 +22,9 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.settings.EnumSetting;
+import net.wurstclient.settings.TextFieldSetting;
+import net.wurstclient.util.RegistryIdFilter;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.Rotation;
@@ -48,6 +53,14 @@ public final class AutoMountHack extends Hack implements UpdateListener
 	private final CheckboxSetting rotate = new CheckboxSetting("Rotate",
 		"Faces the entity before mounting it.", true);
 
+	private final CheckboxSetting pigs = new CheckboxSetting("Pigs", "Mount saddled pigs.", false);
+	private final CheckboxSetting striders = new CheckboxSetting("Striders", "Mount saddled striders.", false);
+	private final EnumSetting<Selection> selection = new EnumSetting<>("Entity selection",
+		"Use the groups above or an exact entity type list.", Selection.values(), Selection.GROUPS);
+	private final TextFieldSetting entities = new TextFieldSetting("Entities",
+		"Rideable entity type IDs, separated by commas.", "horse,donkey,mule,llama,trader_llama,minecart,boat");
+	private final RegistryIdFilter entityFilter = new RegistryIdFilter();
+	private enum Selection {GROUPS, SELECTED_TYPES}
 	private int cooldown;
 
 	public AutoMountHack()
@@ -60,6 +73,10 @@ public final class AutoMountHack extends Hack implements UpdateListener
 		addSetting(checkSaddle);
 		addSetting(range);
 		addSetting(rotate);
+		addSetting(pigs);
+		addSetting(striders);
+		addSetting(selection);
+		addSetting(entities);
 	}
 
 	@Override
@@ -135,20 +152,31 @@ public final class AutoMountHack extends Hack implements UpdateListener
 
 	private boolean isConfigured(Entity entity)
 	{
-		if(entity instanceof AbstractHorse horse)
+		String id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
+		boolean pig = id.equals("minecraft:pig");
+		boolean strider = id.equals("minecraft:strider");
+		boolean horse = entity instanceof AbstractHorse;
+		boolean boat = entity instanceof AbstractBoat;
+		boolean cart = entity instanceof AbstractMinecart;
+		boolean otherRideable = id.equals("minecraft:happy_ghast")
+			|| id.equals("minecraft:nautilus") || id.equals("minecraft:zombie_nautilus");
+		if(!horse && !boat && !cart && !pig && !strider && !otherRideable)
+			return false;
+		if(selection.getSelected() == Selection.SELECTED_TYPES)
 		{
-			if(!horses.isChecked())
+			if(!entityFilter.contains(entities.getValue(), id))
 				return false;
-
-			return !checkSaddle.isChecked() || horse.isSaddled();
 		}
-
-		if(entity instanceof AbstractBoat)
-			return boats.isChecked();
-
-		if(entity instanceof AbstractMinecart)
-			return minecarts.isChecked();
-
-		return false;
+		else if(!(horse && horses.isChecked() || boat && boats.isChecked()
+			|| cart && minecarts.isChecked() || pig && pigs.isChecked()
+			|| strider && striders.isChecked()))
+			return false;
+		boolean llama = id.equals("minecraft:llama") || id.equals("minecraft:trader_llama");
+		boolean mandatorySaddle = pig || strider || id.equals("minecraft:skeleton_horse")
+			|| id.equals("minecraft:zombie_horse");
+		if(mandatorySaddle
+			|| checkSaddle.isChecked() && (horse || otherRideable) && !llama)
+			return entity instanceof Mob mount && mount.isSaddled();
+		return true;
 	}
 }

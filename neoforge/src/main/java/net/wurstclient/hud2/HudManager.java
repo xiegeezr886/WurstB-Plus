@@ -26,9 +26,6 @@ import org.lwjgl.opengl.GL11;
 
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
-import net.minecraft.client.gui.GuiGraphics;
-import net.wurstclient.events.GUIRenderListener;
-import net.wurstclient.event.EventManager;
 import net.wurstclient.hud2.mods.NotificationsMod;
 import net.wurstclient.hud2.nanovg.GlStateGuard;
 import net.wurstclient.hud2.nanovg.NanoVGContext;
@@ -42,7 +39,7 @@ import net.wurstclient.util.json.JsonUtils;
  * enabled state, and draws the whole HUD through NanoVG after the vanilla GUI
  * pass.
  */
-public final class HudManager implements GUIRenderListener
+public final class HudManager
 {
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private static final Map<String, String> LEGACY_IDS = Map.ofEntries(
@@ -83,7 +80,17 @@ public final class HudManager implements GUIRenderListener
 	public void start()
 	{
 		stateFile = WURST.getWurstFolder().resolve("soar-hud.json");
-		loadState();
+		try
+		{
+			loadState();
+		}catch(Throwable t)
+		{
+			// A malformed or hand-edited state file must never abort client
+			// initialization; keep the defaults and leave the file in place.
+			System.err.println("[HUD] Failed to load HUD state, using defaults: "
+				+ t);
+			t.printStackTrace();
+		}
 		HUDMod.setTheme(settings.getTheme());
 
 		for(HUDMod mod : mods.values())
@@ -99,9 +106,6 @@ public final class HudManager implements GUIRenderListener
 				}
 
 		started = true;
-		EventManager eventManager = WURST.getEventManager();
-		if(eventManager != null)
-			eventManager.add(GUIRenderListener.class, this);
 		System.out.println("[HUD] Soar v7 HUD started (" + mods.size()
 			+ " modules)");
 	}
@@ -109,9 +113,6 @@ public final class HudManager implements GUIRenderListener
 	public void stop()
 	{
 		stopping = true;
-		EventManager eventManager = WURST.getEventManager();
-		if(eventManager != null)
-			eventManager.remove(GUIRenderListener.class, this);
 		saveState();
 		for(HUDMod mod : mods.values())
 			if(mod.isEnabled())
@@ -128,12 +129,6 @@ public final class HudManager implements GUIRenderListener
 	public void prepareFrame(float partialTicks)
 	{
 		// Reserved for texture/item capture scheduling.
-	}
-
-	@Override
-	public void onRenderGUI(net.minecraft.client.gui.GuiGraphics graphics, float partialTicks)
-	{
-		renderFrame(partialTicks);
 	}
 
 	public void renderFrame(float partialTicks)
@@ -534,36 +529,83 @@ public final class HudManager implements GUIRenderListener
 			JsonObject root = json.getAsJsonObject();
 
 			if(root.has("theme"))
-				settings.setTheme(HudTheme.byId(root.get("theme").getAsString()));
+			{
+				JsonElement theme = root.get("theme");
+				if(isString(theme))
+					settings.setTheme(HudTheme.byId(theme.getAsString()));
+			}
 
-			JsonArray array = root.getAsJsonArray("mods");
-			if(array == null)
+			JsonElement modsElement = root.get("mods");
+			if(modsElement == null || !modsElement.isJsonArray())
 				return;
 
-			for(JsonElement element : array)
+			for(JsonElement element : modsElement.getAsJsonArray())
 			{
-				JsonObject obj = element.getAsJsonObject();
-				if(!obj.has("id"))
-					continue;
-				String id = resolveId(obj.get("id").getAsString());
-				HUDMod mod = mods.get(id);
-				if(mod == null)
-					continue;
-
-				if(obj.has("x"))
-					mod.setX(obj.get("x").getAsInt());
-				if(obj.has("y"))
-					mod.setY(obj.get("y").getAsInt());
-				if(obj.has("scale"))
-					mod.setScale(obj.get("scale").getAsFloat());
-				if(obj.has("enabled"))
-					mod.setEnabledSilently(obj.get("enabled").getAsBoolean());
+				// Isolate every module entry: one broken field must not throw
+				// away the state of all the others.
+				try
+				{
+					loadModState(element);
+				}catch(RuntimeException e)
+				{
+					System.err.println(
+						"[HUD] Skipping invalid HUD module state: " + e);
+				}
 			}
-		}catch(IOException | JsonException e)
+		}catch(IOException | JsonException | RuntimeException e)
 		{
 			System.err.println("[HUD] Failed to load state: "
 				+ e.getMessage());
 		}
+	}
+
+	private void loadModState(JsonElement element)
+	{
+		if(element == null || !element.isJsonObject())
+			return;
+
+		JsonObject obj = element.getAsJsonObject();
+		JsonElement idElement = obj.get("id");
+		if(!isString(idElement))
+			return;
+
+		HUDMod mod = mods.get(resolveId(idElement.getAsString()));
+		if(mod == null)
+			return;
+
+		JsonElement x = obj.get("x");
+		if(isNumber(x))
+			mod.setX(x.getAsInt());
+
+		JsonElement y = obj.get("y");
+		if(isNumber(y))
+			mod.setY(y.getAsInt());
+
+		JsonElement scale = obj.get("scale");
+		if(isNumber(scale))
+			mod.setScale(scale.getAsFloat());
+
+		JsonElement enabled = obj.get("enabled");
+		if(isBoolean(enabled))
+			mod.setEnabledSilently(enabled.getAsBoolean());
+	}
+
+	private static boolean isString(JsonElement element)
+	{
+		return element != null && element.isJsonPrimitive()
+			&& element.getAsJsonPrimitive().isString();
+	}
+
+	private static boolean isNumber(JsonElement element)
+	{
+		return element != null && element.isJsonPrimitive()
+			&& element.getAsJsonPrimitive().isNumber();
+	}
+
+	private static boolean isBoolean(JsonElement element)
+	{
+		return element != null && element.isJsonPrimitive()
+			&& element.getAsJsonPrimitive().isBoolean();
 	}
 
 	private void loadLegacyLayout()

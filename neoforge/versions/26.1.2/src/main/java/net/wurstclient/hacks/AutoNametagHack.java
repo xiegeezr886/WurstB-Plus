@@ -9,6 +9,10 @@
  */
 package net.wurstclient.hacks;
 
+import java.util.HashMap;
+import java.util.Map;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -31,6 +35,10 @@ import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.TextFieldSetting;
 import net.wurstclient.util.ChatUtils;
+import net.wurstclient.util.RegistryIdFilter;
+import net.wurstclient.util.Rotation;
+import net.wurstclient.util.RotationUtils;
+import net.wurstclient.events.WorldChangeListener;
 
 /**
  * Ported from Meteor Client (GPL-3.0).
@@ -41,7 +49,7 @@ import net.wurstclient.util.ChatUtils;
  * hack.
  */
 @SearchTags({"auto nametag", "AutoNameTag", "NameTagBot", "name tag bot"})
-public final class AutoNametagHack extends Hack implements UpdateListener
+public final class AutoNametagHack extends Hack implements UpdateListener, WorldChangeListener
 {
 	private final TextFieldSetting nameSetting = new TextFieldSetting("Name",
 		"The name that the held name tag should apply. The name tag itself must"
@@ -66,6 +74,16 @@ public final class AutoNametagHack extends Hack implements UpdateListener
 		"How long to wait between nametag interactions.", 20, 0, 100, 1,
 		ValueDisplay.INTEGER.withSuffix(" ticks"));
 
+	private final TextFieldSetting entities = new TextFieldSetting("Entity types",
+		"Optional entity type IDs, separated by commas. Empty uses the Target group.", "");
+	private final EnumSetting<Priority> priority = new EnumSetting<>("Priority",
+		"How to choose between eligible entities.", Priority.values(), Priority.NEAREST);
+	private final CheckboxSetting rotate = new CheckboxSetting("Rotate",
+		"Sends a look packet before using the name tag.", true);
+	private final CheckboxSetting perEntityCooldown = new CheckboxSetting("Per-entity cooldown",
+		"Allows another entity to be named while the previous target is cooling down.", false);
+	private final Map<Entity, Integer> entityCooldowns = new HashMap<>();
+	private final RegistryIdFilter entityFilter = new RegistryIdFilter();
 	private int timer;
 
 	public AutoNametagHack()
@@ -77,6 +95,10 @@ public final class AutoNametagHack extends Hack implements UpdateListener
 		addSetting(targetMode);
 		addSetting(renameExisting);
 		addSetting(cooldown);
+		addSetting(entities);
+		addSetting(priority);
+		addSetting(rotate);
+		addSetting(perEntityCooldown);
 	}
 
 	@Override
@@ -84,13 +106,24 @@ public final class AutoNametagHack extends Hack implements UpdateListener
 	{
 		timer = 0;
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(WorldChangeListener.class, this);
+		entityCooldowns.clear();
 	}
 
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(WorldChangeListener.class, this);
+		entityCooldowns.clear();
 		timer = 0;
+	}
+
+	@Override
+	public void onWorldChange(ClientLevel world)
+	{
+		timer = 0;
+		entityCooldowns.clear();
 	}
 
 	@Override
@@ -99,7 +132,10 @@ public final class AutoNametagHack extends Hack implements UpdateListener
 		if(MC.player == null || MC.level == null || MC.gameMode == null)
 			return;
 
-		if(timer > 0)
+		entityCooldowns.replaceAll((entity, ticks) -> ticks - 1);
+		entityCooldowns.entrySet().removeIf(entry -> entry.getValue() <= 0 || entry.getKey().isRemoved());
+
+		if(!perEntityCooldown.isChecked() && timer > 0)
 		{
 			timer--;
 			return;
@@ -114,16 +150,8 @@ public final class AutoNametagHack extends Hack implements UpdateListener
 			return;
 		}
 
-		InteractionHand hand;
-		if(slot < 9)
-		{
-			MC.player.getInventory().setSelectedSlot(slot);
-			hand = InteractionHand.MAIN_HAND;
-		}else
-			hand = InteractionHand.OFF_HAND;
-
-		// a name tag only works if it has a custom name
-		ItemStack tag = MC.player.getItemInHand(hand);
+		InteractionHand hand = slot < 9 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+		ItemStack tag = slot < 9 ? MC.player.getInventory().getItem(slot) : MC.player.getOffhandItem();
 		Component tagNameComponent = tag.get(DataComponents.CUSTOM_NAME);
 		String wantedName = nameSetting.getValue().trim();
 
@@ -149,15 +177,25 @@ public final class AutoNametagHack extends Hack implements UpdateListener
 		if(target == null)
 			return;
 
-		WURST.getRotationFaker()
-			.faceVectorPacket(target.getBoundingBox().getCenter());
-
-		InteractionResult result =
-			MC.gameMode.interact(MC.player, target, new net.minecraft.world.phys.EntityHitResult(target, target.getBoundingBox().getCenter()), hand);
-		if(result.consumesAction())
-			MC.player.swing(hand);
-
-		timer = cooldown.getValueI();
+		int previousSlot = MC.player.getInventory().getSelectedSlot();
+		try
+		{
+			if(slot < 9)
+				MC.player.getInventory().setSelectedSlot(slot);
+			if(rotate.isChecked() && MC.getConnection() != null)
+			{
+				Rotation rotation = RotationUtils.getNeededRotations(target.getBoundingBox().getCenter());
+				rotation.sendPlayerLookPacket();
+			}
+			InteractionResult result = MC.gameMode.interact(MC.player, target, new net.minecraft.world.phys.EntityHitResult(target, target.getBoundingBox().getCenter()), hand);
+			if(result.consumesAction())
+				MC.player.swing(hand);
+			entityCooldowns.put(target, cooldown.getValueI());
+			timer = cooldown.getValueI();
+		}finally
+		{
+			MC.player.getInventory().setSelectedSlot(previousSlot);
+		}
 	}
 
 	private int findNameTagSlot()
@@ -176,7 +214,7 @@ public final class AutoNametagHack extends Hack implements UpdateListener
 	{
 		double rangeSq = range.getValueSq();
 		LivingEntity best = null;
-		double bestDistanceSq = Double.MAX_VALUE;
+		double bestScore = Double.POSITIVE_INFINITY;
 
 		for(Entity entity : MC.level.entitiesForRendering())
 		{
@@ -186,9 +224,13 @@ public final class AutoNametagHack extends Hack implements UpdateListener
 			if(entity == MC.player || entity.isRemoved()
 				|| living.getHealth() <= 0)
 				continue;
-			if(!matchesTargetMode(living))
+			if(!entities.getValue().isBlank()
+				? !entityFilter.contains(entities.getValue(), BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString())
+				: !matchesTargetMode(living))
 				continue;
 
+			if(perEntityCooldown.isChecked() && entityCooldowns.containsKey(entity))
+				continue;
 			double distanceSq = MC.player.distanceToSqr(entity);
 			if(distanceSq > rangeSq)
 				continue;
@@ -205,9 +247,17 @@ public final class AutoNametagHack extends Hack implements UpdateListener
 					continue;
 			}
 
-			if(distanceSq < bestDistanceSq)
+			double score = switch(priority.getSelected())
 			{
-				bestDistanceSq = distanceSq;
+				case NEAREST -> distanceSq;
+				case FARTHEST -> -distanceSq;
+				case LOWEST_HEALTH -> living.getHealth();
+				case HIGHEST_HEALTH -> -living.getHealth();
+				case CLOSEST_ANGLE -> RotationUtils.getAngleToLookVec(entity.getBoundingBox().getCenter());
+			};
+			if(score < bestScore)
+			{
+				bestScore = score;
 				best = living;
 			}
 		}
@@ -225,6 +275,8 @@ public final class AutoNametagHack extends Hack implements UpdateListener
 			case ALL -> true;
 		};
 	}
+
+	private enum Priority {NEAREST, FARTHEST, LOWEST_HEALTH, HIGHEST_HEALTH, CLOSEST_ANGLE}
 
 	private enum TargetMode
 	{

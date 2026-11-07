@@ -104,10 +104,9 @@ public final class FlightHack extends Hack implements UpdateListener
 			return;
 		if(player.isSpectator())
 		{
-			if(trackedPlayer == player)
-				trackedPlayer = null;
-			else
-				restoreTrackedPlayer();
+			// Restore the pre-hack flying state instead of throwing it away;
+			// otherwise onDisable() can no longer restore it.
+			restoreTrackedPlayer();
 			return;
 		}
 		if(player.isPassenger() || player.isFallFlying())

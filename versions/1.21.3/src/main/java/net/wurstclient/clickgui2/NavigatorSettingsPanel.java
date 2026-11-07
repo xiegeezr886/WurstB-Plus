@@ -7,6 +7,7 @@ import net.minecraft.util.Mth;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.theme.FlatTheme;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.Setting;
 
 final class NavigatorSettingsPanel extends Window
@@ -62,19 +63,18 @@ final class NavigatorSettingsPanel extends Window
 	{
 		prepareForRender();
 		validate();
-		int scroll = isScrollingEnabled() ? getScrollOffset() : 0;
+		float scroll = isScrollingEnabled() ? updateScrollAnimation() : 0;
 		int localMouseX = mouseX - bodyX;
-		int localMouseY = mouseY - bodyY - scroll;
+		int localMouseY = Math.round(mouseY - bodyY - scroll);
 
-		graphics.enableScissor(bodyX, bodyY, bodyX + bodyWidth,
-			bodyY + bodyHeight);
-		graphics.pose().pushPose();
-		graphics.pose().translate(bodyX, bodyY + scroll, 0);
+		NanoVGUI.pushScissor(bodyX, bodyY, bodyWidth, bodyHeight);
+		NanoVGUI.push();
+		NanoVGUI.translate(bodyX, bodyY + scroll);
 		for(int index = 0; index < countChildren(); index++)
 			getChild(index).render(graphics, localMouseX, localMouseY,
 				partialTicks);
-		graphics.pose().popPose();
-		graphics.disableScissor();
+		NanoVGUI.pop();
+		NanoVGUI.popScissor();
 
 		renderScrollbar(graphics, theme);
 	}
@@ -86,7 +86,8 @@ final class NavigatorSettingsPanel extends Window
 		if(!isInside(mouseX, mouseY))
 			return false;
 
-		int scroll = isScrollingEnabled() ? getScrollOffset() : 0;
+		float scroll =
+			isScrollingEnabled() ? getAnimatedScrollOffset() : 0;
 		double localMouseX = mouseX - bodyX;
 		double localMouseY = mouseY - bodyY - scroll;
 		for(int index = countChildren() - 1; index >= 0; index--)
@@ -157,8 +158,9 @@ final class NavigatorSettingsPanel extends Window
 			(int)Math.round(bodyHeight * visibleRatio));
 		int scrollRange = Math.max(1, getInnerHeight() - bodyHeight);
 		int thumbY = bodyY + (int)Math.round(
-			-getScrollOffset() / (double)scrollRange * (bodyHeight - thumbHeight));
-		graphics.fill(bodyX + bodyWidth - 2, bodyY,
+			-getAnimatedScrollOffset() / (double)scrollRange
+				* (bodyHeight - thumbHeight));
+		NanoVGUI.fill(bodyX + bodyWidth - 2, bodyY,
 			bodyX + bodyWidth, bodyY + bodyHeight, theme.background(0.2F));
 		FlatRenderer.fillRoundedRect(graphics, bodyX + bodyWidth - 2, thumbY,
 			bodyX + bodyWidth, thumbY + thumbHeight, 1, theme.accent(0.68F));

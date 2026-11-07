@@ -6,6 +6,18 @@
   "plugin": "net.wurstclient.mixin.WurstMixinConfigPlugin",
   "mixins": [],
   "client": [
+    "AutoWalkMovementMixin",
+    "NoMiningTraceMixin",
+    "BeaconPowerButtonMixin",
+    "BetterBeaconsScreenMixin",
+    "FastUseCooldownMixin",
+    "StatusEffectInstanceMixin",
+    "HighJumpMultiplierMixin",
+    "NoInteractMixin",
+    "MultitaskMixin",
+    "TridentBoostMixin",
+    "FastBreakCooldownMixin",
+    "SoundEngineMixin",
     "EntityCullingMixin",
     "AbstractContainerScreenAccessor",
     "AbstractSignEditScreenMixin",
@@ -83,7 +95,14 @@
     "xray.FluidRendererMixin",
     "xray.BlockModelRendererMixin",
     "WorldMixin",
-    "LevelRendererMixin"
+    "LevelRendererMixin",
+    "AbstractSelectionListMixin",
+    "AbstractSliderButtonAccessor",
+    "AbstractWidgetMixin",
+    "ClientInputAccessor",
+    "KeyboardInputMixin",
+    "MusicManagerMixin",
+    "SelectWorldScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

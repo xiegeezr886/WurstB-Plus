@@ -24,6 +24,7 @@ import org.lwjgl.nanovg.NVGLUFramebuffer;
 import org.lwjgl.nanovg.NVGPaint;
 import org.lwjgl.nanovg.NanoVG;
 import org.lwjgl.nanovg.NanoVGGL3;
+import org.lwjgl.nanovg.NanoVGGLES3;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
@@ -62,6 +63,8 @@ public final class NanoVGContext
 	private boolean available;
 	private boolean frameOpen;
 	private boolean loggedFailure;
+	private boolean gles;
+	private boolean disabled;
 
 	private final Map<String, HudFont> fonts = new HashMap<>();
 	private final Map<Integer, NVGColor> colors = new HashMap<>();
@@ -107,6 +110,15 @@ public final class NanoVGContext
 	{
 		if(available)
 			return true;
+		if(disabled)
+			return false;
+
+		if("false".equalsIgnoreCase(System.getProperty("wurst.nanovg")))
+		{
+			disabled = true;
+			logFailure("disabled by -Dwurst.nanovg=false");
+			return false;
+		}
 
 		if(!NanoVGNativeLoader.ensureLoaded())
 		{
@@ -122,11 +134,23 @@ public final class NanoVGContext
 			if(scratchPaint == null)
 				scratchPaint = NVGPaint.create();
 
-			vg = NanoVGGL3.nvgCreate(
-				NanoVGGL3.NVG_ANTIALIAS | NanoVGGL3.NVG_STENCIL_STROKES);
+			String glVersion = GL11.glGetString(GL11.GL_VERSION);
+			gles = glVersion != null && glVersion.contains("OpenGL ES");
+			System.out.println("[HUD] GL " + glVersion + " / "
+				+ GL11.glGetString(GL11.GL_RENDERER));
+
+			// Pojav/Zalith can expose an OpenGL ES context, where the desktop
+			// GL3 backend's GLSL 330 shaders fail to compile. Use the ES3
+			// backend in that case so Android still gets the NanoVG UI.
+			vg = gles
+				? NanoVGGLES3.nvgCreate(NanoVGGLES3.NVG_ANTIALIAS
+					| NanoVGGLES3.NVG_STENCIL_STROKES)
+				: NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS
+					| NanoVGGL3.NVG_STENCIL_STROKES);
 			if(vg == 0)
 			{
-				logFailure("nvgCreateGL3 returned 0");
+				logFailure("nvgCreate returned 0 ("
+					+ (gles ? "GLES3" : "GL3") + ")");
 				return false;
 			}
 
@@ -296,17 +320,38 @@ public final class NanoVGContext
 
 		if(framebuffer != null)
 		{
-			if(framebuffer.image() != 0)
-				NanoVG.nvgDeleteImage(vg, framebuffer.image());
-			NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
+			// nvgluDeleteFramebuffer() already deletes the NanoVG image that
+			// wraps the colour texture. Deleting it here as well frees the
+			// same image slot twice and can corrupt NanoVG's image table,
+			// which shows up as black/missing images after a resize.
+			if(gles)
+				NanoVGGLES3.nvgluDeleteFramebuffer(vg, framebuffer);
+			else
+				NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
 			framebuffer = null;
 		}
 
-		framebuffer = NanoVGGL3.nvgluCreateFramebuffer(vg, width, height, 0);
+		framebuffer = gles
+			? NanoVGGLES3.nvgluCreateFramebuffer(vg, width, height, 0)
+			: NanoVGGL3.nvgluCreateFramebuffer(vg, width, height, 0);
 		if(framebuffer == null || framebuffer.fbo() == 0)
 		{
 			framebuffer = null;
 			logFailure("could not create the offscreen framebuffer");
+			return false;
+		}
+
+		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebuffer.fbo());
+		int status = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
+		if(status != GL30.GL_FRAMEBUFFER_COMPLETE)
+		{
+			logFailure("incomplete framebuffer 0x"
+				+ Integer.toHexString(status));
+			if(gles)
+				NanoVGGLES3.nvgluDeleteFramebuffer(vg, framebuffer);
+			else
+				NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
+			framebuffer = null;
 			return false;
 		}
 
@@ -321,7 +366,10 @@ public final class NanoVGContext
 		if(!create() || !ensureFramebuffer())
 			return false;
 
-		NanoVGGL3.nvgluBindFramebuffer(vg, framebuffer);
+		if(gles)
+			NanoVGGLES3.nvgluBindFramebuffer(vg, framebuffer);
+		else
+			NanoVGGL3.nvgluBindFramebuffer(vg, framebuffer);
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebuffer.fbo());
 		GL11.glViewport(0, 0, framebufferWidth, framebufferHeight);
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
@@ -342,7 +390,10 @@ public final class NanoVGContext
 			return;
 		frameOpen = false;
 		NanoVG.nvgEndFrame(vg);
-		NanoVGGL3.nvgluBindFramebuffer(vg, null);
+		if(gles)
+			NanoVGGLES3.nvgluBindFramebuffer(vg, null);
+		else
+			NanoVGGL3.nvgluBindFramebuffer(vg, null);
 	}
 
 	/**
@@ -379,8 +430,16 @@ public final class NanoVGContext
 	 */
 	public void composite()
 	{
-		if(!available || framebuffer == null || framebuffer.image() == 0)
+		if(!available || disabled || framebuffer == null
+			|| framebuffer.image() == 0)
 			return;
+
+		// Drop any stale error so the check below only reports errors caused
+		// by the composite itself.
+		while(GL11.glGetError() != GL11.GL_NO_ERROR)
+		{
+			// drain
+		}
 
 		NanoVG.nvgBeginFrame(vg, framebufferWidth, framebufferHeight, 1F);
 		NVGPaint paint = scratchPaint;
@@ -395,6 +454,18 @@ public final class NanoVGContext
 		}finally
 		{
 			NanoVG.nvgEndFrame(vg);
+		}
+
+		int error = GL11.glGetError();
+		if(error != GL11.GL_NO_ERROR)
+		{
+			// A broken composite would paint an opaque black quad over the
+			// frame on some drivers. Turn the whole backend off instead of
+			// repeating that every frame.
+			disabled = true;
+			available = false;
+			logFailure("composite GL error 0x"
+				+ Integer.toHexString(error));
 		}
 	}
 
@@ -1198,9 +1269,12 @@ public final class NanoVGContext
 		{
 			if(framebuffer != null)
 			{
-				if(framebuffer.image() != 0)
-					NanoVG.nvgDeleteImage(vg, framebuffer.image());
-				NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
+				// nvgluDeleteFramebuffer() deletes the image itself; deleting it
+				// here as well would free the same slot twice.
+				if(gles)
+					NanoVGGLES3.nvgluDeleteFramebuffer(vg, framebuffer);
+				else
+					NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
 				framebuffer = null;
 			}
 

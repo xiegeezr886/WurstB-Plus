@@ -163,8 +163,23 @@ public final class NanoVGUI
 				graphics.enableScissor(Math.round(s[0]), Math.round(s[1]),
 					Math.round(s[2]), Math.round(s[3]));
 			}
-			RenderUtils.drawItem(graphics, item.stack(), item.x(), item.y(),
-				item.large());
+			boolean translated = item.translateX() != 0
+				|| item.translateY() != 0;
+			if(translated)
+			{
+				graphics.pose().pushMatrix();
+				graphics.pose().translate(item.translateX(),
+					item.translateY());
+			}
+			try
+			{
+				RenderUtils.drawItem(graphics, item.stack(), item.x(),
+					item.y(), item.large());
+			}finally
+			{
+				if(translated)
+					graphics.pose().popMatrix();
+			}
 			if(item.scissor() != null)
 				graphics.disableScissor();
 		}
@@ -543,11 +558,12 @@ public final class NanoVGUI
 		if(!SCISSORS.isEmpty())
 			scissor = SCISSORS.peek();
 
-		ITEMS.add(new DeferredItem(stack, x, y, large, scissor));
+		ITEMS.add(new DeferredItem(stack, x, y, large, scissor,
+			translateX, translateY));
 	}
 
 	private record DeferredItem(ItemStack stack, int x, int y, boolean large,
-		float[] scissor)
+		float[] scissor, float translateX, float translateY)
 	{
 	}
 }

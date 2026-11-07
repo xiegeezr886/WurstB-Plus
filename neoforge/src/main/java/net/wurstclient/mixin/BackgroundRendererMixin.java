@@ -42,7 +42,8 @@ public abstract class BackgroundRendererMixin
 			return;
 		
 		Entity entity = camera.getEntity();
-		if(FogRenderer.getPriorityFogFunction(entity, tickDelta) != null)
+		if(net.wurstclient.mixin.FogRendererAccessor
+			.invokeGetPriorityFogFunction(entity, tickDelta) != null)
 			return;
 		
 		RenderSystem.setShaderFogColor(0, 0, 0, 0);

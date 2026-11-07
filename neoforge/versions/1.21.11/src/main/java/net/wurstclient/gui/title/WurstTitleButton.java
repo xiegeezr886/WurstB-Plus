@@ -1,10 +1,9 @@
 package net.wurstclient.gui.title;
 
 import net.minecraft.client.gui.GuiGraphics;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
+
+
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
@@ -13,8 +12,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
+import net.wurstclient.gui.CustomRenderedButton;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 
 final class WurstTitleButton extends AbstractButton
+	implements CustomRenderedButton
 {
 	private static final int TEXT_COLOR = 0xFFF2F6F6;
 	private static final int ACCENT_COLOR = 0xFF006366;
@@ -54,6 +56,11 @@ final class WurstTitleButton extends AbstractButton
 	public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
 		float partialTicks)
 	{
+		// Drawn by WurstTitleMenu inside its NanoVG pass.
+	}
+
+	void renderNanoVG(GuiGraphicsExtractor graphics)
+	{
 		float hover = hoverAnimation.update(isHoveredOrFocused());
 		int x1 = getX();
 		int y1 = getY();
@@ -66,23 +73,22 @@ final class WurstTitleButton extends AbstractButton
 		FlatRenderer.drawRoundedOutline(graphics, x1, y1, x2, y2,
 			compact ? 5 : 7, withAlpha(0xFFFFFFFF, 22 + Math.round(hover * 48)));
 
-		Font font = Minecraft.getInstance().font;
 		int iconSize = ICON_SIZE;
 		int iconX = x1 + (compact ? 9 : 12);
 		int iconY = y1 + (getHeight() - iconSize) / 2;
-		graphics.blit(RenderPipelines.GUI_TEXTURED, icon, iconX, iconY, 0, 0,
-			iconSize, iconSize,
-			TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
+		NanoVGUI.image(icon, iconX, iconY, iconSize, iconSize, 0, 0xFFFFFFFF);
 
 		int color = active ? TEXT_COLOR : 0xFF707A7B;
+		float textSize = compact ? 9F : 10F;
+		float textHeight = NanoVGUI.height(textSize);
 		int textX = iconX + iconSize + (compact ? 7 : 11);
-		graphics.text(font, getMessage(), textX,
-			y1 + (getHeight() - font.lineHeight) / 2 + 1, color, false);
+		NanoVGUI.text(getMessage().getString(), textX,
+			y1 + (getHeight() - textHeight) / 2, color, textSize);
 
 		if(!compact)
-			graphics.text(font, ">", x2 - 14,
-				y1 + (getHeight() - font.lineHeight) / 2 + 1,
-				withAlpha(0xFFFFFFFF, 110 + Math.round(hover * 145)), false);
+			NanoVGUI.text(">", x2 - 14,
+				y1 + (getHeight() - textHeight) / 2,
+				withAlpha(0xFFFFFFFF, 110 + Math.round(hover * 145)), textSize);
 	}
 
 	@Override

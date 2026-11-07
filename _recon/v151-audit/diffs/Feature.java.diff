@@ -1,0 +1,34 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\Feature.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\Feature.java"
+index f41fae3a..2a088443 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\Feature.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\Feature.java"
+@@ -13,6 +13,5 @@ import java.util.LinkedHashSet;
+ import java.util.Map;
+ import java.util.Set;
+-
+-import net.minecraft.client.MinecraftClient;
++import net.minecraft.client.Minecraft;
+ import net.wurstclient.event.EventManager;
+ import net.wurstclient.keybinds.PossibleKeybind;
+@@ -25,5 +24,5 @@ public abstract class Feature
+ 	protected static final WurstClient WURST = WurstClient.INSTANCE;
+ 	protected static final EventManager EVENTS = WURST.getEventManager();
+-	protected static final MinecraftClient MC = WurstClient.MC;
++	protected static final Minecraft MC = WurstClient.MC;
+ 	protected static final IMinecraftClient IMC = WurstClient.IMC;
+ 	
+@@ -41,4 +40,14 @@ public abstract class Feature
+ 	
+ 	public abstract String getName();
++
++	public String getRenderName()
++	{
++		return getName();
++	}
++
++	public String getDisplayName()
++	{
++		return getRenderName();
++	}
+ 	
+ 	public abstract String getDescription();

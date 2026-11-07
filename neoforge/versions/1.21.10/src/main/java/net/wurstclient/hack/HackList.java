@@ -27,6 +27,14 @@ import net.wurstclient.util.json.JsonException;
 
 public final class HackList implements UpdateListener
 {
+	public final NoMiningTraceHack noMiningTraceHack = new NoMiningTraceHack();
+	public final GhostHandHack ghostHandHack = new GhostHandHack();
+	public final SlippyHack slippyHack = new SlippyHack();
+	public final TridentBoostHack tridentBoostHack = new TridentBoostHack();
+	public final MultitaskHack multitaskHack = new MultitaskHack();
+	public final NoInteractHack noInteractHack = new NoInteractHack();
+	public final EndermanLookHack endermanLookHack = new EndermanLookHack();
+	public final BuildHeightHack buildHeightHack = new BuildHeightHack();
 	public final AimAssistHack aimAssistHack = new AimAssistHack();
 	public final AirPlaceHack airPlaceHack = new AirPlaceHack();
 	public final AnchorAuraHack anchorAuraHack = new AnchorAuraHack();
@@ -71,6 +79,7 @@ public final class HackList implements UpdateListener
 	public final AutoToolHack autoToolHack = new AutoToolHack();
 	public final AutoTotemHack autoTotemHack = new AutoTotemHack();
 	public final AutoTrapHack autoTrapHack = new AutoTrapHack();
+	public final AutoTorchHack autoTorchHack = new AutoTorchHack();
 	public final AutoWalkHack autoWalkHack = new AutoWalkHack();
 	public final AutoWebHack autoWebHack = new AutoWebHack();
 	public final BarrierEspHack barrierEspHack = new BarrierEspHack();
@@ -111,10 +120,12 @@ public final class HackList implements UpdateListener
 	public final DolphinHack dolphinHack = new DolphinHack();
 	public final ExcavatorHack excavatorHack = new ExcavatorHack();
 	public final ElytraFlyHack elytraFlyHack = new ElytraFlyHack();
+	public final EntityCullingHack entityCullingHack = new EntityCullingHack();
 	public final ExtraElytraHack extraElytraHack = new ExtraElytraHack();
 	public final FancyChatHack fancyChatHack = new FancyChatHack();
 	public final FakeLagHack fakeLagHack = new FakeLagHack();
 	public final FastBreakHack fastBreakHack = new FastBreakHack();
+	public final FastCrossbowHack fastCrossbowHack = new FastCrossbowHack();
 	public final FastLadderHack fastLadderHack = new FastLadderHack();
 	public final FastPlaceHack fastPlaceHack = new FastPlaceHack();
 	public final FastUseHack fastUseHack = new FastUseHack();
@@ -264,6 +275,29 @@ public final class HackList implements UpdateListener
 	public final TwerkHack twerkHack = new TwerkHack();
 	public final VomitHack vomitHack = new VomitHack();
 
+	public final BlockEspHack blockEspHack = new BlockEspHack();
+	public final BlockSelectionHack blockSelectionHack =
+		new BlockSelectionHack();
+	public final MarkerHack markerHack = new MarkerHack();
+	public final TrailHack trailHack = new TrailHack();
+	public final AutoBreedHack autoBreedHack = new AutoBreedHack();
+	public final AutoSmelterHack autoSmelterHack = new AutoSmelterHack();
+	public final NoRotateHack noRotateHack = new NoRotateHack();
+	public final FakePlayerHack fakePlayerHack = new FakePlayerHack();
+	public final EntityOwnerHack entityOwnerHack = new EntityOwnerHack();
+	public final StashFinderHack stashFinderHack = new StashFinderHack();
+	public final SpawnProoferHack spawnProoferHack = new SpawnProoferHack();
+	public final PacketMineHack packetMineHack = new PacketMineHack();
+	public final NoGhostBlocksHack noGhostBlocksHack = new NoGhostBlocksHack();
+	public final InfinityMinerHack infinityMinerHack = new InfinityMinerHack();
+	public final HighwayBuilderHack highwayBuilderHack = new HighwayBuilderHack();
+	public final LiquidFillerHack liquidFillerHack = new LiquidFillerHack();
+	public final FlamethrowerHack flamethrowerHack = new FlamethrowerHack();
+	public final EChestFarmerHack eChestFarmerHack = new EChestFarmerHack();
+	public final AutoBrewerHack autoBrewerHack = new AutoBrewerHack();
+	public final AutoShearerHack autoShearerHack = new AutoShearerHack();
+	public final AutoNametagHack autoNametagHack = new AutoNametagHack();
+
 	public final ArrowDodgeHack arrowDodgeHack = new ArrowDodgeHack();
 	public final AutoAnvilHack autoAnvilHack = new AutoAnvilHack();
 	public final BedAuraHack bedAuraHack = new BedAuraHack();
@@ -277,26 +311,17 @@ public final class HackList implements UpdateListener
 	public final BetterChatHack betterChatHack = new BetterChatHack();
 	public final RotationHack rotationHack = new RotationHack();
 	public final SpamHack spamHack = new SpamHack();
-	public final BlockEspHack blockEspHack = new BlockEspHack();
-	public final BlockSelectionHack blockSelectionHack =
-		new BlockSelectionHack();
-	public final MarkerHack markerHack = new MarkerHack();
-	public final TrailHack trailHack = new TrailHack();
-	public final AutoBreedHack autoBreedHack = new AutoBreedHack();
-	public final AutoSmelterHack autoSmelterHack = new AutoSmelterHack();
+
+	public final BetterBeaconsHack betterBeaconsHack =
+		new BetterBeaconsHack();
+	public final BookBotHack bookBotHack = new BookBotHack();
+	public final InventoryTweaksHack inventoryTweaksHack =
+		new InventoryTweaksHack();
+	public final MessageAuraHack messageAuraHack = new MessageAuraHack();
 	public final NotifierHack notifierHack = new NotifierHack();
-	public final YawDisplayHack yawDisplayHack = new YawDisplayHack();
-	public final PitchDisplayHack pitchDisplayHack = new PitchDisplayHack();
-	public final JumpResetIndicatorHack jumpResetIndicatorHack = new JumpResetIndicatorHack();
 	public final SnapTapHack snapTapHack = new SnapTapHack();
 	public final ForceMainHandHack forceMainHandHack = new ForceMainHandHack();
 	public final AutoGGHack autoGGHack = new AutoGGHack();
-	public final EntityCullingHack entityCullingHack = new EntityCullingHack();
-	public final WebBrowserHack webBrowserHack = new WebBrowserHack();
-	public final ViaVersionHack viaVersionHack = new ViaVersionHack();
-	public final SoundSubtitlesHack soundSubtitlesHack = new SoundSubtitlesHack();
-	public final Skin3DHack skin3DHack = new Skin3DHack();
-	public final RearviewHack rearviewHack = new RearviewHack();
 	public final MotionBlurHack motionBlurHack = new MotionBlurHack();
 	public final HitColorHack hitColorHack = new HitColorHack();
 	public final GlintColorHack glintColorHack = new GlintColorHack();
@@ -322,33 +347,14 @@ public final class HackList implements UpdateListener
 	public final ClearGlassHack clearGlassHack = new ClearGlassHack();
 	public final ChunkAnimatorHack chunkAnimatorHack = new ChunkAnimatorHack();
 	public final FreelookHack freelookHack = new FreelookHack();
-	public final WaypointHack waypointHack = new WaypointHack();
 	public final ChatHack chatHack = new ChatHack();
 	public final PlayerPredicatorHack playerPredicatorHack = new PlayerPredicatorHack();
-	public final PlayerDisplayHack playerDisplayHack = new PlayerDisplayHack();
-	public final TabEditorHack tabEditorHack = new TabEditorHack();
-	public final ModernHotbarHack modernHotbarHack = new ModernHotbarHack();
 	public final NametagHack nametagHack = new NametagHack();
 	public final DamageParticlesHack damageParticlesHack = new DamageParticlesHack();
 	public final BloodParticlesHack bloodParticlesHack = new BloodParticlesHack();
 	public final TargetIndicatorHack targetIndicatorHack = new TargetIndicatorHack();
 	public final ChunkBordersHack chunkBordersHack = new ChunkBordersHack();
 	public final BlockOverlayHack blockOverlayHack = new BlockOverlayHack();
-	public final WeatherDisplayHack weatherDisplayHack = new WeatherDisplayHack();
-	public final ServerIpDisplayHack serverIpDisplayHack = new ServerIpDisplayHack();
-	public final ScoreboardHack scoreboardHack = new ScoreboardHack();
-	public final PotionCounterHack potionCounterHack = new PotionCounterHack();
-	public final PlayTimeDisplayHack playTimeDisplayHack = new PlayTimeDisplayHack();
-	public final NameDisplayHack nameDisplayHack = new NameDisplayHack();
-	public final MusicInfoHack musicInfoHack = new MusicInfoHack();
-	public final MemoryUsageHack memoryUsageHack = new MemoryUsageHack();
-	public final ItemInfoHack itemInfoHack = new ItemInfoHack();
-	public final InventoryDisplayHack inventoryDisplayHack = new InventoryDisplayHack();
-	public final ImageDisplayHack imageDisplayHack = new ImageDisplayHack();
-	public final GameModeDisplayHack gameModeDisplayHack = new GameModeDisplayHack();
-	public final DayCounterHack dayCounterHack = new DayCounterHack();
-	public final CompassHack compassHack = new CompassHack();
-	public final CalendarHack calendarHack = new CalendarHack();
 	public final CrosshairHack crosshairHack = new CrosshairHack();
 	public final ReachCirclesHack reachCirclesHack = new ReachCirclesHack();
 	public final ProjectileTrailHack projectileTrailHack = new ProjectileTrailHack();
@@ -358,30 +364,12 @@ public final class HackList implements UpdateListener
 	public final KillSoundsHack killSoundsHack = new KillSoundsHack();
 	public final KillEffectsHack killEffectsHack = new KillEffectsHack();
 	public final MechvibesHack mechvibesHack = new MechvibesHack();
-	public final PackDisplayHack packDisplayHack = new PackDisplayHack();
 	public final MinemenHack minemenHack = new MinemenHack();
 	public final HypixelHack hypixelHack = new HypixelHack();
 	public final ClientSpooferHack clientSpooferHack = new ClientSpooferHack();
 	public final MinimalViewBobbingHack minimalViewBobbingHack = new MinimalViewBobbingHack();
 	public final FpsBoostHack fpsBoostHack = new FpsBoostHack();
-	public final UHCOverlayHack uhcOverlayHack = new UHCOverlayHack();
-	public final BlockInfoHack blockInfoHack = new BlockInfoHack();
-	public final SpeedometerHack speedometerHack = new SpeedometerHack();
-	public final PlayerCounterHack playerCounterHack = new PlayerCounterHack();
 	public final ReachDisplayHack reachDisplayHack = new ReachDisplayHack();
-	public final MouseStrokesHack mouseStrokesHack = new MouseStrokesHack();
-	public final CpsDisplayHack cpsDisplayHack = new CpsDisplayHack();
-	public final SessionInfoHack sessionInfoHack = new SessionInfoHack();
-	public final HorseStatsHack horseStatsHack = new HorseStatsHack();
-	public final TntTimerHack tntTimerHack = new TntTimerHack();
-	public final TargetInfoHack targetInfoHack = new TargetInfoHack();
-	public final BossHealthHack bossHealthHack = new BossHealthHack();
-	public final PotionStatusHack potionStatusHack = new PotionStatusHack();
-	public final ArmorStatusHack armorStatusHack = new ArmorStatusHack();
-	public final AppleSkinHack appleSkinHack = new AppleSkinHack();
-	public final StopwatchHack stopwatchHack = new StopwatchHack();
-	public final KeystrokesHack keystrokesHack = new KeystrokesHack();
-	public final ComboCounterHack comboCounterHack = new ComboCounterHack();
 	public final HypixelQuickPlayHack hypixelQuickPlayHack = new HypixelQuickPlayHack();
 	public final AutoTextHack autoTextHack = new AutoTextHack();
 	public final FpsLimiterHack fpsLimiterHack = new FpsLimiterHack();
@@ -398,6 +386,14 @@ public final class HackList implements UpdateListener
 	public final SpearExploitHack spearExploitHack = new SpearExploitHack();
 	public final OdmGearHack odmGearHack = new OdmGearHack();
 	public final PitcherHack pitcherHack = new PitcherHack();
+	public final FlightAntiKickHack flightAntiKickHack = new FlightAntiKickHack();
+	public final ScreenActionsHack screenActionsHack = new ScreenActionsHack();
+	public final SonarBypassHack sonarBypassHack = new SonarBypassHack();
+	public final KnockbackDirectionHack knockbackDirectionHack = new KnockbackDirectionHack();
+	public final KillFxHack killFxHack = new KillFxHack();
+	public final ImgWorldStatsHack imgWorldStatsHack = new ImgWorldStatsHack();
+	public final ImgTotemParticleHack imgTotemParticleHack = new ImgTotemParticleHack();
+	public final ImgTipsHack imgTipsHack = new ImgTipsHack();
 	public final MobHudHack mobHudHack = new MobHudHack();
 	public final MineEspHack mineEspHack = new MineEspHack();
 	public final ImgChamsHack imgChamsHack = new ImgChamsHack();
@@ -409,17 +405,6 @@ public final class HackList implements UpdateListener
 	public final AntiLagHack antiLagHack = new AntiLagHack();
 	public final AntiAntiXrayHack antiAntiXrayHack = new AntiAntiXrayHack();
 	public final AmbienceHack ambienceHack = new AmbienceHack();
-	public final XCarryHack xCarryHack = new XCarryHack();
-	public final AutoKouZiHack autoKouZiHack = new AutoKouZiHack();
-	public final AutoNodHack autoNodHack = new AutoNodHack();
-	public final AutoTPAcceptHack autoTPAcceptHack = new AutoTPAcceptHack();
-	public final AutoServerHack autoServerHack = new AutoServerHack();
-	public final HexChatHack hexChatHack = new HexChatHack();
-	public final GAntiExplosionHack gAntiExplosionHack = new GAntiExplosionHack();
-	public final FeedbackBlockerHack feedbackBlockerHack = new FeedbackBlockerHack();
-	public final ChatPrefixCustomHack chatPrefixCustomHack = new ChatPrefixCustomHack();
-	public final ChatHiderHack chatHiderHack = new ChatHiderHack();
-	public final ChatFilterHack chatFilterHack = new ChatFilterHack();
 	public final FoKillAuraHack foKillAuraHack = new FoKillAuraHack();
 	public final AutoMineSandHack autoMineSandHack = new AutoMineSandHack();
 	public final RTsearchHack rTsearchHack = new RTsearchHack();
@@ -441,6 +426,21 @@ public final class HackList implements UpdateListener
 	public final TpMachineGunHack tpMachineGunHack = new TpMachineGunHack();
 	public final TpBowAuraHack tpBowAuraHack = new TpBowAuraHack();
 	public final TpAnchorHack tpAnchorHack = new TpAnchorHack();
+	public final GAntiLagHack gAntiLagHack = new GAntiLagHack();
+	public final GSuperVClipHack gSuperVClipHack = new GSuperVClipHack();
+	public final GTpbotHack gTpbotHack = new GTpbotHack();
+	public final GTpAuraHack gTpAuraHack = new GTpAuraHack();
+	public final TPServerEquivalentHack tPServerEquivalentHack =
+		new TPServerEquivalentHack();
+	public final GcoreTpDiagnosticHack gcoreTpDiagnosticHack =
+		new GcoreTpDiagnosticHack();
+	public final TpAnchorAuraHack tpAnchorAuraHack = new TpAnchorAuraHack();
+	public final GLightTpAnchorAuraHack gLightTpAnchorAuraHack =
+		new GLightTpAnchorAuraHack();
+	public final GcoreTpCrystalAuraHack gcoreTpCrystalAuraHack =
+		new GcoreTpCrystalAuraHack();
+	public final GcoreWebAuraHack gcoreWebAuraHack = new GcoreWebAuraHack();
+	public final GcoreGTrapHack gcoreGTrapHack = new GcoreGTrapHack();
 	public final TntBomberHack tntBomberHack = new TntBomberHack();
 	public final SwordGapHack swordGapHack = new SwordGapHack();
 	public final SpearKillHack spearKillHack = new SpearKillHack();
@@ -452,17 +452,20 @@ public final class HackList implements UpdateListener
 	public final CrossbowAuraHack crossbowAuraHack = new CrossbowAuraHack();
 	public final AutoChestAuraHack autoChestAuraHack = new AutoChestAuraHack();
 	public final AttractAuraHack attractAuraHack = new AttractAuraHack();
-	public final ImgTipsHack imgTipsHack = new ImgTipsHack();
-	public final ImgTotemParticleHack imgTotemParticleHack = new ImgTotemParticleHack();
-	public final ImgWorldStatsHack imgWorldStatsHack = new ImgWorldStatsHack();
-	public final KillFxHack killFxHack = new KillFxHack();
-	public final KnockbackDirectionHack knockbackDirectionHack = new KnockbackDirectionHack();
-	public final SprintStatusHack sprintStatusHack = new SprintStatusHack();
-	public final SonarBypassHack sonarBypassHack = new SonarBypassHack();
-	public final ScreenActionsHack screenActionsHack = new ScreenActionsHack();
-	public final FlightAntiKickHack flightAntiKickHack = new FlightAntiKickHack();
-	public final FastCrossbowHack fastCrossbowHack = new FastCrossbowHack();
-	public final AutoTorchHack autoTorchHack = new AutoTorchHack();
+	public final ChatFilterHack chatFilterHack = new ChatFilterHack();
+	public final ChatHiderHack chatHiderHack = new ChatHiderHack();
+	public final ChatPrefixCustomHack chatPrefixCustomHack =
+		new ChatPrefixCustomHack();
+	public final FeedbackBlockerHack feedbackBlockerHack =
+		new FeedbackBlockerHack();
+	public final GAntiExplosionHack gAntiExplosionHack =
+		new GAntiExplosionHack();
+	public final HexChatHack hexChatHack = new HexChatHack();
+	public final AutoServerHack autoServerHack = new AutoServerHack();
+	public final AutoTPAcceptHack autoTPAcceptHack = new AutoTPAcceptHack();
+	public final AutoNodHack autoNodHack = new AutoNodHack();
+	public final AutoKouZiHack autoKouZiHack = new AutoKouZiHack();
+	public final XCarryHack xCarryHack = new XCarryHack();
 	public final ReplenishHack replenishHack = new ReplenishHack();
 	public final PushCrystalHack pushCrystalHack = new PushCrystalHack();
 	public final PrinterHack printerHack = new PrinterHack();
@@ -491,25 +494,6 @@ public final class HackList implements UpdateListener
 	public final AutoAnchorHack autoAnchorHack = new AutoAnchorHack();
 	public final ElytraCollectorHack elytraCollectorHack = new ElytraCollectorHack();
 	public final AutoTrashHack autoTrashHack = new AutoTrashHack();
-	public final MessageAuraHack messageAuraHack = new MessageAuraHack();
-	public final InventoryTweaksHack inventoryTweaksHack = new InventoryTweaksHack();
-	public final BookBotHack bookBotHack = new BookBotHack();
-	public final BetterBeaconsHack betterBeaconsHack = new BetterBeaconsHack();
-	public final NoRotateHack noRotateHack = new NoRotateHack();
-	public final FakePlayerHack fakePlayerHack = new FakePlayerHack();
-	public final EntityOwnerHack entityOwnerHack = new EntityOwnerHack();
-	public final StashFinderHack stashFinderHack = new StashFinderHack();
-	public final SpawnProoferHack spawnProoferHack = new SpawnProoferHack();
-	public final PacketMineHack packetMineHack = new PacketMineHack();
-	public final NoGhostBlocksHack noGhostBlocksHack = new NoGhostBlocksHack();
-	public final InfinityMinerHack infinityMinerHack = new InfinityMinerHack();
-	public final HighwayBuilderHack highwayBuilderHack = new HighwayBuilderHack();
-	public final LiquidFillerHack liquidFillerHack = new LiquidFillerHack();
-	public final FlamethrowerHack flamethrowerHack = new FlamethrowerHack();
-	public final EChestFarmerHack eChestFarmerHack = new EChestFarmerHack();
-	public final AutoBrewerHack autoBrewerHack = new AutoBrewerHack();
-	public final AutoShearerHack autoShearerHack = new AutoShearerHack();
-	public final AutoNametagHack autoNametagHack = new AutoNametagHack();
 
 	private final TreeMap<String, Hack> hax =
 		new TreeMap<>(String::compareToIgnoreCase);

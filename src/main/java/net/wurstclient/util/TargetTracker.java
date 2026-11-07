@@ -28,7 +28,7 @@ public final class TargetTracker<T>
 
 	public T update(T candidate, Predicate<T> validator,
 		ToDoubleFunction<T> score, boolean sticky, int switchDelay,
-		double switchAdvantagePercent)
+		double switchAdvantageFraction)
 	{
 		Objects.requireNonNull(validator, "validator");
 		Objects.requireNonNull(score, "score");
@@ -51,10 +51,10 @@ public final class TargetTracker<T>
 			return target;
 		if(!Double.isFinite(currentScore))
 			return replace(candidate, switchDelay);
-		double advantagePercent = Double.isFinite(switchAdvantagePercent)
-			? Math.max(0, switchAdvantagePercent) : 0;
+		double advantageFraction = Double.isFinite(switchAdvantageFraction)
+			? Math.max(0, switchAdvantageFraction) : 0;
 		double requiredAdvantage = Math.max(0.05,
-			Math.abs(currentScore) * advantagePercent / 100);
+			Math.abs(currentScore) * advantageFraction);
 		if(candidateScore + requiredAdvantage < currentScore)
 			return replace(candidate, switchDelay);
 		return target;

@@ -10,6 +10,7 @@ package net.wurstclient.hacks.aura;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.IntFunction;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -32,8 +33,10 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 import net.wurstclient.WurstRenderLayers;
+import net.wurstclient.util.FakePlayerEntity;
 import net.wurstclient.util.RenderUtils;
 import net.wurstclient.util.Rotation;
+import net.wurstclient.util.RotationUtils;
 
 /**
  * Targeting and rotation math ported from OpenOpal's KillAura
@@ -92,11 +95,35 @@ public final class OpenAura
 			lastAttackDamage = attackDamage();
 		}
 
+		/**
+		 * Restores the per-entity attack history saved by a previous tick.
+		 * Targets are recreated by {@link #collect(Config)} every tick, so
+		 * without this the attack window and the SWITCH ordering would never
+		 * see an earlier attack.
+		 */
+		public void restoreAttackState(AttackRecord record)
+		{
+			if(record == null)
+				return;
+
+			lastAttackTime = record.time();
+			lastAttackDamage = record.damage();
+		}
+
+		public AttackRecord attackRecord()
+		{
+			return new AttackRecord(lastAttackTime, lastAttackDamage);
+		}
+
 		public long getLastAttackTime()
 		{
 			return lastAttackTime;
 		}
 	}
+
+	/** Cross-tick attack history for one entity. */
+	public record AttackRecord(long time, double damage)
+	{}
 
 	public static List<Target> collect(Config config)
 	{
@@ -137,8 +164,23 @@ public final class OpenAura
 	 */
 	public static Target select(List<Target> targets, boolean switchMode)
 	{
+		return select(targets, switchMode, id -> null);
+	}
+
+	/**
+	 * Same as {@link #select(List, boolean)} but restores each target's attack
+	 * history before sorting, so SWITCH can actually prefer targets that have
+	 * not been hit recently.
+	 */
+	public static Target select(List<Target> targets, boolean switchMode,
+		IntFunction<AttackRecord> history)
+	{
 		if(targets.isEmpty())
 			return null;
+
+		if(history != null)
+			for(Target target : targets)
+				target.restoreAttackState(history.apply(target.entity.getId()));
 
 		targets.sort(Comparator.comparingDouble(t ->
 		{
@@ -274,8 +316,19 @@ public final class OpenAura
 			|| !entity.isPickable())
 			return false;
 
+		// Match EntityUtils.IS_ATTACKABLE: never attack Wurst's client-side
+		// fake players (the server does not know their entity id) or players
+		// that AntiBot has already identified as bots.
+		if(entity instanceof FakePlayerEntity)
+			return false;
+
 		if(WurstClient.INSTANCE.getFriends() != null
 			&& WurstClient.INSTANCE.getFriends().isFriend(entity))
+			return false;
+
+		if(entity instanceof Player otherPlayer
+			&& WurstClient.INSTANCE.getHax() != null
+			&& WurstClient.INSTANCE.getHax().antiBotHack.isBot(otherPlayer))
 			return false;
 
 		if(entity instanceof Player)
@@ -289,15 +342,14 @@ public final class OpenAura
 
 	private static boolean isInFov(LivingEntity entity, Vec3 eyes, double fov)
 	{
-		if(fov >= 180)
+		// fov is the total field of view (360 = everything), like upstream
+		// Wurst's KillAura. The check uses the full 3D angle to the look
+		// vector, so entities above/below the crosshair are excluded too.
+		if(fov >= 360)
 			return true;
 
-		Player player = WurstClient.MC.player;
-		Rotation needed = rotationTo(eyes,
-			entity.getBoundingBox().getCenter());
-		double difference = Math.abs(
-			Mth.wrapDegrees(player.getYRot() - needed.yaw()));
-		return difference < fov;
+		return RotationUtils
+			.getAngleToLookVec(entity.getBoundingBox().getCenter()) <= fov / 2.0D;
 	}
 
 	// ------------------------------------------------------------- visuals

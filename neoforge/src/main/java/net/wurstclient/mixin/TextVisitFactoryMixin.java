@@ -23,6 +23,8 @@ public abstract class TextVisitFactoryMixin
 		index = 0)
 	private static String adjustText(String text)
 	{
+		if(WurstClient.INSTANCE.getHax() == null)
+			return text;
 		return WurstClient.INSTANCE.getHax().nameProtectHack.protect(text);
 	}
 }

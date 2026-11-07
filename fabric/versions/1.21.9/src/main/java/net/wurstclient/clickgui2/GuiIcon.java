@@ -1,10 +1,10 @@
 package net.wurstclient.clickgui2;
 
-import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.ResourceLocation;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 
 public enum GuiIcon
 {
@@ -27,8 +27,6 @@ public enum GuiIcon
 	WINDOW_TOGGLE("window_toggle"),
 	CHEVRON("chevron");
 
-	private static final int TEXTURE_SIZE = 64;
-
 	private final ResourceLocation texture;
 
 	GuiIcon(String name)
@@ -39,22 +37,18 @@ public enum GuiIcon
 
 	public void draw(GuiGraphicsExtractor graphics, int x, int y, int size, int color)
 	{
-		graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, 0, 0, size,
-			size, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, color);
+		NanoVGUI.image(texture, x, y, size, size, 0, color);
 	}
 
 	public void drawRotated(GuiGraphicsExtractor graphics, int x, int y, int size,
 		int color, float degrees)
 	{
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(x + size / 2F, y + size / 2F);
-		graphics.pose().rotate((float)Math.toRadians(degrees));
-		graphics.pose().translate(-x - size / 2F, -y - size / 2F);
-		draw(graphics, x, y, size, color);
-		graphics.pose().popMatrix();
+		NanoVGUI.imageRotated(texture, x + size / 2F, y + size / 2F, size,
+			size, 0, degrees, color);
 	}
 
 	public static void configureFiltering(Minecraft minecraft)
 	{
+		// NanoVG owns the sampling state of the images it uploads.
 	}
 }

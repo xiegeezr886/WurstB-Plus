@@ -5,19 +5,17 @@ import java.util.List;
 import org.joml.Matrix4f;
 
 import com.mojang.blaze3d.opengl.GlConst;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-// BufferUploader removed in MC 26.1.2
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.wurstclient.WurstRenderLayers;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RenderUtils;
 
@@ -50,29 +48,23 @@ public final class PlayerHaloRenderer
 
 		try(RenderScope ignored = RenderScope.capture())
 		{
-			// Blend state managed by render pipeline
-			// Blend state managed by render pipeline
-		// RenderSystem.disableCull removed in 26.1.2
-			// Depth state managed by render pipeline
-		// Depth state managed by render pipeline
-			// Depth state managed by render pipeline
-		// Shader managed by render pipeline
-			BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
-				DefaultVertexFormat.POSITION_COLOR);
+			MultiBufferSource.BufferSource vcp = RenderUtils.getVCP();
+			RenderType quadsLayer = WurstRenderLayers.getQuads(true);
+			VertexConsumer buffer = vcp.getBuffer(quadsLayer);
 			for(AbstractClientPlayer player : players)
 				if(shouldRender(player, localPlayer, renderLocalPlayer))
 					addGlow(buffer, matrix, getCenter(player, partialTicks, camera),
 						radiusForWidth(player.getBbWidth()), red, green, blue);
-			draw(buffer);
-		// RenderSystem.lineWidth removed in 26.1.2
-			buffer = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES,
-				DefaultVertexFormat.POSITION_COLOR);
+			vcp.endBatch(quadsLayer);
+
+			RenderType linesLayer = WurstRenderLayers.getLines(true);
+			buffer = vcp.getBuffer(linesLayer);
 			for(AbstractClientPlayer player : players)
 				if(shouldRender(player, localPlayer, renderLocalPlayer))
 					addOutline(buffer, matrix,
 						getCenter(player, partialTicks, camera),
 						radiusForWidth(player.getBbWidth()), red, green, blue);
-			draw(buffer);
+			vcp.endBatch(linesLayer);
 		}
 	}
 
@@ -95,7 +87,7 @@ public final class PlayerHaloRenderer
 			.add(0, player.getBbHeight() + HEAD_OFFSET, 0);
 	}
 
-	private static void addGlow(BufferBuilder buffer, Matrix4f matrix,
+	private static void addGlow(VertexConsumer buffer, Matrix4f matrix,
 		Vec3 center, double radius, float red, float green, float blue)
 	{
 		for(int i = 0; i < SEGMENTS; i++)
@@ -109,7 +101,7 @@ public final class PlayerHaloRenderer
 		}
 	}
 
-	private static void addBandSegment(BufferBuilder buffer, Matrix4f matrix,
+	private static void addBandSegment(VertexConsumer buffer, Matrix4f matrix,
 		Vec3 center, double innerRadius, double outerRadius, double angle1,
 		double angle2, float red, float green, float blue, float innerAlpha,
 		float outerAlpha)
@@ -124,21 +116,26 @@ public final class PlayerHaloRenderer
 			outerAlpha);
 	}
 
-	private static void addOutline(BufferBuilder buffer, Matrix4f matrix,
+	private static void addOutline(VertexConsumer buffer, Matrix4f matrix,
 		Vec3 center, double radius, float red, float green, float blue)
 	{
 		for(int i = 0; i < SEGMENTS; i++)
 		{
 			double angle1 = Math.PI * 2 * i / SEGMENTS;
 			double angle2 = Math.PI * 2 * (i + 1) / SEGMENTS;
-			addVertex(buffer, matrix, center, radius, angle1, red, green, blue,
-				0.95F);
-			addVertex(buffer, matrix, center, radius, angle2, red, green, blue,
-				0.95F);
+			double dx = Math.cos(angle2) - Math.cos(angle1);
+			double dz = Math.sin(angle2) - Math.sin(angle1);
+			double len = Math.sqrt(dx * dx + dz * dz);
+			float nx = (float)(dx / len);
+			float nz = (float)(dz / len);
+			addLineVertex(buffer, matrix, center, radius, angle1, red, green,
+				blue, nx, nz);
+			addLineVertex(buffer, matrix, center, radius, angle2, red, green,
+				blue, nx, nz);
 		}
 	}
 
-	private static void addVertex(BufferBuilder buffer, Matrix4f matrix,
+	private static void addVertex(VertexConsumer buffer, Matrix4f matrix,
 		Vec3 center, double radius, double angle, float red, float green,
 		float blue, float alpha)
 	{
@@ -147,13 +144,14 @@ public final class PlayerHaloRenderer
 			(float)(center.z + Math.sin(angle) * radius))
 			.setColor(red, green, blue, alpha);
 	}
-
-	private static void draw(BufferBuilder buffer)
+	private static void addLineVertex(VertexConsumer buffer, Matrix4f matrix,
+		Vec3 center, double radius, double angle, float red, float green,
+		float blue, float nx, float nz)
 	{
-		com.mojang.blaze3d.vertex.MeshData rendered = buffer.build();
-		if(rendered != null)
-		{
-			// BufferUploader removed in MC 26.1.2
-		}
+		buffer.addVertex(matrix,
+			(float)(center.x + Math.cos(angle) * radius), (float)center.y,
+			(float)(center.z + Math.sin(angle) * radius))
+			.setColor(red, green, blue, 0.95F).setNormal(nx, 0, nz)
+			.setLineWidth(2);
 	}
 }

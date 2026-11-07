@@ -93,7 +93,11 @@ public enum RotationUtils
 		// lastYaw/Pitch do not get updated when the player is in a vehicle
 		Rotation lastReported = player.isPassenger()
 			? new Rotation(player.getYRot(), player.getXRot())
-			: new Rotation(player.yRotLast, player.xRotLast);
+			: new Rotation(
+				((net.wurstclient.mixin.LocalPlayerAccessor)(Object)player)
+					.getYRotLast(),
+				((net.wurstclient.mixin.LocalPlayerAccessor)(Object)player)
+					.getXRotLast());
 		
 		return lastReported.getAngleTo(rotation);
 	}

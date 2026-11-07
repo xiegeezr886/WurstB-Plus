@@ -28,18 +28,35 @@ public class GuiMixin
 {
 	@Inject(
 		method = "renderTabList(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
-		at = @At("HEAD"))
+		at = @At("HEAD"),
+		cancellable = true)
 	private void onRenderPlayerList(GuiGraphics graphics,
 		DeltaTracker tickCounter, CallbackInfo ci)
 	{
-		if(WurstClient.MC.debugEntries.isOverlayVisible())
-			return;
-		
-		float tickDelta = tickCounter.getGameTimeDeltaPartialTick(true);
-		EventManager.fire(new GUIRenderEvent(
-			new GuiGraphicsExtractor(graphics), tickDelta));
+		if(!WurstClient.MC.debugEntries.isOverlayVisible())
+		{
+			float tickDelta = tickCounter.getGameTimeDeltaPartialTick(true);
+			EventManager.fire(new GUIRenderEvent(
+				new GuiGraphicsExtractor(graphics), tickDelta));
+		}
+
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax != null && hax.betterTabHack.renderTabList(graphics))
+			ci.cancel();
 	}
-	
+
+	@Inject(
+		method = "renderEffects(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
+		at = @At("HEAD"),
+		cancellable = true)
+	private void onRenderEffects(GuiGraphics graphics,
+		DeltaTracker tickCounter, CallbackInfo ci)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax != null && hax.noStatusEffectsHack.isHiding())
+			ci.cancel();
+	}
+
 	@Inject(
 		method = "renderTextureOverlay(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/resources/Identifier;F)V",
 		at = @At("HEAD"),
@@ -49,19 +66,19 @@ public class GuiMixin
 	{
 		if(texture == null)
 			return;
-		
+
 		String path = texture.getPath();
 		HackList hax = WurstClient.INSTANCE.getHax();
-		
+
 		if("textures/misc/pumpkinblur.png".equals(path)
 			&& (hax.noPumpkinHack.isEnabled() || hax.overlayEditorHack.isHidePumpkin()))
 			ci.cancel();
-		
+
 		if("textures/misc/powder_snow_outline.png".equals(path)
 			&& hax.noOverlayHack.isEnabled())
 			ci.cancel();
 	}
-	
+
 	@Inject(method = "renderVignette", at = @At("HEAD"), cancellable = true)
 	private void onRenderVignetteOverlay(GuiGraphics graphics,
 		Entity entity, CallbackInfo ci)
@@ -69,7 +86,7 @@ public class GuiMixin
 		HackList hax = WurstClient.INSTANCE.getHax();
 		if(hax == null || !hax.noVignetteHack.isEnabled())
 			return;
-		
+
 		ci.cancel();
 	}
 }

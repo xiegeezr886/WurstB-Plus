@@ -1,0 +1,175 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "net.neoforged.fancymodloader",
+    "module": "spi",
+    "version": "2.0.17",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.1.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "net.neoforged",
+          "module": "mergetool",
+          "version": {
+            "requires": "2.0.0"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ],
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "mergetool",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "api"
+            }
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spi-2.0.17.jar",
+          "url": "spi-2.0.17.jar",
+          "size": 31942,
+          "sha512": "00501338e3ae8e83ab46802558c28ee82330bf7e49968d2df2d870c7f8265c63ccfbb33138aacc4f65f3694c665535f6e564c3a6d7d1b45f1c64be5154e4785e",
+          "sha256": "78c28c7b11333b312e13ce347429fb5f627a931234125e7dd7ead014b4321ed2",
+          "sha1": "3d3f2ed71a472bb360a38eaad565cec755696406",
+          "md5": "72e7a0c088ef60462baaa5dfecf2eefd"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "cpw.mods",
+          "module": "modlauncher",
+          "version": {
+            "requires": "10.0.9"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm",
+          "version": {
+            "requires": "9.5"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-commons",
+          "version": {
+            "requires": "9.5"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-tree",
+          "version": {
+            "requires": "9.5"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-api",
+          "version": {
+            "requires": "2.19.0"
+          }
+        },
+        {
+          "group": "org.apache.maven",
+          "module": "maven-artifact",
+          "version": {
+            "requires": "3.8.5"
+          }
+        },
+        {
+          "group": "cpw.mods",
+          "module": "securejarhandler",
+          "version": {
+            "requires": "2.1.23"
+          }
+        },
+        {
+          "group": "net.neoforged",
+          "module": "mergetool",
+          "version": {
+            "requires": "2.0.0"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ],
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "mergetool",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "api"
+            }
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spi-2.0.17.jar",
+          "url": "spi-2.0.17.jar",
+          "size": 31942,
+          "sha512": "00501338e3ae8e83ab46802558c28ee82330bf7e49968d2df2d870c7f8265c63ccfbb33138aacc4f65f3694c665535f6e564c3a6d7d1b45f1c64be5154e4785e",
+          "sha256": "78c28c7b11333b312e13ce347429fb5f627a931234125e7dd7ead014b4321ed2",
+          "sha1": "3d3f2ed71a472bb360a38eaad565cec755696406",
+          "md5": "72e7a0c088ef60462baaa5dfecf2eefd"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spi-2.0.17-sources.jar",
+          "url": "spi-2.0.17-sources.jar",
+          "size": 19543,
+          "sha512": "0f42c1f19dc6ade4f12ea49c362e6748b516fe8de2de81053947512434f64cff2ce0246ec97daaefe682ab02ba2238e553473ab824655178bbe79bf26e4abf79",
+          "sha256": "e094fdb44edb935e396b57c66d5bbb7f3500cee827db4dc1ece6792059e48949",
+          "sha1": "176edbd0c4d4cedf089cc773f2dcb4e23519b80e",
+          "md5": "90f3863b8ca4b328fa8101bfaa7a7552"
+        }
+      ]
+    }
+  ]
+}

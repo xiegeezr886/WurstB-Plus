@@ -34,10 +34,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.tags.EnchantmentTags;
 import net.wurstclient.hacks.autolibrarian.BookOffer;
+import net.wurstclient.util.EnchantmentUtils;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.BookOffersSetting;
 import net.wurstclient.util.MathUtils;
-import net.wurstclient.util.RenderUtils;
-import net.wurstclient.util.EnchantmentUtils;
 
 public final class AddBookOfferScreen extends Screen
 {
@@ -231,6 +231,14 @@ public final class AddBookOfferScreen extends Screen
 		}
 	}
 	
+	private static int maxLevelOf(BookOffer offer)
+	{
+		Holder<Enchantment> enchantment = offer == null ? null
+			: offer.getEnchantment();
+		return enchantment == null ? 0
+			: enchantment.value().getMaxLevel();
+	}
+
 	@Override
 	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
 	{
@@ -287,38 +295,35 @@ public final class AddBookOfferScreen extends Screen
 	private void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		Matrix3x2fStack matrixStack = context.pose();
+		NanoVGUI.clearDeferred();
 		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
-		
-		matrixStack.pushMatrix();
-		matrixStack.translate(0, 0);
-		
-		Font tr = minecraft.font;
-		String titleText =
-			"可用附魔书 (" + listGui.children().size() + ")";
-		context.centeredText(tr, titleText, width / 2, 12,
-			0xFFffffff);
-		
 		levelField.render(context.getInner(), mouseX, mouseY, partialTicks);
 		priceField.render(context.getInner(), mouseX, mouseY, partialTicks);
 		super.render(context.getInner(), mouseX, mouseY, partialTicks);
-		
-		matrixStack.translate(width / 2 - 100, 0);
-		
-		context.text(tr, "等级:", 0, height - 72, 0xFFf0f0f0);
-		context.text(tr, "最高价格:", 0, height - 56, 0xFFf0f0f0);
-		
-		if(alreadyAdded && offerToAdd != null)
-		{
-			String errorText = offerToAdd.getEnchantmentNameWithLevel()
-				+ " 已在你的列表中！";
-			context.text(tr, errorText, 0, height - 40, 0xFFff5555);
-		}
-		
-		matrixStack.popMatrix();
-		
-		RenderUtils.drawItem(context, new ItemStack(Items.EMERALD),
-			width / 2 - 16, height - 58, false);
+
+		NanoVGUI.pass(context, () -> {
+			NanoVGUI.pushScissor(0, 32, width, height - 112);
+			NanoVGUI.runDeferred();
+			NanoVGUI.popScissor();
+
+			String titleText =
+				"可用附魔书 (" + listGui.children().size() + ")";
+			NanoVGUI.centeredText(titleText, width / 2, 12, 0xFFFFFFFF, 9F);
+
+			int baseX = width / 2 - 100;
+			NanoVGUI.text("等级:", baseX, height - 72, 0xf0f0f0, 9F);
+			NanoVGUI.text("最高价格:", baseX, height - 56, 0xf0f0f0, 9F);
+
+			if(alreadyAdded && offerToAdd != null)
+			{
+				String errorText = offerToAdd.getEnchantmentNameWithLevel()
+					+ " 已在你的列表中！";
+				NanoVGUI.text(errorText, baseX, height - 40, 0xff5555, 9F);
+			}
+
+			NanoVGUI.item(context, new ItemStack(Items.EMERALD),
+				width / 2 - 16, height - 58, false);
+		});
 	}
 	
 	@Override
@@ -387,22 +392,20 @@ public final class AddBookOfferScreen extends Screen
 			int y = getContentY();
 			Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse("enchanted_book"));
 			ItemStack stack = new ItemStack(item);
-			RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
-			
-			Font tr = minecraft.font;
-			Holder<Enchantment> enchantment = bookOffer.getEnchantment();
-			
+
 			String name = bookOffer.getEnchantmentName();
-			int nameColor = enchantment.is(EnchantmentTags.CURSE)
-				? 0xFFFF5555 : 0xFFF0F0F0;
-			context.text(tr, name, x + 28, y, nameColor, false);
-			
-			context.text(tr, bookOffer.id(), x + 28, y + 9, 0xFFA0A0A0,
-				false);
-			
-			int maxLevel = enchantment.value().getMaxLevel();
+			Holder<Enchantment> enchantment = bookOffer.getEnchantment();
+			int nameColor = enchantment != null && enchantment.is(EnchantmentTags.CURSE)
+				? 0xFF5555 : 0xF0F0F0;
+			int maxLevel = maxLevelOf(bookOffer);
 			String levels = maxLevel + (maxLevel == 1 ? " 级" : " 级");
-			context.text(tr, levels, x + 28, y + 18, 0xFFA0A0A0, false);
+
+			NanoVGUI.defer(() -> {
+				NanoVGUI.item(context, stack, x + 1, y + 1, true);
+				NanoVGUI.text(name, x + 28, y, nameColor, 9F);
+				NanoVGUI.text(bookOffer.id(), x + 28, y + 9, 0xA0A0A0, 9F);
+				NanoVGUI.text(levels, x + 28, y + 18, 0xA0A0A0, 9F);
+			});
 		}
 	}
 	

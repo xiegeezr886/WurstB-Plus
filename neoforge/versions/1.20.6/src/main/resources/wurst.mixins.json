@@ -6,6 +6,18 @@
   "plugin": "net.wurstclient.mixin.WurstMixinConfigPlugin",
   "mixins": [],
   "client": [
+    "AutoWalkMovementMixin",
+    "NoMiningTraceMixin",
+    "BeaconPowerButtonMixin",
+    "BetterBeaconsScreenMixin",
+    "FastUseCooldownMixin",
+    "HighJumpMultiplierMixin",
+    "NoInteractMixin",
+    "MultitaskMixin",
+    "TridentBoostMixin",
+    "FastBreakCooldownMixin",
+    "AutoLeavePortalAccessor",
+    "SoundEngineMixin",
     "AbstractBlockStateMixin",
     "AbstractSignEditScreenMixin",
     "AllowedAddressResolverMixin",
@@ -85,7 +97,13 @@
     "TitleScreenMixin",
     "ToastComponentAccessor",
     "WorldMixin",
-    "WorldRendererMixin"
+    "WorldRendererMixin",
+    "AbstractSelectionListMixin",
+    "AbstractSliderButtonAccessor",
+    "AbstractWidgetMixin",
+    "KeyboardInputMixin",
+    "MusicManagerMixin",
+    "SelectWorldScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

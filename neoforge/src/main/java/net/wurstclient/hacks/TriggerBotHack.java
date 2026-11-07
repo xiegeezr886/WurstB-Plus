@@ -147,7 +147,7 @@ public final class TriggerBotHack extends Hack
 			return;
 		if(requireAttackKey.isChecked() && !MC.options.keyAttack.isDown())
 			return;
-		if(pauseWhileMining.isChecked() && MC.gameMode.isDestroying())
+		if(pauseWhileMining.isChecked() && ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying())
 			return;
 		
 		// don't attack when a container/inventory screen is open

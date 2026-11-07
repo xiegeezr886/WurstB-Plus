@@ -8,7 +8,6 @@
 package net.wurstclient.clickgui2.components;
 
 import org.lwjgl.glfw.GLFW;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -17,6 +16,7 @@ import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.clickgui2.Component;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.screens.EditSliderScreen;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.util.RenderUtils;
 
@@ -128,17 +128,16 @@ public final class SliderComponent extends Component
 			xl2 += ratio * (setting.getUsableMax() - setting.getMaximum());
 			
 			int limitColor = 0xA0F05A67;
-			float[][] limitVertices = {{x3, y4}, {x3, y5}, {xl1, y5}, {xl1, y4},
-				{xl2, y4}, {xl2, y5}, {x4, y5}, {x4, y4}};
-			RenderUtils.fillQuads2D(context, limitVertices, limitColor);
+			float[][] limitLeft = {{x3, y4}, {x3, y5}, {xl1, y5},
+				{xl1, y4}};
+			float[][] limitRight = {{xl2, y4}, {xl2, y5}, {x4, y5},
+				{x4, y4}};
+			NanoVGUI.polygon(limitLeft, limitColor);
+			NanoVGUI.polygon(limitRight, limitColor);
 		}
 		
 		FlatRenderer.drawSliderTrack(context, (int)xl1, y4, (int)xl2, y5,
 			(float)setting.getPercentage(), GUI.getTheme(), hover);
-		
-		PoseStack matrices = context.pose();
-		matrices.pushPose();
-		matrices.translate(0, 0, 2);
 		
 		// knob
 		float xk1 = x1 + (x2 - x1 - 8) * (float)setting.getPercentage();
@@ -151,16 +150,14 @@ public final class SliderComponent extends Component
 			(int)yk2, 3, knobColor);
 		FlatRenderer.drawRoundedOutline(context, (int)xk1, (int)yk1,
 			(int)xk2, (int)yk2, 3, GUI.getTheme().highlight(0.48F));
-		
-		matrices.popPose();
-		
+
 		// text
 		String name = setting.getTranslatedName();
 		String value = setting.getValueString();
-		int valueWidth = TR.width(value);
+		float valueWidth = NanoVGUI.width(value, 9F);
 		int txtColor = GUI.getTxtColor();
-		context.drawString(TR, name, x1, y1 + 2, txtColor, false);
-		context.drawString(TR, value, x2 - valueWidth, y1 + 2, txtColor, false);
+		NanoVGUI.text(name, x1, y1 + 2, txtColor, 9F);
+		NanoVGUI.text(value, x2 - valueWidth, y1 + 2, txtColor, 9F);
 	}
 	
 	private String getTextTooltip()

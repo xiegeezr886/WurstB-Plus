@@ -10,6 +10,11 @@ package net.wurstclient.hacks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -25,6 +30,9 @@ import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.TextFieldSetting;
+import net.wurstclient.settings.FileSetting;
+import net.wurstclient.util.ChatSequence;
+import net.wurstclient.util.ChatUtils;
 
 /**
  * Sends up to three configured chat texts, either by pressing their keys or
@@ -69,6 +77,26 @@ public final class AutoTextHack extends Hack
 	private int timer;
 	private int nextText;
 
+	// InvincibleMachineGun AutoMessage: merged into the existing chat macro.
+	private final CheckboxSetting sequenceMode = new CheckboxSetting("Message sequence",
+		"按消息文件逐行发送；启用后替代普通间隔发送，快捷键仍可使用。", false);
+	private final FileSetting sequenceFile = new FileSetting("Messages file",
+		"UTF-8 文本，每行一条消息或命令；行尾 #秒数 可设置该条发送后的等待时间。",
+		"autotext", AutoTextHack::createSequenceFile);
+	private final SliderSetting sequenceDelay = new SliderSetting("Default delay",
+		"未指定 #秒数 时的等待秒数。", 3, 1, 300, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting sequenceLoop = new CheckboxSetting("Loop sequence", true);
+	private final CheckboxSetting sequenceRandom = new CheckboxSetting("Random sequence", false);
+	private final CheckboxSetting selectedOnly = new CheckboxSetting("Selected only",
+		"只发送带有选中前缀的行，并在发送前移除前缀。", false);
+	private final TextFieldSetting selectedPrefix = new TextFieldSetting("Selected prefix", "+");
+	private final ChatSequence sequence = new ChatSequence();
+	private boolean sequenceWasActive;
+	private List<String> sequenceLines = List.of();
+	private Path loadedSequenceFile;
+	private java.nio.file.attribute.FileTime loadedSequenceTime;
+	private int reloadTimer;
+
 	public AutoTextHack()
 	{
 		super("AutoText");
@@ -81,11 +109,22 @@ public final class AutoTextHack extends Hack
 		addSetting(key3);
 		addSetting(intervalMode);
 		addSetting(interval);
+		addSetting(sequenceMode);
+		addSetting(sequenceFile);
+		addSetting(sequenceDelay);
+		addSetting(sequenceLoop);
+		addSetting(sequenceRandom);
+		addSetting(selectedOnly);
+		addSetting(selectedPrefix);
 	}
 
 	@Override
 	protected void onEnable()
 	{
+		sequence.reset();
+		sequenceWasActive = false;
+		loadedSequenceFile = null;
+		reloadTimer = 0;
 		timer = interval.getValueI();
 		nextText = 0;
 		EVENTS.add(KeyPressListener.class, this);
@@ -121,6 +160,12 @@ public final class AutoTextHack extends Hack
 	@Override
 	public void onUpdate()
 	{
+		if(sequenceMode.isChecked())
+		{
+			updateSequence();
+			return;
+		}
+		sequenceWasActive = false;
 		if(!intervalMode.isChecked())
 			return;
 
@@ -153,6 +198,70 @@ public final class AutoTextHack extends Hack
 				texts.add(text);
 		}
 		return texts;
+	}
+
+	private static void createSequenceFile(Path folder)
+	{
+		try
+		{
+			Files.createDirectories(folder);
+			Path file = folder.resolve("messages.txt");
+			if(!Files.exists(file))
+				Files.writeString(file, "", StandardCharsets.UTF_8);
+		}catch(IOException e)
+		{
+			throw new java.io.UncheckedIOException(e);
+		}
+	}
+
+	private void updateSequence()
+	{
+		if(MC.player == null || MC.level == null || MC.getConnection() == null)
+			return;
+		if(!sequenceWasActive)
+		{
+			sequence.reset();
+			timer = 0;
+			reloadTimer = 0;
+			sequenceWasActive = true;
+		}
+		if(reloadTimer-- <= 0)
+		{
+			reloadTimer = 20;
+			Path path = sequenceFile.getSelectedFile();
+			try
+			{
+				var modified = Files.getLastModifiedTime(path);
+				if(!path.equals(loadedSequenceFile) || !modified.equals(loadedSequenceTime))
+				{
+					sequenceLines = Files.readAllLines(path, StandardCharsets.UTF_8);
+					loadedSequenceFile = path;
+					loadedSequenceTime = modified;
+				}
+			}catch(IOException e)
+			{
+				ChatUtils.error("无法读取消息文件：" + path.getFileName());
+				sequenceMode.setChecked(false);
+				sequenceWasActive = false;
+				return;
+			}
+		}
+		if(timer > 0)
+		{
+			timer--;
+			return;
+		}
+		ChatSequence.Entry entry = sequence.next(sequenceLines, selectedOnly.isChecked(),
+			selectedPrefix.getValue(), sequenceDelay.getValueI(), sequenceLoop.isChecked(),
+			sequenceRandom.isChecked(), bound -> ThreadLocalRandom.current().nextInt(bound));
+		if(entry == null)
+		{
+			if(!sequenceLoop.isChecked() && !sequenceLines.isEmpty())
+				sequenceMode.setChecked(false);
+			return;
+		}
+		send(entry.message());
+		timer = entry.waitTicks();
 	}
 
 	private void send(String rawText)

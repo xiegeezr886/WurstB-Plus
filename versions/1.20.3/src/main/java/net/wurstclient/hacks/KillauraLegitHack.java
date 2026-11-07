@@ -83,8 +83,8 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 
 	private final SliderSetting switchAdvantage = new SliderSetting(
 		"Switch advantage",
-		"How much better another target must score before switching.", 10, 0,
-		100, 1, ValueDisplay.PERCENTAGE);
+		"How much better another target must score before switching.", 0.1, 0,
+		1, 0.01, ValueDisplay.PERCENTAGE);
 
 	private final CheckboxSetting checkLOS = new CheckboxSetting(
 		"Check line of sight", "Requires a visible point inside the target.",

@@ -41,14 +41,18 @@ dependencies {
 	// JSR305 (needed for BlockPos @Immutable)
 	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 
-    implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    implementation("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}") {
+        transitive = false
+    }
     runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
     runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
     runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
     runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
     runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
     runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}") {
+        transitive = false
+    }
     hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
     hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
     hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"

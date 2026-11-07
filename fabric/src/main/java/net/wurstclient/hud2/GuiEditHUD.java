@@ -120,7 +120,8 @@ public final class GuiEditHUD extends Screen
 
 		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
 		{
-			canSnap = true;
+			// Keep the snap preference the user chose with right-click; the
+			// toolbar documents right-click as the on/off switch.
 			hovered.setDragging(true);
 			hovered.setDraggingX(hovered.getX() - (int)mouseX);
 			hovered.setDraggingY(hovered.getY() - (int)mouseY);

@@ -170,7 +170,6 @@ public abstract class Hack extends Feature
 			WURST.getHudManager().addNotification(this);
 	}
 
-	
 	@Override
 	public final String getPrimaryAction()
 	{

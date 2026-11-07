@@ -8,10 +8,13 @@
 package net.wurstclient.event;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.LongAdder;
@@ -140,10 +143,18 @@ public final class EventManager
 			if(listeners == null)
 				return;
 
-			listeners.remove(listener);
+			if(!listeners.remove(listener))
+				return;
+
 			if(listeners.isEmpty())
+			{
+				// listenerMap 必须和 listenerSnapshots 一起清掉。如果只清
+				// snapshot，listenerMap 里会残留一个空列表，导致下一次 add
+				// 复用该列表、而快照状态与 map 不一致，
+				// 表现为“开→关→再开”后事件丢失或行为异常。
+				listenerMap.remove(type);
 				listenerSnapshots.remove(type);
-			else
+			}else
 				listenerSnapshots.put(type, new ArrayList<>(listeners));
 			
 		}catch(Throwable e)
@@ -162,10 +173,22 @@ public final class EventManager
 
 	public void subscribeAnnotated(Object obj)
 	{
+		Set<String> overriddenMethods = new HashSet<>();
 		for(Class<?> type = obj.getClass(); type != null && type != Object.class;
 			type = type.getSuperclass())
 		for(Method method : type.getDeclaredMethods())
 		{
+			String signature = methodSignature(method);
+			boolean isPrivate = Modifier.isPrivate(method.getModifiers());
+
+			// A method overridden further down the hierarchy is the only one
+			// that should run. Without this, both the override and the
+			// superclass method get registered and the event fires twice.
+			if(!isPrivate && overriddenMethods.contains(signature))
+				continue;
+			if(!isPrivate)
+				overriddenMethods.add(signature);
+
 			if(!method.isAnnotationPresent(WurstSubscribe.class))
 				continue;
 
@@ -182,6 +205,20 @@ public final class EventManager
 			if(!subscribers.contains(subscriber))
 				subscribers.add(subscriber);
 		}
+	}
+
+	private static String methodSignature(Method method)
+	{
+		StringBuilder signature = new StringBuilder(method.getName());
+		signature.append('(');
+		Class<?>[] params = method.getParameterTypes();
+		for(int i = 0; i < params.length; i++)
+		{
+			if(i > 0)
+				signature.append(',');
+			signature.append(params[i].getName());
+		}
+		return signature.append(')').toString();
 	}
 
 	public void unsubscribeAnnotated(Object obj)

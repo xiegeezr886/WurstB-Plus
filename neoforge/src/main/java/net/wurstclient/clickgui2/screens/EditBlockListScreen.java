@@ -23,9 +23,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.BlockListSetting;
 import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.RenderUtils;
 
 public final class EditBlockListScreen extends Screen
 {
@@ -134,46 +134,54 @@ public final class EditBlockListScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		PoseStack matrixStack = context.pose();
+		NanoVGUI.clearDeferred();
 		listGui.render(context, mouseX, mouseY, partialTicks);
-		
-		context.drawCenteredString(minecraft.font,
-			blockList.getTranslatedName() + " (" + blockList.size() + ")", width / 2, 12,
-			0xFFFFFF);
-		
-		matrixStack.pushPose();
-		matrixStack.translate(0, 0, 300);
-		
 		blockNameField.render(context, mouseX, mouseY, partialTicks);
 		super.render(context, mouseX, mouseY, partialTicks);
-		
-		matrixStack.pushPose();
-		matrixStack.translate(-64 + width / 2 - 152, 0, 0);
-		
-		if(blockNameField.getValue().isEmpty() && !blockNameField.isFocused())
-			context.drawString(minecraft.font, "方块名称或ID",
-				68, height - 50, 0x808080);
-		
-		int border = blockNameField.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0;
-		int black = 0xFF000000;
-		
-		context.fill(48, height - 56, 64, height - 36, border);
-		context.fill(49, height - 55, 64, height - 37, black);
-		context.fill(214, height - 56, 244, height - 55, border);
-		context.fill(214, height - 37, 244, height - 36, border);
-		context.fill(244, height - 56, 246, height - 36, border);
-		context.fill(214, height - 55, 243, height - 52, black);
-		context.fill(214, height - 40, 243, height - 37, black);
-		context.fill(214, height - 55, 216, height - 37, black);
-		context.fill(242, height - 55, 245, height - 37, black);
-		
-		matrixStack.popPose();
-		
-		RenderUtils.drawItem(context,
-			blockToAdd == null ? ItemStack.EMPTY : new ItemStack(blockToAdd),
-			width / 2 - 164, height - 52, false);
-		
-		matrixStack.popPose();
+
+		NanoVGUI.pass(context, () -> {
+			NanoVGUI.pushScissor(0, 32, width, height - 96);
+			NanoVGUI.runDeferred();
+			NanoVGUI.popScissor();
+
+			NanoVGUI.centeredText(
+				blockList.getTranslatedName() + " (" + blockList.size() + ")",
+				width / 2, 12, 0xFFFFFFFF, 9F);
+
+			int baseX = -64 + width / 2 - 152;
+
+			if(blockNameField.getValue().isEmpty()
+				&& !blockNameField.isFocused())
+				NanoVGUI.text("方块名称或ID", baseX + 68, height - 50,
+					0x808080, 9F);
+
+			int border = blockNameField.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0;
+			int black = 0xFF000000;
+
+			NanoVGUI.fill(baseX + 48, height - 56, baseX + 64, height - 36,
+				border);
+			NanoVGUI.fill(baseX + 49, height - 55, baseX + 64, height - 37,
+				black);
+			NanoVGUI.fill(baseX + 214, height - 56, baseX + 244, height - 55,
+				border);
+			NanoVGUI.fill(baseX + 214, height - 37, baseX + 244, height - 36,
+				border);
+			NanoVGUI.fill(baseX + 244, height - 56, baseX + 246, height - 36,
+				border);
+			NanoVGUI.fill(baseX + 214, height - 55, baseX + 243, height - 52,
+				black);
+			NanoVGUI.fill(baseX + 214, height - 40, baseX + 243, height - 37,
+				black);
+			NanoVGUI.fill(baseX + 214, height - 55, baseX + 216, height - 37,
+				black);
+			NanoVGUI.fill(baseX + 242, height - 55, baseX + 245, height - 37,
+				black);
+
+			NanoVGUI.item(context,
+				blockToAdd == null ? ItemStack.EMPTY
+					: new ItemStack(blockToAdd),
+				width / 2 - 164, height - 52, false);
+		});
 	}
 	
 	@Override
@@ -222,14 +230,15 @@ public final class EditBlockListScreen extends Screen
 		{
 			Block block = BlockUtils.getBlockFromName(blockName);
 			ItemStack stack = new ItemStack(block);
-			Font tr = minecraft.font;
-			
-			RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
-			context.drawString(tr, getDisplayName(stack), x + 28, y, 0xF0F0F0,
-				false);
-			context.drawString(tr, blockName, x + 28, y + 9, 0xA0A0A0, false);
-			context.drawString(tr, getIdText(block), x + 28, y + 18, 0xA0A0A0,
-				false);
+
+			NanoVGUI.defer(() -> {
+				NanoVGUI.item(context, stack, x + 1, y + 1, true);
+				NanoVGUI.text(getDisplayName(stack), x + 28, y, 0xF0F0F0,
+					9F);
+				NanoVGUI.text(blockName, x + 28, y + 9, 0xA0A0A0, 9F);
+				NanoVGUI.text(getIdText(block), x + 28, y + 18, 0xA0A0A0,
+					9F);
+			});
 		}
 		
 		private String getDisplayName(ItemStack stack)

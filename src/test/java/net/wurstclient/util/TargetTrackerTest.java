@@ -26,16 +26,16 @@ final class TargetTrackerTest
 		TargetTracker<String> tracker = new TargetTracker<>();
 		Map<String, Double> scores = Map.of("first", 10.0, "small", 9.5,
 			"better", 5.0);
-		tracker.update("first", value -> true, scores::get, false, 2, 10);
+		tracker.update("first", value -> true, scores::get, false, 2, 0.1);
 
 		assertEquals("first", tracker.update("better", value -> true,
-			scores::get, false, 2, 10));
+			scores::get, false, 2, 0.1));
 		tracker.tick();
 		tracker.tick();
 		assertEquals("first", tracker.update("small", value -> true,
-			scores::get, false, 2, 10));
+			scores::get, false, 2, 0.1));
 		assertEquals("better", tracker.update("better", value -> true,
-			scores::get, false, 2, 10));
+			scores::get, false, 2, 0.1));
 	}
 
 	@Test

@@ -77,6 +77,8 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 	private boolean modulePressedSneak;
 	private boolean blockFlyDesyncing;
 	private int blockFlyTicks;
+	/** True while the server's main/off-hand layout is swapped. */
+	private boolean blockFlySwapped;
 	private float lastForward;
 	private float lastSideways;
 	private float lastPlacedYawDelta = Float.NaN;
@@ -1074,20 +1076,44 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 
 	private void updateBlockFlyBeforePlace()
 	{
-		if(blockFlyDesyncing || WurstClient.MC.player == null)
+		if(WurstClient.MC.player == null)
 			return;
+
+		if(blockFlyDesyncing)
+		{
+			// OpenOpal re-arms every 16 ticks instead of swapping only once
+			// per session, so the swap does not stay active forever.
+			if(++blockFlyTicks <= 16)
+				return;
+			blockFlyDesyncing = false;
+			blockFlyTicks = 0;
+		}
+
 		WurstClient.MC.player.connection
 			.send(new ServerboundPlayerActionPacket(
 				ServerboundPlayerActionPacket.Action.SWAP_ITEM_WITH_OFFHAND,
 				BlockPos.ZERO, Direction.DOWN));
 		blockFlyDesyncing = true;
 		blockFlyTicks = 0;
+		blockFlySwapped = !blockFlySwapped;
 	}
 
 	private void resetBlockFly()
 	{
 		blockFlyDesyncing = false;
 		blockFlyTicks = 0;
+
+		// Leave the server with the same main/off-hand layout as the client.
+		// Without this, disabling the mode (or the hack) left the hands
+		// swapped for the rest of the session.
+		if(blockFlySwapped && WurstClient.MC.player != null)
+		{
+			WurstClient.MC.player.connection
+				.send(new ServerboundPlayerActionPacket(
+					ServerboundPlayerActionPacket.Action.SWAP_ITEM_WITH_OFFHAND,
+					BlockPos.ZERO, Direction.DOWN));
+			blockFlySwapped = false;
+		}
 	}
 
 	private boolean ready()

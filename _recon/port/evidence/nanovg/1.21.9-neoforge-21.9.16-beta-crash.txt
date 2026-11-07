@@ -1,0 +1,242 @@
+---- Minecraft Crash Report ----
+// Who set us up the TNT?
+
+Time: 2026-11-06 21:16:09
+Description: Bootstrap
+
+java.lang.RuntimeException: java.lang.ExceptionInInitializerError
+	at net.neoforged.fml.loading.BackgroundWaiter.runAndTick(BackgroundWaiter.java:29) ~[loader-10.0.14.jar:10.0] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.client.main.Main.main(Main.java:119) [minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at net.neoforged.fml.startup.Client.main(Client.java:26) [loader-10.0.14.jar:10.0] {}
+Caused by: java.lang.ExceptionInInitializerError
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.network.chat.contents.TranslatableContents.decompose(TranslatableContents.java:101) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.network.chat.contents.TranslatableContents.visit(TranslatableContents.java:210) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.network.chat.Component.visit(Component.java:91) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.network.chat.FormattedText.getString(FormattedText.java:88) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.network.chat.Component.getString(Component.java:35) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.world.item.CreativeModeTabs.validate(CreativeModeTabs.java:1983) ~[minecraft-client-patched-21.9.16-beta.jar:?] {neoforge:access_transformer}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.server.Bootstrap.bootStrap(Bootstrap.java:59) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.client.main.Main.lambda$main$0(Main.java:119) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[?:?] {}
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[?:?] {}
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?] {}
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?] {}
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[?:?] {}
+Caused by: java.lang.NullPointerException
+	at java.base/java.io.Reader.<init>(Reader.java:168) ~[?:?] {}
+	at java.base/java.io.InputStreamReader.<init>(InputStreamReader.java:123) ~[?:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.locale.Language.loadFromJson(Language.java:101) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.locale.Language.parseTranslations(Language.java:90) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.locale.Language.loadDefault(Language.java:40) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.locale.Language.<clinit>(Language.java:33) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.network.chat.contents.TranslatableContents.decompose(TranslatableContents.java:101) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.network.chat.contents.TranslatableContents.visit(TranslatableContents.java:210) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.network.chat.Component.visit(Component.java:91) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.network.chat.FormattedText.getString(FormattedText.java:88) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.network.chat.Component.getString(Component.java:35) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.world.item.CreativeModeTabs.validate(CreativeModeTabs.java:1983) ~[minecraft-client-patched-21.9.16-beta.jar:?] {neoforge:access_transformer}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.server.Bootstrap.bootStrap(Bootstrap.java:59) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.client.main.Main.lambda$main$0(Main.java:119) ~[minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[?:?] {}
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[?:?] {}
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?] {}
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?] {}
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[?:?] {}
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: main
+Stacktrace:
+	at net.neoforged.fml.loading.BackgroundWaiter.runAndTick(BackgroundWaiter.java:29) ~[loader-10.0.14.jar:10.0] {}
+-- Initialization --
+Details:
+	Modules: 
+		ADVAPI32.dll:高级 Windows 32 基本 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		COMCTL32.dll:用户体验控件库:6.10 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPT32.dll:加密 API32:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPTBASE.DLL:Base cryptographic API DLL:10.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPTSP.dll:Cryptographic Service Provider API:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		CoreMessaging.dll:Microsoft CoreMessaging Dll:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		CoreUIComponents.dll:Microsoft Core UI Components Dll:10.0.26100.9818:Microsoft Corporation
+		DBGHELP.DLL:Windows Image Helper:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		DEVOBJ.dll:Device Information Set DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		DNSAPI.dll:DNS 客户端 API DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		DSPARSE.dll:Active Directory Domain Services API:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		GDI32.dll:GDI Client DLL:10.0.26100.8328 (WinBuild.160101.0800):Microsoft Corporation
+		GLU32.dll:OpenGL 实用工具库 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		IMM32.DLL:Multi-User Windows IMM32 API Client DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		IPHLPAPI.DLL:IP 帮助程序 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		KERNEL32.DLL:Windows NT 基本 API 客户端 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		KERNELBASE.dll:Windows NT 基本 API 客户端 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		MSCTF.dll:MSCTF 服务器 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		MpOav.dll:IOfficeAntiVirus Module:4.18.26100.4 (79b015c6fabb20b1ccd067f376e490f0bac19809):Microsoft Corporation
+		NSI.dll:NSI User-mode interface DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		OLEAUT32.dll:OLEAUT32.DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		Oleacc.dll:Active Accessibility Core Component:7.2.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		POWRPROF.dll:电源配置文件帮助程序 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		PSAPI.DLL:Process Status Helper:10.0.26100.8521 (WinBuild.160101.0800):Microsoft Corporation
+		RPCRT4.dll:远程过程调用运行时:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		SHCORE.dll:SHCORE:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		SHELL32.dll:Windows Shell 公用 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		UMPDC.dll:User Mode Power Dependency Coordinator:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		USER32.dll:多用户 Windows 用户 API 客户端 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		USERENV.dll:Userenv:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		VCRUNTIME140.dll:Microsoft® C Runtime Library:14.40.33810.0:Microsoft Corporation
+		VERSION.dll:Version Checking and File Installation Libraries:10.0.26100.1150 (WinBuild.160101.0800):Microsoft Corporation
+		WINHTTP.dll:Windows HTTP 服务:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		WINMM.dll:MCI API DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		WS2_32.dll:Windows Socket 2.0 32 位 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		amsi.dll:Anti-Malware Scan Interface:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		apphelp.dll:应用程序兼容性客户端库:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		awt.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		bcrypt.dll:Windows 加密基元库:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		bcryptPrimitives.dll:Windows Cryptographic Primitives Library:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		cfgmgr32.dll:Configuration Manager DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		clbcatq.dll:COM+ Configuration Catalog:2001.12.10941.16384 (WinBuild.160101.0800):Microsoft Corporation
+		combase.dll:用于 Windows 的 Microsoft COM:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		d3d12.dll:Direct3D 12 Runtime:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		dbgcore.DLL:Windows Core Debugging Helpers:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		dinput8.dll:Microsoft DirectInput:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		directxdatabasehelper.dll:DirectXDatabaseHelper:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		dwmapi.dll:Microsoft 桌面窗口管理器 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		dxcore.dll:DXCore:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		dxgi.dll:DirectX Graphics Infrastructure:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		fastprox.dll:WMI Custom Marshaller:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		fwpuclnt.dll:FWP/IPsec 用户模式 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		gdi32full.dll:GDI Client DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		glfw.dll:GLFW 3.4.0 DLL:3.4.0:GLFW
+		icm32.dll:Microsoft Color Management Module (CMM):10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		igc64.dll:Intel Graphics Shader Compiler for Intel(R) Graphics Accelerator:32.0.101.7077:Intel Corporation
+		igdgmm64.dll:User Mode Driver for Intel(R) Graphics Technology:32.0.101.7077:Intel Corporation
+		igdml64.dll:Metrics Library for Intel(R) Graphics Technology:32.0.101.7077:Intel Corporation
+		igxelpicd64.dll:OpenGL(R) Driver for Intel(R) Graphics Accelerator:32.0.101.7077:Intel Corporation
+		inputhost.dll:InputHost:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		java.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		java.exe:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		jemalloc.dll
+		jimage.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		jli.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		jna6014564837318351749.dll:JNA native library:7.0.2:Java(TM) Native Access (JNA)
+		jsvml.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		jvm.dll:OpenJDK 64-Bit server VM:21.0.12.1:Eclipse Adoptium
+		kernel.appcore.dll:AppModel API Host:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		lwjgl.dll
+		lwjgl_opengl.dll
+		lwjgl_stb.dll
+		management.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		management_ext.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		mscms.dll:Microsoft 颜色匹配系统 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		msvcp140.dll:Microsoft® C Runtime Library:14.40.33810.0:Microsoft Corporation
+		msvcp_win.dll:Microsoft® C Runtime Library:10.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		msvcrt.dll:Windows NT CRT DLL:7.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		mswsock.dll:Microsoft Windows Sockets 2.0 服务提供程序:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		napinsp.dll:电子邮件命名填充提供程序:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		net.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		nio.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		nlansp_c.dll:NLA Namespace Service Provider DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		ntdll.dll:NT 层 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		ole32.dll:用于 Windows 的 Microsoft OLE:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		opengl32.dll:OpenGL Client DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		pdh.dll:Windows 性能数据助手 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		perfos.dll:Windows 系统性能对象 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		perfproc.dll:Windows 系统进程性能对象 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		pfclient.dll:SysMain Client:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		profapi.dll:User Profile Basic API:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		rasadhlp.dll:Remote Access AutoDial Helper:10.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		rsaenh.dll:Microsoft Enhanced Cryptographic Provider:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		sechost.dll:Host for SCM/SDDL/LSA Lookup APIs:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		shlwapi.dll:外壳简易实用工具库:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		textinputframework.dll:"TextInputFramework.DYNLINK":10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		ucrtbase.dll:Microsoft® C Runtime Library:10.0.26100.9711 (WinBuild.160101.0800):Microsoft Corporation
+		uiautomationcore.dll:Microsoft UI 自动化核心:7.2.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		uxtheme.dll:Microsoft UxTheme 库:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		vcruntime140_1.dll:Microsoft® C Runtime Library:14.40.33810.0:Microsoft Corporation
+		verify.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+		wbemcomn.dll:WMI:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		wbemprox.dll:WMI:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		wbemsvc.dll:WMI:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		win32u.dll:Win32u:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		windows.staterepositorycore.dll:Windows StateRepository API Core:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		windows.storage.dll:Microsoft WinRT Storage API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		winrnr.dll:LDAP RnR Provider DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		wintypes.dll:Windows 基本类型 DLL:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		wshbth.dll:Windows Sockets Helper DLL:10.0.26100.9818 (WinBuild.160101.0800):Microsoft Corporation
+		xinput1_4.dll:Microsoft 公共控制器 API:10.0.26100.9949 (WinBuild.160101.0800):Microsoft Corporation
+		zip.dll:OpenJDK Platform binary:21.0.12.1:Eclipse Adoptium
+Stacktrace:
+	at TRANSFORMER/neoforge@21.9.16-beta/net.minecraft.client.main.Main.main(Main.java:119) [minecraft-client-patched-21.9.16-beta.jar:?] {}
+	at net.neoforged.fml.startup.Client.main(Client.java:26) [loader-10.0.14.jar:10.0] {}
+
+
+-- System Details --
+Details:
+	Minecraft Version: Development Version
+	Minecraft Version ID: 9c85a56f17ce462595f57726faa57e25
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 21.0.12.1, Eclipse Adoptium
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode, sharing), Eclipse Adoptium
+	Memory: 171050632 bytes (163 MiB) / 327155712 bytes (312 MiB) up to 4294967296 bytes (4096 MiB)
+	CPUs: 32
+	Processor Vendor: GenuineIntel
+	Processor Name: Intel(R) Core(TM) i9-14900HX
+	Identifier: Intel64 Family 6 Model 183 Stepping 1
+	Microarchitecture: Raptor Lake
+	Frequency (GHz): 2.42
+	Number of physical packages: 1
+	Number of physical CPUs: 24
+	Number of logical CPUs: 32
+	Graphics card #0 name: NVIDIA GeForce RTX 5070 Laptop GPU
+	Graphics card #0 vendor: NVIDIA
+	Graphics card #0 VRAM (MiB): 8151.00
+	Graphics card #0 deviceId: VideoController1
+	Graphics card #0 versionInfo: 32.0.15.9219
+	Graphics card #1 name: Intel(R) UHD Graphics
+	Graphics card #1 vendor: Intel Corporation
+	Graphics card #1 VRAM (MiB): 2048.00
+	Graphics card #1 deviceId: VideoController2
+	Graphics card #1 versionInfo: 32.0.101.7077
+	Memory slot #0 capacity (MiB): 16384.00
+	Memory slot #0 clockSpeed (GHz): 5.60
+	Memory slot #0 type: DDR5
+	Memory slot #1 capacity (MiB): 16384.00
+	Memory slot #1 clockSpeed (GHz): 5.60
+	Memory slot #1 type: DDR5
+	Virtual memory max (MiB): 50334.83
+	Virtual memory used (MiB): 42796.53
+	Swap memory total (MiB): 17938.07
+	Swap memory used (MiB): 1192.75
+	Space in storage for jna.tmpdir (MiB): available: 8839.49, total: 975538.00
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): available: 8839.49, total: 975538.00
+	Space in storage for io.netty.native.workdir (MiB): available: 8839.49, total: 975538.00
+	Space in storage for java.io.tmpdir (MiB): available: 8839.49, total: 975538.00
+	Space in storage for workdir (MiB): available: 8839.49, total: 975538.00
+	JVM Flags: 2 total; -Xmx4G -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump
+	Debug Flags: 0 total; 
+	Launched Version: 1.21.9-neoforge-21.9.16-beta
+	Launcher name: TestRunner
+	Backend library: LWJGL version 3.3.3+5
+	Backend API: Unknown
+	Window size: <not initialized>
+	GFLW Platform: win32
+	Render Extensions: ERR
+	GL debug messages: <no renderer available>
+	Is Modded: Definitely; Client brand changed to 'neoforge'
+	Universe: 404
+	Type: Client (map_client.txt)
+	Locale: zh_CN
+	System encoding: GBK
+	File encoding: UTF-8
+	CPU: 32x Intel(R) Core(TM) i9-14900HX
+	Class Processors: 
+		00.00%: neoforge:computing_frames (marker)
+		00.00%: neoforge:runtime_enum_extender
+		05.47%: neoforge:access_transformer
+		00.10%: neoforge:mixin
+		00.00%: neoforge:simple_processors_default (marker)
+		00.03%: neoforge.coremods:field_to_getter.net.minecraft.world.level.biome.biome
+		00.03%: neoforge.coremods:field_to_getter.net.minecraft.world.level.block.flowerpotblock
+		00.03%: neoforge.coremods:field_to_getter.net.minecraft.world.level.levelgen.structure.structure
+		00.34%: neoforge.coremods:method_redirector

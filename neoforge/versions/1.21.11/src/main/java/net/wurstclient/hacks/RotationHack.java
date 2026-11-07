@@ -56,6 +56,7 @@ public final class RotationHack extends Hack implements UpdateListener
 	protected void onEnable()
 	{
 		EVENTS.add(UpdateListener.class, this);
+		onUpdate();
 	}
 
 	@Override
@@ -79,6 +80,11 @@ public final class RotationHack extends Hack implements UpdateListener
 		else
 		{
 			rotation.applyToClientPlayer();
+			if(yawMode.getSelected() != LockMode.OFF)
+			{
+				MC.player.yHeadRot = MC.player.getYRot();
+				MC.player.yBodyRot = MC.player.getYRot();
+			}
 			rotation.sendPlayerLookPacket();
 		}
 	}

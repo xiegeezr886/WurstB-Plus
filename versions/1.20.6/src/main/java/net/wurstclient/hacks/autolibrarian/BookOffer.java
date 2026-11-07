@@ -8,65 +8,63 @@
 package net.wurstclient.hacks.autolibrarian;
 
 import java.util.Objects;
-import net.minecraft.ResourceLocationException;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.wurstclient.WurstClient;
 import net.wurstclient.WurstTranslator;
+import net.wurstclient.util.EnchantmentUtils;
 
 public record BookOffer(String id, int level, int price)
 	implements Comparable<BookOffer>
 {
-	public static BookOffer create(Enchantment enchantment)
+	public static BookOffer create(Holder<Enchantment> enchantment)
 	{
-		ResourceLocation id = BuiltInRegistries.ENCHANTMENT.getKey(enchantment);
-		return new BookOffer("" + id, enchantment.getMaxLevel(), 64);
+		ResourceLocation id = enchantment.unwrapKey().orElseThrow().location();
+		return new BookOffer("" + id, enchantment.value().getMaxLevel(), 64);
 	}
 	
-	public Enchantment getEnchantment()
+	public static BookOffer createDefault(String id)
 	{
-		// id 来自设置文件：可能是 null（缺少 id 字段），也可能格式非法。
-		// new ResourceLocation(null) 抛的是 NPE，catch(ResourceLocationException) 接不住，所以先判 null。
-		if(id == null)
-			return null;
-
-		try
+		ResourceLocation location = ResourceLocation.tryParse(id);
+		int maxLevel = location == null ? 1 : switch(location.getPath())
 		{
-			return BuiltInRegistries.ENCHANTMENT.get(new ResourceLocation(id));
+			case "depth_strider", "fortune", "looting", "respiration" -> 3;
+			case "feather_falling", "protection" -> 4;
+			case "efficiency", "sharpness" -> 5;
+			case "unbreaking" -> 3;
+			default -> 1;
+		};
+		return new BookOffer(id, maxLevel, 64);
+	}
 
-		}catch(ResourceLocationException e)
-		{
-			// 非法 id 以前是抛出去的：于是 isValid() 不是返回 false 而是炸掉，
-			// 而它正是在构建添加界面列表时被调的 —— 界面还没开出来就崩。
+	public Holder<Enchantment> getEnchantment()
+	{
+		ResourceLocation location = ResourceLocation.tryParse(id);
+		if(location == null)
 			return null;
-		}
+		return EnchantmentUtils.getHolder(location).orElse(null);
 	}
 	
 	public String getEnchantmentName()
 	{
 		WurstTranslator translator = WurstClient.INSTANCE.getTranslator();
-		Enchantment enchantment = getEnchantment();
-
-		// 未知附魔：退回显示原始 id，而不是在这里 NPE
-		if(enchantment == null)
-			return id;
-
-		return translator.translateMcEnglish(enchantment.getDescriptionId());
+		Holder<Enchantment> enchantment = getEnchantment();
+		return enchantment == null ? id
+			: translator.translateMcEnglish(
+				enchantment.value().getDescriptionId());
 	}
 	
 	public String getEnchantmentNameWithLevel()
 	{
 		WurstTranslator translator = WurstClient.INSTANCE.getTranslator();
-		Enchantment enchantment = getEnchantment();
-
+		Holder<Enchantment> enchantment = getEnchantment();
 		if(enchantment == null)
 			return id;
-
 		String name =
-			translator.translateMcEnglish(enchantment.getDescriptionId());
+			translator.translateMcEnglish(enchantment.value().getDescriptionId());
 		
-		if(enchantment.getMaxLevel() > 1)
+		if(enchantment.value().getMaxLevel() > 1)
 			name += " "
 				+ translator.translateMcEnglish("enchantment.level." + level);
 		
@@ -80,10 +78,14 @@ public record BookOffer(String id, int level, int price)
 	
 	public boolean isValid()
 	{
-		Enchantment enchantment = getEnchantment();
-		return enchantment != null
-			&& enchantment.isTradeable() && level >= 1
-			&& level <= enchantment.getMaxLevel() && price >= 1 && price <= 64;
+		Holder<Enchantment> enchantment = getEnchantment();
+		if(enchantment == null)
+			return ResourceLocation.tryParse(id) != null && level >= 1
+				&& level <= 255 && price >= 1 && price <= 64;
+
+		return enchantment.value().isTradeable() && level >= 1
+			&& level <= enchantment.value().getMaxLevel() && price >= 1
+			&& price <= 64;
 	}
 	
 	@Override

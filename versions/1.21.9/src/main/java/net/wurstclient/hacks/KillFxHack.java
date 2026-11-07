@@ -31,6 +31,11 @@ import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.PlayerAttacksEntityListener;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.PacketInputListener;
+import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
+import net.minecraft.world.entity.EntityEvent;
+import net.minecraft.world.entity.player.Player;
+import java.util.concurrent.ArrayBlockingQueue;
 import net.wurstclient.events.WorldChangeListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
@@ -47,7 +52,7 @@ import net.wurstclient.settings.TextFieldSetting;
 @SearchTags({"kill fx", "kill effects", "death effects", "lightning kill",
 	"kill particles"})
 public final class KillFxHack extends Hack implements UpdateListener,
-	PlayerAttacksEntityListener, WorldChangeListener
+	PlayerAttacksEntityListener, WorldChangeListener, PacketInputListener
 {
 	private final CheckboxSetting onlyTargeted = new CheckboxSetting(
 		"Only targeted",
@@ -128,6 +133,11 @@ public final class KillFxHack extends Hack implements UpdateListener,
 
 	private final Set<Integer> processedEntities = new HashSet<>();
 	private final Map<Integer, Long> attackedTargets = new HashMap<>();
+	// Leaves DeathRender's nearby-player lightning shares the existing FX renderer.
+	private final CheckboxSetting nearbyPlayers = new CheckboxSetting("Nearby player deaths",
+		"收到附近玩家死亡数据包时触发特效，无需先攻击该玩家。", false);
+	private final SliderSetting nearbyRange = new SliderSetting("Nearby death range", 12, 0, 20, .5, ValueDisplay.DECIMAL);
+	private final ArrayBlockingQueue<DeathSignal> deathSignals = new ArrayBlockingQueue<>(256);
 
 	public KillFxHack()
 	{
@@ -154,6 +164,8 @@ public final class KillFxHack extends Hack implements UpdateListener,
 		addSetting(pitch);
 		addSetting(useFirework);
 		addSetting(useExplosion);
+		addSetting(nearbyPlayers);
+		addSetting(nearbyRange);
 
 		targetTimeout.visibleWhen(onlyTargeted::isChecked);
 		lightningAmount.visibleWhen(useLightning::isChecked);
@@ -181,6 +193,8 @@ public final class KillFxHack extends Hack implements UpdateListener,
 	protected void onEnable()
 	{
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(PacketInputListener.class, this);
+		deathSignals.clear();
 		EVENTS.add(PlayerAttacksEntityListener.class, this);
 		EVENTS.add(WorldChangeListener.class, this);
 		processedEntities.clear();
@@ -191,6 +205,8 @@ public final class KillFxHack extends Hack implements UpdateListener,
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(PacketInputListener.class, this);
+		deathSignals.clear();
 		EVENTS.remove(PlayerAttacksEntityListener.class, this);
 		EVENTS.remove(WorldChangeListener.class, this);
 		processedEntities.clear();
@@ -200,6 +216,7 @@ public final class KillFxHack extends Hack implements UpdateListener,
 	@Override
 	public void onWorldChange(ClientLevel world)
 	{
+		deathSignals.clear();
 		processedEntities.clear();
 		attackedTargets.clear();
 	}
@@ -216,6 +233,16 @@ public final class KillFxHack extends Hack implements UpdateListener,
 	{
 		if(MC.player == null || MC.level == null)
 			return;
+		DeathSignal signal;
+		while((signal = deathSignals.poll()) != null)
+		{
+			if(!nearbyPlayers.isChecked() || signal.world() != MC.level) continue;
+			Entity entity = signal.packet().getEntity(MC.level);
+			if(!(entity instanceof Player player) || player == MC.player
+				|| MC.player.distanceToSqr(player) > nearbyRange.getValueSq()
+				|| !processedEntities.add(player.getId())) continue;
+			renderEffects(player);
+		}
 
 		if(onlyTargeted.isChecked())
 		{
@@ -243,6 +270,17 @@ public final class KillFxHack extends Hack implements UpdateListener,
 			renderEffects(living);
 		}
 	}
+
+	@Override
+	public void onReceivedPacket(PacketInputEvent event)
+	{
+		if(nearbyPlayers.isChecked() && MC.level != null
+			&& event.getPacket() instanceof ClientboundEntityEventPacket packet
+			&& packet.getEventId() == EntityEvent.DEATH)
+			deathSignals.offer(new DeathSignal(MC.level, packet));
+	}
+
+	private record DeathSignal(ClientLevel world, ClientboundEntityEventPacket packet) {}
 
 	private void renderEffects(LivingEntity entity)
 	{

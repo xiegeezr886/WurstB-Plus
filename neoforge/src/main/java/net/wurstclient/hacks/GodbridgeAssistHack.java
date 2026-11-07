@@ -112,7 +112,8 @@ public final class GodbridgeAssistHack extends Hack implements UpdateListener
 		if(!result.consumesAction())
 			return;
 
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC)
+			.setRightClickDelay(4);
 		placementCooldown = placeDelay.getValueI();
 	}
 

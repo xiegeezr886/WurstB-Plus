@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 import com.mojang.realmsclient.RealmsMainScreen;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
@@ -18,6 +17,8 @@ import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.client.gui.ModListScreen;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
+import net.wurstclient.gui.MainMenuBackground;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.util.ScreenRegistry;
 
 public final class WurstTitleMenu
@@ -105,9 +106,17 @@ public final class WurstTitleMenu
 	public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
 		float partialTicks, int screenWidth, int screenHeight)
 	{
-		drawBackground(graphics, screenWidth, screenHeight);
-		drawBrand(graphics, screenWidth);
-		drawFooter(graphics, screenWidth, screenHeight);
+		// Clear the main target first: the NanoVG pass blends its framebuffer
+		// over whatever the title screen had drawn before it.
+		graphics.fill(0, 0, screenWidth, screenHeight, 0xFF02090A);
+
+		NanoVGUI.pass(graphics, () -> {
+			drawBackground(graphics, screenWidth, screenHeight);
+			drawBrand(graphics, screenWidth);
+			drawFooter(graphics, screenWidth, screenHeight);
+			for(WurstTitleButton button : buttons)
+				button.renderNanoVG(graphics);
+		});
 	}
 
 	private void updateLayout(int screenWidth, int screenHeight)
@@ -126,41 +135,31 @@ public final class WurstTitleMenu
 	private void drawBackground(GuiGraphicsExtractor graphics, int screenWidth,
 		int screenHeight)
 	{
-		graphics.fillGradient(0, 0, screenWidth, screenHeight, 0xFF02090A,
-			ACCENT);
-		graphics.fillGradient(0, 0, screenWidth, screenHeight, 0xD9000000,
-			0x00000000);
-		graphics.fill(0, 0, screenWidth, screenHeight, 0x18000000);
+		MainMenuBackground.render(screenWidth, screenHeight,
+			MainMenuBackground.MENU_ALPHA);
 	}
 
 	private void drawBrand(GuiGraphicsExtractor graphics, int screenWidth)
 	{
-		Font font = minecraft.font;
 		String prefix = "WurstB+ ";
-		float scale = 1.65F;
+		float size = 16F;
 		int x = cardX;
 		int y = 35;
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(x, y);
-		graphics.pose().scale(scale, scale);
-		graphics.text(font, prefix, 0, 0, TEXT, false);
-		graphics.text(font, "Plus", font.width(prefix), 0, ACCENT, false);
-		graphics.pose().popMatrix();
+		NanoVGUI.text(prefix, x, y, TEXT, size);
+		NanoVGUI.text("Plus", x + NanoVGUI.width(prefix, size), y, ACCENT,
+			size);
 	}
 
 	private void drawFooter(GuiGraphicsExtractor graphics, int screenWidth,
 		int screenHeight)
 	{
-		Font font = minecraft.font;
 		String runtime = "Minecraft "
 			+ SharedConstants.getCurrentVersion().name() + "  /  NeoForge "
 			+ FMLLoader.getCurrent().getVersionInfo().neoForgeVersion();
-		graphics.text(font, runtime, margin, screenHeight - 18,
-			MUTED_TEXT, false);
+		NanoVGUI.text(runtime, margin, screenHeight - 18, MUTED_TEXT, 9F);
 		String brand = "WurstB+ Plus";
-		graphics.text(font, brand,
-			screenWidth - margin - font.width(brand),
-			screenHeight - 18, DIM_TEXT, false);
+		NanoVGUI.text(brand, screenWidth - margin
+			- NanoVGUI.width(brand, 9F), screenHeight - 18, DIM_TEXT, 9F);
 	}
 
 	private static Identifier icon(String name)

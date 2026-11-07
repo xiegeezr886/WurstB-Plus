@@ -24,6 +24,8 @@ import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.util.Rotation;
+import net.wurstclient.util.RotationUtils;
 
 @SearchTags({"auto shearer", "AutoShear", "auto shear", "SheepBot",
 	"sheep bot"})
@@ -83,6 +85,8 @@ public final class AutoShearerHack extends Hack implements UpdateListener
 	{
 		if(MC.player == null || MC.level == null || MC.gameMode == null)
 			return;
+		if(MC.screen != null)
+			return;
 
 		if(timer > 0)
 		{
@@ -98,22 +102,31 @@ public final class AutoShearerHack extends Hack implements UpdateListener
 		if(slot == -1)
 			return;
 
-		InteractionHand hand;
-		if(slot < 9)
+		int oldSlot = MC.player.getInventory().selected;
+		try
 		{
-			MC.player.getInventory().selected = slot;
-			hand = InteractionHand.MAIN_HAND;
-		}else
-			hand = InteractionHand.OFF_HAND;
+			InteractionHand hand;
+			if(slot < 9)
+			{
+				MC.player.getInventory().selected = slot;
+				hand = InteractionHand.MAIN_HAND;
+			}else
+				hand = InteractionHand.OFF_HAND;
 
-		if(rotate.isChecked())
-			WURST.getRotationFaker()
-				.faceVectorPacket(target.getBoundingBox().getCenter());
+			if(rotate.isChecked())
+				RotationUtils.getNeededRotations(target.getBoundingBox().getCenter())
+					.sendPlayerLookPacket();
 
-		InteractionResult result =
-			MC.gameMode.interact(MC.player, target, hand);
-		if(result.consumesAction())
-			MC.player.swing(hand);
+			InteractionResult result =
+				MC.gameMode.interact(MC.player, target, hand);
+			if(result.consumesAction())
+				MC.player.swing(hand);
+		}finally
+		{
+			MC.player.getInventory().selected = oldSlot;
+			if(rotate.isChecked() && MC.getConnection() != null)
+				new Rotation(MC.player.getYRot(), MC.player.getXRot()).sendPlayerLookPacket();
+		}
 
 		timer = cooldown.getValueI();
 	}

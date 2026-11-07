@@ -380,7 +380,17 @@ public enum WurstClient
 			return cmd;
 
 		OtherFeature otf = getOtfs().getOtfByName(name);
-		return otf;
+		if(otf != null)
+			return otf;
+
+		// HUD modules and the HUD settings feature are features too; keybinds
+		// and commands must be able to resolve them by name.
+		if(getHudManager() != null)
+			for(Feature hud : getHudManager().getAllFeatures())
+				if(name.equalsIgnoreCase(hud.getName()))
+					return hud;
+
+		return null;
 	}
 	
 	public KeybindList getKeybinds()

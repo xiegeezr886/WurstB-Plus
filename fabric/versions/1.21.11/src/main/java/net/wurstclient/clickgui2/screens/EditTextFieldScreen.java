@@ -18,7 +18,7 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.CommonColors;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.TextFieldSetting;
 
 public final class EditTextFieldScreen extends Screen
@@ -97,12 +97,12 @@ public final class EditTextFieldScreen extends Screen
 	private void renderContents(GuiGraphicsExtractor context, int mouseX,
 		int mouseY, float partialTicks)
 	{
-		context.centeredText(minecraft.font, setting.getTranslatedName(), width / 2, 20,
-			CommonColors.WHITE);
-		
+		renderBackground(context.getInner(), mouseX, mouseY, partialTicks);
 		valueField.render(context.getInner(), mouseX, mouseY, partialTicks);
-		for(Renderable drawable : renderables)
-			drawable.render(context.getInner(), mouseX, mouseY, partialTicks);
+		super.render(context.getInner(), mouseX, mouseY, partialTicks);
+
+		NanoVGUI.pass(context, () -> NanoVGUI.centeredText(
+			setting.getTranslatedName(), width / 2, 20, 0xFFFFFFFF, 9F));
 	}
 	
 	@Override

@@ -33,6 +33,14 @@ public final class TimerHack extends Hack
 
 	public float getTimerSpeed()
 	{
+		// Compute the temporary override from live state: leaving the ladder,
+		// changing worlds or disabling FastClimb cannot leave a stale timer.
+		if(WURST.getHax() != null && WURST.getHax().fastClimbHack != null)
+		{
+			float climbing = WURST.getHax().fastClimbHack.getTimerMultiplier();
+			if(climbing != 1)
+				return climbing;
+		}
 		return isEnabled() ? speed.getValueF() : 1;
 	}
 }

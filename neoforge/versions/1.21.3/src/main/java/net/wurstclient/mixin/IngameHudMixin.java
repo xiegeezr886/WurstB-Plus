@@ -19,10 +19,13 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.scores.Objective;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
 import net.wurstclient.events.GUIRenderListener.GUIRenderEvent;
 import net.wurstclient.hack.HackList;
+import net.wurstclient.hud2.HUDMod;
+import net.wurstclient.hud2.HudManager;
 
 @Mixin(Gui.class)
 public class IngameHudMixin
@@ -77,7 +80,67 @@ public class IngameHudMixin
 		HackList hax = WurstClient.INSTANCE.getHax();
 		if(hax == null || !hax.noVignetteHack.isEnabled())
 			return;
-		
+
 		ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"),
+		method = "renderHotbarAndDecorations(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
+		cancellable = true)
+	private void onRenderHotbar(GuiGraphics context,
+		DeltaTracker deltaTracker, CallbackInfo ci)
+	{
+		WurstClient wurst = WurstClient.INSTANCE;
+		if(wurst == null || WurstClient.MC == null)
+			return;
+
+		HudManager hud = wurst.getHudManager();
+		if(hud == null)
+			return;
+
+		HUDMod hotbar = hud.getModule("ModernHotbar");
+		if(hotbar == null || !hotbar.isEnabled())
+			return;
+
+		// Hide the vanilla hotbar behind screens as well; the modern hotbar is
+		// still rendered below the screen overlay.
+		if(WurstClient.MC.options.hideGui)
+			return;
+
+		ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"),
+		method = "displayScoreboardSidebar(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/scores/Objective;)V",
+		cancellable = true)
+	private void onDisplayScoreboardSidebar(GuiGraphics context,
+		Objective objective, CallbackInfo ci)
+	{
+		if(isHudModuleEnabled("Scoreboard"))
+			ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"),
+		method = "renderEffects(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
+		cancellable = true)
+	private void onRenderEffects(GuiGraphics context,
+		DeltaTracker deltaTracker, CallbackInfo ci)
+	{
+		if(isHudModuleEnabled("PotionStatus"))
+			ci.cancel();
+	}
+
+	private static boolean isHudModuleEnabled(String id)
+	{
+		WurstClient wurst = WurstClient.INSTANCE;
+		if(wurst == null || WurstClient.MC == null)
+			return false;
+
+		HudManager hud = wurst.getHudManager();
+		if(hud == null)
+			return false;
+
+		HUDMod mod = hud.getModule(id);
+		return mod != null && mod.isEnabled();
 	}
 }

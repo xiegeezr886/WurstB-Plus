@@ -10,6 +10,7 @@ package net.wurstclient.util;
 
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public enum MovementPlanner
@@ -26,10 +27,31 @@ public enum MovementPlanner
 		if(input == null)
 			return Vec2.ZERO;
 
-		float sideways = (isPressed(input, "left") ? 1F : 0F)
-			- (isPressed(input, "right") ? 1F : 0F);
-		float forward = (isPressed(input, "forward") ? 1F : 0F)
-			- (isPressed(input, "backward") ? 1F : 0F);
+		// 1.21.6+ hands the final movement vector out directly on ClientInput.
+		// Reading it is what vanilla movement itself uses.
+		Vec2 vanilla = callGetMoveVector(input);
+		if(vanilla != null)
+			return vanilla;
+
+		// Legacy inputs (1.20.x - 1.21.5) expose impulse floats instead of
+		// key booleans.
+		Float forwardImpulse = readFloat(input, "forwardImpulse");
+		Float leftImpulse = readFloat(input, "leftImpulse");
+		if(forwardImpulse != null || leftImpulse != null)
+			return new Vec2(leftImpulse == null ? 0F : leftImpulse,
+				forwardImpulse == null ? 0F : forwardImpulse);
+
+		// Otherwise the key states live either on the input itself or in its
+		// keyPresses record (1.21.6+ keeps them in
+		// net.minecraft.world.entity.player.Input).
+		Object keys = readField(input, "keyPresses");
+		if(keys == null)
+			keys = input;
+
+		float sideways = (isPressed(keys, "left") ? 1F : 0F)
+			- (isPressed(keys, "right") ? 1F : 0F);
+		float forward = (isPressed(keys, "forward") ? 1F : 0F)
+			- (isPressed(keys, "backward") ? 1F : 0F);
 		return new Vec2(sideways, forward);
 	}
 
@@ -38,28 +60,67 @@ public enum MovementPlanner
 		return getMoveVector(input).length() > 1.0E-5F;
 	}
 
-	private static boolean isPressed(Object input, String name)
+	private static Vec2 callGetMoveVector(Object input)
 	{
 		try
 		{
-			Method method = null;
-			try
-			{
-				method = input.getClass().getMethod(name);
-			}catch(NoSuchMethodException e)
-			{
-				if("forward".equals(name))
-					method = input.getClass()
-						.getMethod("forwardImpulse");
-			}
-			if(method == null)
-				return false;
-			Object value = method.invoke(input);
-			return value instanceof Boolean b && b;
+			Method method = input.getClass().getMethod("getMoveVector");
+			if(method.getReturnType() != Vec2.class)
+				return null;
+
+			method.trySetAccessible();
+			return (Vec2)method.invoke(input);
+		}catch(ReflectiveOperationException e)
+		{
+			return null;
+		}
+	}
+
+	private static Object readField(Object target, String name)
+	{
+		try
+		{
+			Field field = target.getClass().getField(name);
+			field.trySetAccessible();
+			return field.get(target);
+		}catch(ReflectiveOperationException e)
+		{
+			return null;
+		}
+	}
+
+	private static Float readFloat(Object target, String name)
+	{
+		Object value = readField(target, name);
+		return value instanceof Number number ? number.floatValue() : null;
+	}
+
+	private static boolean isPressed(Object target, String name)
+	{
+		try
+		{
+			Method method = target.getClass().getMethod(name);
+			method.trySetAccessible();
+			Object value = method.invoke(target);
+			if(value instanceof Boolean pressed)
+				return pressed;
+			if(value instanceof Number number)
+				return number.floatValue() > 1.0E-5F;
+		}catch(NoSuchMethodException e)
+		{
+			// fall through to the field lookup
 		}catch(ReflectiveOperationException e)
 		{
 			return false;
 		}
+
+		Object value = readField(target, name);
+		if(value instanceof Boolean pressed)
+			return pressed;
+		if(value instanceof Number number)
+			return number.floatValue() > 1.0E-5F;
+
+		return false;
 	}
 
 	public static Vec3 horizontalMotion(float forward, float sideways,

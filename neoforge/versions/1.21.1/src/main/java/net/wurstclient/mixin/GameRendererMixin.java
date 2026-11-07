@@ -13,6 +13,7 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.entity.Entity;
@@ -134,5 +135,37 @@ public abstract class GameRendererMixin implements AutoCloseable
 	{
 		if(WurstClient.INSTANCE.getHax().noHurtcamHack.isEnabled())
 			ci.cancel();
+	}
+
+	/**
+	 * Draws the NanoVG HUD after Minecraft has finished the GUI pass.
+	 * The HUD renders into its own framebuffer and is then composited onto
+	 * the main target, so it cannot disturb the vanilla render pipeline.
+	 */
+	@Inject(at = @At("HEAD"),
+		method = "render(Lnet/minecraft/client/DeltaTracker;Z)V")
+	private void onPrepareHud(DeltaTracker deltaTracker,
+		boolean renderLevel, CallbackInfo ci)
+	{
+		if(WurstClient.INSTANCE.getHudManager() != null)
+			WurstClient.INSTANCE.getHudManager().prepareFrame(
+				deltaTracker.getGameTimeDeltaPartialTick(false));
+	}
+
+	/**
+	 * Composites the HUD right after the vanilla GUI pass and before the
+	 * screen render, so open screens (game menu, ClickGUI, Navigator, ...)
+	 * draw their overlay on top of it instead of the HUD floating above them.
+	 */
+	@Inject(at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/gui/Gui;render(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
+		shift = At.Shift.AFTER),
+		method = "render(Lnet/minecraft/client/DeltaTracker;Z)V")
+	private void onRenderHud(DeltaTracker deltaTracker,
+		boolean renderLevel, CallbackInfo ci)
+	{
+		if(WurstClient.INSTANCE.getHudManager() != null)
+			WurstClient.INSTANCE.getHudManager().renderFrame(
+				deltaTracker.getGameTimeDeltaPartialTick(false));
 	}
 }
