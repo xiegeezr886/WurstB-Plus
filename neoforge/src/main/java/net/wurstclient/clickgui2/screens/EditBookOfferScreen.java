@@ -22,9 +22,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.wurstclient.hacks.autolibrarian.BookOffer;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.BookOffersSetting;
 import net.wurstclient.util.MathUtils;
-import net.wurstclient.util.RenderUtils;
 
 public final class EditBookOfferScreen extends Screen
 {
@@ -254,65 +254,62 @@ public final class EditBookOfferScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		PoseStack matrixStack = context.pose();
 		renderDirtBackground(context);
-		
-		matrixStack.pushPose();
-		matrixStack.translate(0, 0, 300);
-		
-		Font tr = minecraft.font;
-		String titleText = "编辑附魔书报价";
-		context.drawCenteredString(tr, titleText, width / 2, 12,
-			0xffffff);
-		
-		int x = width / 2 - 100;
-		int y = 64;
-		
-		Item item = BuiltInRegistries.ITEM.get(new ResourceLocation("enchanted_book"));
-		ItemStack stack = new ItemStack(item);
-		RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
-		
-		BookOffer bookOffer = offerToSave;
-		String name = bookOffer.getEnchantmentNameWithLevel();
-		
-		Enchantment enchantment = bookOffer.getEnchantment();
-		int nameColor = enchantment.isCurse() ? 0xff5555 : 0xffffff;
-		context.drawString(tr, name, x + 28, y, nameColor);
-		
-		context.drawString(tr, bookOffer.id(), x + 28, y + 9, 0xa0a0a0, false);
-		
-		String price;
-		if(bookOffer.price() >= 64)
-			price = "任意价格";
-		else
-		{
-			price = "最高 " + bookOffer.price();
-			RenderUtils.drawItem(context, new ItemStack(Items.EMERALD),
-				x + 28 + tr.width(price), y + 16, false);
-		}
-		
-		context.drawString(tr, price, x + 28, y + 18, 0xa0a0a0, false);
-		
 		levelField.render(context, mouseX, mouseY, partialTicks);
 		priceField.render(context, mouseX, mouseY, partialTicks);
 		super.render(context, mouseX, mouseY, partialTicks);
-		
-		matrixStack.translate(width / 2 - 100, 112, 0);
-		
-		context.drawString(tr, "等级:", 0, 0, 0xf0f0f0);
-		context.drawString(tr, "最高价格:", 0, 16, 0xf0f0f0);
-		
-		if(alreadyAdded && offerToSave != null)
-		{
-			String errorText = offerToSave.getEnchantmentNameWithLevel()
-				+ " 已在你的列表中！";
-			context.drawString(tr, errorText, 0, 32, 0xff5555);
-		}
-		
-		matrixStack.popPose();
-		
-		RenderUtils.drawItem(context, new ItemStack(Items.EMERALD),
-			width / 2 - 16, 126, false);
+
+		NanoVGUI.pass(context, () -> {
+			NanoVGUI.centeredText("编辑附魔书报价", width / 2, 12, 0xFFFFFFFF,
+				9F);
+
+			int x = width / 2 - 100;
+			int y = 64;
+
+			Item item = BuiltInRegistries.ITEM.get(
+				new ResourceLocation("enchanted_book"));
+			ItemStack stack = new ItemStack(item);
+
+			BookOffer bookOffer = offerToSave;
+			String name = bookOffer.getEnchantmentNameWithLevel();
+
+			Enchantment enchantment = bookOffer.getEnchantment();
+			int nameColor = enchantment.isCurse() ? 0xff5555 : 0xffffff;
+			String price;
+			boolean emeraldAfterPrice = false;
+			if(bookOffer.price() >= 64)
+				price = "任意价格";
+			else
+			{
+				price = "最高 " + bookOffer.price();
+				emeraldAfterPrice = true;
+			}
+			boolean drawEmerald = emeraldAfterPrice;
+
+			float priceWidth = NanoVGUI.width(price, 9F);
+			NanoVGUI.item(context, stack, x + 1, y + 1, true);
+			NanoVGUI.text(name, x + 28, y, nameColor, 9F);
+			NanoVGUI.text(bookOffer.id(), x + 28, y + 9, 0xa0a0a0, 9F);
+			NanoVGUI.text(price, x + 28, y + 18, 0xa0a0a0, 9F);
+			if(drawEmerald)
+				NanoVGUI.item(context, new ItemStack(Items.EMERALD),
+					Math.round(x + 28 + priceWidth), y + 16, false);
+
+			int baseX = width / 2 - 100;
+			int baseY = 112;
+			NanoVGUI.text("等级:", baseX, baseY, 0xf0f0f0, 9F);
+			NanoVGUI.text("最高价格:", baseX, baseY + 16, 0xf0f0f0, 9F);
+
+			if(alreadyAdded && offerToSave != null)
+			{
+				String errorText = offerToSave.getEnchantmentNameWithLevel()
+					+ " 已在你的列表中！";
+				NanoVGUI.text(errorText, baseX, baseY + 32, 0xff5555, 9F);
+			}
+
+			NanoVGUI.item(context, new ItemStack(Items.EMERALD),
+				width / 2 - 16, 126, false);
+		});
 	}
 	
 	@Override

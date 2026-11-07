@@ -20,6 +20,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.wurstclient.Category;
+import net.wurstclient.mixin.MinecraftAccessor;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
@@ -142,7 +143,7 @@ public final class LiquidFillerHack extends Hack implements UpdateListener
 
 			IMC.getInteractionManager().rightClickBlock(params.neighbor(),
 				params.side(), params.hitVec());
-			MC.rightClickDelay = 4;
+			((MinecraftAccessor)MC).setRightClickDelay(4);
 
 			if(++placed >= maxBlocksPerTick.getValueI())
 				break;

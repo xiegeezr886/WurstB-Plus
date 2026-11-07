@@ -144,7 +144,7 @@ public final class TunnellerHack extends Hack
 		overlay.resetProgress();
 		if(currentBlock != null)
 		{
-			MC.gameMode.isDestroying = true;
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			currentBlock = null;
 		}
@@ -804,7 +804,7 @@ public final class TunnellerHack extends Hack
 			return;
 		
 		// check timer
-		if(MC.rightClickDelay > 0)
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		// place block
@@ -815,7 +815,7 @@ public final class TunnellerHack extends Hack
 		SwingHand.SERVER.swing(InteractionHand.MAIN_HAND);
 		
 		// reset timer
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 	}
 	
 	private boolean breakBlock(BlockPos pos)

@@ -8,6 +8,7 @@
 package net.wurstclient.hud2.compat;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -41,10 +42,14 @@ public final class HudItemIcons
 	private static final int PROJECTION_SIZE = 16;
 	private static final int SIZE = 32;
 	private static final int TARGET_SIZE = 32;
+	private static final int MAX_CACHE = 512;
 
-	private static final Map<String, Integer> CACHE = new LinkedHashMap<>();
+	// Access-order map: the least recently drawn icon is evicted first.
+	private static final Map<String, Integer> CACHE =
+		new LinkedHashMap<>(16, 0.75F, true);
 	private static final Set<ItemStack> PENDING = new LinkedHashSet<>();
 	private static TextureTarget target;
+	private static long nvgHandle;
 	private static boolean failed;
 
 	private HudItemIcons() {}
@@ -70,6 +75,7 @@ public final class HudItemIcons
 			|| WurstClient.MC.player == null)
 			return;
 
+		nvgHandle = nvg.getHandle();
 		try(GlStateGuard ignored = GlStateGuard.capture())
 		{
 			Matrix4f oldProjection = new Matrix4f(
@@ -123,19 +129,18 @@ public final class HudItemIcons
 			PROJECTION_SIZE, PROJECTION_SIZE, 0, 1000, 21000),
 			VertexSorting.ORTHOGRAPHIC_Z);
 
-		GuiGraphics graphics = new GuiGraphics(WurstClient.MC,
-			WurstClient.MC.renderBuffers().bufferSource());
-		graphics.renderItem(stack, 0, 0);
-		WurstClient.MC.renderBuffers().bufferSource().endBatch();
-
 		ByteBuffer pixels = MemoryUtil.memAlloc(SIZE * SIZE * 4);
 		ByteBuffer flipped = MemoryUtil.memAlloc(SIZE * SIZE * 4);
 		try
 		{
+			GuiGraphics graphics = new GuiGraphics(WurstClient.MC,
+				WurstClient.MC.renderBuffers().bufferSource());
+			graphics.renderItem(stack, 0, 0);
+			WurstClient.MC.renderBuffers().bufferSource().endBatch();
+
 			GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
 			GL11.glReadPixels(0, 0, SIZE, SIZE, GL11.GL_RGBA,
 				GL11.GL_UNSIGNED_BYTE, pixels);
-			target.unbindWrite();
 
 			for(int y = 0; y < SIZE; y++)
 			{
@@ -150,10 +155,30 @@ public final class HudItemIcons
 			int image = NanoVG.nvgCreateImageRGBA(nvg.getHandle(), SIZE, SIZE,
 				NanoVG.NVG_IMAGE_NEAREST, flipped);
 			CACHE.put(key(stack), image);
+			evictIfNeeded(nvg.getHandle());
 		}finally
 		{
+			// Always unbind: a failed render used to leave the 32x32 target
+			// bound, so the rest of the frame was drawn into it.
+			target.unbindWrite();
 			MemoryUtil.memFree(pixels);
 			MemoryUtil.memFree(flipped);
+		}
+	}
+
+	private static void evictIfNeeded(long handle)
+	{
+		while(CACHE.size() > MAX_CACHE)
+		{
+			Iterator<Map.Entry<String, Integer>> iterator =
+				CACHE.entrySet().iterator();
+			if(!iterator.hasNext())
+				return;
+
+			int image = iterator.next().getValue();
+			iterator.remove();
+			if(handle != 0)
+				NanoVG.nvgDeleteImage(handle, image);
 		}
 	}
 
@@ -167,6 +192,11 @@ public final class HudItemIcons
 
 	public static void clear()
 	{
+		long handle = nvgHandle;
+		for(int image : CACHE.values())
+			if(handle != 0)
+				NanoVG.nvgDeleteImage(handle, image);
+
 		if(target != null)
 		{
 			target.destroyBuffers();
@@ -174,6 +204,7 @@ public final class HudItemIcons
 		}
 		CACHE.clear();
 		PENDING.clear();
+		nvgHandle = 0;
 		failed = false;
 	}
 }

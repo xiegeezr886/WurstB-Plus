@@ -25,10 +25,13 @@ import net.wurstclient.WurstClient;
  */
 public final class PlayerSimulation
 {
+	private final LocalPlayer player;
 	private final RemotePlayer simulated;
 
 	public PlayerSimulation(LocalPlayer player)
 	{
+		this.player = player;
+
 		if(WurstClient.MC.level == null)
 		{
 			simulated = null;
@@ -61,8 +64,11 @@ public final class PlayerSimulation
 	{
 		if(simulated == null)
 			return;
-		simulated.travel(new Vec3(simulated.xxa, simulated.yya,
-			simulated.zza));
+
+		// Pass the player's live movement input. The clone never receives
+		// keyboard input of its own, so using its own xxa/yya/zza (always 0)
+		// made the prediction ignore where the player is actually walking.
+		simulated.travel(new Vec3(player.xxa, player.yya, player.zza));
 	}
 
 	public RemotePlayer getSimulatedEntity()

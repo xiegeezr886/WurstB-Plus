@@ -1,0 +1,44 @@
+﻿started 2026-10-25T20:35:45 save=soar7-hud-test
+control server ready
+world loaded
+hud mods=62 hackMods=45
+builtins: fps=True, coords=True, ping=True, tps=True, speed=True, server=True, clock=True, armor=True, potions=True, combo=True, keystrokes=True, target_hud=True, inventory=False, minimap=False, notifications=True, hacklist=True, logo=True
+startup errors:
+Caused by: com.mojang.authlib.exceptions.MinecraftClientHttpException: Status: 401
+[20:36:56] [Download-2/INFO] (Minecraft) Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC
+[20:36:56] [Download-2/ERROR] (Minecraft) Failed to fetch Realms feature flags
+com.mojang.realmsclient.exception.RealmsServiceException: Realms authentication error with message 'java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC'
+[20:37:03] [Download-2/ERROR] (Minecraft) Failed to retrieve profile key pair
+com.mojang.authlib.exceptions.MinecraftClientHttpException: Status: 401
+
+screenshot C:\Users\ui863\Documents\trae_projects\VAP\_recon\shots\soar7_editor_normal.png
+errors after 8 previews:
+Caused by: com.mojang.authlib.exceptions.MinecraftClientHttpException: Status: 401
+[20:36:56] [Download-2/INFO] (Minecraft) Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC
+[20:36:56] [Download-2/ERROR] (Minecraft) Failed to fetch Realms feature flags
+com.mojang.realmsclient.exception.RealmsServiceException: Realms authentication error with message 'java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC'
+[20:37:03] [Download-2/ERROR] (Minecraft) Failed to retrieve profile key pair
+com.mojang.authlib.exceptions.MinecraftClientHttpException: Status: 401
+
+safe enabled=8: hack.armorstatus, hack.combocounter, hack.cpsdisplay, hack.keystrokes, hack.pitchdisplay, hack.potionstatus, hack.scoreboard, hack.yawdisplay
+all hackEnabled=45/45
+errors after enabling all:
+[20:36:56] [Download-2/INFO] (Minecraft) Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC
+[20:36:56] [Download-2/ERROR] (Minecraft) Failed to fetch Realms feature flags
+com.mojang.realmsclient.exception.RealmsServiceException: Realms authentication error with message 'java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC'
+[20:37:03] [Download-2/ERROR] (Minecraft) Failed to retrieve profile key pair
+com.mojang.authlib.exceptions.MinecraftClientHttpException: Status: 401
+[20:37:17] [Render thread/INFO] (Minecraft) [CHAT] §c[§6WurstB+ Plus§c]§r §c[§4§lERROR§c]§r Could not open the system browser: desktop browser unavailable
+
+screenshot C:\Users\ui863\Documents\trae_projects\VAP\_recon\shots\soar7_editor_all.png
+screenshot C:\Users\ui863\Documents\trae_projects\VAP\_recon\shots\soar7_ingame.png
+errors after close:
+[20:36:56] [Download-2/INFO] (Minecraft) Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC
+[20:36:56] [Download-2/ERROR] (Minecraft) Failed to fetch Realms feature flags
+com.mojang.realmsclient.exception.RealmsServiceException: Realms authentication error with message 'java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC'
+[20:37:03] [Download-2/ERROR] (Minecraft) Failed to retrieve profile key pair
+com.mojang.authlib.exceptions.MinecraftClientHttpException: Status: 401
+[20:37:17] [Render thread/INFO] (Minecraft) [CHAT] §c[§6WurstB+ Plus§c]§r §c[§4§lERROR§c]§r Could not open the system browser: desktop browser unavailable
+
+still enabled after cleanup=0
+done

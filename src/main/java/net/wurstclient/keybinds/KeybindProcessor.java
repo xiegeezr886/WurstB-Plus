@@ -144,7 +144,13 @@ public final class KeybindProcessor implements KeyPressListener
 					hack.setEnabled(true);
 					heldHacks.computeIfAbsent(keyName,
 						k -> new HashSet<>()).add(hack);
-				}
+				}else if(isHeldByAnyKey(hack))
+					// The hack is already held by another HOLD key. Register
+					// this key as a second holder so releasing either key
+					// keeps it enabled. A manually enabled hack has no holder
+					// and is intentionally not taken over.
+					heldHacks.computeIfAbsent(keyName, k -> new HashSet<>())
+						.add(hack);
 				return;
 			}
 		}
@@ -155,6 +161,14 @@ public final class KeybindProcessor implements KeyPressListener
 			cmdProcessor.process(cmd);
 	}
 
+	private boolean isHeldByAnyKey(Hack hack)
+	{
+		for(Set<Hack> hacks : heldHacks.values())
+			if(hacks.contains(hack))
+				return true;
+		return false;
+	}
+
 	private boolean containsCmd(String cmds, String expected)
 	{
 		for(String part : splitParts(cmds))
@@ -162,7 +176,6 @@ public final class KeybindProcessor implements KeyPressListener
 				return true;
 		return false;
 	}
-
 	private static String[] splitParts(String cmds)
 	{
 		String escaped = cmds.replace(";;", "\u0000");

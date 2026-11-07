@@ -133,7 +133,7 @@ public final class BuildRandomHack extends Hack
 		if(WURST.getHax().freecamHack.isEnabled())
 			return;
 		
-		if(!fastPlace.isChecked() && MC.rightClickDelay > 0)
+		if(!fastPlace.isChecked() && ((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		if(checkItem.isChecked() && !MC.player.isHolding(
@@ -141,7 +141,7 @@ public final class BuildRandomHack extends Hack
 			return;
 		
 		if(!placeWhileBreaking.isChecked()
-			&& MC.gameMode.isDestroying())
+			&& ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying())
 			return;
 		
 		if(!placeWhileRiding.isChecked() && MC.player.isHandsBusy())
@@ -176,7 +176,7 @@ public final class BuildRandomHack extends Hack
 		if(checkLOS.isChecked() && !params.lineOfSight())
 			return false;
 		
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 		facing.getSelected().face(params.hitVec());
 		lastPos = pos;
 		

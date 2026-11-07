@@ -1,0 +1,179 @@
+---- Minecraft Crash Report ----
+// Don't do that.
+
+Time: 2026-11-02 16:29:54
+Description: Exception ticking world
+
+java.lang.IllegalStateException: Can not retrieve LootModifierManager until resources have loaded once.
+	at TRANSFORMER/forge@51.0.33/net.minecraftforge.common.ForgeInternalHandler.getLootModifierManager(ForgeInternalHandler.java:110) ~[forge-1.21-51.0.33-universal.jar!/:?] {re:classloading}
+	at TRANSFORMER/forge@51.0.33/net.minecraftforge.common.ForgeHooks.modifyLoot(ForgeHooks.java:791) ~[forge-1.21-51.0.33-universal.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:127) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,re:classloading,pl:mixin:APP:mixins.baritone.json:MixinLootTable,pl:mixin:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:121) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,re:classloading,pl:mixin:APP:mixins.baritone.json:MixinLootTable,pl:mixin:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.block.state.BlockBehaviour.getDrops(BlockBehaviour.java:274) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.getDrops(BlockBehaviour.java:748) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,re:classloading,pl:mixin:APP:wurst.mixins.json:AbstractBlockStateMixin,pl:mixin:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.block.Block.getDrops(Block.java:270) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.block.Block.dropResources(Block.java:293) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.WaterFluid.beforeDestroyingBlock(WaterFluid.java:70) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.FlowingFluid.spreadTo(FlowingFluid.java:254) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.FlowingFluid.spreadToSides(FlowingFluid.java:149) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.FlowingFluid.spread(FlowingFluid.java:129) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.FlowingFluid.tick(FlowingFluid.java:458) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.FluidState.tick(FluidState.java:76) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.chunk.LevelChunk.postProcessGeneration(LevelChunk.java:534) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,re:mixin}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ChunkMap.lambda$prepareTickingChunk$27(ChunkMap.java:663) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ChunkResult$Success.ifSuccess(ChunkResult.java:60) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ChunkMap.lambda$prepareTickingChunk$28(ChunkMap.java:662) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at java.base/java.util.concurrent.CompletableFuture$UniApply.tryFire(CompletableFuture.java:646) ~[?:?] {}
+	at java.base/java.util.concurrent.CompletableFuture$Completion.run(CompletableFuture.java:482) ~[?:?] {}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.util.thread.BlockableEventLoop.doRunTask(BlockableEventLoop.java:162) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,pl:accesstransformer:B,re:computing_frames,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ServerChunkCache$MainThreadExecutor.doRunTask(ServerChunkCache.java:546) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.util.thread.BlockableEventLoop.pollTask(BlockableEventLoop.java:136) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,pl:accesstransformer:B,re:computing_frames,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ServerChunkCache$MainThreadExecutor.pollTask(ServerChunkCache.java:555) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ServerChunkCache.pollTask(ServerChunkCache.java:260) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.pollTaskInternal(MinecraftServer.java:854) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.pollTask(MinecraftServer.java:843) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.util.thread.BlockableEventLoop.managedBlock(BlockableEventLoop.java:145) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,pl:accesstransformer:B,re:computing_frames,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.managedBlock(MinecraftServer.java:815) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.waitUntilNextTick(MinecraftServer.java:820) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:706) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:267) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?] {}
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Server thread
+Suspected Mods: NONE
+Stacktrace:
+	at TRANSFORMER/forge@51.0.33/net.minecraftforge.common.ForgeInternalHandler.getLootModifierManager(ForgeInternalHandler.java:110) ~[forge-1.21-51.0.33-universal.jar!/:?] {re:classloading}
+	at TRANSFORMER/forge@51.0.33/net.minecraftforge.common.ForgeHooks.modifyLoot(ForgeHooks.java:791) ~[forge-1.21-51.0.33-universal.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:127) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,re:classloading,pl:mixin:APP:mixins.baritone.json:MixinLootTable,pl:mixin:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:121) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,re:classloading,pl:mixin:APP:mixins.baritone.json:MixinLootTable,pl:mixin:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.block.state.BlockBehaviour.getDrops(BlockBehaviour.java:274) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.getDrops(BlockBehaviour.java:748) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,re:classloading,pl:mixin:APP:wurst.mixins.json:AbstractBlockStateMixin,pl:mixin:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.block.Block.getDrops(Block.java:270) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.block.Block.dropResources(Block.java:293) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.WaterFluid.beforeDestroyingBlock(WaterFluid.java:70) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.FlowingFluid.spreadTo(FlowingFluid.java:254) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.FlowingFluid.spreadToSides(FlowingFluid.java:149) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.FlowingFluid.spread(FlowingFluid.java:129) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.FlowingFluid.tick(FlowingFluid.java:458) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.material.FluidState.tick(FluidState.java:76) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.world.level.chunk.LevelChunk.postProcessGeneration(LevelChunk.java:534) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,re:mixin}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ChunkMap.lambda$prepareTickingChunk$27(ChunkMap.java:663) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ChunkResult$Success.ifSuccess(ChunkResult.java:60) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ChunkMap.lambda$prepareTickingChunk$28(ChunkMap.java:662) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at java.base/java.util.concurrent.CompletableFuture$UniApply.tryFire(CompletableFuture.java:646) ~[?:?] {}
+	at java.base/java.util.concurrent.CompletableFuture$Completion.run(CompletableFuture.java:482) ~[?:?] {}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.util.thread.BlockableEventLoop.doRunTask(BlockableEventLoop.java:162) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,pl:accesstransformer:B,re:computing_frames,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ServerChunkCache$MainThreadExecutor.doRunTask(ServerChunkCache.java:546) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.util.thread.BlockableEventLoop.pollTask(BlockableEventLoop.java:136) ~[forge-1.21-51.0.33-client.jar!/:?] {re:mixin,pl:accesstransformer:B,re:computing_frames,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ServerChunkCache$MainThreadExecutor.pollTask(ServerChunkCache.java:555) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ServerChunkCache.pollTask(ServerChunkCache.java:260) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.pollTaskInternal(MinecraftServer.java:854) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+-- Affected level --
+Details:
+	All players: 1 total; [ServerPlayer['TestRunner'/1, l='ServerLevel[world]', x=16.50, y=67.00, z=-134.50]]
+	Chunk stats: 1680
+	Level dimension: minecraft:overworld
+	Level spawn location: World: (16,70,-128), Section: (at 0,6,0 in 1,4,-8; chunk contains blocks 16,-64,-128 to 31,319,-113), Region: (0,-1; contains chunks 0,-32 to 31,-1, blocks 0,-64,-512 to 511,319,-1)
+	Level time: 153 game time, 153 day time
+	Level name: world
+	Level game mode: Game mode: survival (ID 0). Hardcore: false. Commands: false
+	Level weather: Rain time: 140394 (now: false), thunder time: 54872 (now: false)
+	Known server brands: vanilla, forge
+	Removed feature flags: 
+	Level was modded: true
+	Level storage version: 0x04ABD - Anvil
+	Loaded entity count: 107
+Stacktrace:
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.level.ServerLevel.fillReportDetails(ServerLevel.java:1697) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:1024) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:911) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.client.server.IntegratedServer.tickServer(IntegratedServer.java:109) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:runtimedistcleaner:A}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:701) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at TRANSFORMER/minecraft@1.21/net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:267) ~[forge-1.21-51.0.33-client.jar!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?] {}
+
+
+-- System Details --
+Details:
+	Minecraft Version: 1.21
+	Minecraft Version ID: 1.21
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 21.0.12.1, Eclipse Adoptium
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode, sharing), Eclipse Adoptium
+	Memory: 159135752 bytes (151 MiB) / 931135488 bytes (888 MiB) up to 4294967296 bytes (4096 MiB)
+	CPUs: 32
+	Processor Vendor: GenuineIntel
+	Processor Name: Intel(R) Core(TM) i9-14900HX
+	Identifier: Intel64 Family 6 Model 183 Stepping 1
+	Microarchitecture: Raptor Lake
+	Frequency (GHz): 2.42
+	Number of physical packages: 1
+	Number of physical CPUs: 24
+	Number of logical CPUs: 32
+	Graphics card #0 name: NVIDIA GeForce RTX 5070 Laptop GPU
+	Graphics card #0 vendor: NVIDIA
+	Graphics card #0 VRAM (MiB): 8151.00
+	Graphics card #0 deviceId: VideoController1
+	Graphics card #0 versionInfo: 32.0.15.9219
+	Graphics card #1 name: Intel(R) UHD Graphics
+	Graphics card #1 vendor: Intel Corporation
+	Graphics card #1 VRAM (MiB): 2048.00
+	Graphics card #1 deviceId: VideoController2
+	Graphics card #1 versionInfo: 32.0.101.7077
+	Memory slot #0 capacity (MiB): 16384.00
+	Memory slot #0 clockSpeed (GHz): 5.60
+	Memory slot #0 type: Unknown
+	Memory slot #1 capacity (MiB): 16384.00
+	Memory slot #1 clockSpeed (GHz): 5.60
+	Memory slot #1 type: Unknown
+	Virtual memory max (MiB): 47763.49
+	Virtual memory used (MiB): 45117.00
+	Swap memory total (MiB): 15366.74
+	Swap memory used (MiB): 523.40
+	Space in storage for jna.tmpdir (MiB): available: 47152.78, total: 975538.00
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): available: 47152.78, total: 975538.00
+	Space in storage for io.netty.native.workdir (MiB): available: 47152.78, total: 975538.00
+	Space in storage for java.io.tmpdir (MiB): available: 47152.78, total: 975538.00
+	Space in storage for workdir (MiB): available: 47152.78, total: 975538.00
+	JVM Flags: 2 total; -Xmx4G -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump
+	Server Running: true
+	Player Count: 1 / 8; [ServerPlayer['TestRunner'/1, l='ServerLevel[world]', x=16.50, y=67.00, z=-134.50]]
+	Active Data Packs: vanilla, mod:wurstpenguin (incompatible), mod:baritoe (incompatible), mod:forge (incompatible)
+	Available Data Packs: bundle, mod:baritoe (incompatible), mod:forge (incompatible), mod:wurstpenguin (incompatible), trade_rebalance, vanilla
+	Enabled Feature Flags: minecraft:vanilla
+	World Generation: Stable
+	World Seed: 2394574660504816499
+	Type: Integrated Server (map_client.txt)
+	Is Modded: Definitely; Client brand changed to 'forge'; Server brand changed to 'forge'
+	Launched Version: 1.21-forge-51.0.33
+	ModLauncher: 10.2.1
+	ModLauncher launch target: forge_client
+	ModLauncher naming: mcp
+	ModLauncher services: 
+		/ slf4jfixer PLUGINSERVICE 
+		/ runtimedistcleaner PLUGINSERVICE 
+		/ runtime_enum_extender PLUGINSERVICE 
+		/ object_holder_definalize PLUGINSERVICE 
+		/ capability_token_subclass PLUGINSERVICE 
+		/ accesstransformer PLUGINSERVICE 
+		/ eventbus PLUGINSERVICE 
+		/ mixin PLUGINSERVICE 
+		/ fml TRANSFORMATIONSERVICE 
+		/ mixin TRANSFORMATIONSERVICE 
+	FML Language Providers: 
+		minecraft@1.0
+		lowcodefml@51
+		javafml@51.0.33
+	Mod List: 
+		forge-1.21-51.0.33-client.jar                     |Minecraft                     |minecraft                     |1.21                |DONE      |Manifest: NOSIGNATURE
+		WurstB+ Plus-v1.5.1-Forge-1.21.jar                |WurstB+ Plus                  |wurstpenguin                  |1.5.1-Forge-1.21    |DONE      |Manifest: NOSIGNATURE
+		baritone-api-forge-1.21.1.jar                     |Baritone                      |baritoe                       |1.11.2              |DONE      |Manifest: NOSIGNATURE
+		forge-1.21-51.0.33-universal.jar                  |Forge                         |forge                         |51.0.33             |DONE      |Manifest: NOSIGNATURE
+	Crash Report UUID: 4fabddd3-a1b2-45ae-825c-b6b99db339f3
+	FML: 0.0
+	Forge: net.minecraftforge:51.0.33

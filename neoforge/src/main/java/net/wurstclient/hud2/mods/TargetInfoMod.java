@@ -112,7 +112,7 @@ public final class TargetInfoMod extends HUDMod
 		KillauraHack aura = WURST.getHax().killauraHack;
 		if(aura != null && aura.isEnabled())
 		{
-			searchRange = Math.max(searchRange, 6);
+			searchRange = Math.max(searchRange, aura.getRange());
 			Entity auraTarget = aura.getCurrentTarget();
 			if(auraTarget instanceof LivingEntity living && living.isAlive()
 				&& living != MC.player && isValidTarget(living))

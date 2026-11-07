@@ -585,7 +585,12 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 		if(pos == null || face == null)
 			return null;
 		lastHitResult = null;
-		Rotation direct = ScaffoldUtils.rotationFromBlock(pos, face);
+		// Round-trip through the mouse-sensitivity grid, like OpenOpal's
+		// getVanillaRotation and ScaffoldWalkHack.getFastRotation do. Without
+		// this the rotation sent for Hypixel is an arbitrary fraction that
+		// Grim-style checks can flag.
+		Rotation direct = ScaffoldUtils
+			.getVanillaRotation(ScaffoldUtils.rotationFromBlock(pos, face));
 		Rotation reverseYaw = new Rotation(
 			Mth.wrapDegrees(WurstClient.MC.player.getYRot() - 180.0F),
 			direct.pitch());

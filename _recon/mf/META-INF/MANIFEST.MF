@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Created-By: 25.0.4 (Oracle Corporation)
+MixinConfigs: mixins.baritone.json
+MixinConnector: baritone.launch.BaritoneMixinConnector
+

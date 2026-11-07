@@ -572,7 +572,13 @@ public final class ScaffoldWalkHack extends Hack
 	@Override
 	public void onRightClick(RightClickEvent event)
 	{
-		if(isEnabled() && MC.player != null && MC.screen == null)
+		if(!isEnabled() || MC.player == null || MC.screen != null)
+			return;
+
+		// Only swallow right clicks that would place a block. Cancelling every
+		// right click also blocked food, potions, bows, pearls and buckets,
+		// which upstream Wurst's Scaffold never did.
+		if(ScaffoldUtils.isPlaceableStack(MC.player.getMainHandItem()))
 			event.cancel();
 	}
 

@@ -29,6 +29,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
+import net.wurstclient.mixin.MinecraftAccessor;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
@@ -156,7 +157,7 @@ public final class AutoChorusHack extends Hack
 		{
 			if(!MC.player.isUsingItem())
 			{
-				MC.startUseItem();
+				((MinecraftAccessor)MC).invokeStartUseItem();
 				return;
 			}
 
@@ -177,7 +178,7 @@ public final class AutoChorusHack extends Hack
 				MC.player.swing(InteractionHand.MAIN_HAND);
 				timer = delay.getValueI();
 			}else if(!MC.player.isUsingItem())
-				MC.startUseItem();
+				((MinecraftAccessor)MC).invokeStartUseItem();
 			return;
 		}
 

@@ -45,7 +45,7 @@ public final class OverlayHack extends Hack
 	@Override
 	public void onUpdate()
 	{
-		if(MC.gameMode.isDestroying())
+		if(((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying())
 			renderer.updateProgress();
 		else
 			renderer.resetProgress();
@@ -54,7 +54,7 @@ public final class OverlayHack extends Hack
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
-		if(!MC.gameMode.isDestroying())
+		if(!((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying())
 			return;
 		
 		if(!(MC.hitResult instanceof BlockHitResult blockHitResult)

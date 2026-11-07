@@ -1,0 +1,48 @@
+fix(baritone): 补上 1.21.x / 26.x 的 9 个同内容 Baritone jar 的 onTick 补丁
+
+## 背景
+
+49e0d3b7 修了 10 个 Forge 版 Baritone 的 onTick 空指针。但那一次扫描时我
+**按 SHA 去重、每个哈希只检查一个代表文件**，因此同一份缺陷 jar 在别处的
+副本被漏掉了。
+
+逐文件重扫（105 个，不去重）后发现还有 9 个文件仍是 sites=2：
+
+    neoforge/versions/1.21.1/baritone-api-forge-1.21.1.jar
+    neoforge/versions/1.21.1/baritone-api-forge-1.21.2.jar
+    neoforge/versions/26.1.2/libs/baritone-api-forge-26.1.2.jar
+    versions/1.21.1/libs/baritone-api-forge-1.21.1.jar
+    versions/1.21.11/libs/baritone-api-forge-1.21.1.jar
+    versions/1.21/libs/baritone-api-forge-1.21.1.jar
+    versions/26.1.2/libs/baritone-api-forge-26.1.2.jar
+    versions/26.2/libs/baritone-api-forge-26.1.2.jar
+    versions/26.3/libs/baritone-api-forge-26.1.2.jar
+
+全部为同一份内容（SHA256 前缀 E739B1679EF3，1570 KB），即 1.21.x / 26.x 那批。
+
+## 做法
+
+用与之前相同的 ASM 补丁（null 时按「不是我们的类」处理），并传入项目的
+compileClasspath 让 COMPUTE_FRAMES 能解析 Minecraft 类型。全部 9 个改完后
+复检为 CLEAN。
+
+## 验证
+
+  * 9 个全部 CLEAN（无残留 sites）
+  * 真实启动：1.21.11 / 26.2 / 26.3 三个工程 LAUNCHED，日志
+    **无 VerifyError**，证明用 1.20.1 类路径算出的栈帧在这些版本上同样
+    通过 JVM 校验器
+  * 进服验证：1.21.11 用 --quickPlayMultiplayer + --quickPlayPath 自动进服
+    成功（quickplay-log.json 写出 3c3u.org），且**不再出现 IPlayerContext NPE**
+  * 26.2 / 26.1.2 进服后另有崩溃，但均已查明与本补丁无关：
+    26.2 是 Baritone 自己的 IEntityRenderManager accessor 在 26.2 上 apply
+    失败（IRenderer.<clinit> ClassCastException）；26.1.2 是 Forge 64.1.0
+    在开发环境下的 Level.guardEntityTick 读配置限制（异常消息自述"仅开发
+    环境抛出"）
+
+## 边界
+
+  * 只提交这 9 个 jar；工作区里另有其它会话正在做的 Xray 修复
+    （XRayHack/FreecamHack/CameraMixin/RenderUtils/mixins.json），
+    未纳入本次提交。
+  * 26.2 的 accessor 问题未修，属 Baritone 与 MC 26.2 的映射不兼容。

@@ -8,6 +8,105 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ---
 
+## 未发布 — 第三轮审计 6 类问题与 1.21+ 图标修复（2026-11-07）
+
+第三轮 6 类问题（明细见
+[report/AUDIT-v1.5.1-upstream-2026-11-07-round3.md](report/AUDIT-v1.5.1-upstream-2026-11-07-round3.md)）：
+
+- **S10**：主密钥与共享旧密钥不同时，迁移单个账号文件不再删除旧密钥，其他安装目录仍可解密。
+- **S11**：命令式凭据读取区分“不存在”和“读取失败”，失败抛 `IOException`，不再误建新主密钥。
+- **S12**：`Surround` 的 Rotate 关闭时真正不请求静默旋转；`BlockPlacer` 新增带 `rotate` 标志的重载。
+- **U6**：`AutoArmor` 延迟换装复验装备槽快照与 `Keep elytra`，旧计划不会脱下后来穿上的鞘翅。
+- **U7**：1.20.1 两个构建的 TargetShader post JSON 改用 `wurst:target_effect` 命名空间。
+- **U8**：HUD 编辑器左键拖动不再强制开启吸附，保留用户右键设定的开关。
+
+另修复 1.21+ 的 NanoVG 图标不渲染：`HudTextures` 在 50 个构建中是返回 `-1` 的桩，主菜单按钮、
+ClickGUI 与 HUD 图片全部被跳过；改为从资源包读取 PNG、`NativeImage` 解码并上传为 GL 纹理缓存。
+已在 1.20.2、1.21.6、26.3 实机启动确认主菜单按钮图标正常显示。
+
+验证：`fabric` 4 个版本树、`neoforge`、Forge 2 个版本树与根工程编译通过；465 个改动 Java 文件
+语法解析 0 错误；S10 迁移与 S11 退出码的独立测试通过。
+
+---
+
+## 未发布 — 第二轮审计 8 类问题修复（2026-11-07）
+
+对照第二轮审计修复 8 类问题（明细见
+[report/AUDIT-v1.5.1-upstream-2026-11-07-round2.md](report/AUDIT-v1.5.1-upstream-2026-11-07-round2.md)）：
+
+- **Backtrack**：换世界/换连接时清空队列；排队包记录所属世界与连接，旧包不再通过新连接回放。
+- **NoGhostBlocks**：队列按世界过滤，旧世界的方块更新不会写进新世界。
+- **注解事件**：私有/包私有 `@WurstSubscribe` 方法可正常注册；重写方法只登记一次，不再重复触发。
+- **Addon**：逐个 provider 隔离，损坏的 Addon 只跳过自身，不再中断后续发现。
+- **HUD 配置**：`loadState` 逐模块/逐字段容错，坏值回退默认，初始化不再被异常中断。
+- **NanoVG GUI**：每帧按 pass 使用独立纹理槽，背景/侧栏不再被后续 pass 覆盖；延迟物品按入队时的平移绘制。
+
+验证：`fabric` 4 个版本树、`neoforge`、Forge 3 个版本树与根工程编译通过；500 个改动文件语法解析 0 错误；
+私有处理器与重写去重的独立测试通过。另修正第一轮误同步到根工程的 HUD 名称解析（根工程 `HudElement`
+不是 `Feature`），根工程恢复编译。
+
+---
+
+## 未发布 — 修复 1.21.6–26.3 移动输入读取（2026-11-07）
+
+- **根因**：`MovementPlanner.getMoveVector()` 在 1.21.6+ 反射找错了对象。真实输入在
+  `ClientInput.keyPresses`（`net.minecraft.world.entity.player.Input` 记录），而
+  `ClientInput` 自身已提供 `getMoveVector()`；旧实现找 `left()/right()/forward()` 与
+  `forwardImpulse`，全部命中不到，恒返回 `(0,0)`。
+- **症状**：Freecam（灵魂出窍）水平方向完全无法移动；Flight 普通模式水平速度为 0
+  （只能升降/滑行，表现为"飞得奇慢"）。同样读取该向量的 Speed、LongJump、Step、
+  FastLadder、PacketFly 也受影响。
+- **修复**：优先调用 `ClientInput.getMoveVector()`；退化路径支持 `keyPresses` 记录的
+  `forward()/backward()/left()/right()`，以及旧版 `forwardImpulse/leftImpulse` 浮点；
+  反射访问加 `trySetAccessible()`。33 个工程同步。
+- **验证**：`fabric/versions/1.21.6` 编译通过；33 个文件语法解析 0 错误；独立 Java
+  测试覆盖三种输入形态全部通过（vanilla / keyPresses / legacy）。
+
+---
+
+## 未发布 — 第二轮上游审计 6 类问题修复（2026-11-07）
+
+对照 Wurst 上游复核 66 个 v1.5.1 工程，修复 6 类问题（明细见
+[report/AUDIT-v1.5.1-upstream-2026-11-07.md](report/AUDIT-v1.5.1-upstream-2026-11-07.md)）：
+
+- **渲染入口**：Fabric 26.1–26.3 恢复 `GuiMixin`（GUI 逐帧事件）；26.2／26.3 恢复
+  `LevelRendererMixin`（3D `RenderEvent`）。
+- **Freecam 相机**：Fabric 26.x 恢复 `freecam/CameraMixin`、`freecam/LocalPlayerMixin`、
+  `freecam/ItemInHandRendererMixin` 注册；Forge 1.21.5 补上缺失的 `freecam/CameraMixin`
+  （按 1.21.4 移植，已核 `Camera.setup` 与 `detached` 字段）。
+- **NoSlowdown**：1.21.6–1.21.11 与 26.x 的三处物品使用包装器改为
+  `isEnabled() && shouldBypassUsingItem()`，"Using items"／"Blocking" 开关恢复独立生效。
+- **HOLD 双键**：第二个 HOLD 键会登记为同一功能的共同持有者，松开任一键不再提前关闭；
+  手动开启的功能仍不会被 HOLD 释放误关。
+- **HUD 命令**：`CmdUtils.findFeature` 与 `WurstClient.getFeatureByName` 纳入 HUD 模块与
+  HUD 设置，`.setmode hudsettings ...` 可用。
+- **嵌套设置**：`CmdUtils.findSetting` 递归查找子设置，支持 `父/子` 路径并对同名歧义报错。
+
+验证：`fabric`、`fabric/versions/1.20.2`、`fabric/versions/1.21.6`、`neoforge`、
+`versions/1.20.2`、`versions/1.21.5` 均 `compileJava --offline` 通过；235 个改动 Java 文件
+语法解析 0 错误；26.x 的注入目标已用 Loom 缓存的 26.x jar 逐方法核对。
+
+---
+
+## 未发布 — 对照 Wurst 上游的 13 项潜藏 bug 修复（2026-11-07）
+
+对照 Wurst7 v7.50.3-MC1.20.1 审计 v1.5.1，修复 13 项并同步到全部工程（明细与证据见
+[report/AUDIT-v1.5.1-vs-upstream.md](report/AUDIT-v1.5.1-vs-upstream.md)）：
+
+- **ST Block Fly**：恢复 16 tick 重武装并记录手部奇偶，禁用时换回，修复服务端主/副手永久错位。
+- **Killaura / MultiAura**：接回 `FakePlayerEntity` 与 `AntiBot` 过滤；攻击冷却窗口改为跨 tick 保存，
+  SWITCH 排序恢复"最近未命中优先"；FOV 改为 3D 半角语义（30–360）。
+- **Scaffold**：右键只在主手持可放置方块时拦截（不再吞掉进食/药水/弓/珍珠）；
+  Hypixel 旋转接回 `getVanillaRotation()` 灵敏度栅格；落点预测传入玩家实时 WASD 输入。
+- **HUD**：`HudItemIcons` 加 512 条 LRU、淘汰时 `nvgDeleteImage`，捕获异常时保证 `unbindWrite()`。
+- **账号加密**：旧格式解密只接受形似 JSON 的明文，读取失败不再立即写回空列表。
+- **其它**：`switchAdvantage` 改为 0–1 百分比；`hideFakeSwings` 默认关闭；Blink 空引用不再丢队列；
+  Flight 旁观者切换保留飞行状态。
+- **验证**：`fabric`、`fabric/versions/1.20.2`、`neoforge`、`versions/1.20.2` 均
+  `compileJava --offline` 通过；997 个改动文件语法解析 0 错误。
+
+---
+
 ## v1.5.1 — InvWalk accessor Mixin 警告（2026-10-27）
 
 - `CreativeModeInventoryScreenAccessor.getSelectedTab()` 改为 `static`（目标

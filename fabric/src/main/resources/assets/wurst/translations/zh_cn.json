@@ -1,4 +1,17 @@
 {
+  "hack.name.tridentboost": "三叉戟推进",
+  "description.wurst.hack.tridentboost": "调整激流推进倍率，支持离水激流。",
+  "hack.name.multitask": "多任务交互",
+  "description.wurst.hack.multitask": "允许同时使用物品和挖掘，可选择同时攻击实体。",
+  "hack.name.nointeract": "交互过滤",
+  "description.wurst.hack.nointeract": "按方块、实体、手和好友等条件阻止挖掘、攻击或交互。",
+  "hack.name.slippy": "方块滑行",
+  "description.wurst.hack.slippy": "设置方块摩擦系数，支持生效名单和排除名单。",
+  "hack.name.endermanlook": "末影人视线",
+  "description.wurst.hack.endermanlook": "避开末影人视线，或注视末影人使其停下。",
+  "hack.name.buildheight": "高度上限交互",
+  "description.wurst.hack.buildheight": "调整世界高度上限处的交互面，不会提高服务器建筑高度限制。",
+
   "button.wurst.nochatreports.disable_signatures": "禁用签名",
   "button.wurst.nochatreports.re-enable_signatures": "重新启用签名",
   "button.wurst.nochatreports.signatures_status": "签名: ",
@@ -2613,5 +2626,9 @@
   "setting.name.hit_distance": "命中距离",
   "setting.name.place_interval": "放置间隔",
   "setting.name.web_count": "蛛网数量",
-  "setting.name.place_count": "放置数量"
+  "setting.name.place_count": "放置数量",
+  "hack.name.nominingtrace": "穿实体挖掘",
+  "description.wurst.hack.nominingtrace": "穿过实体瞄准方块，可限制为持镐时生效并排除指定实体类型。",
+  "hack.name.ghosthand": "隔墙交互",
+  "description.wurst.hack.ghosthand": "右键沿视线交互墙后的容器，按住潜行键时暂停。"
 }

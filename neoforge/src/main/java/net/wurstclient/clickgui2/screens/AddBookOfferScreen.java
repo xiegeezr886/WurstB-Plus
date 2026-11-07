@@ -28,9 +28,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.wurstclient.hacks.autolibrarian.BookOffer;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.BookOffersSetting;
 import net.wurstclient.util.MathUtils;
-import net.wurstclient.util.RenderUtils;
 
 public final class AddBookOfferScreen extends Screen
 {
@@ -275,38 +275,35 @@ public final class AddBookOfferScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		PoseStack matrixStack = context.pose();
+		NanoVGUI.clearDeferred();
 		listGui.render(context, mouseX, mouseY, partialTicks);
-		
-		matrixStack.pushPose();
-		matrixStack.translate(0, 0, 300);
-		
-		Font tr = minecraft.font;
-		String titleText =
-			"可用附魔书 (" + listGui.children().size() + ")";
-		context.drawCenteredString(tr, titleText, width / 2, 12,
-			0xffffff);
-		
 		levelField.render(context, mouseX, mouseY, partialTicks);
 		priceField.render(context, mouseX, mouseY, partialTicks);
 		super.render(context, mouseX, mouseY, partialTicks);
-		
-		matrixStack.translate(width / 2 - 100, 0, 0);
-		
-		context.drawString(tr, "等级:", 0, height - 72, 0xf0f0f0);
-		context.drawString(tr, "最高价格:", 0, height - 56, 0xf0f0f0);
-		
-		if(alreadyAdded && offerToAdd != null)
-		{
-			String errorText = offerToAdd.getEnchantmentNameWithLevel()
-				+ " 已在你的列表中！";
-			context.drawString(tr, errorText, 0, height - 40, 0xff5555);
-		}
-		
-		matrixStack.popPose();
-		
-		RenderUtils.drawItem(context, new ItemStack(Items.EMERALD),
-			width / 2 - 16, height - 58, false);
+
+		NanoVGUI.pass(context, () -> {
+			NanoVGUI.pushScissor(0, 32, width, height - 112);
+			NanoVGUI.runDeferred();
+			NanoVGUI.popScissor();
+
+			String titleText =
+				"可用附魔书 (" + listGui.children().size() + ")";
+			NanoVGUI.centeredText(titleText, width / 2, 12, 0xFFFFFFFF, 9F);
+
+			int baseX = width / 2 - 100;
+			NanoVGUI.text("等级:", baseX, height - 72, 0xf0f0f0, 9F);
+			NanoVGUI.text("最高价格:", baseX, height - 56, 0xf0f0f0, 9F);
+
+			if(alreadyAdded && offerToAdd != null)
+			{
+				String errorText = offerToAdd.getEnchantmentNameWithLevel()
+					+ " 已在你的列表中！";
+				NanoVGUI.text(errorText, baseX, height - 40, 0xff5555, 9F);
+			}
+
+			NanoVGUI.item(context, new ItemStack(Items.EMERALD),
+				width / 2 - 16, height - 58, false);
+		});
 	}
 	
 	@Override
@@ -366,21 +363,20 @@ public final class AddBookOfferScreen extends Screen
 		{
 			Item item = BuiltInRegistries.ITEM.get(new ResourceLocation("enchanted_book"));
 			ItemStack stack = new ItemStack(item);
-			RenderUtils.drawItem(context, stack, x + 1, y + 1, true);
-			
-			Font tr = minecraft.font;
+
 			String name = bookOffer.getEnchantmentName();
 			Enchantment enchantment = bookOffer.getEnchantment();
 			int nameColor = enchantment != null && enchantment.isCurse()
 				? 0xFF5555 : 0xF0F0F0;
-			context.drawString(tr, name, x + 28, y, nameColor, false);
-			
-			context.drawString(tr, bookOffer.id(), x + 28, y + 9, 0xA0A0A0,
-				false);
-			
 			int maxLevel = maxLevelOf(bookOffer);
 			String levels = maxLevel + (maxLevel == 1 ? " 级" : " 级");
-			context.drawString(tr, levels, x + 28, y + 18, 0xA0A0A0, false);
+
+			NanoVGUI.defer(() -> {
+				NanoVGUI.item(context, stack, x + 1, y + 1, true);
+				NanoVGUI.text(name, x + 28, y, nameColor, 9F);
+				NanoVGUI.text(bookOffer.id(), x + 28, y + 9, 0xA0A0A0, 9F);
+				NanoVGUI.text(levels, x + 28, y + 18, 0xA0A0A0, 9F);
+			});
 		}
 	}
 	

@@ -10,6 +10,7 @@ package net.wurstclient.mixin;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -69,8 +70,7 @@ public abstract class ClientPlayNetworkHandlerMixin
 		// Remove Mojang's dishonest warning toast on safe servers
 		if(!packet.enforcesSecureChat())
 		{
-			minecraft.getToasts().queued.removeIf(toast -> toast
-				.getToken() == SystemToast.SystemToastIds.UNSECURE_SERVER_WARNING);
+			removeUnsecureServerWarningToast();
 			return;
 		}
 		
@@ -83,6 +83,31 @@ public abstract class ClientPlayNetworkHandlerMixin
 		SystemToast systemToast = SystemToast.multiline(minecraft,
 			SystemToast.SystemToastIds.UNSECURE_SERVER_WARNING, title, message);
 		minecraft.getToasts().addToast(systemToast);
+	}
+	
+	@Unique
+	private void removeUnsecureServerWarningToast()
+	{
+		@SuppressWarnings("rawtypes")
+		java.util.Deque queued =
+			((net.wurstclient.mixin.ToastComponentAccessor)(Object)minecraft
+				.getToasts()).getQueued();
+		java.util.Iterator<?> it = queued.iterator();
+		while(it.hasNext())
+		{
+			Object instance = it.next();
+			try
+			{
+				java.lang.reflect.Method getToken =
+					instance.getClass().getMethod("getToken");
+				Object token = getToken.invoke(instance);
+				if(token == SystemToast.SystemToastIds.UNSECURE_SERVER_WARNING)
+					it.remove();
+			}catch(ReflectiveOperationException e)
+			{
+				// ignore
+			}
+		}
 	}
 	
 	@Inject(at = @At("TAIL"),

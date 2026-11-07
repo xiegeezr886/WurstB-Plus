@@ -1,0 +1,10 @@
+// Skip NeoGradle's version-cache download tasks. The files are already present
+// in .gradle/caches/minecraft/versions/<mc>/; running these tasks offline
+// deletes the client jar before noticing that it cannot re-download it.
+gradle.projectsEvaluated {
+    gradle.rootProject.allprojects { p ->
+        p.tasks.matching { it.name.startsWith('cacheVersion') }.configureEach {
+            enabled = false
+        }
+    }
+}

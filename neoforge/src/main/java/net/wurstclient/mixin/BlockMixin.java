@@ -27,6 +27,15 @@ import net.wurstclient.hacks.NoSlowdownHack;
 @Mixin(Block.class)
 public abstract class BlockMixin implements ItemLike
 {
+	@Inject(method = "getFriction()F", at = @At("RETURN"), cancellable = true)
+	private void wurstSlippy(CallbackInfoReturnable<Float> cir)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax != null)
+			cir.setReturnValue(hax.slippyHack.getFriction((Block)(Object)this,
+				cir.getReturnValueF()));
+	}
+
 	/**
 	 * This mixin allows X-Ray to show ores that would normally be obstructed by
 	 * other blocks.

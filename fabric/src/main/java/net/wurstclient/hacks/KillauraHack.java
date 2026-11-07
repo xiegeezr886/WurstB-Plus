@@ -7,7 +7,9 @@
  */
 package net.wurstclient.hacks;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -69,7 +71,7 @@ public final class KillauraHack extends Hack
 	private final SliderSetting swingCps = new SliderSetting("Swing CPS",
 		"Fake swings per second.", 10, 1, 20, 1, ValueDisplay.INTEGER);
 	private final CheckboxSetting hideFakeSwings =
-		new CheckboxSetting("Hide fake swings", true);
+		new CheckboxSetting("Hide fake swings", false);
 
 	private final CheckboxSetting requireWeapon = new CheckboxSetting(
 		"Require weapon",
@@ -79,6 +81,14 @@ public final class KillauraHack extends Hack
 		false);
 	private final CheckboxSetting hitSelect = new CheckboxSetting("Hit Select",
 		"Skips attacks while you are taking knockback.", false);
+
+	/**
+	 * Entity id -> last attack time/damage. OpenAura recreates its Target
+	 * objects every tick, so the attack window and the SWITCH ordering only
+	 * work if this history is kept across ticks.
+	 */
+	private final Map<Integer, OpenAura.AttackRecord> attackRecords =
+		new HashMap<>();
 
 	private final CheckboxSetting targetPlayers = new CheckboxSetting(
 		"Target players", "Attacks other players.", true);
@@ -91,8 +101,8 @@ public final class KillauraHack extends Hack
 		"Attacks other living entities (villagers, golems).", true);
 
 	private final SliderSetting fov = new SliderSetting("FOV",
-		"Only targets inside this field of view.", 180, 1, 180, 1,
-		ValueDisplay.INTEGER);
+		"Only targets inside this field of view.", 360, 30, 360, 10,
+		ValueDisplay.DEGREES);
 	private final CheckboxSetting overrideRaycast = new CheckboxSetting(
 		"Override raycast", "Aims exactly at the target before attacking.",
 		true);
@@ -173,6 +183,7 @@ public final class KillauraHack extends Hack
 		fakeBlocking = false;
 		nextAttackTime = 0;
 		nextSwingTime = 0;
+		attackRecords.clear();
 		rotationQueue = new RotationQueue(RotationQueue.Priority.COMBAT);
 		rotationQueue.start();
 		EVENTS.add(UpdateListener.class, this);
@@ -195,6 +206,7 @@ public final class KillauraHack extends Hack
 		currentTarget = null;
 		renderTarget = null;
 		pendingAttack = false;
+		attackRecords.clear();
 	}
 
 	@Override
@@ -216,8 +228,11 @@ public final class KillauraHack extends Hack
 
 		List<OpenAura.Target> targets = OpenAura.collect(attackConfig());
 		currentTarget = OpenAura.select(targets,
-			mode.getSelected() == Mode.SWITCH);
+			mode.getSelected() == Mode.SWITCH, attackRecords::get);
 		renderTarget = currentTarget == null ? null : currentTarget.entity;
+
+		if(MC.player.tickCount % 20 == 0)
+			pruneAttackRecords();
 
 		if(currentTarget == null)
 		{
@@ -291,6 +306,7 @@ public final class KillauraHack extends Hack
 			grimKeepTicks = 2;
 
 		target.onAttack();
+		attackRecords.put(target.entity.getId(), target.attackRecord());
 		nextAttackTime = System.currentTimeMillis() + clickDelay();
 	}
 
@@ -503,6 +519,20 @@ public final class KillauraHack extends Hack
 		if(rotationQueue != null)
 			rotationQueue.clear();
 		stopBlocking();
+	}
+
+	/** Drops attack history for entities that left the level. */
+	private void pruneAttackRecords()
+	{
+		if(attackRecords.isEmpty())
+			return;
+		if(MC.level == null)
+		{
+			attackRecords.clear();
+			return;
+		}
+
+		attackRecords.keySet().removeIf(id -> MC.level.getEntity(id) == null);
 	}
 
 	public enum CpsMode
