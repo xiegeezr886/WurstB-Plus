@@ -20,6 +20,15 @@ import net.wurstclient.hack.HackList;
 @Mixin(Block.class)
 public abstract class BlockMixin implements ItemLike
 {
+	@Inject(method = "getFriction()F", at = @At("RETURN"), cancellable = true)
+	private void wurstSlippy(CallbackInfoReturnable<Float> cir)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax != null)
+			cir.setReturnValue(hax.slippyHack.getFriction((Block)(Object)this,
+				cir.getReturnValueF()));
+	}
+
 	@Inject(method = "getSpeedFactor()F", at = @At("HEAD"), cancellable = true)
 	private void onGetVelocityMultiplier(CallbackInfoReturnable<Float> cir)
 	{

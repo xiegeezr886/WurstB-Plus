@@ -1,0 +1,168 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "net.neoforged",
+    "module": "JarJarSelector",
+    "version": "0.4.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.4.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "net.neoforged",
+          "module": "JarJarMetadata",
+          "version": {
+            "requires": "0.4.1"
+          }
+        },
+        {
+          "group": "org.apache.maven",
+          "module": "maven-artifact",
+          "version": {
+            "requires": "3.8.1"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.8.5"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "31.0.1-jre"
+          }
+        },
+        {
+          "group": "com.machinezoo.noexception",
+          "module": "noexception",
+          "version": {
+            "requires": "1.7.1"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.30"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "JarJarSelector-0.4.1.jar",
+          "url": "JarJarSelector-0.4.1.jar",
+          "size": 17168,
+          "sha512": "df9d7f0c4a65dc1a83c35b6a80f461eee78b997e5882f822f76876cb236ec3fef36a137ade027c009d30585771fe2b3606ee42dd76639b28a7069711e58510db",
+          "sha256": "f34bab02a5e967650dc52b7cb37a200051a7078f7d1868597699d78697da2400",
+          "sha1": "fb3cc7a58af22ad2880adb98af6d518128c47dae",
+          "md5": "20d1fe8972655189f69845554ee1a4d1"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "net.neoforged",
+          "module": "JarJarMetadata",
+          "version": {
+            "requires": "0.4.1"
+          }
+        },
+        {
+          "group": "org.apache.maven",
+          "module": "maven-artifact",
+          "version": {
+            "requires": "3.8.1"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.8.5"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "31.0.1-jre"
+          }
+        },
+        {
+          "group": "com.machinezoo.noexception",
+          "module": "noexception",
+          "version": {
+            "requires": "1.7.1"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.30"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "JarJarSelector-0.4.1.jar",
+          "url": "JarJarSelector-0.4.1.jar",
+          "size": 17168,
+          "sha512": "df9d7f0c4a65dc1a83c35b6a80f461eee78b997e5882f822f76876cb236ec3fef36a137ade027c009d30585771fe2b3606ee42dd76639b28a7069711e58510db",
+          "sha256": "f34bab02a5e967650dc52b7cb37a200051a7078f7d1868597699d78697da2400",
+          "sha1": "fb3cc7a58af22ad2880adb98af6d518128c47dae",
+          "md5": "20d1fe8972655189f69845554ee1a4d1"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "JarJarSelector-0.4.1-sources.jar",
+          "url": "JarJarSelector-0.4.1-sources.jar",
+          "size": 5352,
+          "sha512": "221a3fa89b31e2d2e6e2efaf3a2714e0624880d9b048270ffe9f761189f41e3ac110921a7f4c486d71cd0249a09fce133c12fb6e55e95579724d6883f5b446ef",
+          "sha256": "48f49141fbe2db076e7dab02cb0f16aae4311b2caa7ff3e5ef5c2d284c440b1f",
+          "sha1": "7e60d0485afdeb915e3fc6c9f37e7c1abedc053c",
+          "md5": "ec471e095da375fb58be4d60a3936336"
+        }
+      ]
+    }
+  ]
+}
