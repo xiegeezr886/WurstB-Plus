@@ -32,30 +32,70 @@ public final class WurstSubscriber
 	@SuppressWarnings("unchecked")
 	public WurstSubscriber(Object target, Method method, Class<?> eventClass)
 	{
+		Consumer<Object> caller;
 		try
 		{
-			MethodHandles.Lookup lookup = MethodHandles.lookup();
-			CallSite callsite = LambdaMetafactory.metafactory(lookup,
-				"accept",
-				MethodType.methodType(Consumer.class, target.getClass()),
-				MethodType.methodType(void.class, Object.class),
-				lookup.unreflect(method),
-				MethodType.methodType(void.class, eventClass));
-
-			subscriberCaller =
-				(Consumer<Object>)callsite.getTarget().invokeWithArguments(target);
-
-			this.eventClass = eventClass;
-			this.target = target;
-			this.method = method;
-			targetClass = target.getClass();
-			signature = method.getDeclaringClass().getName() + "."
-				+ method.getName() + "("
-				+ eventClass.getName() + ")";
+			caller = createFastCaller(target, method, eventClass);
 		}catch(Throwable t)
 		{
-			throw new RuntimeException(t);
+			// Private or package-private handlers cannot always be bound with
+			// a lambda metafactory. Reflection still reaches them, so the
+			// annotation keeps working instead of failing registration.
+			caller = createReflectiveCaller(target, method);
 		}
+
+		subscriberCaller = caller;
+		this.eventClass = eventClass;
+		this.target = target;
+		this.method = method;
+		targetClass = target.getClass();
+		signature = method.getDeclaringClass().getName() + "."
+			+ method.getName() + "(" + eventClass.getName() + ")";
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Consumer<Object> createFastCaller(Object target,
+		Method method, Class<?> eventClass) throws Throwable
+	{
+		MethodHandles.Lookup lookup;
+		try
+		{
+			lookup = MethodHandles.privateLookupIn(method.getDeclaringClass(),
+				MethodHandles.lookup());
+		}catch(IllegalAccessException e)
+		{
+			lookup = MethodHandles.lookup();
+		}
+
+		CallSite callsite = LambdaMetafactory.metafactory(lookup, "accept",
+			MethodType.methodType(Consumer.class, target.getClass()),
+			MethodType.methodType(void.class, Object.class),
+			lookup.unreflect(method),
+			MethodType.methodType(void.class, eventClass));
+
+		return (Consumer<Object>)callsite.getTarget().invokeWithArguments(target);
+	}
+
+	private static Consumer<Object> createReflectiveCaller(Object target,
+		Method method)
+	{
+		try
+		{
+			method.setAccessible(true);
+		}catch(RuntimeException ignored)
+		{
+			// Let invoke() surface the real access problem.
+		}
+
+		return event -> {
+			try
+			{
+				method.invoke(target, event);
+			}catch(ReflectiveOperationException e)
+			{
+				throw new RuntimeException(e);
+			}
+		};
 	}
 
 	private static Class<?> getEvent(Method method)

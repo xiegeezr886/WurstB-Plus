@@ -1,0 +1,36 @@
+fix(structure): 补提交 fabric / neoforge 移除 common 挂载的改动（修 HEAD 的重复源）
+
+## 问题
+
+上一个提交（13d4cfd2）把 586 个源文件补回了 fabric 与 neoforge，但**没有**
+一起提交它们的 build.gradle 里移除 common/src/main/java 挂载的那部分改动。
+
+于是 HEAD 处于自相矛盾的状态：
+
+    fabric/build.gradle     仍然 sourceSets.main.java.srcDir "../common/src/main/java"
+    fabric/src/main/java    已经有 766 个 java（含补回的 293）
+
+同一批 293 个类因此有两份来源。**从 HEAD 全新克隆编译必然失败**
+（重复类），而工作区因为挂载已在本地移除，是正常的 —— 又一次
+"工作区能编译、HEAD 是坏的"。
+
+## 修复
+
+提交这两个 build.gradle 的移除（各 -9 行，就是那段共享源码的注释块与
+srcDir 声明）：
+
+    fabric/build.gradle   | 9 ---------
+    neoforge/build.gradle | 9 ---------
+
+## 验证
+
+  * HEAD 里 fabric/build.gradle 含 common 挂载: True -> 提交后应为 False
+  * HEAD 里 fabric/src/main/java 已含 766 个 java
+  * 工作区这两个文件移除挂载后，两个工程都已实测可构建
+    （fabric 31s、neoforge 47s，0 error）
+
+## 说明
+
+这是我同一处回退操作留下的第二处不一致。第一次漏了源文件（已由
+13d4cfd2 补），这次漏了配套的构建脚本改动。两次的根因相同：
+回退时只把文件写回工作区，没有把相关改动一起提交。

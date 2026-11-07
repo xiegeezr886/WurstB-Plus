@@ -1,0 +1,221 @@
+---- Minecraft Crash Report ----
+// Don't be sad, have a hug! <3
+
+Time: 2026-11-02 16:58:43
+Description: Exception ticking world
+
+java.lang.IllegalStateException: Can not retrieve LootModifierManager until resources have loaded once.
+	at TRANSFORMER/net.minecraftforge.forge@54.1.14/net.minecraftforge.common.ForgeInternalHandler.getLootModifierManager(ForgeInternalHandler.java:103) ~[forge-1.21.4-54.1.14-universal.jar!/:?]
+	at TRANSFORMER/net.minecraftforge.forge@54.1.14/net.minecraftforge.common.ForgeHooks.modifyLoot(ForgeHooks.java:755) ~[forge-1.21.4-54.1.14-universal.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:127) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:121) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.state.BlockBehaviour.getDrops(BlockBehaviour.java:272) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.getDrops(BlockBehaviour.java:772) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.Block.getDrops(Block.java:272) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.Block.dropResources(Block.java:288) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.LeavesBlock.randomTick(LeavesBlock.java:66) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.randomTick(BlockBehaviour.java:756) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.level.ServerLevel.tickChunk(ServerLevel.java:517) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.level.ServerChunkCache.tickChunks(ServerChunkCache.java:425) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.level.ServerChunkCache.tickChunks(ServerChunkCache.java:348) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.level.ServerChunkCache.tick(ServerChunkCache.java:323) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:373) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:1075) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:958) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.client.server.IntegratedServer.tickServer(IntegratedServer.java:107) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:718) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:278) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Transformer Audit:
+  net.minecraft.client.server.IntegratedServer
+    REASON: classloading
+  net.minecraft.server.MinecraftServer
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+  net.minecraft.server.level.ServerChunkCache
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+  net.minecraft.server.level.ServerLevel
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+  net.minecraft.world.level.block.Block
+    REASON: mixin
+    PLUGIN: accesstransformer:BEFORE
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+    PLUGIN: mixin:AFTER
+  net.minecraft.world.level.block.LeavesBlock
+    REASON: classloading
+  net.minecraft.world.level.block.state.BlockBehaviour
+    REASON: mixin
+    REASON: classloading
+  net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase
+    REASON: classloading
+  net.minecraft.world.level.storage.loot.LootTable
+    REASON: classloading
+  net.minecraftforge.common.ForgeHooks
+    REASON: classloading
+  net.minecraftforge.common.ForgeInternalHandler
+    REASON: classloading
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Server thread
+Suspected Mods: NONE
+Stacktrace:
+	at TRANSFORMER/net.minecraftforge.forge@54.1.14/net.minecraftforge.common.ForgeInternalHandler.getLootModifierManager(ForgeInternalHandler.java:103) ~[forge-1.21.4-54.1.14-universal.jar!/:?]
+	at TRANSFORMER/net.minecraftforge.forge@54.1.14/net.minecraftforge.common.ForgeHooks.modifyLoot(ForgeHooks.java:755) ~[forge-1.21.4-54.1.14-universal.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:127) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.storage.loot.LootTable.getRandomItems(LootTable.java:121) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.state.BlockBehaviour.getDrops(BlockBehaviour.java:272) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.getDrops(BlockBehaviour.java:772) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.Block.getDrops(Block.java:272) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.Block.dropResources(Block.java:288) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.LeavesBlock.randomTick(LeavesBlock.java:66) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.randomTick(BlockBehaviour.java:756) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.level.ServerLevel.tickChunk(ServerLevel.java:517) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.level.ServerChunkCache.tickChunks(ServerChunkCache.java:425) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.level.ServerChunkCache.tickChunks(ServerChunkCache.java:348) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.level.ServerChunkCache.tick(ServerChunkCache.java:323) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+Transformer Audit:
+  net.minecraft.server.level.ServerChunkCache
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+  net.minecraft.server.level.ServerLevel
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+  net.minecraft.world.level.block.Block
+    REASON: mixin
+    PLUGIN: accesstransformer:BEFORE
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+    PLUGIN: mixin:AFTER
+  net.minecraft.world.level.block.LeavesBlock
+    REASON: classloading
+  net.minecraft.world.level.block.state.BlockBehaviour
+    REASON: mixin
+    REASON: classloading
+  net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase
+    REASON: classloading
+  net.minecraft.world.level.storage.loot.LootTable
+    REASON: classloading
+  net.minecraftforge.common.ForgeHooks
+    REASON: classloading
+  net.minecraftforge.common.ForgeInternalHandler
+    REASON: classloading
+-- Affected level --
+Details:
+	All players: 1 total; [ServerPlayer['TestRunner'/1, l='ServerLevel[world]', x=-9.50, y=108.00, z=-1.50]]
+	Chunk stats: 1342
+	Level dimension: minecraft:overworld
+	Level spawn location: World: (0,96,0), Section: (at 0,0,0 in 0,6,0; chunk contains blocks 0,-64,0 to 15,319,15), Region: (0,0; contains chunks 0,0 to 31,31, blocks 0,-64,0 to 511,319,511)
+	Level time: 158 game time, 158 day time
+	Level name: world
+	Level game mode: Game mode: survival (ID 0). Hardcore: false. Commands: false
+	Level weather: Rain time: 59012 (now: false), thunder time: 58178 (now: false)
+	Known server brands: vanilla, forge
+	Removed feature flags: 
+	Level was modded: true
+	Level storage version: 0x04ABD - Anvil
+	Loaded entity count: 65
+Stacktrace:
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.level.ServerLevel.fillReportDetails(ServerLevel.java:1751) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:1078) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:958) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.client.server.IntegratedServer.tickServer(IntegratedServer.java:107) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:718) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at TRANSFORMER/minecraft@1.21.4/net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:278) ~[forge-1.21.4-54.1.14-client.jar!/:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Transformer Audit:
+  net.minecraft.client.server.IntegratedServer
+    REASON: classloading
+  net.minecraft.server.MinecraftServer
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+  net.minecraft.server.level.ServerLevel
+    REASON: classloading
+    PLUGIN: accesstransformer:BEFORE
+
+
+-- System Details --
+Details:
+	Minecraft Version: 1.21.4
+	Minecraft Version ID: 1.21.4
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 21.0.12.1, Eclipse Adoptium
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode, sharing), Eclipse Adoptium
+	Memory: 150564712 bytes (143 MiB) / 784334848 bytes (748 MiB) up to 4294967296 bytes (4096 MiB)
+	CPUs: 32
+	Processor Vendor: GenuineIntel
+	Processor Name: Intel(R) Core(TM) i9-14900HX
+	Identifier: Intel64 Family 6 Model 183 Stepping 1
+	Microarchitecture: Raptor Lake
+	Frequency (GHz): 2.42
+	Number of physical packages: 1
+	Number of physical CPUs: 24
+	Number of logical CPUs: 32
+	Graphics card #0 name: NVIDIA GeForce RTX 5070 Laptop GPU
+	Graphics card #0 vendor: NVIDIA
+	Graphics card #0 VRAM (MiB): 8151.00
+	Graphics card #0 deviceId: VideoController1
+	Graphics card #0 versionInfo: 32.0.15.9219
+	Graphics card #1 name: Intel(R) UHD Graphics
+	Graphics card #1 vendor: Intel Corporation
+	Graphics card #1 VRAM (MiB): 2048.00
+	Graphics card #1 deviceId: VideoController2
+	Graphics card #1 versionInfo: 32.0.101.7077
+	Memory slot #0 capacity (MiB): 16384.00
+	Memory slot #0 clockSpeed (GHz): 5.60
+	Memory slot #0 type: DDR5
+	Memory slot #1 capacity (MiB): 16384.00
+	Memory slot #1 clockSpeed (GHz): 5.60
+	Memory slot #1 type: DDR5
+	Virtual memory max (MiB): 53551.59
+	Virtual memory used (MiB): 47026.15
+	Swap memory total (MiB): 21154.84
+	Swap memory used (MiB): 1964.98
+	Space in storage for jna.tmpdir (MiB): available: 44718.64, total: 975538.00
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): available: 44718.64, total: 975538.00
+	Space in storage for io.netty.native.workdir (MiB): available: 44718.64, total: 975538.00
+	Space in storage for java.io.tmpdir (MiB): available: 44718.64, total: 975538.00
+	Space in storage for workdir (MiB): available: 44718.64, total: 975538.00
+	JVM Flags: 2 total; -Xmx4G -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump
+	Server Running: true
+	Player Count: 1 / 8; [ServerPlayer['TestRunner'/1, l='ServerLevel[world]', x=-9.50, y=108.00, z=-1.50]]
+	Active Data Packs: vanilla, mod:wurstpenguin (incompatible), mod:forge
+	Available Data Packs: minecart_improvements, mod:forge, mod:wurstpenguin (incompatible), redstone_experiments, trade_rebalance, vanilla
+	Enabled Feature Flags: minecraft:vanilla
+	World Generation: Stable
+	World Seed: -7215036693819951391
+	Suppressed Exceptions: ~~NONE~~
+	Type: Integrated Server (map_client.txt)
+	Is Modded: Definitely; Client brand changed to 'forge'; Server brand changed to 'forge'
+	Launched Version: 1.21.4-forge-54.1.14
+	ModLauncher: 10.2.4
+	ModLauncher launch target: forge_client
+	ModLauncher naming: mcp
+	ModLauncher services: 
+		/ slf4jfixer PLUGINSERVICE 
+		/ runtimedistcleaner PLUGINSERVICE 
+		/ runtime_enum_extender PLUGINSERVICE 
+		/ object_holder_definalize PLUGINSERVICE 
+		/ capability_token_subclass PLUGINSERVICE 
+		/ accesstransformer PLUGINSERVICE 
+		/ eventbus PLUGINSERVICE 
+		/ mixin PLUGINSERVICE 
+		/ fml TRANSFORMATIONSERVICE 
+		/ mixin TRANSFORMATIONSERVICE 
+	FML Language Providers: 
+		minecraft@1.0
+		lowcodefml@54
+		javafml@54.1.14
+	Mod List: 
+		forge-1.21.4-54.1.14-client.jar                   |Minecraft                     |minecraft                     |1.21.4              |DONE      |Manifest: NOSIGNATURE
+		WurstB+ Plus-v1.5.1-Forge-1.21.4.jar              |WurstB+ Plus                  |wurstpenguin                  |1.5.1-Forge-1.21.4  |DONE      |Manifest: NOSIGNATURE
+		forge-1.21.4-54.1.14-universal.jar                |Forge                         |forge                         |54.1.14             |DONE      |Manifest: 84:CE:76:E8:45:35:E4:0E:63:86:DF:47:59:80:0F:67:6C:C1:5F:6E:5F:4D:B3:54:47:1A:9F:7F:ED:5E:F2:90
+	Crash Report UUID: 13a95140-d67a-4f26-b94f-fa767c7c7610
+	FML: 0.0
+	Forge: net.minecraftforge:54.1.14

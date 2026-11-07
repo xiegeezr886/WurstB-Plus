@@ -1,0 +1,54 @@
+fix(mixin): 26.2 / 26.3 补登记 AbstractBlockStateMixin（修 Xray 静默失效）
+
+## 症状
+
+Xray 在 26.2 / 26.3 上不生效（你说的"在服务器失效"）。
+
+## 原因
+
+AbstractBlockStateMixin 是 Xray 的核心钩子（方块不透明度与面剔除），它
+负责触发 ShouldDrawSideEvent / SetOpaqueCubeEvent /
+GetAmbientOcclusionLightLevelEvent —— XRayHack 注册的监听器全靠这几个事件。
+文件在工程里存在，但 **wurst.mixins.json 的 client 数组里没有登记它**，
+Mixin 根本不会应用，于是事件永不触发，Xray 表现为完全不工作。
+
+登记状态对照（本次修前）：
+
+              CameraMixin  AbstractBlockStateMixin  BlockMixin  BasicBakedModelMixin
+    root          Y            Y                        Y           Y
+    1.20.2        Y            Y                        Y           Y
+    1.21.11       Y            Y                        Y           .      <- 文件不存在
+    26.2          Y            .                        Y           .      <- 本次修复
+    26.3          Y            .                        Y           .      <- 本次修复
+    neoforge      Y            Y                        Y           Y
+
+说明：BasicBakedModelMixin 在 26.2/26.3/1.21.11 里**文件本身不存在**，
+不是漏登记，未动。
+
+## 修改
+
+两个 wurst.mixins.json 各插入一行（按原文件的字母序，放在
+AbstractSignEditScreenMixin 之前）：
+
+    versions/26.2/src/main/resources/wurst.mixins.json | 1 +
+    versions/26.3/src/main/resources/wurst.mixins.json | 1 +
+
+用 JSON 解析后重写，diff 恰好各 +1 行，其余格式未变。
+
+## 验证
+
+  * 26.2 冒烟启动 -> LAUNCHED 60s，日志无 "Mixin apply failed"、无 VerifyError
+  * 26.3 冒烟启动 -> LAUNCHED 50s，同上
+  * 两个版本都走到 Sound engine started
+
+登记 mixin 有崩启动的风险（本仓库早先有过一次批量登记导致 6/6 崩溃的
+前科），所以两项都做了实机启动验证才提交。
+
+## 未修 / 未查清
+
+  * **摄像机渲染管线绑定问题没定位。** CameraMixin 在各版本（含 26.2/26.3）
+    都是**已登记**的，所以不是登记缺失。需要单独查它绑定的是哪个渲染目标、
+    以及新版本里那个目标是否改了签名 —— 本次没有进展，不做推测。
+  * Xray 的"服务器上失效"还有一种客户端无法解决的可能：服务器开了
+    anti-xray（Paper 之类会下发伪装方块状态），那种情况下客户端拿到的
+    就是假数据，任何 Xray 都不可能生效。本次修的是登记缺失这个客户端侧原因。

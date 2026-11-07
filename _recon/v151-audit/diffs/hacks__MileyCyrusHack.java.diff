@@ -1,0 +1,125 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/MileyCyrusHack.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/MileyCyrusHack.java"
+index e3ef1a0d..d587d386 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\hacks/MileyCyrusHack.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\hacks/MileyCyrusHack.java"
+@@ -1,60 +1,60 @@
+-/*
+- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+- *
+- * This source code is subject to the terms of the GNU General Public
+- * License, version 3. If a copy of the GPL was not distributed with this
+- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+- */
+-package net.wurstclient.hacks;
+-
+-import net.minecraft.client.option.KeyBinding;
+-import net.wurstclient.Category;
+-import net.wurstclient.SearchTags;
+-import net.wurstclient.events.UpdateListener;
+-import net.wurstclient.hack.Hack;
+-import net.wurstclient.mixinterface.IKeyBinding;
+-import net.wurstclient.settings.SliderSetting;
+-import net.wurstclient.settings.SliderSetting.ValueDisplay;
+-
+-@SearchTags({"miley cyrus", "twerk", "wrecking ball"})
+-public final class MileyCyrusHack extends Hack implements UpdateListener
+-{
+-	private final SliderSetting twerkSpeed = new SliderSetting("Twerk speed",
+-		"I came in like a wreeecking baaall...", 5, 1, 10, 1,
+-		ValueDisplay.INTEGER);
+-	
+-	private int timer;
+-	
+-	public MileyCyrusHack()
+-	{
+-		super("MileyCyrus");
+-		setCategory(Category.FUN);
+-		addSetting(twerkSpeed);
+-	}
+-	
+-	@Override
+-	protected void onEnable()
+-	{
+-		timer = 0;
+-		EVENTS.add(UpdateListener.class, this);
+-	}
+-	
+-	@Override
+-	protected void onDisable()
+-	{
+-		EVENTS.remove(UpdateListener.class, this);
+-		IKeyBinding.get(MC.options.sneakKey).resetPressedState();
+-	}
+-	
+-	@Override
+-	public void onUpdate()
+-	{
+-		timer++;
+-		if(timer < 10 - twerkSpeed.getValueI())
+-			return;
+-		
+-		KeyBinding sneakKey = MC.options.sneakKey;
+-		sneakKey.setPressed(!sneakKey.isPressed());
+-		timer = -1;
+-	}
+-}
++/*
++ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
++ *
++ * This source code is subject to the terms of the GNU General Public
++ * License, version 3. If a copy of the GPL was not distributed with this
++ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
++ */
++package net.wurstclient.hacks;
++
++import net.minecraft.client.KeyMapping;
++import net.wurstclient.Category;
++import net.wurstclient.SearchTags;
++import net.wurstclient.events.UpdateListener;
++import net.wurstclient.hack.Hack;
++import net.wurstclient.mixinterface.IKeyBinding;
++import net.wurstclient.settings.SliderSetting;
++import net.wurstclient.settings.SliderSetting.ValueDisplay;
++
++@SearchTags({"miley cyrus", "twerk", "wrecking ball"})
++public final class MileyCyrusHack extends Hack implements UpdateListener
++{
++	private final SliderSetting twerkSpeed = new SliderSetting("Twerk speed",
++		"I came in like a wreeecking baaall...", 5, 1, 10, 1,
++		ValueDisplay.INTEGER);
++	
++	private int timer;
++	
++	public MileyCyrusHack()
++	{
++		super("MileyCyrus");
++		setCategory(Category.FUN);
++		addSetting(twerkSpeed);
++	}
++	
++	@Override
++	protected void onEnable()
++	{
++		timer = 0;
++		EVENTS.add(UpdateListener.class, this);
++	}
++	
++	@Override
++	protected void onDisable()
++	{
++		EVENTS.remove(UpdateListener.class, this);
++		IKeyBinding.get(MC.options.keyShift).resetPressedState();
++	}
++	
++	@Override
++	public void onUpdate()
++	{
++		timer++;
++		if(timer < 10 - twerkSpeed.getValueI())
++			return;
++		
++		KeyMapping sneakKey = MC.options.keyShift;
++		sneakKey.setDown(!sneakKey.isDown());
++		timer = -1;
++	}
++}

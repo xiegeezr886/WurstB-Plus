@@ -1,0 +1,15 @@
+﻿started 2026-10-25T18:29:00 world=True
+control server ready
+startup errors:
+com.mojang.authlib.exceptions.InvalidCredentialsException: Status: 401
+	at knot//com.mojang.authlib.exceptions.MinecraftClientHttpException.toAuthenticationException(MinecraftClientHttpException.java:59)
+Caused by: com.mojang.authlib.exceptions.MinecraftClientHttpException: Status: 401
+[18:29:37] [Download-2/INFO] (Minecraft) Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC
+[18:29:37] [Download-2/ERROR] (Minecraft) Failed to fetch Realms feature flags
+com.mojang.realmsclient.exception.RealmsServiceException: Realms authentication error with message 'java.lang.RuntimeException: Failed to parse into SignedJWT: FabricMC'
+
+world loaded
+registered=468 missing=
+ERRORS after enabling all:
+log query failed: 无法连接到远程服务器
+done

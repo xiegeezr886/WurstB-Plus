@@ -31,8 +31,10 @@ import net.wurstclient.Category;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.GuiPreferences.TargetType;
+import net.wurstclient.clickgui2.animation.SmoothScroll;
 import net.wurstclient.clickgui2.window.Window;
 import net.wurstclient.hacks.TooManyHaxHack;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.keybinds.PossibleKeybind;
 import net.wurstclient.options.EnterProfileNameScreen;
 import net.wurstclient.util.ChatUtils;
@@ -51,7 +53,7 @@ public final class ClickGuiScreen extends Screen
 	private static final int SEARCH_WIDTH = 140;
 	private static final int MAX_VISIBLE_ROWS = 18;
 	private static final int COMBAT_VISIBLE_ROWS = 15;
-	private static final float TEXT_SCALE = 0.75F;
+	private static final float ROW_TEXT_SIZE = 8F;
 	private static final int WINDOW_FILL = 0xFF050505;
 	private static final int HEADER_FILL = 0xFF090909;
 	private static final int ROW_FILL = 0xFF111111;
@@ -123,7 +125,7 @@ public final class ClickGuiScreen extends Screen
 			if(feature.getCategory() != null)
 				categorized.get(feature.getCategory()).add(feature);
 
-		int requiredWidth = 8 * WINDOW_WIDTH + 7 * WINDOW_GAP;
+		int requiredWidth = 9 * WINDOW_WIDTH + 8 * WINDOW_GAP;
 		layoutStartX = Math.max(0, width - requiredWidth - 31);
 		if(width >= requiredWidth)
 			buildReferenceLayout(categorized);
@@ -133,37 +135,41 @@ public final class ClickGuiScreen extends Screen
 
 	private void buildReferenceLayout(Map<Category, List<Feature>> categorized)
 	{
-		add(new CategoryWindow(columnX(0), START_Y, "视觉类", GuiIcon.RENDER,
+		add(new CategoryWindow(columnX(0), START_Y, "HUD", GuiIcon.CLIENT,
+			categorized.get(Category.HUD), MAX_VISIBLE_ROWS), "hud");
+		add(new CategoryWindow(columnX(1), START_Y, "视觉类", GuiIcon.RENDER,
 			categorized.get(Category.RENDER), MAX_VISIBLE_ROWS), "visual");
-		add(new CategoryWindow(columnX(1), START_Y, "移动类", GuiIcon.MOVEMENT,
+		add(new CategoryWindow(columnX(2), START_Y, "移动类", GuiIcon.MOVEMENT,
 			categorized.get(Category.MOVEMENT), MAX_VISIBLE_ROWS), "movement");
-		CategoryWindow client = add(new CategoryWindow(columnX(2), START_Y,
+		CategoryWindow client = add(new CategoryWindow(columnX(3), START_Y,
 			"客户端", GuiIcon.CLIENT, getInterfaceFeatures(), MAX_VISIBLE_ROWS),
 			"client");
-		add(new CategoryWindow(columnX(2),
+		add(new CategoryWindow(columnX(3),
 			client.y2 + COMBAT_STACK_GAP, "战斗类", GuiIcon.COMBAT,
 			categorized.get(Category.COMBAT), COMBAT_VISIBLE_ROWS), "combat");
-		add(new CategoryWindow(columnX(3), START_Y, "世界类", GuiIcon.WORLD,
+		add(new CategoryWindow(columnX(4), START_Y, "世界类", GuiIcon.WORLD,
 			combine(categorized, Category.BLOCKS, Category.ITEMS),
 			MAX_VISIBLE_ROWS), "world");
-		add(new CategoryWindow(columnX(4), START_Y, "其他类", GuiIcon.MISC,
+		add(new CategoryWindow(columnX(5), START_Y, "其他类", GuiIcon.MISC,
 			getOtherFeatures(categorized),
 			MAX_VISIBLE_ROWS), "other");
-		add(new TargetWindow(columnX(5), START_Y), "target");
-		add(new ConfigWindow(columnX(6), START_Y), "config");
-		add(new FontWindow(columnX(7), START_Y), "font");
+		add(new TargetWindow(columnX(6), START_Y), "target");
+		add(new ConfigWindow(columnX(7), START_Y), "config");
+		add(new FontWindow(columnX(8), START_Y), "font");
 
 		int settingsY = Mth.clamp(Math.round(height * 0.58F), START_Y,
 			Math.max(START_Y, height - 90));
 		int mainY = Mth.clamp(Math.round(height * 0.49F), START_Y,
 			Math.max(START_Y, height - 150));
-		add(new GlobalSettingsWindow(columnX(5), settingsY), "settings");
-		add(new MainMenuWindow(columnX(7), mainY), "main");
+		add(new GlobalSettingsWindow(columnX(6), settingsY), "settings");
+		add(new MainMenuWindow(columnX(8), mainY), "main");
 	}
 
 	private void buildResponsiveLayout(Map<Category, List<Feature>> categorized)
 	{
 		ArrayList<TemplateWindow> all = new ArrayList<>();
+		all.add(new CategoryWindow(0, 0, "HUD", GuiIcon.CLIENT,
+			categorized.get(Category.HUD), MAX_VISIBLE_ROWS));
 		all.add(new CategoryWindow(0, 0, "视觉类", GuiIcon.RENDER,
 			categorized.get(Category.RENDER), MAX_VISIBLE_ROWS));
 		all.add(new CategoryWindow(0, 0, "移动类", GuiIcon.MOVEMENT,
@@ -184,8 +190,8 @@ public final class ClickGuiScreen extends Screen
 		all.add(new GlobalSettingsWindow(0, 0));
 		all.add(new MainMenuWindow(0, 0));
 
-		String[] ids = {"visual", "movement", "client", "combat", "world",
-			"other", "target", "config", "font", "settings", "main"};
+		String[] ids = {"hud", "visual", "movement", "client", "combat",
+			"world", "other", "target", "config", "font", "settings", "main"};
 		int x = 0;
 		int y = START_Y;
 		int rowHeight = 0;
@@ -254,21 +260,28 @@ public final class ClickGuiScreen extends Screen
 		float partialTicks)
 	{
 		ClickGui gui = WURST.getGui();
-		gui.renderBackdrop(graphics);
+
+		NanoVGUI.pass(graphics, () -> {
+			gui.renderBackdrop(graphics);
+			if(searchVisible)
+				FlatRenderer.drawControl(graphics, searchBox.getX() - 3,
+					searchBox.getY() - 2,
+					searchBox.getX() + searchBox.getWidth() + 3,
+					searchBox.getY() + searchBox.getHeight() + 2, 2,
+					gui.getTheme(), searchBox.isFocused() ? 1 : 0, false);
+		});
+
 		if(searchVisible)
 		{
-			FlatRenderer.drawControl(graphics, searchBox.getX() - 3,
-				searchBox.getY() - 2,
-				searchBox.getX() + searchBox.getWidth() + 3,
-				searchBox.getY() + searchBox.getHeight() + 2, 2, gui.getTheme(),
-				searchBox.isFocused() ? 1 : 0, false);
 			searchBox.setTextColor(gui.getTheme().text());
 			searchBox.extractRenderState(graphics, mouseX, mouseY, partialTicks);
 		}
 
-		for(TemplateWindow window : windows)
-			window.render(graphics, mouseX, mouseY, partialTicks);
-		gui.render(graphics, mouseX, mouseY, partialTicks);
+		NanoVGUI.pass(graphics, () -> {
+			for(TemplateWindow window : windows)
+				window.render(graphics, mouseX, mouseY, partialTicks);
+			gui.render(graphics, mouseX, mouseY, partialTicks);
+		});
 	}
 
 	@Override
@@ -491,6 +504,7 @@ public final class ClickGuiScreen extends Screen
 		protected boolean open;
 		private boolean visible = true;
 		private int scrollOffset;
+		private final SmoothScroll smoothScroll = new SmoothScroll();
 		private int homeX;
 		private int homeY;
 
@@ -509,7 +523,7 @@ public final class ClickGuiScreen extends Screen
 		protected abstract int rowCount();
 
 		protected abstract void renderRow(GuiGraphicsExtractor graphics, int rowIndex,
-			int rowY, boolean hovering);
+			float rowY, boolean hovering);
 
 		protected abstract boolean clickRow(int rowIndex, int visualRow,
 			double mouseX, int button);
@@ -532,6 +546,7 @@ public final class ClickGuiScreen extends Screen
 		{
 			int maxOffset = Math.max(0, rowCount() - visibleRows());
 			scrollOffset = Mth.clamp(scrollOffset, 0, maxOffset);
+			smoothScroll.setTarget(scrollOffset * (float)ROW_HEIGHT);
 			y2 = y1 + HEADER_HEIGHT
 				+ (open ? visibleRows() * ROW_HEIGHT + 1 : 0);
 		}
@@ -583,10 +598,13 @@ public final class ClickGuiScreen extends Screen
 
 		private boolean clickBody(double mouseX, double mouseY, int button)
 		{
-			int row = (int)(mouseY - y1 - HEADER_HEIGHT) / ROW_HEIGHT;
-			int index = row + scrollOffset;
+			float offset = smoothScroll.getCurrent();
+			int baseIndex = (int)Math.floor(offset / ROW_HEIGHT);
+			int index = (int)Math.floor((mouseY - y1 - HEADER_HEIGHT + offset)
+				/ ROW_HEIGHT);
+			int visualRow = index - baseIndex;
 			return index >= 0 && index < rowCount()
-				&& clickRow(index, row, mouseX, button);
+				&& clickRow(index, visualRow, mouseX, button);
 		}
 
 		private boolean scroll(double mouseX, double mouseY, double delta)
@@ -596,14 +614,16 @@ public final class ClickGuiScreen extends Screen
 			int direction = delta > 0 ? -1 : 1;
 			scrollOffset = Mth.clamp(scrollOffset + direction, 0,
 				rowCount() - visibleRows());
+			smoothScroll.setTarget(scrollOffset * (float)ROW_HEIGHT);
 			return true;
 		}
 
-		protected void fillRow(GuiGraphicsExtractor graphics, int index, int rowY,
+		protected void fillRow(GuiGraphicsExtractor graphics, int index, float rowY,
 			int color)
 		{
-			int rowBottom = rowY + ROW_HEIGHT - 1;
-			FlatRenderer.fillRoundedRect(graphics, x1 + 2, rowY + 1, x2 - 2,
+			int top = Math.round(rowY);
+			int rowBottom = top + ROW_HEIGHT - 1;
+			FlatRenderer.fillRoundedRect(graphics, x1 + 2, top + 1, x2 - 2,
 				rowBottom, 3, color);
 		}
 
@@ -623,33 +643,39 @@ public final class ClickGuiScreen extends Screen
 			FlatRenderer.fillRoundedRect(graphics, x1 + 1, y1 + 1, x2 - 1,
 				y1 + HEADER_HEIGHT - 1, 4, HEADER_FILL);
 			if(open)
-				graphics.fill(x1 + 1, y1 + HEADER_HEIGHT / 2, x2 - 1,
+				NanoVGUI.fill(x1 + 1, y1 + HEADER_HEIGHT / 2, x2 - 1,
 					y1 + HEADER_HEIGHT - 1, HEADER_FILL);
-			graphics.fill(x1 + 1, y1 + HEADER_HEIGHT - 1, x2 - 1,
-				y1 + HEADER_HEIGHT, ROW_FILL);
-			Font font = MC.font;
+			NanoVGUI.fill(x1 + 1, y1 + HEADER_HEIGHT - 1, x2 - 1,
+				y1 + HEADER_HEIGHT, BORDER);
 			int titleY = y1 + 3;
 			icon.draw(graphics, x1 + 4, y1 + 3, 8, accentColor());
-			String visibleTitle = font.plainSubstrByWidth(title,
-				Math.round((windowWidth - 27) / TEXT_SCALE));
-			drawText(graphics, font, visibleTitle, x1 + 15, titleY, TEXT);
+			String visibleTitle = NanoVGUI.plainSubstrByWidth(title,
+				windowWidth - 27, ROW_TEXT_SIZE);
+			NanoVGUI.text(visibleTitle, x1 + 15, titleY, TEXT, ROW_TEXT_SIZE);
 			GuiIcon.CHEVRON.drawRotated(graphics, x2 - 10, y1 + 3, 8, TEXT,
 				open ? 0 : -90);
 			if(!open)
 				return;
 
-			graphics.enableScissor(x1 + 1, y1 + HEADER_HEIGHT, x2 - 1, y2 - 1);
-			for(int row = 0; row < visibleRows(); row++)
+			float offset = smoothScroll.update();
+			int baseIndex = (int)Math.floor(offset / ROW_HEIGHT);
+			float subOffset = offset - baseIndex * ROW_HEIGHT;
+			int rows = visibleRows();
+
+			NanoVGUI.pushScissor(x1 + 1, y1 + HEADER_HEIGHT, x2 - x1 - 2,
+				y2 - y1 - HEADER_HEIGHT - 1);
+			for(int row = -1; row <= rows; row++)
 			{
-				int index = row + scrollOffset;
-				if(index >= rowCount())
-					break;
-				int rowY = y1 + HEADER_HEIGHT + row * ROW_HEIGHT;
+				int index = baseIndex + row;
+				if(index < 0 || index >= rowCount())
+					continue;
+				float rowY = y1 + HEADER_HEIGHT + row * ROW_HEIGHT
+					- subOffset;
 				boolean hovering = mouseX >= x1 + 1 && mouseX < x2 - 1
 					&& mouseY >= rowY && mouseY < rowY + ROW_HEIGHT - 1;
 				renderRow(graphics, index, rowY, hovering);
 			}
-			graphics.disableScissor();
+			NanoVGUI.popScissor();
 		}
 	}
 
@@ -671,31 +697,33 @@ public final class ClickGuiScreen extends Screen
 		}
 
 		@Override
-		protected void renderRow(GuiGraphicsExtractor graphics, int index, int rowY,
+		protected void renderRow(GuiGraphicsExtractor graphics, int index, float rowY,
 			boolean hovering)
 		{
+			int y = Math.round(rowY);
 			Feature feature = features.get(index);
 			int rowColor = feature.isEnabled() ? accentColor()
 				: hovering ? ROW_HOVER : ROW_FILL;
-			FlatRenderer.fillRoundedRect(graphics, x1 + 2, rowY + 1, x2 - 2,
-				rowY + ROW_HEIGHT - 1, 3, rowColor);
+			FlatRenderer.fillRoundedRect(graphics, x1 + 2, y + 1, x2 - 2,
+				y + ROW_HEIGHT - 1, 3, rowColor);
 			String keyLabel = getKeyLabel(feature);
 			int badgeWidth = getKeyBadgeWidth(keyLabel);
 			int badgeRight = x2 - (feature.getSettings().isEmpty() ? 3 : 10);
 			int badgeLeft = badgeRight - badgeWidth;
-			String name = MC.font.plainSubstrByWidth(feature.getDisplayName(),
-				Math.round((badgeLeft - x1 - 6) / TEXT_SCALE));
-			drawText(graphics, MC.font, name, x1 + 4, rowY + 3, TEXT);
-			FlatRenderer.fillRoundedRect(graphics, badgeLeft, rowY + 3,
-				badgeRight, rowY + 11, 3, KEYBIND_FILL);
-			String visibleKey = MC.font.plainSubstrByWidth(keyLabel,
-				Math.round((badgeWidth - 4) / TEXT_SCALE));
-			int textWidth = Math.round(MC.font.width(visibleKey) * TEXT_SCALE);
-			drawText(graphics, MC.font, visibleKey,
-				badgeLeft + Math.max(2, (badgeWidth - textWidth) / 2), rowY + 3,
-				bindingFeature == feature ? TEXT : KEYBIND_TEXT);
+			String name = NanoVGUI.plainSubstrByWidth(feature.getDisplayName(),
+				badgeLeft - x1 - 6, ROW_TEXT_SIZE);
+			NanoVGUI.text(name, x1 + 4, y + 3, TEXT, ROW_TEXT_SIZE);
+			FlatRenderer.fillRoundedRect(graphics, badgeLeft, y + 3,
+				badgeRight, y + 11, 3, KEYBIND_FILL);
+			String visibleKey = NanoVGUI.plainSubstrByWidth(keyLabel,
+				badgeWidth - 4, ROW_TEXT_SIZE);
+			float textWidth = NanoVGUI.width(visibleKey, ROW_TEXT_SIZE);
+			NanoVGUI.text(visibleKey,
+				badgeLeft + Math.max(2, (badgeWidth - textWidth) / 2), y + 3,
+				bindingFeature == feature ? TEXT : KEYBIND_TEXT,
+				ROW_TEXT_SIZE);
 			if(!feature.getSettings().isEmpty())
-				GuiIcon.CHEVRON.drawRotated(graphics, x2 - 9, rowY + 3, 7,
+				GuiIcon.CHEVRON.drawRotated(graphics, x2 - 9, y + 3, 7,
 					0xFFD8D8D8, -90);
 		}
 
@@ -736,8 +764,8 @@ public final class ClickGuiScreen extends Screen
 
 		private int getKeyBadgeWidth(String label)
 		{
-			return Mth.clamp(Math.round(MC.font.width(label) * TEXT_SCALE) + 6,
-				12, 25);
+			return Mth.clamp(Math.round(NanoVGUI.width(label, ROW_TEXT_SIZE))
+				+ 6, 12, 25);
 		}
 	}
 
@@ -758,9 +786,10 @@ public final class ClickGuiScreen extends Screen
 		}
 
 		@Override
-		protected void renderRow(GuiGraphicsExtractor graphics, int index, int rowY,
+		protected void renderRow(GuiGraphicsExtractor graphics, int index, float rowY,
 			boolean hovering)
 		{
+			int y = Math.round(rowY);
 			PanelRow row = rows().get(index);
 			int rowColor;
 			if(row.kind == RowKind.SECTION)
@@ -772,20 +801,20 @@ public final class ClickGuiScreen extends Screen
 			else
 				rowColor = hovering ? ROW_HOVER : ROW_FILL;
 			fillRow(graphics, index, rowY, rowColor);
-			String label = MC.font.plainSubstrByWidth(row.label.get(),
-				Math.round((windowWidth - 8) / TEXT_SCALE));
-			drawText(graphics, MC.font, label, x1 + 4, rowY + 3,
-				row.kind == RowKind.DISABLED ? MUTED : TEXT);
+			String label = NanoVGUI.plainSubstrByWidth(row.label.get(),
+				windowWidth - 8, ROW_TEXT_SIZE);
+			NanoVGUI.text(label, x1 + 4, y + 3,
+				row.kind == RowKind.DISABLED ? MUTED : TEXT, ROW_TEXT_SIZE);
 			if(row.kind == RowKind.SWITCH)
 			{
 				boolean active = row.active.getAsBoolean();
 				int switchX = x2 - 15;
-				FlatRenderer.fillRoundedRect(graphics, switchX, rowY + 4,
-					x2 - 4, rowY + 10, 3,
+				FlatRenderer.fillRoundedRect(graphics, switchX, y + 4,
+					x2 - 4, y + 10, 3,
 					active ? accentColor() : 0xFF3A3A3A);
 				int knobX = active ? x2 - 8 : switchX + 1;
-				FlatRenderer.fillRoundedRect(graphics, knobX, rowY + 5,
-					knobX + 4, rowY + 9, 2, 0xFFF0F0F0);
+				FlatRenderer.fillRoundedRect(graphics, knobX, y + 5,
+					knobX + 4, y + 9, 2, 0xFFF0F0F0);
 			}
 		}
 
@@ -1080,17 +1109,6 @@ public final class ClickGuiScreen extends Screen
 	{
 		return name.toLowerCase(Locale.ROOT).endsWith(".json")
 			? name.substring(0, name.length() - 5) : name;
-	}
-
-	private static void drawText(GuiGraphicsExtractor graphics, Font font, String text,
-		int x, int y, int color)
-	{
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(x, y);
-		graphics.pose().scale(TEXT_SCALE, TEXT_SCALE);
-		graphics.text(font,
-			WURST.getGuiPreferences().styleText(text), 0, 0, color, false);
-		graphics.pose().popMatrix();
 	}
 
 	private int accentColor()

@@ -68,8 +68,8 @@ public final class AimAssistHack extends Hack
 
 	private final SliderSetting switchAdvantage = new SliderSetting(
 		"Switch advantage",
-		"How much better another target must score before switching.", 10, 0,
-		100, 1, ValueDisplay.PERCENTAGE);
+		"How much better another target must score before switching.", 0.1, 0,
+		1, 0.01, ValueDisplay.PERCENTAGE);
 	
 	private final AimAtSetting aimAt = new AimAtSetting(
 		"What point in the target's hitbox AimAssist should aim at.");

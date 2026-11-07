@@ -1,0 +1,317 @@
+﻿[1] net\wurstclient\hacks\NotifierHack.java:155 :: 找不到符号
+      符号:   变量 PROTECTED_FROM_DEATH
+      位置: 类 EntityEvent
+[2] net\wurstclient\hacks\PitcherHack.java:512 :: 无法将类 StatusOnly中的构造器 StatusOnly应用到给定类型;
+      需要: boolean
+      找到:    boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[3] net\wurstclient\hacks\PitcherHack.java:552 :: 无法将类 Pos中的构造器 Pos应用到给定类型;
+      需要: double,double,double,boolean
+      找到:    double,double,double,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[4] net\wurstclient\hacks\FlightAntiKickHack.java:129 :: 无法将类 Pos中的构造器 Pos应用到给定类型;
+      需要: double,double,double,boolean
+      找到:    double,double,double,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[5] net\wurstclient\hacks\ScreenActionsHack.java:174 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[6] net\wurstclient\hacks\ScreenActionsHack.java:228 :: 对于ServerboundUseItemPacket(InteractionHand,int,float,float), 找不到合适的构造器
+[7] net\wurstclient\hacks\ScreenActionsHack.java:257 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[8] net\wurstclient\hacks\ScreenActionsHack.java:347 :: 不兼容的类型: Window无法转换为long
+[9] net\wurstclient\hacks\KnockbackDirectionHack.java:105 :: 无法将类 Rot中的构造器 Rot应用到给定类型;
+      需要: float,float,boolean
+      找到:    float,float,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[10] net\wurstclient\hacks\KnockbackDirectionHack.java:123 :: 无法将类 Rot中的构造器 Rot应用到给定类型;
+      需要: float,float,boolean
+      找到:    float,float,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[11] net\wurstclient\hacks\KillFxHack.java:556 :: 找不到符号
+      符号:   变量 COPPER_FIRE_FLAME
+      位置: 类 ParticleTypes
+[12] net\wurstclient\hacks\KillFxHack.java:603 :: 找不到符号
+      符号:   变量 PALE_OAK_LEAVES
+      位置: 类 ParticleTypes
+[13] net\wurstclient\hacks\KillFxHack.java:604 :: 找不到符号
+      符号:   变量 FIREFLY
+      位置: 类 ParticleTypes
+[14] net\wurstclient\hacks\ImgTotemParticleHack.java:94 :: 找不到符号
+      符号:   变量 PROTECTED_FROM_DEATH
+      位置: 类 EntityEvent
+[15] net\wurstclient\hacks\ImgTipsHack.java:244 :: 找不到符号
+      符号:   变量 PROTECTED_FROM_DEATH
+      位置: 类 EntityEvent
+[16] net\wurstclient\hacks\ImgTipsHack.java:357 :: 找不到符号
+      符号:   方法 value()
+      位置: 类型为SoundEvent的变量 EXPERIENCE_ORB_PICKUP
+[17] net\wurstclient\hacks\ImgTipsHack.java:429 :: 找不到符号
+      符号:   变量 RESISTANCE
+      位置: 类 MobEffects
+[18] net\wurstclient\hacks\ImgTipsHack.java:434 :: 找不到符号
+      符号:   变量 STRENGTH
+      位置: 类 MobEffects
+[19] net\wurstclient\hacks\ImgTipsHack.java:437 :: 找不到符号
+      符号:   变量 SPEED
+      位置: 类 MobEffects
+[20] net\wurstclient\hacks\MineEspHack.java:211 :: 找不到符号
+      符号:   方法 position()
+      位置: 类 Camera
+[21] net\wurstclient\hacks\MineEspHack.java:255 :: 找不到符号
+      符号:   方法 submitText(PoseStack,float,int,FormattedCharSequence,boolean,DisplayMode,int,int,int,int)
+      位置: 类 RenderUtils
+[22] net\wurstclient\hacks\CustomItemEspHack.java:188 :: 找不到符号
+      符号:   方法 position()
+      位置: 类 Camera
+[23] net\wurstclient\hacks\CustomItemEspHack.java:211 :: 找不到符号
+      符号:   方法 submitText(PoseStack,float,int,FormattedCharSequence,boolean,DisplayMode,int,int,int,int)
+      位置: 类 RenderUtils
+[24] net\wurstclient\hacks\CustomItemEspHack.java:224 :: 找不到符号
+      符号:   方法 parse(String)
+      位置: 类 ResourceLocation
+[25] net\wurstclient\hacks\BreakEspHack.java:212 :: 找不到符号
+      符号:   方法 position()
+      位置: 类 Camera
+[26] net\wurstclient\hacks\BreakEspHack.java:266 :: 找不到符号
+      符号:   方法 submitText(PoseStack,float,int,FormattedCharSequence,boolean,DisplayMode,int,int,int,int)
+      位置: 类 RenderUtils
+[27] net\wurstclient\hacks\AntiLagHack.java:172 :: 找不到符号
+      符号:   方法 getMinY()
+      位置: 类型为ClientLevel的变量 level
+[28] net\wurstclient\hacks\AutoKouZiHack.java:207 :: 找不到符号
+      符号:   方法 name()
+      位置: 类 GameProfile
+[29] net\wurstclient\hacks\AutoTPAcceptHack.java:197 :: 找不到符号
+      符号:   类 RunCommand
+      位置: 类 ClickEvent
+[30] net\wurstclient\hacks\AutoTPAcceptHack.java:199 :: 找不到符号
+      符号:   类 SuggestCommand
+      位置: 类 ClickEvent
+[31] net\wurstclient\hacks\GAntiExplosionHack.java:343 :: 无法将类 Pos中的构造器 Pos应用到给定类型;
+      需要: double,double,double,boolean
+      找到:    double,double,double,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[32] net\wurstclient\hacks\GAntiExplosionHack.java:353 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[33] net\wurstclient\hacks\GAntiExplosionHack.java:354 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[34] net\wurstclient\hacks\GAntiExplosionHack.java:362 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[35] net\wurstclient\hacks\FoKillAuraHack.java:184 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[36] net\wurstclient\hacks\FoKillAuraHack.java:188 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[37] net\wurstclient\hacks\FoKillAuraHack.java:269 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[38] net\wurstclient\hacks\SchematicProHack.java:315 :: 找不到符号
+      符号:   方法 parse(String)
+      位置: 类 ResourceLocation
+[39] net\wurstclient\hacks\AdaAutoHotbarHack.java:184 :: 找不到符号
+      符号:   方法 parse(String)
+      位置: 类 ResourceLocation
+[40] net\wurstclient\hacks\AdaManualCrystalHack.java:79 :: 找不到符号
+      符号:   方法 getRightClickDelay()
+      位置: 类型为IMinecraftClient的变量 IMC
+[41] net\wurstclient\hacks\AdaManualCrystalHack.java:80 :: 找不到符号
+      符号:   方法 setRightClickDelay(int)
+      位置: 类型为IMinecraftClient的变量 IMC
+[42] net\wurstclient\hacks\VillagerTraderHack.java:461 :: 找不到符号
+      符号:   方法 isDisabled()
+      位置: 类型为MerchantOffer的变量 offer
+[43] net\wurstclient\hacks\AutoInvTotemHack.java:98 :: 找不到符号
+      符号:   变量 PROTECTED_FROM_DEATH
+      位置: 类 EntityEvent
+[44] net\wurstclient\hacks\AutoFireworkHack.java:110 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[45] net\wurstclient\hacks\AutoDoubleHandHack.java:101 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[46] net\wurstclient\hacks\AutoChorusHack.java:159 :: startUseItem() 在 Minecraft 中是 private 访问控制
+[47] net\wurstclient\hacks\AutoChorusHack.java:180 :: startUseItem() 在 Minecraft 中是 private 访问控制
+[48] net\wurstclient\hacks\LegitNoFallHack.java:154 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[49] net\wurstclient\hacks\LegitNoFallHack.java:159 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[50] net\wurstclient\hacks\LegitNoFallHack.java:165 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[51] net\wurstclient\hacks\LegitNoFallHack.java:174 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[52] net\wurstclient\hacks\TpMachineGunHack.java:164 :: 无法将类 CrossbowItem中的方法 getChargeDuration应用到给定类型;
+      需要: ItemStack
+      找到:    ItemStack,LocalPlayer
+      原因: 实际参数列表和形式参数列表长度不同
+[53] net\wurstclient\hacks\TpMachineGunHack.java:326 :: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+      需要: double,double,double,float,float,boolean
+      找到:    double,double,double,float,float,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[54] net\wurstclient\hacks\TpMachineGunHack.java:387 :: 无法将类 Pos中的构造器 Pos应用到给定类型;
+      需要: double,double,double,boolean
+      找到:    double,double,double,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[55] net\wurstclient\hacks\TpBowAuraHack.java:259 :: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+      需要: double,double,double,float,float,boolean
+      找到:    double,double,double,float,float,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[56] net\wurstclient\hacks\TpBowAuraHack.java:312 :: 无法将类 Pos中的构造器 Pos应用到给定类型;
+      需要: double,double,double,boolean
+      找到:    double,double,double,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[57] net\wurstclient\hacks\TpAnchorHack.java:487 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[58] net\wurstclient\hacks\TpAnchorHack.java:489 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[59] net\wurstclient\hacks\TpAnchorHack.java:495 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[60] net\wurstclient\hacks\TpAnchorHack.java:506 :: 无法将类 Pos中的构造器 Pos应用到给定类型;
+      需要: double,double,double,boolean
+      找到:    double,double,double,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[61] net\wurstclient\hacks\TpAnchorHack.java:523 :: 找不到符号
+      符号:   方法 getUnitVec3i()
+      位置: 类型为Direction的变量 face
+[62] net\wurstclient\hacks\TntBomberHack.java:103 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[63] net\wurstclient\hacks\TntBomberHack.java:124 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[64] net\wurstclient\hacks\SpearKillHack.java:469 :: 找不到符号
+      符号:   方法 getMinY()
+      位置: 类型为ClientLevel的变量 level
+[65] net\wurstclient\hacks\SpearKillHack.java:469 :: 找不到符号
+      符号:   方法 getMaxY()
+      位置: 类型为ClientLevel的变量 level
+[66] net\wurstclient\hacks\SpearKillHack.java:495 :: 无法将类 Entity中的方法 canBeCollidedWith应用到给定类型;
+      需要: 没有参数
+      找到:    LocalPlayer
+      原因: 实际参数列表和形式参数列表长度不同
+[67] net\wurstclient\hacks\SpearKillHack.java:620 :: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+      需要: double,double,double,float,float,boolean
+      找到:    double,double,double,float,float,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[68] net\wurstclient\hacks\SpearKillHack.java:625 :: 无法将类 PosRot中的构造器 PosRot应用到给定类型;
+      需要: double,double,double,float,float,boolean
+      找到:    double,double,double,float,float,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[69] net\wurstclient\hacks\PistonCrystalHack.java:474 :: 找不到符号
+      符号:   方法 getUnitVec3i()
+      位置: 类型为Direction的变量 hitSide
+[70] net\wurstclient\hacks\PistonCrystalHack.java:490 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[71] net\wurstclient\hacks\PistonCrystalHack.java:530 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[72] net\wurstclient\hacks\PistonCrystalHack.java:546 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[73] net\wurstclient\hacks\PistonCrystalHack.java:549 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[74] net\wurstclient\hacks\PistonCrystalHack.java:579 :: 无法将类 Rot中的构造器 Rot应用到给定类型;
+      需要: float,float,boolean
+      找到:    float,float,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[75] net\wurstclient\hacks\PistonCrystalHack.java:595 :: 找不到符号
+      符号:   方法 getUnitVec3i()
+      位置: 类型为Direction的变量 side
+[76] net\wurstclient\hacks\MacroAnchorHack.java:113 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[77] net\wurstclient\hacks\MacroAnchorHack.java:272 :: 找不到符号
+      符号:   方法 getUnitVec3i()
+      位置: 类型为Direction的变量 hitSide
+[78] net\wurstclient\hacks\MacroAnchorHack.java:294 :: 找不到符号
+      符号:   方法 getUnitVec3i()
+      位置: 类型为Direction的变量 direction
+[79] net\wurstclient\hacks\MacroAnchorHack.java:314 :: 找不到符号
+      符号:   方法 getUnitVec3i()
+      位置: 类型为Direction的变量 bestSide
+[80] net\wurstclient\hacks\MacroAnchorHack.java:326 :: 无法将类 Rot中的构造器 Rot应用到给定类型;
+      需要: float,float,boolean
+      找到:    float,float,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[81] net\wurstclient\hacks\MacroAnchorHack.java:335 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[82] net\wurstclient\hacks\MacroAnchorHack.java:338 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[83] net\wurstclient\hacks\MaceBreakerProHack.java:113 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[84] net\wurstclient\hacks\MaceBreakerProHack.java:144 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[85] net\wurstclient\hacks\MaceBreakerProHack.java:151 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[86] net\wurstclient\hacks\MaceAuraHack.java:117 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[87] net\wurstclient\hacks\MaceAuraHack.java:170 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[88] net\wurstclient\hacks\MaceAuraHack.java:171 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[89] net\wurstclient\hacks\MaceAuraHack.java:264 :: 无法将类 Rot中的构造器 Rot应用到给定类型;
+      需要: float,float,boolean
+      找到:    float,float,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[90] net\wurstclient\hacks\MaceAuraHack.java:298 :: 无法将类 Pos中的构造器 Pos应用到给定类型;
+      需要: double,double,double,boolean
+      找到:    double,double,double,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[91] net\wurstclient\hacks\CrossbowAuraHack.java:284 :: 无法将类 Rot中的构造器 Rot应用到给定类型;
+      需要: float,float,boolean
+      找到:    float,float,boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[92] net\wurstclient\hacks\AutoChestAuraHack.java:201 :: 找不到符号
+      符号:   方法 containerId()
+      位置: 类型为ClientboundContainerSetContentPacket的变量 packet
+[93] net\wurstclient\hacks\AttractAuraHack.java:198 :: 无法将类 StatusOnly中的构造器 StatusOnly应用到给定类型;
+      需要: boolean
+      找到:    boolean,boolean
+      原因: 实际参数列表和形式参数列表长度不同
+[94] net\wurstclient\hacks\FastCrossbowHack.java:125 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[95] net\wurstclient\hacks\FastCrossbowHack.java:140 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[96] net\wurstclient\hacks\AutoTorchHack.java:168 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[97] net\wurstclient\hacks\AutoTorchHack.java:170 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[98] net\wurstclient\hacks\AutoTorchHack.java:177 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+[99] net\wurstclient\hacks\AutoTorchHack.java:178 :: 找不到符号
+      符号:   方法 setSelectedSlot(int)
+      位置: 类 Inventory
+[100] net\wurstclient\hacks\ReplenishHack.java:99 :: 找不到符号
+      符号:   方法 getSelectedSlot()
+      位置: 类型为Inventory的变量 inventory
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory
+      符号:   方法 getSelectedSlot()
+      位置: 类 Inventory

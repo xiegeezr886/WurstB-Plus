@@ -16,7 +16,7 @@ import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.BlockBreakingProgressListener;
-import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.LeftClickListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
@@ -27,7 +27,7 @@ import net.wurstclient.util.BlockUtils;
 	"fast mine", "speed mine", "speedy gonzales", "NoBreakDelay",
 	"no break delay"})
 public final class FastBreakHack extends Hack
-	implements UpdateListener, BlockBreakingProgressListener
+	implements LeftClickListener, BlockBreakingProgressListener
 {
 	private final SliderSetting acceleration = new SliderSetting(
 		"Acceleration",
@@ -43,6 +43,12 @@ public final class FastBreakHack extends Hack
 
 	private final Random random = new Random();
 	private BlockPos lastBlockPos;
+	// Meteor BreakDelay settings use the existing FastBreak module.
+	private final SliderSetting cooldown = new SliderSetting("Break cooldown",
+		"破坏方块之间的等待 tick 数。", 0, 0, 20, 1, ValueDisplay.INTEGER);
+	private final CheckboxSetting noInstaBreak = new CheckboxSetting("Prevent instant chain",
+		"秒破方块时，按住左键不会继续误挖相邻方块。", false);
+	private boolean firstBreak;
 
 	public FastBreakHack()
 	{
@@ -50,6 +56,8 @@ public final class FastBreakHack extends Hack
 		setCategory(Category.BLOCKS);
 		addSetting(acceleration);
 		addSetting(legitMode);
+		addSetting(cooldown);
+		addSetting(noInstaBreak);
 	}
 
 	@Override
@@ -63,22 +71,42 @@ public final class FastBreakHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		EVENTS.add(UpdateListener.class, this);
+		firstBreak = false;
+		EVENTS.add(LeftClickListener.class, this);
 		EVENTS.add(BlockBreakingProgressListener.class, this);
 	}
 
 	@Override
 	protected void onDisable()
 	{
-		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(LeftClickListener.class, this);
 		EVENTS.remove(BlockBreakingProgressListener.class, this);
 		lastBlockPos = null;
+		firstBreak = false;
 	}
 
 	@Override
-	public void onUpdate()
+	public void onLeftClick(LeftClickEvent event)
 	{
-		MC.gameMode.destroyDelay = 0;
+		firstBreak = noInstaBreak.isChecked();
+	}
+
+	public int getBreakCooldown(int vanilla)
+	{
+		if(!isEnabled())
+			return vanilla;
+		if(firstBreak && noInstaBreak.isChecked())
+		{
+			firstBreak = false;
+			return 5;
+		}
+		firstBreak = false;
+		return cooldown.getValueI();
+	}
+
+	public boolean shouldPreventInstantBreak()
+	{
+		return isEnabled() && noInstaBreak.isChecked();
 	}
 
 	@Override

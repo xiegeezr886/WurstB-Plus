@@ -1,0 +1,228 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "net.neoforged",
+    "module": "neoform",
+    "version": "1.21.1-20240808.144430",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.9"
+    }
+  },
+  "variants": [
+    {
+      "name": "neoformData",
+      "attributes": {
+        "org.gradle.jvm.version": 21
+      },
+      "dependencies": [
+        {
+          "group": "org.vineflower",
+          "module": "vineflower",
+          "version": {
+            "requires": "1.10.1"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ]
+        },
+        {
+          "group": "net.neoforged",
+          "module": "mergetool",
+          "version": {
+            "requires": "2.0.3"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ],
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "mergetool",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "fatjar"
+            }
+          }
+        },
+        {
+          "group": "net.neoforged",
+          "module": "AutoRenamingTool",
+          "version": {
+            "requires": "2.0.3"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ],
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "AutoRenamingTool",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "all"
+            }
+          }
+        },
+        {
+          "group": "net.neoforged.installertools",
+          "module": "installertools",
+          "version": {
+            "requires": "2.1.2"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ],
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "installertools",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "fatjar"
+            }
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "neoform-1.21.1-20240808.144430.zip",
+          "url": "neoform-1.21.1-20240808.144430.zip",
+          "size": 1683830,
+          "sha512": "fd7c85ca9b707b357d536fa51e58338c62ef29810fac32ec372b0ac46ef64a8d69e4bea1eb1b328c051f586ba0b61f534710ff2ff8ddec54f23940a5df3e0016",
+          "sha256": "3fcdf0f0d115774cfceaf206a05a6dc964e2189bfd00f5b5f863e37f4b7733c7",
+          "sha1": "811e2bd86fa2cda2812e5e8e51d718ea8bd6d3f4",
+          "md5": "3f43262b8c492966bd170e4b78f313fe"
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "net.neoforged",
+          "name": "neoform",
+          "version": "1.21.1-20240808.144430"
+        }
+      ]
+    },
+    {
+      "name": "neoformRuntimeElements",
+      "attributes": {
+        "org.gradle.jvm.version": 21,
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "net.neoforged",
+          "module": "minecraft-dependencies",
+          "version": {
+            "requires": "1.21.1"
+          },
+          "endorseStrictVersions": true
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "net.neoforged",
+          "name": "neoform-dependencies",
+          "version": "1.21.1-20240808.144430"
+        }
+      ]
+    },
+    {
+      "name": "neoformApiElements",
+      "attributes": {
+        "org.gradle.jvm.version": 21,
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.code.findbugs",
+          "module": "jsr305",
+          "version": {
+            "requires": "3.0.2"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ]
+        },
+        {
+          "group": "org.jetbrains",
+          "module": "annotations",
+          "version": {
+            "requires": "24.1.0"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ]
+        },
+        {
+          "group": "ca.weblite",
+          "module": "java-objc-bridge",
+          "version": {
+            "requires": "1.1"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ]
+        },
+        {
+          "group": "net.neoforged",
+          "module": "mergetool",
+          "version": {
+            "requires": "2.0.3"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ],
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "mergetool",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "api"
+            }
+          }
+        },
+        {
+          "group": "net.neoforged",
+          "module": "minecraft-dependencies",
+          "version": {
+            "requires": "1.21.1"
+          },
+          "endorseStrictVersions": true
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "net.neoforged",
+          "name": "neoform-dependencies",
+          "version": "1.21.1-20240808.144430"
+        }
+      ]
+    }
+  ]
+}
