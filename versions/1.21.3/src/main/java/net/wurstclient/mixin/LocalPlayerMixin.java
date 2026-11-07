@@ -341,7 +341,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 			&& hax.fullbrightHack.isNightVisionActive())
 			return true;
 
-		if(effect.is(MobEffects.LEVITATION) && hax.noLevitationHack.isEnabled())
+		if(hax.noLevitationHack.shouldBlock(effect.value()))
 			return false;
 
 		if(effect.is(MobEffects.BLINDNESS) && hax.antiBlindHack.isEnabled())
@@ -358,7 +358,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
 
-		if(effect.is(MobEffects.LEVITATION) && hax.noLevitationHack.isEnabled())
+		if(hax.noLevitationHack.shouldBlock(effect.value()))
 			return null;
 
 		return super.getEffect(effect);

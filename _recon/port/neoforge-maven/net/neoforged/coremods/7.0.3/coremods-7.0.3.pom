@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.neoforged</groupId>
+  <artifactId>coremods</artifactId>
+  <version>7.0.3</version>
+  <name>Core Mods</name>
+  <description>Core modding framework for use with forge</description>
+  <url>https://github.com/neoforged/coremods</url>
+  <licenses>
+    <license>
+      <name>LGPLv2.1</name>
+      <url>https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>cpw</id>
+      <name>cpw</name>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/neoforged/coremods.git</connection>
+    <developerConnection>scm:git:git@github.com:neoforged/coremods.git</developerConnection>
+    <url>https://github.com/neoforged/coremods</url>
+  </scm>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/neoforged/coremods/issues</url>
+  </issueManagement>
+  <dependencies>
+    <dependency>
+      <groupId>cpw.mods</groupId>
+      <artifactId>modlauncher</artifactId>
+      <version>10.1.10</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.14.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>9.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>9.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-tree</artifactId>
+      <version>9.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-util</artifactId>
+      <version>9.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjdk.nashorn</groupId>
+      <artifactId>nashorn-core</artifactId>
+      <version>15.4</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

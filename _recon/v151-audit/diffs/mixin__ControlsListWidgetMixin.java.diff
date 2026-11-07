@@ -1,0 +1,119 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\mixin/ControlsListWidgetMixin.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\mixin/ControlsListWidgetMixin.java"
+index 1dd5ba5f..943a888f 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\mixin/ControlsListWidgetMixin.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\mixin/ControlsListWidgetMixin.java"
+@@ -1,57 +1,57 @@
+-/*
+- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+- *
+- * This source code is subject to the terms of the GNU General Public
+- * License, version 3. If a copy of the GPL was not distributed with this
+- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+- */
+-package net.wurstclient.mixin;
+-
+-import org.spongepowered.asm.mixin.Mixin;
+-import org.spongepowered.asm.mixin.injection.At;
+-
+-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-
+-import net.minecraft.client.MinecraftClient;
+-import net.minecraft.client.gui.screen.option.ControlsListWidget;
+-import net.minecraft.client.gui.widget.ElementListWidget;
+-import net.minecraft.client.gui.widget.EntryListWidget;
+-import net.minecraft.text.Text;
+-import net.minecraft.text.TranslatableTextContent;
+-import net.wurstclient.WurstClient;
+-
+-@Mixin(ControlsListWidget.class)
+-public abstract class ControlsListWidgetMixin
+-	extends ElementListWidget<ControlsListWidget.Entry>
+-{
+-	public ControlsListWidgetMixin(WurstClient wurst, MinecraftClient client,
+-		int width, int height, int top, int bottom, int itemHeight)
+-	{
+-		super(client, width, height, top, bottom, itemHeight);
+-	}
+-	
+-	/**
+-	 * Prevents Wurst's zoom keybind from being added to the controls list.
+-	 */
+-	@WrapOperation(at = @At(value = "INVOKE",
+-		target = "Lnet/minecraft/client/gui/screen/option/ControlsListWidget;addEntry(Lnet/minecraft/client/gui/widget/EntryListWidget$Entry;)I",
+-		ordinal = 1),
+-		method = "<init>(Lnet/minecraft/client/gui/screen/option/KeybindsScreen;Lnet/minecraft/client/MinecraftClient;)V")
+-	private int dontAddZoomEntry(ControlsListWidget instance,
+-		EntryListWidget.Entry<?> entry, Operation<Integer> original)
+-	{
+-		if(!(entry instanceof ControlsListWidget.KeyBindingEntry kbEntry))
+-			return original.call(instance, entry);
+-		
+-		Text name = kbEntry.bindingName;
+-		if(name == null || !(name
+-			.getContent() instanceof TranslatableTextContent trContent))
+-			return original.call(instance, entry);
+-		
+-		if(!"key.wurst.zoom".equals(trContent.getKey()))
+-			return original.call(instance, entry);
+-		
+-		return 0;
+-	}
+-}
++/*
++ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
++ *
++ * This source code is subject to the terms of the GNU General Public
++ * License, version 3. If a copy of the GPL was not distributed with this
++ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
++ */
++package net.wurstclient.mixin;
++
++import org.spongepowered.asm.mixin.Mixin;
++import org.spongepowered.asm.mixin.injection.At;
++
++import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.gui.components.AbstractSelectionList;
++import net.minecraft.client.gui.components.ContainerObjectSelectionList;
++import net.minecraft.client.gui.screens.controls.KeyBindsList;
++import net.minecraft.network.chat.Component;
++import net.minecraft.network.chat.contents.TranslatableContents;
++import net.wurstclient.WurstClient;
++
++@Mixin(KeyBindsList.class)
++public abstract class ControlsListWidgetMixin
++	extends ContainerObjectSelectionList<KeyBindsList.Entry>
++{
++	public ControlsListWidgetMixin(WurstClient wurst, Minecraft client,
++		int width, int height, int top, int bottom, int itemHeight)
++	{
++		super(client, width, height, top, bottom, itemHeight);
++	}
++	
++	/**
++	 * Prevents Wurst's zoom keybind from being added to the controls list.
++	 */
++	@WrapOperation(at = @At(value = "INVOKE",
++		target = "Lnet/minecraft/client/gui/screens/controls/KeyBindsList;addEntry(Lnet/minecraft/client/gui/components/AbstractSelectionList$Entry;)I",
++		ordinal = 1),
++		method = "<init>(Lnet/minecraft/client/gui/screens/controls/KeyBindsScreen;Lnet/minecraft/client/Minecraft;)V")
++	private int dontAddZoomEntry(KeyBindsList instance,
++		AbstractSelectionList.Entry<?> entry, Operation<Integer> original)
++	{
++		if(!(entry instanceof KeyBindsList.KeyEntry kbEntry))
++			return original.call(instance, entry);
++		
++		Component name = ((net.wurstclient.mixin.KeyEntryAccessor)(Object)kbEntry)
++			.getName();
++		if(name == null || !(name
++			.getContents() instanceof TranslatableContents trContent))
++			return original.call(instance, entry);
++		
++		if(!"key.wurst.zoom".equals(trContent.getKey()))
++			return original.call(instance, entry);
++		
++		return 0;
++	}
++}

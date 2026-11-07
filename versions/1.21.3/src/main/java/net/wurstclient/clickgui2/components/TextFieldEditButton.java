@@ -18,6 +18,7 @@ import net.wurstclient.clickgui2.Component;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
 import net.wurstclient.clickgui2.screens.EditTextFieldScreen;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.TextFieldSetting;
 import net.wurstclient.util.ChatUtils;
 
@@ -77,19 +78,16 @@ public final class TextFieldEditButton extends Component
 		float hover = hoverAnimation.update(hBox);
 		FlatRenderer.drawControl(context, x1, y1, x2, y2, 3,
 			GUI.getTheme(), hover, false);
-		context.fill(x1 + 2, y3, x2 - 2, y3 + 1,
+		NanoVGUI.fill(x1 + 2, y3, x2 - 2, y3 + 1,
 			GUI.getTheme().accent(0.24F));
-		
+
 		// text
 		int txtColor = GUI.getTxtColor();
-		context.drawString(TR, setting.getTranslatedName(), x1, y1 + 2, txtColor, false);
+		NanoVGUI.text(setting.getTranslatedName(), x1, y1 + 2, txtColor, 9F);
 		String value = setting.getValue();
-		int maxWidth = getWidth() - TR.width("...") - 2;
-		int maxLength = TR.getSplitter().formattedIndexByWidth(value,
-			maxWidth, Style.EMPTY);
-		if(maxLength < value.length())
-			value = value.substring(0, maxLength) + "...";
-		context.drawString(TR, value, x1 + 2, y3 + 2, txtColor, false);
+		float maxWidth = getWidth() - NanoVGUI.width("...", 9F) - 2;
+		value = NanoVGUI.substrByWidth(value, maxWidth, 9F);
+		NanoVGUI.text(value, x1 + 2, y3 + 2, txtColor, 9F);
 	}
 	
 	@Override

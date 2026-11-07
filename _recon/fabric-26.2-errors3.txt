@@ -1,0 +1,28 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At line:1 char:135
++ ... ions\26.2"; .\gradlew.bat compileJava --init-script ..\..\..\gradle\i ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/ui863/.gradle/wrapper/dists/gradle-9.6.0-bin/3yr5qo1p853jn7m5o1j0u2qkd/gradle-9.6.0/lib/nativ
+e-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+
+> Configure project :
+Fabric Loom: 1.17.17
+
+> Task :compileJava
+注: 某些输入文件使用或覆盖了已过时的 API。
+注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+注: C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.2\src\main\java\net\wurstclient\settings\CheckboxSetti
+ng.java使用了未经检查或不安全的操作。
+注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+
+[Incubating] Problems report is available at: file:///C:/Users/ui863/Documents/trae_projects/VAP/fabric/versions/26.2/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 22s
+1 actionable task: 1 executed

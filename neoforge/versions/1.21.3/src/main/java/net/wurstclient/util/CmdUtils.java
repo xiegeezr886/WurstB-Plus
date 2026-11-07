@@ -7,6 +7,8 @@
  */
 package net.wurstclient.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Inventory;
@@ -27,9 +29,11 @@ public enum CmdUtils
 	public static Feature findFeature(String name) throws CmdError
 	{
 		WurstClient wurst = WurstClient.INSTANCE;
+		Stream<Feature> hudFeatures = wurst.getHudManager() == null
+			? Stream.empty() : wurst.getHudManager().getAllFeatures().stream();
 		Stream<Feature> stream = Stream.of(wurst.getHax().getAllHax().stream(),
 			wurst.getCmds().getAllCmds().stream(),
-			wurst.getOtfs().getAllOtfs().stream()).flatMap(s -> s);
+			wurst.getOtfs().getAllOtfs().stream(), hudFeatures).flatMap(s -> s);
 		stream = stream.filter(f -> name.equalsIgnoreCase(f.getName()));
 		Feature feature = stream.findFirst().orElse(null);
 		
@@ -43,14 +47,90 @@ public enum CmdUtils
 	public static Setting findSetting(Feature feature, String name)
 		throws CmdError
 	{
-		name = name.replace("_", " ").toLowerCase();
-		Setting setting = feature.getSettings().get(name);
+		String query = name.replace("_", " ").toLowerCase();
 		
-		if(setting == null)
-			throw new CmdError("A setting named \"" + name
-				+ "\" could not be found in " + feature.getName() + ".");
+		// Top-level settings and their aliases keep working as before.
+		for(Setting setting : feature.getSettings().values())
+			if(setting.matchesName(query))
+				return setting;
 		
-		return setting;
+		String[] path = query.split("/");
+		if(path.length > 1)
+			return findSettingByPath(feature, path, name);
+
+		List<SettingMatch> matches = new ArrayList<>();
+		collectSettingMatches(feature.getSettings().values(), "", query,
+			matches);
+
+		if(matches.size() == 1)
+			return matches.get(0).setting();
+
+		if(matches.size() > 1)
+			throw new CmdError("Multiple settings named \"" + name + "\" in "
+				+ feature.getName() + ": " + formatSettingPaths(matches)
+				+ ". Use the full path, e.g. " + matches.get(0).path() + ".");
+
+		throw new CmdError("A setting named \"" + query
+			+ "\" could not be found in " + feature.getName() + ".");
+	}
+
+	private static Setting findSettingByPath(Feature feature, String[] path,
+		String originalName) throws CmdError
+	{
+		Iterable<Setting> level = feature.getSettings().values();
+		Setting current = null;
+
+		for(String segment : path)
+		{
+			List<Setting> matches = new ArrayList<>();
+			for(Setting setting : level)
+				if(setting.matchesName(segment))
+					matches.add(setting);
+
+			if(matches.isEmpty())
+				throw new CmdError("A setting named \"" + originalName
+					+ "\" could not be found in " + feature.getName() + ".");
+
+			if(matches.size() > 1)
+				throw new CmdError("Ambiguous setting path segment \"" + segment
+					+ "\" in " + feature.getName() + ".");
+
+			current = matches.get(0);
+			level = current.getChildren();
+		}
+
+		return current;
+	}
+
+	private static void collectSettingMatches(Iterable<Setting> settings,
+		String parentPath, String query, List<SettingMatch> matches)
+	{
+		for(Setting setting : settings)
+		{
+			String path = parentPath.isEmpty() ? setting.getName()
+				: parentPath + "/" + setting.getName();
+
+			if(setting.matchesName(query))
+				matches.add(new SettingMatch(setting, path));
+
+			collectSettingMatches(setting.getChildren(), path, query, matches);
+		}
+	}
+
+	private static String formatSettingPaths(List<SettingMatch> matches)
+	{
+		StringBuilder result = new StringBuilder();
+		for(SettingMatch match : matches)
+		{
+			if(result.length() > 0)
+				result.append(", ");
+			result.append(match.path());
+		}
+		return result.toString();
+	}
+
+	private record SettingMatch(Setting setting, String path)
+	{
 	}
 	
 	public static Item parseItem(String nameOrId) throws CmdSyntaxError

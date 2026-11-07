@@ -1,0 +1,633 @@
+﻿.\gradlew.bat : WARNING: A restricted method in java.lang.System has been called
+At line:1 char:135
++ ... ions\26.1"; .\gradlew.bat compileJava --init-script ..\..\..\gradle\i ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A rest...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnam
+ed module (file:/C:/Users/ui863/.gradle/wrapper/dists/gradle-9.6.0-bin/3yr5qo1p853jn7m5o1j0u2qkd/gradle-9.6.0/lib/nativ
+e-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+
+> Configure project :
+Fabric Loom: 1.17.17
+
+> Task :compileJava
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ScreenActionsHack.j
+ava:244: 错误: 找不到符号
+			.createAttackPacket(hit.getEntity(), MC.player.isShiftKeyDown()));
+			^
+  符号:   方法 createAttackPacket(Entity,boolean)
+  位置: 类 ServerboundInteractPacket
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ScreenActionsHack.j
+ava:292: 错误: 找不到符号
+		MC.gameMode.handleInventoryMouseClick(
+		           ^
+  符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+  位置: 类型为MultiPlayerGameMode的变量 gameMode
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack.j
+ava:267: 错误: 找不到符号
+			lines.add("Time: " + MC.level.getDayTime() % 24000L);
+			                             ^
+  符号:   方法 getDayTime()
+  位置: 类型为ClientLevel的变量 level
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack.j
+ava:270: 错误: 找不到符号
+			lines.add("Day: " + MC.level.getDayTime() / 24000L);
+			                            ^
+  符号:   方法 getDayTime()
+  位置: 类型为ClientLevel的变量 level
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack.j
+ava:283: 错误: 找不到符号
+			boolean nether = MC.level.dimension().location().getPath()
+			                                     ^
+  符号:   方法 location()
+  位置: 类 ResourceKey<Level>
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack.j
+ava:326: 错误: 找不到符号
+				.translatable(key.location().toLanguageKey("biome")).getString())
+				                 ^
+  符号:   方法 location()
+  位置: 类型为ResourceKey<Biome>的变量 key
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack.j
+ava:327: 错误: 不兼容的类型: Object无法转换为String
+			.orElse("Unknown");
+			       ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:35
+7: 错误: 找不到符号
+			MC.player.getZ(), SoundEvents.EXPERIENCE_ORB_PICKUP.value(),
+			                                                   ^
+  符号:   方法 value()
+  位置: 类型为SoundEvent的变量 EXPERIENCE_ORB_PICKUP
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:237
+: 错误: 找不到符号
+				player.displayClientMessage(Component.literal(
+				      ^
+  符号:   方法 displayClientMessage(MutableComponent,boolean)
+  位置: 类型为LocalPlayer的变量 player
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:499
+: 错误: 找不到符号
+		long t = MC.level.getDayTime() % 24000;
+		                 ^
+  符号:   方法 getDayTime()
+  位置: 类型为ClientLevel的变量 level
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AmbienceHack.java:9
+1: 错误: 找不到符号
+			level.getLevelData().setDayTime(oldDayTime);
+			                    ^
+  符号:   方法 setDayTime(long)
+  位置: 类 ClientLevelData
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AmbienceHack.java:1
+07: 错误: 找不到符号
+			level.getLevelData().setDayTime(value);
+			                    ^
+  符号:   方法 setDayTime(long)
+  位置: 类 ClientLevelData
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AmbienceHack.java:1
+45: 错误: 找不到符号
+		oldDayTime = level.getLevelData().getDayTime();
+		                                 ^
+  符号:   方法 getDayTime()
+  位置: 类 ClientLevelData
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\GAntiExplosionHack.
+java:188: 错误: 找不到符号
+			.createAttackPacket(dummy, MC.player.isShiftKeyDown()));
+			^
+  符号:   方法 createAttackPacket(EndCrystal,boolean)
+  位置: 类 ServerboundInteractPacket
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:238: 错误: 找不到符号
+		long day = MC.level.getLevelData().getDayTime() / 24000L;
+		                                  ^
+  符号:   方法 getDayTime()
+  位置: 类 ClientLevelData
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:239: 错误: 找不到符号
+		long timeOfDay = MC.level.getLevelData().getDayTime() % 24000L;
+		                                        ^
+  符号:   方法 getDayTime()
+  位置: 类 ClientLevelData
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:334: 错误: 无法将类 MultiPlayerGameMode中的方法 interact应用到给定类型;
+		MC.gameMode.interact(MC.player, targetVillager,
+		           ^
+  需要: Player,Entity,EntityHitResult,InteractionHand
+  找到:    LocalPlayer,Villager,InteractionHand
+  原因: 实际参数列表和形式参数列表长度不同
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:428: 错误: 找不到符号
+				MC.gameMode.handleInventoryMouseClick(menu.containerId, 2, 0,
+				           ^
+  符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+  位置: 类型为MultiPlayerGameMode的变量 gameMode
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:461: 错误: 找不到符号
+			if(offer.isDisabled() || offer.getUses() >= offer.getMaxUses())
+			        ^
+  符号:   方法 isDisabled()
+  位置: 类型为MerchantOffer的变量 offer
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:651: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		FARMER("Farmer", VillagerProfession.FARMER),
+		                                   ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:652: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		LIBRARIAN("Librarian", VillagerProfession.LIBRARIAN),
+		                                         ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:653: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		TOOLSMITH("Toolsmith", VillagerProfession.TOOLSMITH),
+		                                         ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:654: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		WEAPONSMITH("Weaponsmith", VillagerProfession.WEAPONSMITH),
+		                                             ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:655: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		ARMORER("Armorer", VillagerProfession.ARMORER),
+		                                     ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:656: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		CARTOGRAPHER("Cartographer", VillagerProfession.CARTOGRAPHER),
+		                                               ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:657: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		CLERIC("Cleric", VillagerProfession.CLERIC),
+		                                   ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:658: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		FLETCHER("Fletcher", VillagerProfession.FLETCHER),
+		                                       ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:659: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		LEATHERWORKER("Leatherworker", VillagerProfession.LEATHERWORKER),
+		                                                 ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:660: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		MASON("Mason", VillagerProfession.MASON),
+		                                 ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:661: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		SHEPHERD("Shepherd", VillagerProfession.SHEPHERD),
+		                                       ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:662: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		BUTCHER("Butcher", VillagerProfession.BUTCHER),
+		                                     ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:663: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		FISHERMAN("Fisherman", VillagerProfession.FISHERMAN),
+		                                         ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:664: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+		NITWIT("Nitwit", VillagerProfession.NITWIT),
+		                                   ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHack.
+java:679: 错误: 对于is(VillagerProfession), 找不到合适的方法
+				|| villager.getVillagerData().profession().is(profession);
+				                                          ^
+    方法 Holder.is(Identifier)不适用
+      (参数不匹配; VillagerProfession无法转换为Identifier)
+    方法 Holder.is(ResourceKey<VillagerProfession>)不适用
+      (参数不匹配; VillagerProfession无法转换为ResourceKey<VillagerProfession>)
+    方法 Holder.is(Predicate<ResourceKey<VillagerProfession>>)不适用
+      (参数不匹配; VillagerProfession无法转换为Predicate<ResourceKey<VillagerProfession>>)
+    方法 Holder.is(TagKey<VillagerProfession>)不适用
+      (参数不匹配; VillagerProfession无法转换为TagKey<VillagerProfession>)
+    方法 Holder.is(Holder<VillagerProfession>)不适用
+      (参数不匹配; VillagerProfession无法转换为Holder<VillagerProfession>)
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoFireworkHack.ja
+va:114: 错误: 找不到符号
+				.sendPlayerUseItemPacket(InteractionHand.MAIN_HAND);
+				^
+  符号:   方法 sendPlayerUseItemPacket(InteractionHand)
+  位置: 接口 IMultiPlayerGameMode
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MaceBreakerProHack.
+java:137: 错误: 找不到符号
+			.createAttackPacket(target, MC.player.isShiftKeyDown()));
+			^
+  符号:   方法 createAttackPacket(Entity,boolean)
+  位置: 类 ServerboundInteractPacket
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MaceAuraHack.java:2
+88: 错误: 找不到符号
+			.createAttackPacket(target, MC.player.isShiftKeyDown()));
+			^
+  符号:   方法 createAttackPacket(Entity,boolean)
+  位置: 类 ServerboundInteractPacket
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ReplenishHack.java:
+136: 错误: 找不到符号
+		return findItem(wanted, slot) != -1;
+		                        ^
+  符号:   变量 slot
+  位置: 类 ReplenishHack
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ElytraGrimAccelerat
+eHack.java:156: 错误: 找不到符号
+			|| packet.getId() != MC.player.getId()
+			         ^
+  符号:   方法 getId()
+  位置: 类型为ClientboundSetEntityMotionPacket的变量 packet
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ElytraGrimAccelerat
+eHack.java:160: 错误: 找不到符号
+		Vec3 incoming = packet.getMovement();
+		                      ^
+  符号:   方法 getMovement()
+  位置: 类型为ClientboundSetEntityMotionPacket的变量 packet
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoRefreshTradeHac
+k.java:187: 错误: 无法将类 MultiPlayerGameMode中的方法 interact应用到给定类型;
+		MC.gameMode.interact(MC.player, target, InteractionHand.MAIN_HAND);
+		           ^
+  需要: Player,Entity,EntityHitResult,InteractionHand
+  找到:    LocalPlayer,Villager,InteractionHand
+  原因: 实际参数列表和形式参数列表长度不同
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\OreVeinESPHack.java
+:172: 错误: x 在 ChunkPos 中是 private 访问控制
+			if(Math.abs(chunkPos.x - center.x) > chunkRadius
+			                    ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\OreVeinESPHack.java
+:172: 错误: x 在 ChunkPos 中是 private 访问控制
+			if(Math.abs(chunkPos.x - center.x) > chunkRadius
+			                               ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\OreVeinESPHack.java
+:173: 错误: z 在 ChunkPos 中是 private 访问控制
+				|| Math.abs(chunkPos.z - center.z) > chunkRadius)
+				                    ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\OreVeinESPHack.java
+:173: 错误: z 在 ChunkPos 中是 private 访问控制
+				|| Math.abs(chunkPos.z - center.z) > chunkRadius)
+				                               ^
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\StashFinderHack.jav
+a:146: 错误: 找不到符号
+			if(!reported.add(chunkPos.toLong()))
+			                         ^
+  符号:   方法 toLong()
+  位置: 类型为ChunkPos的变量 chunkPos
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\InfinityMinerHack.j
+ava:250: 错误: 找不到符号
+			MC.getConnection().disconnect(Component
+			                  ^
+  符号:   方法 disconnect(MutableComponent)
+  位置: 类 ClientPacketListener
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoBrewerHack.java
+:263: 错误: 找不到符号
+		MC.gameMode.handleInventoryMouseClick(menu.containerId, slot, 0,
+		           ^
+  符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+  位置: 类型为MultiPlayerGameMode的变量 gameMode
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoBrewerHack.java
+:274: 错误: 找不到符号
+		MC.gameMode.handleInventoryMouseClick(menu.containerId, from, 0,
+		           ^
+  符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+  位置: 类型为MultiPlayerGameMode的变量 gameMode
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoBrewerHack.java
+:276: 错误: 找不到符号
+		MC.gameMode.handleInventoryMouseClick(menu.containerId, to, 1,
+		           ^
+  符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+  位置: 类型为MultiPlayerGameMode的变量 gameMode
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoBrewerHack.java
+:281: 错误: 找不到符号
+			MC.gameMode.handleInventoryMouseClick(menu.containerId, from, 0,
+			           ^
+  符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+  位置: 类型为MultiPlayerGameMode的变量 gameMode
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoShearerHack.jav
+a:114: 错误: 无法将类 MultiPlayerGameMode中的方法 interact应用到给定类型;
+			MC.gameMode.interact(MC.player, target, hand);
+			           ^
+  需要: Player,Entity,EntityHitResult,InteractionHand
+  找到:    LocalPlayer,Sheep,InteractionHand
+  原因: 实际参数列表和形式参数列表长度不同
+C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoNametagHack.jav
+a:156: 错误: 无法将类 MultiPlayerGameMode中的方法 interact应用到给定类型;
+			MC.gameMode.interact(MC.player, target, hand);
+			           ^
+  需要: Player,Entity,EntityHitResult,InteractionHand
+  找到:    LocalPlayer,LivingEntity,InteractionHand
+  原因: 实际参数列表和形式参数列表长度不同
+注: 某些输入文件使用或覆盖了已过时的 API。
+注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+注: C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\settings\CheckboxSetti
+ng.java使用了未经检查或不安全的操作。
+注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+注: 某些消息已经过简化; 请使用 -Xdiags:verbose 重新编译以获得完整输出
+53 个错误
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/ui863/Documents/trae_projects/VAP/fabric/versions/26.1/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:334: 错误: 无法将类 MultiPlayerGameMode中的方法 interact应用到给定类型;
+  		MC.gameMode.interact(MC.player, targetVillager,
+  		           ^
+    需要: Player,Entity,EntityHitResult,InteractionHand
+    找到:    LocalPlayer,Villager,InteractionHand
+    原因: 实际参数列表和形式参数列表长度不同
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoRefreshTradeH
+ack.java:187: 错误: 无法将类 MultiPlayerGameMode中的方法 interact应用到给定类型;
+  		MC.gameMode.interact(MC.player, target, InteractionHand.MAIN_HAND);
+  		           ^
+    需要: Player,Entity,EntityHitResult,InteractionHand
+    找到:    LocalPlayer,Villager,InteractionHand
+    原因: 实际参数列表和形式参数列表长度不同
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoShearerHack.j
+ava:114: 错误: 无法将类 MultiPlayerGameMode中的方法 interact应用到给定类型;
+  			MC.gameMode.interact(MC.player, target, hand);
+  			           ^
+    需要: Player,Entity,EntityHitResult,InteractionHand
+    找到:    LocalPlayer,Sheep,InteractionHand
+    原因: 实际参数列表和形式参数列表长度不同
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoNametagHack.j
+ava:156: 错误: 无法将类 MultiPlayerGameMode中的方法 interact应用到给定类型;
+  			MC.gameMode.interact(MC.player, target, hand);
+  			           ^
+    需要: Player,Entity,EntityHitResult,InteractionHand
+    找到:    LocalPlayer,LivingEntity,InteractionHand
+    原因: 实际参数列表和形式参数列表长度不同
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:679: 错误: 对于is(VillagerProfession), 找不到合适的方法
+  				|| villager.getVillagerData().profession().is(profession);
+  				                                          ^
+      方法 Holder.is(Identifier)不适用
+        (参数不匹配; VillagerProfession无法转换为Identifier)
+      方法 Holder.is(ResourceKey<VillagerProfession>)不适用
+        (参数不匹配; VillagerProfession无法转换为ResourceKey<VillagerProfession>)
+      方法 Holder.is(Predicate<ResourceKey<VillagerProfession>>)不适用
+        (参数不匹配; VillagerProfession无法转换为Predicate<ResourceKey<VillagerProfession>>)
+      方法 Holder.is(TagKey<VillagerProfession>)不适用
+        (参数不匹配; VillagerProfession无法转换为TagKey<VillagerProfession>)
+      方法 Holder.is(Holder<VillagerProfession>)不适用
+        (参数不匹配; VillagerProfession无法转换为Holder<VillagerProfession>)
+  注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack
+.java:327: 错误: 不兼容的类型: Object无法转换为String
+  			.orElse("Unknown");
+  			       ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:651: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		FARMER("Farmer", VillagerProfession.FARMER),
+  		                                   ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:652: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		LIBRARIAN("Librarian", VillagerProfession.LIBRARIAN),
+  		                                         ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:653: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		TOOLSMITH("Toolsmith", VillagerProfession.TOOLSMITH),
+  		                                         ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:654: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		WEAPONSMITH("Weaponsmith", VillagerProfession.WEAPONSMITH),
+  		                                             ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:655: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		ARMORER("Armorer", VillagerProfession.ARMORER),
+  		                                     ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:656: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		CARTOGRAPHER("Cartographer", VillagerProfession.CARTOGRAPHER),
+  		                                               ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:657: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		CLERIC("Cleric", VillagerProfession.CLERIC),
+  		                                   ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:658: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		FLETCHER("Fletcher", VillagerProfession.FLETCHER),
+  		                                       ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:659: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		LEATHERWORKER("Leatherworker", VillagerProfession.LEATHERWORKER),
+  		                                                 ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:660: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		MASON("Mason", VillagerProfession.MASON),
+  		                                 ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:661: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		SHEPHERD("Shepherd", VillagerProfession.SHEPHERD),
+  		                                       ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:662: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		BUTCHER("Butcher", VillagerProfession.BUTCHER),
+  		                                     ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:663: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		FISHERMAN("Fisherman", VillagerProfession.FISHERMAN),
+  		                                         ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:664: 错误: 不兼容的类型: ResourceKey<VillagerProfession>无法转换为VillagerProfession
+  		NITWIT("Nitwit", VillagerProfession.NITWIT),
+  		                                   ^
+  注: C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\settings\CheckboxSet
+ting.java使用了未经检查或不安全的操作。
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ReplenishHack.jav
+a:136: 错误: 找不到符号
+  		return findItem(wanted, slot) != -1;
+  		                        ^
+    符号:   变量 slot
+    位置: 类 ReplenishHack
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\OreVeinESPHack.ja
+va:172: 错误: x 在 ChunkPos 中是 private 访问控制
+  			if(Math.abs(chunkPos.x - center.x) > chunkRadius
+  			                    ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\OreVeinESPHack.ja
+va:172: 错误: x 在 ChunkPos 中是 private 访问控制
+  			if(Math.abs(chunkPos.x - center.x) > chunkRadius
+  			                               ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\OreVeinESPHack.ja
+va:173: 错误: z 在 ChunkPos 中是 private 访问控制
+  				|| Math.abs(chunkPos.z - center.z) > chunkRadius)
+  				                    ^
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\OreVeinESPHack.ja
+va:173: 错误: z 在 ChunkPos 中是 private 访问控制
+  				|| Math.abs(chunkPos.z - center.z) > chunkRadius)
+  				                               ^
+  注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+  注: 某些输入文件使用或覆盖了已过时的 API。
+  注: 某些消息已经过简化; 请使用 -Xdiags:verbose 重新编译以获得完整输出
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ScreenActionsHack
+.java:244: 错误: 找不到符号
+  			.createAttackPacket(hit.getEntity(), MC.player.isShiftKeyDown()));
+  			^
+    符号:   方法 createAttackPacket(Entity,boolean)
+    位置: 类 ServerboundInteractPacket
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ScreenActionsHack
+.java:292: 错误: 找不到符号
+  		MC.gameMode.handleInventoryMouseClick(
+  		           ^
+    符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+    位置: 类型为MultiPlayerGameMode的变量 gameMode
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack
+.java:267: 错误: 找不到符号
+  			lines.add("Time: " + MC.level.getDayTime() % 24000L);
+  			                             ^
+    符号:   方法 getDayTime()
+    位置: 类型为ClientLevel的变量 level
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack
+.java:270: 错误: 找不到符号
+  			lines.add("Day: " + MC.level.getDayTime() / 24000L);
+  			                            ^
+    符号:   方法 getDayTime()
+    位置: 类型为ClientLevel的变量 level
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack
+.java:283: 错误: 找不到符号
+  			boolean nether = MC.level.dimension().location().getPath()
+  			                                     ^
+    符号:   方法 location()
+    位置: 类 ResourceKey<Level>
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgWorldStatsHack
+.java:326: 错误: 找不到符号
+  				.translatable(key.location().toLanguageKey("biome")).getString())
+  				                 ^
+    符号:   方法 location()
+    位置: 类型为ResourceKey<Biome>的变量 key
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ImgTipsHack.java:
+357: 错误: 找不到符号
+  			MC.player.getZ(), SoundEvents.EXPERIENCE_ORB_PICKUP.value(),
+  			                                                   ^
+    符号:   方法 value()
+    位置: 类型为SoundEvent的变量 EXPERIENCE_ORB_PICKUP
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:2
+37: 错误: 找不到符号
+  				player.displayClientMessage(Component.literal(
+  				      ^
+    符号:   方法 displayClientMessage(MutableComponent,boolean)
+    位置: 类型为LocalPlayer的变量 player
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MobHudHack.java:4
+99: 错误: 找不到符号
+  		long t = MC.level.getDayTime() % 24000;
+  		                 ^
+    符号:   方法 getDayTime()
+    位置: 类型为ClientLevel的变量 level
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AmbienceHack.java
+:91: 错误: 找不到符号
+  			level.getLevelData().setDayTime(oldDayTime);
+  			                    ^
+    符号:   方法 setDayTime(long)
+    位置: 类 ClientLevelData
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AmbienceHack.java
+:107: 错误: 找不到符号
+  			level.getLevelData().setDayTime(value);
+  			                    ^
+    符号:   方法 setDayTime(long)
+    位置: 类 ClientLevelData
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AmbienceHack.java
+:145: 错误: 找不到符号
+  		oldDayTime = level.getLevelData().getDayTime();
+  		                                 ^
+    符号:   方法 getDayTime()
+    位置: 类 ClientLevelData
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\GAntiExplosionHac
+k.java:188: 错误: 找不到符号
+  			.createAttackPacket(dummy, MC.player.isShiftKeyDown()));
+  			^
+    符号:   方法 createAttackPacket(EndCrystal,boolean)
+    位置: 类 ServerboundInteractPacket
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:238: 错误: 找不到符号
+  		long day = MC.level.getLevelData().getDayTime() / 24000L;
+  		                                  ^
+    符号:   方法 getDayTime()
+    位置: 类 ClientLevelData
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:239: 错误: 找不到符号
+  		long timeOfDay = MC.level.getLevelData().getDayTime() % 24000L;
+  		                                        ^
+    符号:   方法 getDayTime()
+    位置: 类 ClientLevelData
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:428: 错误: 找不到符号
+  				MC.gameMode.handleInventoryMouseClick(menu.containerId, 2, 0,
+  				           ^
+    符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+    位置: 类型为MultiPlayerGameMode的变量 gameMode
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\VillagerTraderHac
+k.java:461: 错误: 找不到符号
+  			if(offer.isDisabled() || offer.getUses() >= offer.getMaxUses())
+  			        ^
+    符号:   方法 isDisabled()
+    位置: 类型为MerchantOffer的变量 offer
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoFireworkHack.
+java:114: 错误: 找不到符号
+  				.sendPlayerUseItemPacket(InteractionHand.MAIN_HAND);
+  				^
+    符号:   方法 sendPlayerUseItemPacket(InteractionHand)
+    位置: 接口 IMultiPlayerGameMode
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MaceBreakerProHac
+k.java:137: 错误: 找不到符号
+  			.createAttackPacket(target, MC.player.isShiftKeyDown()));
+  			^
+    符号:   方法 createAttackPacket(Entity,boolean)
+    位置: 类 ServerboundInteractPacket
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\MaceAuraHack.java
+:288: 错误: 找不到符号
+1 actionable task: 1 executed
+  			.createAttackPacket(target, MC.player.isShiftKeyDown()));
+  			^
+    符号:   方法 createAttackPacket(Entity,boolean)
+    位置: 类 ServerboundInteractPacket
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ElytraGrimAcceler
+ateHack.java:156: 错误: 找不到符号
+  			|| packet.getId() != MC.player.getId()
+  			         ^
+    符号:   方法 getId()
+    位置: 类型为ClientboundSetEntityMotionPacket的变量 packet
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\ElytraGrimAcceler
+ateHack.java:160: 错误: 找不到符号
+  		Vec3 incoming = packet.getMovement();
+  		                      ^
+    符号:   方法 getMovement()
+    位置: 类型为ClientboundSetEntityMotionPacket的变量 packet
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\StashFinderHack.j
+ava:146: 错误: 找不到符号
+  			if(!reported.add(chunkPos.toLong()))
+  			                         ^
+    符号:   方法 toLong()
+    位置: 类型为ChunkPos的变量 chunkPos
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\InfinityMinerHack
+.java:250: 错误: 找不到符号
+  			MC.getConnection().disconnect(Component
+  			                  ^
+    符号:   方法 disconnect(MutableComponent)
+    位置: 类 ClientPacketListener
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoBrewerHack.ja
+va:263: 错误: 找不到符号
+  		MC.gameMode.handleInventoryMouseClick(menu.containerId, slot, 0,
+  		           ^
+    符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+    位置: 类型为MultiPlayerGameMode的变量 gameMode
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoBrewerHack.ja
+va:274: 错误: 找不到符号
+  		MC.gameMode.handleInventoryMouseClick(menu.containerId, from, 0,
+  		           ^
+    符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+    位置: 类型为MultiPlayerGameMode的变量 gameMode
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoBrewerHack.ja
+va:276: 错误: 找不到符号
+  		MC.gameMode.handleInventoryMouseClick(menu.containerId, to, 1,
+  		           ^
+    符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+    位置: 类型为MultiPlayerGameMode的变量 gameMode
+  C:\Users\ui863\Documents\trae_projects\VAP\fabric\versions\26.1\src\main\java\net\wurstclient\hacks\AutoBrewerHack.ja
+va:281: 错误: 找不到符号
+  			MC.gameMode.handleInventoryMouseClick(menu.containerId, from, 0,
+  			           ^
+    符号:   方法 handleInventoryMouseClick(int,int,int,ContainerInput,LocalPlayer)
+    位置: 类型为MultiPlayerGameMode的变量 gameMode
+  53 个错误
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 11s

@@ -1,0 +1,48 @@
+// Resolve NeoForged artifacts from a local mirror built from the Gradle module
+// cache. maven.neoforged.net is unreachable on this machine, so the default
+// repositories would stall configuration for many minutes per project.
+def localRepo = new File(
+    'C:/Users/ui863/Documents/trae_projects/VAP/_recon/port/neoforge-maven')
+        .toURI().toString()
+
+def isNeoForged = { repo ->
+    try {
+        return repo.hasProperty('url') &&
+            repo.url.toString().contains('maven.neoforged.net')
+    } catch (Throwable ignored) {
+        return false
+    }
+}
+
+def prependLocal = { handler ->
+    def existing = new ArrayList(handler)
+    handler.clear()
+    handler.maven { repo ->
+        repo.name = 'LocalNeoForged'
+        repo.url = localRepo
+    }
+    existing.each { repo ->
+        if (!isNeoForged(repo))
+            handler.add(repo)
+    }
+}
+
+gradle.settingsEvaluated { settings ->
+    prependLocal(settings.pluginManagement.repositories)
+    // Buildscript repositories are declared later; hook them per project.
+    settings.gradle.beforeProject { project ->
+        prependLocal(project.buildscript.repositories)
+        prependLocal(project.repositories)
+        // The -base classifier carries net.minecraftforge.gdi.BaseDSLElement,
+        // which NeoGradle's DSL decorator needs at plugin-apply time.
+        project.buildscript.dependencies.add('classpath',
+            'net.neoforged:groovydslimprover:1.0.16:base')
+        // NeoGradle adds its own repositories during plugin application; run
+        // again after evaluation so the unreachable NeoForged repo is gone
+        // before the compile classpath is resolved.
+        project.afterEvaluate {
+            prependLocal(project.buildscript.repositories)
+            prependLocal(project.repositories)
+        }
+    }
+}
