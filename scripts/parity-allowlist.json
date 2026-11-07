@@ -1,0 +1,104 @@
+{
+  "baseline": "fabric",
+  "note": "v1.5.1 全版本行为对齐白名单。基线是 fabric 1.20.1；除本文件声明的版本能力外，66 个 v1.5.1 工程的注册表必须与基线逐名一致。新增差异必须先在这里登记并写明原因。",
+  "versions": {
+    "1.20.5": {
+      "hacks": ["autoVaultHack", "maceAuraHack", "maceBreakerProHack", "spearExploitHack", "spearKillHack"],
+      "why": "1.20.5 加入重锤与长矛类物品"
+    },
+    "1.20.6": {
+      "hacks": ["autoVaultHack", "maceAuraHack", "maceBreakerProHack", "spearExploitHack", "spearKillHack"],
+      "why": "同 1.20.5"
+    },
+    "1.21": {
+      "hacks": ["autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "why": "1.21 起可读取重锤伤害附魔"
+    },
+    "1.21.1": {
+      "hacks": ["autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "why": "同 1.21"
+    },
+    "1.21.2": {
+      "hacks": ["autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "why": "同 1.21"
+    },
+    "1.21.3": {
+      "hacks": ["autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "why": "同 1.21"
+    },
+    "1.21.4": {
+      "hacks": ["autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "why": "同 1.21"
+    },
+    "1.21.5": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "why": "1.21.5 起属性交换可用"
+    },
+    "1.21.6": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "1.21.6 起 GUI 分层重写：WurstOptions 需要 GuiGraphicsExtractor / RenderPipelines，HUD 需要 NanoVgBlitter"
+    },
+    "1.21.7": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "同 1.21.6"
+    },
+    "1.21.8": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "同 1.21.6"
+    },
+    "1.21.9": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "同 1.21.6"
+    },
+    "1.21.10": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "同 1.21.6"
+    },
+    "1.21.11": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "betterTabHack", "betterTooltipsHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "noStatusEffectsHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "在 1.21.6+ 能力之上，1.21.11 三端统一新增 BetterTab / BetterTooltips / NoStatusEffects（走 Gui/ItemStack mixin，三端行为一致）"
+    },
+    "26.1": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "同 1.21.6"
+    },
+    "26.1.1": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "同 1.21.6"
+    },
+    "26.1.2": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "同 1.21.6"
+    },
+    "26.2": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "同 1.21.6"
+    },
+    "26.3": {
+      "hacks": ["attributeSwapHack", "autoVaultHack", "maceAuraHack", "maceBreakerProHack", "maceDmgHack", "spearExploitHack", "spearKillHack"],
+      "otfs": ["wurstOptionsOtf"],
+      "nanovg": ["NanoVgBlitter"],
+      "why": "同 1.21.6"
+    }
+  }
+}

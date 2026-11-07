@@ -152,14 +152,10 @@ public final class SurroundHack extends Hack implements UpdateListener
 				break;
 
 			SupportMode mode = support.getSelected();
-			boolean placed = false;
-
-			if(mode == SupportMode.PLACE)
-				placed = BlockPlacer.place(pos, false, false);
-			else if(mode == SupportMode.AIRPLACE)
-				placed = BlockPlacer.place(pos, true, false);
-			else
-				placed = BlockPlacer.place(pos, false, false);
+			boolean airPlace = mode == SupportMode.AIRPLACE;
+			boolean placed = rotate.isChecked()
+				? BlockPlacer.place(pos, airPlace, false, rotationQueue)
+				: BlockPlacer.place(pos, airPlace, false, null, false);
 
 			if(placed)
 			{

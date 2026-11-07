@@ -45,7 +45,7 @@ public enum RenderUtils
 {
 	;
 	
-	private static MultiBufferSource.BufferSource getVCP()
+	public static MultiBufferSource.BufferSource getVCP()
 	{
 		return WurstClient.MC.renderBuffers().bufferSource();
 	}
