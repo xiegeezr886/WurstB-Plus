@@ -27,14 +27,13 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 详细文件索引见 [PROJECT_INDEX.md](../PROJECT_INDEX.md)，版本变更见 [CHANGELOG.md](../CHANGELOG.md)，移植计划与逐版本状态见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)。
 
 > **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
-> 其余 **66 个工程的当前源码均为 v1.5.1 形态**，但 v1.5.1 Release 目前只发布了
-> **Fabric 1.20.1** 一个产物；v1.6 子系统尚未移植，见「v1.6 新增子系统」。
+> 其余 **66 个工程的当前源码均为 v1.5.1 形态**，v1.5.1 Release 已覆盖它们的全部产物；
+> v1.6 子系统尚未移植，见「v1.6 新增子系统」。
 >
-> **v1.5.1 Release（Latest，2026-10-26）** 基于提交 `4686900`，资产为
-> `WurstB+.Plus-1.5.1-Fabric-1.20.1.jar` 与 GitHub 自动生成的源码包（zip / tar.gz）。
-> 其中 jar 已于 2026-10-27T12:30Z 再次重传，当前构建同时包含 Scaffold 搭高/双击疾跑、
-> Android NanoVG、NVGColor 崩溃与 InvWalk accessor 修复（SHA256 `8f3ded5c…a0a8e1`）；
-> Release 记录的提交仍为 `4686900`，tag 未移动。
+> **v1.5.1 Release（Latest，2026-11-07 全量重传）**：67 个 jar 资产
+> （Fabric 23 / Forge 21 / NeoForge 23），均由当前 v1.5.1 源码重新编译；其中
+> Forge 1.20.1 由 `VAP-v1.5.0-1.20.1` 工程单独构建（修复 accessor 登记）。根目录
+> Forge 1.20.1（v1.6.0）不在此 Release，见 v1.6.0 预发布。tag 仍为 `v1.5.1`。
 
 ## 渲染兼容性（X-Ray / Vulkan）
 
