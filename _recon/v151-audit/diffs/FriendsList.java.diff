@@ -1,0 +1,35 @@
+diff --git "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\FriendsList.java" "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\FriendsList.java"
+index 07922966..e95fe86f 100644
+--- "a/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\reference\\upstream-sources\\Wurst7_1_20_1_src\\Wurst7-1.20.1\\src\\main\\java\\net\\wurstclient\\FriendsList.java"
++++ "b/C:\\Users\\ui863\\Documents\\trae_projects\\VAP\\fabric\\src\\main\\java\\net\\wurstclient\\FriendsList.java"
+@@ -15,7 +15,6 @@ import java.util.TreeSet;
+ 
+ import com.google.gson.JsonArray;
+-
+-import net.minecraft.entity.Entity;
+-import net.minecraft.entity.player.PlayerEntity;
++import net.minecraft.world.entity.Entity;
++import net.minecraft.world.entity.player.Player;
+ import net.wurstclient.commands.FriendsCmd;
+ import net.wurstclient.settings.CheckboxSetting;
+@@ -53,5 +52,5 @@ public class FriendsList
+ 	public void middleClick(Entity entity)
+ 	{
+-		if(entity == null || !(entity instanceof PlayerEntity))
++		if(entity == null || !(entity instanceof Player))
+ 			return;
+ 		
+@@ -61,5 +60,5 @@ public class FriendsList
+ 			return;
+ 		
+-		String name = entity.getEntityName();
++		String name = entity.getScoreboardName();
+ 		
+ 		if(contains(name))
+@@ -76,5 +75,5 @@ public class FriendsList
+ 	public boolean isFriend(Entity entity)
+ 	{
+-		return entity != null && contains(entity.getEntityName());
++		return entity != null && contains(entity.getScoreboardName());
+ 	}
+ 	

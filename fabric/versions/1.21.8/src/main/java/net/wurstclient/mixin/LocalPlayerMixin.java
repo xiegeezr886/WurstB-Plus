@@ -130,7 +130,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	private boolean wrapTickMovementItemUse(LocalPlayer instance,
 		Operation<Boolean> original)
 	{
-		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled())
+		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
+			&& WurstClient.INSTANCE.getHax().noSlowdownHack.shouldBypassUsingItem())
 			return false;
 		
 		return original.call(instance);
@@ -147,7 +148,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	private boolean wrapModifyInputItemUse(LocalPlayer instance,
 		Operation<Boolean> original)
 	{
-		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled())
+		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
+			&& WurstClient.INSTANCE.getHax().noSlowdownHack.shouldBypassUsingItem())
 			return false;
 		
 		return original.call(instance);
@@ -163,7 +165,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	private boolean wrapCanStartSprintingItemUse(LocalPlayer instance,
 		Operation<Boolean> original)
 	{
-		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled())
+		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
+			&& WurstClient.INSTANCE.getHax().noSlowdownHack.shouldBypassUsingItem())
 			return false;
 		
 		return original.call(instance);
@@ -326,7 +329,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 			&& hax.fullbrightHack.isNightVisionActive())
 			return true;
 		
-		if(effect == MobEffects.LEVITATION && hax.noLevitationHack.isEnabled())
+		if(hax.noLevitationHack.shouldBlock(effect.value()))
 			return false;
 		
 		if(effect == MobEffects.BLINDNESS && hax.antiBlindHack.isEnabled())
@@ -343,7 +346,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
 		
-		if(effect == MobEffects.LEVITATION && hax.noLevitationHack.isEnabled())
+		if(hax.noLevitationHack.shouldBlock(effect.value()))
 			return null;
 		
 		return super.getEffect(effect);

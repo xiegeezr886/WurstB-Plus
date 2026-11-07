@@ -1,0 +1,80 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "net.neoforged",
+    "module": "JarJarFileSystems",
+    "version": "0.4.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.4.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "JarJarFileSystems-0.4.1.jar",
+          "url": "JarJarFileSystems-0.4.1.jar",
+          "size": 31807,
+          "sha512": "e9e64c594a147eda0b9da48e3daf9c0d450ba70108dde9e7c5a1de506d68e57a6195ffa0abd849f2c33cb1ec5c9ba88789d9b0cd7937f31cd2f4a8ce5b433f61",
+          "sha256": "d9f88af1223ff23395c64ff0b0fe367563288a37bd38709bf667b6b39944bfab",
+          "sha1": "78f59f89defcd032ed788b151ca6a0d40ace796a",
+          "md5": "8d75021e5aeb04652b4b9ae3df500b9e"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "JarJarFileSystems-0.4.1.jar",
+          "url": "JarJarFileSystems-0.4.1.jar",
+          "size": 31807,
+          "sha512": "e9e64c594a147eda0b9da48e3daf9c0d450ba70108dde9e7c5a1de506d68e57a6195ffa0abd849f2c33cb1ec5c9ba88789d9b0cd7937f31cd2f4a8ce5b433f61",
+          "sha256": "d9f88af1223ff23395c64ff0b0fe367563288a37bd38709bf667b6b39944bfab",
+          "sha1": "78f59f89defcd032ed788b151ca6a0d40ace796a",
+          "md5": "8d75021e5aeb04652b4b9ae3df500b9e"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "JarJarFileSystems-0.4.1-sources.jar",
+          "url": "JarJarFileSystems-0.4.1-sources.jar",
+          "size": 13307,
+          "sha512": "5e852c780773cbbce3aed4204d1eb13da703b7eac516daf597dd8451e3f72d7f046a6c86b348712cab5a3e474f76b55418ace69b672318aa84d8b61d9363e65f",
+          "sha256": "e1d1a65ffa6d8506ed54363d66aeba525022ee45ee3651f57f5ef6d840ccaf69",
+          "sha1": "0ce057f2aab66bd486c357f6c2040d2ae2e76e6a",
+          "md5": "a717c8578076fe0859f47d8f41503318"
+        }
+      ]
+    }
+  ]
+}
