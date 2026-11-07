@@ -1,0 +1,147 @@
+project=fabric/versions/1.21.3 mc=1.21.3 family=legacy copied=99 deleted=46 skipped=2
+
+M src/main/java/net/wurstclient/Category.java
+M src/main/java/net/wurstclient/WurstClient.java
+M src/main/java/net/wurstclient/clickgui2/ClickGui.java
+M src/main/java/net/wurstclient/clickgui2/ClickGuiIcons.java
+M src/main/java/net/wurstclient/clickgui2/ClickGuiScreen.java
+M src/main/java/net/wurstclient/clickgui2/ComboBoxPopup.java
+M src/main/java/net/wurstclient/clickgui2/FeatureMenuSupport.java
+M src/main/java/net/wurstclient/clickgui2/FlatRenderer.java
+M src/main/java/net/wurstclient/clickgui2/FlatUiRenderer.java
+M src/main/java/net/wurstclient/clickgui2/GuiIcon.java CONFLICT
+M src/main/java/net/wurstclient/clickgui2/NavigatorScreen.java
+M src/main/java/net/wurstclient/clickgui2/NavigatorSettingsPanel.java
+M src/main/java/net/wurstclient/clickgui2/RoundedRectRenderer.java CONFLICT
+M src/main/java/net/wurstclient/clickgui2/Window.java
+A src/main/java/net/wurstclient/clickgui2/animation/SmoothScroll.java
+M src/main/java/net/wurstclient/clickgui2/components/AbstractListEditButton.java
+M src/main/java/net/wurstclient/clickgui2/components/BlockComponent.java
+M src/main/java/net/wurstclient/clickgui2/components/CheckboxComponent.java
+M src/main/java/net/wurstclient/clickgui2/components/ColorComponent.java
+M src/main/java/net/wurstclient/clickgui2/components/ComboBoxComponent.java
+M src/main/java/net/wurstclient/clickgui2/components/FileComponent.java
+M src/main/java/net/wurstclient/clickgui2/components/RadarComponent.java
+M src/main/java/net/wurstclient/clickgui2/components/SliderComponent.java
+M src/main/java/net/wurstclient/clickgui2/components/TextFieldEditButton.java
+M src/main/java/net/wurstclient/clickgui2/screens/AddBookOfferScreen.java CONFLICT
+M src/main/java/net/wurstclient/clickgui2/screens/EditBlockListScreen.java
+M src/main/java/net/wurstclient/clickgui2/screens/EditBlockScreen.java CONFLICT
+M src/main/java/net/wurstclient/clickgui2/screens/EditBookOfferScreen.java CONFLICT
+M src/main/java/net/wurstclient/clickgui2/screens/EditBookOffersScreen.java CONFLICT
+M src/main/java/net/wurstclient/clickgui2/screens/EditColorScreen.java CONFLICT
+M src/main/java/net/wurstclient/clickgui2/screens/EditItemListScreen.java
+M src/main/java/net/wurstclient/clickgui2/screens/EditSliderScreen.java CONFLICT
+M src/main/java/net/wurstclient/clickgui2/screens/EditTextFieldScreen.java CONFLICT
+M src/main/java/net/wurstclient/clickgui2/screens/SelectFileScreen.java CONFLICT
+M src/main/java/net/wurstclient/clickgui2/window/Window.java CONFLICT
+A src/main/java/net/wurstclient/events/MoveInputListener.java
+A src/main/java/net/wurstclient/gui/ButtonStyleRenderer.java
+A src/main/java/net/wurstclient/gui/CustomRenderedButton.java
+A src/main/java/net/wurstclient/gui/MainMenuBackground.java
+M src/main/java/net/wurstclient/gui/title/WurstTitleButton.java CONFLICT
+M src/main/java/net/wurstclient/gui/title/WurstTitleMenu.java
+M src/main/java/net/wurstclient/hack/Hack.java CONFLICT
+M src/main/java/net/wurstclient/hack/HackList.java
+A src/main/java/net/wurstclient/hacks/AbstractTpAnchorAuraHack.java
+D src/main/java/net/wurstclient/hacks/AppleSkinHack.java
+D src/main/java/net/wurstclient/hacks/ArmorStatusHack.java
+D src/main/java/net/wurstclient/hacks/BlockInfoHack.java
+D src/main/java/net/wurstclient/hacks/BossHealthHack.java
+D src/main/java/net/wurstclient/hacks/CalendarHack.java
+D src/main/java/net/wurstclient/hacks/ComboCounterHack.java
+D src/main/java/net/wurstclient/hacks/CompassHack.java
+D src/main/java/net/wurstclient/hacks/CpsDisplayHack.java
+D src/main/java/net/wurstclient/hacks/DayCounterHack.java
+A src/main/java/net/wurstclient/hacks/GAntiLagHack.java
+A src/main/java/net/wurstclient/hacks/GLightTpAnchorAuraHack.java
+A src/main/java/net/wurstclient/hacks/GSuperVClipHack.java
+A src/main/java/net/wurstclient/hacks/GTpAuraHack.java
+A src/main/java/net/wurstclient/hacks/GTpbotHack.java
+D src/main/java/net/wurstclient/hacks/GameModeDisplayHack.java
+A src/main/java/net/wurstclient/hacks/GcoreGTrapHack.java
+A src/main/java/net/wurstclient/hacks/GcoreTpCrystalAuraHack.java
+A src/main/java/net/wurstclient/hacks/GcoreTpDiagnosticHack.java
+A src/main/java/net/wurstclient/hacks/GcoreWebAuraHack.java
+D src/main/java/net/wurstclient/hacks/HorseStatsHack.java
+D src/main/java/net/wurstclient/hacks/ImageDisplayHack.java
+D src/main/java/net/wurstclient/hacks/InventoryDisplayHack.java
+D src/main/java/net/wurstclient/hacks/ItemInfoHack.java
+D src/main/java/net/wurstclient/hacks/JumpResetIndicatorHack.java
+D src/main/java/net/wurstclient/hacks/KeystrokesHack.java
+M src/main/java/net/wurstclient/hacks/KillauraHack.java CONFLICT
+D src/main/java/net/wurstclient/hacks/MemoryUsageHack.java
+D src/main/java/net/wurstclient/hacks/ModernHotbarHack.java
+D src/main/java/net/wurstclient/hacks/MouseStrokesHack.java
+M src/main/java/net/wurstclient/hacks/MultiAuraHack.java CONFLICT
+D src/main/java/net/wurstclient/hacks/MusicInfoHack.java
+D src/main/java/net/wurstclient/hacks/NameDisplayHack.java
+D src/main/java/net/wurstclient/hacks/PackDisplayHack.java
+D src/main/java/net/wurstclient/hacks/PitchDisplayHack.java
+D src/main/java/net/wurstclient/hacks/PlayTimeDisplayHack.java
+D src/main/java/net/wurstclient/hacks/PlayerCounterHack.java
+D src/main/java/net/wurstclient/hacks/PlayerDisplayHack.java
+D src/main/java/net/wurstclient/hacks/PotionCounterHack.java
+D src/main/java/net/wurstclient/hacks/PotionStatusHack.java
+D src/main/java/net/wurstclient/hacks/RearviewHack.java
+M src/main/java/net/wurstclient/hacks/ScaffoldWalkHack.java CONFLICT
+D src/main/java/net/wurstclient/hacks/ScoreboardHack.java
+D src/main/java/net/wurstclient/hacks/ServerIpDisplayHack.java
+D src/main/java/net/wurstclient/hacks/SessionInfoHack.java
+D src/main/java/net/wurstclient/hacks/Skin3DHack.java
+D src/main/java/net/wurstclient/hacks/SoundSubtitlesHack.java
+D src/main/java/net/wurstclient/hacks/SpeedometerHack.java
+D src/main/java/net/wurstclient/hacks/SprintStatusHack.java
+D src/main/java/net/wurstclient/hacks/StopwatchHack.java
+A src/main/java/net/wurstclient/hacks/TPServerEquivalentHack.java
+D src/main/java/net/wurstclient/hacks/TabEditorHack.java
+D src/main/java/net/wurstclient/hacks/TargetInfoHack.java
+D src/main/java/net/wurstclient/hacks/TntTimerHack.java
+A src/main/java/net/wurstclient/hacks/TpAnchorAuraHack.java
+D src/main/java/net/wurstclient/hacks/UHCOverlayHack.java
+D src/main/java/net/wurstclient/hacks/ViaVersionHack.java
+D src/main/java/net/wurstclient/hacks/WaypointHack.java
+D src/main/java/net/wurstclient/hacks/WeatherDisplayHack.java
+D src/main/java/net/wurstclient/hacks/WebBrowserHack.java
+D src/main/java/net/wurstclient/hacks/YawDisplayHack.java
+A src/main/java/net/wurstclient/hacks/aura/OpenAura.java
+A src/main/java/net/wurstclient/hacks/scaffold/HeypixelScaffoldMode.java
+A src/main/java/net/wurstclient/hacks/scaffold/HypixelScaffoldMode.java
+A src/main/java/net/wurstclient/hacks/scaffold/PlayerSimulation.java
+A src/main/java/net/wurstclient/hacks/scaffold/ScaffoldMode.java
+A src/main/java/net/wurstclient/hacks/scaffold/ScaffoldRotationHandler.java
+A src/main/java/net/wurstclient/hacks/scaffold/ScaffoldRotationModel.java
+A src/main/java/net/wurstclient/hacks/scaffold/ScaffoldUtils.java
+A src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyFallingPlayer.java
+A src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyRaycast.java
+A src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyRotation.java
+A src/main/java/net/wurstclient/hacks/scaffold/SilenceTellyScaffoldMode.java
+A src/main/java/net/wurstclient/hacks/scaffold/SimpleTowerMode.java
+A src/main/java/net/wurstclient/hacks/scaffold/TellyScaffoldMode.java
+M src/main/java/net/wurstclient/hud/IngameHUD.java CONFLICT
+M src/main/java/net/wurstclient/hud/TabGui.java
+M src/main/java/net/wurstclient/keybinds/KeybindProcessor.java
+A src/main/java/net/wurstclient/mixin/AbstractSelectionListMixin.java
+A src/main/java/net/wurstclient/mixin/AbstractSliderButtonAccessor.java
+A src/main/java/net/wurstclient/mixin/AbstractWidgetMixin.java
+M src/main/java/net/wurstclient/mixin/BossHealthOverlayMixin.java
+M src/main/java/net/wurstclient/mixin/GameRendererMixin.java
+M src/main/java/net/wurstclient/mixin/IngameHudMixin.java
+A src/main/java/net/wurstclient/mixin/KeyboardInputMixin.java
+M src/main/java/net/wurstclient/mixin/LivingEntityAccessor.java
+A src/main/java/net/wurstclient/mixin/MusicManagerMixin.java
+A src/main/java/net/wurstclient/mixin/OptionsSubScreenMixin.java
+M src/main/java/net/wurstclient/mixin/ScreenMixin.java
+A src/main/java/net/wurstclient/mixin/SelectWorldScreenMixin.java
+M src/main/java/net/wurstclient/options/WurstOptionsScreen.java
+M src/main/java/net/wurstclient/settings/SettingsFile.java
+M src/main/java/net/wurstclient/util/ScreenRegistry.java
+A src/main/java/net/wurstclient/util/ServerEquivTp.java
+M src/main/java/net/wurstclient/util/TestControlServer.java
+A src/main/java/net/wurstclient/util/TpCombatUtil.java
+M src/main/resources/assets/wurst/translations/zh_cn.json
+A src/main/resources/assets/wurstpenguin/nanovg/fonts/Icon.ttf (binary)
+A src/main/resources/assets/wurstpenguin/nanovg/fonts/MiSans-Demibold.ttf (binary)
+A src/main/resources/assets/wurstpenguin/nanovg/fonts/MiSans-Medium.ttf (binary)
+A src/main/resources/assets/wurstpenguin/nanovg/fonts/MiSans-Regular.ttf (binary)
+M src/main/resources/wurstpenguin.mixins.json CONFLICT

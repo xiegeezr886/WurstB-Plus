@@ -12,13 +12,18 @@ final class CommandCredentialStore implements CredentialStore
 	private final String[] readCommand;
 	private final String[] writeCommand;
 	private final boolean valueOnStdin;
+	private final int notFoundExitCode;
+	private final boolean requireEmptyErrorForNotFound;
 
 	CommandCredentialStore(String[] readCommand, String[] writeCommand,
-		boolean valueOnStdin)
+		boolean valueOnStdin, int notFoundExitCode,
+		boolean requireEmptyErrorForNotFound)
 	{
 		this.readCommand = readCommand;
 		this.writeCommand = writeCommand;
 		this.valueOnStdin = valueOnStdin;
+		this.notFoundExitCode = notFoundExitCode;
+		this.requireEmptyErrorForNotFound = requireEmptyErrorForNotFound;
 	}
 
 	@Override
@@ -26,10 +31,20 @@ final class CommandCredentialStore implements CredentialStore
 	{
 		Process process = start(readCommand, service, account, null);
 		byte[] output = process.getInputStream().readAllBytes();
+		byte[] error = process.getErrorStream().readAllBytes();
 		int exitCode = waitFor(process);
-		if(exitCode != 0)
+		if(exitCode == 0)
+			return new String(output, StandardCharsets.UTF_8).stripTrailing();
+
+		// Only a confirmed "not found" may look like an absent key. Any other
+		// failure must stay an IOException, otherwise Encryption would create
+		// and store a new master key and replace the still valid old one.
+		if(exitCode == notFoundExitCode
+			&& (!requireEmptyErrorForNotFound || error.length == 0))
 			return null;
-		return new String(output, StandardCharsets.UTF_8).stripTrailing();
+
+		throw new IOException("Credential read failed (" + exitCode + "): "
+			+ new String(error, StandardCharsets.UTF_8).strip());
 	}
 
 	@Override

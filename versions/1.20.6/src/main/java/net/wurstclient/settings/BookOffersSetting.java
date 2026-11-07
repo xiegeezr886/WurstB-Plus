@@ -19,8 +19,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.Component;
 import net.wurstclient.clickgui2.components.BookOffersEditButton;
@@ -42,8 +40,7 @@ public final class BookOffersSetting extends Setting
 		super(name, description);
 		
 		Arrays.stream(enchantments)
-			.map(s -> BuiltInRegistries.ENCHANTMENT.get(new ResourceLocation(s)))
-			.filter(Objects::nonNull).map(BookOffer::create)
+			.map(BookOffer::createDefault)
 			.filter(BookOffer::isValid).distinct().sorted()
 			.forEach(offers::add);
 		defaultOffers = offers.toArray(new BookOffer[0]);

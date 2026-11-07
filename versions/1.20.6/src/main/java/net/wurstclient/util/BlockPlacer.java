@@ -47,11 +47,17 @@ public enum BlockPlacer
 	public static boolean place(BlockPos pos, boolean airPlace,
 		boolean checkLOS)
 	{
-		return place(pos, airPlace, checkLOS, null);
+		return place(pos, airPlace, checkLOS, null, true);
 	}
 
 	public static boolean place(BlockPos pos, boolean airPlace,
 		boolean checkLOS, RotationQueue rotationQueue)
+	{
+		return place(pos, airPlace, checkLOS, rotationQueue, true);
+	}
+
+	public static boolean place(BlockPos pos, boolean airPlace,
+		boolean checkLOS, RotationQueue rotationQueue, boolean rotate)
 	{
 		if(!MC.level.isInWorldBounds(pos)
 			|| !BlockUtils.getState(pos).canBeReplaced())
@@ -77,11 +83,14 @@ public enum BlockPlacer
 					continue;
 			}
 
-			if(rotationQueue != null)
-				rotationQueue.setRotation(
-					RotationUtils.getNeededRotations(hitVec));
-			else
-				WURST.getRotationFaker().faceVectorPacket(hitVec);
+			if(rotate)
+			{
+				if(rotationQueue != null)
+					rotationQueue.setRotation(
+						RotationUtils.getNeededRotations(hitVec));
+				else
+					WURST.getRotationFaker().faceVectorPacket(hitVec);
+			}
 
 			IMC.getInteractionManager().rightClickBlock(neighbor,
 				d.getOpposite(), hitVec);
@@ -96,11 +105,14 @@ public enum BlockPlacer
 				if(hitVec == null)
 					continue;
 
-				if(rotationQueue != null)
-					rotationQueue.setRotation(
-						RotationUtils.getNeededRotations(hitVec));
-				else
-					WURST.getRotationFaker().faceVectorPacket(hitVec);
+				if(rotate)
+				{
+					if(rotationQueue != null)
+						rotationQueue.setRotation(
+							RotationUtils.getNeededRotations(hitVec));
+					else
+						WURST.getRotationFaker().faceVectorPacket(hitVec);
+				}
 
 				IMC.getInteractionManager().rightClickBlock(pos, d, hitVec);
 				return true;
