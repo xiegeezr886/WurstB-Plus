@@ -68,6 +68,7 @@ public final class NanoVGContext
 	private boolean androidText;
 	private boolean prewarmed;
 	private boolean useSkiaText;
+	private boolean skiaText;
 	private boolean disabled;
 
 	private final Map<String, HudFont> fonts = new HashMap<>();
@@ -148,6 +149,7 @@ public final class NanoVGContext
 			// warm the font atlas before the world is rendered.
 			androidText = gles;
 			useSkiaText = false;
+			skiaText = gles && SkiaNative.isAvailable();
 
 			// Use the ES3 backend when the context really is OpenGL ES. Some
 			// Android wrappers (Krypton) report a desktop-like GL version and
@@ -731,6 +733,12 @@ public final class NanoVGContext
 			|| !font.isLoaded())
 			return;
 
+		if(skiaText)
+		{
+			SkiaTextCache.queue(text, x, y, argb, size, font);
+			return;
+		}
+
 		if(useSkiaText
 			&& SoftwareText.draw(this, text, x, y, argb, size, font))
 			return;
@@ -910,6 +918,12 @@ public final class NanoVGContext
 		if(text == null || text.isEmpty() || font == null
 			|| !font.isLoaded())
 			return;
+
+		if(skiaText)
+		{
+			SkiaTextCache.queue(text, x, y, color.getRGB(), size, font);
+			return;
+		}
 
 		if(useSkiaText)
 		{

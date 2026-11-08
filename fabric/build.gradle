@@ -70,6 +70,10 @@ dependencies {
 		transitive = false
 	}
 
+	// JNA is used to drive the prebuilt Android Skia C library from Java
+	// without shipping our own JNI shim.
+	compileOnly "net.java.dev.jna:jna:5.13.0"
+
 	// Native libraries are unpacked into the mod jar by processResources.
 	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
 	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"

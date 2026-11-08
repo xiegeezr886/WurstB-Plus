@@ -108,6 +108,8 @@ public final class HudManager
 				}
 
 		started = true;
+		if("aarch64".equals(System.getProperty("os.arch")))
+			net.wurstclient.hud2.nanovg.SkiaNative.probe();
 		System.out.println("[HUD] Soar v7 HUD started (" + mods.size()
 			+ " modules)");
 	}
@@ -142,14 +144,16 @@ public final class HudManager
 		boolean screenBlocked = isScreenBlocked();
 
 		NanoVGContext nvg = NanoVGContext.get();
+		net.wurstclient.hud2.nanovg.SkiaTextCache.enabled =
+			nvg.isGles() && net.wurstclient.hud2.nanovg.SkiaNative.isAvailable();
 		if(!nvg.create())
 			return;
 
 		// Krypton/GLES wrappers corrupt the main framebuffer when NanoVG
 		// uploads its font atlas mid-frame, which turns the whole screen
 		// black in-game. When the Android Skia text backend is available we
-		// keep the HUD by rasterizing glyphs through the platform renderer;
-		// otherwise the in-game HUD must stay off there.
+		// keep the HUD by rasterizing glyphs with Skia; otherwise the
+		// in-game HUD must stay off there.
 		if(nvg.isGles())
 		{
 			if(!glesHudNoticeLogged)
@@ -161,7 +165,8 @@ public final class HudManager
 			return;
 		}
 
-		net.wurstclient.hud2.compat.HudItemIcons.capturePending(nvg, 6);
+		if(!nvg.isGles())
+			net.wurstclient.hud2.compat.HudItemIcons.capturePending(nvg, 6);
 
 		try(GlStateGuard ignored = GlStateGuard.capture())
 		{
