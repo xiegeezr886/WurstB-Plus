@@ -65,6 +65,9 @@ public final class NanoVGContext
 	private boolean loggedFailure;
 	private boolean gles;
 	private boolean glesBackend;
+	private boolean androidText;
+	private boolean prewarmed;
+	private boolean useSkiaText;
 	private boolean disabled;
 
 	private final Map<String, HudFont> fonts = new HashMap<>();
@@ -141,6 +144,10 @@ public final class NanoVGContext
 				|| (glRenderer != null && glRenderer.contains("OpenGL ES"))
 				|| (glVersion != null && glVersion.contains("Krypton"));
 			System.out.println("[HUD] GL " + glVersion + " / " + glRenderer);
+			// Glyph pre-rasterization experiment: keep NanoVG text on, but
+			// warm the font atlas before the world is rendered.
+			androidText = gles;
+			useSkiaText = false;
 
 			// Use the ES3 backend when the context really is OpenGL ES. Some
 			// Android wrappers (Krypton) report a desktop-like GL version and
@@ -402,8 +409,46 @@ public final class NanoVGContext
 
 		NanoVG.nvgBeginFrame(vg, framebufferWidth, framebufferHeight, 1F);
 		NanoVG.nvgScale(vg, guiScale, guiScale);
+		if(false)
+		{
+			prewarmGlyphs();
+			prewarmed = true;
+		}
 		frameOpen = true;
 		return true;
+	}
+
+	/**
+	 * Rasterizes the printable ASCII set at the font sizes used by the HUD
+	 * into NanoVG's font atlas. The atlas upload is what some Android GL
+	 * wrappers choke on, so doing it once while the title/GUI context is
+	 * active avoids mid-world uploads later.
+	 */
+	private void prewarmGlyphs()
+	{
+		StringBuilder sb = new StringBuilder(128);
+		for(char c = 32; c <= 126; c++)
+			sb.append(c);
+		String chars = sb.toString();
+
+		int[] sizes = {8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 22, 24};
+		int count = 0;
+		NanoVG.nvgTextAlign(vg,
+			NanoVG.NVG_ALIGN_LEFT | NanoVG.NVG_ALIGN_TOP);
+		NanoVG.nvgFillColor(vg, getColor(0xFFFFFFFF));
+		for(HudFont font : HudFonts.all())
+		{
+			if(!font.isLoaded())
+				continue;
+			NanoVG.nvgFontFace(vg, font.getName());
+			for(int size : sizes)
+			{
+				NanoVG.nvgFontSize(vg, size);
+				NanoVG.nvgText(vg, 0, 0, chars);
+				count += chars.length();
+			}
+		}
+		System.out.println("[HUD] Pre-rasterized " + count + " glyphs");
 	}
 
 	public void endFrame()
@@ -686,6 +731,10 @@ public final class NanoVGContext
 			|| !font.isLoaded())
 			return;
 
+		if(useSkiaText
+			&& SoftwareText.draw(this, text, x, y, argb, size, font))
+			return;
+
 		NanoVG.nvgFontSize(vg, size);
 		NanoVG.nvgFontFace(vg, font.getName());
 		NanoVG.nvgTextAlign(vg,
@@ -861,6 +910,12 @@ public final class NanoVGContext
 		if(text == null || text.isEmpty() || font == null
 			|| !font.isLoaded())
 			return;
+
+		if(useSkiaText)
+		{
+			drawText(text, x, y, color.getRGB(), size, font);
+			return;
+		}
 
 		NanoVG.nvgFontSize(vg, size);
 		NanoVG.nvgFontFace(vg, font.getName());
