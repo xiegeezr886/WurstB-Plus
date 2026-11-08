@@ -74,6 +74,36 @@ public final class SkiaNative
 		void sk_canvas_clear(Pointer canvas, int color);
 
 		void sk_paint_delete(Pointer paint);
+
+		void sk_paint_set_style(Pointer paint, int style);
+
+		void sk_paint_set_stroke_width(Pointer paint, float width);
+
+		Pointer sk_rrect_new();
+
+		void sk_rrect_set_rect_radii(Pointer rrect, Rect rect,
+			Pointer radii);
+
+		void sk_rrect_delete(Pointer rrect);
+
+		void sk_canvas_draw_rect(Pointer canvas, Rect rect, Pointer paint);
+
+		void sk_canvas_draw_rrect(Pointer canvas, Pointer rrect,
+			Pointer paint);
+
+		void sk_canvas_draw_circle(Pointer canvas, float cx, float cy,
+			float radius, Pointer paint);
+
+		void sk_canvas_draw_line(Pointer canvas, float x0, float y0,
+			float x1, float y1, Pointer paint);
+
+		void sk_canvas_save(Pointer canvas);
+
+		void sk_canvas_restore(Pointer canvas);
+
+		void sk_canvas_reset_matrix(Pointer canvas);
+
+		void sk_canvas_scale(Pointer canvas, float sx, float sy);
 	}
 
 	@Structure.FieldOrder({"colorspace", "width", "height", "colorType",
@@ -301,6 +331,72 @@ public final class SkiaNative
 		}catch(Throwable t)
 		{
 			return null;
+		}
+	}
+
+	@Structure.FieldOrder({"left", "top", "right", "bottom"})
+	public static final class Rect extends Structure
+	{
+		public float left;
+		public float top;
+		public float right;
+		public float bottom;
+	}
+
+	@Structure.FieldOrder({"x", "y"})
+	public static final class Vector extends Structure
+	{
+		public float x;
+		public float y;
+	}
+
+	public static Skia library()
+	{
+		return isAvailable() ? skia : null;
+	}
+
+	public static Pointer newPaint(int argb, int style, float strokeWidth)
+	{
+		if(skia == null)
+			return null;
+		Pointer paint = skia.sk_paint_new();
+		skia.sk_paint_set_antialias(paint, true);
+		skia.sk_paint_set_color(paint, argb);
+		skia.sk_paint_set_style(paint, style);
+		if(strokeWidth > 0)
+			skia.sk_paint_set_stroke_width(paint, strokeWidth);
+		return paint;
+	}
+
+	/** Draws text at HUD (GUI-scale) coordinates into a Skia canvas. */
+	public static void drawText(Pointer canvas, String text, HudFont hudFont,
+		float size, int argb, float x, float y)
+	{
+		if(skia == null || canvas == null || text == null || text.isEmpty())
+			return;
+
+		Pointer font = font(hudFont, size);
+		if(font == null)
+			return;
+
+		try
+		{
+			byte[] bytes = text.getBytes("UTF-8");
+			Memory textPtr = new Memory(bytes.length);
+			textPtr.write(0, bytes, 0, bytes.length);
+
+			Memory metrics = new Memory(64);
+			skia.sk_font_get_metrics(font, metrics);
+			float ascent = metrics.getFloat(8);
+
+			Pointer paint = newPaint(argb, 0, 0);
+			skia.sk_canvas_draw_simple_text(canvas, textPtr,
+				new NativeLong(bytes.length), 0, x,
+				y + size / 2F - ascent / 2F, font, paint);
+			skia.sk_paint_delete(paint);
+		}catch(Throwable ignored)
+		{
+			// Text is best-effort on this backend.
 		}
 	}
 
