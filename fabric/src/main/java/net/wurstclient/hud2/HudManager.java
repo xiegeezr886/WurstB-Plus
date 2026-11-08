@@ -147,6 +147,11 @@ public final class HudManager
 		if(skiaPixels == null || skiaWidth <= 0 || skiaHeight <= 0)
 			return;
 
+		// TEST: prove the flush hook can draw at all.
+		graphics.fill(0, 0, 200, 200, 0xFFFF0000);
+		System.out.println("[HUD] Skia flush " + skiaWidth + "x"
+			+ skiaHeight);
+
 		try
 		{
 			if(skiaTexture == null)
@@ -155,6 +160,8 @@ public final class HudManager
 					new net.wurstclient.hud2.nanovg.SkiaHudTexture();
 				WURST.MC.getTextureManager().register(SKIA_TEXTURE,
 					skiaTexture);
+				System.out.println("[HUD] Skia texture registered id="
+					+ skiaTexture.getId());
 			}
 
 			skiaTexture.upload(skiaPixels, skiaWidth, skiaHeight);
@@ -194,10 +201,19 @@ public final class HudManager
 				surface.begin();
 				try
 				{
-					if(screenBlocked)
-						drawScreenOverlayModules(nvg, partialTicks);
-					else
-						drawModules(nvg, partialTicks);
+					// TEST: single opaque red square, no modules.
+					surface.fillRect(100, 100, 200, 200, 0xFFFF0000);
+					if(skiaWidth == 0)
+					{
+						byte[] probe = surface.pixels();
+						int idx = (150 * width + 150) * 4;
+						System.out.println("[HUD] Skia test surface "
+							+ width + "x" + height + " pixel@150,150="
+							+ (probe[idx] & 0xFF) + ","
+							+ (probe[idx + 1] & 0xFF) + ","
+							+ (probe[idx + 2] & 0xFF) + ","
+							+ (probe[idx + 3] & 0xFF));
+					}
 				}finally
 				{
 					surface.end();
