@@ -35,7 +35,7 @@ public abstract class WorldMixin implements LevelAccessor, AutoCloseable
 		NoWeatherHack noWeather = WurstClient.INSTANCE.getHax().noWeatherHack;
 		
 		long timeOfDay = noWeather.isTimeChanged() ? noWeather.getChangedTime()
-			: getLevelData().getDayTime();
+			: dayTime();
 		
 		return dimensionType().timeOfDay(timeOfDay);
 	}

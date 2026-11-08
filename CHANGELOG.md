@@ -1,10 +1,74 @@
 # WurstB+ Plus 变更记录
 
-WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖 **23 个 MC 版本（1.20.1–26.3）× Forge / NeoForge / Fabric = 67 个独立 Gradle 工程**；已发布资产为 v1.5.0（全矩阵）、v1.5.1（Fabric 1.20.1）与 v1.6.0 预发布（根目录 Forge 1.20.1）。
+WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖 **23 个 MC 版本（1.20.1–26.3）× Forge / NeoForge / Fabric = 67 个独立 Gradle 工程**；发布资产与下载入口见 [README.md](README.md)。
 
 > **版本分布（重要）**：只有根目录 Forge 1.20.1 工程推进到 **v1.6.0**；
-> 其余 66 个工程的当前源码为 **v1.5.1**，其中 v1.5.1 Release 目前只发布了
-> Fabric 1.20.1 一个产物；v1.6 的 GUI/音乐/Skia 子系统尚未移植。
+> 其余 66 个工程的当前源码为 **v1.5.1**；v1.6 的 GUI/音乐/Skia 子系统尚未移植。
+> 独立目录 `VAP-v1.5.0-1.20.1` 的根工程另保留 **v1.5.1-Forge-1.20.1**，不计入本仓库的 67 个工程。
+
+---
+
+## v1.5.1 — OpenOpal KillAura／自动搭路源码移植（2026-11-08，未发布）
+
+直接使用仓库内 OpenOpal 源码移植 KillAura、Scaffold 及其核心行为依赖，适配现有模块、设置、事件与渲染接口。覆盖本仓库 66 个 v1.5.1 工程（Fabric 23、NeoForge 23、Forge 20）；根目录 v1.6.0 与独立 Forge 1.20.1 工程不在本次范围内。
+
+- **KillAura**：接入原版输入阶段的点击／按住调度、CPS 与攻击冷却、连击计时、Grim 受伤窗口、武器选择、自动格挡和目标前瞻；目标排序使用生命值加吸收量及距上次攻击的经过时间，FOV 按 OpenOpal 的水平偏航角判断。
+- **转向与输入**：移植六种旋转模型、鼠标插值和客户端视角保持；统一转向请求优先级与动作执行时序，清除失效的一次性请求，协调 KillAura、MultiAura 与 Scaffold。
+- **自动搭路**：移植候选落点搜索、射线与放置校验、移动预测、同高度搭路、自动／手动跳跃，以及 Telly、Heypixel、Hypixel、SilenceTelly 的对应逻辑；接入 SkipTick 回救、最终发包旋转修正和搭路状态显示。
+- **静默切槽与状态清理**：移植 SlotHelper 的 NONE／DEFAULT／FULL 模式，联动快捷栏、手持物品显示与滚轮选槽；切换世界或玩家时清理攻击、放置、转向、槽位及模式状态。
+- **源码与许可**：保留来源标注，并在全部目标工程中包含 OpenOpal 的 GPL-3.0 许可；源码对应关系与版本适配详见[移植说明](docs/OPENOPAL_V151_PORT.md)。
+
+### 验证与适配边界
+
+- 移植完成时，66/66 个工程的 `compileJava` 通过，并核对编译输入哈希；23 个 Minecraft 版本共 648 项 Mixin 字节码检查通过。
+- 两组 API 版本的生产源码行为测试共 138 项断言通过；11 个核心类在全部工程中的 726 份源码映射对比一致，4508 个输出文件哈希、许可与 Mixin 注册检查通过。
+- 好友／机器人过滤和使用物品时攻击分别接入现有好友列表／AntiBot 与 Multitask。独立 Teams、DelayVelocity／NoXZVelocity、Stuck 模块未移植，其额外联动不可用；Halo 与搭路状态显示使用宿主渲染接口，外观并非逐像素一致。
+- 上游已注释的 Watchdog／WatchdogTellyBlink 处理逻辑保持停用；Hypixel Boost、Aura Keep Sprint FOV 等上游无有效逻辑的设置不补造行为。
+- 尚未进行游戏内战斗、搭路、Mixin 启动及服务器兼容性实测；本次未安装或发布产物。
+
+---
+
+## v1.5.1 — 四客户端移植第 1–18 批与源码基线（2026-11-08）
+
+对照 FO、InvincibleMachineGun、LeavesHack、Meteor 源码，将重复功能合并到已有模块，补齐设置和行为，并新增独有模块。以下记录本地源码与验证结果。
+
+### 源码基线
+
+| 工程范围 | 当前版本 | 第 1–18 批状态 |
+| --- | --- | --- |
+| 本仓库 `fabric/`、`neoforge/` 及三个 `versions/` 版本树，共 66 个工程 | v1.5.1 | 已合入；第 18 批完成时的全矩阵 `compileJava` 为 66/66 通过 |
+| 独立目录 `VAP-v1.5.0-1.20.1` 的根工程，Forge 1.20.1 | v1.5.1 | 已合入 86 个源码／资源文件，并生成生产 JAR；其 8 个子工程未修改 |
+| 本仓库根目录 `src/`，Forge 1.20.1 | v1.6.0 | 未合入本次四客户端移植，不属于本次 v1.5.1 目标范围 |
+
+### 批次记录
+
+| 批次 | 模块及改动 |
+| --- | --- |
+| 1 | SoundModifier 增加声音 ID 屏蔽；新增 Slippy 方块摩擦配置、EndermanLook 末影人视线控制、BuildHeight 高度上限交互调整。 |
+| 2 | FO AutoLog 合并到 AutoLeave，补齐多条件退出与单次重连；InvincibleMachineGun AutoMessage 合并到 AutoText，支持文件消息序列；Leaves AutoTree 合并到 TreeBot，补齐树苗位置、骨粉和操作频率控制。 |
+| 3 | AntiHunger 补齐冲刺、落地与动作条件；AutoRespawn 接入最近死亡点；BreakDelay 合并到 FastBreak；NoStatusEffects 合并到 NoLevitation，支持状态效果 ID 筛选。 |
+| 4 | 新增 TridentBoost 激流倍率与离水激流、Multitask 同时使用物品和挖掘、NoInteract 按目标及操作条件过滤交互。 |
+| 5 | AutoPlaceBlock 增加方向与半砖选项；AutoTorch 增加黑暗区域预览和放置延迟；DeathRender 合并到 KillFX，SprintPlus 合并到 AutoSprint；补齐 TreeBot 渲染透明度。 |
+| 6 | AirJump 增加高度维持选项，AutoJump 增加触发条件与低跳；Spider 支持攀爬速度，ReverseStep 补齐载具与床面判断，HighJump 增加跳跃倍率模式。 |
+| 7 | MessageAura 增加进入视距触发消息与好友筛选；EXPThrower 支持副手、朝下使用及槽位恢复；PotionSaver 增加效果选择并限定本地玩家作用范围。 |
+| 8 | AntiVoid 补齐跳跃／飞行模式和状态清理；FastClimb 增加计时模式；FastUse 补齐物品及手部筛选；AutoShearer 修复交互前旋转与异常时槽位恢复。 |
+| 9 | AutoMount 补齐实体类型和鞍判断；BetterBeacons 增加主／副效果选择；新增 NoMiningTrace 穿过实体选取方块、GhostHand 穿过遮挡与方块实体交互。 |
+| 10 | AutoWalk 增加四方向、Baritone 模式、输入／高度变化停止及未加载区块保护；AutoNametag 增加类型、优先级和独立冷却；Rotation 即时应用并同步可见头部／身体角度。 |
+| 11 | AutoBreed 增加实体与年龄筛选、单次／重复喂养及间隔；新增 Collisions 方块碰撞选择、岩浆块避让、客户端边界和未加载区块移动保护。 |
+| 12 | FO AutoTrash 合并到已有模块，增加黑白名单、精确附魔等级、单件／整组丢弃与快捷栏保护，保留保留名单优先级；空规则、无效规则和容器归属异常时停止丢弃。 |
+| 13 | NoRotate 在包处理结束时立即逐字段恢复选定旋转，保留独立历史／头部／身体角度；PortalGodMode 仅保留最近确认并限定原连接释放，避免跨连接重放。 |
+| 14 | CustomFov 的世界与手持物品 FOV 接入实际渲染回调，补齐缺失的版本适配；ChatHider 关闭后的迟到回调不再覆盖已恢复的聊天透明度。 |
+| 15 | Parkour 增加可选的仅方块碰撞支撑检测；Sneak 飞行暂停同时适用于 Legit／Packet，修复模式切换、玩家更换与关闭时的按键及包状态清理。 |
+| 16 | TimeChanger 改为读取时覆盖显示时间，保留服务器计时与停走更新；关闭后立即恢复最新时间，保留 NoWeather 优先级并适配 26.x 时钟。 |
+| 17 | Reach 的实体／方块距离独立设置，增加附加距离模式；修复缺失、失效和重复的回调，以及旧版实体搜索固定截断到 6 格的问题。 |
+| 18 | WeatherChanger 改为读取时覆盖天气，保留服务器停雨等真实状态；雷暴强度只乘一次雨强，关闭后恢复最新天气，保留 NoWeather 优先级。 |
+
+### 验证与限制
+
+- 第 18 批完成时核对 405 个合并输出文件哈希、66 个工程的注册及对应完整输入的编译记录；第 17／18 批各 23 个游戏版本的回调目标检查和生产源码行为测试通过，见[第 17／18 批报告](report/PORT-v1.5.1-four-clients-batch17-18.md)。
+- 独立 Forge 1.20.1 根工程的 `compileJava`、`jarJar`、`reobfJarJar` 与第 13–18 批生产源码行为测试通过；生产 JAR 为 48,664,131 字节。完整测试集在 `compileTestJava` 被 9 个已有 HUD／ScreenRegistry 测试文件阻塞，见[生产包报告](report/PORT-v1.5.1-Forge-1.20.1-external-root.md)。
+- 以上移植尚未完成游戏内 Mixin 应用、实际画面与多人服务器验证；编译和行为测试通过不等于全部运行场景已验证。
+- 四客户端清单共 427 个具体模块类，整体移植尚未完成。同名模块不代表全部行为一致；NoGhostBlocks 本地预测控制、PacketCanceller 双向选择与优先级、FO 图形化附魔规则编辑及模块联动等仍待实现。
 
 ---
 
