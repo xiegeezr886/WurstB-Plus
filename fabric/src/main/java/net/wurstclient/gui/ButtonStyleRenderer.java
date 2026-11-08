@@ -55,6 +55,8 @@ public final class ButtonStyleRenderer
 
 	public static void beginScreen(GuiGraphics graphics, Screen screen)
 	{
+		if(net.wurstclient.hud2.nanovg.NanoVGContext.get().isGles())
+			return; // GLES/Krypton: keep vanilla widgets
 		// A screen can start rendering controls in renderBackground() or in an
 		// options list before Screen.render() is called. Keep everything it
 		// already collected for the same screen.
