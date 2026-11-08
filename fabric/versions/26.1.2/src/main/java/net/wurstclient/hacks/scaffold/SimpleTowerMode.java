@@ -51,7 +51,7 @@ public final class SimpleTowerMode implements ScaffoldMode
 			case BLOXD:
 			BlockPos above = hitResult.getBlockPos().above();
 			BlockHitResult towerHit = new BlockHitResult(
-				hitResult.getLocation().add(0, 1, 0),
+				hitResult.getLocation(),
 				hitResult.getDirection(), above, false);
 			WurstClient.MC.player.connection.send(
 				new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND,
@@ -71,7 +71,7 @@ public final class SimpleTowerMode implements ScaffoldMode
 	}
 
 	@Override
-	public void onPostMotion()
+	public void onPostMove()
 	{
 		if(mode != Mode.BLOXD || WurstClient.MC.player == null
 			|| WurstClient.MC.level == null)
