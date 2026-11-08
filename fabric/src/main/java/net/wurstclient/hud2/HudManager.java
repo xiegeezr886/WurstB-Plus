@@ -71,6 +71,7 @@ public final class HudManager
 	private Path stateFile;
 	private boolean started;
 	private boolean stopping;
+	private boolean glesHudNoticeLogged;
 
 	public HudManager()
 	{
@@ -143,6 +144,21 @@ public final class HudManager
 		if(!nvg.create())
 			return;
 
+		// Krypton/GLES wrappers corrupt the main framebuffer when NanoVG
+		// uploads its font atlas mid-frame, which turns the whole screen
+		// black in-game. Keep the in-game HUD disabled there; the title
+		// screen and GUI passes still render through NanoVG.
+		if(nvg.isGles())
+		{
+			if(!glesHudNoticeLogged)
+			{
+				glesHudNoticeLogged = true;
+				System.out.println(
+					"[HUD] In-game HUD disabled on GLES/Krypton renderer");
+			}
+			return;
+		}
+
 		net.wurstclient.hud2.compat.HudItemIcons.capturePending(nvg, 6);
 
 		try(GlStateGuard ignored = GlStateGuard.capture())
@@ -205,6 +221,10 @@ public final class HudManager
 		for(HUDMod mod : mods.values())
 		{
 			if(mod == notifications || !mod.isEnabled())
+				continue;
+
+			// TEST: only the FPS display module.
+			if(!mod.getId().equals("FPSDisplay"))
 				continue;
 
 			mod.clampToScreen(screenWidth, screenHeight);

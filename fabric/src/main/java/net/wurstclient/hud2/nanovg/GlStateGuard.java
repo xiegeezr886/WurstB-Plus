@@ -75,6 +75,11 @@ public final class GlStateGuard implements AutoCloseable
 	private final int texture0;
 	private final int activeTextureBinding;
 	private final boolean srgb;
+	private final int unpackAlignment;
+	private final int packAlignment;
+	private final int unpackRowLength;
+	private final int unpackSkipPixels;
+	private final int unpackSkipRows;
 
 	private final boolean colorMaskR;
 	private final boolean colorMaskG;
@@ -157,6 +162,11 @@ public final class GlStateGuard implements AutoCloseable
 		activeTextureBinding =
 			GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
 		srgb = GL11.glIsEnabled(GL30.GL_FRAMEBUFFER_SRGB);
+		unpackAlignment = GL11.glGetInteger(GL11.GL_UNPACK_ALIGNMENT);
+		packAlignment = GL11.glGetInteger(GL11.GL_PACK_ALIGNMENT);
+		unpackRowLength = GL11.glGetInteger(GL11.GL_UNPACK_ROW_LENGTH);
+		unpackSkipPixels = GL11.glGetInteger(GL11.GL_UNPACK_SKIP_PIXELS);
+		unpackSkipRows = GL11.glGetInteger(GL11.GL_UNPACK_SKIP_ROWS);
 	}
 
 	public static GlStateGuard capture()
@@ -217,6 +227,12 @@ public final class GlStateGuard implements AutoCloseable
 		GL11.glStencilFunc(stencilFunc, stencilRef, stencilValueMask);
 		GL11.glStencilMask(stencilWriteMask);
 		GL11.glStencilOp(stencilFail, stencilDepthFail, stencilDepthPass);
+
+		GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, unpackAlignment);
+		GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, packAlignment);
+		GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, unpackRowLength);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, unpackSkipPixels);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, unpackSkipRows);
 
 		GL11.glColorMask(colorMaskR, colorMaskG, colorMaskB, colorMaskA);
 
