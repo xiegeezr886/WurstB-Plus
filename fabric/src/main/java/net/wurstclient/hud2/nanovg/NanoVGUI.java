@@ -77,6 +77,13 @@ public final class NanoVGUI
 	 */
 	public static void pass(GuiGraphics graphics, Runnable body)
 	{
+		// Krypton/GLES wrappers corrupt the framebuffer when NanoVG renders
+		// a screen pass; skip the pass entirely there so vanilla screens
+		// (pause menu, options, ...) stay visible.
+		NanoVGContext check = NanoVGContext.get();
+		if(check.create() && check.isGles())
+			return;
+
 		if(active)
 		{
 			body.run();
