@@ -111,6 +111,7 @@ public class IngameHudMixin
 		WurstClient wurst = WurstClient.INSTANCE;
 		if(wurst != null && wurst.getHudManager() != null)
 			wurst.getHudManager().renderFrame(partialTick);
+		net.wurstclient.hud2.nanovg.SkiaTextCache.flush(context);
 	}
 
 	private static boolean isHudModuleEnabled(String id)
