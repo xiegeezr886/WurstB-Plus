@@ -4,6 +4,7 @@
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
  * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+ * Block-only edge detection adapted from Meteor Client (GPL-3.0).
  */
 package net.wurstclient.hacks;
 
@@ -34,6 +35,11 @@ public final class ParkourHack extends Hack implements UpdateListener
 			+ "You may want to increase the \u00a7lEdge \u00a7ldistance\u00a7r"
 			+ " slider when using this option.",
 		false);
+
+	private final CheckboxSetting blockCollisionsOnly = new CheckboxSetting(
+		"Block collisions only",
+		"Only use blocks as support; ignore nearby players and vehicles.",
+		false);
 	
 	public ParkourHack()
 	{
@@ -42,6 +48,7 @@ public final class ParkourHack extends Hack implements UpdateListener
 		addSetting(minDepth);
 		addSetting(edgeDistance);
 		addSetting(sneak);
+		addSetting(blockCollisionsOnly);
 	}
 	
 	@Override
@@ -60,7 +67,8 @@ public final class ParkourHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
-		if(!MC.player.onGround() || MC.options.keyJump.isDown())
+		if(!isEnabled() || MC.player == null || MC.level == null
+			|| !MC.player.onGround() || MC.options.keyJump.isDown())
 			return;
 		
 		if(!sneak.isChecked()
@@ -68,11 +76,20 @@ public final class ParkourHack extends Hack implements UpdateListener
 			return;
 		
 		AABB box = MC.player.getBoundingBox();
-		AABB adjustedBox = box.expandTowards(0, -minDepth.getValue(), 0)
-			.inflate(-edgeDistance.getValue(), 0, -edgeDistance.getValue());
-		
-		if(!MC.level.noCollision(MC.player, adjustedBox))
-			return;
+		if(blockCollisionsOnly.isChecked())
+		{
+			AABB adjustedBox = box.move(0, -minDepth.getValue(), 0)
+				.inflate(-edgeDistance.getValue(), 0, -edgeDistance.getValue());
+			if(MC.level.getBlockCollisions(MC.player, adjustedBox).iterator()
+				.hasNext())
+				return;
+		}else
+		{
+			AABB adjustedBox = box.expandTowards(0, -minDepth.getValue(), 0)
+				.inflate(-edgeDistance.getValue(), 0, -edgeDistance.getValue());
+			if(!MC.level.noCollision(MC.player, adjustedBox))
+				return;
+		}
 		
 		MC.player.jumpFromGround();
 	}
