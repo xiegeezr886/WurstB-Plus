@@ -103,6 +103,16 @@ public class IngameHudMixin
 			ci.cancel();
 	}
 
+	@Inject(at = @At("TAIL"),
+		method = "render(Lnet/minecraft/client/gui/GuiGraphics;F)V")
+	private void onRenderGui(GuiGraphics context, float partialTick,
+		CallbackInfo ci)
+	{
+		WurstClient wurst = WurstClient.INSTANCE;
+		if(wurst != null && wurst.getHudManager() != null)
+			wurst.getHudManager().renderFrame(partialTick);
+	}
+
 	private static boolean isHudModuleEnabled(String id)
 	{
 		WurstClient wurst = WurstClient.INSTANCE;
