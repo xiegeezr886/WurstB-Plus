@@ -25,7 +25,7 @@ def build_inputs(tree):
 
 def wait_for_existing_build(tree):
     prefix = str(ROOT / tree['root']).lower() + '\\'
-    query = "@(Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'java.exe' -and $_.CommandLine -match 'org.gradle.wrapper.GradleWrapperMain' } | Select-Object -ExpandProperty CommandLine) | ConvertTo-Json -Compress"
+    query = "@(Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'java.exe' -and $_.CommandLine -match 'gradle-wrapper[.]jar' } | Select-Object -ExpandProperty CommandLine) | ConvertTo-Json -Compress"
     reported = False
     while True:
         result = subprocess.run(['powershell', '-NoProfile', '-Command', query], capture_output=True, check=True)
