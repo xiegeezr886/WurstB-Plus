@@ -144,6 +144,11 @@ public final class HudManager
 
 	public void flushSkia(net.minecraft.client.gui.GuiGraphics graphics)
 	{
+		return;
+	}
+
+	public void flushSkiaUnused(net.minecraft.client.gui.GuiGraphics graphics)
+	{
 		if(skiaPixels == null || skiaWidth <= 0 || skiaHeight <= 0)
 			return;
 
@@ -184,13 +189,11 @@ public final class HudManager
 		boolean screenBlocked = isScreenBlocked();
 
 		NanoVGContext nvg = NanoVGContext.get();
-		net.wurstclient.hud2.nanovg.SkiaTextCache.enabled =
-			nvg.isGles() && net.wurstclient.hud2.nanovg.SkiaNative.isAvailable();
+		net.wurstclient.hud2.nanovg.SkiaTextCache.enabled = false;
 		if(!nvg.create())
 			return;
 
-		if(nvg.isGles()
-			&& net.wurstclient.hud2.nanovg.SkiaHudSurface.isAvailable())
+		if(false)
 		{
 			int width = WURST.MC.getWindow().getGuiScaledWidth();
 			int height = WURST.MC.getWindow().getGuiScaledHeight();

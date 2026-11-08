@@ -150,8 +150,8 @@ public final class NanoVGContext
 			// warm the font atlas before the world is rendered.
 			androidText = gles;
 			useSkiaText = false;
-			skiaText = gles && SkiaNative.isAvailable();
-			skiaHud = gles && SkiaHudSurface.isAvailable();
+			skiaText = false;
+			skiaHud = false;
 
 			// Use the ES3 backend when the context really is OpenGL ES. Some
 			// Android wrappers (Krypton) report a desktop-like GL version and
