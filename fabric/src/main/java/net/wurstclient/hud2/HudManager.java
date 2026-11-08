@@ -73,6 +73,10 @@ public final class HudManager
 	private boolean started;
 	private boolean stopping;
 	private boolean glesHudNoticeLogged;
+	private byte[] skiaPixels;
+	private int skiaWidth;
+	private int skiaHeight;
+	private net.wurstclient.hud2.nanovg.SkiaHudTexture skiaTexture;
 
 	public HudManager()
 	{
@@ -135,6 +139,35 @@ public final class HudManager
 		// Reserved for texture/item capture scheduling.
 	}
 
+	private static final net.minecraft.resources.ResourceLocation SKIA_TEXTURE =
+		new net.minecraft.resources.ResourceLocation("wurstpenguin", "skia_hud");
+
+	public void flushSkia(net.minecraft.client.gui.GuiGraphics graphics)
+	{
+		if(skiaPixels == null || skiaWidth <= 0 || skiaHeight <= 0)
+			return;
+
+		try
+		{
+			if(skiaTexture == null)
+			{
+				skiaTexture =
+					new net.wurstclient.hud2.nanovg.SkiaHudTexture();
+				WURST.MC.getTextureManager().register(SKIA_TEXTURE,
+					skiaTexture);
+			}
+
+			skiaTexture.upload(skiaPixels, skiaWidth, skiaHeight);
+			graphics.blit(SKIA_TEXTURE, 0, 0, skiaWidth, skiaHeight, 0, 0,
+				skiaWidth, skiaHeight, skiaWidth, skiaHeight);
+		}catch(Throwable t)
+		{
+			System.err.println("[HUD] Skia HUD flush failed: " + t);
+		}finally
+		{
+			skiaPixels = null;
+		}
+	}
 	public void renderFrame(float partialTicks)
 	{
 		if(!started || WURST.MC.screen instanceof GuiEditHUD
@@ -148,6 +181,34 @@ public final class HudManager
 			nvg.isGles() && net.wurstclient.hud2.nanovg.SkiaNative.isAvailable();
 		if(!nvg.create())
 			return;
+
+		if(nvg.isGles()
+			&& net.wurstclient.hud2.nanovg.SkiaHudSurface.isAvailable())
+		{
+			int width = WURST.MC.getWindow().getGuiScaledWidth();
+			int height = WURST.MC.getWindow().getGuiScaledHeight();
+			net.wurstclient.hud2.nanovg.SkiaHudSurface surface =
+				net.wurstclient.hud2.nanovg.SkiaHudSurface.get();
+			if(surface.ensure(width, height))
+			{
+				surface.begin();
+				try
+				{
+					if(screenBlocked)
+						drawScreenOverlayModules(nvg, partialTicks);
+					else
+						drawModules(nvg, partialTicks);
+				}finally
+				{
+					surface.end();
+				}
+
+				skiaPixels = surface.pixels();
+				skiaWidth = width;
+				skiaHeight = height;
+				return;
+			}
+		}
 
 		// Krypton/GLES wrappers corrupt the main framebuffer when NanoVG
 		// uploads its font atlas mid-frame, which turns the whole screen

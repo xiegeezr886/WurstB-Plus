@@ -69,6 +69,7 @@ public final class NanoVGContext
 	private boolean prewarmed;
 	private boolean useSkiaText;
 	private boolean skiaText;
+	private boolean skiaHud;
 	private boolean disabled;
 
 	private final Map<String, HudFont> fonts = new HashMap<>();
@@ -150,6 +151,7 @@ public final class NanoVGContext
 			androidText = gles;
 			useSkiaText = false;
 			skiaText = gles && SkiaNative.isAvailable();
+			skiaHud = gles && SkiaHudSurface.isAvailable();
 
 			// Use the ES3 backend when the context really is OpenGL ES. Some
 			// Android wrappers (Krypton) report a desktop-like GL version and
@@ -388,6 +390,11 @@ public final class NanoVGContext
 		return true;
 	}
 
+		private boolean drawToSkia()
+	{
+		return skiaHud && SkiaHudSurface.get().isActive();
+	}
+
 	public boolean isGles()
 	{
 		return gles;
@@ -557,6 +564,12 @@ public final class NanoVGContext
 	public void drawRect(float x, float y, float width, float height,
 		Color color)
 	{
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().fillRect(x, y, width, height,
+				color.getRGB());
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRect(vg, x, y, width, height);
 		NanoVG.nvgFillColor(vg, getColor(color));
@@ -568,6 +581,11 @@ public final class NanoVGContext
 	{
 		if(width <= 0 || height <= 0 || argb >>> 24 == 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().fillRect(x, y, width, height, argb);
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRect(vg, x, y, width, height);
 		NanoVG.nvgFillColor(vg, getColor(argb));
@@ -579,6 +597,12 @@ public final class NanoVGContext
 	{
 		if(width < 0 || height < 0 || argb >>> 24 == 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().fillRoundRect(x, y, width, height, radius,
+				argb);
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
 		NanoVG.nvgFillColor(vg, getColor(argb));
@@ -590,6 +614,12 @@ public final class NanoVGContext
 	{
 		if(width < 0 || height < 0 || argb >>> 24 == 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().strokeRoundRect(x, y, width, height,
+				radius, strokeWidth, argb);
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
 		NanoVG.nvgStrokeWidth(vg, strokeWidth);
@@ -632,6 +662,11 @@ public final class NanoVGContext
 	{
 		if(radius <= 0 || argb >>> 24 == 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().drawCircle(x, y, radius, argb);
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgCircle(vg, x, y, radius);
 		NanoVG.nvgFillColor(vg, getColor(argb));
@@ -643,6 +678,12 @@ public final class NanoVGContext
 	{
 		if(argb >>> 24 == 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().drawLine(x1, y1, x2, y2, strokeWidth,
+				argb);
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgMoveTo(vg, x1, y1);
 		NanoVG.nvgLineTo(vg, x2, y2);
@@ -733,6 +774,12 @@ public final class NanoVGContext
 			|| !font.isLoaded())
 			return;
 
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().drawText(text, x, y, size, argb, font);
+			return;
+		}
+
 		if(skiaText)
 		{
 			SkiaTextCache.queue(text, x, y, argb, size, font);
@@ -765,6 +812,12 @@ public final class NanoVGContext
 	{
 		if(width < 0 || height < 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().fillRoundRect(x, y, width, height, radius,
+				color.getRGB());
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
 		NanoVG.nvgFillColor(vg, getColor(color));
@@ -775,6 +828,14 @@ public final class NanoVGContext
 		float height, float topLeftRadius, float topRightRadius,
 		float bottomLeftRadius, float bottomRightRadius, Color color)
 	{
+		if(drawToSkia())
+		{
+			float radius = Math.max(Math.max(topLeftRadius, topRightRadius),
+				Math.max(bottomLeftRadius, bottomRightRadius));
+			SkiaHudSurface.get().fillRoundRect(x, y, width, height, radius,
+				color.getRGB());
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRoundedRectVarying(vg, x, y, width, height, topLeftRadius,
 			topRightRadius, bottomRightRadius, bottomLeftRadius);
@@ -918,6 +979,13 @@ public final class NanoVGContext
 		if(text == null || text.isEmpty() || font == null
 			|| !font.isLoaded())
 			return;
+
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().drawText(text, x, y, size, color.getRGB(),
+				font);
+			return;
+		}
 
 		if(skiaText)
 		{
