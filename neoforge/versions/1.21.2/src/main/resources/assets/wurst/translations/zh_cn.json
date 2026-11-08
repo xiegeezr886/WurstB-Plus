@@ -2637,5 +2637,7 @@
   "hack.name.nominingtrace": "穿实体挖掘",
   "description.wurst.hack.nominingtrace": "穿过实体瞄准方块，可限制为持镐时生效并排除指定实体类型。",
   "hack.name.ghosthand": "隔墙交互",
-  "description.wurst.hack.ghosthand": "右键沿视线交互墙后的容器，按住潜行键时暂停。"
+  "description.wurst.hack.ghosthand": "右键沿视线交互墙后的容器，按住潜行键时暂停。",
+  "hack.name.collisions": "碰撞控制",
+  "description.wurst.hack.collisions": "为选定方块添加碰撞，可避开岩浆块、阻止进入未加载区块并移除客户端世界边界碰撞。"
 }
