@@ -87,6 +87,14 @@ public class FakePlayerEntity extends RemotePlayer
 	
 	private void spawn()
 	{
+		// 26.2+ throws from Entity.getId() while the id is still 0, and the
+		// client's Level.getNextEntityId() always returns 0. Server ids are
+		// always positive, so client-only fake entities take an unused
+		// negative id instead.
+		int id = -1;
+		while(world.getEntity(id) != null)
+			id--;
+		setId(id);
 		world.addEntity(this);
 	}
 	
