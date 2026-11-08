@@ -9,6 +9,10 @@
  */
 package net.wurstclient.hacks;
 
+import java.util.HashMap;
+import java.util.Map;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -19,6 +23,11 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.WorldChangeListener;
+import net.wurstclient.settings.TextFieldSetting;
+import net.wurstclient.util.RegistryIdFilter;
+import net.wurstclient.util.Rotation;
+import net.wurstclient.util.RotationUtils;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
@@ -27,7 +36,7 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
 @SearchTags({"auto breed", "AutoBreeder", "auto breeder", "BreedAura",
 	"breed aura"})
-public final class AutoBreedHack extends Hack implements UpdateListener
+public final class AutoBreedHack extends Hack implements UpdateListener, WorldChangeListener
 {
 	private final SliderSetting range = new SliderSetting("Range",
 		"How far away animals can be to be bred.", 4.5, 1, 10, 0.1,
@@ -66,6 +75,23 @@ public final class AutoBreedHack extends Hack implements UpdateListener
 		"The hand used to feed the animals.", HandMode.values(),
 		HandMode.MAIN_HAND);
 
+	private final TextFieldSetting entities = new TextFieldSetting("Entity types",
+		"Optional entity type IDs, separated by commas. Empty uses the animal groups.", "");
+	private final EnumSetting<AgeFilter> ageFilter = new EnumSetting<>("Age filter",
+		"Native uses Only adults. Baby feeds young animals to speed up growth.",
+		AgeFilter.values(), AgeFilter.NATIVE);
+	private final EnumSetting<FeedMode> feedMode = new EnumSetting<>("Feeding mode",
+		"Native uses the animal's breeding cooldown. Once feeds each animal once."
+			+ " Repeat also waits the configured interval for each animal.",
+		FeedMode.values(), FeedMode.NATIVE);
+	private final SliderSetting breedingInterval = new SliderSetting("Breeding interval",
+		"Minimum ticks between feeding the same animal in Repeat mode.",
+		6600, 1, 24000, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
+	private final CheckboxSetting rotate = new CheckboxSetting("Rotate",
+		"Sends a look packet before feeding an animal.", true);
+	private final RegistryIdFilter entityFilter = new RegistryIdFilter();
+	private final Map<Entity, Long> animalsFed = new HashMap<>();
+	private long ticks;
 	private int cooldown;
 
 	public AutoBreedHack()
@@ -83,19 +109,34 @@ public final class AutoBreedHack extends Hack implements UpdateListener
 		addSetting(otherAnimals);
 		addSetting(onlyAdults);
 		addSetting(hand);
+		addSetting(entities);
+		addSetting(ageFilter);
+		addSetting(feedMode);
+		addSetting(breedingInterval);
+		addSetting(rotate);
 	}
 
 	@Override
 	protected void onEnable()
 	{
 		EVENTS.add(UpdateListener.class, this);
-		cooldown = 0;
+		EVENTS.add(WorldChangeListener.class, this);
+		onWorldChange(MC.level);
 	}
 
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(WorldChangeListener.class, this);
+		onWorldChange(null);
+	}
+
+	@Override
+	public void onWorldChange(ClientLevel world)
+	{
+		animalsFed.clear();
+		ticks = 0;
 		cooldown = 0;
 	}
 
@@ -105,6 +146,8 @@ public final class AutoBreedHack extends Hack implements UpdateListener
 		if(MC.player == null || MC.level == null || MC.gameMode == null)
 			return;
 
+		ticks++;
+		animalsFed.keySet().removeIf(Entity::isRemoved);
 		if(cooldown > 0)
 		{
 			cooldown--;
@@ -128,9 +171,9 @@ public final class AutoBreedHack extends Hack implements UpdateListener
 				continue;
 			if(!isConfigured(animal))
 				continue;
-			if(onlyAdults.isChecked() && animal.isBaby())
+			if(!isCorrectAge(animal) || wasFed(animal))
 				continue;
-			if(animal.isInLove() || !animal.canFallInLove())
+			if(!animal.isBaby() && (animal.isInLove() || !animal.canFallInLove()))
 				continue;
 			if(MC.player.distanceToSqr(animal) > rangeSq)
 				continue;
@@ -144,23 +187,57 @@ public final class AutoBreedHack extends Hack implements UpdateListener
 		if(target == null)
 			return;
 
-		WURST.getRotationFaker()
-			.faceVectorPacket(target.getBoundingBox().getCenter());
-
-		InteractionResult result =
-			MC.gameMode.interact(MC.player, target,
+		try
+		{
+			if(rotate.isChecked())
+				RotationUtils.getNeededRotations(target.getBoundingBox().getCenter())
+					.sendPlayerLookPacket();
+			InteractionResult result =
+				MC.gameMode.interact(MC.player, target,
 				new EntityHitResult(target), breedingHand);
-		if(result.consumesAction())
-			MC.player.swing(breedingHand);
+			if(result.consumesAction())
+			{
+				animalsFed.put(target, ticks);
+				MC.player.swing(breedingHand);
+			}
+			// Retry rejected interactions slowly; successful source modes may
+			// feed the next animal on the next tick.
+			cooldown = feedMode.getSelected() == FeedMode.NATIVE
+				|| !result.consumesAction() ? 10 : 0;
+		}finally
+		{
+			if(rotate.isChecked() && MC.player != null && MC.getConnection() != null)
+				new Rotation(MC.player.getYRot(), MC.player.getXRot())
+					.sendPlayerLookPacket();
+		}
+	}
 
-		// Give the server time to put the animal into love mode so that the
-		// same animal isn't fed twice in a row.
-		cooldown = 10;
+	private boolean wasFed(Animal animal)
+	{
+		Long last = animalsFed.get(animal);
+		if(last == null || feedMode.getSelected() == FeedMode.NATIVE)
+			return false;
+		return feedMode.getSelected() == FeedMode.ONCE
+			|| ticks - last < breedingInterval.getValueI();
+	}
+
+	private boolean isCorrectAge(Animal animal)
+	{
+		return switch(ageFilter.getSelected())
+		{
+			case NATIVE -> !onlyAdults.isChecked() || !animal.isBaby();
+			case BABY -> animal.isBaby();
+			case ADULT -> !animal.isBaby();
+			case BOTH -> true;
+		};
 	}
 
 	private boolean isConfigured(Animal animal)
 	{
 		EntityType<?> type = animal.getType();
+		if(!entities.getValue().isBlank())
+			return entityFilter.contains(entities.getValue(),
+				BuiltInRegistries.ENTITY_TYPE.getKey(type).toString());
 
 		if(type == EntityType.COW || type == EntityType.MOOSHROOM)
 			return cows.isChecked();
@@ -181,6 +258,9 @@ public final class AutoBreedHack extends Hack implements UpdateListener
 
 		return otherAnimals.isChecked();
 	}
+
+	private enum AgeFilter {NATIVE, BABY, ADULT, BOTH}
+	private enum FeedMode {NATIVE, ONCE, REPEAT}
 
 	private enum HandMode
 	{
