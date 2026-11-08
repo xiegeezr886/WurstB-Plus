@@ -364,23 +364,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		return super.getEffect(effect);
 	}
 
-	@Override
-	public double blockInteractionRange()
-	{
-		HackList hax = WurstClient.INSTANCE.getHax();
-		if(hax == null || !hax.reachHack.isEnabled())
-			return super.blockInteractionRange();
 
-		return hax.reachHack.getReachDistance();
-	}
 
-	@Override
-	public double entityInteractionRange()
-	{
-		HackList hax = WurstClient.INSTANCE.getHax();
-		if(hax == null || !hax.reachHack.isEnabled())
-			return super.entityInteractionRange();
 
-		return hax.reachHack.getReachDistance();
-	}
 }
