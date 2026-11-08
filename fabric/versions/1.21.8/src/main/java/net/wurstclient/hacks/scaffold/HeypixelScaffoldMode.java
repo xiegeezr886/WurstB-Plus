@@ -77,8 +77,8 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 	private Rotation lastTargetRotation;
 	private Rotation lastValidPlaceRotation;
 	private BlockHitResult lastHitResult;
-	private BlockHitResult pendingPlace;
 	private int rotateCount;
+	private int skipRecoveryAttempts, skipRecoveryActiveTicks, skipRecoverySkipTicks, skipRecoveryNoPlaceTicks;
 	private boolean checkedBlock;
 	private int stuckTicks;
 	private int searchYTop;
@@ -113,9 +113,10 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 		if(WurstClient.MC.player != null)
 		{
 			oldSlot = WurstClient.MC.player.getInventory().getSelectedSlot();
-			baseYaw = WurstClient.MC.player.getYRot();
+			baseYaw = net.wurstclient.opal.rotation.RotationHelper.getClientHandler().getYawOr(WurstClient.MC.player.getYRot());
 			forwardYaw = resolveBaseYaw();
 			stuckTicks = 0;
+            skipRecoveryAttempts = skipRecoveryActiveTicks = skipRecoverySkipTicks = skipRecoveryNoPlaceTicks = 0;
 			lastValidPlaceRotation = null;
 			duplicateRotNonce = 0;
 			upTellyRotateTick = 0;
@@ -123,7 +124,6 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 			rotateCount = 0;
 			checkedBlock = false;
 			lastHitResult = null;
-			pendingPlace = null;
 			airTick = 0;
 			blockPos = null;
 			enumFacing = null;
@@ -137,19 +137,18 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 	public void onDisable()
 	{
 		hack.resetSlot();
-		var player = WurstClient.MC.player;
-		if(player != null && oldSlot != -1
-			&& player.getInventory().getSelectedSlot() != oldSlot)
-		{
-			player.getInventory().setSelectedSlot(oldSlot);
-			player.connection.send(
-				new ServerboundSetCarriedItemPacket(oldSlot));
-		}
+        var player = WurstClient.MC.player;
+        if(player != null) {
+            var client = net.wurstclient.opal.rotation.RotationHelper.getClientHandler();
+            net.wurstclient.opal.rotation.RotationHelper.getHandler().rotate(new Rotation(client.getYawOr(player.getYRot()),
+                client.getPitchOr(player.getXRot())), new net.wurstclient.opal.rotation.HeypixelRotationModel(getRotateBackSpeed()));
+            net.wurstclient.opal.rotation.RotationHelper.getHandler().reverse();
+        } else net.wurstclient.opal.rotation.RotationHelper.getHandler().reset();
+        skipRecoveryActiveTicks = skipRecoverySkipTicks = skipRecoveryNoPlaceTicks = 0;
 		oldSlot = -1;
 		rotateCount = 0;
 		checkedBlock = false;
 		lastHitResult = null;
-		pendingPlace = null;
 		upTellyRotateTick = 0;
 		upTellyJumpTick = 0;
 	}
@@ -201,15 +200,30 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 		if(player == null || WurstClient.MC.level == null)
 			return;
 
-		updateUpTellyBypassState();
 		if(upTellyBypassRecovering || upTellyBypassActive)
 			return;
 
+        if(hack.recovery.isSkipTickRecoveryActive()) {
+            stuckTicks++;
+            boolean hasBlock = false;
+            for(int slot = 0; slot < 9; slot++)
+                if(ScaffoldUtils.isPlaceableStack(player.getInventory().getItem(slot))) { hasBlock = true; break; }
+            if(!hasBlock || stuckTicks > 10 && blockPos == null) {
+                hack.recovery.setSkipTickRecoveryActive(false);
+                stuckTicks = skipRecoveryAttempts = rotateCount = 0;
+                skipRecoveryActiveTicks = skipRecoverySkipTicks = skipRecoveryNoPlaceTicks = 0;
+            }
+        } else {
+            stuckTicks = skipRecoveryAttempts = rotateCount = 0;
+            skipRecoveryActiveTicks = skipRecoverySkipTicks = skipRecoveryNoPlaceTicks = 0;
+        }
 		selectBlockSlot();
 		if(player.onGround())
 			yLevel = Mth.floor(player.getY()) - 1;
 
 		getBlockInfo();
+		if(handleSkipTickRecovery())
+			return;
 
 		if(isSafeWalkEnabled() && !isTellyEnabled())
 			hack.requestSneak(player.onGround() && isOnBlockEdge(0.3F));
@@ -230,7 +244,7 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 			enumFacing = null;
 
 			float clientYaw = resolveBaseYaw();
-			float clientPitch = player.getXRot();
+			float clientPitch = net.wurstclient.opal.rotation.RotationHelper.getClientHandler().getPitchOr(player.getXRot());
 			forwardYaw = clientYaw;
 			Rotation target = new Rotation(clientYaw, clientPitch);
 			lastTargetRotation = target;
@@ -336,11 +350,7 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 			}
 		if(slot == -1)
 			return;
-		if(player.getInventory().getSelectedSlot() != slot)
-		{
-			player.getInventory().setSelectedSlot(slot);
-			player.connection.send(new ServerboundSetCarriedItemPacket(slot));
-		}
+		hack.selectBlockSlot(slot, false);
 	}
 
 	private boolean place()
@@ -355,23 +365,21 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 
 		if(!checkRotation)
 		{
-			pendingPlace = new BlockHitResult(getVec3(blockPos, enumFacing),
-				enumFacing, blockPos, false);
-			return true;
+			return performPlace(new BlockHitResult(getVec3(blockPos, enumFacing),
+				enumFacing, blockPos, false));
 		}
 
-		Rotation current = lastValidPlaceRotation != null
-			? lastValidPlaceRotation
-			: hack.getLastRotation() != null ? hack.getLastRotation()
-				: ScaffoldUtils.getRotation();
+        Rotation current = net.wurstclient.opal.rotation.RotationHelper.getHandler().isActive()
+            ? net.wurstclient.opal.rotation.RotationHelper.getClientHandler().getRotation() : null;
+        if(current == null) current = lastValidPlaceRotation != null
+            ? lastValidPlaceRotation : ScaffoldUtils.getRotation();
 		BlockHitResult hitResult = ScaffoldUtils.raycastBlock(current,
 			hack.getRange());
 		if(hitResult != null && hitResult.getBlockPos().equals(blockPos)
 			&& hitResult.getDirection() == enumFacing)
 		{
 			lastValidPlaceRotation = current;
-			pendingPlace = hitResult;
-			return true;
+			return performPlace(hitResult);
 		}
 
 		if((isTellyEnabled() || hack.overrideRaycast.isChecked())
@@ -380,19 +388,14 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 			&& lastHitResult.getDirection() == enumFacing)
 		{
 			lastValidPlaceRotation = lastTargetRotation;
-			pendingPlace = lastHitResult;
-			return true;
+			return performPlace(lastHitResult);
 		}
 		return false;
 	}
 
 	@Override
-	public void onPostMotion()
+	public void cancelPendingPlacement()
 	{
-		BlockHitResult hitResult = pendingPlace;
-		pendingPlace = null;
-		if(hitResult != null)
-			performPlace(hitResult);
 	}
 
 	private boolean performPlace(BlockHitResult hitResult)
@@ -400,8 +403,6 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 		var player = WurstClient.MC.player;
 		ItemStack stack = player.getMainHandItem();
 		if(!(stack.getItem() instanceof BlockItem))
-			return false;
-		if(!hack.canPlaceThisTick())
 			return false;
 
 		if(useInteractBeforePlace())
@@ -415,6 +416,7 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 			return false;
 
 		stuckTicks = 0;
+		skipRecoveryAttempts = 0;
 		hack.notePlaced(
 			hitResult.getBlockPos().relative(hitResult.getDirection()));
 		return true;
@@ -592,7 +594,7 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 		Rotation direct = ScaffoldUtils
 			.getVanillaRotation(ScaffoldUtils.rotationFromBlock(pos, face));
 		Rotation reverseYaw = new Rotation(
-			Mth.wrapDegrees(WurstClient.MC.player.getYRot() - 180.0F),
+			Mth.wrapDegrees(net.wurstclient.opal.rotation.RotationHelper.getClientHandler().getYawOr(WurstClient.MC.player.getYRot()) - 180.0F),
 			direct.pitch());
 
 		if(onAir())
@@ -698,7 +700,7 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 	protected float resolveBaseYaw()
 	{
 		return WurstClient.MC.player == null ? 0
-			: WurstClient.MC.player.getYRot();
+			: net.wurstclient.opal.rotation.RotationHelper.getClientHandler().getYawOr(WurstClient.MC.player.getYRot());
 	}
 
 	protected boolean shouldTrackMovementYawDuringTelly()
@@ -761,7 +763,7 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 		return upTellyBypassActive || upTellyBypassRecovering;
 	}
 
-	private void updateUpTellyBypassState()
+	public void updateUpTellyBypassState()
 	{
 		var player = WurstClient.MC.player;
 		boolean shouldBypass = hack.upTellyBypass.isChecked()
@@ -802,22 +804,179 @@ public class HeypixelScaffoldMode implements ScaffoldMode
 		return hypixel ? "Hypixel" : "Heypixel";
 	}
 
-	// Kept for parity with the reference; Wurst has no stuck/skip-tick module.
-	protected boolean handleSkipTickRecovery()
-	{
-		return false;
-	}
+    private boolean handleSkipTickRecovery() {
+        if (!hack.recovery.isSkipTickRecoveryActive()) {
+            return false;
+        }
 
-	protected void runSkidRescueRecursive(boolean tellyMode, float rotateSpeed,
-		int depth)
-	{
-		if(depth >= MAX_RESCUE_ATTEMPTS || blockPos == null
-			|| enumFacing == null)
-			return;
-		Rotation rotation = getRotation(blockPos, enumFacing);
-		if(rotation == null)
-			return;
-		rotateTo(rotation, rotateSpeed, true);
-		place();
-	}
+        skipRecoveryActiveTicks++;
+        if (skipRecoveryActiveTicks > 26) {
+            hack.recovery.markSkipTickRecoveryFailed();
+            skipRecoveryAttempts = 0;
+            skipRecoverySkipTicks = 0;
+            skipRecoveryNoPlaceTicks = 0;
+            return true;
+        }
+
+        if (skipRecoverySkipTicks > 0 && skipRecoveryNoPlaceTicks > 6) {
+            hack.recovery.markSkipTickRecoveryFailed();
+            skipRecoveryAttempts = 0;
+            skipRecoverySkipTicks = 0;
+            skipRecoveryNoPlaceTicks = 0;
+            return true;
+        }
+
+        if (!onAir()) {
+            hack.recovery.setSkipTickRecoveryActive(false);
+            skipRecoveryAttempts = 0;
+            rotateCount = 0;
+            skipRecoveryActiveTicks = 0;
+            skipRecoverySkipTicks = 0;
+            skipRecoveryNoPlaceTicks = 0;
+            return true;
+        }
+
+        final BlockPos recoveryBlockPos = hack.recovery.getSkipTickRecoveryBlockPos();
+        final Direction recoveryFace = hack.recovery.getSkipTickRecoveryFace();
+        if (recoveryBlockPos != null && recoveryFace != null) {
+            this.blockPos = recoveryBlockPos;
+            this.enumFacing = recoveryFace;
+        }
+
+        final boolean hasTarget = blockPos != null && enumFacing != null;
+        if (!hasTarget) {
+            skipRecoveryAttempts++;
+            skipRecoveryNoPlaceTicks++;
+            if (skipRecoveryAttempts > 10) {
+                hack.recovery.markSkipTickRecoveryFailed();
+                skipRecoveryAttempts = 0;
+                skipRecoverySkipTicks = 0;
+                skipRecoveryNoPlaceTicks = 0;
+            }
+            return true;
+        }
+
+        if (skipRecoveryAttempts > 12) {
+            hack.recovery.markSkipTickRecoveryFailed();
+            skipRecoveryAttempts = 0;
+            rotateCount = 0;
+            skipRecoverySkipTicks = 0;
+            skipRecoveryNoPlaceTicks = 0;
+            return true;
+        }
+
+        final Rotation rotation = getRotation(blockPos, enumFacing);
+        if (rotation == null) {
+            skipRecoveryAttempts++;
+            skipRecoveryNoPlaceTicks++;
+            return true;
+        }
+
+        applyPlacementRotation(rotation, this.getRotateSpeed());
+        sendRescueRotationPacket(rotation);
+        final boolean placed = performPlace(new BlockHitResult(getVec3(blockPos, enumFacing), enumFacing, blockPos, false));
+        if (placed) {
+            skipRecoveryNoPlaceTicks = 0;
+            skipRecoveryAttempts = 0;
+            hack.recovery.setSkipTickRecoveryActive(false);
+            skipRecoveryActiveTicks = 0;
+            skipRecoverySkipTicks = 0;
+        } else {
+            net.wurstclient.opal.SkipTickUtility.addSkipTicks(1);
+            skipRecoverySkipTicks++;
+            skipRecoveryNoPlaceTicks++;
+        }
+        skipRecoveryAttempts++;
+
+        return true;
+    }
+
+    private void applyPlacementRotation(Rotation rotation, float rotateSpeed) {
+        if (rotation == null) {
+            return;
+        }
+        this.lastTargetRotation = rotation;
+        hack.setPacketRotation(rotation, 2);
+        rotateTo(rotation, rotateSpeed, false);
+    }
+
+    private void runSkidRescueRecursive(boolean tellyMode, float rotateSpeed, int depth) {
+        if (depth >= MAX_RESCUE_ATTEMPTS || WurstClient.MC.player == null || WurstClient.MC.level == null) {
+            return;
+        }
+
+        getBlockInfo();
+        if (blockPos == null || enumFacing == null) {
+            return;
+        }
+
+        Rotation rotation = getRotation(blockPos, enumFacing);
+        if (rotation == null) {
+            return;
+        }
+
+        boolean reachable = computeReachable(tellyMode ? true : blockPos != null);
+        if (checkedBlock && !reachable && rotateCount < MAX_RESCUE_ATTEMPTS) {
+            rotateCount++;
+            skipRecoveryAttempts++;
+            net.wurstclient.opal.SkipTickUtility.addSkipTicks(1);
+            sendRescueRotationPacket(rotation);
+            performPlace(new BlockHitResult(getVec3(blockPos, enumFacing), enumFacing, blockPos, false));
+            runSkidRescueRecursive(tellyMode, rotateSpeed, depth + 1);
+        } else {
+            applyPlacementRotation(rotation, rotateSpeed);
+            place();
+            rotateCount = Math.max(0, rotateCount - 1);
+        }
+    }
+
+    private boolean computeReachable(boolean defaultReachable) {
+        boolean reachable = defaultReachable;
+        if (WurstClient.MC.player != null && blockPos != null && WurstClient.MC.player.getDeltaMovement().y < -0.1D) {
+            if (blockPos.getY() > predictYAfterTicks(2)) {
+                reachable = false;
+            }
+        }
+        return reachable;
+    }
+
+    private double predictYAfterTicks(int ticks) {
+        double y = WurstClient.MC.player.getY();
+        double motionY = WurstClient.MC.player.getDeltaMovement().y;
+        for (int i = 0; i < ticks; i++) {
+            motionY = (motionY - 0.08D) * 0.98D;
+            y += motionY;
+        }
+        return y;
+    }
+
+    private void sendRescueRotationPacket(Rotation rotation) {
+        if (rotation == null || WurstClient.MC.player == null) {
+            return;
+        }
+        hack.setPacketRotation(rotation, 2);
+        rotation.sendPlayerLookPacket();
+    }
+
+    public boolean shouldSuppressSkipTickRecoveryTrigger() {
+        if (WurstClient.MC.player == null || WurstClient.MC.level == null) {
+            return false;
+        }
+
+        if (!this.isTellyEnabled() || WurstClient.MC.player.onGround() || !ScaffoldUtils.isMoving()) {
+            return false;
+        }
+
+        final int baseTellyTick = this.getTellyTick();
+        int dynamicTellyTick = baseTellyTick;
+        if (shouldAllowUpTelly()) {
+            dynamicTellyTick = Math.max(1, baseTellyTick - (isDiagonalYaw(forwardYaw) ? 3 : 2));
+        }
+
+        if (airTick > dynamicTellyTick + 1) {
+            return false;
+        }
+
+        return WurstClient.MC.player.getDeltaMovement().y > -0.16D && WurstClient.MC.player.fallDistance < 1.6F;
+    }
 }

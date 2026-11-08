@@ -117,4 +117,13 @@ public abstract class GameRendererMixin implements AutoCloseable
 				deltaTracker.getGameTimeDeltaPartialTick(false));
 	}
 
+
+	@ModifyReturnValue(method = "getFov(Lnet/minecraft/client/Camera;FZ)F",
+		at = @At("RETURN"))
+	private float onGetFov(float original,
+		net.minecraft.client.Camera camera, float partialTicks, boolean world)
+	{
+		return (float)WurstClient.INSTANCE.getHax().customFovHack
+			.changeFov(original, world);
+	}
 }

@@ -39,9 +39,13 @@ public abstract class ClientClockManagerMixin
 	@ModifyReturnValue(method = "totalTicks()J", at = @At("RETURN"))
 	private long onGetTotalTicks(long original)
 	{
-		NoWeatherHack noWeather = WurstClient.INSTANCE.getHax().noWeatherHack;
+		var hax = WurstClient.INSTANCE.getHax();
+		if(hax == null)
+			return original;
+		NoWeatherHack noWeather = hax.noWeatherHack;
 
-		if(!noWeather.isTimeChanged())
+		if(!noWeather.isTimeChanged()
+			&& !WurstClient.INSTANCE.getHax().timeChangerHack.isEnabled())
 			return original;
 
 		ClientLevel level = Minecraft.getInstance().level;
@@ -55,6 +59,10 @@ public abstract class ClientClockManagerMixin
 		if(overworld.isEmpty() || level.clockManager()
 			.getInstance(overworld.get()) != (Object)this)
 			return original;
+
+		if(!noWeather.isTimeChanged())
+			return WurstClient.INSTANCE.getHax().timeChangerHack
+				.changeTime(original);
 
 		// Replace the time-of-day while keeping the day number
 		long dayNumber = original / 24000;

@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 
 import net.minecraft.client.ClientClockManager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.world.clock.WorldClock;
 import net.minecraft.world.clock.WorldClocks;
@@ -30,15 +31,27 @@ public abstract class ClientClockManagerMixin
 	@ModifyReturnValue(method = "getTotalTicks", at = @At("RETURN"))
 	private long onGetTotalTicks(long original, Holder<WorldClock> definition)
 	{
-		NoWeatherHack noWeather = WurstClient.INSTANCE.getHax().noWeatherHack;
+		var hax = WurstClient.INSTANCE.getHax();
+		if(hax == null)
+			return original;
+		NoWeatherHack noWeather = hax.noWeatherHack;
 		
-		if(!noWeather.isTimeChanged())
+		if(!noWeather.isTimeChanged()
+			&& !WurstClient.INSTANCE.getHax().timeChangerHack.isEnabled())
 			return original;
 		
+		var level = Minecraft.getInstance().level;
+		if(level == null || level.clockManager() != (Object)this)
+			return original;
+
 		// Only modify the overworld clock
 		if(!definition.is(WorldClocks.OVERWORLD))
 			return original;
 		
+		if(!noWeather.isTimeChanged())
+			return WurstClient.INSTANCE.getHax().timeChangerHack
+				.changeTime(original);
+
 		// Replace the time-of-day while keeping the day number
 		long dayNumber = original / 24000;
 		return dayNumber * 24000 + noWeather.getChangedTime();

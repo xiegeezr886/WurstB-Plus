@@ -24,7 +24,7 @@ public final class KeepSprintHack extends Hack
 
 	public boolean shouldKeepSprint(Player player)
 	{
-		return KeepSprintPolicy.shouldPreserveSprint(isEnabled(),
+		return KeepSprintPolicy.shouldPreserveSprint(isEnabled() || WURST.getHax().killauraHack.shouldKeepSprint(),
 			player == MC.player, player.isSprinting());
 	}
 }

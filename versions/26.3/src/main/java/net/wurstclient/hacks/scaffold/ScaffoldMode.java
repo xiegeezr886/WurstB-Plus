@@ -54,7 +54,17 @@ public interface ScaffoldMode
 	 * Called after the outgoing movement packet has been sent. This is the
 	 * Wurst equivalent of OpenOpal's {@code PostMovementPacketEvent}.
 	 */
+	default void onPreMotion() {}
+
+	default void onMouseInput() {}
+
+	default void onPostMove() {}
+
 	default void onPostMotion()
+	{}
+
+	/** Drops a plan when its world, mode or rotation ownership is no longer valid. */
+	default void cancelPendingPlacement()
 	{}
 
 	/**

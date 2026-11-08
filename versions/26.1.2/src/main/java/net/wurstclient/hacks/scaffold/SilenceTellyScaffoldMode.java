@@ -47,10 +47,6 @@ import net.wurstclient.util.Rotation;
  * outgoing movement packet, the block is placed after that packet has been
  * acknowledged, and the armed placement is executed on the next input phase.
  *
- * <p>OpenOpal's StuckModule / SkipTick rescue and outbound packet blockage are
- * not ported because Wurst has no equivalent subsystems; everything else
- * (target search, rescue rotation, eagle, parkour jump, block slot modes,
- * duplicate rotation, sensitivity fix, block fly and rotation abuse) is.
  */
 public final class SilenceTellyScaffoldMode implements ScaffoldMode
 {
@@ -100,6 +96,9 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 	private Vec3 placementArmedEyePos;
 	private float placementArmedYawDelta = Float.NaN;
 	private Rotation serverRotation;
+    private Rotation observedMovementRotation;
+    private int observedMovementAge = -1;
+    private Vec3 observedPacketEye;
 	private int originalSlot = -1;
 
 	public SilenceTellyScaffoldMode(ScaffoldWalkHack hack)
@@ -117,6 +116,8 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 	public void onEnable()
 	{
 		resetState();
+        blockFlyDesyncing = blockFlySwapped = false;
+        blockFlyTicks = 0;
 		if(WurstClient.MC.player != null)
 		{
 			originalSlot = WurstClient.MC.player.getInventory().getSelectedSlot();
@@ -132,14 +133,7 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 	{
 		releaseModuleSneak();
 		resetBlockFly();
-		var player = WurstClient.MC.player;
-		if(player != null && originalSlot != -1
-			&& player.getInventory().getSelectedSlot() != originalSlot)
-		{
-			player.getInventory().setSelectedSlot(originalSlot);
-			player.connection
-				.send(new ServerboundSetCarriedItemPacket(originalSlot));
-		}
+		hack.resetSlot();
 		originalSlot = -1;
 		resetState();
 	}
@@ -154,27 +148,25 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 		}
 
 		var player = WurstClient.MC.player;
-		lastForward = player.input.getMoveVector().y;
-		lastSideways = player.input.getMoveVector().x;
-
-		if(movementCancelTicks > 0)
-		{
-			((net.wurstclient.mixin.ClientInputAccessor)player.input)
-				.wurst$setMoveVector(net.minecraft.world.phys.Vec2.ZERO);
-			movementCancelTicks--;
-		}
-
-		updateEagleSneak();
 
 		if(placementRequestAge != player.tickCount)
 			clearPlacementRequest();
 
+        if(placementArmed && placementArmedAge != player.tickCount) clearPlacementArmed();
+        if(placementArmed && isSlotStillValid(placementArmedSlot)) {
+            applySlot(placementArmedSlot);
+            return;
+        }
+        clearPlacementArmed();
 		preparePlacementTarget();
 
-		if(!hack.isSilenceTellyTellySetting()
-			|| blockSlot != null && isSlotStillValid(blockSlot))
-			tryJump();
-		requestCurrentPlacement();
+	}
+
+	@Override
+	public void cancelPendingPlacement()
+	{
+		clearPlacementRequest();
+		clearPlacementArmed();
 	}
 
 	@Override
@@ -188,11 +180,16 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 		}
 
 		Rotation previousServerRotation = serverRotation;
-		var rotationFaker = WurstClient.INSTANCE.getRotationFaker();
-		serverRotation = new Rotation(rotationFaker.getServerYaw(),
-			rotationFaker.getServerPitch());
+        boolean observed = observedMovementRotation != null
+            && observedMovementAge == WurstClient.MC.player.tickCount;
+        if(observed) serverRotation = observedMovementRotation;
+        else if(serverRotation == null) serverRotation = ScaffoldUtils.getRotation();
+        Vec3 sentEye = observedPacketEye;
+        observedMovementRotation = null;
+        observedMovementAge = -1;
+        observedPacketEye = null;
 
-		if(!hasCurrentPlacementRequest() || packetRotation == null)
+		if(!hasCurrentPlacementRequest() || packetRotation == null || isOutgoingPlacementBlocked())
 		{
 			clearPlacementRequest();
 			return;
@@ -201,7 +198,7 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 		TellyBlockData requestedData = placementRequestData;
 		SlotData requestedSlot = placementRequestSlot;
 		Rotation appliedRotation = serverRotation;
-		Vec3 requestedEyePos = placementRequestEyePos;
+		Vec3 requestedEyePos = observed && sentEye != null ? sentEye : WurstClient.MC.player.getEyePosition();
 		clearPlacementRequest();
 
 		Vec3 eyePos = requestedEyePos != null ? requestedEyePos
@@ -215,6 +212,7 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 			|| !canPlaceAt(requestedData, hitResult, requestedSlot))
 			return;
 
+		debug("placement armed face=" + requestedData.facing());
 		placementArmed = true;
 		placementArmedAge = WurstClient.MC.player.tickCount;
 		placementArmedData = requestedData;
@@ -225,17 +223,76 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 			: Math.abs(Mth.wrapDegrees(
 				appliedRotation.yaw() - previousServerRotation.yaw()));
 
-		// The movement packet is already on the wire at this point, so the
-		// server has seen the placement rotation. Execute the armed placement
-		// immediately (OpenOpal's next input phase is this same tick).
-		if(tryPlaceArmed())
-			invalidateSearchCache();
-	}
+    }
+
+    @Override
+    public void onMouseInput() {
+        if(!ready()) { cancelPendingPlacement(); return; }
+        net.wurstclient.opal.MouseHelper.getRightButton().setDisabled();
+        boolean armed = placementArmed;
+        if(tryPlaceArmed()) invalidateSearchCache();
+        if(armed) preparePlacementTarget();
+        requestCurrentPlacement();
+    }
+
+    /** Original SilenceTelly instantaneous packet hook, after all packet listeners. */
+    public void onImmediateSend(net.minecraft.network.protocol.Packet<?> packet) {
+        if(!ready() || !(packet instanceof net.minecraft.network.protocol.game.ServerboundMovePlayerPacket move)
+            || !move.hasRotation()) return;
+        var player = WurstClient.MC.player;
+        Rotation outbound = new Rotation(move.getYRot(player.getYRot()), move.getXRot(player.getXRot()));
+        Vec3 packetEye = new Vec3(move.getX(player.getX()), move.getY(player.getY()) + player.getEyeHeight(), move.getZ(player.getZ()));
+        boolean placement = hasCurrentPlacementRequest() && packetRotation != null && placementRequestEyePos != null;
+        if(placement && !SilenceTellyRaycast.didHitBlockFace(packetEye, outbound,
+            placementRequestData.pos(), placementRequestData.facing(), true)) {
+            var access = (net.wurstclient.mixin.OpenOpalMovementAccess)move;
+            access.opal$setYaw(packetRotation.yaw());
+            access.opal$setPitch(packetRotation.pitch());
+            outbound = packetRotation;
+        }
+        if(placement) packetRotation = outbound;
+        observedMovementRotation = outbound;
+        observedMovementAge = player.tickCount;
+        observedPacketEye = packetEye;
+    }
+
+    private boolean isOutgoingPlacementBlocked() {
+        return WurstClient.INSTANCE.getHax().blinkHack.isEnabled();
+    }
+
+    @Override
+    public void onPreMotion() {
+        if(!hasCurrentPlacementRequest() || isOutgoingPlacementBlocked()) {
+            packetRotation = null;
+            return;
+        }
+        Vec3 eyePos = WurstClient.MC.player.getEyePosition();
+        Rotation target = placementRequestRotation;
+        if(!SilenceTellyRaycast.didHitBlockFace(eyePos, target,
+            placementRequestData.pos(), placementRequestData.facing(), true)) {
+            Rotation stable = SilenceTellyRotation.getClosestToBlockFace(
+                placementRequestData.pos(), placementRequestData.facing(),
+                ScaffoldUtils.getRotation(), eyePos, hack.silenceFixRotation.isChecked());
+            if(stable == null) { packetRotation = null; return; }
+            target = applyDuplicateRotation(stable);
+            if(!SilenceTellyRaycast.didHitBlockFace(eyePos, target,
+                placementRequestData.pos(), placementRequestData.facing(), true)) target = stable;
+        }
+        target = avoidDuplicateYawDelta(target, eyePos, placementRequestData);
+        if(!SilenceTellyRaycast.didHitBlockFace(eyePos, target,
+            placementRequestData.pos(), placementRequestData.facing(), true)) {
+            packetRotation = null;
+            return;
+        }
+        packetRotation = target;
+        placementRequestEyePos = eyePos;
+        hack.setPacketRotation(target, 1);
+    }
 
 	@Override
 	public ScaffoldWalkHack.RotationRequest getPacketRotation()
 	{
-		if(!hasCurrentPlacementRequest() || packetRotation == null)
+		if(!hasCurrentPlacementRequest() || packetRotation == null || isOutgoingPlacementBlocked())
 			return null;
 		return new ScaffoldWalkHack.RotationRequest(packetRotation, false);
 	}
@@ -252,6 +309,7 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 		if(blockSlot == null || !isSlotStillValid(blockSlot))
 		{
 			clearTarget();
+            hack.resetSlot();
 			return;
 		}
 
@@ -275,7 +333,7 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 	{
 		if(blockData == null || blockSlot == null)
 			return;
-		if(!canPlace)
+		if(!canPlace || isOutgoingPlacementBlocked())
 			return;
 
 		Rotation appliedRotation = getAppliedRotation();
@@ -348,6 +406,7 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 
 	private boolean tryPlaceArmed()
 	{
+		if(isOutgoingPlacementBlocked()) { clearPlacementArmed(); return false; }
 		if(!placementArmed)
 			return false;
 		if(placementArmedAge != WurstClient.MC.player.tickCount
@@ -360,7 +419,7 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 		TellyBlockData armedData = placementArmedData;
 		SlotData armedSlot = placementArmedSlot;
 		Rotation armedRotation = placementArmedRotation;
-		Vec3 armedEyePos = placementArmedEyePos;
+		Vec3 armedEyePos = WurstClient.MC.player.getEyePosition();
 		float armedYawDelta = placementArmedYawDelta;
 		Vec3 eyePos = armedEyePos != null ? armedEyePos
 			: WurstClient.MC.player.getEyePosition();
@@ -384,49 +443,30 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 		applySlot(armedSlot);
 
 		var player = WurstClient.MC.player;
-		boolean spoof = hack.silenceSpoofItem.isChecked()
-			&& armedSlot.hand() == InteractionHand.MAIN_HAND;
-		int previousSlot = player.getInventory().getSelectedSlot();
-		if(spoof && previousSlot != armedSlot.slot())
-			player.getInventory().setSelectedSlot(armedSlot.slot());
+		if(hack.silenceAbuseRotation.isChecked())
+			abuseRotation(30.0F, armedRotation.yaw());
+		if(hack.silenceBlockFly.isChecked())
+			updateBlockFlyBeforePlace();
+		if(hack.silenceInteractBeforePlace.isChecked())
+			interactItemBeforePlace();
 
-		try
-		{
-			if(hack.silenceAbuseRotation.isChecked())
-				abuseRotation(30.0F, armedRotation.yaw());
-			if(hack.silenceBlockFly.isChecked())
-				updateBlockFlyBeforePlace();
-			if(hack.silenceInteractBeforePlace.isChecked())
-				interactItemBeforePlace();
+		clearPlacementArmed();
+		InteractionResult result = WurstClient.MC.gameMode.useItemOn(
+			player, armedSlot.hand(), hitResult);
+		if(!result.consumesAction())
+			return false;
 
-			clearPlacementArmed();
-			if(!hack.canPlaceThisTick())
-				return false;
-			InteractionResult result = WurstClient.MC.gameMode.useItemOn(
-				player, armedSlot.hand(), hitResult);
-			if(!result.consumesAction())
-				return false;
-
-			if(hack.silenceNoSwing.isChecked())
-				SwingHand.SERVER.swing(armedSlot.hand());
-			else
-				player.swing(armedSlot.hand());
-		}finally
-		{
-			if(spoof && player.getInventory().getSelectedSlot() != previousSlot)
-			{
-				player.getInventory().setSelectedSlot(previousSlot);
-				player.connection.send(
-					new ServerboundSetCarriedItemPacket(previousSlot));
-			}
-		}
-
+		if(hack.silenceNoSwing.isChecked())
+			SwingHand.SERVER.swing(armedSlot.hand());
+		else
+			player.swing(armedSlot.hand());
 		lastPlaceAge = player.tickCount;
 		if(!Float.isNaN(armedYawDelta))
 			lastPlacedYawDelta = armedYawDelta;
 		placeCount++;
 		lastPlacePosition = armedData.placePos();
 		hack.notePlaced(lastPlacePosition);
+        debug("place ok hand=" + armedSlot.hand() + " slot=" + armedSlot.slot() + " face=" + armedData.facing());
 		return true;
 	}
 
@@ -674,11 +714,26 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 		}
 	}
 
-	private void tryJump()
+    @Override
+    public void onMoveInput(net.wurstclient.events.MoveInputListener.MoveInputEvent event) {
+        if(!ready()) return;
+        lastForward = event.getForward();
+        lastSideways = event.getSideways();
+        if(movementCancelTicks > 0) {
+            event.setForward(0); event.setSideways(0);
+            movementCancelTicks--;
+            return;
+        }
+        updateEagleSneak(event);
+        if(hack.isSilenceTellyTellySetting() && blockSlot != null && isSlotStillValid(blockSlot))
+            tryJump(event);
+    }
+
+	private void tryJump(net.wurstclient.events.MoveInputListener.MoveInputEvent event)
 	{
 		var player = WurstClient.MC.player;
-		if(!player.onGround() || player.isShiftKeyDown()
-			|| !ScaffoldUtils.isMoving())
+		if(!player.onGround() || player.isShiftKeyDown() || event.isSneak()
+            || !ScaffoldUtils.isMoving() && Math.abs(event.getForward()) < 1.0E-4F && Math.abs(event.getSideways()) < 1.0E-4F)
 			return;
 		if(WurstClient.MC.options.keyJump.isDown()
 			|| WurstClient.MC.options.keyUse.isDown())
@@ -697,7 +752,8 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 		};
 		if(jump)
 		{
-			hack.requestJump();
+			((net.wurstclient.mixin.LivingEntityAccessor)player).wurst_setNoJumpDelay(0);
+            event.setJump(true);
 			if(hack.silenceEagle.isChecked())
 			{
 				waitingForEagleSneak = true;
@@ -720,7 +776,7 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 			|| WurstClient.MC.level.getBlockState(frontTwo).isAir();
 	}
 
-	private void updateEagleSneak()
+	private void updateEagleSneak(net.wurstclient.events.MoveInputListener.MoveInputEvent event)
 	{
 		if(!waitingForEagleSneak)
 			return;
@@ -731,6 +787,7 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 			&& !WurstClient.MC.options.keyShift.isDown())
 		{
 			hack.requestSneak(true);
+            event.setSneak(true);
 			modulePressedSneak = true;
 		}
 		if(tellyJumpTicks >= end)
@@ -940,18 +997,15 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 			: new SlotData(bestSlot, InteractionHand.MAIN_HAND);
 	}
 
-	private void applySlot(SlotData slot)
-	{
-		if(slot.hand() != InteractionHand.MAIN_HAND)
-			return;
-		var player = WurstClient.MC.player;
-		boolean changed = player.getInventory().getSelectedSlot() != slot.slot();
-		if(changed && !hack.silenceSpoofItem.isChecked())
-			player.getInventory().setSelectedSlot(slot.slot());
-		if(changed)
-			player.connection
-				.send(new ServerboundSetCarriedItemPacket(slot.slot()));
-	}
+    private void applySlot(SlotData slot) {
+        if(slot.hand() != InteractionHand.MAIN_HAND) {
+            net.wurstclient.opal.SlotHelper.getInstance().stop();
+            return;
+        }
+        net.wurstclient.opal.SlotHelper.setCurrentItem(slot.slot()).silence(
+            hack.silenceSpoofItem.isChecked() ? net.wurstclient.opal.SlotHelper.Silence.FULL
+                : net.wurstclient.opal.SlotHelper.Silence.NONE);
+    }
 
 	private boolean isSlotStillValid(SlotData slot)
 	{
@@ -1159,6 +1213,11 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 		clearPlacementRequest();
 		clearPlacementArmed();
 		serverRotation = null;
+        lastDebugMessage = null;
+        lastDebugAge = -1;
+        observedMovementRotation = null;
+        observedMovementAge = -1;
+        observedPacketEye = null;
 	}
 
 	private void releaseModuleSneak()
@@ -1169,6 +1228,16 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
 			modulePressedSneak = false;
 		}
 	}
+
+    private String lastDebugMessage;
+    private int lastDebugAge;
+    private void debug(String message) {
+        if(!hack.silenceDebug.isChecked() || WurstClient.MC.player == null) return;
+        if(message.equals(lastDebugMessage) && WurstClient.MC.player.tickCount - lastDebugAge < 8) return;
+        lastDebugMessage = message;
+        lastDebugAge = WurstClient.MC.player.tickCount;
+        net.wurstclient.util.ChatUtils.message("SilenceTelly | " + message);
+    }
 
 	private float randomFloat(float min, float max)
 	{

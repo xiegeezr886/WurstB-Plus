@@ -57,10 +57,11 @@ public abstract class GameRendererMixin implements AutoCloseable
 
 	@ModifyReturnValue(at = @At("RETURN"),
 		method = "getFov(Lnet/minecraft/client/Camera;FZ)D")
-	private double onGetFov(double original)
+	private double onGetFov(double original,
+		net.minecraft.client.Camera camera, float partialTicks, boolean world)
 	{
-		return WurstClient.INSTANCE.getOtfs().zoomOtf
-			.changeFovBasedOnZoom(original);
+		return (double)WurstClient.INSTANCE.getHax().customFovHack
+			.changeFov(original, world);
 	}
 
 	@WrapOperation(at = @At(value = "INVOKE",
@@ -77,28 +78,7 @@ public abstract class GameRendererMixin implements AutoCloseable
 		return original.call(instance, maxDistance, tickDelta, true);
 	}
 
-	@Inject(at = @At("RETURN"), method = "pick(F)V")
-	private void trimReachResult(float partialTicks, CallbackInfo ci)
-	{
-		HackList hax = WurstClient.INSTANCE.getHax();
-		if(hax == null)
-			return;
-		ReachHack reach = hax.reachHack;
-		if(!reach.isEnabled() || minecraft.getCameraEntity() == null
-			|| minecraft.hitResult == null)
-			return;
 
-		HitResult result = minecraft.hitResult;
-		float allowed = result instanceof EntityHitResult
-			? reach.getEntityRange() : reach.getBlockRange();
-		Vec3 eyes = minecraft.getCameraEntity().getEyePosition(partialTicks);
-		if(eyes.distanceToSqr(result.getLocation()) <= allowed * allowed)
-			return;
-
-		minecraft.crosshairPickEntity = null;
-		minecraft.hitResult = minecraft.getCameraEntity().pick(
-			reach.getBlockRange(), partialTicks, false);
-	}
 
 	@WrapOperation(
 		at = @At(value = "INVOKE",

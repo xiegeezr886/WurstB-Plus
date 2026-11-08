@@ -128,13 +128,9 @@ public final class ScaffoldUtils
 	 * this through {@code RotationFaker}; OpenOpal reads it from the real
 	 * player because its rotation handler changes the player itself.
 	 */
-	public static Rotation getRotation()
-	{
-		var faker = WurstClient.INSTANCE.getRotationFaker();
-		if(faker.hasServerRotation())
-			return new Rotation(faker.getServerYaw(), faker.getServerPitch());
-		return new Rotation(MC.player.getYRot(), MC.player.getXRot());
-	}
+    public static Rotation getRotation() {
+        return net.wurstclient.opal.rotation.RotationHelper.getPlayerRotation();
+    }
 
 	/**
 	 * OpenOpal's mouse-sensitivity GCD patch. Every returned rotation is an

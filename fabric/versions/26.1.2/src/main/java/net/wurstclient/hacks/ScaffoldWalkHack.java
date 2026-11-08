@@ -57,6 +57,8 @@ import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hacks.aura.OpenAura;
 import net.wurstclient.hacks.scaffold.HeypixelScaffoldMode;
+import net.wurstclient.hacks.scaffold.OpenOpalScaffoldRecovery;
+import net.wurstclient.hacks.scaffold.OpenOpalScaffoldRecovery.SelfRescueMode;
 import net.wurstclient.hacks.scaffold.HypixelScaffoldMode;
 import net.wurstclient.hacks.scaffold.PlayerSimulation;
 import net.wurstclient.hacks.scaffold.ScaffoldMode;
@@ -73,6 +75,8 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.util.Rotation;
+import net.wurstclient.util.RotationQueue;
+import net.wurstclient.util.MotionActionQueue;
 
 /**
  * Scaffold ported from OpenOpal's {@code ScaffoldModule} and its eight mode
@@ -83,7 +87,7 @@ import net.wurstclient.util.Rotation;
 @SearchTags({"scaffold walk", "BridgeWalk", "bridge walk", "AutoBridge",
 	"auto bridge", "tower", "telly"})
 public final class ScaffoldWalkHack extends Hack
-	implements UpdateListener, MoveInputListener, PreMotionListener,
+	implements net.wurstclient.events.GUIRenderListener, UpdateListener, MoveInputListener, PreMotionListener,
 	PostMotionListener, RenderListener, RightClickListener,
 	PacketInputListener
 {
@@ -92,7 +96,7 @@ public final class ScaffoldWalkHack extends Hack
 		Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH,
 		Direction.UP};
 	private static final double MAX_PLACEMENT_DISTANCE_SQ = 20.25D;
-	private static final int NORMAL_SEARCH_DEPTH = 0;
+	private static final int NORMAL_SEARCH_DEPTH = 4;
 	private static final int TELLY_SEARCH_DEPTH = 3;
 	private static final int NORMAL_VISIT_BUDGET = 160;
 	private static final int TELLY_VISIT_BUDGET = 96;
@@ -119,6 +123,8 @@ public final class ScaffoldWalkHack extends Hack
 		360, 5, ValueDisplay.INTEGER)
 			.visibleWhen(() -> rotationModel.getSelected()
 				!= ScaffoldRotationModel.INSTANT);
+	public final SliderSetting driftIntensity = new SliderSetting("Drift intensity", 1.2, 0.5, 2, 0.1, ValueDisplay.DECIMAL);
+	public final SliderSetting jitterIntensity = new SliderSetting("Jitter intensity", 0.12, 0, 0.3, 0.01, ValueDisplay.DECIMAL);
 	public final SliderSetting interactCps = new SliderSetting("Interact CPS",
 		"Click speed used when no placement target is cached.", 10, 1, 20, 1,
 		ValueDisplay.INTEGER);
@@ -191,6 +197,10 @@ public final class ScaffoldWalkHack extends Hack
 		"Air ticks spent looking forward before placing.", 5, 0, 10, 1,
 		ValueDisplay.INTEGER)
 			.visibleWhen(() -> isUitemsSetting() && uitemsTelly.isChecked());
+	public final OpenOpalScaffoldRecovery recovery = new OpenOpalScaffoldRecovery(this);
+	public final EnumSetting<SelfRescueMode> selfRescueMode = new EnumSetting<>(
+		"Self rescue mode", SelfRescueMode.values(), SelfRescueMode.DISABLED);
+	public ScaffoldMode getScaffoldMode() { return activeMode(); }
 	public final CheckboxSetting safeWalk = new CheckboxSetting("SafeWalk",
 		"Prevents walking off the scaffold edge.", true)
 			.visibleWhen(() -> isUitemsSetting() && !uitemsTelly.isChecked());
@@ -272,6 +282,14 @@ public final class ScaffoldWalkHack extends Hack
 		"ST Clutch Safe Distance", "Distance used by the falling rescue.",
 		4.5, 1, 5, 0.25, ValueDisplay.DECIMAL)
 			.visibleWhen(this::isSilenceTellySetting);
+    public final CheckboxSetting silenceDebug = new CheckboxSetting("ST Debug", false)
+        .visibleWhen(this::isSilenceTellySetting);
+    public final CheckboxSetting silenceKeepFov = new CheckboxSetting("ST Keep FOV", true)
+        .visibleWhen(this::isSilenceTellySetting);
+    public final SliderSetting silenceFov = new SliderSetting("ST FOV", 1.1, 1, 2.1, 0.05, ValueDisplay.DECIMAL)
+        .visibleWhen(() -> isSilenceTellySetting() && silenceKeepFov.isChecked());
+    public final CheckboxSetting hypixelBoost = new CheckboxSetting("Hypixel Boost", true)
+        .visibleWhen(this::isHypixelServer);
 	public final CheckboxSetting silenceMark = new CheckboxSetting("ST Mark",
 		"Marks the last placed block.", true)
 			.visibleWhen(this::isSilenceTellySetting);
@@ -297,8 +315,12 @@ public final class ScaffoldWalkHack extends Hack
 	private int sameYPos;
 	private int groundTicks;
 	private int airTicks;
+    private final net.wurstclient.hacks.scaffold.ScaffoldIsland island =
+        new net.wurstclient.hacks.scaffold.ScaffoldIsland();
+    private final CheckboxSetting blockCounter = new CheckboxSetting("Block counter", true);
 	private int placeTick = -1;
-	private long nextSimulatedClick;
+    private final net.wurstclient.opal.CPSProperty simulationTiming =
+        new net.wurstclient.opal.CPSProperty(interactCps::getValueI, () -> false);
 
 	private BlockData blockCache;
 	private BlockData lastOverlayData;
@@ -330,6 +352,7 @@ public final class ScaffoldWalkHack extends Hack
 	private int oldSlot = -1;
 	private int silentSlot = -1;
 	private Mode lastActiveMode;
+    private Object statePlayer, stateWorld;
 
 	public ScaffoldWalkHack()
 	{
@@ -350,6 +373,8 @@ public final class ScaffoldWalkHack extends Hack
 		addSetting(mode);
 		addSetting(rotationModel);
 		addSetting(maxAngle);
+		addSetting(driftIntensity);
+		addSetting(jitterIntensity);
 		addSetting(interactCps);
 		addSetting(tower);
 		addSetting(switchMode);
@@ -374,6 +399,8 @@ public final class ScaffoldWalkHack extends Hack
 		addSetting(rotateBackSpeed);
 		addSetting(tellyTick);
 		addSetting(safeWalk);
+		addSetting(blockCounter);
+		addSetting(selfRescueMode);
 		addSetting(silenceTellyMode);
 		addSetting(silenceAlwaysUpdateRotation);
 		addSetting(silencePlaceTick);
@@ -397,6 +424,10 @@ public final class ScaffoldWalkHack extends Hack
 		addSetting(silenceJumpMode);
 		addSetting(silenceSafeDistance);
 		addSetting(silenceMark);
+        addSetting(silenceDebug);
+        addSetting(silenceKeepFov);
+        addSetting(silenceFov);
+        addSetting(hypixelBoost);
 		addSetting(silenceDuplicateRotPlace);
 		addSetting(silenceInteractBeforePlace);
 		addSetting(range);
@@ -411,6 +442,12 @@ public final class ScaffoldWalkHack extends Hack
 	@Override
 	protected void onEnable()
 	{
+		EVENTS.add(net.wurstclient.events.GUIRenderListener.class, this);
+		statePlayer = MC.player;
+		stateWorld = MC.level;
+		recovery.reset();
+		clearMotionPlan();
+		rotationQueue.start();
 		sameYPos = MC.player == null ? 0 : Mth.floor(MC.player.getY());
 		groundTicks = 0;
 		airTicks = 0;
@@ -441,7 +478,6 @@ public final class ScaffoldWalkHack extends Hack
 		rotationHandler.reset();
 		lastActiveMode = mode.getSelected();
 
-		EVENTS.add(UpdateListener.class, this);
 		EVENTS.add(MoveInputListener.class, this);
 		EVENTS.add(PreMotionListener.class, this);
 		EVENTS.add(PostMotionListener.class, this);
@@ -454,7 +490,11 @@ public final class ScaffoldWalkHack extends Hack
 	@Override
 	protected void onDisable()
 	{
-		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(net.wurstclient.events.GUIRenderListener.class, this);
+		island.onDisable();
+		recovery.reset();
+		clearMotionPlan();
+		rotationQueue.stop();
 		EVENTS.remove(MoveInputListener.class, this);
 		EVENTS.remove(PreMotionListener.class, this);
 		EVENTS.remove(PostMotionListener.class, this);
@@ -465,8 +505,9 @@ public final class ScaffoldWalkHack extends Hack
 		// selected: the setting may have changed since the last update.
 		if(lastActiveMode != null)
 			modes.get(lastActiveMode).onDisable();
+		if(!(modes.get(lastActiveMode) instanceof HeypixelScaffoldMode))
+			rotationHandler.reset();
 		lastActiveMode = null;
-		rotationHandler.reset();
 		realStackSizeMap = null;
 		resetSlot();
 		releaseSimulatedInput();
@@ -483,27 +524,74 @@ public final class ScaffoldWalkHack extends Hack
 		lastSearchAge = -1;
 	}
 
-	/**
-	 * Computes this tick's target during the player tick, then
-	 * {@link #onPostMotion()} executes the placement after the movement packet
-	 * has been sent. This is the timing the previous test client used and
-	 * avoids placing at the pre-move height while falling.
-	 */
+	/** Plans at the original pre-game-tick phase; clicks execute during input. */
 	@Override
 	public void onUpdate()
 	{
-		if(MC.player == null || MC.level == null || MC.gameMode == null
-			|| MC.player.isSpectator() || MC.player.isFallFlying())
+        if(statePlayer != MC.player || stateWorld != MC.level) {
+            statePlayer = MC.player;
+            stateWorld = MC.level;
+            recovery.reset();
+            clearMotionPlan();
+            releaseSimulatedInput();
+            net.wurstclient.opal.SlotHelper.getInstance().sync(true, true);
+		sameYPos = MC.player == null ? 0 : Mth.floor(MC.player.getY());
+		groundTicks = 0;
+		airTicks = 0;
+		placeTick = -1;
+		blockCache = null;
+		lastOverlayData = null;
+		rotation = null;
+		lastRotation = null;
+		requestedRotation = null;
+		packetRotation = null;
+		packetRotationTicks = 0;
+		intelligentRotation = null;
+		recentPlacedBlocks.clear();
+		lastPlacedBlocks.clear();
+		lastSearchOrigin = null;
+		lastSearchData = null;
+		lastSearchAge = -1;
+		autoJumpTicks = 0;
+		autoJumpGroundTicks = 0;
+		autoJumpAirTicks = 0;
+		lastAutoJumpAge = -20;
+		lastAutoJumpStateAge = -1;
+		lastForwardDown = false;
+		lastForwardTapAge = -100;
+		oldSlot = -1;
+		silentSlot = -1;
+		realStackSizeMap = new HashMap<>();
+		rotationHandler.reset();
+		lastActiveMode = mode.getSelected();
+
+		modes.put(Mode.VANILLA, new SimpleTowerMode(this, Mode.VANILLA));
+		modes.put(Mode.ANTI_GAMING_CHAIR,
+			new SimpleTowerMode(this, Mode.ANTI_GAMING_CHAIR));
+		modes.put(Mode.WATCHDOG, new SimpleTowerMode(this, Mode.WATCHDOG));
+		modes.put(Mode.BLOXD, new SimpleTowerMode(this, Mode.BLOXD));
+		modes.put(Mode.TELLY, new TellyScaffoldMode(this));
+		modes.put(Mode.HEYPIXEL, new HeypixelScaffoldMode(this));
+		modes.put(Mode.HYPIXEL, new HypixelScaffoldMode(this));
+		modes.put(Mode.SILENCE_TELLY,
+			new SilenceTellyScaffoldMode(this));
+            activeMode().onEnable();
+        }
+		motionActions.clear();
+		pendingPlacement = null;
+		pendingSimulatedClick = false;
+		rotationQueue.clear();
+		if(!canRunMotion())
 		{
+			recovery.reset();
+			clearMotionPlan();
 			releaseSimulatedInput();
 			return;
 		}
 
-		pendingPlacement = null;
-		pendingSimulatedClick = false;
-
 		if(mode.getSelected() != lastActiveMode)
 		{
+			recovery.reset();
 			if(lastActiveMode != null)
 				modes.get(lastActiveMode).onDisable();
 			lastActiveMode = mode.getSelected();
@@ -517,12 +605,17 @@ public final class ScaffoldWalkHack extends Hack
 			modes.get(lastActiveMode).onEnable();
 		}
 
+		motionActions.begin(MC.player, MC.level, MC.player.tickCount);
+		motionActions.schedule(lastActiveMode);
 		releaseSimulatedJump();
 		updateGroundTicks();
 		pruneRecentPlacedBlocks();
+		recovery.tryArmSkipTickRecovery();
+		recovery.updateSkipTickRecoveryGroundState();
 		rotationHandler.tickReverse();
 
 		ScaffoldMode impl = activeMode();
+		if(impl instanceof HeypixelScaffoldMode heypixel) heypixel.updateUpTellyBypassState();
 		Mode effective = getEffectiveMode();
 
 		// These modes drive the whole tick (and their own placement).
@@ -538,7 +631,6 @@ public final class ScaffoldWalkHack extends Hack
 			if(!updateHeldBlockSlot())
 				return;
 			impl.onTick();
-			queueSharedPlacement(true);
 			return;
 		}
 
@@ -546,8 +638,39 @@ public final class ScaffoldWalkHack extends Hack
 		if(!updateHeldBlockSlot())
 			return;
 		runSharedPreTick(effective);
-		queueSharedPlacement(false);
 	}
+
+    /** The literal override in OpenOpal GameRendererMixin, with host CustomFov priority. */
+    public double getSilenceTellyFov(double original) {
+        if(!isEnabled() || !isSilenceTellyMode() || !silenceKeepFov.isChecked()
+            || MC.player == null || !ScaffoldUtils.isMoving()) return original;
+        double result = silenceFov.getValue();
+        var effect = MC.player.getEffect(MobEffects.SPEED);
+        if(effect != null) result += (effect.getAmplifier() + 1) * 0.13F;
+        return result;
+    }
+
+    public void onOpalPostMove() {
+        if(canRunMotion()) activeMode().onPostMove();
+    }
+
+    public void onOpalMouseInput() {
+        if(!canRunMotion()) { clearMotionPlan(); return; }
+        activeMode().onMouseInput();
+        Mode effective = getEffectiveMode();
+        if(effective == Mode.SILENCE_TELLY || effective == Mode.HEYPIXEL || effective == Mode.HYPIXEL) return;
+        queueSharedPlacement(isTellyMode());
+        if(pendingPlacement != null) {
+            BlockHitResult hit = pendingPlacement;
+            pendingPlacement = null;
+            placeBlock(hit);
+        }
+        if(pendingSimulatedClick) {
+            pendingSimulatedClick = false;
+            simulateClick();
+        }
+        net.wurstclient.opal.MouseHelper.getRightButton().setDisabled();
+    }
 
 	@Override
 	public void onMoveInput(MoveInputListener.MoveInputEvent event)
@@ -600,9 +723,14 @@ public final class ScaffoldWalkHack extends Hack
 	@Override
 	public void onPreMotion()
 	{
-		if(MC.player == null)
+		if(!canRunMotion() || mode.getSelected() != lastActiveMode
+			|| !motionActions.isCurrent(MC.player, MC.level, MC.player.tickCount))
+		{
+			clearMotionPlan();
 			return;
+		}
 
+		activeMode().onPreMotion();
 		Rotation out = requestedRotation;
 		if(rotationHandler.isActive())
 			out = rotationHandler.getRotation();
@@ -621,7 +749,8 @@ public final class ScaffoldWalkHack extends Hack
 			out = modeRotation;
 
 		if(out != null)
-			WURST.getRotationFaker().setRotationPacket(out);
+			rotationQueue.setRotation(out);
+		motionRotationRequested = out != null;
 
 		if(packetRotationTicks > 0)
 			packetRotationTicks--;
@@ -630,19 +759,29 @@ public final class ScaffoldWalkHack extends Hack
 	@Override
 	public void onPostMotion()
 	{
+		if(!canRunMotion())
+		{
+			clearMotionPlan();
+			return;
+		}
+		Mode plannedMode = motionActions.consume(MC.player, MC.level,
+			MC.player.tickCount);
+		if(plannedMode == null || plannedMode != mode.getSelected()
+			|| motionRotationRequested && !rotationQueue.wasApplied())
+		{
+			clearMotionPlan();
+			return;
+		}
 		activeMode().onPostMotion();
 
-		BlockHitResult hitResult = pendingPlacement;
-		pendingPlacement = null;
-		if(hitResult != null)
-			placeBlock(hitResult);
-
-		if(pendingSimulatedClick)
-		{
-			pendingSimulatedClick = false;
-			simulateClick();
-		}
 	}
+
+    @Override
+    public void onRenderGUI(net.minecraft.client.gui.GuiGraphicsExtractor context, float partialTicks) {
+        if(!blockCounter.isChecked() || MC.player == null || MC.level == null) return;
+        net.wurstclient.hud2.nanovg.NanoVGUI.pass(context, () -> island.render(context,
+            (MC.getWindow().getGuiScaledWidth() - island.getWidth()) / 2, 20));
+    }
 
 	@Override
 	public void onRender(PoseStack matrices, float partialTicks)
@@ -662,6 +801,38 @@ public final class ScaffoldWalkHack extends Hack
 			WURST.getGui().getTheme().accent(0.75F));
 	}
 
+	private final RotationQueue rotationQueue =
+		new RotationQueue(RotationQueue.Priority.BLOCK_PLACEMENT);
+	private final MotionActionQueue<Mode> motionActions = new MotionActionQueue<>();
+	private boolean motionRotationRequested;
+
+	private boolean canRunMotion()
+	{
+		return MC.player != null && MC.level != null && MC.gameMode != null
+			&& MC.screen == null && MC.player.isAlive()
+			&& !MC.player.isSpectator() && !MC.player.isFallFlying()
+			&& !MC.player.isPassenger();
+	}
+
+	private void clearMotionPlan()
+	{
+		if(lastActiveMode != null)
+			modes.get(lastActiveMode).cancelPendingPlacement();
+		motionActions.clear();
+		pendingPlacement = null;
+		pendingSimulatedClick = false;
+		motionRotationRequested = false;
+		rotationQueue.clear();
+		requestedRotation = null;
+		packetRotation = null;
+		packetRotationTicks = 0;
+		rotation = null;
+		blockCache = null;
+		rotationHandler.reset();
+		invalidateSearchCache();
+	}
+
+
 	// ------------------------------------------------------------- shared tick
 	/**
 	 * OpenOpal's {@code ScaffoldModule#onPreGameTick} shared path.
@@ -670,18 +841,12 @@ public final class ScaffoldWalkHack extends Hack
 	{
 		boolean autoJumpActive = isSameYAutoJumpActive();
 		boolean manualJump = MC.options.keyJump.isDown();
-		// Manual jumps tower only while standing still: the target level has to
-		// follow the player up so a block lands under the feet ("jump up but
-		// no block under the feet" when Auto jump is off). While moving, keep
-		// the level fixed - following a held jump key made the player climb
-		// into the air while bridging and broke sprint against the new blocks.
-		boolean manualJumpUpdateY = manualJump && !isRecentAutoJump()
-			&& !ScaffoldUtils.isMoving();
-		boolean updateY = !sameY.isChecked() || manualJumpUpdateY
-			|| MC.player.onGround() && !autoJumpActive
-			|| Math.abs(Math.floor(MC.player.getY()) - sameYPos) > 3
-			|| WURST.getHax().longJumpHack.isEnabled()
-			|| WURST.getHax().flightHack.isEnabled();
+        boolean updateY = !sameY.isChecked()
+            || autoJump.isChecked() && manualJump && !isRecentAutoJump()
+            || MC.player.onGround() && !autoJumpActive
+            || Math.abs(Math.floor(MC.player.getY() - sameYPos)) > 3
+            || WURST.getHax().longJumpHack.isEnabled()
+            || WURST.getHax().flightHack.isEnabled();
 		if(updateY)
 			sameYPos = Mth.floor(MC.player.getY());
 
@@ -725,7 +890,8 @@ public final class ScaffoldWalkHack extends Hack
 		{
 			ScaffoldRotationModel model = effective == selected
 				? rotationModel.getSelected() : ScaffoldRotationModel.INSTANT;
-			rotationHandler.rotate(target, model, maxAngle.getValueF());
+			rotationHandler.rotate(target, model, maxAngle.getValueF(),
+				driftIntensity.getValue(), jitterIntensity.getValue());
 		}
 
 		requestedRotation = rotationHandler.getRotation();
@@ -733,7 +899,7 @@ public final class ScaffoldWalkHack extends Hack
 
 	/**
 	 * Chooses this tick's placement target. The actual {@code useItemOn} is
-	 * deferred to {@link #onPostMotion()} so it runs after the movement packet,
+	 * performed in the input phase, matching OpenOpal mouse handling,
 	 * matching the previous test client's timing.
 	 */
 	private void queueSharedPlacement(boolean telly)
@@ -741,12 +907,7 @@ public final class ScaffoldWalkHack extends Hack
 		boolean isBlock = hasHeldPlaceableBlock();
 		if(blockCache == null)
 		{
-			// Only simulate a click while the user is actually holding the use
-			// button. Without this gate the fallback fires every tick at
-			// whatever the crosshair touches, so looking at a wall makes the
-			// hack build along that wall.
-			if(isBlock && MC.options.keyUse.isDown())
-				pendingSimulatedClick = true;
+			pendingSimulatedClick = isBlock;
 			return;
 		}
 
@@ -754,11 +915,10 @@ public final class ScaffoldWalkHack extends Hack
 		BlockHitResult hitResult;
 		if(telly)
 			hitResult = getCurrentTellyHitResult();
-		else if(useOverride)
-			// Do not mutate MC.hitResult: the vanilla crosshair is recomputed
-			// on its own schedule and a stale override would make the CPS
-			// fallback place blocks at a target the player never looked at.
-			hitResult = blockCache.hit();
+        else if(useOverride) {
+            hitResult = blockCache.hit();
+            MC.hitResult = hitResult;
+        }
 		else
 			hitResult =
 				MC.hitResult instanceof BlockHitResult blockHit ? blockHit
@@ -785,15 +945,14 @@ public final class ScaffoldWalkHack extends Hack
 
 	private boolean simulateClick()
 	{
-		long now = System.currentTimeMillis();
-		if(now < nextSimulatedClick)
+		if(!net.wurstclient.opal.SwingDelay.isSwingAvailable(simulationTiming, false))
 			return false;
 		if(!(MC.hitResult instanceof BlockHitResult hitResult))
 			return false;
 		if(!isValidPlacementHit(hitResult, false) || !placeBlock(hitResult))
 			return false;
-		nextSimulatedClick =
-			now + 1000L / Math.max(1, interactCps.getValueI());
+		simulationTiming.resetClick();
+		net.wurstclient.opal.SwingDelay.reset();
 		return true;
 	}
 
@@ -949,47 +1108,23 @@ public final class ScaffoldWalkHack extends Hack
 		return -1;
 	}
 
-	public boolean updateHeldBlockSlot()
-	{
-		if(MC.player == null)
-			return false;
-
-		int slot = getPlaceableBlock();
-		if(slot == -1)
-			return !isTellyMode() && ScaffoldUtils
-				.isPlaceableStack(MC.player.getOffhandItem());
-
-		if(MC.player.getInventory().getSelectedSlot() != slot)
-		{
-			if(oldSlot == -1)
-				oldSlot = MC.player.getInventory().getSelectedSlot();
-			if(switchMode.getSelected() == SwitchMode.FULL)
-				silentSlot = slot;
-			MC.player.getInventory().setSelectedSlot(slot);
-			MC.player.connection
-				.send(new ServerboundSetCarriedItemPacket(slot));
-		}
-		return true;
-	}
-
-	public void resetSlot()
-	{
-		if(MC.player == null)
-		{
-			oldSlot = -1;
-			silentSlot = -1;
-			return;
-		}
-		if(oldSlot != -1 && oldSlot != MC.player.getInventory().getSelectedSlot())
-		{
-			MC.player.getInventory().setSelectedSlot(oldSlot);
-			if(MC.getConnection() != null)
-				MC.getConnection()
-					.send(new ServerboundSetCarriedItemPacket(oldSlot));
-		}
-		oldSlot = -1;
-		silentSlot = -1;
-	}
+    public boolean updateHeldBlockSlot() {
+        if(MC.player == null) return false;
+        int slot = getPlaceableBlock();
+        if(slot == -1) return !isTellyMode() && ScaffoldUtils.isPlaceableStack(MC.player.getOffhandItem());
+        selectBlockSlot(slot, isTellyMode());
+        return true;
+    }
+    public void selectBlockSlot(int slot, boolean visible) {
+        net.wurstclient.opal.SlotHelper.Silence silence = visible
+            || switchMode.getSelected() == SwitchMode.NORMAL
+            ? net.wurstclient.opal.SlotHelper.Silence.NONE
+            : switchMode.getSelected() == SwitchMode.FULL
+                ? net.wurstclient.opal.SlotHelper.Silence.FULL
+                : net.wurstclient.opal.SlotHelper.Silence.DEFAULT;
+        net.wurstclient.opal.SlotHelper.setCurrentItem(slot).silence(silence);
+    }
+    public void resetSlot() { net.wurstclient.opal.SlotHelper.getInstance().stop(); }
 
 	// ------------------------------------------------------- placement engine
 	public BlockHitResult getCurrentTellyHitResult()
@@ -1120,18 +1255,9 @@ public final class ScaffoldWalkHack extends Hack
 		return true;
 	}
 
-	private void restoreSlotAfterPlacement()
-	{
-		if(silentSlot == -1 || MC.player == null)
-			return;
-		silentSlot = -1;
-		if(oldSlot != MC.player.getInventory().getSelectedSlot())
-		{
-			MC.player.getInventory().setSelectedSlot(oldSlot);
-			MC.player.connection
-				.send(new ServerboundSetCarriedItemPacket(oldSlot));
-		}
-	}
+    private void restoreSlotAfterPlacement() {
+        // Original SlotHelper holds the slot for one tick, including FULL silence.
+    }
 
 	public boolean canPlaceAtHit(BlockHitResult hitResult,
 		boolean checkPredictedCollision)
@@ -1184,11 +1310,7 @@ public final class ScaffoldWalkHack extends Hack
 		}
 
 		blockCache = findBlockData();
-		// The simulated fallback predicts where the player will land. Running
-		// it while the player is still rising would place blocks at the jump
-		// apex, on top of the bridge, which then turns into a staircase.
-		if(blockCache == null && !MC.player.onGround()
-			&& MC.player.getDeltaMovement().y <= 0.0D)
+		if(blockCache == null)
 		{
 			PlayerSimulation simulation = new PlayerSimulation(MC.player);
 			if(simulation.getSimulatedEntity() != null)
@@ -1197,8 +1319,6 @@ public final class ScaffoldWalkHack extends Hack
 					simulation.simulateTick();
 					BlockPos target = simulation.getSimulatedEntity()
 						.blockPosition().below();
-					if(target.getY() > sameYPos - 1)
-						continue;
 					BlockData data = getBlockData(target,
 						simulation.getSimulatedEntity());
 					if(data != null)
@@ -1215,10 +1335,7 @@ public final class ScaffoldWalkHack extends Hack
 	{
 		if(data == null || data.rotation() == null || data.block() == null)
 			return false;
-		// A cache computed at the old sameY level must not survive a level
-		// change; otherwise a single high block turns into a staircase.
-		if(!isTellyMode() && data.placementPos().getY() != sameYPos - 1)
-			return false;
+
 		BlockHitResult hitResult = ScaffoldUtils
 			.raycastBlock(data.rotation(), range.getValue());
 		return hitResult != null
@@ -1269,9 +1386,6 @@ public final class ScaffoldWalkHack extends Hack
 	private List<BlockPos> getTargetBlockCandidates(BlockPos base,
 		net.minecraft.world.entity.player.Player entity)
 	{
-		if(!isTellyMode())
-			return getBridgeCandidates(base, entity);
-
 		LinkedHashSet<BlockPos> candidates = new LinkedHashSet<>();
 		candidates.add(base.immutable());
 		addLastPlacedCandidate(candidates, base);
@@ -1309,34 +1423,6 @@ public final class ScaffoldWalkHack extends Hack
 		return new ArrayList<>(candidates);
 	}
 
-	/**
-	 * Normal (non-telly) bridging must stay on the block column the player is
-	 * walking through. OpenOpal's 3x3 foot candidates plus BFS can legally
-	 * place several blocks to the side, which users see as "random" bridging,
-	 * so the non-telly path only considers the current column and the column
-	 * ahead in the movement direction.
-	 */
-	private List<BlockPos> getBridgeCandidates(BlockPos base,
-		net.minecraft.world.entity.player.Player entity)
-	{
-		LinkedHashSet<BlockPos> candidates = new LinkedHashSet<>();
-		candidates.add(base.immutable());
-		candidates.add(BlockPos.containing(entity.getX(), base.getY(),
-			entity.getZ()));
-
-		if(!ScaffoldUtils.isMoving())
-			return new ArrayList<>(candidates);
-
-		float direction = ScaffoldUtils.moveDirectionDegrees();
-		double radians = Math.toRadians(direction);
-		double dirX = -Mth.sin((float)radians);
-		double dirZ = Mth.cos((float)radians);
-		for(int i = 1; i <= 3; i++)
-			candidates.add(BlockPos.containing(entity.getX() + dirX * i,
-				base.getY(), entity.getZ() + dirZ * i));
-		return new ArrayList<>(candidates);
-	}
-
 	private void addLastPlacedCandidate(Set<BlockPos> candidates,
 		BlockPos base)
 	{
@@ -1365,12 +1451,6 @@ public final class ScaffoldWalkHack extends Hack
 		net.minecraft.world.entity.player.Player entity)
 	{
 		if(!ScaffoldUtils.isReplaceable(target))
-			return null;
-		// Never place at or above the player's current feet in the normal
-		// bridging modes. If sameYPos is stale (for example while falling next
-		// to a cliff), the search would otherwise attach blocks to the wall at
-		// the old level, which users see as "building a wall".
-		if(!isTellyMode() && target.getY() > Mth.floor(MC.player.getY()) - 1)
 			return null;
 
 		boolean canUseCache = entity == MC.player;
@@ -1427,10 +1507,7 @@ public final class ScaffoldWalkHack extends Hack
 			PlacementCandidate candidate = queue.poll();
 			if(candidate.depth() > maxDepth
 				|| candidate.pos().distSqr(origin) > MAX_PLACEMENT_DISTANCE_SQ
-				// Bridging must never build a second layer above the target
-				// level. Without this, a solid block under the player makes
-				// the BFS climb upwards and turns the bridge into a staircase.
-				|| !telly && candidate.pos().getY() > origin.getY()
+
 				|| !ScaffoldUtils.isReplaceable(candidate.pos()))
 				continue;
 
@@ -1455,7 +1532,6 @@ public final class ScaffoldWalkHack extends Hack
 				BlockPos next = candidate.pos().relative(direction);
 				if(visited.size() >= visitBudget
 					|| next.distSqr(origin) > MAX_PLACEMENT_DISTANCE_SQ
-					|| !telly && next.getY() > origin.getY()
 					|| !visited.add(next)
 					|| !ScaffoldUtils.isReplaceable(next))
 					continue;

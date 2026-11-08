@@ -57,6 +57,7 @@ public interface ConnectionPacketOutputListener extends Listener
 				if(isCancelled())
 					break;
 			}
+            if(!isCancelled()) net.wurstclient.opal.OpenOpalPacketBridge.beforeSend(packet);
 		}
 		
 		@Override

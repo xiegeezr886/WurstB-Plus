@@ -88,8 +88,8 @@ public abstract class CameraMixin
 	@ModifyReturnValue(method = "calculateFov(F)F", at = @At("RETURN"))
 	private float onCalculateFov(float original)
 	{
-		return (float)WurstClient.INSTANCE.getOtfs().zoomOtf
-			.changeFovBasedOnZoom(original);
+		return (float)WurstClient.INSTANCE.getHax().customFovHack
+			.changeFov(original, true);
 	}
 	
 	/**
@@ -99,7 +99,7 @@ public abstract class CameraMixin
 	@ModifyReturnValue(method = "calculateHudFov(F)F", at = @At("RETURN"))
 	private float onCalculateHudFov(float original)
 	{
-		return (float)WurstClient.INSTANCE.getOtfs().zoomOtf
-			.changeFovBasedOnZoom(original);
+		return (float)WurstClient.INSTANCE.getHax().customFovHack
+			.changeFov(original, false);
 	}
 }
