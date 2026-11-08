@@ -29,19 +29,7 @@ public abstract class LivingEntityMixin
 		if(hax == null)
 			return;
 
-		if(hax.reachHack.isEnabled())
-		{
-			if(attribute.equals(Attributes.ENTITY_INTERACTION_RANGE))
-			{
-				cir.setReturnValue((double)hax.reachHack.getEntityRange());
-				return;
-			}
-			if(attribute.equals(Attributes.BLOCK_INTERACTION_RANGE))
-			{
-				cir.setReturnValue((double)hax.reachHack.getBlockRange());
-				return;
-			}
-		}
+
 
 		if(!attribute.equals(Attributes.MOVEMENT_SPEED)
 			|| !hax.noSlowdownHack.shouldBypassItemSlowness())
