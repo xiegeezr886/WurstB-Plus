@@ -7,6 +7,9 @@
  */
 package net.wurstclient.hacks.aura;
 
+import net.wurstclient.opal.LastAttackData;
+import net.wurstclient.opal.RandomUtility;
+import net.wurstclient.hacks.scaffold.ScaffoldUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -54,8 +57,11 @@ public final class OpenAura
 	private OpenAura() {}
 
 	public record Config(double range, double fov, int targetFlags,
-		boolean throughWalls)
-	{}
+		boolean throughWalls, boolean yawFov) {
+        public Config(double range, double fov, int flags, boolean throughWalls) {
+            this(range, fov, flags, throughWalls, false);
+        }
+    }
 
 	public static final class Target
 	{
@@ -63,8 +69,7 @@ public final class OpenAura
 		public final Rotation rotation;
 		public final Vec3 hitVec;
 		public final double distance;
-		private long lastAttackTime;
-		private double lastAttackDamage;
+		private LastAttackData lastAttackData;
 
 		private Target(LivingEntity entity, Rotation rotation, Vec3 hitVec,
 			double distance)
@@ -77,52 +82,41 @@ public final class OpenAura
 
 		public boolean isAttackAvailable()
 		{
-			if(lastAttackTime == 0)
+			if(lastAttackData == null)
 				return true;
-
 			double damage = attackDamage();
-			if(entity.getHealth() <= damage)
+			if(entity.getHealth() + entity.getAbsorptionAmount() <= damage)
 				return true;
-
-			return System.currentTimeMillis()
-				- lastAttackTime >= ATTACK_WINDOW_MS
-				|| damage > lastAttackDamage;
+			return lastAttackData.getTime() >= ATTACK_WINDOW_MS
+				|| damage > lastAttackData.getDamage();
 		}
 
-		public void onAttack()
+		public void onAttack(boolean reset)
 		{
-			lastAttackTime = System.currentTimeMillis();
-			lastAttackDamage = attackDamage();
+			double damage = attackDamage();
+			if(lastAttackData == null)
+				lastAttackData = new LastAttackData(damage);
+			else
+				lastAttackData.reset(reset, damage);
 		}
 
-		/**
-		 * Restores the per-entity attack history saved by a previous tick.
-		 * Targets are recreated by {@link #collect(Config)} every tick, so
-		 * without this the attack window and the SWITCH ordering would never
-		 * see an earlier attack.
-		 */
 		public void restoreAttackState(AttackRecord record)
 		{
-			if(record == null)
-				return;
-
-			lastAttackTime = record.time();
-			lastAttackDamage = record.damage();
+			lastAttackData = record == null ? null : record.data();
 		}
 
 		public AttackRecord attackRecord()
 		{
-			return new AttackRecord(lastAttackTime, lastAttackDamage);
+			return new AttackRecord(lastAttackData);
 		}
 
 		public long getLastAttackTime()
 		{
-			return lastAttackTime;
+			return lastAttackData == null ? 0 : lastAttackData.getTime();
 		}
 	}
 
-	/** Cross-tick attack history for one entity. */
-	public record AttackRecord(long time, double damage)
+	public record AttackRecord(LastAttackData data)
 	{}
 
 	public static List<Target> collect(Config config)
@@ -140,22 +134,40 @@ public final class OpenAura
 		List<Target> targets = new ArrayList<>();
 		for(LivingEntity entity : entities)
 		{
-			if(!isInFov(entity, eyes, config.fov()))
-				continue;
-
-			AABB box = entity.getBoundingBox()
-				.inflate(entity.getPickRadius());
-			Vec3 closest = closestPoint(eyes, box);
-			double distance = eyes.distanceTo(closest);
-			if(distance > config.range())
-				continue;
-
-			Target target = raycastTarget(entity, eyes, closest,
-				config.range(), config.throughWalls());
+			Target target = target(entity, config);
 			if(target != null)
 				targets.add(target);
 		}
 		return targets;
+	}
+
+    /** Reference closest-distance test occurs before line-of-sight conversion. */
+    public static boolean hasSwingTarget(Config config) {
+        if(WurstClient.MC.player == null || WurstClient.MC.level == null) return false;
+        var player = WurstClient.MC.player;
+        Vec3 eyes = player.getEyePosition();
+        return WurstClient.MC.level.getEntitiesOfClass(LivingEntity.class,
+            player.getBoundingBox().inflate(config.range()), e -> isValidTarget(e, config.targetFlags()))
+            .stream().anyMatch(e -> isInYawFov(e, eyes, config.fov())
+                && eyes.distanceTo(closestPoint(eyes, e.getBoundingBox())) <= config.range());
+    }
+
+	/** Rebuilds the hit from current world state at both planning and execution. */
+	public static Target target(LivingEntity entity, Config config)
+	{
+		if(WurstClient.MC.player == null || WurstClient.MC.level == null
+			|| entity == null || !isValidTarget(entity, config.targetFlags())
+			|| WurstClient.MC.level.getEntity(entity.getId()) != entity)
+			return null;
+		Vec3 eyes = WurstClient.MC.player.getEyePosition();
+		if(!(config.yawFov() ? isInYawFov(entity, eyes, config.fov()) : isInFov(entity, eyes, config.fov())))
+			return null;
+		Vec3 closest = closestPoint(eyes, entity.getBoundingBox()
+			.inflate(entity.getPickRadius()));
+		if(eyes.distanceTo(closest) > config.range())
+			return null;
+		return raycastTarget(entity, eyes, closest, config.range(),
+			config.throughWalls());
 	}
 
 	/**
@@ -182,15 +194,15 @@ public final class OpenAura
 			for(Target target : targets)
 				target.restoreAttackState(history.apply(target.entity.getId()));
 
-		targets.sort(Comparator.comparingDouble(t ->
-		{
-			double score = t.entity.getHealth();
-			return t.entity instanceof Player ? score : score * 2.0D;
-		}));
-
-		if(switchMode && targets.size() > 1)
-			targets.sort(Comparator.comparingDouble(t ->
-				-((t.entity.getHealth() * 25.0D) + t.getLastAttackTime())));
+		Comparator<Target> order = Comparator.comparingDouble((Target t) ->
+			(t.entity.getHealth() + t.entity.getAbsorptionAmount())
+				* (t.entity instanceof Player ? 1.0D : 2.0D));
+		if(switchMode)
+			order = Comparator.comparingDouble((Target t) ->
+				-((t.entity.getHealth() + t.entity.getAbsorptionAmount()) * 25.0D
+					+ t.getLastAttackTime())).thenComparing(order);
+		targets.sort(order.thenComparingDouble(t -> t.distance)
+			.thenComparingInt(t -> t.entity.getId()));
 
 		return targets.get(0);
 	}
@@ -200,54 +212,50 @@ public final class OpenAura
 		if(targets.isEmpty())
 			return null;
 		return targets.stream()
-			.min(Comparator.comparingDouble(t -> t.distance)).orElse(null);
+			.min(Comparator.comparingDouble((Target t) -> t.entity.distanceToSqr(WurstClient.MC.player)
+                * (t.entity instanceof Player ? 1.0D : 2.0D))
+				.thenComparingInt(t -> t.entity.getId())).orElse(null);
 	}
 
+	/** Direct port of RotationUtility.getRotationFromRaycastedEntity. */
 	public static Target raycastTarget(LivingEntity entity, Vec3 eyes,
 		Vec3 closest, double range, boolean throughWalls)
 	{
+		float spread = (float)RandomUtility.getJoinRandomDouble(0.01D, 0.05D);
 		Rotation base = rotationTo(eyes, closest);
-		EntityHitResult hit = raycastEntity(entity, eyes, base, range);
-		if(hit != null && (throughWalls || hasLineOfSight(eyes,
-			hit.getLocation())))
-			return new Target(entity, base, hit.getLocation(),
-				eyes.distanceTo(closest));
+		Rotation closestRotation = ScaffoldUtils.getVanillaRotation(new Rotation(
+			base.yaw() + RandomUtility.getRandomFloat(-spread, spread),
+			base.pitch() + RandomUtility.getRandomFloat(-spread, spread)));
+		EntityHitResult closestHit = raycastEntity(entity, eyes, closestRotation, range);
+		if(closestHit != null)
+			return throughWalls || hasLineOfSight(eyes, closestHit.getLocation())
+				? new Target(entity, closestRotation, closestHit.getLocation(), eyes.distanceTo(closest)) : null;
 
 		AABB box = entity.getBoundingBox().inflate(entity.getPickRadius());
 		Vec3 center = box.getCenter();
-		double sizeX = box.getXsize();
-		double sizeY = box.getYsize();
-		double sizeZ = box.getZsize();
-
+		double widthX = box.getXsize(), height = box.getYsize(), widthZ = box.getZsize();
+		if(widthX <= 0 || height <= 0 || widthZ <= 0)
+			return null;
+		float step = 8.F - RandomUtility.RANDOM.nextFloat() * 0.25F;
 		Target best = null;
 		double bestAngle = Double.MAX_VALUE;
-		for(int ix = -1; ix <= 1; ix++)
-			for(int iy = -1; iy <= 1; iy++)
-				for(int iz = -1; iz <= 1; iz++)
+		for(double x = -widthX; x < widthX; x += widthX / step)
+			for(double y = -height; y < height; y += height / step)
+				for(double z = -widthZ; z < widthZ; z += widthZ / step)
 				{
-					if(ix == 0 && iy == 0 && iz == 0)
+					Rotation rotation = ScaffoldUtils.getVanillaRotation(
+						rotationTo(eyes, center.add(x, y, z)));
+					EntityHitResult hit = raycastEntity(entity, eyes, rotation, range);
+					if(hit == null)
 						continue;
-
-					Vec3 point = center.add(sizeX * ix * 0.35D,
-						sizeY * iy * 0.35D, sizeZ * iz * 0.35D);
-					Rotation rotation = rotationTo(eyes, point);
-					EntityHitResult sample = raycastEntity(entity, eyes,
-						rotation, range);
-					if(sample == null)
-						continue;
-					if(!throughWalls && !hasLineOfSight(eyes,
-						sample.getLocation()))
-						continue;
-
-					double angle = rotation.getAngleTo(base);
+					double angle = rotation.getAngleTo(closestRotation);
 					if(angle < bestAngle)
 					{
 						bestAngle = angle;
-						best = new Target(entity, rotation,
-							sample.getLocation(), eyes.distanceTo(point));
+						best = new Target(entity, rotation, hit.getLocation(), eyes.distanceTo(closest));
 					}
 				}
-		return best;
+		return best != null && (throughWalls || hasLineOfSight(eyes, best.hitVec)) ? best : null;
 	}
 
 	public static EntityHitResult raycastEntity(LivingEntity entity,
@@ -294,7 +302,10 @@ public final class OpenAura
 		if(player == null)
 			return 0.5D;
 
-		double damage = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
+		double damage = 0;
+        for(var modifier : player.getMainHandItem().getAttributeModifiers(
+            net.minecraft.world.entity.EquipmentSlot.MAINHAND).get(Attributes.ATTACK_DAMAGE))
+            damage += modifier.getAmount();
 		if(damage < 0.5D)
 			damage = 0.5D;
 		if(canCritical() && player.fallDistance > 0.0F)
@@ -339,6 +350,13 @@ public final class OpenAura
 			return (flags & TARGET_PASSIVE) != 0;
 		return (flags & TARGET_FRIENDLY) != 0;
 	}
+
+    private static boolean isInYawFov(LivingEntity entity, Vec3 eyes, double fov) {
+        if(fov >= 180) return true;
+        float yaw = net.wurstclient.opal.rotation.RotationHelper.getClientHandler()
+            .getYawOr(WurstClient.MC.player.getYRot());
+        return Math.abs(Mth.wrapDegrees(yaw - rotationTo(eyes, entity.position()).yaw())) < fov;
+    }
 
 	private static boolean isInFov(LivingEntity entity, Vec3 eyes, double fov)
 	{
@@ -421,30 +439,10 @@ public final class OpenAura
 		bufferSource.endBatch(layer);
 	}
 
-	public static void drawBox(PoseStack matrices, Vec3 pos,
-		LivingEntity target, int color)
-	{
-		double half = target.getBbWidth() / 2.0D;
-		double x1 = pos.x - half;
-		double x2 = pos.x + half;
-		double y1 = pos.y;
-		double y2 = pos.y + target.getBbHeight();
-		double z1 = pos.z - half;
-		double z2 = pos.z + half;
-
-		Vec3[] corners = {new Vec3(x1, y1, z1), new Vec3(x2, y1, z1),
-			new Vec3(x2, y1, z2), new Vec3(x1, y1, z2),
-			new Vec3(x1, y2, z1), new Vec3(x2, y2, z1),
-			new Vec3(x2, y2, z2), new Vec3(x1, y2, z2)};
-		int[][] edges = {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6},
-			{6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
-
-		MultiBufferSource.BufferSource bufferSource = RenderUtils.getVCP();
-		RenderType layer = WurstRenderLayers.getLines(false);
-		VertexConsumer buffer = bufferSource.getBuffer(layer);
-		for(int[] edge : edges)
-			RenderUtils.drawLine(matrices, buffer, corners[edge[0]],
-				corners[edge[1]], color);
-		bufferSource.endBatch(layer);
-	}
+    public static void drawBox(PoseStack matrices, Vec3 pos, LivingEntity target, int color) {
+        double half = target.getBbWidth() / 2.0D;
+        AABB box = new AABB(pos.x - half, pos.y, pos.z - half,
+            pos.x + half, pos.y + target.getBbHeight(), pos.z + half).move(RenderUtils.getCameraPos());
+        RenderUtils.drawSolidBox(matrices, box, color & 0xFFFFFF | 0x40000000, true);
+    }
 }
