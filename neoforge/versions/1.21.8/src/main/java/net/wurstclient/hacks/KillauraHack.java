@@ -7,9 +7,6 @@
  */
 package net.wurstclient.hacks;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -26,12 +23,24 @@ import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
-import net.wurstclient.events.HandleInputListener;
+import net.wurstclient.opal.CPSProperty;
+import net.wurstclient.opal.SwingDelay;
+import net.wurstclient.opal.MouseHelper;
+import net.wurstclient.events.PacketInputListener;
+import net.minecraft.network.protocol.game.ClientboundDamageEventPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
+import net.wurstclient.events.PreMotionListener;
+import net.wurstclient.events.PostMotionListener;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictGroup;
+import net.wurstclient.hacks.scaffold.ScaffoldRotationModel;
+import net.wurstclient.hacks.scaffold.ScaffoldRotationHandler;
+import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.hacks.aura.OpenAura;
+import net.wurstclient.hacks.aura.OpenAuraTargeting;
+import net.wurstclient.util.MotionActionQueue;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
@@ -47,13 +56,13 @@ import net.wurstclient.util.RotationQueue;
  * (Single/Switch targeting, raycasted rotations and attack windows).
  */
 public final class KillauraHack extends Hack
-	implements UpdateListener, HandleInputListener, RenderListener
+	implements UpdateListener, PreMotionListener, PostMotionListener, RenderListener, PacketInputListener
 {
 	private final EnumSetting<Mode> mode =
 		new EnumSetting<>("Mode", Mode.values(), Mode.SWITCH);
 
 	private final SliderSetting range = new SliderSetting("Range",
-		"How far the aura can attack.", 6, 3, 10, 0.1, ValueDisplay.DECIMAL);
+		"How far the aura can attack.", 3, 3, 6, 0.1, ValueDisplay.DECIMAL);
 	private final SliderSetting rotationRange = new SliderSetting(
 		"Rotation range",
 		"How far the aura will look at targets without attacking.", 5, 3, 8,
@@ -64,7 +73,7 @@ public final class KillauraHack extends Hack
 
 	private final EnumSetting<CpsMode> cpsMode = new EnumSetting<>("CPS mode",
 		"Auto follows the weapon's attack speed; Manual uses a fixed CPS.",
-		CpsMode.values(), CpsMode.AUTO);
+		CpsMode.values(), CpsMode.MANUAL);
 	private final SliderSetting attackCps = new SliderSetting("Attack CPS",
 		"Attacks per second in manual mode.", 10, 1, 20, 1,
 		ValueDisplay.INTEGER)
@@ -72,7 +81,7 @@ public final class KillauraHack extends Hack
 	private final SliderSetting swingCps = new SliderSetting("Swing CPS",
 		"Fake swings per second.", 10, 1, 20, 1, ValueDisplay.INTEGER);
 	private final CheckboxSetting hideFakeSwings =
-		new CheckboxSetting("Hide fake swings", false);
+		new CheckboxSetting("Hide fake swings", true);
 
 	private final CheckboxSetting requireWeapon = new CheckboxSetting(
 		"Require weapon",
@@ -83,13 +92,9 @@ public final class KillauraHack extends Hack
 	private final CheckboxSetting hitSelect = new CheckboxSetting("Hit Select",
 		"Skips attacks while you are taking knockback.", false);
 
-	/**
-	 * Entity id -> last attack time/damage. OpenAura recreates its Target
-	 * objects every tick, so the attack window and the SWITCH ordering only
-	 * work if this history is kept across ticks.
-	 */
-	private final Map<Integer, OpenAura.AttackRecord> attackRecords =
-		new HashMap<>();
+	private final OpenAuraTargeting targeting = new OpenAuraTargeting();
+	private final MotionActionQueue<OpenAuraTargeting.Selection> actions =
+		new MotionActionQueue<>();
 
 	private final CheckboxSetting targetPlayers = new CheckboxSetting(
 		"Target players", "Attacks other players.", true);
@@ -102,7 +107,7 @@ public final class KillauraHack extends Hack
 		"Attacks other living entities (villagers, golems).", true);
 
 	private final SliderSetting fov = new SliderSetting("FOV",
-		"Only targets inside this field of view.", 360, 30, 360, 10,
+		"Only targets inside this field of view.", 180, 1, 180, 1,
 		ValueDisplay.DEGREES);
 	private final CheckboxSetting overrideRaycast = new CheckboxSetting(
 		"Override raycast", "Aims exactly at the target before attacking.",
@@ -132,14 +137,25 @@ public final class KillauraHack extends Hack
 	private final CheckboxSetting visualsHalo = new CheckboxSetting("Halo",
 		"Draws a ring around the target.", true);
 
+	private final EnumSetting<ScaffoldRotationModel> rotationModel = new EnumSetting<>(
+		"Rotation model", ScaffoldRotationModel.values(), ScaffoldRotationModel.INSTANT);
+	private final SliderSetting maxAngle = new SliderSetting("Max angle", 90, 5, 360, 5, ValueDisplay.INTEGER);
+	private final SliderSetting drift = new SliderSetting("Drift intensity", 1.2, 0.5, 2, 0.1, ValueDisplay.DECIMAL);
+	private final SliderSetting jitter = new SliderSetting("Jitter intensity", 0.12, 0, 0.3, 0.01, ValueDisplay.DECIMAL);
+	private final CheckboxSetting attackCooldown19 = new CheckboxSetting("1.9+ Attack Cooldown", false);
+	private final ScaffoldRotationHandler rotationHandler = new ScaffoldRotationHandler();
+	private int attacks;
+	private long lastAttackTime;
 	private RotationQueue rotationQueue;
 	private OpenAura.Target currentTarget;
 	private Entity renderTarget;
-	private long nextAttackTime;
-	private long nextSwingTime;
-	private boolean pendingAttack;
 	private boolean fakeBlocking;
-	private int grimKeepTicks;
+	private int grimKeepTicks, grimDamageKeepTicks, grimDamageWindowTicks;
+    private Object statePlayer, stateWorld;
+    private EntityHitResult lookaheadHit;
+    private final CPSProperty attackTiming = new CPSProperty(attackCps::getValueI,
+        () -> cpsMode.getSelected() == CpsMode.AUTO);
+    private final CPSProperty swingTiming = new CPSProperty(swingCps::getValueI, () -> false);
 
 	public KillauraHack()
 	{
@@ -147,6 +163,11 @@ public final class KillauraHack extends Hack
 		setCategory(Category.COMBAT);
 		addConflictGroup(HackConflictGroup.COMBAT_TARGETING);
 
+		addSetting(rotationModel);
+		addSetting(maxAngle);
+		addSetting(drift);
+		addSetting(jitter);
+		addSetting(attackCooldown19);
 		addSetting(mode);
 		addSetting(range);
 		addSetting(rotationRange);
@@ -180,23 +201,27 @@ public final class KillauraHack extends Hack
 	{
 		currentTarget = null;
 		renderTarget = null;
-		pendingAttack = false;
+		actions.clear();
 		fakeBlocking = false;
-		nextAttackTime = 0;
-		nextSwingTime = 0;
-		attackRecords.clear();
+		targeting.reset();
+		grimKeepTicks = grimDamageKeepTicks = grimDamageWindowTicks = 0;
+		lookaheadHit = null;
+		attacks = 0;
+		rotationHandler.reset();
 		rotationQueue = new RotationQueue(RotationQueue.Priority.COMBAT);
 		rotationQueue.start();
-		EVENTS.add(UpdateListener.class, this);
-		EVENTS.add(HandleInputListener.class, this);
+		EVENTS.add(PacketInputListener.class, this);
+		EVENTS.add(PreMotionListener.class, this);
+		EVENTS.add(PostMotionListener.class, this);
 		EVENTS.add(RenderListener.class, this);
 	}
 
 	@Override
 	protected void onDisable()
 	{
-		EVENTS.remove(UpdateListener.class, this);
-		EVENTS.remove(HandleInputListener.class, this);
+		EVENTS.remove(PacketInputListener.class, this);
+		EVENTS.remove(PreMotionListener.class, this);
+		EVENTS.remove(PostMotionListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
 		if(rotationQueue != null)
 		{
@@ -206,110 +231,147 @@ public final class KillauraHack extends Hack
 		stopBlocking();
 		currentTarget = null;
 		renderTarget = null;
-		pendingAttack = false;
-		attackRecords.clear();
+		actions.clear();
+		targeting.reset();
+		grimKeepTicks = grimDamageKeepTicks = grimDamageWindowTicks = 0;
+		lookaheadHit = null;
+		attacks = 0;
+		rotationHandler.reset();
 	}
 
 	@Override
 	public void onUpdate()
 	{
-		pendingAttack = false;
-		if(grimKeepTicks > 0)
-		{
-			grimKeepTicks--;
-			if(MC.player != null)
-				MC.player.setSprinting(true);
-		}
-
+        if(statePlayer != MC.player || stateWorld != MC.level) {
+            clearTarget();
+            grimDamageKeepTicks = grimDamageWindowTicks = 0;
+            statePlayer = MC.player;
+            stateWorld = MC.level;
+        }
+        if(grimKeepTicks > 0) grimKeepTicks--;
+        if(grimDamageKeepTicks > 0) grimDamageKeepTicks--;
+        if(grimDamageWindowTicks > 0) grimDamageWindowTicks--;
+		actions.clear();
 		if(!requirementsMet())
 		{
 			clearTarget();
 			return;
 		}
+		actions.begin(MC.player, MC.level, MC.player.tickCount);
+		planTargets();
+		updateAutoblock();
+	}
 
-		List<OpenAura.Target> targets = OpenAura.collect(attackConfig());
-		currentTarget = OpenAura.select(targets,
-			mode.getSelected() == Mode.SWITCH, attackRecords::get);
+	private void planTargets() { planTargets(true); }
+
+	private void planTargets(boolean rotate)
+	{
+		OpenAuraTargeting.Selection selection = targeting.update(attackConfig(),
+			rotationConfig(), mode.getSelected() == Mode.SWITCH);
+		currentTarget = selection.attack();
 		renderTarget = currentTarget == null ? null : currentTarget.entity;
-
-		if(MC.player.tickCount % 20 == 0)
-			pruneAttackRecords();
-
-		if(currentTarget == null)
+		actions.schedule(selection);
+        if(!rotate) return;
+		if(selection.rotation() == null)
 		{
-			OpenAura.Target rotationTarget =
-				OpenAura.selectNearest(OpenAura.collect(rotationConfig()));
-			if(rotationTarget != null)
-				rotationQueue.setRotation(rotationTarget.rotation);
-			else
-				rotationQueue.clear();
-			updateAutoblock();
-			tryFakeSwing();
+			rotationQueue.clear();
 			return;
 		}
-
-		rotationQueue.setRotation(currentTarget.rotation);
-		updateAutoblock();
-
-		if(!isClickReady() || !currentTarget.isAttackAvailable())
-			return;
-		if(hitSelect.isChecked() && MC.player.hurtTime > 0)
-			return;
-
-		pendingAttack = true;
+		Rotation planned = selection.rotation().rotation;
+		rotationHandler.rotate(planned, heypixelBypass.isChecked()
+			? ScaffoldRotationModel.HEYPIXEL : rotationModel.getSelected(),
+			maxAngle.getValueF(), drift.getValue(), jitter.getValue());
+		rotationQueue.setRotation(rotationHandler.getRotation());
 	}
 
 	@Override
-	public void onHandleInput()
+	public void onPreMotion()
 	{
-		if(!pendingAttack || currentTarget == null || MC.player == null)
-			return;
-
-		OpenAura.Target target = currentTarget;
-		pendingAttack = false;
-		if(!target.entity.isAlive())
-			return;
-
-		if(overrideRaycast.isChecked())
+		if(!requirementsMet()
+			|| !actions.isCurrent(MC.player, MC.level, MC.player.tickCount))
 		{
-			EntityHitResult hit = OpenAura.raycastEntity(target.entity,
-				MC.player.getEyePosition(), target.rotation, getRange());
-			if(hit == null)
-				return;
-			if(!throughWalls.isChecked() && !OpenAura.hasLineOfSight(
-				MC.player.getEyePosition(), hit.getLocation()))
-				return;
+			clearTarget();
+			return;
 		}
-
-		if(smartWeapon.isChecked())
-			switchToAxe(target.entity);
-
-		if(MC.player.isUsingItem())
-			MC.gameMode.releaseUsingItem(MC.player);
-
-		Rotation attackRotation = target.rotation;
-		if(heypixelBypass.isChecked())
-		{
-			float jitter = (float)((Math.random() - 0.5D) * 0.1D);
-			attackRotation = Rotation.wrapped(
-				attackRotation.yaw() + jitter,
-				attackRotation.pitch() + jitter);
-		}
-		rotationQueue.setRotation(attackRotation);
-
-		boolean wasSprinting = MC.player.isSprinting();
-		MC.gameMode.attack(MC.player, target.entity);
-		MC.player.swing(InteractionHand.MAIN_HAND);
-
-		if(keepSprintFov.isChecked() || grimKeepSprint.isChecked())
-			keepSprint(wasSprinting);
-		if(grimKeepSprint.isChecked() && wasSprinting)
-			grimKeepTicks = 2;
-
-		target.onAttack();
-		attackRecords.put(target.entity.getId(), target.attackRecord());
-		nextAttackTime = System.currentTimeMillis() + clickDelay();
+		// Refresh after movement, before the shared queue chooses the packet aim.
+		if(tickLookahead.isChecked()) {
+			planTargets(false);
+            if(currentTarget != null) rotationQueue.setRotation(rotationHandler.getRotation());
+        }
 	}
+
+    @Override
+    public void onPostMotion() {
+        if(!tickLookahead.isChecked() || MC.player == null) return;
+        lookaheadHit = currentTarget == null ? null : OpenAura.raycastEntity(
+            currentTarget.entity, MC.player.getEyePosition(),
+            rotationHandler.getRotation(), getRange());
+    }
+
+    /** KillAuraModule.onHandleInput: schedule vanilla clicks through MouseHelper. */
+    public void onOpalMouseInput() {
+        if(!requirementsMet()) return;
+        OpenAura.Target target = currentTarget;
+        if(target == null || MC.hitResult == null
+            || MC.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.MISS) {
+            tryFakeSwing();
+            return;
+        }
+        if(MC.player.isUsingItem() && !WURST.getHax().multitaskHack.attackingEntities()) return;
+        target = targeting.revalidate(target, attackConfig());
+        if(target == null) return;
+        if(overrideRaycast.isChecked() && !heypixelBypass.isChecked()) {
+            if(tickLookahead.isChecked()
+                && (lookaheadHit == null || lookaheadHit.getEntity() != target.entity)) return;
+            MC.hitResult = new EntityHitResult(target.entity, target.hitVec);
+        }
+        if(!(MC.hitResult instanceof EntityHitResult hit)) return;
+        var velocityMode = WURST.getHax().antiKnockbackHack;
+        if(hitSelect.isChecked() && velocityMode.isEnabled()) {
+            if(velocityMode.getHitSelectSkips() > 0) { velocityMode.consumeHitSelectSkip(); return; }
+            if(velocityMode.isAttacking()) return;
+        }
+        if(!isAttackSwingAvailable(target)) { attacks = 0; return; }
+        if(hit.getEntity() != target.entity) return;
+        if(smartWeapon.isChecked()) switchToAxe(target.entity);
+        MouseHelper.getLeftButton().setPressed();
+        targeting.onAttack(target, attacks == 0);
+        if(grimKeepSprint.isChecked() && MC.player.isSprinting()) {
+            grimKeepTicks = 2;
+            Vec3 velocity = MC.player.getDeltaMovement();
+            MC.player.setDeltaMovement(velocity.x * 0.6D, velocity.y, velocity.z * 0.6D);
+            MC.player.setSprinting(true);
+        }
+        attackTiming.resetClick();
+        SwingDelay.reset();
+        if(heypixelBypass.isChecked()) lastAttackTime = System.currentTimeMillis();
+        attacks = attacks > 0 ? attacks - 1 : 2;
+    }
+
+    public boolean shouldKeepSprint() {
+        return isEnabled() && grimKeepSprint.isChecked()
+            && (grimKeepTicks > 0 || grimDamageKeepTicks > 0);
+    }
+
+    @Override
+    public void onReceivedPacket(PacketInputEvent event) {
+        if(!grimKeepSprint.isChecked() || MC.player == null) return;
+        var player = MC.player;
+        var world = MC.level;
+        boolean damage = event.getPacket() instanceof ClientboundDamageEventPacket p
+            && p.entityId() == player.getId();
+        boolean velocity = event.getPacket() instanceof ClientboundSetEntityMotionPacket p
+            && p.getId() == player.getId();
+        if(!damage && !velocity) return;
+        MC.execute(() -> {
+            if(!isEnabled() || MC.player != player || MC.level != world) return;
+            if(damage) grimDamageWindowTicks = 4;
+            else if(grimDamageWindowTicks > 0) {
+                grimDamageKeepTicks = Math.max(grimDamageKeepTicks, 6);
+                grimDamageWindowTicks = 0;
+            }
+        });
+    }
 
 	@Override
 	public void onRender(PoseStack matrices, float partialTicks)
@@ -346,13 +408,13 @@ public final class KillauraHack extends Hack
 	private OpenAura.Config attackConfig()
 	{
 		return new OpenAura.Config(getRange(), fov.getValue(),
-			targetFlags(), throughWalls.isChecked());
+			targetFlags(), throughWalls.isChecked(), true);
 	}
 
 	private OpenAura.Config rotationConfig()
 	{
 		return new OpenAura.Config(rotationRange.getValue(), fov.getValue(),
-			targetFlags(), throughWalls.isChecked());
+			targetFlags(), throughWalls.isChecked(), true);
 	}
 
 	private int targetFlags()
@@ -376,7 +438,11 @@ public final class KillauraHack extends Hack
 
 	private boolean requirementsMet()
 	{
-		if(MC.player == null || MC.level == null || MC.screen != null)
+		if(MC.player == null || MC.level == null || MC.screen != null || MC.getOverlay() != null)
+			return false;
+		if(MC.gameMode == null || !MC.player.isAlive()
+			|| MC.player.isSpectator() || MC.player.isPassenger()
+			|| WURST.getHax().scaffoldWalkHack.isEnabled())
 			return false;
 		if(isConsumingFoodOrPotion())
 			return false;
@@ -384,7 +450,7 @@ public final class KillauraHack extends Hack
 			return false;
 		if(requireWeapon.isChecked())
 		{
-			ItemStack held = MC.player.getMainHandItem();
+			ItemStack held = net.wurstclient.opal.SlotHelper.getInstance().getMainHandStack(MC.player);
 			if(!held.is(ItemTags.SWORDS) && !held.is(ItemTags.AXES)
 				&& !held.is(ItemTags.PICKAXES))
 				return false;
@@ -401,67 +467,58 @@ public final class KillauraHack extends Hack
 			&& (stack.has(net.minecraft.core.component.DataComponents.FOOD) || stack.getItem() instanceof PotionItem);
 	}
 
-	private boolean isClickReady()
+	/** KillAuraModule.isAttackSwingAvailable, using the original burst window. */
+	private boolean isAttackSwingAvailable(OpenAura.Target target)
 	{
-		// Auto mode waits for the held weapon's attack cooldown, so the
-		// effective CPS follows the weapon's attack speed.
-		if(cpsMode.getSelected() == CpsMode.AUTO)
-			return MC.player != null
-				&& MC.player.getAttackStrengthScale(0.5F) >= 1.0F;
-		return System.currentTimeMillis() >= nextAttackTime;
-	}
-
-	private long clickDelay()
-	{
-		return Math.max(1, 1000 / attackCps.getValueI());
-	}
-
-	private void tryFakeSwing()
-	{
-		if(hideFakeSwings.isChecked()
-			|| System.currentTimeMillis() < nextSwingTime)
-			return;
-
-		OpenAura.Config config = new OpenAura.Config(swingRange.getValue(),
-			fov.getValue(), targetFlags(), throughWalls.isChecked());
-		if(OpenAura.collect(config).isEmpty())
-			return;
-
-		MC.player.swing(InteractionHand.MAIN_HAND);
-		nextSwingTime = System.currentTimeMillis()
-			+ Math.max(1, 1000 / swingCps.getValueI());
-	}
-
-	private void switchToAxe(LivingEntity target)
-	{
-		if(!target.isBlocking())
-			return;
-
-		for(int i = 0; i < 9; i++)
+		boolean smartAttack = smartWeapon.isChecked() && isShielding(target.entity)
+			&& hasAxe();
+		if(attackCooldown19.isChecked() && !smartAttack)
+			return MC.player.getAttackStrengthScale(0.5F) >= 1.0F;
+		if(heypixelBypass.isChecked())
 		{
-			ItemStack stack = MC.player.getInventory().getItem(i);
-			if(!(stack.getItem() instanceof AxeItem))
-				continue;
-			if(MC.player.getInventory().getSelectedSlot() == i)
-				return;
-
-			MC.player.getInventory().setSelectedSlot(i);
-			MC.player.connection
-				.send(new ServerboundSetCarriedItemPacket(i));
-			return;
+			double baseDelay = 1000.0D / attackTiming.getCPS();
+			long delay = (long)(baseDelay + (Math.random() - 0.5D) * baseDelay * 0.4D);
+			return System.currentTimeMillis() - lastAttackTime >= delay;
 		}
+		return target.isAttackAvailable() || attacks > 0
+			|| SwingDelay.isSwingAvailable(attackTiming, false);
 	}
 
-	private void keepSprint(boolean wasSprinting)
+    private boolean isShielding(LivingEntity target) {
+        return target.isUsingItem() && target.getUseItem().getItem() instanceof net.minecraft.world.item.ShieldItem;
+    }
+
+	private boolean hasAxe()
 	{
-		if(!wasSprinting || MC.player.hasEffect(MobEffects.BLINDNESS))
-			return;
-
-		Vec3 velocity = MC.player.getDeltaMovement();
-		MC.player.setDeltaMovement(velocity.x * 0.6D, velocity.y,
-			velocity.z * 0.6D);
-		MC.player.setSprinting(true);
+		for(int slot = 0; slot < 9; slot++)
+			if(MC.player.getInventory().getItem(slot).is(ItemTags.AXES))
+				return true;
+		return false;
 	}
+
+    private void tryFakeSwing() {
+        if(MC.hitResult instanceof net.minecraft.world.phys.BlockHitResult
+            && MC.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) return;
+        OpenAura.Config config = new OpenAura.Config(swingRange.getValue(),
+            fov.getValue(), targetFlags(), throughWalls.isChecked(), true);
+        if(!OpenAura.hasSwingTarget(config) || !SwingDelay.isSwingAvailable(swingTiming)) return;
+        var left = MouseHelper.getLeftButton();
+        left.setPressed(true, net.wurstclient.opal.RandomUtility.getRandomInt(2));
+        if(hideFakeSwings.isChecked() && !(MC.hitResult instanceof EntityHitResult))
+            left.setShowSwings(false);
+        swingTiming.resetClick();
+    }
+
+    private void switchToAxe(LivingEntity target) {
+        if(!isShielding(target)) return;
+        for(int slot=0; slot<9; slot++) {
+            if(MC.player.getInventory().getItem(slot).is(ItemTags.AXES)) {
+                net.wurstclient.opal.SlotHelper.setCurrentItem(slot)
+                    .silence(net.wurstclient.opal.SlotHelper.Silence.NONE);
+                return;
+            }
+        }
+    }
 
 	private void updateAutoblock()
 	{
@@ -485,15 +542,15 @@ public final class KillauraHack extends Hack
 			return;
 		}
 
-		InteractionHand hand = findBlockableHand();
-		if(hand != null && !MC.player.isUsingItem())
-			MC.gameMode.useItem(MC.player, hand);
-	}
+        MouseHelper.getRightButton().setPressed(true, 2);
+        MouseHelper.getRightButton().setShowSwings(false);
+    }
 
 	private void stopBlocking()
 	{
 		fakeBlocking = false;
-		if(MC.player != null && MC.player.isUsingItem()
+		MouseHelper.getRightButton().setPressed(false, 0);
+		if(MC.player != null && MC.gameMode != null && MC.player.isUsingItem()
 			&& MC.player.getUseItem().getUseAnimation() == ItemUseAnimation.BLOCK)
 			MC.gameMode.releaseUsingItem(MC.player);
 	}
@@ -514,26 +571,17 @@ public final class KillauraHack extends Hack
 
 	private void clearTarget()
 	{
+		targeting.reset();
+		grimKeepTicks = grimDamageKeepTicks = grimDamageWindowTicks = 0;
+		lookaheadHit = null;
+		attacks = 0;
+		rotationHandler.reset();
 		currentTarget = null;
 		renderTarget = null;
-		pendingAttack = false;
+		actions.clear();
 		if(rotationQueue != null)
 			rotationQueue.clear();
 		stopBlocking();
-	}
-
-	/** Drops attack history for entities that left the level. */
-	private void pruneAttackRecords()
-	{
-		if(attackRecords.isEmpty())
-			return;
-		if(MC.level == null)
-		{
-			attackRecords.clear();
-			return;
-		}
-
-		attackRecords.keySet().removeIf(id -> MC.level.getEntity(id) == null);
 	}
 
 	public enum CpsMode

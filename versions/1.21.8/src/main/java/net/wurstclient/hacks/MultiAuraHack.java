@@ -101,8 +101,13 @@ public final class MultiAuraHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
-		if(MC.player == null || MC.level == null)
+		if(MC.player == null || MC.level == null || MC.gameMode == null
+			|| !MC.player.isAlive() || MC.player.isSpectator()
+			|| WURST.getHax().scaffoldWalkHack.isEnabled())
+		{
+			currentTarget = null;
 			return;
+		}
 
 		speed.updateTimer();
 		if(!speed.isTimeToAttack())
