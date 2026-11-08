@@ -27,6 +27,7 @@ import org.lwjgl.opengl.GL11;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hud2.mods.NotificationsMod;
+import net.wurstclient.hud2.nanovg.SoftwareText;
 import net.wurstclient.hud2.nanovg.GlStateGuard;
 import net.wurstclient.hud2.nanovg.NanoVGContext;
 import net.wurstclient.util.json.JsonException;
@@ -146,8 +147,9 @@ public final class HudManager
 
 		// Krypton/GLES wrappers corrupt the main framebuffer when NanoVG
 		// uploads its font atlas mid-frame, which turns the whole screen
-		// black in-game. Keep the in-game HUD disabled there; the title
-		// screen and GUI passes still render through NanoVG.
+		// black in-game. When the Android Skia text backend is available we
+		// keep the HUD by rasterizing glyphs through the platform renderer;
+		// otherwise the in-game HUD must stay off there.
 		if(nvg.isGles())
 		{
 			if(!glesHudNoticeLogged)
