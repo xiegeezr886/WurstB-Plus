@@ -116,7 +116,6 @@ dependencies {
 mixin {
 	add sourceSets.main, "wurstpenguin-refmap.json"
 	config "wurst.mixins.json"
-	config "mixins.baritone.json"
 }
 
 processResources {
@@ -148,7 +147,7 @@ jar {
 	archiveClassifier = "dev"
 	manifest {
 		attributes(
-			"MixinConfigs": "wurst.mixins.json,mixins.baritone.json",
+			"MixinConfigs": "wurst.mixins.json",
 			"MixinConnector": "baritone.launch.BaritoneMixinConnector",
 			"Specification-Title": project.mod_id,
 			"Specification-Vendor": project.mod_authors,
