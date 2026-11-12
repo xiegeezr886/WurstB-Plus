@@ -70,8 +70,9 @@ dependencies {
 	runtimeOnly "dev.babbaj:nether-pathfinder:1.4.1"
 
 	// MixinExtras
-	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"
-	annotationProcessor "io.github.llamalad7:mixinextras-common:0.5.4"
+	compileOnly "io.github.llamalad7:mixinextras-common:0.5.5"
+	annotationProcessor "io.github.llamalad7:mixinextras-common:0.5.5"
+	include(modImplementation("io.github.llamalad7:mixinextras-fabric:0.5.5"))
 }
 
 loom {
