@@ -51,6 +51,30 @@ jobs:
         shell: pwsh
         run: ./scripts/check-parity.ps1 -Check
 
+  crash-regressions:
+    name: 崩溃回归 / 原生库与旧密钥行为
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 崩溃回归闸门（全部工程）
+        run: python scripts/audit-crash-regressions.py
+
+      - name: 崩溃闸门负例测试
+        run: python -m unittest discover -s scripts/tests -p "test_crash_regressions.py"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 原生缓存 / 账号迁移 / gamma / Sodium 回调测试
+        run: python scripts/run-crash-unit-tests.py
+
   compile:
     name: 根工程 compileJava
     runs-on: ubuntu-latest
