@@ -7,6 +7,9 @@
   "plugin": "net.wurstclient.mixin.WurstMixinConfigPlugin",
   "mixins": [],
   "client": [
+    "OptionsMixin",
+    "KeyEntryAccessor",
+
     "OpenOpalEntityRotationMixin",
     "OpenOpalInventoryViewMixin",
     "OpenOpalMovementAccess",
@@ -84,6 +87,8 @@
     "freecam/ItemInHandRendererMixin",
     "freecam/LocalPlayerMixin",
     "sodium/OcclusionCullerMixin",
+    "sodium/AbstractBlockRenderContextMixin",
+    "sodium/DefaultFluidRendererMixin",
     "noshieldoverlay/ItemInHandRendererMixin",
     "GuiMixin",
     "ItemStackMixin",
