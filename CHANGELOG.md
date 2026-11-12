@@ -8,6 +8,17 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ---
 
+## 崩溃与安全热修（2026-11-12，源码已修，未发布）
+
+- 修复 26.x NanoVG 错误释放、四个 NeoForge 工程的 Baritone 悬空入口、嵌套 Baritone 配置遮蔽、启动期翻译与 OpenOpal 空引用。
+- Reach 与其它模组修改同一常量时允许降级；此时超过 6 格的实体搜索可能不可用，游戏不会因该冲突被强制终止。
+- Fabric 内嵌 MixinExtras 0.5.5，最低 Fabric Loader 版本提升到 0.17.0。
+- 修复 Fullbright / X-Ray 保存设置时的越界亮度，保存结束后恢复渲染效果；限制旧密钥反序列化，防止资源包替换 FFmpeg / Skiko 原生库，并校验、隔离 NanoVG 原生缓存。
+- 补齐 NeoForge 1.20.1 的 10 个使用中接口注册，并回填其它版本的 21 个同类遗漏；为 Fabric 1.21.11 新增现代 Sodium 方块、流体 X-Ray 显隐回调。
+- 新增覆盖全部工程的回归闸门、发布产物检查及独立行为测试。完整发布包与实机验收仍受构建环境问题阻断，详见[修复与验证记录](report/CRASH-FIXES-2026-11-12.md)。旧 JAR 不会因源码修复而自动更新。
+
+---
+
 ## v1.5.1 — OpenOpal KillAura／自动搭路源码移植（2026-11-08，未发布）
 
 直接使用仓库内 OpenOpal 源码移植 KillAura、Scaffold 及其核心行为依赖，适配现有模块、设置、事件与渲染接口。覆盖本仓库 66 个 v1.5.1 工程（Fabric 23、NeoForge 23、Forge 20）；根目录 v1.6.0 与独立 Forge 1.20.1 工程不在本次范围内。
