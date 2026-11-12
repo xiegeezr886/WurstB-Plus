@@ -1210,8 +1210,9 @@ public final class NanoVGContext
 
 		if(colors.size() >= MAX_COLORS)
 		{
-			for(NVGColor color : colors.values())
-				color.free();
+			// NVGColor.create() wraps a GC-managed direct ByteBuffer.
+			// Struct.free() would hand that address to jemalloc and crash;
+			// drop the references and let the GC reclaim them.
 			colors.clear();
 		}
 
@@ -1273,8 +1274,6 @@ public final class NanoVGContext
 			images.clear();
 			textureImages.clear();
 
-			for(NVGColor color : colors.values())
-				color.free();
 			colors.clear();
 
 			NanoVGGL3.nvgDelete(vg);
