@@ -280,6 +280,9 @@ function Test-EmbeddedBaritone($artifact, $entryName, $mcVersion) {
     $buffer = $null
     try {
         $archive = [System.IO.Compression.ZipFile]::OpenRead($artifact)
+          if ($archive.GetEntry("mixins.baritone.json")) {
+              return @{ Passed = $false; Note = "outer mixins.baritone.json shadows nested Baritone" }
+          }
         $entry = $archive.GetEntry($entryName)
         if (-not $entry) { return @{ Passed = $false; Note = "missing $entryName" } }
 

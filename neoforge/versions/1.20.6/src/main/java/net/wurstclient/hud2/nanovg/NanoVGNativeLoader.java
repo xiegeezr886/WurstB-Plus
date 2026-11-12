@@ -99,8 +99,10 @@ public final class NanoVGNativeLoader
 		String arch =
 			System.getProperty("os.arch", "").toLowerCase(Locale.ROOT);
 		boolean arm = arch.contains("aarch64") || arch.contains("arm64");
+		boolean x64 = arch.equals("amd64") || arch.equals("x86_64") || arch.equals("x64");
+		if(!arm && !x64) return null;
 
-		if(os.contains("win"))
+		if(os.contains("win") && !os.contains("darwin"))
 			return arm ? "natives-windows-arm64" : "natives-windows";
 		if(os.contains("mac") || os.contains("darwin"))
 			return arm ? "natives-macos-arm64" : "natives-macos";
@@ -112,7 +114,7 @@ public final class NanoVGNativeLoader
 	private static String osDirectory()
 	{
 		String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
-		if(os.contains("win"))
+		if(os.contains("win") && !os.contains("darwin"))
 			return "windows";
 		if(os.contains("mac") || os.contains("darwin"))
 			return "macos";
@@ -129,10 +131,9 @@ public final class NanoVGNativeLoader
 
 	private static String nativeName()
 	{
-		boolean windows = System.getProperty("os.name", "")
-			.toLowerCase(Locale.ROOT).contains("win");
-		boolean mac = System.getProperty("os.name", "")
-			.toLowerCase(Locale.ROOT).contains("mac");
+		String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+		boolean windows = os.contains("win") && !os.contains("darwin");
+		boolean mac = os.contains("mac") || os.contains("darwin");
 		if(windows)
 			return LIBRARY_NAME + ".dll";
 		return "lib" + LIBRARY_NAME + (mac ? ".dylib" : ".so");
@@ -281,21 +282,60 @@ public final class NanoVGNativeLoader
 	private static Path writeNative(InputStream in, String name)
 		throws Exception
 	{
+		// Address the cache by platform AND the bundled bytes, not file size.
+		// A partial download, previous build or another architecture is never reused.
+		byte[] library = in.readNBytes(32 * 1024 * 1024 + 1);
+		if(library.length == 0 || library.length > 32 * 1024 * 1024)
+			throw new java.io.IOException("Invalid NanoVG native size");
+		byte[] expected = java.security.MessageDigest.getInstance("SHA-256").digest(library);
 		Path directory = Path.of(System.getProperty("java.io.tmpdir"),
-			"wurst-nanovg", LIB_VERSION);
+			"wurst-nanovg", LIB_VERSION, classifier(), java.util.HexFormat.of().formatHex(expected));
 		Files.createDirectories(directory);
 		Path destination = directory.resolve(name);
 
-		if(Files.isRegularFile(destination) && Files.size(destination) > 0)
+		if(matchesNative(destination, expected))
 			return directory;
 
-		Files.copy(in, destination, StandardCopyOption.REPLACE_EXISTING);
+		Path temporary = Files.createTempFile(directory, name, ".tmp");
+		try
+		{
+			Files.write(temporary, library);
+			try
+			{
+				Files.move(temporary, destination, StandardCopyOption.ATOMIC_MOVE,
+					StandardCopyOption.REPLACE_EXISTING);
+			}catch(java.nio.file.AtomicMoveNotSupportedException e)
+			{
+				Files.move(temporary, destination, StandardCopyOption.REPLACE_EXISTING);
+			}
+			if(!matchesNative(destination, expected))
+				throw new java.io.IOException("NanoVG native digest mismatch: " + destination);
+		}finally
+		{
+			Files.deleteIfExists(temporary);
+		}
 		try
 		{
 			destination.toFile().setExecutable(true);
 		}catch(SecurityException ignored)
 		{}
 		return directory;
+	}
+
+	private static boolean matchesNative(Path file, byte[] expected) throws Exception
+	{
+		if(!Files.isRegularFile(file, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+			|| Files.size(file) > 32 * 1024 * 1024)
+			return false;
+		try(InputStream input = Files.newInputStream(file))
+		{
+			java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+			byte[] buffer = new byte[8192];
+			int read;
+			while((read = input.read(buffer)) != -1)
+				digest.update(buffer, 0, read);
+			return java.security.MessageDigest.isEqual(expected, digest.digest());
+		}
 	}
 
 	private static void configureLibraryPath(Path directory)
