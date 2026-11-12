@@ -51,8 +51,9 @@ dependencies {
 	include implementation("baritone:baritone-api-fabric:1.20.0-26.3")
 
 	// MixinExtras
-	compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"
-	annotationProcessor "io.github.llamalad7:mixinextras-common:0.5.4"
+	compileOnly "io.github.llamalad7:mixinextras-common:0.5.5"
+	annotationProcessor "io.github.llamalad7:mixinextras-common:0.5.5"
+	include(implementation("io.github.llamalad7:mixinextras-fabric:0.5.5"))
 
 	// NanoVG HUD renderer
 	implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"

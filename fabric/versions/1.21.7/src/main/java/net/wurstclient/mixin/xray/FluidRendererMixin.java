@@ -66,7 +66,7 @@ public class FluidRendererMixin
 	 */
 	@ModifyConstant(
 		method = "vertex(Lcom/mojang/blaze3d/vertex/VertexConsumer;FFFFFFFFI)V",
-		constant = @Constant(floatValue = 1F, ordinal = 0))
+		constant = @Constant(floatValue = 1F, ordinal = 0), require = 0)
 	private float modifyOpacity(float original)
 	{
 		return currentOpacity.get();

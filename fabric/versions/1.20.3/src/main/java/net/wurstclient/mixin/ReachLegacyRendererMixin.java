@@ -10,7 +10,8 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 @Mixin(GameRenderer.class)
 public abstract class ReachLegacyRendererMixin
 {
-	@ModifyConstant(method = "pick(F)V", constant = @Constant(doubleValue = 6.0))
+	@ModifyConstant(method = "pick(F)V", constant = @Constant(doubleValue = 6.0),
+		require = 0)
 	private double wurstEntitySearchDistance(double original)
 	{
 		var hax = WurstClient.INSTANCE.getHax();

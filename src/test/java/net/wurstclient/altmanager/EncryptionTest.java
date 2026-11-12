@@ -6,6 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,6 +34,53 @@ import net.wurstclient.altmanager.credentials.CredentialStore;
 
 final class EncryptionTest
 {
+	private static boolean deserializedUnexpectedType;
+
+	private static final class UnexpectedType implements Serializable
+	{
+		private void readObject(ObjectInputStream input) throws Exception
+		{
+			deserializedUnexpectedType = true;
+			input.defaultReadObject();
+		}
+	}
+
+	@Test
+	void legacyMigrationRejectsTypesBeforeReadObjectRuns(@TempDir Path temp) throws Exception
+	{
+		createLegacyKeys(temp);
+		deserializedUnexpectedType = false;
+		try(ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(
+			temp.resolve("wurst_rsa_public.txt"))))
+		{
+			out.writeObject(new UnexpectedType());
+			out.writeObject(BigInteger.valueOf(65537));
+		}
+		assertThrows(IOException.class, () -> new Encryption(temp, new MemoryCredentialStore()));
+		assertFalse(deserializedUnexpectedType);
+	}
+
+	@Test
+	void legacyMigrationRejectsOversizedFile(@TempDir Path temp) throws Exception
+	{
+		createLegacyKeys(temp);
+		Files.write(temp.resolve("wurst_rsa_public.txt"), new byte[20 * 1024]);
+		assertThrows(IOException.class, () -> new Encryption(temp, new MemoryCredentialStore()));
+	}
+
+	@Test
+	void legacyMigrationRejectsOversizedIntegerArray(@TempDir Path temp) throws Exception
+	{
+		createLegacyKeys(temp);
+		try(ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(
+			temp.resolve("wurst_rsa_public.txt"))))
+		{
+			out.writeObject(BigInteger.ONE.shiftLeft(9000));
+			out.writeObject(BigInteger.valueOf(65537));
+		}
+		assertThrows(IOException.class, () -> new Encryption(temp, new MemoryCredentialStore()));
+	}
+
 	@Test
 	void gcmUsesRandomNoncesAndRejectsTampering(@TempDir Path temp)
 		throws Exception

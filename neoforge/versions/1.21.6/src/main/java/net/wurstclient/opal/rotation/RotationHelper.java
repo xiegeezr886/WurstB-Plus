@@ -22,6 +22,7 @@ public final class RotationHelper {
         ((OpenOpalMouseAccess)WurstClient.MC.mouseHandler).opal$turnPlayer(0.0D);
     }
     public static void preTick() {
+        if(WurstClient.MC == null) return;
         if(player != WurstClient.MC.player || world != WurstClient.MC.level) {
             // A departed player's angles must never be copied onto a new player.
             clientHandler.setRotation(null);

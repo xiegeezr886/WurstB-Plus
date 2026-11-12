@@ -160,7 +160,11 @@ jar {
     }
 	zip64 = true
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-	from { zipTree(file("libs/baritone-api-neoforge-1.11.0-1.21.jar")) }
+	from({ zipTree(file("libs/baritone-api-neoforge-1.11.0-1.21.jar")) }) {
+		// Drop Baritone's empty @Mod entrypoint and its metadata together.
+		// Scope this to Baritone so Wurst's own mod metadata is preserved.
+		exclude 'META-INF/neoforge.mods.toml', 'baritone/launch/BaritoneForgeModXD.class'
+	}
 	exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/mods.toml', 'module-info.class'
     exclude "intentionally_untranslated.json"
 }

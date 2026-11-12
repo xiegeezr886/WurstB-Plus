@@ -26,7 +26,7 @@ public class ScreenEffectRendererMixin
 {
 	@ModifyConstant(
 		method = "lambda$submitFire$0(Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lcom/mojang/blaze3d/vertex/VertexConsumer;)V",
-		constant = @Constant(floatValue = -0.3F))
+		constant = @Constant(floatValue = -0.3F), require = 0)
 	private static float getFireOffset(float original)
 	{
 		return WurstClient.INSTANCE.getHax().overlayEditorHack.isHideFire()

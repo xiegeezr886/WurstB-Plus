@@ -6,6 +6,9 @@
   "plugin": "net.wurstclient.mixin.WurstMixinConfigPlugin",
   "mixins": [],
   "client": [
+    "OptionsMixin",
+    "FogRendererAccessor",
+
     "OpenOpalEntityRotationMixin",
     "OpenOpalInventoryViewMixin",
     "OpenOpalMovementAccess",

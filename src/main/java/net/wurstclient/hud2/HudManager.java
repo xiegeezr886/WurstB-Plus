@@ -60,7 +60,6 @@ public final class HudManager implements GUIRenderListener
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private final Map<String, HudElement> elements = new LinkedHashMap<>();
 	private final HudLayout layout = new HudLayout();
-	private final Map<String, String> elementDisplayNames = new LinkedHashMap<>();
 	// loadLayout() 跑在 registerDefaultElements() 之前（见 start()），那时
 	// elements 还是空的，没法把设置直接套到元素上。所以先在这儿缓存下来，
 	// 等元素都注册完再 apply。
@@ -282,7 +281,7 @@ public final class HudManager implements GUIRenderListener
 	public void registerElement(HudElement element)
 	{
 		elements.put(element.getId(), element);
-		elementDisplayNames.put(element.getId(), element.getTranslatedName());
+		// Translations become available after the first resource reload.
 		layout.addElement(element);
 	}
 

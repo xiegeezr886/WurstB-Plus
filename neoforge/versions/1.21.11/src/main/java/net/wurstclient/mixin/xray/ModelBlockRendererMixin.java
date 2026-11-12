@@ -100,7 +100,7 @@ public abstract class ModelBlockRendererMixin
 	 */
 	@ModifyConstant(
 		method = "putQuadData(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lnet/minecraft/client/renderer/block/model/BakedQuad;Lnet/minecraft/client/renderer/block/ModelBlockRenderer$CommonRenderStorage;I)V",
-		constant = @Constant(floatValue = 1F))
+		constant = @Constant(floatValue = 1F), require = 0)
 	private float modifyOpacity(float original)
 	{
 		return currentOpacity.get();

@@ -20,8 +20,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class OpenOpalInputMixin {
     @Inject(method = "tick()V", at = @At("HEAD"))
     private void opalPreTick(CallbackInfo ci) {
+        if (WurstClient.MC == null || WurstClient.INSTANCE.getHax() == null) return;
+        // preTick must still reset rotations when the client is disabled.
         net.wurstclient.opal.rotation.RotationHelper.preTick();
-        if (!WurstClient.INSTANCE.isEnabled() || WurstClient.INSTANCE.getHax() == null) return;
+        if (!WurstClient.INSTANCE.isEnabled()) return;
         var hax = WurstClient.INSTANCE.getHax();
         if (hax.scaffoldWalkHack.isEnabled()) hax.scaffoldWalkHack.onUpdate();
         if (hax.killauraHack.isEnabled()) hax.killauraHack.onUpdate();
