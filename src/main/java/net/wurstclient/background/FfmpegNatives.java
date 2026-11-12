@@ -9,15 +9,12 @@ package net.wurstclient.background;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.wurstclient.util.BundledNativeFiles;
 
 /**
  * 精简版 FFmpeg natives（4 个 FFmpeg DLL + zlib1 + libwinpthread-1 + 1 个 JNI
@@ -71,6 +68,25 @@ final class FfmpegNatives
 
 	/** 资源目录（相对 assets/wurst/）。 */
 	private static final String RESOURCE_DIR = "ffmpeg";
+
+	// Digests are compiled into the mod; resource packs cannot replace them.
+	private static final Map<String, String> SHA256 = Map.ofEntries(
+		Map.entry("avcodec-61.dll",
+			"c5289d77f434183e122ca2d308fb062d2a78b9a18b1b504f14b644b46a31ce4b"),
+		Map.entry("avformat-61.dll",
+			"dbfa338121460f2ed0b7984fffafb661269ef2cd44b510cb7c6c9841cbf2b07f"),
+		Map.entry("avutil-59.dll",
+			"294a1d3b42563a13a3bad60509fc05d011902eb1e78395a72190eb697e27712e"),
+		Map.entry("libwinpthread-1.dll",
+			"72bf8802de3a99d28f0bc2db9a11f281a9f9f3fa83dab2bc67e69fac3bd3d9c0"),
+		Map.entry("swresample-5.dll",
+			"d3f4f2481571a373d625d779ed104034ff0aa6e3e5b5c36461a10839763826b8"),
+		Map.entry("swscale-8.dll",
+			"c0b2114e45d98d67c5c750f7f02087877f7480889d2f6b42ebb344a710be38b4"),
+		Map.entry("vf_ffmpeg.dll",
+			"090877a5eb62c940e32bb2a73ba83d7719da268f214dd4209b861cec6bdd58da"),
+		Map.entry("zlib1.dll",
+			"93e9243a44c29200eeacaf9658efe2558581770e4b11ca4b500e18e424a6e3b5"));
 
 	private static Boolean ready;
 	private static String failure = "";
@@ -152,20 +168,9 @@ final class FfmpegNatives
 	private static void extract(String resourcePath, File target)
 		throws IOException
 	{
-		// 资源命名空间固定写 "wurst"（assets/wurst/...），跟 SkikoNatives 一致。
-		// MC 1.20.1 的 ResourceLocation 是两参构造，没有 fromNamespaceAndPath。
-		ResourceLocation location = new ResourceLocation("wurst",
-			RESOURCE_DIR + "/" + resourcePath);
-
-		try(InputStream in = Minecraft.getInstance().getResourceManager()
-			.open(location))
-		{
-			// 先写临时文件再改名：避免上次运行留下的半个 DLL 被 System.load 到。
-			Path tmp = target.toPath().resolveSibling(target.getName() + ".tmp");
-			Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING);
-			Files.move(tmp, target.toPath(),
-				StandardCopyOption.REPLACE_EXISTING);
-		}
+		BundledNativeFiles.extract(FfmpegNatives.class,
+			"assets/wurst/" + RESOURCE_DIR + "/" + resourcePath,
+			SHA256.get(resourcePath), target.toPath());
 	}
 
 	/** 供 {@link FfmpegVideoDecoder#lastLibraryError()} 读取。 */

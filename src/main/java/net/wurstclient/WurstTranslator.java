@@ -86,9 +86,12 @@ public class WurstTranslator implements ResourceManagerReloadListener
 	 */
 	public String translateEnglish(String key, Object... args)
 	{
+		// Resource reload has not populated Minecraft's English map at startup.
 		String string = englishOnlyStrings.get(key);
-		if(string == null)
+		if(string == null && mcEnglish != null)
 			string = mcEnglish.getOrDefault(key);
+		if(string == null)
+			return key;
 		
 		try
 		{
@@ -127,6 +130,8 @@ public class WurstTranslator implements ResourceManagerReloadListener
 	 */
 	public String translateMcEnglish(String key, Object... args)
 	{
+		if(mcEnglish == null)
+			return key;
 		try
 		{
 			return String.format(mcEnglish.getOrDefault(key), args);

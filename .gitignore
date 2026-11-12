@@ -180,3 +180,6 @@ _recon/release-v1.5/
 _recon/release-v1.5.1/
 .planning/
 
+# Local crash evidence, downloaded toolchains and verification caches.
+/.dsh-tmp/
+
