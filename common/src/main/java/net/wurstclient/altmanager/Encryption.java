@@ -283,6 +283,44 @@ public final class Encryption
 		}
 	}
 
+	private static byte[] readLegacyBytes(Path file, int limit) throws IOException
+	{
+		try(java.io.InputStream input = Files.newInputStream(file))
+		{
+			byte[] bytes = input.readNBytes(limit + 1);
+			if(bytes.length > limit)
+				throw new IOException("Legacy key file is too large: " + file);
+			return bytes;
+		}
+	}
+
+	private static ObjectInputStream openLegacyKey(Path file) throws IOException
+	{
+		ObjectInputStream input = new ObjectInputStream(new java.io.ByteArrayInputStream(
+			readLegacyBytes(file, 16 * 1024)));
+		input.setObjectInputFilter(info -> {
+			if(info.depth() > 4 || info.references() > 16
+				|| info.streamBytes() > 16 * 1024 || info.arrayLength() > 1024)
+				return java.io.ObjectInputFilter.Status.REJECTED;
+			Class<?> type = info.serialClass();
+			if(type == null) return java.io.ObjectInputFilter.Status.UNDECIDED;
+			return type == BigInteger.class || type == Number.class || type == byte[].class
+				? java.io.ObjectInputFilter.Status.ALLOWED
+				: java.io.ObjectInputFilter.Status.REJECTED;
+		});
+		return input;
+	}
+
+	private static BigInteger readLegacyInteger(ObjectInputStream input)
+		throws IOException, ClassNotFoundException
+	{
+		Object value = input.readObject();
+		if(!(value instanceof BigInteger number) || number.signum() <= 0
+			|| number.bitLength() > 8192)
+			throw new java.io.InvalidObjectException("Invalid legacy RSA integer");
+		return number;
+	}
+
 	private SecretKey loadLegacyKey(Path folder) throws IOException
 	{
 		Path publicFile = folder.resolve("wurst_rsa_public.txt");
@@ -297,21 +335,21 @@ public final class Encryption
 			KeyFactory factory = KeyFactory.getInstance("RSA");
 			PublicKey publicKey;
 			try(ObjectInputStream in =
-				new ObjectInputStream(Files.newInputStream(publicFile)))
+				openLegacyKey(publicFile))
 			{
 				publicKey = factory.generatePublic(new RSAPublicKeySpec(
-					(BigInteger)in.readObject(), (BigInteger)in.readObject()));
+					readLegacyInteger(in), readLegacyInteger(in)));
 			}
 			PrivateKey privateKey;
 			try(ObjectInputStream in =
-				new ObjectInputStream(Files.newInputStream(privateFile)))
+				openLegacyKey(privateFile))
 			{
 				privateKey = factory.generatePrivate(new RSAPrivateKeySpec(
-					(BigInteger)in.readObject(), (BigInteger)in.readObject()));
+					readLegacyInteger(in), readLegacyInteger(in)));
 			}
 			Cipher cipher = Cipher.getInstance("RSA");
 			cipher.init(Cipher.DECRYPT_MODE, privateKey);
-			return new SecretKeySpec(cipher.doFinal(Files.readAllBytes(aesFile)),
+			return new SecretKeySpec(cipher.doFinal(readLegacyBytes(aesFile, 1024)),
 				"AES");
 		}catch(GeneralSecurityException | ReflectiveOperationException e)
 		{
