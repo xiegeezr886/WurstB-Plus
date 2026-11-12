@@ -15,6 +15,7 @@ docs/RELEASE.md 记录当初用 tmp-recon/validate-jars.py（已随仓库外目�
 import os
 import sys
 import zipfile
+from importlib.util import module_from_spec, spec_from_file_location
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, 'build', 'release-v1.5')
@@ -28,6 +29,10 @@ LOADER_META = {
 }
 MIXIN_CFGS = ('wurstpenguin.mixins.json', 'wurst.mixins.json')
 
+_spec = spec_from_file_location('crash_checks', os.path.join(ROOT, 'scripts', 'audit-crash-regressions.py'))
+_crash_checks = module_from_spec(_spec)
+_spec.loader.exec_module(_crash_checks)
+
 
 def check(path):
     name = os.path.basename(path)
@@ -37,6 +42,7 @@ def check(path):
         return ['文件名里看不出加载器']
 
     with zipfile.ZipFile(path) as z:
+        problems.extend(_crash_checks.check_archive(z))
         bad = z.testzip()
         if bad:
             problems.append('zip 损坏于 %s' % bad)

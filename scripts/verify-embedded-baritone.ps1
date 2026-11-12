@@ -247,6 +247,9 @@ try {
     if ($innerPaths.Count -eq 0) { Fail "产物里没有找到任何内嵌依赖清单（Fabric 的 fabric.mod.json.jars 或 Forge 的 META-INF/jarjar/metadata.json）" }
 
     $baritonePaths = @($innerPaths | Where-Object { $_ -match "baritone" })
+    if ($baritonePaths.Count -gt 0 -and $outer.GetEntry("mixins.baritone.json")) {
+        Fail "Outer mixins.baritone.json shadows the nested Baritone config. Remove the outer copy."
+    }
     if ($baritonePaths.Count -eq 0) {
         Fail "产物里没有内嵌 Baritone。若这是有意为之请忽略；否则说明 include/jarJar 配置丢了。"
     }
