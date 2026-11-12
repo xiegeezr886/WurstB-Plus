@@ -65,6 +65,7 @@ MIT 与项目的 AGPL-3.0-or-later 兼容；MIT 要求保留版权与许可声�
 | `org.jetbrains.kotlin:kotlin-stdlib` | — | **Apache-2.0** | POM |
 | `org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm` | — | **Apache-2.0** | POM |
 | `io.github.llamalad7:mixinextras-forge` | 0.5.4+ | **MIT** | POM |
+| `io.github.llamalad7:mixinextras-fabric` | 0.5.5 | **MIT** | 内嵌 jar 的 `LICENSE_MixinExtras`；23 个 Fabric 工程另附 `META-INF/licenses/mixinextras-fabric/` |
 | `org.java-websocket:Java-WebSocket` | 1.5.3 | **MIT** | POM |
 | `org.jcodec:jcodec` / `jcodec-javase` | — | **FreeBSD** | POM |
 | `net.sourceforge.jaadec:...` → `vorbis-support` | — | **LGPL-3.0**（POM 写 "GNU LIBRARY GENERAL PUBLIC LICENSE, Version 3.0"） | POM + jar 内 `META-INF/license.txt` |
