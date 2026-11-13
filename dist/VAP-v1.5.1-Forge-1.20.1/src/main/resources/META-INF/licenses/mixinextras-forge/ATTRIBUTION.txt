@@ -1,0 +1,10 @@
+mixinextras-forge
+=================
+
+Licence : MIT License (MIT)
+Evidence: Maven Central POM（自身）
+Text    : fetched from the SPDX license-list-data repository (MIT)
+SHA-256 : b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5
+
+Bundled into the WurstB+ Plus jar via jarJar. The licence text above is
+shipped alongside this file so recipients have it in the artifact.
