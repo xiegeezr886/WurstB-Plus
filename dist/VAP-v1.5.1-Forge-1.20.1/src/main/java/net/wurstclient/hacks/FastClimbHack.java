@@ -1,0 +1,91 @@
+/*
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+ *
+ * This source code is subject to the terms of the GNU General Public
+ * License, version 3. If a copy of the GPL was not distributed with this
+ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+ */
+/*
+ * Ported from Meteor Client (GPL-3.0).
+ */
+package net.wurstclient.hacks;
+
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.PowderSnowBlock;
+import net.minecraft.world.phys.Vec3;
+import net.wurstclient.Category;
+import net.wurstclient.SearchTags;
+import net.wurstclient.events.UpdateListener;
+import net.wurstclient.hack.Hack;
+import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.util.BlockUtils;
+
+@SearchTags({"fast climb", "fast ladder", "climb"})
+public final class FastClimbHack extends Hack implements UpdateListener
+{
+	private final SliderSetting speed = new SliderSetting("Climb Speed",
+		"Your climb speed.", 0.2872, 0, 1, 0.001, ValueDisplay.DECIMAL);
+	private final CheckboxSetting timerMode = new CheckboxSetting("Timer mode",
+		"Speed up client ticks while climbing instead of setting vertical motion.", false);
+	private final SliderSetting timer = new SliderSetting("Timer",
+		"Client tick multiplier while climbing.", 1.436, 1, 10, 0.001,
+		ValueDisplay.DECIMAL);
+
+	public FastClimbHack()
+	{
+		super("FastClimb");
+		setCategory(Category.MOVEMENT);
+		addSetting(speed);
+		addSetting(timerMode);
+		addSetting(timer);
+	}
+
+	@Override
+	protected void onEnable()
+	{
+		EVENTS.add(UpdateListener.class, this);
+	}
+
+	@Override
+	protected void onDisable()
+	{
+		EVENTS.remove(UpdateListener.class, this);
+	}
+
+	@Override
+	public void onUpdate()
+	{
+		LocalPlayer player = MC.player;
+		if(timerMode.isChecked() || !canClimb() || !isClimbing(player))
+			return;
+
+		Vec3 velocity = player.getDeltaMovement();
+		player.setDeltaMovement(velocity.x, speed.getValue(), velocity.z);
+	}
+
+	public float getTimerMultiplier()
+	{
+		return isEnabled() && timerMode.isChecked() && canClimb() && isClimbing(MC.player)
+			? timer.getValueF() : 1;
+	}
+
+	private boolean canClimb()
+	{
+		return MC.player != null && MC.level != null && MC.screen == null
+			&& !WURST.getHax().freecamHack.isEnabled();
+	}
+
+	private boolean isClimbing(LocalPlayer player)
+	{
+		boolean onClimbableBlock = player.onClimbable()
+			|| (BlockUtils.getState(player.blockPosition())
+				.is(Blocks.POWDER_SNOW)
+				&& PowderSnowBlock.canEntityWalkOnPowderSnow(player));
+
+		return onClimbableBlock
+			&& (player.horizontalCollision || MC.options.keyJump.isDown());
+	}
+}
