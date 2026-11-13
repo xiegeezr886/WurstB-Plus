@@ -1,0 +1,15 @@
+CozyUI+ v1.10 font resources
+
+Resource pack author: 零雾〇五 (Fogg05)
+Source archive: CozyUI+_v1.10.zip
+
+WurstB+ Plus embeds only the font definitions and their referenced bitmap
+atlases. The embedded resources override Minecraft's default and uniform font
+definitions so the same typeface is used throughout Minecraft and WurstB+ Plus.
+
+License files distributed with the source archive are preserved in this
+directory:
+
+- CozyUI-GPL-3.0.txt
+- NotoSans-OFL-1.1.txt
+- FluentEmoji-MIT.txt

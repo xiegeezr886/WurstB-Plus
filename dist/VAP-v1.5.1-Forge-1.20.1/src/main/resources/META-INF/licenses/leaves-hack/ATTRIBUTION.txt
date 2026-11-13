@@ -1,0 +1,9 @@
+Upstream: https://github.com/MrBZBZ/LeavesHack
+Local source snapshot: reference/tools/LeavesHack-src
+License: AGPL-3.0
+License SHA-256: 6f1e622c82a380075843bb084a7ec3b1f1d12a4a02526d75e78b0924a860aa75
+Adapted for WurstB+ Plus v1.5.1 on 2026-11-07.
+AutoTree -> TreeBot/SaplingFarm: selected planting sites, bone meal, delay, action cap and rendering. Native tick events replace render-driven actions; slot restored in finally; chunk/reach/world guards added.
+Original notices remain applicable. Local adaptation: WurstB+ Plus contributors.
+Source snapshot module hashes:
+reference/tools/LeavesHack-src/src/main/java/com/dev/leavesHack/modules/AutoTree.java SHA-256 1a83d5af01c1119697ce5f20f2549b657b14b65fd0f7a3b154be4c682ea1d607
