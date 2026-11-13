@@ -150,10 +150,6 @@ jar {
             "Implementation-Vendor": project.mod_authors)
     }
 
-    from("LICENSE.txt") {
-        rename { "LICENSE-${project.base.archivesName.get()}.txt" }
-    }
-
     exclude "intentionally_untranslated.json"
 }
 

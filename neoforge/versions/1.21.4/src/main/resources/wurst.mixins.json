@@ -110,7 +110,6 @@
     "TitleScreenMixin",
     "WorldMixin",
     "WorldRendererMixin",
-    "AbstractSelectionListMixin",
     "AbstractSliderButtonAccessor",
     "AbstractWidgetMixin",
     "KeyboardInputMixin",

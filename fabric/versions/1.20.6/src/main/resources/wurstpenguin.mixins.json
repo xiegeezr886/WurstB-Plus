@@ -43,7 +43,6 @@
     "AutoLeavePortalAccessor",
     "SoundEngineMixin",
     "AbstractBlockStateMixin",
-    "AbstractSelectionListMixin",
     "AbstractSignEditScreenMixin",
     "AbstractSliderButtonAccessor",
     "AbstractWidgetMixin",

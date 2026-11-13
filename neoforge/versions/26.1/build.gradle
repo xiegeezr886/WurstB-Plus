@@ -185,7 +185,7 @@ tasks.named('jar', Jar).configure {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	from sourceSets.main.output
 	from("LICENSE.txt") {
-		rename { "LICENSE-${project.base.archivesName.get()}.txt" }
+		rename 'LICENSE.txt', "LICENSE-${project.base.archivesName.get()}.txt"
 	}
 	exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/mods.toml', 'module-info.class'
 }

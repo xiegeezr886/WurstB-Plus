@@ -24,20 +24,24 @@ public final class WurstMixinConfigPlugin implements IMixinConfigPlugin
 	public boolean shouldApplyMixin(String targetClassName,
 		String mixinClassName)
 	{
+		// FancyMenu owns both the title layout and its input widgets. Replacing
+		// only the layout leaves visible Wurst buttons without clickable targets.
+		if(mixinClassName.endsWith(".TitleScreenMixin"))
+		{
+			ClassLoader loader = Thread.currentThread().getContextClassLoader();
+			return loader == null || loader.getResource(
+				"de/keksuccino/fancymenu/FancyMenu.class") == null;
+		}
+
 		if(!mixinClassName.endsWith("SodiumBlockOcclusionCacheMixin")
 			&& !mixinClassName.endsWith("SodiumFluidRendererMixin")
 			&& !mixinClassName.contains(".xray.sodium."))
 			return true;
 
-		try
-		{
-			Class.forName(targetClassName, false,
-				Thread.currentThread().getContextClassLoader());
-			return true;
-		}catch(ClassNotFoundException | LinkageError ignored)
-		{
-			return false;
-		}
+		// Eligibility must not define a target before Mixin transforms it.
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		String classResource = targetClassName.replace('.', '/') + ".class";
+		return classLoader != null && classLoader.getResource(classResource) != null;
 	}
 
 	@Override
