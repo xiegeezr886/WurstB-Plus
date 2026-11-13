@@ -172,6 +172,10 @@ $warned = 0
 # （1.15.0 同时供 1.21.6/1.21.7/1.21.8），所以这里按摘要而不是按版本号索引。
 # ---------------------------------------------------------------------------
 $trustedDigests = @{
+    # Official v1.19.0 release for Minecraft 26.2.
+    "eca6e2fdf43c6657fe9fea10a8f9a7572d78dc91ad389b998b808bd28fa5b5d1" = "1.19.0 fabric"
+    "cecbbcd8cb5acc47b59543db88de4d5749a6347b8caee5fee844f50e4ebe5d38" = "1.19.0 forge"
+    "0d86423e2f8861e86f2df3c0eb59913ab6bfc5e395cc165ca503bfe5c0c842ef" = "1.19.0 neoforge"
     # --- Baritone 1.12.0（官方支持 1.21.2 / 1.21.3）---
     "b3b36aa3d74c4df053d147ee9254b70c15f4d1e5e11a2766141a146eea3bd60b" = "1.12.0 fabric"
     "159d83fa657c87a513aecddc4fb6b4d12ce7809a6b1cf6072056974b63e8dca0" = "1.12.0 forge"
