@@ -1,0 +1,7 @@
+{
+  "targets": [ "swap" ],
+  "passes": [
+    { "name": "wurst:target_effect", "intarget": "minecraft:main", "outtarget": "swap", "uniforms": [ { "name": "Mode", "values": [ 0 ] } ] },
+    { "name": "blit", "intarget": "swap", "outtarget": "minecraft:main" }
+  ]
+}
