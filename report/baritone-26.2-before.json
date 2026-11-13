@@ -1,0 +1,22 @@
+{
+  "minecraft": ".dsh-tmp\\gradle-home\\caches\\fabric-loom\\minecraftMaven\\net\\minecraft\\minecraft-client-deobf\\26.2\\minecraft-client-deobf-26.2.jar",
+  "baritone": "baritone-maven\\baritone\\baritone-api-fabric\\1.18.0-26.2\\baritone-api-fabric-1.18.0-26.2.jar",
+  "references_checked": 1837,
+  "unresolved": {
+    "net/minecraft/client/Minecraft.setScreen(Lnet/minecraft/client/gui/screens/Screen;)V": [
+      "baritone/Baritone"
+    ],
+    "net/minecraft/client/gui/Gui.getChat()Lnet/minecraft/client/gui/components/ChatComponent;": [
+      "baritone/api/Settings"
+    ],
+    "net/minecraft/client/Minecraft.getToastManager()Lnet/minecraft/client/gui/components/toasts/ToastManager;": [
+      "baritone/api/utils/gui/BaritoneToast"
+    ],
+    "net/minecraft/client/renderer/LevelRenderer.setBlocksDirty(IIIIII)V": [
+      "baritone/command/defaults/RenderCommand"
+    ],
+    "net/minecraft/world/entity/EntityType.FIREWORK_ROCKETLnet/minecraft/world/entity/EntityType;": [
+      "baritone/launch/mixins/MixinFireworkRocketEntity"
+    ]
+  }
+}
