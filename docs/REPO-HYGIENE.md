@@ -53,6 +53,31 @@
 > 上述两项都是 `upstream-sources/` 的**子目录**，文件数与体积**已计入上表
 > `upstream-sources` 一行**，不要重复相加。
 
+### 2026-11-13：v1.5.2 开发参考源码
+
+以下目录为当日新增的独立 Git 浅克隆，不计入上表的历史体积统计。
+提交号及基线说明见 [DEVELOPMENT-v1.5.2.md](DEVELOPMENT-v1.5.2.md)，
+完整检出信息保存在本地 `reference/clients/v1.5.2-sources.json`。
+
+| 本地路径 | 来源 | 根目录许可证文件 | 可否删除 |
+| --- | --- | --- | --- |
+| `reference/clients/Rise-6.9.5/` | [AnShanArchive/Rise-6.9.5](https://github.com/AnShanArchive/Rise-6.9.5) | 未发现根目录 LICENSE / COPYING 文件 | 可重新克隆；删除前保存自行修改 |
+| `reference/clients/NeoRaven/` | [Matr1ze/NeoRaven](https://github.com/Matr1ze/NeoRaven) | `LICENSE`：GPLv3 正文 | 可重新克隆；删除前保存自行修改 |
+| `reference/clients/moon-rebase/` | [xiaozhuhou233/moon-rebase](https://github.com/xiaozhuhou233/moon-rebase) | `LICENSE`：Apache-2.0 正文 | 可重新克隆；删除前保存自行修改 |
+| `reference/clients/OpaiBounce/` | [snmwdd/OpaiBounce](https://github.com/snmwdd/OpaiBounce) | `LICENSE` / `LICENSE-OPAI-SHELL`：GPLv3 正文；另含资源和音乐组件声明 | 可重新克隆；删除前保存自行修改 |
+| `reference/clients/OpenOpal/` | [ZSZ7/OpenOpal](https://github.com/ZSZ7/OpenOpal/tree/main) | `LICENSE`：GPLv3 正文；另有 `THIRD_PARTY_NOTICES.md` | 可重新克隆；删除前保存自行修改 |
+| `reference/clients/Epsilon/` | [NekoyaHouse/Epsilon](https://github.com/NekoyaHouse/Epsilon) | `LICENSE`：GPLv3 正文；另有 `NOTICE.md` 第三方声明 | 可重新克隆；删除前保存自行修改 |
+| `reference/clients/LeavesHack/` | [MrBZBZ/LeavesHack](https://github.com/MrBZBZ/LeavesHack) | `LICENSE`：AGPLv3 正文 | 可重新克隆；删除前保存自行修改 |
+
+上表仅记录仓库提供的许可证文件，不替代其中各第三方代码与资源的许可声明。
+
+同日另复制了用户提供的本地压缩包，原始下载文件保留，SHA-256 校验一致。
+来源路径、字节数及校验值见本地 `reference/clients/README.md`。
+
+| 本地路径 | 来源 | 许可状态 | 可否删除 |
+| --- | --- | --- | --- |
+| `reference/clients/SoarClient-Custom/(11-6)SoarClient Custom.zip` | 用户 Downloads 目录中的同名 ZIP | 仅保存原包，未核对内部许可证 | 可从原始下载文件重新复制 |
+
 ---
 
 ## 二、已删除的内容（2026-10-13）
