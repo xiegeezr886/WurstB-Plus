@@ -39,19 +39,19 @@ $projects = @(
     @{ Name = "Forge 1.21.1";    Dir = "versions\1.21.1";          MC = "1.21.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.21.1.jar") },
     @{ Name = "Forge 1.21.11";   Dir = "versions\1.21.11";         MC = "1.21.11"; Tasks = @("allJar", "test");                     Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.21.11.jar"); Baritone = "META-INF/jarjar/baritone-forge-1.17.0-1.21.11.jar" },
     @{ Name = "Forge 26.1.2";    Dir = "versions\26.1.2";          MC = "26.1.2"; Tasks = @("allJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-26.1.2.jar") },
-    @{ Name = "Forge 26.2";      Dir = "versions\26.2";            MC = "26.2";   Tasks = @("allJar", "test");                     Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-26.2.jar"); Baritone = "META-INF/jarjar/baritone-forge-1.18.0-26.2.jar" },
+    @{ Name = "Forge 26.2";      Dir = "versions\26.2";            MC = "26.2";   Tasks = @("allJar", "test");                     Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-26.2.jar"); Baritone = "META-INF/jarjar/baritone-forge-1.19.0-26.2.jar" },
     @{ Name = "Forge 26.3";      Dir = "versions\26.3";            MC = "26.3";   Tasks = @("allJar", "test");                     Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-26.3.jar"); Baritone = "META-INF/jarjar/baritone-forge-1.20.0-26.3.jar" },
     @{ Name = "NeoForge 1.20.1"; Dir = "neoforge";                 MC = "1.20.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-1.20.1.jar") },
     @{ Name = "NeoForge 1.21.1"; Dir = "neoforge\versions\1.21.1"; MC = "1.21.1"; Tasks = @("jar");                                Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-1.21.1.jar") },
     @{ Name = "NeoForge 1.21.11";Dir = "neoforge\versions\1.21.11";MC = "1.21.11"; Tasks = @("build");                             Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-1.21.11.jar"); Baritone = "META-INF/jarjar/baritone-neoforge-1.17.0-1.21.11.jar" },
     @{ Name = "NeoForge 26.1.2"; Dir = "neoforge\versions\26.1.2"; MC = "26.1.2"; Tasks = @("jar");                                Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-26.1.2.jar") },
-    @{ Name = "NeoForge 26.2";   Dir = "neoforge\versions\26.2";   MC = "26.2";   Tasks = @("build");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-26.2.jar"); Baritone = "META-INF/jarjar/baritone-neoforge-1.18.0-26.2.jar" },
+    @{ Name = "NeoForge 26.2";   Dir = "neoforge\versions\26.2";   MC = "26.2";   Tasks = @("build");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-26.2.jar"); Baritone = "META-INF/jarjar/baritone-neoforge-1.19.0-26.2.jar" },
     @{ Name = "NeoForge 26.3";   Dir = "neoforge\versions\26.3";   MC = "26.3";   Tasks = @("build");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-NeoForge-26.3.jar"); Baritone = "META-INF/jarjar/baritone-neoforge-1.20.0-26.3.jar" },
     @{ Name = "Fabric 1.20.1";   Dir = "fabric";                   MC = "1.20.1"; Tasks = @("build"); Args = @("-x", "test");       Out = @("build\libs\WurstB+ Plus-1.5.0-Fabric-1.20.1.jar") },
     @{ Name = "Fabric 1.21.1";   Dir = "fabric\versions\1.21.1";   MC = "1.21.1"; Tasks = @("build"); Args = @("-x", "test");       Out = @("build\libs\WurstB+ Plus-1.5.0-Fabric-1.21.1.jar") },
     @{ Name = "Fabric 1.21.11";  Dir = "fabric\versions\1.21.11";  MC = "1.21.11"; Tasks = @("build");                             Out = @("build\libs\WurstB+ Plus-1.5.0-Fabric-1.21.11.jar"); Baritone = "META-INF/jars/baritone-api-fabric-1.17.0-1.21.11.jar" },
     @{ Name = "Fabric 26.1.2";   Dir = "fabric\versions\26.1.2";   MC = "26.1.2"; Tasks = @("build"); Args = @("-x", "test");       Out = @("build\libs\WurstB+ Plus-1.5.0-Fabric-26.1.2.jar") },
-    @{ Name = "Fabric 26.2";     Dir = "fabric\versions\26.2";     MC = "26.2";   Tasks = @("build");                              Out = @("build\libs\WurstB+ Plus-1.5.0-Fabric-26.2.jar"); Baritone = "META-INF/jars/baritone-api-fabric-1.18.0-26.2.jar" },
+    @{ Name = "Fabric 26.2";     Dir = "fabric\versions\26.2";     MC = "26.2";   Tasks = @("build");                              Out = @("build\libs\WurstB+ Plus-1.5.0-Fabric-26.2.jar"); Baritone = "META-INF/jars/baritone-api-fabric-1.19.0-26.2.jar" },
     @{ Name = "Fabric 26.3";     Dir = "fabric\versions\26.3";     MC = "26.3";   Tasks = @("build");                              Out = @("build\libs\WurstB+ Plus-1.5.0-Fabric-26.3.jar"); Baritone = "META-INF/jars/baritone-api-fabric-1.20.0-26.3.jar" }
 )
 
@@ -65,14 +65,10 @@ $selectedProjects = @($projects | Where-Object {
     (-not $skipMatch)
 })
 
-# 26.3 is deliberately absent here: it bundles upstream Baritone 1.20.0, which
-# supports 26.3 natively, so the 26.2 compatibility patcher (which hardcodes 26.2
-# cache paths and the 1.18.0-26.2 artifact names) must not run against it.
+# 26.2 uses the official 1.19.0 release; never rewrite it with legacy shims.
 if (@($selectedProjects | Where-Object { $_.MC -eq "26.2" }).Count -gt 0) {
-    $baritonePatch = Join-Path $ProjectRoot "scripts\patch-baritone-26.2.ps1"
-    Write-Info "Patching Baritone 26.2 compatibility artifacts..."
-    & $baritonePatch -ProjectRoot $ProjectRoot
-    if ($LASTEXITCODE -ne 0) { throw "Baritone 26.2 compatibility patch failed" }
+    & (Join-Path $ProjectRoot "scripts\install-baritone.ps1") -Coordinate "1.19.0-26.2"
+    if ($LASTEXITCODE -ne 0) { throw "Official Baritone 26.2 installation failed" }
 }
 
 # The per-MC Baritone copies live in baritone-maven/, which .gitignore excludes,
@@ -305,29 +301,23 @@ function Test-EmbeddedBaritone($artifact, $entryName, $mcVersion) {
             return @{ Passed = $false; Note = "bundled Baritone declares minecraft $mcSpec, which excludes $mcVersion" }
         }
 
-        # 26.2 bundles a Baritone that reference/tools/baritone-26.2-compat post-processed, so
-        # the injected shim classes must be there. 26.3 bundles upstream Baritone
-        # 1.20.0 (its own "For Minecraft 26.3" release) unpatched, so those classes
-        # must NOT be expected there.
         if ($mcVersion -eq "26.2") {
-            $compatibilityEntries = @(
-                "baritone/api/utils/LegacyTuple.class",
-                "baritone/api/utils/LegacyTesselator.class",
-                "baritone/api/utils/LegacyRenderPipelineBuilder.class",
-                "baritone/api/utils/LegacyRenderType.class"
-            )
-            $missingCompatibility = @($compatibilityEntries | Where-Object {
-                -not $nestedArchive.GetEntry($_)
-            })
-            if ($missingCompatibility.Count -gt 0) {
-                return @{ Passed = $false; Note = "Baritone compatibility classes missing: $($missingCompatibility -join ', ')" }
+            $officialHashes = @{
+                "fabric" = "eca6e2fdf43c6657fe9fea10a8f9a7572d78dc91ad389b998b808bd28fa5b5d1"
+                "forge" = "cecbbcd8cb5acc47b59543db88de4d5749a6347b8caee5fee844f50e4ebe5d38"
+                "neoforge" = "0d86423e2f8861e86f2df3c0eb59913ab6bfc5e395cc165ca503bfe5c0c842ef"
+            }
+            $variant = if ($entryName -match 'neoforge') { 'neoforge' } elseif ($entryName -match 'fabric') { 'fabric' } else { 'forge' }
+            $sha = [System.Security.Cryptography.SHA256]::Create()
+            try { $digest = ([BitConverter]::ToString($sha.ComputeHash($buffer.ToArray()))).Replace('-', '').ToLowerInvariant() }
+            finally { $sha.Dispose() }
+            if ($digest -ne $officialHashes[$variant]) {
+                return @{ Passed = $false; Note = "26.2 requires the official Baritone 1.19.0 $variant artifact" }
             }
         }
 
-        # Baritone has to stay Mixin-launchable wherever it is embedded. Holds for
-        # both the 26.2 patched artifact and the 26.3 upstream one (verified against
-        # the release jars' manifests).
-        if ($mcVersion -in @("26.2", "26.3")) {
+        # Fabric registers mixins in fabric.mod.json; only FML needs the manifest connector.
+        if ($mcVersion -in @("26.2", "26.3") -and -not $nestedArchive.GetEntry("fabric.mod.json")) {
             $manifestEntry = $nestedArchive.GetEntry("META-INF/MANIFEST.MF")
             if (-not $manifestEntry) {
                 return @{ Passed = $false; Note = "Baritone manifest missing from $entryName" }
@@ -344,7 +334,7 @@ function Test-EmbeddedBaritone($artifact, $entryName, $mcVersion) {
                 return @{ Passed = $false; Note = "Baritone Mixin manifest attributes missing from $entryName" }
             }
         }
-        $compatibilityNote = if ($mcVersion -eq "26.2") { "; 26.2 compatibility verified" } else { "" }
+        $compatibilityNote = if ($mcVersion -eq "26.2") { "; native 26.2 release" } else { "" }
         return @{ Passed = $true; Note = "$entryName ($($entry.Length) bytes); declares minecraft $mcSpec$compatibilityNote" }
     } catch {
         return @{ Passed = $false; Note = "Baritone archive check failed: $($_.Exception.Message)" }
