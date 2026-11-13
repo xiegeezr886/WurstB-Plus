@@ -59,6 +59,7 @@
     "ChunkOcclusionGraphBuilderMixin",
     "ConnectionChannelInitializerMixin",
     "ClientConnectionMixin",
+    "ClientCommonNetworkHandlerMixin",
     "ClientboundExplodePacketMixin",
     "ClientPlayerEntityMixin",
     "ClientPlayerInteractionManagerMixin",

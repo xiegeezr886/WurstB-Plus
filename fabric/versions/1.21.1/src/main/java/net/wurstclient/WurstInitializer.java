@@ -8,11 +8,6 @@
 package net.wurstclient;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.Minecraft;
-import net.wurstclient.event.EventManager;
-import net.wurstclient.events.GUIRenderListener.GUIRenderEvent;
 
 public final class WurstInitializer implements ClientModInitializer
 {
@@ -22,17 +17,6 @@ public final class WurstInitializer implements ClientModInitializer
 	@Override
 	public void onInitializeClient()
 	{
-		// 注册 HUD 渲染钩子
-		HudRenderCallback.EVENT.register((graphics, tickDelta) ->
-		{
-			if(!initialized
-				|| Minecraft.getInstance().getDebugOverlay()
-					.showDebugScreen())
-				return;
-			float partialTick = tickDelta.getGameTimeDeltaPartialTick(false);
-			EventManager.fire(new GUIRenderEvent(graphics, partialTick));
-		});
-		
 		// 初始化 WurstClient
 		if(!initialized)
 		{

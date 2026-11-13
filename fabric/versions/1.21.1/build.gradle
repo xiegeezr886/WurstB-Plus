@@ -48,7 +48,8 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings loom.officialMojangMappings()
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.2"
 
 	// Fabric API
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
@@ -104,6 +105,10 @@ processResources {
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
 	it.options.release = 21
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
 }
 
 java {
