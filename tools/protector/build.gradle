@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories { mavenCentral() }
+
+dependencies {
+    implementation 'org.ow2.asm:asm:9.9.1'
+    implementation 'org.ow2.asm:asm-tree:9.9.1'
+    implementation 'org.ow2.asm:asm-commons:9.9.1'
+    implementation 'org.ow2.asm:asm-util:9.9.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
+}
+
+application { mainClass = 'net.wurstclient.tools.protector.Protector' }
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+test {
+    useJUnitPlatform()
+    def tempDirectory = layout.buildDirectory.dir('tmp/protector-tests')
+    systemProperty 'java.io.tmpdir', tempDirectory.get().asFile.absolutePath
+    doFirst { tempDirectory.get().asFile.mkdirs() }
+}
+
+// Separate build: no Minecraft download, remapping or test-client deployment.
+tasks.register('protectJar', JavaExec) {
+    group = 'distribution'
+    description = 'Protect an already remapped release jar (-Pinput=... -Poutput=...).'
+    dependsOn classes
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = application.mainClass
+    doFirst {
+        if (!project.hasProperty('input') || !project.hasProperty('output')) {
+            throw new GradleException('Use -Pinput=<release.jar> -Poutput=<new-protected.jar>')
+        }
+        args = [file(project.property('input')).absolutePath,
+                file(project.property('output')).absolutePath]
+        if (project.hasProperty('config')) args += file(project.property('config')).absolutePath
+    }
+}
