@@ -109,6 +109,27 @@ public class WurstClient {
                     str(gamma_classes) + os.pathsep + cp, '--scan-class-path',
                     '--details', 'summary', '--disable-ansi-colors'], check=True, cwd=ROOT)
     run_sodium_tests(work, cp, java, javac, deps)
+    run_menu_tests(work, cp, java, javac, deps)
+
+
+def run_menu_tests(work, cp, java, javac, deps):
+    roots = [ROOT / p for p in ('src', 'fabric/src', 'neoforge/src')]
+    for parent in ('versions', 'fabric/versions', 'neoforge/versions'):
+        roots.extend(p / 'src' for p in (ROOT / parent).iterdir() if p.is_dir())
+    variants = {}
+    for root in roots:
+        source = root / 'main/java/net/wurstclient/mixin/WurstMixinConfigPlugin.java'
+        if source.is_file():
+            variants.setdefault(source.read_text('utf-8'), source)
+    for index, source in enumerate(variants.values()):
+        classes = work / ('menu-classes-' + str(index))
+        classes.mkdir(exist_ok=True)
+        subprocess.run([javac, '-proc:none', '-encoding', 'UTF-8', '--release', '17',
+                        '-cp', cp, '-d', str(classes), str(source),
+                        str(ROOT / 'scripts/tests/java/MenuOwnershipTest.java')], check=True, cwd=ROOT)
+        subprocess.run([java, '-jar', str(deps / 'junit.jar'), 'execute', '--class-path',
+                        str(classes) + os.pathsep + cp, '--scan-class-path', '--details',
+                        'summary', '--disable-ansi-colors'], check=True, cwd=ROOT)
 
 
 def run_sodium_tests(work, cp, java, javac, deps):
