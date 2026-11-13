@@ -1,0 +1,67 @@
+/*
+ * KeepSprint attack handling follows the GPL-3.0 LiquidBounce/FDP approach,
+ * adapted for Forge 1.20.1 Mojmap.
+ */
+package net.wurstclient.mixin;
+
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.Inject;
+import net.minecraft.world.entity.HumanoidArm;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
+import net.wurstclient.WurstClient;
+import net.wurstclient.hack.HackList;
+import net.wurstclient.util.KeepSprintPolicy;
+
+@Mixin(Player.class)
+public abstract class PlayerMixin
+{
+	@Redirect(method = "attack(Lnet/minecraft/world/entity/Entity;)V",
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/world/phys/Vec3;multiply(DDD)Lnet/minecraft/world/phys/Vec3;"))
+	private Vec3 keepSprintMotion(Vec3 velocity, double x, double y, double z)
+	{
+		boolean keepSprint = isKeepSprintActive();
+		return velocity.multiply(
+			KeepSprintPolicy.attackMotionMultiplier(x, keepSprint), y,
+			KeepSprintPolicy.attackMotionMultiplier(z, keepSprint));
+	}
+
+	@Redirect(method = "attack(Lnet/minecraft/world/entity/Entity;)V",
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/world/entity/player/Player;setSprinting(Z)V"))
+	private void keepSprintState(Player instance, boolean sprinting)
+	{
+		if(KeepSprintPolicy.shouldApplySprintChange(isKeepSprintActive(),
+			sprinting))
+			instance.setSprinting(sprinting);
+	}
+
+	private boolean isKeepSprintActive()
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		return hax != null && hax.keepSprintHack
+			.shouldKeepSprint((Player)(Object)this);
+	}
+
+
+	@Inject(method = "getMainArm()Lnet/minecraft/world/entity/HumanoidArm;",
+		at = @At("HEAD"), cancellable = true)
+	private void soar$forceMainArm(
+		CallbackInfoReturnable<HumanoidArm> cir)
+	{
+		Player self = (Player)(Object)this;
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax == null || !hax.forceMainHandHack.isEnabled()
+			|| self == WurstClient.MC.player)
+			return;
+
+		cir.setReturnValue(hax.forceMainHandHack.isRightHand()
+			? HumanoidArm.RIGHT : HumanoidArm.LEFT);
+	}
+
+}
