@@ -21,6 +21,18 @@ def archive(entries):
 
 
 class CrashGatesTest(unittest.TestCase):
+    def test_obsolete_262_baritone_is_rejected_even_with_rewritten_metadata(self):
+        with archive({'mixins.baritone.json': '{}',
+                      'fabric.mod.json': json.dumps({'version': '1.18.0-26.2',
+                          'depends': {'minecraft': ['26.2']},
+                          'mixins': ['mixins.baritone.json']}),
+                      'baritone/api/utils/LegacyRenderPipelineBuilder.class': b'old'}) as inner:
+            nested = inner.fp.getvalue()
+        # Rename the nested jar to prove metadata/path rewriting cannot hide it.
+        with archive({'META-INF/jars/baritone-renamed.jar': nested}) as outer:
+            self.assertTrue(any('obsolete Baritone 26.2 port' in error
+                                for error in checks.check_archive(outer)))
+
     def test_runtime_accessor_cast_and_static_invoker_require_registration(self):
         sources = {
             'mixin/Foo.java': 'package net.wurstclient.mixin; @Mixin(X.class) interface Foo { @Accessor("x") int getX(); }',
@@ -68,6 +80,27 @@ class CrashGatesTest(unittest.TestCase):
             nested = inner.fp.getvalue()
         with archive({'META-INF/jarjar/baritone.jar': nested}) as outer:
             self.assertEqual([], checks.check_archive(outer))
+
+    def test_nested_fabric_baritone_uses_declared_config_name(self):
+        config = 'mixins.baritone-meteor.json'
+        for entry in (config, {'config': config, 'environment': 'client'}):
+            with self.subTest(entry=entry):
+                with archive({'fabric.mod.json': json.dumps({'mixins': [entry]}),
+                              config: '{}'}) as inner:
+                    nested = inner.fp.getvalue()
+                with archive({'META-INF/jars/baritone.jar': nested}) as outer:
+                    self.assertEqual([], checks.check_archive(outer))
+                with archive({'META-INF/jars/baritone.jar': nested, config: '{}'}) as outer:
+                    self.assertIn('outer ' + config + ' shadows nested Baritone',
+                                  checks.check_archive(outer))
+
+    def test_missing_declared_baritone_config_is_rejected(self):
+        with archive({'fabric.mod.json': json.dumps({'mixins': ['missing.json']}),
+                      'mixins.baritone.json': '{}'}) as inner:
+            nested = inner.fp.getvalue()
+        with archive({'META-INF/jars/baritone.jar': nested}) as outer:
+            self.assertIn('META-INF/jars/baritone.jar: missing Baritone mixin config',
+                          checks.check_archive(outer))
 
     def test_dangling_neoforge_entrypoint_is_rejected(self):
         with archive({checks.STUB: b'class',
