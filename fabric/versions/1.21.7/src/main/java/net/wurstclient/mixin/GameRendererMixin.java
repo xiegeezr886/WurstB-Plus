@@ -41,6 +41,12 @@ import net.wurstclient.hacks.FullbrightHack;
 @Mixin(GameRenderer.class)
 public abstract class GameRendererMixin implements AutoCloseable
 {
+	@Inject(method = "close()V", at = @At("HEAD"))
+	private void wurst$closeGuiSnapshots(CallbackInfo ci)
+	{
+		net.wurstclient.hud2.nanovg.NanoVgBlitter.close();
+	}
+
 	/**
 	 * Prevents view bobbing when hacks disable it.
 	 */

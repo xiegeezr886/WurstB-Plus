@@ -76,6 +76,7 @@
     "EntityRendererMixin",
     "GameMenuScreenMixin",
     "GameRendererMixin",
+    "NanoVgGuiRenderStateMixin",
     "GenericContainerScreenMixin",
     "HeldItemRendererMixin",
     "ScreenEffectRendererMixin",

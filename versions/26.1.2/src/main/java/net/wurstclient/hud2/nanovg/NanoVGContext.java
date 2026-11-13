@@ -126,8 +126,18 @@ public final class NanoVGContext
 			return false;
 		}
 
+		// Initialization changes GL state too, including its failure cleanup.
+		try(GlStateGuard ignored = GlStateGuard.capture())
+		{
+			return createContext();
+		}
+	}
+
+	private boolean createContext()
+	{
 		try
 		{
+			prepareTextureUpload();
 			String glVersion = GL11.glGetString(GL11.GL_VERSION);
 			gles = glVersion != null && glVersion.contains("OpenGL ES");
 			System.out.println("[HUD] GL " + glVersion + " / "
@@ -148,7 +158,10 @@ public final class NanoVGContext
 			loadFallbackFont();
 
 			if(!ensureFramebuffer())
+			{
+				destroy();
 				return false;
+			}
 
 			available = true;
 			System.out.println("[HUD] NanoVG GL3 context created");
@@ -348,7 +361,10 @@ public final class NanoVGContext
 
 	public boolean beginFrame()
 	{
-		if(!create() || !ensureFramebuffer())
+		if(!create())
+			return false;
+		prepareTextureUpload();
+		if(!ensureFramebuffer())
 			return false;
 
 		if(gles)
@@ -361,6 +377,9 @@ public final class NanoVGContext
 		GL11.glViewport(0, 0, framebufferWidth, framebufferHeight);
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 		GL11.glColorMask(true, true, true, true);
+		GL11.glDepthMask(true);
+		GL11.glStencilMask(~0);
+		GL11.glClearStencil(0);
 		GL11.glClearColor(0, 0, 0, 0);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT
 			| GL11.GL_STENCIL_BUFFER_BIT);
@@ -369,6 +388,18 @@ public final class NanoVGContext
 		NanoVG.nvgScale(vg, guiScale, guiScale);
 		frameOpen = true;
 		return true;
+	}
+
+	private static void prepareTextureUpload()
+	{
+		// NanoVG passes client memory to GL for the font atlas and images.
+		// A leftover PBO/row stride from Minecraft must not reinterpret it.
+		org.lwjgl.opengl.GL15.glBindBuffer(
+			org.lwjgl.opengl.GL21.GL_PIXEL_UNPACK_BUFFER, 0);
+		GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
+		GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 0);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, 0);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, 0);
 	}
 
 	public void endFrame()

@@ -132,8 +132,18 @@ public final class NanoVGContext
 			return false;
 		}
 
+		// Initialization changes GL state too, including its failure cleanup.
+		try(GlStateGuard ignored = GlStateGuard.capture())
+		{
+			return createContext();
+		}
+	}
+
+	private boolean createContext()
+	{
 		try
 		{
+			prepareTextureUpload();
 			// Create LWJGL structs inside the try block: a mismatched LWJGL
 			// core/nanovg pair throws NoSuchMethodError here, which must
 			// disable the HUD instead of crashing during class initialisation.
@@ -188,7 +198,10 @@ public final class NanoVGContext
 			loadFallbackFont();
 
 			if(!ensureFramebuffer())
+			{
+				destroy();
 				return false;
+			}
 
 			available = true;
 			System.out.println("[HUD] NanoVG context created (" + (glesBackend ? "GLES3" : "GL3") + ")");
@@ -402,7 +415,10 @@ public final class NanoVGContext
 
 	public boolean beginFrame()
 	{
-		if(!create() || !ensureFramebuffer())
+		if(!create())
+			return false;
+		prepareTextureUpload();
+		if(!ensureFramebuffer())
 			return false;
 
 		if(glesBackend)
@@ -413,8 +429,12 @@ public final class NanoVGContext
 		GL11.glViewport(0, 0, framebufferWidth, framebufferHeight);
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 		GL11.glColorMask(true, true, true, true);
+		GL11.glDepthMask(true);
+		GL11.glStencilMask(~0);
+		GL11.glClearStencil(0);
 		GL11.glClearColor(0, 0, 0, 0);
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT
+			| GL11.GL_STENCIL_BUFFER_BIT);
 
 		NanoVG.nvgBeginFrame(vg, framebufferWidth, framebufferHeight, 1F);
 		NanoVG.nvgScale(vg, guiScale, guiScale);
@@ -458,6 +478,18 @@ public final class NanoVGContext
 			}
 		}
 		System.out.println("[HUD] Pre-rasterized " + count + " glyphs");
+	}
+
+	private static void prepareTextureUpload()
+	{
+		// NanoVG passes client memory to GL for the font atlas and images.
+		// A leftover PBO/row stride from Minecraft must not reinterpret it.
+		org.lwjgl.opengl.GL15.glBindBuffer(
+			org.lwjgl.opengl.GL21.GL_PIXEL_UNPACK_BUFFER, 0);
+		GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
+		GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 0);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, 0);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, 0);
 	}
 
 	public void endFrame()

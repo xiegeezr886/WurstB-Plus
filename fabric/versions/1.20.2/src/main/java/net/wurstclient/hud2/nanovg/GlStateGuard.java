@@ -9,15 +9,19 @@ package net.wurstclient.hud2.nanovg;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.nio.FloatBuffer;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryStack;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
@@ -66,6 +70,14 @@ public final class GlStateGuard implements AutoCloseable
 	private final int stencilFail;
 	private final int stencilDepthFail;
 	private final int stencilDepthPass;
+	private final int stencilBackFunc;
+	private final int stencilBackRef;
+	private final int stencilBackValueMask;
+	private final int stencilBackWriteMask;
+	private final int stencilBackFail;
+	private final int stencilBackDepthFail;
+	private final int stencilBackDepthPass;
+	private final int clearStencil;
 
 	private final int program;
 	private final int vertexArray;
@@ -73,7 +85,17 @@ public final class GlStateGuard implements AutoCloseable
 	private final int elementArrayBuffer;
 	private final int activeTexture;
 	private final int texture0;
+	private final int sampler0;
 	private final int activeTextureBinding;
+	private final int unpackAlignment;
+	private final int unpackRowLength;
+	private final int unpackSkipPixels;
+	private final int unpackSkipRows;
+	private final int unpackBuffer;
+	private final float clearR;
+	private final float clearG;
+	private final float clearB;
+	private final float clearA;
 	private final boolean srgb;
 
 	private final boolean colorMaskR;
@@ -112,6 +134,13 @@ public final class GlStateGuard implements AutoCloseable
 			colorMaskG = mask.get(1) != 0;
 			colorMaskB = mask.get(2) != 0;
 			colorMaskA = mask.get(3) != 0;
+
+			FloatBuffer clear = stack.mallocFloat(4);
+			GL11.glGetFloatv(GL11.GL_COLOR_CLEAR_VALUE, clear);
+			clearR = clear.get(0);
+			clearG = clear.get(1);
+			clearB = clear.get(2);
+			clearA = clear.get(3);
 		}
 
 		blend = GL11.glIsEnabled(GL11.GL_BLEND);
@@ -141,6 +170,14 @@ public final class GlStateGuard implements AutoCloseable
 			GL11.glGetInteger(GL11.GL_STENCIL_PASS_DEPTH_FAIL);
 		stencilDepthPass =
 			GL11.glGetInteger(GL11.GL_STENCIL_PASS_DEPTH_PASS);
+		stencilBackFunc = GL11.glGetInteger(GL20.GL_STENCIL_BACK_FUNC);
+		stencilBackRef = GL11.glGetInteger(GL20.GL_STENCIL_BACK_REF);
+		stencilBackValueMask = GL11.glGetInteger(GL20.GL_STENCIL_BACK_VALUE_MASK);
+		stencilBackWriteMask = GL11.glGetInteger(GL20.GL_STENCIL_BACK_WRITEMASK);
+		stencilBackFail = GL11.glGetInteger(GL20.GL_STENCIL_BACK_FAIL);
+		stencilBackDepthFail = GL11.glGetInteger(GL20.GL_STENCIL_BACK_PASS_DEPTH_FAIL);
+		stencilBackDepthPass = GL11.glGetInteger(GL20.GL_STENCIL_BACK_PASS_DEPTH_PASS);
+		clearStencil = GL11.glGetInteger(GL11.GL_STENCIL_CLEAR_VALUE);
 
 		program = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		vertexArray = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
@@ -150,6 +187,7 @@ public final class GlStateGuard implements AutoCloseable
 		activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		texture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+		sampler0 = GL11.glGetInteger(GL33.GL_SAMPLER_BINDING);
 		// NanoVG binds its own texture on whatever unit happens to be active.
 		// Restoring only unit 0 leaves the active unit pointing at NanoVG's
 		// image, which makes later draws sample black/garbage on some drivers.
@@ -157,6 +195,11 @@ public final class GlStateGuard implements AutoCloseable
 		activeTextureBinding =
 			GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
 		srgb = GL11.glIsEnabled(GL30.GL_FRAMEBUFFER_SRGB);
+		unpackAlignment = GL11.glGetInteger(GL11.GL_UNPACK_ALIGNMENT);
+		unpackRowLength = GL11.glGetInteger(GL11.GL_UNPACK_ROW_LENGTH);
+		unpackSkipPixels = GL11.glGetInteger(GL11.GL_UNPACK_SKIP_PIXELS);
+		unpackSkipRows = GL11.glGetInteger(GL11.GL_UNPACK_SKIP_ROWS);
+		unpackBuffer = GL11.glGetInteger(GL21.GL_PIXEL_UNPACK_BUFFER_BINDING);
 	}
 
 	public static GlStateGuard capture()
@@ -179,10 +222,24 @@ public final class GlStateGuard implements AutoCloseable
 		GL30.glBindVertexArray(vertexArray);
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, arrayBuffer);
 		GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, elementArrayBuffer);
+		// Raw binds restore native changes; cached binds also synchronize
+		// Minecraft after GPU texture allocation updated GlStateManager.
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
+		GlStateManager._activeTexture(GL13.GL_TEXTURE0);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture0);
+		GlStateManager._bindTexture(texture0);
+		GL33.glBindSampler(0, sampler0);
 		GL13.glActiveTexture(activeTexture);
+		GlStateManager._activeTexture(activeTexture);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, activeTextureBinding);
+		GlStateManager._bindTexture(activeTextureBinding);
+		GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, unpackBuffer);
+		GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, unpackAlignment);
+		GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, unpackRowLength);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, unpackSkipPixels);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, unpackSkipRows);
+		GL11.glClearColor(clearR, clearG, clearB, clearA);
+		GL11.glClearStencil(clearStencil);
 
 		if(srgb)
 			GL11.glEnable(GL30.GL_FRAMEBUFFER_SRGB);
@@ -214,9 +271,16 @@ public final class GlStateGuard implements AutoCloseable
 			GL11.glEnable(GL11.GL_STENCIL_TEST);
 		else
 			GL11.glDisable(GL11.GL_STENCIL_TEST);
-		GL11.glStencilFunc(stencilFunc, stencilRef, stencilValueMask);
-		GL11.glStencilMask(stencilWriteMask);
-		GL11.glStencilOp(stencilFail, stencilDepthFail, stencilDepthPass);
+		GL20.glStencilFuncSeparate(GL11.GL_FRONT, stencilFunc, stencilRef,
+			stencilValueMask);
+		GL20.glStencilMaskSeparate(GL11.GL_FRONT, stencilWriteMask);
+		GL20.glStencilOpSeparate(GL11.GL_FRONT, stencilFail, stencilDepthFail,
+			stencilDepthPass);
+		GL20.glStencilFuncSeparate(GL11.GL_BACK, stencilBackFunc, stencilBackRef,
+			stencilBackValueMask);
+		GL20.glStencilMaskSeparate(GL11.GL_BACK, stencilBackWriteMask);
+		GL20.glStencilOpSeparate(GL11.GL_BACK, stencilBackFail,
+			stencilBackDepthFail, stencilBackDepthPass);
 
 		GL11.glColorMask(colorMaskR, colorMaskG, colorMaskB, colorMaskA);
 

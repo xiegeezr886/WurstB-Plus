@@ -23,7 +23,7 @@ import net.minecraft.client.gui.components.AbstractSelectionList;
 public abstract class AbstractSelectionListMixin
 {
 	@Inject(at = @At("HEAD"),
-		method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V")
+		method = "renderWidget(Lnet/minecraft/client/gui/GuiGraphics;IIF)V")
 	private void wurst$transparentBackground(GuiGraphics graphics, int mouseX,
 		int mouseY, float partialTicks, CallbackInfo ci)
 	{
