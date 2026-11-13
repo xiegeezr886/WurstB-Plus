@@ -122,7 +122,6 @@
     "xray.LiquidBlockRendererMixin",
     "xray.ModelBlockRendererMixin",
     "LevelRendererMixin",
-    "AbstractSelectionListMixin",
     "AbstractSliderButtonAccessor",
     "AbstractWidgetMixin",
     "ClientInputAccessor",
