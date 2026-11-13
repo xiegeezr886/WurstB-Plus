@@ -44,6 +44,12 @@ $ErrorActionPreference = "Stop"
 # 这是有意为之：坐标里的 MC 版本表示"本工程的目标版本"，产物本身是同一个。
 # ---------------------------------------------------------------------------
 $trusted = @{
+    # Official v1.19.0 release: Minecraft 26.2, all three loaders.
+    "1.19.0-26.2" = @{
+        "fabric"   = "eca6e2fdf43c6657fe9fea10a8f9a7572d78dc91ad389b998b808bd28fa5b5d1"
+        "forge"    = "cecbbcd8cb5acc47b59543db88de4d5749a6347b8caee5fee844f50e4ebe5d38"
+        "neoforge" = "0d86423e2f8861e86f2df3c0eb59913ab6bfc5e395cc165ca503bfe5c0c842ef"
+    }
     # ---- Baritone 1.13.1 —— 支持 1.21.4 ----
     "1.13.1-1.21.4" = @{
         "fabric"   = "bfb79c3cdb8fe1f7697999b1f9c7f08ea29775f3b69d48ad90c387690ee67b05"
