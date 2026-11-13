@@ -119,7 +119,6 @@
     "ClientboundSectionBlocksUpdatePacketAccessor",
     "MouseHandlerAccessor",
     "AbstractContainerScreenAccessor",
-    "AbstractSelectionListMixin",
     "AbstractSliderButtonAccessor",
     "AbstractWidgetMixin",
     "KeyboardInputMixin",
