@@ -121,7 +121,6 @@
     "xray.BlockModelRendererMixin",
     "WorldMixin",
     "LevelRendererMixin",
-    "AbstractSelectionListMixin",
     "AbstractSliderButtonAccessor",
     "AbstractWidgetMixin",
     "ClientInputAccessor",
