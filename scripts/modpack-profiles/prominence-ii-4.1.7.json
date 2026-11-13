@@ -1,0 +1,76 @@
+{
+  "project": "prominence-2-fabric",
+  "project_id": "EGs3lC8D",
+  "version_id": "rt1vDkAc",
+  "version": "4.1.7",
+  "minecraft": "1.20.1",
+  "loader": "fabric",
+  "fabric_loader": "0.19.3",
+  "pack_url": "https://cdn.modrinth.com/data/EGs3lC8D/versions/rt1vDkAc/Prominence%E2%84%A2%20II%20Hasturian%20Era%20v4.1.7.mrpack",
+  "pack_sha512": "be5422855cdbf7d036e9245c8cb50b90bed4a29674a571e97e8cfac10ec1e5bb1859686cec46c9818d6b292768aab2ff134880419ae400474838866895330d4b",
+  "top_level_mod_jars": 461,
+  "inventory_metadata_entries": 1244,
+  "inventory_distinct_ids": 696,
+  "test_stages": [
+    "original pack baseline",
+    "same pack plus local Wurst build",
+    "new singleplayer world",
+    "client features and chunk rendering",
+    "save and reload"
+  ],
+  "manual_pack_requirements": [
+    {
+      "url": "https://maven.ftb.dev/releases/dev/ftb/mods/ftb-quests-fabric/2001.4.18/ftb-quests-fabric-2001.4.18.jar",
+      "file": "ftb-quests-fabric-2001.4.18.jar",
+      "sha512": "472e67958274cb325e6db0f24a3caf935c744489934fddd699e17f1d40b99701f046fd8f9b1608c7b3a353b2f0548b9f36b6d197df120f86511389dae83002c4",
+      "id": "ftbquests",
+      "version": "2001.4.18",
+      "depends": {
+        "fabric": "*",
+        "minecraft": "~1.20.1",
+        "architectury": ">=9.0.8",
+        "ftblibrary": ">=2001.2.1",
+        "ftbteams": ">=2001.1.4-build.1"
+      }
+    },
+    {
+      "url": "https://maven.ftb.dev/releases/dev/ftb/mods/ftb-library-fabric/2001.2.12/ftb-library-fabric-2001.2.12.jar",
+      "file": "ftb-library-fabric-2001.2.12.jar",
+      "sha512": "d3f81173269cce2f66ab3b3409a8db2de4849b4f2e5e8581a0376489af8e1cdfbdeaa1c533a7dda61b684ca2bb654a82a83d868ebd1f2e4b86599197b6179368",
+      "id": "ftblibrary",
+      "version": "2001.2.12",
+      "depends": {
+        "fabric": ">=0.83.1+1.20.1",
+        "minecraft": "~1.20",
+        "architectury": ">=9.0.8"
+      }
+    },
+    {
+      "url": "https://maven.ftb.dev/releases/dev/ftb/mods/ftb-xmod-compat-fabric/2.1.3/ftb-xmod-compat-fabric-2.1.3.jar",
+      "file": "ftb-xmod-compat-fabric-2.1.3.jar",
+      "sha512": "2e99ce5d32c4ada845001c39a71b4b018e1e9e096ddbd5c017c4f4bd89c716f2ce23970100569d2c63eb5f10e311c66bbefeb420e3c11b79556b34abb11b2766",
+      "id": "ftbxmodcompat",
+      "version": "2.1.3",
+      "depends": {
+        "fabric": "*",
+        "minecraft": ">=1.20.1",
+        "architectury": ">=9.0.8",
+        "ftblibrary": ">=2001.1.3"
+      }
+    },
+    {
+      "url": "https://maven.ftb.dev/releases/dev/ftb/mods/ftb-teams-fabric/2001.3.2/ftb-teams-fabric-2001.3.2.jar",
+      "file": "ftb-teams-fabric-2001.3.2.jar",
+      "sha512": "5e1b19b5bc3575a050e3d4bc79c93f03b7ac096804b5b49ed75c4f3422d75b32d2a63ce5b9f4566d453e5e9724b56ea15306eb8c3cfa7b4ddebccb985a121e9b",
+      "id": "ftbteams",
+      "version": "2001.3.2",
+      "depends": {
+        "fabric": ">=0.83.1+1.20.1",
+        "minecraft": "~1.20",
+        "architectury": ">=9.1.12",
+        "ftblibrary": ">=2001.2.0"
+      }
+    }
+  ],
+  "complete_top_level_mod_jars": 465
+}
