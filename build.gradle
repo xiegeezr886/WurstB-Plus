@@ -9,7 +9,6 @@ buildscript {
 		maven {
 			// 国内镜像，避免 Maven Central 直连超时
 			name = "Aliyun Central"
-			url = "https://maven.aliyun.com/repository/central"
 		}
 		maven {
 			name = "Sponge"
@@ -69,7 +68,6 @@ repositories {
 	maven {
 		// 国内镜像，避免 Maven Central 直连超时
 		name = "Aliyun Central"
-		url = "https://maven.aliyun.com/repository/central"
 	}
 	maven {
 		name = "Sponge"

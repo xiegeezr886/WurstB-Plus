@@ -18,7 +18,7 @@
 //
 // 不想要镜像时：给构建加 -PnoMirror 即可跳过本脚本的全部注入。
 
-def mirrorsOff = gradle.startParameter.projectProperties.containsKey('noMirror')
+def mirrorsOff = true
 
 // 阿里云提供的聚合镜像；public = central + jcenter，gradle-plugin = 插件门户
 def ALIYUN = [

@@ -15,6 +15,8 @@
 build/
 .gradle-compose-cache/
 .kotlin/
+*.jar.mapping.tsv
+*.jar.report.txt
 
 # IDE
 .idea/
@@ -183,3 +185,13 @@ _recon/release-v1.5.1/
 # Local crash evidence, downloaded toolchains and verification caches.
 /.dsh-tmp/
 
+
+
+# Local reverse-engineering artifacts and runtime caches (not build inputs).
+/.lwjgl/
+/RedFix-decompiled/
+/RedFix-repaired/
+/_decomp/
+
+# Build-environment zipfs patches are real tooling inputs despite the global *.jar rule.
+!/tools/build-env/*.jar
