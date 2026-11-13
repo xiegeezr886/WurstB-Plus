@@ -310,10 +310,6 @@ public final class HudManager
 			if(mod == notifications || !mod.isEnabled())
 				continue;
 
-			// TEST: only the FPS display module.
-			if(!mod.getId().equals("FPSDisplay"))
-				continue;
-
 			mod.clampToScreen(screenWidth, screenHeight);
 			mod.render(nvg, partialTicks);
 		}
