@@ -1,0 +1,14 @@
+Rise navigator reference and assets
+
+Source: https://github.com/AnShanArchive/Rise-6.9.5
+Revision: f58ef9ca99b43ddb192ca4d2319c2f2a09e8c16a
+
+The icon fonts, language resources and adapted bloom shader in this directory
+originate from that reference. The reference's src/main/resources/LICENSE says:
+
+Copyright Alan 2021
+None of this code to be reused without my written permission
+Intellectual Rights owned by Alan
+
+The original wording above is preserved; the reference assets are not
+relicensed under the host project's license.

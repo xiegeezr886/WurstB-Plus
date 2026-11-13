@@ -77,6 +77,13 @@ public final class NanoVGUI
 	 */
 	public static void pass(GuiGraphics graphics, Runnable body)
 	{
+		if(WurstClient.MC == null) return;
+		passTo(graphics, WurstClient.MC.getMainRenderTarget(), body);
+	}
+
+	/** Draws the same GUI primitives into an offscreen post-processing mask. */
+	public static void passTo(GuiGraphics graphics, RenderTarget target, Runnable body)
+	{
 		// Krypton/GLES wrappers corrupt the framebuffer when NanoVG renders
 		// a screen pass; skip the pass entirely there so vanilla screens
 		// (pause menu, options, ...) stay visible.
@@ -117,7 +124,6 @@ public final class NanoVGUI
 				NVG.endFrame();
 			}
 
-			RenderTarget target = mc.getMainRenderTarget();
 			target.bindWrite(false);
 			GL11.glViewport(0, 0, target.width, target.height);
 			NVG.composite();
@@ -247,7 +253,7 @@ public final class NanoVGUI
 
 		SCISSORS.push(new float[]{left, top, right, bottom});
 		NVG.save();
-		NVG.scissor(x, y, width, height);
+		NVG.scissor(left - translateX, top - translateY, right - left, bottom - top);
 	}
 
 	public static void popScissor()
@@ -436,6 +442,20 @@ public final class NanoVGUI
 
 		if(segment.length() > 0)
 			NVG.drawText(segment.toString(), cursor, y, current, size, FONT);
+	}
+
+	/** Draws a single string with a specific NanoVG font (used by Rise icons). */
+	public static void text(String text, float x, float y, int color,
+		float size, HudFont font)
+	{
+		if(!active || text == null || text.isEmpty())
+			return;
+		NVG.drawText(text, x, y, color, size, font);
+	}
+
+	public static float width(String text, float size, HudFont font)
+	{
+		return text == null || text.isEmpty() ? 0 : NVG.getTextWidth(text, size, font);
 	}
 
 	public static void centeredText(String text, float centerX, float y,
