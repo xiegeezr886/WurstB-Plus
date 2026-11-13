@@ -47,8 +47,8 @@ dependencies {
 	include implementation("io.netty:netty-codec-socks:4.1.118.Final")
 	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
 
-	// The 26.2 artifact carries loader metadata compatible with Minecraft 26.2.
-	include implementation("baritone:baritone-api-fabric:1.18.0-26.2")
+	// Official Baritone 1.19.0 targets Minecraft 26.2 natively.
+	include implementation("baritone:baritone-api-fabric:1.19.0-26.2")
 
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.5"

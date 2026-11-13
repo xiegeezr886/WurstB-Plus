@@ -21,6 +21,22 @@ class RenderGateTest(unittest.TestCase):
     def test_current_source(self):
         self.assertEqual(gate.audit(self.sources), [])
 
+    def test_duplicate_hud_dispatch(self):
+        self.sources = gate.load(ROOT / 'fabric/versions/1.21.1')
+        self.sources['initializer'] += '\nEventManager.fire(new GUIRenderEvent(graphics, partialTick));'
+        self.assertTrue(any('both initializer' in e for e in gate.audit(self.sources)))
+
+    def test_callback_only_legacy_hud(self):
+        self.sources = gate.load(ROOT / 'fabric')
+        self.assertIn('new GUIRenderEvent(', self.sources['initializer'])
+        self.assertEqual(gate.audit(self.sources), [])
+
+    def test_unregistered_hud_does_not_duplicate_callback(self):
+        self.sources = gate.load(ROOT / 'fabric/versions/1.21.1')
+        self.sources['initializer'] += '\nEventManager.fire(new GUIRenderEvent(graphics, partialTick));'
+        self.sources['registered'].remove('IngameHudMixin')
+        self.assertEqual(gate.audit(self.sources), [])
+
     def test_missing_init_guard(self):
         self.reject('context', 'return createContext();', 'return false;', 'initialization')
 

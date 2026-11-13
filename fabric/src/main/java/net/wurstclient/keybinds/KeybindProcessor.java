@@ -19,6 +19,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.screens.Screen;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.ClickGuiScreen;
+import net.wurstclient.clickgui2.NavigatorScreen;
 import net.wurstclient.command.CmdProcessor;
 import net.wurstclient.events.KeyPressListener;
 import net.wurstclient.hack.Hack;
@@ -68,6 +69,9 @@ public final class KeybindProcessor implements KeyPressListener
 		String cmds = keybinds.getCommands(keyName);
 		if(cmds == null)
 			return;
+		// The navigator owns typing, including type-to-search and inline values.
+		if(screen instanceof NavigatorScreen && !containsCmd(cmds, "navigator"))
+			return;
 
 		handlePress(keyName, cmds, screen);
 	}
@@ -79,7 +83,10 @@ public final class KeybindProcessor implements KeyPressListener
 			|| ScreenRegistry.NAVIGATOR.matches(screen)
 				&& containsCmd(cmds, "navigator"))
 		{
-			WurstClient.MC.setScreen(null);
+			if(screen instanceof NavigatorScreen navigator)
+				navigator.onClose();
+			else
+				WurstClient.MC.setScreen(null);
 			return;
 		}
 

@@ -89,6 +89,20 @@ public final class ClickGui
 		if(mouseButton == GLFW.GLFW_MOUSE_BUTTON_LEFT)
 			leftMouseButtonPressed = false;
 	}
+
+	/** Routes an external screen's values to popups without touching HUD windows. */
+	public boolean handleOverlayMouseClick(int mouseX, int mouseY, int button)
+	{
+		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
+			leftMouseButtonPressed = true;
+		ArrayList<Popup> previouslyOpen = new ArrayList<>(popups);
+		boolean handled = handlePopupMouseClick(mouseX, mouseY, button);
+		if(!handled)
+			previouslyOpen.forEach(Popup::close);
+		popups.removeIf(popup -> popup.isClosing()
+			|| popup.getOwner().getParent().isClosing());
+		return handled;
+	}
 	
 	public void handleMouseScroll(double mouseX, double mouseY, double delta)
 	{
