@@ -1,0 +1,924 @@
+[
+  {
+    "project": ".",
+    "loader": "Forge",
+    "minecraft": "1.20.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.20.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-api-forge-1.20.1.jar",
+    "baritone_sha256": "7cdfc964e686f6819b2bfad2ceb94ad1ddcdf17d804ee4715c813b08107e393c",
+    "declared_minecraft": [
+      "[1.20,1.20.1]"
+    ]
+  },
+  {
+    "project": "fabric",
+    "loader": "Fabric",
+    "minecraft": "1.20.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.20.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.10.3.jar",
+    "baritone_sha256": "ab038e33d639815c375f0c9c5518435a7d5e84c622380c58822443c0cb52457c",
+    "declared_minecraft": ">=1.20 <=1.20.1"
+  },
+  {
+    "project": "neoforge",
+    "loader": "NeoForge",
+    "minecraft": "1.20.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.20.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-api-forge-1.20.1.jar",
+    "baritone_sha256": "7cdfc964e686f6819b2bfad2ceb94ad1ddcdf17d804ee4715c813b08107e393c",
+    "declared_minecraft": [
+      "[1.20,1.20.1]"
+    ]
+  },
+  {
+    "project": "versions/1.20.2",
+    "loader": "Forge",
+    "minecraft": "1.20.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.20.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.10.6-1.20.2.jar",
+    "baritone_sha256": "f8c6550b7f830c784d9a97a8ad59d175f1fc4b18238f4595afe5e4262d608531",
+    "declared_minecraft": [
+      "[1.20.2]"
+    ]
+  },
+  {
+    "project": "versions/1.20.3",
+    "loader": "Forge",
+    "minecraft": "1.20.3",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.20.3.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.10.7-1.20.3.jar",
+    "baritone_sha256": "eb93248c57a7a477ead262173a6b059bd53643ad1229ac7e22f4b44bd400a461",
+    "declared_minecraft": [
+      "[1.20.3, 1.20.4]"
+    ]
+  },
+  {
+    "project": "versions/1.20.4",
+    "loader": "Forge",
+    "minecraft": "1.20.4",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.20.4.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.10.7-1.20.4.jar",
+    "baritone_sha256": "eb93248c57a7a477ead262173a6b059bd53643ad1229ac7e22f4b44bd400a461",
+    "declared_minecraft": [
+      "[1.20.3, 1.20.4]"
+    ]
+  },
+  {
+    "project": "versions/1.20.6",
+    "loader": "Forge",
+    "minecraft": "1.20.6",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.20.6.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.10.8-1.20.6.jar",
+    "baritone_sha256": "c0ea9336fdb2f0f4ae0bd100f4bf52b2d473d78ce660c783e8a1be307e5b202a",
+    "declared_minecraft": [
+      "[1.20.5, 1.20.6]"
+    ]
+  },
+  {
+    "project": "versions/1.21",
+    "loader": "Forge",
+    "minecraft": "1.21",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-api-forge-1.21.1.jar",
+    "baritone_sha256": "a2a3aa134107a69b2f78757c03eb1e135db6c7420eca18862558f530bf684af1",
+    "declared_minecraft": [
+      "[1.21, 1.21.1]"
+    ]
+  },
+  {
+    "project": "versions/1.21.1",
+    "loader": "Forge",
+    "minecraft": "1.21.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-api-forge-1.21.1.jar",
+    "baritone_sha256": "a3a998f9d4634b024a927008abaf80a1075f39f42a08578cb0d343c5a3f4d76b",
+    "declared_minecraft": [
+      "[1.21, 1.21.1]"
+    ]
+  },
+  {
+    "project": "versions/1.21.10",
+    "loader": "Forge",
+    "minecraft": "1.21.10",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.10.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.16.0-1.21.10.jar",
+    "baritone_sha256": "935682c2db9f21bc60700e0f3b74f9c6fedc8179422c0b4752f3eff9f43967cc",
+    "declared_minecraft": [
+      "[1.21.9, 1.21.10]"
+    ]
+  },
+  {
+    "project": "versions/1.21.11",
+    "loader": "Forge",
+    "minecraft": "1.21.11",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.11.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.17.0-1.21.11.jar",
+    "baritone_sha256": "7b7c7328022afb534e9cd649cf5ed4b79812995296be3004ad8712daf3ba7988",
+    "declared_minecraft": [
+      "[1.21.11]"
+    ]
+  },
+  {
+    "project": "versions/1.21.3",
+    "loader": "Forge",
+    "minecraft": "1.21.3",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.3.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.12.0-1.21.3.jar",
+    "baritone_sha256": "9d2f985d6b20592e9c6b3759c38ad842f33ef4c5bb3daadf7cf68543049ca7d8",
+    "declared_minecraft": [
+      "[1.21.2, 1.21.3]"
+    ]
+  },
+  {
+    "project": "versions/1.21.4",
+    "loader": "Forge",
+    "minecraft": "1.21.4",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.4.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.13.1-1.21.4.jar",
+    "baritone_sha256": "e79303ba8abf67747a252f3eca036be965c9a9cf96311bdc7fe42ba760a81ef2",
+    "declared_minecraft": [
+      "[1.21.4]"
+    ]
+  },
+  {
+    "project": "versions/1.21.5",
+    "loader": "Forge",
+    "minecraft": "1.21.5",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.5.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.14.0-1.21.5.jar",
+    "baritone_sha256": "2dbdb037446dbeacd205949f4713b86a42bc6bfa3a2972532d1ca51c41fe9596",
+    "declared_minecraft": [
+      "[1.21.5]"
+    ]
+  },
+  {
+    "project": "versions/1.21.6",
+    "loader": "Forge",
+    "minecraft": "1.21.6",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.6.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.15.0-1.21.6.jar",
+    "baritone_sha256": "764b07f9fc436483f7154c313eb722c0e81b2c9af8960df29456e6fb9a4d0306",
+    "declared_minecraft": [
+      "[1.21.6, 1.21.8]"
+    ]
+  },
+  {
+    "project": "versions/1.21.7",
+    "loader": "Forge",
+    "minecraft": "1.21.7",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.7.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.15.0-1.21.7.jar",
+    "baritone_sha256": "610838a0129c9669d558845cab8ed9dd353dd419f00ee3fc400b64e0021ae3f5",
+    "declared_minecraft": [
+      "[1.21.6, 1.21.8]"
+    ]
+  },
+  {
+    "project": "versions/1.21.8",
+    "loader": "Forge",
+    "minecraft": "1.21.8",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.8.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.15.0-1.21.8.jar",
+    "baritone_sha256": "48d14d8eeffb202b96aa8edcb952ea7398c74f7ebbf0852ca966ffb337a0c044",
+    "declared_minecraft": [
+      "[1.21.6, 1.21.8]"
+    ]
+  },
+  {
+    "project": "versions/1.21.9",
+    "loader": "Forge",
+    "minecraft": "1.21.9",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-1.21.9.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.16.0-1.21.9.jar",
+    "baritone_sha256": "935682c2db9f21bc60700e0f3b74f9c6fedc8179422c0b4752f3eff9f43967cc",
+    "declared_minecraft": [
+      "[1.21.9, 1.21.10]"
+    ]
+  },
+  {
+    "project": "versions/26.1",
+    "loader": "Forge",
+    "minecraft": "26.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-26.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.18.0.jar",
+    "baritone_sha256": "32abb1d009cbc9e2288b27fc52f3bebc97e523b80dd16d0a0d5b609aeb404cdb",
+    "declared_minecraft": [
+      "[26.1, 26.1.2]"
+    ]
+  },
+  {
+    "project": "versions/26.1.1",
+    "loader": "Forge",
+    "minecraft": "26.1.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-26.1.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.18.0.jar",
+    "baritone_sha256": "32abb1d009cbc9e2288b27fc52f3bebc97e523b80dd16d0a0d5b609aeb404cdb",
+    "declared_minecraft": [
+      "[26.1, 26.1.2]"
+    ]
+  },
+  {
+    "project": "versions/26.1.2",
+    "loader": "Forge",
+    "minecraft": "26.1.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-26.1.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.18.0.jar",
+    "baritone_sha256": "32abb1d009cbc9e2288b27fc52f3bebc97e523b80dd16d0a0d5b609aeb404cdb",
+    "declared_minecraft": [
+      "[26.1, 26.1.2]"
+    ]
+  },
+  {
+    "project": "versions/26.2",
+    "loader": "Forge",
+    "minecraft": "26.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-26.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [
+      "META-INF/jarjar/baritone-forge-1.18.0-26.2.jar: obsolete Baritone 26.2 port; use official 1.19.0"
+    ],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.18.0-26.2.jar",
+    "baritone_sha256": "45351cc231ce95d56121c7b5b41ee6e74aa3d135061e55dde9f52306701d7e48",
+    "declared_minecraft": [
+      "[26.2,26.3)"
+    ]
+  },
+  {
+    "project": "versions/26.3",
+    "loader": "Forge",
+    "minecraft": "26.3",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-26.3.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-forge-1.20.0-26.3.jar",
+    "baritone_sha256": "31258f5f9780a50a4643d717ca51f4295452c92433e8b50683973323b93c5944",
+    "declared_minecraft": [
+      "[26.3, 26.4)"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.20.2",
+    "loader": "Fabric",
+    "minecraft": "1.20.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.20.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.10.6-1.20.2.jar",
+    "baritone_sha256": "8b370b4887c0bd32c73759addea8db0448ef4f6d85d8a6dc56351c3ccffa140c",
+    "declared_minecraft": "1.20.2"
+  },
+  {
+    "project": "fabric/versions/1.20.3",
+    "loader": "Fabric",
+    "minecraft": "1.20.3",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.20.3.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.10.7-1.20.3.jar",
+    "baritone_sha256": "21447361814787787f95dbce937dabff74e3729e8c8509397e429cd67562cb87",
+    "declared_minecraft": [
+      "1.20.3",
+      "1.20.4"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.20.4",
+    "loader": "Fabric",
+    "minecraft": "1.20.4",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.20.4.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.10.7-1.20.4.jar",
+    "baritone_sha256": "308fa676a0331d45be11836cd6318e014ea6abc928dff781d234286e5cf7418f",
+    "declared_minecraft": [
+      "1.20.3",
+      "1.20.4"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.20.5",
+    "loader": "Fabric",
+    "minecraft": "1.20.5",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.20.5.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.10.8-1.20.5.jar",
+    "baritone_sha256": "33c3956c4c8cd130a6d945c0162f3fc96478b9f4abb3d9a395da9a592035019c",
+    "declared_minecraft": [
+      "1.20.5",
+      "1.20.6"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.20.6",
+    "loader": "Fabric",
+    "minecraft": "1.20.6",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.20.6.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.10.8-1.20.6.jar",
+    "baritone_sha256": "d8263823fb2e80a7ea510d327eb6d3b6b2aff20ff5f7df70fff60362d696c574",
+    "declared_minecraft": [
+      "1.20.5",
+      "1.20.6"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21",
+    "loader": "Fabric",
+    "minecraft": "1.21",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [
+      "missing mixins.baritone.json"
+    ],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.11.2.jar",
+    "baritone_sha256": "39ce34b4396ac05e2e926ca2cea835fb7feac074fecdc6ba55490406bedc3966",
+    "declared_minecraft": [
+      "1.21",
+      "1.21.1"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.1",
+    "loader": "Fabric",
+    "minecraft": "1.21.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [
+      "missing mixins.baritone.json"
+    ],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.11.2.jar",
+    "baritone_sha256": "39ce34b4396ac05e2e926ca2cea835fb7feac074fecdc6ba55490406bedc3966",
+    "declared_minecraft": [
+      "1.21",
+      "1.21.1"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.10",
+    "loader": "Fabric",
+    "minecraft": "1.21.10",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.10.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.16.0-1.21.10.jar",
+    "baritone_sha256": "f2ac82cd0e75b0dfb178595c94c80d75b698b2d22394b74b216c54def7edaf62",
+    "declared_minecraft": [
+      "1.21.9",
+      "1.21.10"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.11",
+    "loader": "Fabric",
+    "minecraft": "1.21.11",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.11.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.17.0-1.21.11.jar",
+    "baritone_sha256": "28c0b0a51793469caebdd0f0f96b6855cf543dee1e8bd76b0e7a1772c60c05aa",
+    "declared_minecraft": [
+      "1.21.11"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.2",
+    "loader": "Fabric",
+    "minecraft": "1.21.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.12.0-1.21.2.jar",
+    "baritone_sha256": "0b26c38a85fb4b43ba406b7568346f4474b30c429524dc62c410445b98f4698d",
+    "declared_minecraft": [
+      "1.21.2",
+      "1.21.3"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.3",
+    "loader": "Fabric",
+    "minecraft": "1.21.3",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.3.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.12.0-1.21.3.jar",
+    "baritone_sha256": "804f8082937eb22001d1cbb97f960b2d8168cfd6a6b3bd1d7d159dd0e7bec9f8",
+    "declared_minecraft": [
+      "1.21.2",
+      "1.21.3"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.4",
+    "loader": "Fabric",
+    "minecraft": "1.21.4",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.4.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.13.1-1.21.4.jar",
+    "baritone_sha256": "03021f30332c80a8f7cfd165ee8540eac7c2c7317d35b303b425b8792eab8bff",
+    "declared_minecraft": [
+      "1.21.4"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.5",
+    "loader": "Fabric",
+    "minecraft": "1.21.5",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.5.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.14.0-1.21.5.jar",
+    "baritone_sha256": "fa763800c50a3492d32d54e8754b15ae82dd07ed3088187c0e603d5fff39d9ab",
+    "declared_minecraft": [
+      "1.21.5"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.6",
+    "loader": "Fabric",
+    "minecraft": "1.21.6",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.6.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.15.0-1.21.6.jar",
+    "baritone_sha256": "0f4b981bb4a096d81a6795d340c3b75a79391d93f2a3d8a12f72da8beec3c644",
+    "declared_minecraft": [
+      "1.21.6",
+      "1.21.7",
+      "1.21.8"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.7",
+    "loader": "Fabric",
+    "minecraft": "1.21.7",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.7.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.15.0-1.21.7.jar",
+    "baritone_sha256": "d26548a73d298d622a1559ea107396af4d79cfd434404febc77060cb51495d52",
+    "declared_minecraft": [
+      "1.21.6",
+      "1.21.7",
+      "1.21.8"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.8",
+    "loader": "Fabric",
+    "minecraft": "1.21.8",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.8.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.15.0-1.21.8.jar",
+    "baritone_sha256": "d26548a73d298d622a1559ea107396af4d79cfd434404febc77060cb51495d52",
+    "declared_minecraft": [
+      "1.21.6",
+      "1.21.7",
+      "1.21.8"
+    ]
+  },
+  {
+    "project": "fabric/versions/1.21.9",
+    "loader": "Fabric",
+    "minecraft": "1.21.9",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.9.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.16.0-1.21.9.jar",
+    "baritone_sha256": "f2ac82cd0e75b0dfb178595c94c80d75b698b2d22394b74b216c54def7edaf62",
+    "declared_minecraft": [
+      "1.21.9",
+      "1.21.10"
+    ]
+  },
+  {
+    "project": "fabric/versions/26.1",
+    "loader": "Fabric",
+    "minecraft": "26.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-26.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.18.0.jar",
+    "baritone_sha256": "37528b1b9341890e1cbf43cc1d32d12bbe57f65430358da85a2ee951ed3b189d",
+    "declared_minecraft": [
+      "26.1.*"
+    ]
+  },
+  {
+    "project": "fabric/versions/26.1.1",
+    "loader": "Fabric",
+    "minecraft": "26.1.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-26.1.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.18.0.jar",
+    "baritone_sha256": "37528b1b9341890e1cbf43cc1d32d12bbe57f65430358da85a2ee951ed3b189d",
+    "declared_minecraft": [
+      "26.1.*"
+    ]
+  },
+  {
+    "project": "fabric/versions/26.1.2",
+    "loader": "Fabric",
+    "minecraft": "26.1.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-26.1.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.18.0.jar",
+    "baritone_sha256": "37528b1b9341890e1cbf43cc1d32d12bbe57f65430358da85a2ee951ed3b189d",
+    "declared_minecraft": [
+      "26.1.*"
+    ]
+  },
+  {
+    "project": "fabric/versions/26.2",
+    "loader": "Fabric",
+    "minecraft": "26.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-26.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.19.0-26.2.jar",
+    "baritone_sha256": "eca6e2fdf43c6657fe9fea10a8f9a7572d78dc91ad389b998b808bd28fa5b5d1",
+    "declared_minecraft": [
+      "26.2"
+    ]
+  },
+  {
+    "project": "fabric/versions/26.3",
+    "loader": "Fabric",
+    "minecraft": "26.3",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-26.3.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jars/baritone-api-fabric-1.20.0-26.3.jar",
+    "baritone_sha256": "35d3f685de94b547d0d9f09d11828c97f3ba38f7ce36415b436687817fd8fcd6",
+    "declared_minecraft": "~26.3"
+  },
+  {
+    "project": "neoforge/versions/1.20.2",
+    "loader": "NeoForge",
+    "minecraft": "1.20.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.20.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "flat"
+  },
+  {
+    "project": "neoforge/versions/1.20.3",
+    "loader": "NeoForge",
+    "minecraft": "1.20.3",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.20.3.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "flat"
+  },
+  {
+    "project": "neoforge/versions/1.20.4",
+    "loader": "NeoForge",
+    "minecraft": "1.20.4",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.20.4.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "flat"
+  },
+  {
+    "project": "neoforge/versions/1.20.5",
+    "loader": "NeoForge",
+    "minecraft": "1.20.5",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.20.5.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "flat"
+  },
+  {
+    "project": "neoforge/versions/1.20.6",
+    "loader": "NeoForge",
+    "minecraft": "1.20.6",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.20.6.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [
+      "release jar missing"
+    ]
+  },
+  {
+    "project": "neoforge/versions/1.21",
+    "loader": "NeoForge",
+    "minecraft": "1.21",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "flat"
+  },
+  {
+    "project": "neoforge/versions/1.21.1",
+    "loader": "NeoForge",
+    "minecraft": "1.21.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "flat"
+  },
+  {
+    "project": "neoforge/versions/1.21.10",
+    "loader": "NeoForge",
+    "minecraft": "1.21.10",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.10.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.16.0-1.21.10.jar",
+    "baritone_sha256": "77987834f74dd53d13ea58b68ce8ff71ec75f35156a6558f5b5cc7d8a8bf776a",
+    "declared_minecraft": [
+      "[1.21.9, 1.21.10]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/1.21.11",
+    "loader": "NeoForge",
+    "minecraft": "1.21.11",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.11.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.17.0-1.21.11.jar",
+    "baritone_sha256": "0a85ef6c4b2eeb2c7784c9e967eb160777198b9481b84141cf15fe426bb51eec",
+    "declared_minecraft": [
+      "[1.21.11]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/1.21.2",
+    "loader": "NeoForge",
+    "minecraft": "1.21.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.12.0-1.21.2.jar",
+    "baritone_sha256": "8b69d5ac860091cf1e78f75bd2e006c23ceca8c7fa7de3f70b68edf307ccccdd",
+    "declared_minecraft": [
+      "[1.21.2,1.21.3]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/1.21.3",
+    "loader": "NeoForge",
+    "minecraft": "1.21.3",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.3.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.12.0-1.21.3.jar",
+    "baritone_sha256": "7de2271123f6a28a022a6a304be1810be56d10c8c395f408f4dd368a7ba90110",
+    "declared_minecraft": [
+      "[1.21.2,1.21.3]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/1.21.4",
+    "loader": "NeoForge",
+    "minecraft": "1.21.4",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.4.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.13.1-1.21.4.jar",
+    "baritone_sha256": "5bd8144ee4aedeac50d1dcd28f0b6db7ea2a712a05910b0879037890a95ca5e7",
+    "declared_minecraft": [
+      "[1.21.4]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/1.21.5",
+    "loader": "NeoForge",
+    "minecraft": "1.21.5",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.5.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.14.0-1.21.5.jar",
+    "baritone_sha256": "264add639b0fd6934b9ecc34752bded711ca6906cab163049577b0cfe00a44a3",
+    "declared_minecraft": [
+      "[1.21.5]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/1.21.6",
+    "loader": "NeoForge",
+    "minecraft": "1.21.6",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.6.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.15.0-1.21.6.jar",
+    "baritone_sha256": "b52b82ac0ef2f5c440368996cada343e9e001c59bab6fa81e07dcc421afb894e",
+    "declared_minecraft": [
+      "[1.21.6, 1.21.8]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/1.21.7",
+    "loader": "NeoForge",
+    "minecraft": "1.21.7",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.7.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.15.0-1.21.7.jar",
+    "baritone_sha256": "b8411fcd3ddeaee3836ce7615509bd2c4339d6a7852b10c9fcb3e80241b693ff",
+    "declared_minecraft": [
+      "[1.21.6, 1.21.8]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/1.21.8",
+    "loader": "NeoForge",
+    "minecraft": "1.21.8",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.8.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.15.0-1.21.8.jar",
+    "baritone_sha256": "517cb39381c78cc57bcf6a3787e0e0ab3f9c9666f195d7ca0ffe7105819f0cea",
+    "declared_minecraft": [
+      "[1.21.6, 1.21.8]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/1.21.9",
+    "loader": "NeoForge",
+    "minecraft": "1.21.9",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.21.9.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.16.0-1.21.9.jar",
+    "baritone_sha256": "9557c667f2ef5dcbd098bd9220a9334554aa1211db94b888ee71b3b3dc2317ff",
+    "declared_minecraft": [
+      "[1.21.9, 1.21.10]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/26.1",
+    "loader": "NeoForge",
+    "minecraft": "26.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-26.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.18.0.jar",
+    "baritone_sha256": "21a4c95847a106304a5531d74d58829d014cc4b791e7327bbf52f6679d01155c",
+    "declared_minecraft": [
+      "[26.1, 26.1.2]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/26.1.1",
+    "loader": "NeoForge",
+    "minecraft": "26.1.1",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-26.1.1.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.18.0.jar",
+    "baritone_sha256": "21a4c95847a106304a5531d74d58829d014cc4b791e7327bbf52f6679d01155c",
+    "declared_minecraft": [
+      "[26.1, 26.1.2]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/26.1.2",
+    "loader": "NeoForge",
+    "minecraft": "26.1.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-26.1.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.18.0.jar",
+    "baritone_sha256": "21a4c95847a106304a5531d74d58829d014cc4b791e7327bbf52f6679d01155c",
+    "declared_minecraft": [
+      "[26.1, 26.1.2]"
+    ]
+  },
+  {
+    "project": "neoforge/versions/26.2",
+    "loader": "NeoForge",
+    "minecraft": "26.2",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-26.2.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [
+      "META-INF/jarjar/baritone-neoforge-1.18.0-26.2.jar: obsolete Baritone 26.2 port; use official 1.19.0"
+    ],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.18.0-26.2.jar",
+    "baritone_sha256": "1976020c40b0436e7b8c97d837f74b109d21f39e03a51b20f744d30855e5057c",
+    "declared_minecraft": [
+      "[26.2,26.3)"
+    ]
+  },
+  {
+    "project": "neoforge/versions/26.3",
+    "loader": "NeoForge",
+    "minecraft": "26.3",
+    "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-26.3.jar",
+    "gameplay": "NOT_TESTED",
+    "errors": [],
+    "packaging": "nested",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.20.0-26.3.jar",
+    "baritone_sha256": "f53d69052727a7cf16d2f62199963d0b77f8edf5844ed0474775dd7d662f9461",
+    "declared_minecraft": [
+      "[26.3, 26.4)"
+    ]
+  }
+]

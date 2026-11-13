@@ -640,7 +640,7 @@ function Test-Version($jarPath, $instanceDir) {
     $mcVersion = if ($name -match "^(\d+\.\d+(?:\.\d+)?)") { $Matches[1] } else { "1.20.1" }
     # NanoVG verification does not exercise Baritone; the test jars may omit
     # its nested jar when the bundled build is incompatible with the loader.
-    $requireBaritone = $false
+    $requireBaritone = (-not $VerifyNanoVg) -or [bool]$BaritoneCommand
     $baritonePackage = Test-EmbeddedBaritone $jarPath
     if ($requireBaritone -and -not $baritonePackage.Passed) {
         return @{ Status = "FAIL"; Note = $baritonePackage.Note; Elapsed = 0 }
@@ -909,7 +909,7 @@ function Test-Version($jarPath, $instanceDir) {
                 $result = @{ Status = "FAIL"; Note = "FATAL / mod loading failure in log" }
                 break
             }
-            if ($log -match "Mixin apply failed|MixinTransformerError|NoSuchFieldException: chatSession|ClientPacketListenerAccessor cannot be cast") {
+            if ($log -match "Mixin apply failed|MixinTransformerError|NoSuchFieldException: chatSession|ClientPacketListenerAccessor cannot be cast|NoSuchMethodError|NoSuchFieldError|AbstractMethodError|Baritone is incompatible|Baritone preload failed") {
                 $result = @{ Status = "FAIL"; Note = "runtime Mixin / mapped-field failure in log" }
                 break
             }
@@ -975,12 +975,13 @@ function Test-Version($jarPath, $instanceDir) {
                 $result = @{ Status = "PASS"; Note = $note }
                 break
             }
-            if ($BaritoneCommand -and $commandResponseSeen) {
+            if ($BaritoneCommand -and $commandResponseSeen -and
+                (Get-Date) - $commandSentAt -gt (New-TimeSpan -Seconds $SettleSeconds)) {
                 if ($VerifyNanoVg -and -not $nanoVgSeen) {
                     $result = @{ Status = 'FAIL'; Note = 'Baritone responded but NanoVG context was not created' }
                     break
                 }
-                $note = "world loaded; Baritone command succeeded: $BaritoneCommand"
+                $note = "world loaded; Baritone responded and survived settle period (task completion not verified): $BaritoneCommand"
                 if ($nanoVgSeen) { $note += '; NanoVG GL3 context created' }
                 if ($ScreenshotDir) {
                     $safeName = ($name -replace '[^\w.-]', '_')
