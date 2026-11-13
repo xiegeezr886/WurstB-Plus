@@ -102,8 +102,22 @@ def check_archive(archive):
         errors.append('outer mixins.baritone.json shadows nested Baritone')
     for name in nested:
         with zipfile.ZipFile(io.BytesIO(archive.read(name))) as inner:
-            if CONFIG not in inner.namelist():
+            inner_names = set(inner.namelist())
+            # The old 26.1-to-26.2 port has broken chat/GUI/entity references.
+            # Checking its rewritten Minecraft metadata alone cannot catch this.
+            if ('1.18.0-26.2' in name or
+                    'baritone/api/utils/LegacyRenderPipelineBuilder.class' in inner_names):
+                errors.append(name + ': obsolete Baritone 26.2 port; use official 1.19.0')
+            configs = [CONFIG]
+            if 'fabric.mod.json' in inner_names:
+                metadata = json.loads(inner.read('fabric.mod.json'))
+                configs = [entry if isinstance(entry, str) else entry['config']
+                           for entry in metadata.get('mixins', [])]
+            if not configs or any(config not in inner_names for config in configs):
                 errors.append(name + ': missing Baritone mixin config')
+            for config in configs:
+                if config != CONFIG and config in names:
+                    errors.append('outer ' + config + ' shadows nested Baritone')
     if STUB in names and 'META-INF/neoforge.mods.toml' in names:
         if not re.search(rb'modId\s*=\s*["\']baritoe["\']',
                          archive.read('META-INF/neoforge.mods.toml')):
@@ -149,6 +163,13 @@ def check_sources(root=ROOT):
 
         def fail(message):
             errors.append(str(project.relative_to(root)) + ': ' + message)
+
+        if props.get('minecraft_version') == '26.2':
+            if '1.19.0-26.2' not in build or '1.18.0-26.2' in build:
+                fail('Minecraft 26.2 requires native Baritone 1.19.0-26.2')
+            metadata = resources / 'META-INF/jarjar/metadata.json'
+            if metadata.exists() and '1.18.0-26.2' in metadata.read_text('utf-8'):
+                fail('JarJar metadata still references the obsolete Baritone 26.2 port')
 
         color = java / 'hud2/nanovg/NanoVGContext.java'
         if color.exists():
