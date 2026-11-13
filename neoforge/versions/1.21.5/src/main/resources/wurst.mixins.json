@@ -118,7 +118,6 @@
     "ToastComponentAccessor",
     "WorldMixin",
     "WorldRendererMixin",
-    "AbstractSelectionListMixin",
     "AbstractSliderButtonAccessor",
     "AbstractWidgetMixin",
     "ClientInputAccessor",

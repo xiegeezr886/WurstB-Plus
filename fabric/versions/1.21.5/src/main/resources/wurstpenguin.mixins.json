@@ -42,7 +42,6 @@
     "FastBreakCooldownMixin",
     "SoundEngineMixin",
     "AbstractBlockStateMixin",
-    "AbstractSelectionListMixin",
     "AbstractSignEditScreenMixin",
     "AbstractSliderButtonAccessor",
     "AbstractWidgetMixin",
