@@ -1,0 +1,16 @@
+Upstream: https://github.com/MeteorDevelopment/meteor-client
+Local source snapshot: reference/upstream-sources/meteor_client_master_src/meteor-client-master
+License: GPL-3.0
+License SHA-256: b1e60bceb8b63b265dfe040691bd5ec7a21da3c31be3db4b2925518e9c0836df
+Adapted for WurstB+ Plus v1.5.1 on 2026-11-07.
+Copyright (c) Meteor Development. Slippy, EndermanLook, BuildHeight -> native modules; SoundBlocker -> SoundModifier; AntiHunger -> AntiHunger; NoStatusEffects -> configurable NoLevitation; BreakDelay -> FastBreak; AutoRespawn death record -> native waypoint manager. Native Wurst events/settings/registries replace Meteor services. NoLevitation keeps its existing levitation-only default; death record stores the latest position. These are implemented portions, not a claim of complete Meteor parity.
+Original notices remain applicable. Local adaptation: WurstB+ Plus contributors.
+Source snapshot module hashes:
+reference/upstream-sources/meteor_client_master_src/meteor-client-master/src/main/java/meteordevelopment/meteorclient/systems/modules/misc/SoundBlocker.java SHA-256 60716a35e79a2f6d0318622941f1d5849e73330cb276b8a7eee89c4111b2c4c7
+reference/upstream-sources/meteor_client_master_src/meteor-client-master/src/main/java/meteordevelopment/meteorclient/systems/modules/movement/Slippy.java SHA-256 79a9a51626e60d7d1d9918288157acdca41bd9385a88622b621b03ab14253342
+reference/upstream-sources/meteor_client_master_src/meteor-client-master/src/main/java/meteordevelopment/meteorclient/systems/modules/player/AntiHunger.java SHA-256 b9f671342e9993486590a77e16b7334d5f245635db29789654a4539c69c36d46
+reference/upstream-sources/meteor_client_master_src/meteor-client-master/src/main/java/meteordevelopment/meteorclient/systems/modules/player/AutoRespawn.java SHA-256 48ff8b7a06f4b80cc24f0db10bbe97d9e374634b72f70ce4cfbd534cf405bf40
+reference/upstream-sources/meteor_client_master_src/meteor-client-master/src/main/java/meteordevelopment/meteorclient/systems/modules/player/BreakDelay.java SHA-256 b290155fd6c9c20f010e32341a5977619bbc3d8f97ec3ecb9dacb9d609247785
+reference/upstream-sources/meteor_client_master_src/meteor-client-master/src/main/java/meteordevelopment/meteorclient/systems/modules/player/NoStatusEffects.java SHA-256 e55fddd6299962faa3d4fa5de8918630b09a8a647d1ccaf1876eaeb7f6c63006
+reference/upstream-sources/meteor_client_master_src/meteor-client-master/src/main/java/meteordevelopment/meteorclient/systems/modules/world/BuildHeight.java SHA-256 1720eea74e56275f0f8e131bc46f112ba8806438ac21af013374b9a680913ea3
+reference/upstream-sources/meteor_client_master_src/meteor-client-master/src/main/java/meteordevelopment/meteorclient/systems/modules/world/EndermanLook.java SHA-256 f2b7d1c73f6a753dd2dccb74da5292288c9cc97a56fe2ebdfabd806281ffefee
