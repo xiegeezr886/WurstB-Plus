@@ -118,7 +118,7 @@ configurations {
 }
 
 dependencies {
-	jarJar(implementation("baritone:baritone-neoforge:1.18.0-26.2")) {
+	jarJar(implementation("baritone:baritone-neoforge:1.19.0-26.2")) {
 		transitive = false
 	}
 	jarJar(implementation("org.java-websocket:Java-WebSocket:1.5.3")) {
