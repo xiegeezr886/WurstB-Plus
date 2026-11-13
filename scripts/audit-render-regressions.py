@@ -41,6 +41,9 @@ def load(project):
         'renderer': 'mixin/GameRendererMixin.java',
         'selection': 'mixin/AbstractSelectionListMixin.java',
         'hud': 'hud2/HudManager.java',
+        'initializer': 'WurstInitializer.java',
+        'ingame_hud': 'mixin/IngameHudMixin.java',
+        'gui': 'mixin/GuiMixin.java',
     }.items():
         path = java / relative
         sources[name] = path.read_text(encoding='utf-8') if path.exists() else ''
@@ -59,6 +62,11 @@ def audit(s):
             errors.append(message)
 
     ctx, guard = s['context'], s['guard']
+    callback_dispatch = 'new GUIRenderEvent(' in s['initializer']
+    mixin_dispatch = any(name in s['registered'] and 'new GUIRenderEvent(' in s[key]
+                         for name, key in (('IngameHudMixin', 'ingame_hud'), ('GuiMixin', 'gui')))
+    require(not (callback_dispatch and mixin_dispatch),
+            'GUIRenderEvent must not be dispatched by both initializer and registered HUD mixin')
     create = method(ctx, 'public boolean create()')
     require('try(GlStateGuard ignored = GlStateGuard.capture())' in create
             and 'return createContext();' in create, 'initialization must restore caller GL state')
