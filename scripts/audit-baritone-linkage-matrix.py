@@ -207,8 +207,6 @@ def main():
         row['flavour'] = flavour(bari)
         mc_jar = minecraft_jar(mc, row['flavour'])
         row['minecraft_jar'] = str(mc_jar.relative_to(ROOT)) if mc_jar else None
-        if temp:
-            row['nested'] = str(temp.relative_to(ROOT))
         if row['flavour'] == 'intermediary' and loader == 'Fabric':
             outcome = fabric_audit(mc, bari)
             if outcome is None:
