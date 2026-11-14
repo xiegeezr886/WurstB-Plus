@@ -297,14 +297,12 @@
     "minecraft": "26.2",
     "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Forge-26.2.jar",
     "gameplay": "NOT_TESTED",
-    "errors": [
-      "META-INF/jarjar/baritone-forge-1.18.0-26.2.jar: obsolete Baritone 26.2 port; use official 1.19.0"
-    ],
+    "errors": [],
     "packaging": "nested",
-    "baritone": "META-INF/jarjar/baritone-forge-1.18.0-26.2.jar",
-    "baritone_sha256": "45351cc231ce95d56121c7b5b41ee6e74aa3d135061e55dde9f52306701d7e48",
+    "baritone": "META-INF/jarjar/baritone-forge-1.19.0-26.2.jar",
+    "baritone_sha256": "cecbbcd8cb5acc47b59543db88de4d5749a6347b8caee5fee844f50e4ebe5d38",
     "declared_minecraft": [
-      "[26.2,26.3)"
+      "[26.2]"
     ]
   },
   {
@@ -399,9 +397,7 @@
     "minecraft": "1.21",
     "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.jar",
     "gameplay": "NOT_TESTED",
-    "errors": [
-      "missing mixins.baritone.json"
-    ],
+    "errors": [],
     "packaging": "nested",
     "baritone": "META-INF/jars/baritone-api-fabric-1.11.2.jar",
     "baritone_sha256": "39ce34b4396ac05e2e926ca2cea835fb7feac074fecdc6ba55490406bedc3966",
@@ -416,9 +412,7 @@
     "minecraft": "1.21.1",
     "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-Fabric-1.21.1.jar",
     "gameplay": "NOT_TESTED",
-    "errors": [
-      "missing mixins.baritone.json"
-    ],
+    "errors": [],
     "packaging": "nested",
     "baritone": "META-INF/jars/baritone-api-fabric-1.11.2.jar",
     "baritone_sha256": "39ce34b4396ac05e2e926ca2cea835fb7feac074fecdc6ba55490406bedc3966",
@@ -687,9 +681,8 @@
     "minecraft": "1.20.6",
     "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-1.20.6.jar",
     "gameplay": "NOT_TESTED",
-    "errors": [
-      "release jar missing"
-    ]
+    "errors": [],
+    "packaging": "flat"
   },
   {
     "project": "neoforge/versions/1.21",
@@ -897,14 +890,12 @@
     "minecraft": "26.2",
     "jar": "C:\\Users\\OMEN\\Documents\\WurstB-Plus\\build\\release-v1.5\\WurstB+.Plus-1.5.1-NeoForge-26.2.jar",
     "gameplay": "NOT_TESTED",
-    "errors": [
-      "META-INF/jarjar/baritone-neoforge-1.18.0-26.2.jar: obsolete Baritone 26.2 port; use official 1.19.0"
-    ],
+    "errors": [],
     "packaging": "nested",
-    "baritone": "META-INF/jarjar/baritone-neoforge-1.18.0-26.2.jar",
-    "baritone_sha256": "1976020c40b0436e7b8c97d837f74b109d21f39e03a51b20f744d30855e5057c",
+    "baritone": "META-INF/jarjar/baritone-neoforge-1.19.0-26.2.jar",
+    "baritone_sha256": "0d86423e2f8861e86f2df3c0eb59913ab6bfc5e395cc165ca503bfe5c0c842ef",
     "declared_minecraft": [
-      "[26.2,26.3)"
+      "[26.2]"
     ]
   },
   {
