@@ -120,11 +120,32 @@ def download(candidates, path, expected=None):
     raise RuntimeError("Download failed for %s: %s" % (path, last))
 
 
+def version_manifest_url(mc):
+    """按版本清单取 JSON 的官方地址。
+
+    旧写法 `piston-meta.mojang.com/mc/game/<版本>.json` 只对老版本有效；
+    新版本（26.x 起）必须走清单里的 packages 地址，BMCLAPI 也还没有这些
+    版本的缓存，所以这里以官方清单为准。
+    """
+    manifest = TEST / "version_manifest_v2.json"
+    if not manifest.is_file():
+        download(["https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"],
+                 manifest)
+    for entry in json.loads(manifest.read_text(encoding="utf-8")).get("versions", []):
+        if entry.get("id") == mc:
+            return entry.get("url")
+    return None
+
+
 def version_json(mc):
     path = VERSIONS / mc / (mc + ".json")
     if not path.is_file():
-        download([BMCL + "/version/%s/json" % mc,
-                  "https://piston-meta.mojang.com/mc/game/%s.json" % mc], path)
+        candidates = [BMCL + "/version/%s/json" % mc]
+        official = version_manifest_url(mc)
+        if official:
+            candidates.append(official)
+        candidates.append("https://piston-meta.mojang.com/mc/game/%s.json" % mc)
+        download(candidates, path)
     result = json.loads(path.read_text(encoding="utf-8"))
     if result.get("id") != mc or "downloads" not in result:
         raise ValueError("Invalid vanilla version JSON: %s" % path)
@@ -270,7 +291,10 @@ def install_loader(mc, loader, release):
                   (mc, release, mc, release) if loader == "forge" else
                   "net/neoforged/neoforge/%s/neoforge-%s" % (release, release))
     installer = WORK / "installers" / (coordinate.rsplit("/", 1)[1] + "-installer.jar")
-    download([BMCL + "/maven/" + coordinate + "-installer.jar"], installer)
+    installer_host = ("https://maven.minecraftforge.net/" if loader == "forge"
+                      else "https://maven.neoforged.net/releases/")
+    download([BMCL + "/maven/" + coordinate + "-installer.jar",
+              installer_host + coordinate + "-installer.jar"], installer)
     with zipfile.ZipFile(installer) as archive:
         install_profile = json.loads(archive.read("install_profile.json"))
     downloadable = [lib for lib in install_profile.get("libraries", []) if
@@ -278,21 +302,48 @@ def install_loader(mc, loader, release):
                     lib["downloads"]["artifact"].get("url")]
     install_libraries({"libraries": downloadable})
     java = java_for(mc)
-    help_text = subprocess.run([java, "-jar", str(installer), "--help"],
+    # This environment denies creating directories under %TEMP% (installers and
+    # nether-pathfinder both fail there), so point java.io.tmpdir at the repo.
+    temp_dir = TEST / "tmp"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    jvm = [java, "-Djava.io.tmpdir=" + str(temp_dir)]
+    # Both installers' --installClient mode refuses to run without a launcher
+    # profile database, even when the target version JSON already exists.
+    profiles = TEST / "launcher_profiles.json"
+    if not profiles.is_file():
+        profiles.write_text(
+            json.dumps({"profiles": {}, "settings": {}, "version": 3}),
+            encoding="utf-8")
+    help_text = subprocess.run(jvm + ["-jar", str(installer), "--help"],
                                capture_output=True, text=True, errors="replace").stdout
     if "installClient" in help_text or "install-client" in help_text:
-        command = [java, "-jar", str(installer), "--installClient", str(TEST),
-                   "--mirror", BMCL + "/maven/"]
+        command = jvm + ["-jar", str(installer), "--installClient", str(TEST),
+                         "--mirror", BMCL + "/maven/"]
     else:
-        command = [java, "-cp", str(installer),
-                   str(ROOT / "scripts" / "LegacyClientInstall.java"),
-                   str(TEST), str(installer)]
+        command = jvm + ["-cp", str(installer),
+                         str(ROOT / "scripts" / "LegacyClientInstall.java"),
+                         str(TEST), str(installer)]
     log = WORK / "installers" / (mc + "-" + loader + ".log")
     with log.open("wb") as out:
         result = subprocess.run(command, cwd=ROOT, stdout=out,
                                 stderr=subprocess.STDOUT)
     if result.returncode:
         raise RuntimeError("%s installer failed (%s): %s" % (loader, result.returncode, log))
+    if loader == "neoforge":
+        # NeoForge's production GameLocator looks for
+        # libraries/net/minecraft/client/<mcp>/client-<mcp>-srg.jar. The
+        # installer only writes the patched jar, so put it where the loader
+        # expects it (this is what a launcher with a NeoForge profile sees).
+        mcp = (install_profile.get("data", {}).get("MCP_VERSION", {})
+               .get("client", "").strip("'"))
+        patched = list((TEST / "libraries/net/neoforged/minecraft-client-patched")
+                       .rglob("*.jar")) if mcp else []
+        if mcp and patched:
+            srg = TEST / "libraries/net/minecraft/client" / mcp / (
+                "client-%s-srg.jar" % mcp)
+            if not srg.is_file():
+                srg.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(patched[0], srg)
     normalize_installed_profile(mc, loader, release)
     existing = existing_instance(mc, loader)
     if not existing or not complete_instance(existing):
@@ -301,8 +352,8 @@ def install_loader(mc, loader, release):
 
 
 def ensure_world(mc, profile):
-    target = profile / "saves" / "WurstSmokeFresh" / "level.dat"
-    if target.is_file():
+    target = profile / "saves" / "WurstSmokeFresh"
+    if (target / "level.dat").is_file():
         return
     server = WORK / "servers" / mc
     world = server / "world" / "level.dat"
@@ -337,8 +388,17 @@ def ensure_world(mc, profile):
                 proc.wait()
         if not world.is_file():
             raise RuntimeError("World generation failed for %s: %s" % (mc, log))
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(world, target)
+    # 26.x 的世界把维度数据放在 dimensions/、玩家数据放在 players/，只拷
+    # level.dat 会得到一个没有区块的空存档。整目录拷贝对老格式同样适用。
+    target.mkdir(parents=True, exist_ok=True)
+    for item in world.parent.iterdir():
+        if item.name == "session.lock":
+            continue
+        destination = target / item.name
+        if item.is_dir():
+            shutil.copytree(item, destination, dirs_exist_ok=True)
+        else:
+            shutil.copy2(item, destination)
     (profile / "quickPlay").mkdir(exist_ok=True)
     options = profile / "options.txt"
     if not options.is_file():
