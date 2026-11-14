@@ -1,0 +1,16 @@
+OpaiBounce ClickGUI adaptation for WurstB+ Plus v1.5.2
+
+Reference: https://github.com/snmwdd/OpaiBounce
+Pinned commit: 6a6bc99 (see reference/clients/v1.5.2-sources.json).
+
+The panel geometry, colors, inline control appearance and motion calculations
+are adapted from src/routes/clickgui/{Panel,Module,Description}.svelte,
+src/opai/{OpaiSetting,Reveal}.svelte, motion.ts and opai.scss.
+The adaptation uses Wurst's existing categories, settings, actions and NanoVG
+renderer. It retains the existing MiSans fonts and does not bundle Opai media.
+
+Upstream attribution includes CCBlueX and contributors (LiquidBounce),
+Opai / StylesFoundation, Samsara contributors and Jon_awa.
+The reference is an unofficial Opai-to-LiquidBounce theme port.
+The original upstream notice and licenses are included in this directory.
+See NOTICE-UPSTREAM.md, LICENSE-OPAI-BOUNCE and LICENSE-OPAI-SHELL.
