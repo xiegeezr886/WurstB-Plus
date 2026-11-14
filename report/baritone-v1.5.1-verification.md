@@ -144,8 +144,9 @@ Baritone 1.19.0 (baritoe)
    “进世界 + `#goto` + 玩家实际位移”验证。其余 64 个产物是静态验证（包结构、官方产物、
    声明版本、Mixin 注册、26.2 三端字节码链接）。逐版本进世界测试需要为每个 MC 版本准备
    完整客户端资源与实例，成本高，未在本次全部执行。
-2. **NeoForge 1.20.6**：本机重建不稳定（`neoFormPatch` 曾对反编译源码 reject，随后缓存命中可通过，
-   但整包编译在长任务中被环境终止），属于 NeoGradle/NeoForm 工具链与测试环境问题，与 Baritone 无关。
+2. **NeoForge 1.20.6**：本机重建在 `neoFormRecompile` 失败（反编译出的
+   `MultiPartBakedModel.java` 结构损坏，javac 报“未命名类/需要 class、interface、enum 或 record”
+   三个错误），属于 NeoForm 反编译/补丁中间产物问题，与 Baritone 无关。
    `build/release-v1.5` 中该文件使用 v1.5.1 官方发布原件（内含扁平打包的 Baritone 1.10.8-1.20.6），
    矩阵审计通过。其余 66 个产物都由本仓库重新构建。
 3. **Fabric 1.21 / 1.21.1** 内嵌的是 1.11.2 的 Meteor 兼容构建（mod id `baritone-meteor`，
