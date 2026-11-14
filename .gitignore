@@ -192,6 +192,8 @@ _recon/release-v1.5.1/
 /RedFix-decompiled/
 /RedFix-repaired/
 /_decomp/
+/Solstice-decompiled/
+/_recon/solstice/
 
 # Build-environment zipfs patches are real tooling inputs despite the global *.jar rule.
 !/tools/build-env/*.jar
