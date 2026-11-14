@@ -31,12 +31,12 @@ final class NavigatorActionComponent extends Component
     {
         float x = getX(), y = getY();
         String name = setting.getTranslatedName() + ":";
-        NanoVGUI.text(name, x, y, 0xDCFFFFFF, 8);
+        NanoVGUI.text(name, x, y, NavigatorStyle.VALUE_TEXT, 8);
         actionX = x + NanoVGUI.width(name, 8) + 2;
         String label = setting instanceof FileSetting file ? file.getSelectedFileName()
             : setting instanceof BlockSetting block ? block.getBlockName() : "编辑...";
         NanoVGUI.text(NanoVGUI.plainSubstrByWidth(label, getX() + getWidth() - actionX, 8),
-            actionX, y, 0xDCFFFFFF, 8);
+            actionX, y, NavigatorStyle.VALUE_TEXT, 8);
     }
 
     @Override

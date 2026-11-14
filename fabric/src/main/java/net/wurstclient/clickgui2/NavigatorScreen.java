@@ -33,12 +33,10 @@ public final class NavigatorScreen extends Screen
 	private static final int ICON_SIZE = 8;
 	// The supplied Rise 6.9.2 capture has tighter card corners than 6.9.5.
 	private static final int CARD_RADIUS = 3;
-	private static final int BACKGROUND = 0xFE171A21;
-	private static final int SECONDARY = 0xFF121419;
-	// Cool blue ambient tint from the supplied capture, independent of the
-	// animated selector. A full Blend primary produces a visible cyan cast.
-	private static final int AMBIENT = 0x014764FD;
-	private static final int TEXT = 0xFFFFFFFF;
+	private static final int BACKGROUND = NavigatorStyle.BACKGROUND;
+	private static final int SECONDARY = NavigatorStyle.SIDEBAR;
+	private static final int AMBIENT = NavigatorStyle.AMBIENT;
+	private static final int TEXT = OpaiStyle.TEXT;
 	private static final NavigatorCategory[] CATEGORIES = NavigatorCategory.values();
 	private static final Session SESSION = new Session();
 
@@ -55,6 +53,8 @@ public final class NavigatorScreen extends Screen
 	private int panelWidth;
 	private int panelHeight;
 	private int sidebarWidth;
+	private GuiReferenceViewport viewport;
+	private final OpaiBackground background = new OpaiBackground();
 	private int listTop;
 	private int listBottom;
 	private final NavigatorAnimation[] selectors = java.util.Arrays.stream(CATEGORIES)
@@ -80,17 +80,16 @@ public final class NavigatorScreen extends Screen
 	{
 		blurAll();
 		NavigatorPreferences.load();
-		// Rise always lays out a 400x300 surface. It is centered only when a
-		// previously saved position no longer fits the current window.
+		viewport = GuiReferenceViewport.fit(width, height, GuiReferenceViewport.RISE_HEIGHT);
 		panelWidth = 400;
 		panelHeight = 300;
 		sidebarWidth = 100;
 		panelX = SESSION.x;
 		panelY = SESSION.y;
-		if(panelX < 0 || panelY < 0 || panelX + panelWidth > width || panelY + panelHeight > height)
+		if(panelX < 0 || panelY < 0 || panelX + panelWidth > viewport.width() || panelY + panelHeight > viewport.height())
 		{
-			panelX = (width - panelWidth) / 2;
-			panelY = (height - panelHeight) / 2;
+			panelX = (viewport.width() - panelWidth) / 2;
+			panelY = (viewport.height() - panelHeight) / 2;
 		}
 		WURST.getGui().init();
 		closing = dragging = typedWhileOpen = false;
@@ -180,6 +179,8 @@ public final class NavigatorScreen extends Screen
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
+		int localMouseX = (int)viewport.local(mouseX);
+		int localMouseY = (int)viewport.local(mouseY);
 		long now = System.currentTimeMillis();
 		long elapsed = lastFrame == 0 ? 16 : Math.min(500, Math.max(0, now - lastFrame));
 		lastFrame = now;
@@ -200,21 +201,27 @@ public final class NavigatorScreen extends Screen
 			searchOpacity = Math.max(0, Math.min(255, searchOpacity
 				+ (scrollFor(0).target() < 0 ? -4 : 4) * elapsed));
 		boolean canInteract = !closing && zoom > 0.99F && transition >= 200;
-		int hoverX = canInteract ? mouseX : Integer.MIN_VALUE / 2;
-		int hoverY = canInteract ? mouseY : Integer.MIN_VALUE / 2;
+		int hoverX = canInteract ? localMouseX : Integer.MIN_VALUE / 2;
+		int hoverY = canInteract ? localMouseY : Integer.MIN_VALUE / 2;
 
-		NanoVGUI.pass(graphics, () -> {
-			// Without a world, Minecraft keeps the previous screen's color buffer.
-			// Repaint it so translucent shadows and animation frames cannot build up.
-			if(MC.level == null)
-				MainMenuBackground.render(width, height, MainMenuBackground.MENU_ALPHA);
+		background.render(graphics, partialTicks);
+		NanoVGUI.passSmooth(graphics, () -> {
+			// Repaint in the same pass; the static menu gradient needs no blur.
+			if(MC.level == null) MainMenuBackground.render(width, height, 255);
 			NanoVGUI.push();
+			NanoVGUI.context().scale(0, 0, viewport.scale());
 			NanoVGUI.context().scale(panelX, panelY, panelWidth, panelHeight, zoom);
 			NanoVGUI.context().setAlpha(alpha);
 			if(zoom > 0.993F)
-				NavigatorStyle.dropShadow(18, panelX, panelY, panelWidth, panelHeight, 30, 15.6F);
+				NavigatorStyle.outerShadow(18, panelX, panelY, panelWidth, panelHeight, 30, 15.6F, 12);
+			// The solid module background must never sit underneath the sidebar.
+			NanoVGUI.pushScissor(panelX + sidebarWidth, panelY, panelWidth - sidebarWidth, panelHeight);
 			NanoVGUI.fillRounded(panelX, panelY, panelX + panelWidth,
 				panelY + panelHeight, 12, BACKGROUND);
+			NanoVGUI.popScissor();
+			NanoVGUI.push();
+			float pageOpacity = Math.min(1, Math.abs(transition - 200) / 200F);
+			NanoVGUI.context().setAlpha(alpha * pageOpacity);
 			NanoVGUI.pushScissor(panelX + sidebarWidth, panelY + 1,
 				panelWidth - sidebarWidth - 1, panelHeight - 2);
 			if(category == 0)
@@ -223,24 +230,19 @@ public final class NavigatorScreen extends Screen
 					true, NavigatorPreferences.text("ui.search.text"), now);
 			for(Card card : paintedCards)
 				if(card.y + card.height > listTop && card.y < listBottom)
-					renderCard(graphics, card, hoverX, hoverY, partialTicks, category, now);
+					renderCard(graphics, card, hoverX, hoverY, partialTicks, category, now, alpha * pageOpacity);
 			renderScrollbar(category);
 			NanoVGUI.popScissor();
-			float fade = transition < 200 ? transition / 200F : Math.max(0, 1 - (transition - 200) / 200F);
-			if(fade > 0)
-				NanoVGUI.fill(panelX + sidebarWidth, panelY + 1, panelX + panelWidth - 1,
-					panelY + panelHeight - 1, (Math.round(fade * 254) << 24) | 0x171A21);
+			NanoVGUI.pop();
 			renderSidebar(graphics, now);
 			NanoVGUI.pop();
-		});
-
-		// The supplied visual reference has no broad glow around its selector.
-		// Keep the solid selector without the optional Rise bloom pass.
-		NanoVGUI.pass(graphics, () -> {
 			if(canInteract)
 			{
-				WURST.getGui().renderPopups(graphics, mouseX, mouseY);
-				WURST.getGui().renderTooltip(graphics, mouseX, mouseY);
+				NanoVGUI.push();
+				NanoVGUI.context().scale(0, 0, viewport.scale());
+				WURST.getGui().renderPopups(graphics, localMouseX, localMouseY);
+				WURST.getGui().renderTooltip(graphics, localMouseX, localMouseY);
+				NanoVGUI.pop();
 			}
 		});
 	}
@@ -272,18 +274,18 @@ public final class NavigatorScreen extends Screen
 	}
 
 	private void renderCard(GuiGraphics graphics, Card card, int mouseX, int mouseY,
-		float partialTicks, int category, long now)
+		float partialTicks, int category, long now, float pageAlpha)
 	{
 		int x = panelX + sidebarWidth + 8;
 		int right = panelX + panelWidth - 9;
 		float y = card.y;
-		NanoVGUI.fillRounded(x, y, right, y + card.height, CARD_RADIUS, 0x32000000);
+		NanoVGUI.fillRounded(x, y, right, y + card.height, CARD_RADIUS, NavigatorStyle.CARD);
 		boolean hovered = inside(mouseX, mouseY, x, Math.max(listTop, y),
 			right, Math.min(listBottom, y + card.height));
 		card.hover.animate(hovered ? card.pressed ? 35 : 20 : 0, 50, now, NavigatorAnimation.Easing.LINEAR);
 		NanoVGUI.fillRounded(x, y, right, y + card.height, CARD_RADIUS,
-			Math.round(card.hover.value(now)) << 24);
-		int text = card.feature.isEnabled() ? NavigatorPreferences.theme.accent(0, y / 5, now) : 0xC8FFFFFF;
+			(Math.round(card.hover.value(now)) << 24) | (OpaiStyle.HOVER & 0xFFFFFF));
+		int text = card.feature.isEnabled() ? OpaiStyle.ACCENT : NavigatorStyle.LABEL;
 		String name = NanoVGUI.plainSubstrByWidth(featureName(card.feature), right - x - 12, 10);
 		NanoVGUI.text(name, x + 6, y + 8, text, 10);
 		if(category == 0)
@@ -291,16 +293,16 @@ public final class NavigatorScreen extends Screen
 			String label = card.feature.getCategory() == null
 				? FeatureMenuSupport.getTypeName(card.feature) : card.feature.getCategory().getName();
 			float labelX = x + NanoVGUI.width(name, 10) + 10;
-			if(labelX + NanoVGUI.width(label, 7.5F) + 5 < right)
-				NanoVGUI.text("(" + label + ")", labelX, y + 10, 0x40FFFFFF, 7.5F);
+			if(labelX + NanoVGUI.width("(" + label + ")", 7.5F) + 5 < right)
+				NanoVGUI.text("(" + label + ")", labelX, y + 10, NavigatorStyle.CATEGORY_HINT, 7.5F);
 		}
 		NanoVGUI.text(NanoVGUI.plainSubstrByWidth(NanoVGUI.stripCodes(
 			FeatureMenuSupport.getOneLineDescription(card.feature)),
-			right - x - 12, 7.5F), x + 6, y + 25, 0x46FFFFFF, 7.5F);
+			right - x - 12, 7.5F), x + 6, y + 25, NavigatorStyle.DESCRIPTION, 7.5F);
 		if(card.settings != null && card.height > HEADER + 1)
 		{
 			NanoVGUI.push();
-			NanoVGUI.context().setAlpha(opacity.value(now)
+			NanoVGUI.context().setAlpha(pageAlpha
 				* card.settingsOpacity.value(now));
 			card.settings.renderContent(graphics, mouseX, mouseY, partialTicks);
 			NanoVGUI.pop();
@@ -309,11 +311,10 @@ public final class NavigatorScreen extends Screen
 
 	private void renderSidebar(GuiGraphics graphics, long now)
 	{
-		NanoVGUI.pushScissor(panelX + 1, panelY + 1, panelWidth - 2, panelHeight - 2);
-		NanoVGUI.fillRounded(panelX, panelY, panelX + sidebarWidth,
+		NanoVGUI.pushScissor(panelX, panelY, sidebarWidth, panelHeight);
+		// Clip one rounded surface instead of layering a second fill at the seam.
+		NanoVGUI.fillRounded(panelX, panelY, panelX + panelWidth,
 			panelY + panelHeight, 12, SECONDARY);
-		NanoVGUI.fill(panelX + sidebarWidth - 12, panelY + 1, panelX + sidebarWidth,
-			panelY + panelHeight - 1, SECONDARY);
 		// RenderUtil.c accepts a center and radius, not a top-left and diameter.
 		for(int i = 1; i <= 8; i++)
 			NanoVGUI.circle(panelX + sidebarWidth - i * 25, panelY + panelHeight / 2F - i * 25, i * 50,
@@ -321,7 +322,7 @@ public final class NavigatorScreen extends Screen
 		String brand = "WurstB+";
 		NanoVGUI.text(brand, panelX + 14, panelY + 13, TEXT, 14);
 		NanoVGUI.text(WurstClient.VERSION, panelX + 14 + NanoVGUI.width(brand, 14),
-			panelY + 10, NavigatorPreferences.theme.primary(), 7);
+			panelY + 10, OpaiStyle.ACCENT, 7);
 		for(int i = 0; i < CATEGORIES.length; i++)
 		{
 			NavigatorCategory category = CATEGORIES[i];
@@ -329,7 +330,7 @@ public final class NavigatorScreen extends Screen
 			boolean selected = SESSION.category == i;
 			selectors[i].animate(selected ? 255 : 0, 200, now, NavigatorAnimation.Easing.LINEAR);
 			renderSelector(i, now);
-			int color = selected ? TEXT : 0xC8FFFFFF;
+			int color = selected ? OpaiStyle.INK : NavigatorStyle.LABEL;
 			float shift = selectors[i].value(now) / 80;
 			NanoVGUI.push();
 			NanoVGUI.translate(panelX + 13 + shift, y);
@@ -346,8 +347,7 @@ public final class NavigatorScreen extends Screen
 		float y = panelY + 45.5F + i * 19.5F;
 		float w = NanoVGUI.width(category.label(), 8)
 			+ ICON_SIZE + 16;
-		int accent = new java.awt.Color(NavigatorPreferences.theme.accent(0, y / 5, now)).darker().getRGB();
-		int color = NavigatorTextBox.withAlpha(accent, Math.round(selectors[i].value(now)));
+		int color = NavigatorTextBox.withAlpha(OpaiStyle.ACCENT, Math.round(selectors[i].value(now)));
 		NanoVGUI.fillRounded(panelX + 10, y - 5.5F, panelX + 10 + w,
 			y + 9.5F, 5, color);
 	}
@@ -363,12 +363,14 @@ public final class NavigatorScreen extends Screen
 		float ratio = scrolling.current() / scrolling.minimum();
 		float y = panelY + (category == 0 ? 35 : 7) + (viewport - thumb) * ratio;
 		NanoVGUI.fillRounded(panelX + panelWidth - 4, y,
-			panelX + panelWidth - 3, y + thumb, 0.5F, 0x3CFFFFFF);
+			panelX + panelWidth - 3, y + thumb, 0.5F, OpaiStyle.SCROLLBAR);
 	}
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
+		mouseX = viewport.local(mouseX);
+		mouseY = viewport.local(mouseY);
 		long now = System.currentTimeMillis();
 		if(closing || scale.value(now) < 0.99F)
 			return true;
@@ -441,6 +443,8 @@ public final class NavigatorScreen extends Screen
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
 	{
+		mouseX = viewport.local(mouseX);
+		mouseY = viewport.local(mouseY);
 		if(dragging && button == dragButton)
 		{
 			panelX = (int)Math.round(mouseX + dragOffsetX);
@@ -455,6 +459,8 @@ public final class NavigatorScreen extends Screen
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
+		mouseX = viewport.local(mouseX);
+		mouseY = viewport.local(mouseY);
 		dragging = false;
 		WURST.getGui().handleMouseRelease(mouseX, mouseY, button);
 		for(Card card : cards.values())
@@ -469,6 +475,8 @@ public final class NavigatorScreen extends Screen
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta)
 	{
+		mouseX = viewport.local(mouseX);
+		mouseY = viewport.local(mouseY);
 		if(closing || delta == 0 || !inside(mouseX, mouseY, panelX, panelY,
 			panelX + panelWidth, panelY + panelHeight))
 			return false;
@@ -554,6 +562,7 @@ public final class NavigatorScreen extends Screen
 	@Override
 	public void removed()
 	{
+		background.close();
 		SESSION.x = panelX;
 		SESSION.y = panelY;
 		blurAll();

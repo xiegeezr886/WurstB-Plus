@@ -60,33 +60,33 @@ final class NavigatorValueComponent extends Component
         float nameWidth = NanoVGUI.width(name, 8);
         if(setting instanceof EnumSetting<?> mode)
         {
-            NanoVGUI.text(name + ":", x, y, 0xDCFFFFFF, 8);
-            NanoVGUI.text(mode.getSelected().toString(), x + NanoVGUI.width(name + ":", 8) + 2, y, 0xDCFFFFFF, 8);
+            NanoVGUI.text(name + ":", x, y, NavigatorStyle.VALUE_TEXT, 8);
+            NanoVGUI.text(mode.getSelected().toString(), x + NanoVGUI.width(name + ":", 8) + 2, y, NavigatorStyle.VALUE_TEXT, 8);
         }else
         {
-            NanoVGUI.text(name, x, y, 0xFFFFFFFF, 8);
+            NanoVGUI.text(name, x, y, OpaiStyle.TEXT, 8);
             if(setting instanceof CheckboxSetting checkbox)
             {
                 float dotX = x + nameWidth + 5.5F;
                 booleanSize = Mth.clamp(booleanSize + (checkbox.isChecked() ? 1 : -1) * elapsed / 20F, 0, 5);
-                NanoVGUI.fillRounded(dotX, y, dotX + 5, y + 5, 2.5F, 0xFF171A21);
+                NanoVGUI.fillRounded(dotX, y, dotX + 5, y + 5, 2.5F, OpaiStyle.FIELD);
                 if(booleanSize > 0)
                     NanoVGUI.circle(dotX + 2.5F, y + 2.5F, booleanSize / 2, accent());
                 if(setting.hasChildren())
-                    NanoVGUI.text(setting.isExpanded() ? "−" : "+", x + getWidth() - 9, y, 0x82FFFFFF, 8);
+                    NanoVGUI.text(setting.isExpanded() ? "−" : "+", x + getWidth() - 9, y, NavigatorTextBox.withAlpha(OpaiStyle.MUTED, 130), 8);
             }else if(setting instanceof SliderSetting slider)
             {
                 sliderX = x + nameWidth + 7;
                 if(dragging) setSlider(mouseX);
                 if(!editor.focused()) syncNumber();
-                editor.render(sliderX + 105, y, 20, 8, 0xDCFFFFFF, false, number(slider.getDefaultValue()), now);
-                NanoVGUI.fillRounded(sliderX, y + 1.5F, sliderX + 100, y + 3.5F, 1, 0xFF171A21);
+                editor.render(sliderX + 105, y, 20, 8, NavigatorStyle.VALUE_TEXT, false, number(slider.getDefaultValue()), now);
+                NanoVGUI.fillRounded(sliderX, y + 1.5F, sliderX + 100, y + 3.5F, 1, OpaiStyle.TRACK);
                 knob += ((float)slider.getPercentage() - knob) * (1 - (float)Math.pow(29.0 / 30.0, elapsed + 1));
                 NanoVGUI.circle(sliderX + knob * 100, y + 2.5F, 2.5F, accent());
             }else if(setting instanceof TextFieldSetting text)
             {
                 if(!editor.focused()) editor.set(text.getValue());
-                editor.render(x, y + 14, 230.5F, 8, 0xFFFFFFFF, false, "", now);
+                editor.render(x, y + 14, 230.5F, 8, OpaiStyle.TEXT, false, "", now);
             }else if(setting instanceof ColorSetting color)
             {
                 float afterName = x + nameWidth + 4;
@@ -108,8 +108,8 @@ final class NavigatorValueComponent extends Component
         }else updateColor(mouseX, mouseY);
         float top = y + 0.5F;
         NavigatorStyle.dropShadow(10, colorX, top, 105, 105, 40, 24);
-        NanoVGUI.fillRounded(colorX - 0.5F, y, colorX + 104.5F, y + 105, 9, 0xFF121419);
-        NanoVGUI.fillRounded(colorX, top, colorX + 104, top + 104, 9, 0xFE171A21);
+        NanoVGUI.fillRounded(colorX - 0.5F, y, colorX + 104.5F, y + 105, 9, NavigatorStyle.SIDEBAR);
+        NanoVGUI.fillRounded(colorX, top, colorX + 104, top + 104, 9, NavigatorStyle.BACKGROUND);
         NavigatorStyle.roundedGradient(colorX, top, 104, 66, 7, 0xFFFFFFFF, Color.HSBtoRGB(hue, 1, 1));
         NavigatorStyle.roundedGradient(colorX - 0.5F, top, 105, 66.5F,
             0.5F, 0x00000000, 0xFF000000, true);
@@ -127,10 +127,10 @@ final class NavigatorValueComponent extends Component
         NavigatorStyle.dropShadow(30, hueX, valueY, 15, 15.5F, 40, 6);
         NanoVGUI.fillRounded(hueX, valueY, hueX + 15, valueY + 15.5F, 3.5F, color.getColorI());
         float textX = colorX + 32;
-        NanoVGUI.centeredText(Integer.toString(color.getRed()), textX + 8.5F, valueY, 0xDCFFFFFF, 8.5F);
-        NanoVGUI.centeredText(Integer.toString(color.getGreen()), textX + 30, valueY, 0xDCFFFFFF, 8.5F);
-        NanoVGUI.centeredText(Integer.toString(color.getBlue()), textX + 51, valueY, 0xDCFFFFFF, 8.5F);
-        NanoVGUI.text(hex(color), textX, valueY + 13, 0xFF373B3D, 6.5F);
+        NanoVGUI.centeredText(Integer.toString(color.getRed()), textX + 8.5F, valueY, NavigatorStyle.VALUE_TEXT, 8.5F);
+        NanoVGUI.centeredText(Integer.toString(color.getGreen()), textX + 30, valueY, NavigatorStyle.VALUE_TEXT, 8.5F);
+        NanoVGUI.centeredText(Integer.toString(color.getBlue()), textX + 51, valueY, NavigatorStyle.VALUE_TEXT, 8.5F);
+        NanoVGUI.text(hex(color), textX, valueY + 13, OpaiStyle.MUTED, 6.5F);
     }
 
     @Override
@@ -229,5 +229,5 @@ final class NavigatorValueComponent extends Component
     private static String hex(ColorSetting color) { return String.format("#%02X%02X%02X", color.getRed(), color.getGreen(), color.getBlue()); }
     @Override public int getDefaultWidth() { return 271; }
     @Override public int getDefaultHeight() { return setting instanceof TextFieldSetting ? 28 : setting instanceof ColorSetting ? colorOpen ? 110 : 15 : 14; }
-    private static int accent() { return NavigatorPreferences.theme.primary(); }
+    private static int accent() { return OpaiStyle.ACCENT; }
 }

@@ -6,6 +6,22 @@ import org.junit.jupiter.api.Test;
 final class OpaiPanelLayoutTest
 {
     @Test
+    void reusedMeasurementsKeepHitTargetsCurrentThroughExpansionAndRowChanges()
+    {
+        OpaiPanelLayout layout = new OpaiPanelLayout(3, i -> 19.6);
+        layout.measure(3, i -> i == 0 ? 99.6 : 19.6);
+        assertEquals(99.6F, layout.start(1), 0.001F);
+        assertEquals(0, layout.hit(50, 0, 100));
+        layout.measure(1, i -> 19.6);
+        assertEquals(-1, layout.hit(20, 0, 100));
+        assertEquals(0, layout.clampScroll(100, 100));
+        layout.measure(0, i -> { throw new AssertionError("empty panel measured a row"); });
+        assertEquals(-1, layout.hit(0, 0, 100));
+        layout.measure(2, i -> 20);
+        assertEquals(1, layout.hit(20, 0, 100));
+    }
+
+    @Test
     void expandedSettingsMoveFollowingRowsAndTheirHitTargetsTogether()
     {
         float[] heights = {19.6F, 99.6F, 19.6F};
