@@ -49,16 +49,42 @@ def admits(declared, target):
     return version(value.strip('[]')) == version(target)
 
 
+def mixin_configs(jar, names):
+    """Mixin configs the loader will actually read.
+
+    Fabric declares them in fabric.mod.json (`mixins`), Forge/NeoForge in the
+    manifest's `MixinConfigs` attribute. Do not assume a file name: the 1.21.x
+    Baritone builds ship `mixins.baritone-meteor.json`.
+    """
+    if 'fabric.mod.json' in names:
+        meta = json.loads(jar.read('fabric.mod.json'))
+        return [entry if isinstance(entry, str) else entry['config']
+                for entry in meta.get('mixins', [])]
+    if 'META-INF/MANIFEST.MF' in names:
+        manifest = jar.read('META-INF/MANIFEST.MF').decode('utf-8', 'replace')
+        match = re.search(r'^MixinConfigs:\s*(.+)$', manifest, re.M)
+        if match:
+            return [value.strip() for value in match.group(1).split(',') if value.strip()]
+    return ['mixins.baritone.json'] if 'mixins.baritone.json' in names else []
+
+
 def inspect_baritone(jar, target, flat=False):
     names = set(jar.namelist())
     errors = []
     for entry in ('baritone/api/BaritoneAPI.class', 'baritone/api/IBaritone.class',
-                  'baritone/api/pathing/goals/GoalXZ.class', 'mixins.baritone.json'):
+                  'baritone/api/pathing/goals/GoalXZ.class'):
         if entry not in names:
             errors.append('missing ' + entry)
-    if 'mixins.baritone.json' in names:
-        config = json.loads(jar.read('mixins.baritone.json'))
-        for name in config.get('client', []) + config.get('mixins', []):
+    configs = mixin_configs(jar, names)
+    if not configs:
+        errors.append('no mixin config declared')
+    for config_name in configs:
+        if config_name not in names:
+            errors.append('missing mixin config ' + config_name)
+            continue
+        config = json.loads(jar.read(config_name))
+        for name in (config.get('client', []) + config.get('mixins', []) +
+                     config.get('server', [])):
             path = (config['package'] + '.' + name).replace('.', '/') + '.class'
             if path not in names:
                 errors.append('missing registered mixin ' + path)
