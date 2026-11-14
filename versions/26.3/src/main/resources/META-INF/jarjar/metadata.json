@@ -11,6 +11,18 @@
       },
       "path": "META-INF/jarjar/baritone-forge-1.20.0-26.3.jar",
       "isObfuscated": false
+    },
+    {
+      "identifier": {
+        "group": "io.github.llamalad7",
+        "artifact": "mixinextras-forge"
+      },
+      "version": {
+        "range": "[0.5.4,)",
+        "artifactVersion": "0.5.4"
+      },
+      "path": "META-INF/jarjar/mixinextras-forge-0.5.4.jar",
+      "isObfuscated": false
     }
   ]
 }
