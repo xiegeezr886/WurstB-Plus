@@ -55,6 +55,8 @@ public final class NavigatorScreen extends Screen
 	private int sidebarWidth;
 	private GuiReferenceViewport viewport;
 	private final OpaiBackground background = new OpaiBackground();
+	private final DuoGlassTransition glass = DuoGlassTransition.shared();
+	private DuoGlassMotion motion;
 	private int listTop;
 	private int listBottom;
 	private final NavigatorAnimation[] selectors = java.util.Arrays.stream(CATEGORIES)
@@ -66,9 +68,6 @@ public final class NavigatorScreen extends Screen
 	private double dragOffsetX;
 	private double dragOffsetY;
 	private boolean closing;
-	private long closedAt;
-	private NavigatorAnimation scale;
-	private NavigatorAnimation opacity;
 
 	public NavigatorScreen()
 	{
@@ -92,12 +91,9 @@ public final class NavigatorScreen extends Screen
 			panelY = (viewport.height() - panelHeight) / 2;
 		}
 		WURST.getGui().init();
-		closing = dragging = typedWhileOpen = false;
+		dragging = typedWhileOpen = false;
 		long now = System.currentTimeMillis();
-		scale = new NavigatorAnimation(0);
-		opacity = new NavigatorAnimation(0);
-		scale.animate(1, 300, now);
-		opacity.animate(1, 300, now);
+		if(motion == null) { motion = new DuoGlassMotion(now); closing = false; }
 		searchBox = new NavigatorTextBox(null, query -> {
 			SESSION.query = query;
 			scroll().reset();
@@ -184,14 +180,14 @@ public final class NavigatorScreen extends Screen
 		long now = System.currentTimeMillis();
 		long elapsed = lastFrame == 0 ? 16 : Math.min(500, Math.max(0, now - lastFrame));
 		lastFrame = now;
-		if(closing && now - closedAt >= 300)
+		if(motion.finished(now))
 		{
 			MC.setScreen(null);
 			return;
 		}
 		WURST.getGui().updateColors();
-		float zoom = Math.max(0.001F, scale.value(now));
-		float alpha = opacity.value(now);
+		float fold = motion.value(now);
+		float alpha = 1;
 		long transition = now - categoryChanged;
 		boolean showingPrevious = transition < 200;
 		int category = showingPrevious ? previousCategory : SESSION.category;
@@ -200,20 +196,20 @@ public final class NavigatorScreen extends Screen
 		if(category == 0)
 			searchOpacity = Math.max(0, Math.min(255, searchOpacity
 				+ (scrollFor(0).target() < 0 ? -4 : 4) * elapsed));
-		boolean canInteract = !closing && zoom > 0.99F && transition >= 200;
+		boolean canInteract = motion.ready(now) && transition >= 200;
 		int hoverX = canInteract ? localMouseX : Integer.MIN_VALUE / 2;
 		int hoverY = canInteract ? localMouseY : Integer.MIN_VALUE / 2;
 
 		background.render(graphics, partialTicks);
-		NanoVGUI.passSmooth(graphics, () -> {
-			// Repaint in the same pass; the static menu gradient needs no blur.
-			if(MC.level == null) MainMenuBackground.render(width, height, 255);
+		if(MC.level == null) NanoVGUI.pass(graphics,
+			() -> MainMenuBackground.render(width, height, 255));
+		glass.render(graphics, fold, panelX * viewport.scale(), panelY * viewport.scale(),
+			panelWidth * viewport.scale(), panelHeight * viewport.scale(),
+			target -> NanoVGUI.passTo(graphics, target, () -> {
 			NanoVGUI.push();
 			NanoVGUI.context().scale(0, 0, viewport.scale());
-			NanoVGUI.context().scale(panelX, panelY, panelWidth, panelHeight, zoom);
 			NanoVGUI.context().setAlpha(alpha);
-			if(zoom > 0.993F)
-				NavigatorStyle.outerShadow(18, panelX, panelY, panelWidth, panelHeight, 30, 15.6F, 12);
+			NavigatorStyle.outerShadow(18, panelX, panelY, panelWidth, panelHeight, 30, 15.6F, 12);
 			// The solid module background must never sit underneath the sidebar.
 			NanoVGUI.pushScissor(panelX + sidebarWidth, panelY, panelWidth - sidebarWidth, panelHeight);
 			NanoVGUI.fillRounded(panelX, panelY, panelX + panelWidth,
@@ -244,7 +240,7 @@ public final class NavigatorScreen extends Screen
 				WURST.getGui().renderTooltip(graphics, localMouseX, localMouseY);
 				NanoVGUI.pop();
 			}
-		});
+		}));
 	}
 
 	private void layoutCards(List<Feature> features, int category, long now)
@@ -266,9 +262,12 @@ public final class NavigatorScreen extends Screen
 		for(Card card : paintedCards)
 		{
 			card.y = y;
-			if(card.settings != null)
+			boolean visible = y + card.height > listTop && y < listBottom;
+			if(card.settings != null && visible && card.height > HEADER + 1)
 				card.settings.layout(panelX + sidebarWidth + 14, Math.round(y + HEADER + 1),
 					271, listTop, listBottom, Math.round(y + card.height));
+			else if(card.settings != null && card.settingsVisible) card.settings.blur();
+			card.settingsVisible = visible && card.height > HEADER + 1;
 			y += card.height + GAP;
 		}
 	}
@@ -286,19 +285,16 @@ public final class NavigatorScreen extends Screen
 		NanoVGUI.fillRounded(x, y, right, y + card.height, CARD_RADIUS,
 			(Math.round(card.hover.value(now)) << 24) | (OpaiStyle.HOVER & 0xFFFFFF));
 		int text = card.feature.isEnabled() ? OpaiStyle.ACCENT : NavigatorStyle.LABEL;
-		String name = NanoVGUI.plainSubstrByWidth(featureName(card.feature), right - x - 12, 10);
+		card.refreshText(now, right - x - 12);
+		String name = card.title;
 		NanoVGUI.text(name, x + 6, y + 8, text, 10);
 		if(category == 0)
 		{
-			String label = card.feature.getCategory() == null
-				? FeatureMenuSupport.getTypeName(card.feature) : card.feature.getCategory().getName();
-			float labelX = x + NanoVGUI.width(name, 10) + 10;
-			if(labelX + NanoVGUI.width("(" + label + ")", 7.5F) + 5 < right)
-				NanoVGUI.text("(" + label + ")", labelX, y + 10, NavigatorStyle.CATEGORY_HINT, 7.5F);
+			float labelX = x + card.titleWidth + 10;
+			if(labelX + card.categoryWidth + 5 < right)
+				NanoVGUI.text(card.categoryLabel, labelX, y + 10, NavigatorStyle.CATEGORY_HINT, 7.5F);
 		}
-		NanoVGUI.text(NanoVGUI.plainSubstrByWidth(NanoVGUI.stripCodes(
-			FeatureMenuSupport.getOneLineDescription(card.feature)),
-			right - x - 12, 7.5F), x + 6, y + 25, NavigatorStyle.DESCRIPTION, 7.5F);
+		NanoVGUI.text(card.description, x + 6, y + 25, NavigatorStyle.DESCRIPTION, 7.5F);
 		if(card.settings != null && card.height > HEADER + 1)
 		{
 			NanoVGUI.push();
@@ -372,7 +368,7 @@ public final class NavigatorScreen extends Screen
 		mouseX = viewport.local(mouseX);
 		mouseY = viewport.local(mouseY);
 		long now = System.currentTimeMillis();
-		if(closing || scale.value(now) < 0.99F)
+		if(!motion.ready(now))
 			return true;
 		ClickGui gui = WURST.getGui();
 		if(gui.handleOverlayMouseClick((int)mouseX, (int)mouseY, button))
@@ -443,6 +439,7 @@ public final class NavigatorScreen extends Screen
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
 	{
+		if(!motion.ready(System.currentTimeMillis())) return true;
 		mouseX = viewport.local(mouseX);
 		mouseY = viewport.local(mouseY);
 		if(dragging && button == dragButton)
@@ -477,7 +474,7 @@ public final class NavigatorScreen extends Screen
 	{
 		mouseX = viewport.local(mouseX);
 		mouseY = viewport.local(mouseY);
-		if(closing || delta == 0 || !inside(mouseX, mouseY, panelX, panelY,
+		if(!motion.ready(System.currentTimeMillis()) || delta == 0 || !inside(mouseX, mouseY, panelX, panelY,
 			panelX + panelWidth, panelY + panelHeight))
 			return false;
 		if(mouseX < panelX + sidebarWidth)
@@ -495,7 +492,7 @@ public final class NavigatorScreen extends Screen
 	@Override
 	public boolean charTyped(char character, int modifiers)
 	{
-		if(closing)
+		if(!motion.ready(System.currentTimeMillis()))
 			return true;
 		for(Card card : paintedCards)
 			if(card.expanded() && card.settings != null && card.settings.isEditing())
@@ -528,7 +525,7 @@ public final class NavigatorScreen extends Screen
 			onClose();
 			return true;
 		}
-		if(closing)
+		if(!motion.ready(System.currentTimeMillis()))
 			return true;
 		for(Card card : paintedCards)
 			if(card.expanded() && card.settings != null && card.settings.isEditing())
@@ -551,17 +548,17 @@ public final class NavigatorScreen extends Screen
 		if(closing)
 			return;
 		closing = true;
-		closedAt = System.currentTimeMillis();
+		motion.close(System.currentTimeMillis());
 		blurAll();
 		searchBox.focus(false);
 		mouseReleased(0, 0, GLFW.GLFW_MOUSE_BUTTON_LEFT);
-		scale.animate(0, 300, closedAt, NavigatorAnimation.Easing.LINEAR);
-		opacity.animate(0, 100, closedAt, NavigatorAnimation.Easing.LINEAR);
 	}
 
 	@Override
 	public void removed()
 	{
+		glass.close();
+		motion = null;
 		background.close();
 		SESSION.x = panelX;
 		SESSION.y = panelY;
@@ -608,6 +605,11 @@ public final class NavigatorScreen extends Screen
 		private float height = HEADER;
 		private float y;
 		private boolean pressed;
+		private boolean settingsVisible;
+		private String title = "", description = "", categoryLabel = "";
+		private float titleWidth, categoryWidth;
+		private int textWidth = -1;
+		private long nextTextUpdate;
 
 		Card(Feature feature)
 		{
@@ -619,8 +621,23 @@ public final class NavigatorScreen extends Screen
 			return SESSION.expanded.contains(feature.getName());
 		}
 
+		void refreshText(long now, int width)
+		{
+			if(now < nextTextUpdate && textWidth == width) return;
+			textWidth = width;
+			nextTextUpdate = now + 250;
+			title = NanoVGUI.plainSubstrByWidth(featureName(feature), width, 10);
+			description = NanoVGUI.plainSubstrByWidth(NanoVGUI.stripCodes(
+				FeatureMenuSupport.getOneLineDescription(feature)), width, 7.5F);
+			categoryLabel = "(" + (feature.getCategory() == null
+				? FeatureMenuSupport.getTypeName(feature) : feature.getCategory().getName()) + ")";
+			titleWidth = NanoVGUI.width(title, 10);
+			categoryWidth = NanoVGUI.width(categoryLabel, 7.5F);
+		}
+
 		void updateHeight(long now)
 		{
+			if(!expanded() && height <= HEADER + .01F) { height = HEADER; return; }
 			if(expanded() && settings == null)
 				settings = new NavigatorSettingsPanel(feature);
 			float natural = HEADER + (settings == null ? 0 : Math.max(0, settings.naturalHeight() - 1));

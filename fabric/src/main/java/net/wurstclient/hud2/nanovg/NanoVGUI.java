@@ -88,6 +88,12 @@ public final class NanoVGUI
 		passTo(graphics, WurstClient.MC.getMainRenderTarget(), body, 1.5F);
 	}
 
+	/** Supersampled GUI content for temporary transition layers. */
+	public static void passSmoothTo(GuiGraphics graphics, RenderTarget target, Runnable body)
+	{
+		passTo(graphics, target, body, 1.5F);
+	}
+
 	/** Draws the same GUI primitives into an offscreen post-processing mask. */
 	public static void passTo(GuiGraphics graphics, RenderTarget target, Runnable body)
 	{

@@ -59,7 +59,7 @@ final class NavigatorSettingsPanel extends Window
 
 	void layout(int x, int y, int width, int top, int bottom, int cardBottom)
 	{
-		prepareForRender();
+		// naturalHeight() already refreshes the visible settings once this frame.
 		bodyX = x;
 		bodyTop = y;
 		viewportTop = top;

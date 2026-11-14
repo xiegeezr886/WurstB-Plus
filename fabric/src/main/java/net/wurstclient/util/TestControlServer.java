@@ -641,7 +641,8 @@ public final class TestControlServer
 			if(WurstClient.MC.player == null)
 				return "{\"ok\":false,\"error\":\"no player\"}";
 			var player = WurstClient.MC.player;
-			return "{\"ok\":true,\"x\":" + player.getX() + ",\"y\":"
+			return "{\"ok\":true,\"fps\":" + WurstClient.MC.getFps()
+				+ ",\"x\":" + player.getX() + ",\"y\":"
 				+ player.getY() + ",\"z\":" + player.getZ() + ",\"yaw\":"
 				+ player.getYRot() + ",\"pitch\":" + player.getXRot()
 				+ ",\"onGround\":" + player.onGround() + ",\"selected\":"
@@ -657,6 +658,10 @@ public final class TestControlServer
 				+ ",\"fallDistance\":" + player.fallDistance
 				+ ",\"horizontalCollision\":" + player.horizontalCollision
 				+ ",\"tickCount\":" + player.tickCount
+				+ ",\"destroying\":" + (WurstClient.MC.gameMode != null
+					&& WurstClient.MC.gameMode.isDestroying())
+				+ ",\"destroyProgress\":" + (WurstClient.MC.gameMode == null ? 0
+					: ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)WurstClient.MC.gameMode).getDestroyProgress())
 				+ ",\"paused\":" + WurstClient.MC.isPaused()
 				+ ",\"screen\":" + (WurstClient.MC.screen == null ? "null"
 					: "\"" + escape(
@@ -853,6 +858,11 @@ public final class TestControlServer
 				case "none":
 				WurstClient.MC.setScreen(null);
 				break;
+
+				case "close":
+					// Exercise the screen lifecycle, including any pending exit animation.
+					if(WurstClient.MC.screen != null) WurstClient.MC.screen.onClose();
+					break;
 
 				default:
 				return "{\"ok\":false,\"error\":\"unknown screen\"}";

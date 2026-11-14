@@ -27,6 +27,7 @@ import org.lwjgl.opengl.GL11;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hud2.mods.NotificationsMod;
+import net.wurstclient.hud2.mods.DynamicIslandMod;
 import net.wurstclient.hud2.nanovg.SoftwareText;
 import net.wurstclient.hud2.nanovg.GlStateGuard;
 import net.wurstclient.hud2.nanovg.NanoVGContext;
@@ -281,7 +282,7 @@ public final class HudManager
 	 * so the screen overlay dims them instead of being covered by them.
 	 */
 	private static final String[] SCREEN_PERSISTENT_MODULES = {"Scoreboard",
-		"PotionStatus", "ModernHotbar"};
+		"PotionStatus", "ModernHotbar", "DynamicIsland"};
 
 	private void drawScreenOverlayModules(NanoVGContext nvg, float partialTicks)
 	{
@@ -290,6 +291,7 @@ public final class HudManager
 
 		for(String id : SCREEN_PERSISTENT_MODULES)
 		{
+			if(id.equals("DynamicIsland") && hasContainerScreen()) continue;
 			HUDMod mod = mods.get(id);
 			if(mod == null || !mod.isEnabled())
 				continue;
@@ -309,6 +311,7 @@ public final class HudManager
 		{
 			if(mod == notifications || !mod.isEnabled())
 				continue;
+			if(mod instanceof DynamicIslandMod && hasContainerScreen()) continue;
 
 			mod.clampToScreen(screenWidth, screenHeight);
 			mod.render(nvg, partialTicks);
@@ -400,20 +403,69 @@ public final class HudManager
 	public void addNotification(String title, String message,
 		NotificationSeverity severity)
 	{
-		if(settings.showNotifications())
+		if(!settings.showNotifications())
+			return;
+		if(isDynamicIslandEnabled())
+			((DynamicIslandMod)mods.get("DynamicIsland")).notify(title, message, severity);
+		else
 			notificationRenderer.addNotification(title, message, severity);
 	}
 
 	public void addNotification(Feature feature)
 	{
+		if(!settings.showNotifications())
+			return;
+		if(isDynamicIslandEnabled())
+		{
+			((DynamicIslandMod)mods.get("DynamicIsland")).notify(feature);
+			return;
+		}
 		NotificationSeverity severity = feature.isEnabled()
 			? NotificationSeverity.ENABLED : NotificationSeverity.DISABLED;
 		String title = feature.isEnabled() ? "Enabled" : "Disabled";
 		addNotification(title, feature.getDisplayName(), severity);
 	}
 
+	public boolean isDynamicIslandEnabled()
+	{
+		HUDMod island = mods.get("DynamicIsland");
+		return island != null && island.isEnabled();
+	}
+
+	public void recordIslandMining(long position, String name, float progress)
+	{
+		if(WURST.isEnabled() && isDynamicIslandEnabled())
+			((DynamicIslandMod)mods.get("DynamicIsland")).recordMining(position, name, progress);
+	}
+
+	private boolean hasContainerScreen()
+	{
+		return WURST.MC.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?>;
+	}
+
+	/** Container backgrounds otherwise dim the island along with the world. */
+	public void renderContainerIsland(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		if(!started || !WURST.isEnabled() || !hasContainerScreen()
+			|| !isBaseVisible() || !isDynamicIslandEnabled()) return;
+		var mod = (DynamicIslandMod)mods.get("DynamicIsland");
+		mod.updateContainerHover(mouseX, mouseY);
+		net.wurstclient.hud2.nanovg.NanoVGUI.pass(graphics,
+			() -> mod.render(NanoVGContext.get(), partialTicks));
+		var stack = mod.hoveredContainerStack(mouseX, mouseY);
+		if(!stack.isEmpty()) graphics.renderTooltip(WURST.MC.font, stack, mouseX, mouseY);
+	}
+
+	public boolean clickContainerIsland(double mouseX, double mouseY, int button)
+	{
+		return started && WURST.isEnabled() && isBaseVisible() && hasContainerScreen()
+			&& isDynamicIslandEnabled()
+			&& ((DynamicIslandMod)mods.get("DynamicIsland")).clickContainer(mouseX, mouseY, button);
+	}
+
 	void onModuleEnabledChanged(HUDMod mod)
 	{
+		if(mod instanceof DynamicIslandMod) notificationRenderer.clear();
 		saveState();
 	}
 
@@ -524,6 +576,7 @@ public final class HudManager
 	private void registerDefaults()
 	{
 		register(new NotificationsMod(this));
+		register(new DynamicIslandMod());
 		register(new net.wurstclient.hud2.mods.FPSDisplayMod());
 		register(new net.wurstclient.hud2.mods.PingDisplayMod());
 		register(new net.wurstclient.hud2.mods.CoordsMod());

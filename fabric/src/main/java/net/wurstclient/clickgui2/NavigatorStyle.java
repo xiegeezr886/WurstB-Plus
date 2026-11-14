@@ -58,16 +58,18 @@ final class NavigatorStyle
     {
         var context = NanoVGUI.context();
         long vg = context.getHandle();
-        for(float spread = 0; spread <= layers / 2F; spread += 0.5F)
+        try(MemoryStack stack = MemoryStack.stackPush())
         {
-            float outerRadius = Math.min(radius, cutoutRadius + spread / 2);
+            float spread = layers / 4F;
+            NVGPaint paint = NVGPaint.malloc(stack);
+            NanoVG.nvgBoxGradient(vg, x, y, width, height, cutoutRadius, spread * 2,
+                context.getColor(0x50000000), context.getColor(0), paint);
             NanoVG.nvgBeginPath(vg);
-            NanoVG.nvgRoundedRect(vg, x - spread / 2, y - spread / 2,
-                width + spread, height + spread, outerRadius);
+            NanoVG.nvgRoundedRect(vg, x - spread * 2, y - spread * 2,
+                width + spread * 4, height + spread * 4, radius + spread);
             NanoVG.nvgRoundedRect(vg, x, y, width, height, cutoutRadius);
             NanoVG.nvgPathWinding(vg, NanoVG.NVG_HOLE);
-            int alpha = (int)Math.max(0.5, (strength - spread * 1.2) / 5.5);
-            NanoVG.nvgFillColor(vg, context.getColor(alpha << 24));
+            NanoVG.nvgFillPaint(vg, paint);
             NanoVG.nvgFill(vg);
         }
     }

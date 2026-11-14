@@ -55,6 +55,8 @@ public final class ClickGuiScreen extends Screen
 
 	private final List<TemplateWindow> windows = new ArrayList<>();
     private final OpaiBackground background = new OpaiBackground();
+    private final DuoGlassTransition glass = DuoGlassTransition.shared();
+    private DuoGlassMotion motion;
 	private final Map<String, TemplateWindow> namedWindows = new java.util.HashMap<>();
 	private EditBox searchBox;
 	private TemplateWindow draggedWindow;
@@ -99,6 +101,7 @@ public final class ClickGuiScreen extends Screen
 		WURST.getGui().init();
         snapshotPanels();
         openedAt = System.currentTimeMillis();
+        if(motion == null) motion = new DuoGlassMotion(openedAt);
         previousFrame = 0;
         loadPanelState();
         GuiIcon.configureFiltering(MC);
@@ -259,6 +262,8 @@ public final class ClickGuiScreen extends Screen
     private void renderReference(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
     {
         long now = System.currentTimeMillis();
+        if(motion.finished(now)) { MC.setScreen(null); return; }
+        float fold = motion.value(now);
         frameId++;
         frameSeconds = previousFrame == 0 ? 0.016F : Math.min(0.1F, (now - previousFrame) / 1000F);
         previousFrame = now;
@@ -278,30 +283,32 @@ public final class ClickGuiScreen extends Screen
         hoverWindow = null;
         for(int i = windows.size() - 1; i >= 0; i--)
             if(windows.get(i).contains(localX, mouseY)) { hoverWindow = windows.get(i); break; }
-        boolean ready = now - openedAt >= 320;
+        boolean ready = motion.ready(now);
         background.render(graphics, partialTicks);
-        NanoVGUI.passSmooth(graphics, () -> {
-            if(MC.level == null) net.wurstclient.gui.MainMenuBackground.render(width, height, 255);
+        if(MC.level == null) NanoVGUI.passSmooth(graphics,
+            () -> net.wurstclient.gui.MainMenuBackground.render(width, height, 255));
+        glass.render(graphics, fold, 0, 0, width, height, target -> {
+        NanoVGUI.passSmoothTo(graphics, target, () -> {
             NanoVGUI.push();
             NanoVGUI.context().scale(0, 0, viewport.scale());
             NanoVGUI.push();
-            NanoVGUI.context().scale(0, 0, viewWidth, viewHeight, OpaiStyle.openingScale(now - openedAt));
-            NanoVGUI.context().setAlpha(now - openedAt >= 320 ? 1 : (float)(1 - Math.exp(-30 * (now - openedAt) / 1000.0)));
             NanoVGUI.translate(-canvasOffset, 0);
             for(TemplateWindow window : windows) window.render(graphics, ready ? localX : -10000, ready ? mouseY : -10000, partialTicks);
             NanoVGUI.pop();
-            renderToolbar(graphics, mouseX, mouseY);
-            if(hoveredFeature != null && !searchVisible && draggedWindow == null) renderDescription(mouseX, mouseY);
+            renderToolbar(graphics, ready ? mouseX : -10000, ready ? mouseY : -10000);
+            if(ready && hoveredFeature != null && !searchVisible && draggedWindow == null) renderDescription(mouseX, mouseY);
             NanoVGUI.pop();
         });
-        inlineSettings.values().forEach(OpaiSettings::endFrame);
         if(searchVisible) {
+            target.bindWrite(true);
             graphics.pose().pushPose();
             graphics.pose().scale(viewport.scale(), viewport.scale(), 1);
             searchBox.render(graphics, mouseX, mouseY, partialTicks);
             graphics.flush();
             graphics.pose().popPose();
         }
+        });
+        inlineSettings.values().forEach(OpaiSettings::endFrame);
     }
 
     private void renderToolbar(GuiGraphics graphics, int mouseX, int mouseY)
@@ -356,7 +363,7 @@ public final class ClickGuiScreen extends Screen
 	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
         mouseX = viewport.local(mouseX); mouseY = viewport.local(mouseY);
-        if(System.currentTimeMillis() - openedAt < 320) return true;
+        if(!motion.ready(System.currentTimeMillis())) return true;
         if(bindingFeature != null) {
             // The existing processor consumes keyboard events only.
             if(button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) bindingFeature = null;
@@ -404,6 +411,7 @@ public final class ClickGuiScreen extends Screen
 	public boolean mouseDragged(double mouseX, double mouseY, int button,
 		double dragX, double dragY)
 	{
+        if(!motion.ready(System.currentTimeMillis())) return true;
         mouseX = viewport.local(mouseX); mouseY = viewport.local(mouseY);
         dragX = viewport.local(dragX); dragY = viewport.local(dragY);
         if(button == 0 && panning) { moveCanvas(mouseX); return true; }
@@ -439,6 +447,7 @@ public final class ClickGuiScreen extends Screen
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta)
 	{
+        if(!motion.ready(System.currentTimeMillis())) return true;
         mouseX = viewport.local(mouseX); mouseY = viewport.local(mouseY);
         inlineSettings.values().forEach(OpaiSettings::release);
         if(hasShiftDown()) { pan(delta > 0 ? -1 : 1); return true; }
@@ -456,6 +465,11 @@ public final class ClickGuiScreen extends Screen
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
+        if(motion.closing()) return true;
+        if(!motion.ready(System.currentTimeMillis())) {
+            if(keyCode == GLFW.GLFW_KEY_ESCAPE) onClose();
+            return true;
+        }
 		if(bindingFeature != null)
 		{
 			Feature feature = bindingFeature;
@@ -510,6 +524,7 @@ public final class ClickGuiScreen extends Screen
     @Override
     public boolean charTyped(char character, int modifiers)
     {
+        if(!motion.ready(System.currentTimeMillis())) return true;
         for(OpaiSettings settings : inlineSettings.values()) if(settings.editing()) return settings.character(character);
         return searchVisible && searchBox.charTyped(character, modifiers);
     }
@@ -567,8 +582,21 @@ public final class ClickGuiScreen extends Screen
     }
 
     @Override
+    public void onClose()
+    {
+        if(motion.closing()) return;
+        motion.close(System.currentTimeMillis());
+        blurValues();
+        searchBox.setFocused(false);
+        bindingFeature = null;
+        mouseReleased(0, 0, GLFW.GLFW_MOUSE_BUTTON_LEFT);
+    }
+
+    @Override
     public void removed()
     {
+        glass.close();
+        motion = null;
         background.close();
         blurValues();
         draggedWindow = null;

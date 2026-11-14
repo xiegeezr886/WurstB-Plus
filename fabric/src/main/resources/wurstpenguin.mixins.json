@@ -78,6 +78,7 @@
     "GameMenuScreenMixin",
     "GameRendererMixin",
     "GenericContainerScreenMixin",
+    "IslandContainerScreenMixin",
     "HeldItemRendererMixin",
     "IngameHudMixin",
     "InGameOverlayRendererMixin",

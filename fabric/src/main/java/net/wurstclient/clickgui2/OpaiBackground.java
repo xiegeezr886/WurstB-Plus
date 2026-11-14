@@ -19,6 +19,7 @@ final class OpaiBackground implements AutoCloseable
     private RenderTarget reduced;
     private int width, height;
     private boolean failed;
+    private long refreshedAt;
 
     void render(GuiGraphics graphics, float partialTicks)
     {
@@ -32,13 +33,15 @@ final class OpaiBackground implements AutoCloseable
         modelView.pushPose();
         try(GlStateGuard ignored = GlStateGuard.capture())
         {
-            int reducedWidth = Math.max(1, (target.width + 1) / 2);
-            int reducedHeight = Math.max(1, (target.height + 1) / 2);
+            float ratio = Math.min(.5F, Math.min(640F / target.width, 360F / target.height));
+            int reducedWidth = Math.max(1, Math.round(target.width * ratio));
+            int reducedHeight = Math.max(1, Math.round(target.height * ratio));
             if(reduced == null)
                 reduced = new TextureTarget(reducedWidth, reducedHeight, false, false);
             if(width != target.width || height != target.height)
             {
                 width = target.width; height = target.height;
+                refreshedAt = 0;
                 if(reduced.width != reducedWidth || reduced.height != reducedHeight)
                     reduced.resize(reducedWidth, reducedHeight, false);
                 if(blur != null) blur.resize(reducedWidth, reducedHeight);
@@ -50,8 +53,13 @@ final class OpaiBackground implements AutoCloseable
                 blur.resize(reducedWidth, reducedHeight);
             }
             RenderSystem.disableScissor();
-            copy(target, reduced);
-            blur.process(partialTicks);
+            long now = System.nanoTime();
+            if(now - refreshedAt >= 33_333_333L)
+            {
+                copy(target, reduced);
+                blur.process(partialTicks);
+                refreshedAt = now;
+            }
             copy(reduced, target);
         }catch(IOException | RuntimeException e)
         {
@@ -81,5 +89,6 @@ final class OpaiBackground implements AutoCloseable
         if(blur != null) { blur.close(); blur = null; }
         if(reduced != null) { reduced.destroyBuffers(); reduced = null; }
         width = height = 0;
+        refreshedAt = 0;
     }
 }

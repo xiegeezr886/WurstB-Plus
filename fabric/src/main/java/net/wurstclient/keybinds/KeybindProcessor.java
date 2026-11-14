@@ -83,10 +83,7 @@ public final class KeybindProcessor implements KeyPressListener
 			|| ScreenRegistry.NAVIGATOR.matches(screen)
 				&& containsCmd(cmds, "navigator"))
 		{
-			if(screen instanceof NavigatorScreen navigator)
-				navigator.onClose();
-			else
-				WurstClient.MC.setScreen(null);
+			screen.onClose();
 			return;
 		}
 

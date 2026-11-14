@@ -37,6 +37,15 @@ public final class HudNotificationRenderer
 
 	public HudNotificationRenderer() {}
 
+	public void clear()
+	{
+		synchronized(active)
+		{
+			active.clear();
+			lastFrameNanos = 0;
+		}
+	}
+
 	public void addNotification(String title, String message,
 		NotificationSeverity severity)
 	{
