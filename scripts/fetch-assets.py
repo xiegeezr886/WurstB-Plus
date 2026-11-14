@@ -83,17 +83,38 @@ def fetch(url, timeout=60, retries=3):
     raise last
 
 
+def manifest_url(version):
+    """版本 JSON 的官方地址；26.x 起只能用清单里的 packages 链接。
+
+    镜像的 `/version/<v>/json` 与旧式 `/mc/game/<v>.json` 对 26.x 都是 404，
+    所以先查官方版本清单，查不到再退回老路径。
+    """
+    try:
+        data = json.loads(fetch('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json'))
+    except Exception:
+        return None
+    for entry in data.get('versions', []):
+        if entry.get('id') == version:
+            return entry.get('url')
+    return None
+
+
 def version_json(version):
+    candidates = []
+    official = manifest_url(version)
+    if official:
+        candidates.append(official)
     for host in MIRRORS:
         for path in ('/version/%s/json' % version, '/mc/game/%s.json' % version):
-            try:
-                raw = fetch(host + path)
-                d = json.loads(raw)
-                if 'assetIndex' in d:
-                    log('版本 JSON 来源: %s%s' % (host, path))
-                    return d
-            except Exception:
-                continue
+            candidates.append(host + path)
+    for url in candidates:
+        try:
+            d = json.loads(fetch(url))
+            if 'assetIndex' in d:
+                log('版本 JSON 来源: %s' % url)
+                return d
+        except Exception:
+            continue
     raise SystemExit('取不到 %s 的版本 JSON（镜像与官方都失败）' % version)
 
 
@@ -177,7 +198,16 @@ def run(version, args):
     vj = version_json(version)
     ai = vj['assetIndex']
     idx_path = os.path.join(indexes, '%s.json' % ai['id'])
-    raw = fetch(MIRRORS[0] + ai['url'].split('piston-meta.mojang.com')[-1])
+    raw = None
+    tail = ai['url'].split('piston-meta.mojang.com')[-1]
+    for host in MIRRORS:
+        try:
+            raw = fetch(host + tail)
+            break
+        except Exception:
+            continue
+    if raw is None:
+        raise SystemExit('取不到资源索引: %s' % ai['url'])
     if hashlib.sha1(raw).hexdigest() != ai.get('sha1', ''):
         log('警告: 索引 sha1 与版本 JSON 不一致，仍写入')
     with open(idx_path, 'wb') as f:

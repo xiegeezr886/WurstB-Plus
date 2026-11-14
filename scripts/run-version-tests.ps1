@@ -21,6 +21,9 @@ param(
     [int]$SettleSeconds = 20,
     [string]$QuickPlayWorld = "",
     [string]$BaritoneCommand = "",
+    [ValidateRange(0, 600)]
+    [int]$MovementSeconds = 0,
+    [string]$EvidenceDir = "",
     [string]$GraphicsBackend = "",
     [string]$ScreenshotDir = "",
     [switch]$VerifyNanoVg,
@@ -502,6 +505,48 @@ function Send-GameText($process, $text) {
     return $sent
 }
 
+function Send-GameKey($process, [int]$virtualKey) {
+    Ensure-WurstTestWindow
+    $process.Refresh()
+    if ($process.MainWindowHandle -eq [IntPtr]::Zero) { return $false }
+    $focused = $false
+    for ($attempt = 0; $attempt -lt 3 -and -not $focused; $attempt++) {
+        $focused = [WurstTestWindow]::ForceForeground($process.MainWindowHandle)
+        if (-not $focused) { Start-Sleep -Milliseconds 300 }
+    }
+    $sent = [WurstTestWindow]::SendVirtualKey([uint16]$virtualKey)
+    if (-not $VisibleWindow -and
+        $process.MainWindowHandle -ne [IntPtr]::Zero) {
+        [WurstTestWindow]::ShowWindow($process.MainWindowHandle, 6) | Out-Null
+    }
+    return $sent
+}
+
+function Save-GameScreenshot($process, [string]$instanceDir, [string]$outPath) {
+    # F2 asks Minecraft to read back its own framebuffer. Unlike PrintWindow or
+    # a desktop grab, this works for OpenGL surfaces in headless/virtual
+    # displays, so the resulting PNG shows the F3 coordinate overlay.
+    $dir = Join-Path $instanceDir 'screenshots'
+    New-Item -ItemType Directory -Force -Path $dir | Out-Null
+    $before = @(Get-ChildItem -LiteralPath $dir -Filter '*.png' -ErrorAction SilentlyContinue |
+        ForEach-Object { $_.FullName })
+    if (-not (Send-GameKey $process 0x71)) { return $false }
+    for ($attempt = 0; $attempt -lt 20; $attempt++) {
+        Start-Sleep -Milliseconds 300
+        $new = @(Get-ChildItem -LiteralPath $dir -Filter '*.png' -ErrorAction SilentlyContinue |
+            Where-Object { $before -notcontains $_.FullName })
+        if ($new.Count -gt 0) {
+            $source = ($new | Sort-Object LastWriteTime -Descending |
+                Select-Object -First 1).FullName
+            $parent = Split-Path -Parent $outPath
+            if ($parent) { New-Item -ItemType Directory -Force -Path $parent | Out-Null }
+            Copy-Item -LiteralPath $source -Destination $outPath -Force
+            return $true
+        }
+    }
+    return $false
+}
+
 function Save-GameWindowScreenshot($process, [string]$outPath) {
     Add-Type -AssemblyName System.Drawing -ErrorAction SilentlyContinue
     if (-not ("WurstShotWindow" -as [type])) {
@@ -530,14 +575,38 @@ public static class WurstShotWindow {
     $h = $r.Bottom - $r.Top
     if ($w -le 0 -or $h -le 0) { return $false }
     $bmp = New-Object System.Drawing.Bitmap $w, $h
-    $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $hdc = $g.GetHdc()
-    $ok = [WurstShotWindow]::PrintWindow($hwnd, $hdc,
-        [WurstShotWindow]::PW_RENDERFULLCONTENT)
-    $g.ReleaseHdc($hdc)
-    $g.Dispose()
+    $captured = $false
+    # PrintWindow returns a black frame for Minecraft's OpenGL surface, so copy
+    # the visible desktop region first. That also proves what a user sees.
+    try {
+        $g = [System.Drawing.Graphics]::FromImage($bmp)
+        $g.CopyFromScreen($r.Left, $r.Top, 0, 0,
+            (New-Object System.Drawing.Size($w, $h)))
+        $g.Dispose()
+        $captured = $true
+    } catch {
+        if ($g) { $g.Dispose() }
+    }
+    if ($captured) {
+        $samples = @(
+            $bmp.GetPixel([int]($w / 2), [int]($h / 2)),
+            $bmp.GetPixel([int]($w / 4), [int]($h / 4)),
+            $bmp.GetPixel([int]($w * 3 / 4), [int]($h * 3 / 4))
+        )
+        if (-not ($samples | Where-Object { ($_.R + $_.G + $_.B) -gt 24 })) {
+            $captured = $false
+        }
+    }
+    if (-not $captured) {
+        $g = [System.Drawing.Graphics]::FromImage($bmp)
+        $hdc = $g.GetHdc()
+        $captured = [WurstShotWindow]::PrintWindow($hwnd, $hdc,
+            [WurstShotWindow]::PW_RENDERFULLCONTENT)
+        $g.ReleaseHdc($hdc)
+        $g.Dispose()
+    }
     $saved = $false
-    if ($ok) {
+    if ($captured) {
         $dir = Split-Path -Parent $outPath
         if ($dir -and -not (Test-Path $dir)) {
             New-Item -ItemType Directory -Force -Path $dir | Out-Null
@@ -873,6 +942,7 @@ function Test-Version($jarPath, $instanceDir) {
     $commandSent = $false
     $commandSentAt = $null
     $commandResponseSeen = $false
+    $baselineShot = $false
     $commandResponsePattern = Get-BaritoneResponsePattern $BaritoneCommand
     $result = $null
 
@@ -943,6 +1013,17 @@ function Test-Version($jarPath, $instanceDir) {
         }
         $p.Refresh()
         $windowReady = ($p.MainWindowHandle -ne [IntPtr]::Zero)
+        if ($QuickPlayWorld -and $worldLoaded -and $MovementSeconds -gt 0 -and -not $baselineShot) {
+            $safeInstance = ($name -replace '[^\w.-]', '_')
+            $evidence = if ($EvidenceDir) { $EvidenceDir } else { Join-Path $ProjectRoot '.test\evidence' }
+            [void](Send-GameKey $p 0x72)
+            Start-Sleep -Milliseconds 800
+            $baselinePath = Join-Path $evidence ($safeInstance + '-f3-start.png')
+            if (Save-GameScreenshot $p $instanceDir $baselinePath) {
+                Write-Info "  [progress] baseline F3 evidence: $baselinePath"
+            }
+            $baselineShot = $true
+        }
         if ($QuickPlayWorld -and $worldLoaded -and $BaritoneCommand -and -not $commandSent -and
             (Get-Date) - $worldLoadedAt -gt (New-TimeSpan -Seconds 8)) {
             if (-not (Send-GameText $p $BaritoneCommand)) {
@@ -976,13 +1057,30 @@ function Test-Version($jarPath, $instanceDir) {
                 break
             }
             if ($BaritoneCommand -and $commandResponseSeen -and
-                (Get-Date) - $commandSentAt -gt (New-TimeSpan -Seconds $SettleSeconds)) {
+                (Get-Date) - $commandSentAt -gt (New-TimeSpan -Seconds ($SettleSeconds + $MovementSeconds))) {
                 if ($VerifyNanoVg -and -not $nanoVgSeen) {
                     $result = @{ Status = 'FAIL'; Note = 'Baritone responded but NanoVG context was not created' }
                     break
                 }
                 $note = "world loaded; Baritone responded and survived settle period (task completion not verified): $BaritoneCommand"
                 if ($nanoVgSeen) { $note += '; NanoVG GL3 context created' }
+                if ($MovementSeconds -gt 0) {
+                    # The chat reply only proves the command was accepted. The F3
+                    # overlay plus an in-game F2 screenshot record the player's
+                    # real coordinates; comparing them with the baseline or the
+                    # #goto target proves Baritone moved the player.
+                    $evidence = if ($EvidenceDir) { $EvidenceDir } else { Join-Path $ProjectRoot '.test\evidence' }
+                    New-Item -ItemType Directory -Force -Path $evidence | Out-Null
+                    $safeName = ($name -replace '[^\w.-]', '_')
+                    $movementShot = Join-Path $evidence ($safeName + '-f3-after.png')
+                    if (-not $baselineShot) { [void](Send-GameKey $p 0x72) }
+                    Start-Sleep -Milliseconds 800
+                    if (Save-GameScreenshot $p $instanceDir $movementShot) {
+                        $note += "; F3 movement evidence=$movementShot"
+                    } else {
+                        $note += '; F3 screenshot failed'
+                    }
+                }
                 if ($ScreenshotDir) {
                     $safeName = ($name -replace '[^\w.-]', '_')
                     $shotPath = Join-Path $ScreenshotDir ($safeName + '.png')
