@@ -18,6 +18,8 @@
 
 导航器的 Rise 移植进度与验证说明见 [NAVIGATOR-RISE-v1.5.2.md](NAVIGATOR-RISE-v1.5.2.md)。
 
+ClickGUI 的 Opai 外观移植与验证说明见 [CLICKGUI-OPAI-v1.5.2.md](CLICKGUI-OPAI-v1.5.2.md)。
+
 ## 本地参考源码
 
 2026-11-13 拉取各仓库默认分支，均为浅克隆（`--depth 1`），包含该提交的完整跟踪文件。
