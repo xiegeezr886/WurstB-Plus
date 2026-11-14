@@ -10,6 +10,7 @@
 | 发布包矩阵（包结构 / 内嵌 Baritone / 声明的 MC 版本 / 注册的 Mixin 是否存在） | **67/67 通过** |
 | 26.2 三加载器内嵌 Baritone 是否为官方产物 | **是**：1.19.0，SHA-256 与 GitHub Release 资产一致 |
 | 26.2 三加载器 Baritone→Minecraft 字节码引用 | Fabric/Forge/NeoForge 各 **1781 条，0 条无法解析**（修复前 1837 条、5 条失败） |
+| 全部 67 个产物 Baritone→Minecraft 字节码引用 | **67/67 通过，0 条无法解析**（Fabric 用映射表翻译后校验；Forge/NeoForge 用 SRG/Mojang 映射 jar） |
 | 26.2 Fabric/Forge/NeoForge 真实进世界 + `#goto` 运行时验证 | **通过**：命令被接受并实际移动/到达目标点（见第 4 节坐标） |
 | 其余版本 | 包结构/元数据/Mixin 注册静态验证通过；**未逐个做进世界运行验证**（见第 6 节限制） |
 
@@ -41,6 +42,8 @@ net/minecraft/world/entity/EntityType.FIREWORK_ROCKETLnet/minecraft/world/entity
 3. **构建与发布包更新**：重新构建 26.2 三个产物并覆盖 `build/release-v1.5/` 对应文件；
    `scripts/build-all.ps1` 对 26.2 改为固定调用官方 1.19.0，避免再被旧的兼容补丁覆盖。
 4. **审计脚本**：新增/修正 `audit-baritone-linkage.py`、`audit-baritone-matrix.py`；
+   新增 `audit-fabric-linkage.py`（intermediary→Mojang 映射翻译）与
+   `audit-baritone-linkage-matrix.py`（全部 67 个产物的逐版本链接校验）；
    `audit-crash-regressions.py` 明确拒绝 `1.18.0-26.2` 旧移植包。
 5. **运行时测试能力**：`scripts/run-version-tests.ps1` 增加 F3/F2 证据采集与 `-MovementSeconds`；
    `scripts/read-level.py` 读取 26.x 新世界格式的出生点/玩家坐标；快速世界改为整目录复制
@@ -138,12 +141,26 @@ Baritone 1.19.0 (baritoe)
 
 `scripts/verify-embedded-baritone.ps1` 对三个 26.2 工程均输出“官方产物，且声明支持工程 MC 版本 26.2”。
 
+### 5.1 逐版本字节码链接（67/67）
+
+`python scripts/audit-baritone-linkage-matrix.py` → `report/baritone-linkage-matrix-v1.5.1.json`
+
+- **Fabric（23 个）**：产物是 intermediary 名（`net/minecraft/class_310`），用 Loom
+  `mappings-base.tiny` 把类名/成员名/描述符翻译成 Mojang 名后逐条解析
+  （`scripts/audit-fabric-linkage.py`）；
+- **Forge / NeoForge（21 + 23 个）**：1.20.1–1.20.4 用 SRG 映射 jar，1.20.6 起用 Mojang
+  映射 jar（26.x 为官方非混淆 jar）；
+- 结果：**67/67 PASS**，每个产物 1457–1901 条 Minecraft 成员引用，**0 条无法解析**。
+
+每个产物的引用数、映射类型、使用的 Minecraft jar 和判定都逐行记录在
+`report/baritone-linkage-matrix-v1.5.1.json` 中。
+
 ## 6. 限制与说明
 
 1. **运行时覆盖**：本次对 26.2 的 Fabric、Forge、NeoForge 三个加载器都做了
-   “进世界 + `#goto` + 玩家实际位移”验证。其余 64 个产物是静态验证（包结构、官方产物、
-   声明版本、Mixin 注册、26.2 三端字节码链接）。逐版本进世界测试需要为每个 MC 版本准备
-   完整客户端资源与实例，成本高，未在本次全部执行。
+   “进世界 + `#goto` + 玩家实际位移”验证。其余 64 个产物完成了包结构、官方产物、
+   声明版本、Mixin 注册和**逐版本字节码链接**的静态验证，但没有逐版进世界运行测试。
+   逐版本进世界测试需要为每个 MC 版本准备完整客户端资源与实例，成本高，未在本次全部执行。
 2. **NeoForge 1.20.6**：本机重建在 `neoFormRecompile` 失败（反编译出的
    `MultiPartBakedModel.java` 结构损坏，javac 报“未命名类/需要 class、interface、enum 或 record”
    三个错误），属于 NeoForm 反编译/补丁中间产物问题，与 Baritone 无关。
