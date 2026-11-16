@@ -54,6 +54,8 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 
 	private final EspStyleSetting style =
 		new EspStyleSetting(EspStyle.LINES_AND_BOXES);
+	private final CheckboxSetting moonGlow = new CheckboxSetting("Moon glow",
+		"Adds a static light-purple glow around entity models.", false);
 	
 	private final EspBoxSizeSetting boxSize = new EspBoxSizeSetting(
 		"\u00a7lAccurate\u00a7r mode shows the exact hitbox of each player.\n"
@@ -118,6 +120,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		super("PlayerESP");
 		setCategory(Category.RENDER);
 		addSetting(renderMode);
+		addSetting(moonGlow);
 		addSetting(style);
 		addSetting(boxSize);
 		addSetting(maxDistance);
@@ -186,6 +189,9 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
+		if(moonGlow.isChecked())
+			net.wurstclient.util.render.MoonEntityGlow.INSTANCE.queue(players,
+				throughWalls.isChecked());
 		if(renderMode.getSelected() == RenderMode.TWO_D)
 		{
 			updateScreenBoxes(matrixStack, partialTicks);

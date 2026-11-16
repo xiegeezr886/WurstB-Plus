@@ -11,6 +11,7 @@
   "icon": "assets/wurst/icon.png",
   "environment": "client",
   "entrypoints": {
+    "seedcrackerx": ["net.wurstclient.seed.SeedCrackerBridge"],
     "client": [
       "net.wurstclient.WurstInitializer"
     ]

@@ -394,7 +394,7 @@ public final class NavigatorScreen extends Screen
 		{
 			int index = (int)((mouseY - panelY - 40.5) / 19.5);
 			if(mouseY >= panelY + 40 && index >= 0 && index < CATEGORIES.length)
-				selectCategory(index);
+				{ selectCategory(index); net.wurstclient.neoraven.RavenUiSound.click(); }
 			return true;
 		}
 		if(now - categoryChanged < 200)
@@ -420,6 +420,7 @@ public final class NavigatorScreen extends Screen
 				if(card.settings != null)
 					card.settings.blur();
 				card.pressed = true;
+                if(button == 0 || button == 1) net.wurstclient.neoraven.RavenUiSound.click();
 				if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
 					FeatureMenuSupport.runPrimaryAction(card.feature);
 				else if(button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && !card.feature.getSettings().isEmpty())

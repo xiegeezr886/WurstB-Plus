@@ -10,6 +10,7 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.hack.HackConflictGroup;
 import net.wurstclient.settings.BlockListSetting;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.BaritoneUtils;
@@ -49,6 +50,7 @@ public final class BaritoneMineHack extends Hack implements UpdateListener
 	public BaritoneMineHack()
 	{
 		super("BaritoneMine");
+		addConflictGroup(HackConflictGroup.BARITONE_CONTROL);
 		setCategory(Category.WORLD);
 		addSetting(ores);
 		addSetting(walkHome);
@@ -124,6 +126,13 @@ public final class BaritoneMineHack extends Hack implements UpdateListener
 
 	private void startMining()
 	{
+		List<Block> blocks = getOreBlocks();
+		if(!blocks.isEmpty())
+			BaritoneUtils.startMining(blocks.toArray(new Block[0]));
+	}
+
+	public List<Block> getOreBlocks()
+	{
 		List<Block> blocks = new ArrayList<>();
 		for(String name : ores.getBlockNames())
 		{
@@ -132,8 +141,7 @@ public final class BaritoneMineHack extends Hack implements UpdateListener
 				blocks.add(block);
 		}
 
-		if(!blocks.isEmpty())
-			BaritoneUtils.startMining(blocks.toArray(new Block[0]));
+		return blocks;
 	}
 
 	private boolean isInventoryFull()

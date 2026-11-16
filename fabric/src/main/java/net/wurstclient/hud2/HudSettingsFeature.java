@@ -29,6 +29,12 @@ public final class HudSettingsFeature extends Feature
 	private final CheckboxSetting notifications =
 		new CheckboxSetting("Notifications", "Shows HUD notifications.", true);
 
+	private final CheckboxSetting moonGlow = new CheckboxSetting("Moon glow",
+		"Adds a static light-purple glow around HUD backgrounds.", false);
+
+	private final CheckboxSetting logoGlow = new CheckboxSetting("Logo glow",
+		"Shows the contour glow on the title logo.", false);
+
 	private final SliderSetting notificationDuration =
 		new SliderSetting("Notification duration",
 			"How long notifications stay visible.", 3, 1, 10, 0.5,
@@ -47,6 +53,8 @@ public final class HudSettingsFeature extends Feature
 		theme.addChangeListener(
 			() -> HUDMod.setTheme(theme.getSelected()));
 		addSetting(theme);
+		addSetting(moonGlow);
+		addSetting(logoGlow);
 		addSetting(notifications);
 		addSetting(notificationDuration);
 		addSetting(hideWithChat);
@@ -98,6 +106,16 @@ public final class HudSettingsFeature extends Feature
 	public HudTheme getTheme()
 	{
 		return theme.getSelected();
+	}
+
+	public boolean hasMoonGlow()
+	{
+		return moonGlow.isChecked();
+	}
+
+	public boolean hasLogoGlow()
+	{
+		return logoGlow.isChecked();
 	}
 
 	public void setTheme(HudTheme theme)

@@ -7,6 +7,19 @@ import net.wurstclient.hud2.island.IslandState.NoticeKind;
 
 final class IslandStateTest
 {
+	@Test void musicOnlyReplacesIdleAndReturnsAfterActivityExpires()
+	{
+		IslandState state = new IslandState();
+		assertEquals(Kind.MUSIC, state.kind(false, false, false, true));
+		assertEquals(Kind.IDLE, state.kind(false, false, false, false));
+		assertEquals(Kind.CHEST, state.kind(true, false, false, true));
+		assertEquals(Kind.BREAKING, state.kind(false, true, false, true));
+		assertEquals(Kind.SCAFFOLD, state.kind(false, false, true, true));
+		state.post("test", "Title", "Detail", NoticeKind.INFO, true, 0);
+		assertEquals(Kind.NOTICE, state.kind(false, false, false, true));
+		state.expire(3000);
+		assertEquals(Kind.MUSIC, state.kind(false, false, false, true));
+	}
 	@Test void noticesKeepLatestThreeAndRapidToggleReversesWithoutJump()
 	{
 		IslandState state = new IslandState();

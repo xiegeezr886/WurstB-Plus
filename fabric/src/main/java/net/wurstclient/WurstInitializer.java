@@ -34,6 +34,7 @@ public final class WurstInitializer implements ClientModInitializer
 		{
 			initialized = true;
 			WurstClient.INSTANCE.initialize();
+			net.wurstclient.seed.SeedCrackerBridge.initialize();
 		}
 	}
 }

@@ -404,13 +404,15 @@ public final class ClickGuiScreen extends Screen
 			if(window.isBodyOver(mouseX, mouseY))
             {
                 if(!(window instanceof CategoryWindow)) blurValues();
-                return window.clickBody(mouseX, mouseY, button);
+                boolean handled = window.clickBody(mouseX, mouseY, button);
+                if(handled) net.wurstclient.neoraven.RavenUiSound.click();
+                return handled;
             }
 			blurValues();
 			if(!window.isHeaderOver(mouseX, mouseY))
 				return true;
 			if(button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)
-				window.toggleOpen();
+				{ window.toggleOpen(); net.wurstclient.neoraven.RavenUiSound.click(); }
 			else if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
 			{
 				draggedWindow = window;

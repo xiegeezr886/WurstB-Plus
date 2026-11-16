@@ -58,11 +58,7 @@ final class WurstTitleButton extends AbstractButton implements CustomRenderedBut
                 NanoVGUI.image(GLOW, x - glow, y - glow, size + 2 * glow,
                     size + 2 * glow, 0, (Math.round(255 * amount) << 24) | 0xFFFFFF);
             }
-            NanoVGUI.fillRounded(x, y, x + size, y + size, size / 2,
-                (Math.round(255 * (.08F + .12F * amount)) << 24) | 0xFFFFFF);
-            NanoVGUI.outlineRounded(x, y, x + size, y + size, size / 2,
-                size * 2 / 110,
-                (Math.round(255 * (.15F + .25F * amount)) << 24) | 0xFFFFFF);
+            TitleGlassMaterial.draw(x,y,size,size,size/2,size*2/110,amount,1);
             float iconSize = width * .32F;
             if(icon != null)
                 NanoVGUI.image(icon, drawX + (width - iconSize) / 2,
