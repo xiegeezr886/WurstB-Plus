@@ -78,7 +78,7 @@ public final class EnchantCmd extends Command
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Enchant Held Item";
+		return WURST.translate("Enchant Held Item");
 	}
 	
 	@Override

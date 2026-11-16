@@ -38,8 +38,7 @@ public enum CmdUtils
 		Feature feature = stream.findFirst().orElse(null);
 		
 		if(feature == null)
-			throw new CmdError(
-				"A feature named \"" + name + "\" could not be found.");
+			throw new CmdError("A feature named \"%s\" could not be found.", name);
 		
 		return feature;
 	}
@@ -66,12 +65,9 @@ public enum CmdUtils
 			return matches.get(0).setting();
 
 		if(matches.size() > 1)
-			throw new CmdError("Multiple settings named \"" + name + "\" in "
-				+ feature.getName() + ": " + formatSettingPaths(matches)
-				+ ". Use the full path, e.g. " + matches.get(0).path() + ".");
+			throw new CmdError("Multiple settings named \"%s\" in %s: %s. Use the full path, e.g. %s.", name, feature.getName(), formatSettingPaths(matches), matches.get(0).path());
 
-		throw new CmdError("A setting named \"" + query
-			+ "\" could not be found in " + feature.getName() + ".");
+		throw new CmdError("A setting named \"%s\" could not be found in %s.", query, feature.getName());
 	}
 
 	private static Setting findSettingByPath(Feature feature, String[] path,
@@ -88,12 +84,10 @@ public enum CmdUtils
 					matches.add(setting);
 
 			if(matches.isEmpty())
-				throw new CmdError("A setting named \"" + originalName
-					+ "\" could not be found in " + feature.getName() + ".");
+				throw new CmdError("A setting named \"%s\" could not be found in %s.", originalName, feature.getName());
 
 			if(matches.size() > 1)
-				throw new CmdError("Ambiguous setting path segment \"" + segment
-					+ "\" in " + feature.getName() + ".");
+				throw new CmdError("Ambiguous setting path segment \"%s\" in %s.", segment, feature.getName());
 
 			current = matches.get(0);
 			level = current.getChildren();
@@ -138,8 +132,7 @@ public enum CmdUtils
 		Item item = ItemUtils.getItemFromNameOrID(nameOrId);
 		
 		if(item == null)
-			throw new CmdSyntaxError(
-				"\"" + nameOrId + "\" is not a valid item.");
+			throw new CmdSyntaxError("\"%s\" is not a valid item.", nameOrId);
 		
 		return item;
 	}

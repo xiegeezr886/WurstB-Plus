@@ -197,12 +197,20 @@ JSON，以及**从未被任何代码调用**的 `clickgui2/PingFangFont.java`，
 以下目录**未被 git 跟踪**，因此不构成再分发；它们只存在于作者工作区：
 
 `reference/upstream-sources/`（Wurst7 / LiquidBounce / Meteor / FDPClient / WurstCN /
-RavenBS / Rise / Vape / Grim / NoCheatPlus 等源码与压缩包）、`reference/decompiled/`
+RavenBS / Rise / Vape / Grim / NoCheatPlus 等源码与压缩包）、`reference/clients/`
+（行为对照用的客户端源码与反编译材料：Rise、NeoRaven、moon-rebase、OpaiBounce、OpenOpal、
+Epsilon、LeavesHack 共 7 个 GitHub 浅克隆；LiquidBounce Nextgen 与 SoarClient 7.1.2 两个
+用户包；以及 JelloBounce / RedFix / Solstice 的反编译与修复产物，逐项来源与许可见
+[借物表](reference/clients/README.md)）、`reference/decompiled/`
 （Mojang 与 Forge 的字节码 dump）、`reference/vendor/`（第三方配置与 profile）、
 `reference/artifacts/`、`reference/tools/`（baritone 各版本源码树与临时工具）、
 `reference/recon/`（逆向工程证据）、`reference/errreport/`（崩溃日志与缺陷报告）、
 `reference/porting-stale/`、`reference/smoke/`、`.test/`、`.recon/`，
 以及根目录的 5 个 `.zip`。
+
+`reference/clients/` 里 Rise-6.9.5 根目录没有许可文件，RedFix 与 Solstice 的上游也未在
+参考包内声明许可，这些材料只用于核对行为/格式，**不得直接复制进本项目**；其余客户端分别
+遵循其根目录的 GPL-3.0 / AGPL-3.0 / LGPL-3.0 / Apache-2.0 许可证。
 
 **注意**：这些材料里含**无许可证的反编译源码**与**竞品客户端产物**。项目既有的
 [移植优先级](docs/RELEASE.md) 已声明"无许可证反编译源码只核对行为，不直接复制"，
@@ -306,3 +314,42 @@ Wallpaper Engine 的官方 Steam 商店 logo（app 431960 的 `logo.png`），�
 缩放到 88×88 并重新着色为白色。Wallpaper Engine 及其图标版权归 Kristjan Skutta /
 Wallpaper Engine 所有；此处仅用于在背景选择界面标识「从该来源导入」，不表示任何
 隶属或背书关系。
+
+
+## LeavesHack v1.5.2 移植
+
+基于 [MrBZBZ/LeavesHack](https://github.com/MrBZBZ/LeavesHack) 提交 `13daf96bc5998d745fb34debe6f8ea98c403b11b`，
+将除 Aura、ScaffoldPlus 外的 29 个注册模块及所需工具、渲染和注入逻辑适配到
+`fabric/` 的 Minecraft 1.20.1 基线。上游许可为 AGPL-3.0-or-later。
+已有对应模块以 Leaves 实现替换；两项排除模块保留原实现。
+模块映射和版本差异见 [移植说明](docs/LEAVESHACK-v1.5.2.md)，
+随包署名、源码哈希和许可证位于 `META-INF/licenses/leaves-hack/`。
+
+## LiquidBounce Nextgen 开始菜单布局参考
+
+Fabric 1.20.1 开始菜单参考本地 `reference/clients/LiquidBounce-Nextgen-main/src-theme/src/routes/menu/title/Title.svelte`、`buttons/MainButton.svelte`（GPL-3.0）的横排圆形按钮、其他功能页和错峰进出动效，以 Java/NanoVG 重新实现。按用户最终要求保留上一版按钮尺寸、现有图标，按钮材质恢复 Nextgen 白色半透填充、描边和悬停光晕；背景使用用户提供的浅紫图片，按钮以中文为主（Realms、ClickGUI、Navigator 保留英文）、去除时钟，左上角采用用户提供的 W 标志。未引入上游图标、背景、字体或品牌。随包许可与来源见 `META-INF/licenses/liquidbounce-nextgen/`。主题来源：https://github.com/DFH-clouds/LiquidBounce-Nextgen ；上游：https://github.com/CCBlueX/LiquidBounce 。
+
+## Opai 药水效果 HUD
+
+Fabric 1.20.1 的 `PotionStatus` 参考 [snmwdd/OpaiBounce](https://github.com/snmwdd/OpaiBounce) 的 `src/routes/hud/elements/Effects.svelte`，适配独立卡片、着色渐变、格式与动效。17 张药水图标来自其 `public/opai/samsara/potion/`，保留 alpha 并转换为白色蒙版，以复现 CSS mask 着色。上游声明涉及 CCBlueX、Opai / StylesFoundation 与 Samsara contributors；许可与原始 NOTICE 随包保留在 `META-INF/licenses/opai-effects/`。详见 [移植说明](docs/POTION-HUD-OPAI-v1.5.2.md)。
+
+## RedFix HackList 与分类
+
+Fabric 1.20.1 的启用模块列表参考本地 RedFix / LiquidBounce 的 ArrayList 主题，移植分类渐变色、条目布局和 200ms 动画，模块分类采用其八类体系。漏洞图标由上游 SVG 转为 PNG。上游 GPL-3.0-or-later 许可及署名位于 `META-INF/licenses/redfix-hud/`；字体沿用 MiSans。详见 [移植说明](docs/HACKLIST-REDFIX-v1.5.2.md)。
+
+## Moon CGUI 交互参考
+
+Fabric 1.20.1 的现有 CGUI 借鉴 `xiaozhuhou233/moon-rebase` 默认 Modern 模式的模块展开区域、绑定标签、开关渐变和滑块反馈，以本地 NanoVG/设置系统实现，保留现有布局及分类。上游 Apache-2.0 许可与说明随包位于 `META-INF/licenses/moon-cgui/`。详见 [改动说明](docs/CGUI-MOON-v1.5.2.md)。
+
+## Moon 账户管理界面
+
+Fabric 1.20.1 账户管理界面参考 xiaozhuhou233/moon-rebase 的 AccountManagerScreen 和 MoonMenuButton（Apache-2.0），适配现有账号后端、浅紫色主题与全局壁纸。许可和署名随包位于 META-INF/licenses/moon-account/；详情见 docs/ACCOUNT-MANAGER-MOON-v1.5.2.md。
+
+## Opai 世界与服务器选择菜单
+
+Fabric 1.20.1 世界和服务器选择界面的布局、条目及卡片翻转参考
+[snmwdd/OpaiBounce](https://github.com/snmwdd/OpaiBounce) 的
+`src/opai/ListScreen.svelte`、`listScreen.scss`、`menuMotion.ts` 和 `opai.scss`，
+以 Java/NanoVG 适配现有 Minecraft 后端。账户管理器共用列表与翻转动效，三个列表采用中文按钮，
+按钮材质保留客户端原有黑色半透圆角样式，开始菜单采用用户指定的先渐隐再翻转顺序。随包许可及上游 NOTICE 位于
+`META-INF/licenses/opai-menus/`；范围与验证见 [移植说明](docs/MENUS-OPAI-v1.5.2.md)。

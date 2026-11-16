@@ -67,7 +67,7 @@ final class OpaiStyle
             x + px[i + 1] * c - py[i + 1] * s, y + px[i + 1] * s + py[i + 1] * c, 0.87F, MUTED);
     }
 
-    private static int mix(int from, int to, float amount)
+    static int mix(int from, int to, float amount)
     {
         int result = 0;
         for(int shift = 0; shift <= 24; shift += 8)

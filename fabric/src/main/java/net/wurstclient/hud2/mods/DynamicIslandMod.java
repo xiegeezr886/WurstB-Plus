@@ -6,7 +6,6 @@
 package net.wurstclient.hud2.mods;
 
 import java.awt.Color;
-import java.util.Locale;
 import java.util.LinkedHashMap;
 
 import org.lwjgl.nanovg.NanoVG;
@@ -38,11 +37,10 @@ import net.wurstclient.settings.CheckboxSetting;
 
 public final class DynamicIslandMod extends HUDMod implements UpdateListener, WorldChangeListener
 {
-	private static final Color ACCENT = new Color(0xB5BEF0);
+	private static final Color ACCENT = new Color(accentColor(255), true);
 	private static final Color TEXT = new Color(0xE4E1E6);
 	private static final Color GREEN = new Color(0x55FF55);
 	private static final Color RED = new Color(0xFF5555);
-	private static final Color SHELL = new Color(0xB0080808, true);
 	private static final Color TILE = new Color(0xC8141616, true);
 	private final CheckboxSetting centered = new CheckboxSetting("Center horizontally",
 		"Keep the island centered. Dragging in the HUD editor turns this off.", true);
@@ -140,7 +138,8 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 	{
 		if(feature == this || feature == WURST.getHax().scaffoldWalkHack) return;
 		String key = "module:" + feature.getName();
-		String detail = feature.getDisplayName() + " has been ";
+		String detail = WURST.translate("hud.dynamic_island.has_been",
+			feature.getDisplayName());
 		boolean enabled = feature.isEnabled();
 		postToggle(key, detail, enabled, MC.level);
 	}
@@ -154,7 +153,8 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		}
 		if(!isEnabled() || MC.level != sourceLevel || MC.player == null) return;
 		syncWorld();
-		state.post(key, "Module Toggled", detail, NoticeKind.TOGGLE, enabled, now());
+		state.post(key, WURST.translate("hud.dynamic_island.module_toggled"),
+			detail, NoticeKind.TOGGLE, enabled, now());
 	}
 
 	public void notify(String title, String message, NotificationSeverity severity)
@@ -194,7 +194,7 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		{
 			int count = WURST.getHax().scaffoldWalkHack.getRemainingBlockCount();
 			state.blocks(count, now);
-			scaffoldDetail = String.format(Locale.ROOT, "%d blocks left - %.1f block/s",
+			scaffoldDetail = WURST.translate("hud.dynamic_island.blocks_left",
 				state.count(), state.rate(now));
 		}else state.resetBlocks();
 
@@ -323,13 +323,14 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		}
 		float available = Math.max(40, Math.min(400,
 			MC.getWindow().getGuiScaledWidth() / getScale() - 16));
+		String to = WURST.translate("hud.dynamic_island.to");
 		float flexible = Math.max(0, available - 117 - measure("WurstB+", 8)
-			- measure(ping, 8) - measure(" to ", 8) - measure(fps, 8));
+			- measure(ping, 8) - measure(to, 8) - measure(fps, 8));
 		String user = fit(username, 8, Math.min(90, flexible * .45F));
 		String connection = fit(server, 8, Math.min(125, flexible - measure(user, 8)));
 		float idleWidth = 9 + 12 + 3.5F + measure("WurstB+", 8) + 12
 			+ 12 + 3.5F + measure(user, 8) + 12 + 12 + 1 + measure(ping, 8)
-			+ measure(" to " + connection, 8) + 12 + 12 + 3.5F + measure(fps, 8) + 12.5F;
+			+ measure(to + connection, 8) + 12 + 12 + 3.5F + measure(fps, 8) + 12.5F;
 		float targetWidth = idleWidth, targetHeight = 23;
 		if(kind == Kind.NOTICE)
 		{
@@ -337,15 +338,23 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 			for(Notice notice : state.notices())
 				targetWidth = Math.max(targetWidth, 41.5F + Math.max(measure(notice.title(), 10),
 					measure(notice.detail() + (notice.kind() == NoticeKind.TOGGLE
-						? notice.enabled() ? "Enabled!" : "Disabled!" : ""), 9)));
+						? WURST.translate(notice.enabled()
+							? "hud.dynamic_island.status_enabled"
+							: "hud.dynamic_island.status_disabled")
+							+ WURST.translate("hud.dynamic_island.exclamation")
+						: ""), 9)));
 			targetHeight = state.notices().size() * 36;
 		}else if(kind == Kind.SCAFFOLD)
 		{
-			targetWidth = 45 + Math.max(measure("Scaffold Toggled", 10), measure(scaffoldDetail, 9));
+			targetWidth = 45 + Math.max(
+				measure(WURST.translate("hud.dynamic_island.scaffold_toggled"), 10),
+				measure(scaffoldDetail, 9));
 			targetHeight = 50;
 		}else if(kind == Kind.BREAKING)
 		{
-			targetWidth = 44 + Math.max(measure("Breaking " + blockName, 9), measure("Break Progress: 100%", 8));
+			targetWidth = 44 + Math.max(
+				measure(WURST.translate("hud.dynamic_island.breaking", blockName), 9),
+				measure(WURST.translate("hud.dynamic_island.break_progress", "100%"), 8));
 			targetHeight = 48;
 		}else if(kind == Kind.CHEST)
 		{
@@ -368,9 +377,7 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		if(visibility < .005F) return;
 		nvg.setAlpha(visibility);
 		nvg.translate(0, -5 * (1 - visibility) * getScale());
-		float radius = 11.5F + (8.5F - 11.5F) * Math.min(1, (height - 23) / 13);
-		nvg.drawShadow(getX(), getY(), width * getScale(), height * getScale(), radius * getScale(), 3);
-		drawRoundedRect(0, 0, width, height, radius, SHELL);
+		drawBackground(width, height);
 		markDrawn();
 		save();
 		scissor(2, 1, Math.max(0, width - 4), height - 2);
@@ -466,7 +473,8 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		drawRoundedOutline(x + 1, 9, 6.7F, 5, 2.4F, 1.3F, latency);
 		drawRoundedOutline(x + 4.5F, 9, 6.7F, 5, 2.4F, 1.3F, latency);
 		x = label(ping, x + 13, latency);
-		x = dot(label(" to " + connection, x, TEXT));
+		x = dot(label(WURST.translate("hud.dynamic_island.to") + connection,
+			x, TEXT));
 		icon(HudIcon.REFRESH, x, 11.5F, 12, TEXT);
 		label(fps, x + 15.5F, TEXT);
 	}
@@ -474,6 +482,7 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 	private void drawNotices(float left, float width, long now, float opacity)
 	{
 		float y = 0;
+		float radius = backgroundRadius(width, 36);
 		for(Notice notice : state.notices())
 		{
 			save();
@@ -483,38 +492,56 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 			if(notice.kind() == NoticeKind.TOGGLE)
 			{
 				float t = notice.toggle(now);
-				drawRoundedRect(left + 3.44F, y + 9.04F, 29.12F, 17.92F, 8.96F,
+				drawRoundedRect(left + 3.44F, y + 9.04F, 29.12F, 17.92F, radius,
 					mix(new Color(0x9E8D8B), ACCENT, t));
-				drawRoundedRect(left + 4.56F, y + 10.16F, 26.88F, 15.68F, 7.84F,
+				drawRoundedRect(left + 4.56F, y + 10.16F, 26.88F, 15.68F, radius - 1.12F,
 					mix(new Color(0x36343B), ACCENT, t));
 				float size = (8 + 3.5F * t) * 1.12F;
-				drawRoundedRect(left + 7.36F + 9.52F * t, y + 12.96F - 1.4F * t,
+				drawRoundedRect(left + 11.84F + 11.48F * t - size / 2, y + 18 - size / 2,
 					size, size, size / 2, mix(new Color(0x858488), new Color(0x181316), t));
 			}else
 			{
 				Color tile = notice.kind() == NoticeKind.INFO ? ACCENT
 					: new Color(notice.kind() == NoticeKind.SUCCESS ? 0xC85F8F50 : 0xC88F5050, true);
-				drawRoundedRect(left + 5.7F, y + 6.8F, 26.9F, 26.9F, 7.8F, tile);
-				icon(notice.kind() == NoticeKind.SUCCESS ? HudIcon.CHECK
+				drawRoundedRect(left + 4.55F, y + 4.55F, 26.9F, 26.9F, radius, tile);
+				centeredNoticeIcon(notice.kind() == NoticeKind.SUCCESS ? HudIcon.CHECK
 					: notice.kind() == NoticeKind.WARNING ? HudIcon.ALERT_TRIANGLE : HudIcon.INFO,
-					left + 11, y + 20, 15,
+					left + 18, y + 18, 15,
 					notice.kind() == NoticeKind.INFO ? new Color(0x181316) : Color.WHITE);
 			}
 			text(fit(notice.title(), 10, width - 41.5F), left + 36, y + 13, 10,
 				notice.kind() == NoticeKind.INFO ? ACCENT : Color.WHITE);
+			String bang = WURST.translate("hud.dynamic_island.exclamation");
 			String status = notice.kind() == NoticeKind.TOGGLE
-				? notice.enabled() ? "Enabled" : "Disabled" : "";
-			String detail = fit(notice.detail(), 9, width - 41.5F - measure(status + (status.isEmpty() ? "" : "!"), 9));
+				? WURST.translate(notice.enabled()
+					? "hud.dynamic_island.status_enabled"
+					: "hud.dynamic_island.status_disabled")
+				: "";
+			String detail = fit(notice.detail(), 9, width - 41.5F - measure(status + (status.isEmpty() ? "" : bang), 9));
 			text(detail, left + 36, y + 25.25F, 9, Color.WHITE);
 			if(!status.isEmpty())
 			{
 				float x = left + 36 + measure(detail, 9);
 				text(status, x, y + 25.25F, 9, notice.enabled() ? GREEN : RED);
-				text("!", x + measure(status, 9), y + 25.25F, 9, Color.WHITE);
+				text(bang, x + measure(status, 9), y + 25.25F, 9, Color.WHITE);
 			}
 			restore();
 			y += 36;
 		}
+	}
+
+	private void centeredNoticeIcon(String glyph, float x, float y,
+		float size, Color color)
+	{
+		if(!HudFonts.ICON.isLoaded()) return;
+		long vg = nvg.getHandle();
+		NanoVG.nvgFontSize(vg, size);
+		NanoVG.nvgFontFace(vg, HudFonts.ICON.getName());
+		NanoVG.nvgTextAlign(vg, NanoVG.NVG_ALIGN_LEFT | NanoVG.NVG_ALIGN_MIDDLE);
+		NanoVG.nvgTextBounds(vg, 0, 0, glyph, textBounds);
+		// Center the visible glyph, including fonts with asymmetric bearings.
+		icon(glyph, x - (textBounds[0] + textBounds[2]) / 2,
+			y - (textBounds[1] + textBounds[3]) / 2, size, color);
 	}
 
 	private void drawActivity(float left, float width, boolean blocks, long now)
@@ -539,9 +566,12 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 			drawCircle(left + 13, 15, 2.5F, ACCENT);
 			drawRoundedRect(left + 17, 13, 11, 5, 2, ACCENT);
 		}
-		text(fit(blocks ? "Scaffold Toggled" : "Breaking " + blockName,
+		text(fit(blocks ? WURST.translate("hud.dynamic_island.scaffold_toggled")
+			: WURST.translate("hud.dynamic_island.breaking", blockName),
 			blocks ? 10 : 9, width - 45), left + 38, 12.5F, blocks ? 10 : 9, ACCENT);
-		text(fit(blocks ? scaffoldDetail : "Break Progress: " + (int)(breakProgress * 100) + "%",
+		text(fit(blocks ? scaffoldDetail
+			: WURST.translate("hud.dynamic_island.break_progress",
+				(int)(breakProgress * 100) + "%"),
 			blocks ? 9 : 8, width - 45), left + 38, 25, blocks ? 9 : 8, Color.WHITE);
 		float barY = blocks ? 37 : 35, barH = blocks ? 8 : 7.5F;
 		drawRoundedRect(left + 4, barY, width - 8, barH, 4, new Color(0x343636));
@@ -562,7 +592,7 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		{
 			float x = left + 5 + i % 9 * 20, y = 6 + i / 9 * 20;
 			if(i == hoveredSlot && canInteractWithContainer())
-				drawRoundedRect(x, y, 20, 20, 3, new Color(181, 190, 240, 40));
+				drawRoundedRect(x, y, 20, 20, 3, new Color(accentColor(40), true));
 			float feedback = 1 - Math.min(1, (now - slotChanged[i]) / 380F);
 			if(slotChanged[i] > 0 && feedback > 0)
 			{
@@ -570,7 +600,7 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 				float size = 20 * (1 - (1 - expansion) * (1 - expansion));
 				drawRoundedRect(x + (20 - size) / 2, y + (20 - size) / 2,
 					size, size, 3 + 7 * (1 - expansion),
-					new Color(181, 190, 240, (int)(feedback * 80)));
+					new Color(accentColor((int)(feedback * 80)), true));
 			}
 			ItemStack stack = stacks[i];
 			if(stack == null || stack.isEmpty()) continue;

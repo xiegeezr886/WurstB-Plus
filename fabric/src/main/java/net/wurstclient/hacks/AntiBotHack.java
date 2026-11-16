@@ -62,7 +62,7 @@ public final class AntiBotHack extends Hack
 	public AntiBotHack()
 	{
 		super("AntiBot");
-		setCategory(Category.COMBAT);
+		setCategory(Category.MISC);
 		addSetting(checkPlayerInfo);
 		addSetting(checkGameMode);
 		addSetting(checkPing);

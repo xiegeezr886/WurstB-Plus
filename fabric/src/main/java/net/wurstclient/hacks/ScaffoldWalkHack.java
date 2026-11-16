@@ -357,7 +357,7 @@ public final class ScaffoldWalkHack extends Hack
 	public ScaffoldWalkHack()
 	{
 		super("ScaffoldWalk");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 
 		modes.put(Mode.VANILLA, new SimpleTowerMode(this, Mode.VANILLA));
 		modes.put(Mode.ANTI_GAMING_CHAIR,

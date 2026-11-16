@@ -52,6 +52,42 @@ public abstract class ClientPlayerInteractionManagerMixin
 
 	@Unique
 	private String wurstIslandBrokenName;
+	@Unique private BlockPos leavesPlacement;
+
+	@Inject(method = "useItemOn", at = @At("HEAD"))
+	private void rememberLeavesPlacement(LocalPlayer player, InteractionHand hand,
+		BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir)
+	{
+		leavesPlacement = null;
+		if(player.getItemInHand(hand).getItem() instanceof net.minecraft.world.item.BlockItem)
+		{
+			var context = new net.minecraft.world.item.context.BlockPlaceContext(player,
+				hand, player.getItemInHand(hand), hit);
+			leavesPlacement = context.getClickedPos().immutable();
+		}
+	}
+
+	@Inject(method = "useItemOn", at = @At("RETURN"))
+	private void recordLeavesPlacement(LocalPlayer player, InteractionHand hand,
+		BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir)
+	{
+		var hax = WurstClient.INSTANCE.getHax();
+		if(hax != null && leavesPlacement != null && cir.getReturnValue().consumesAction())
+			hax.placeRenderHack.record(leavesPlacement, true);
+		leavesPlacement = null;
+	}
+
+	@Inject(method = "startDestroyBlock", at = @At("HEAD"), cancellable = true)
+	private void leavesStartMining(BlockPos pos, Direction direction,
+		CallbackInfoReturnable<Boolean> cir)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax != null && hax.packetMineHack.isEnabled())
+		{
+			hax.packetMineHack.mine(pos);
+			cir.setReturnValue(false);
+		}
+	}
 
 	@Inject(method = {"startDestroyBlock", "continueDestroyBlock"}, at = @At("RETURN"))
 	private void updateIslandMining(BlockPos pos, Direction direction,

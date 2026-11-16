@@ -49,7 +49,7 @@ public final class BaritoneMineHack extends Hack implements UpdateListener
 	public BaritoneMineHack()
 	{
 		super("BaritoneMine");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(ores);
 		addSetting(walkHome);
 		addSetting(logOut);

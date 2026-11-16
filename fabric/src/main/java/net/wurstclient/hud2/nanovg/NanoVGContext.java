@@ -483,7 +483,15 @@ public final class NanoVGContext
 			prewarmed = true;
 		}
 		frameOpen = true;
+		frameSerial++;
 		return true;
+	}
+
+	private long frameSerial;
+
+	public long getFrameSerial()
+	{
+		return frameSerial;
 	}
 
 	/**
@@ -677,6 +685,18 @@ public final class NanoVGContext
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
 		NanoVG.nvgFillColor(vg, getColor(argb));
+		NanoVG.nvgFill(vg);
+	}
+
+	/** Fixed left-to-right gradient, without the animated theme rotation. */
+	public void drawHorizontalGradientRoundedRect(float x, float y,
+		float width, float height, float radius, int left, int right)
+	{
+		NVGPaint paint = scratchPaint;
+		NanoVG.nvgBeginPath(vg);
+		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
+		NanoVG.nvgFillPaint(vg, NanoVG.nvgLinearGradient(vg, x, y,
+			x + width, y, getColor(left), getColor(right), paint));
 		NanoVG.nvgFill(vg);
 	}
 
@@ -1157,6 +1177,12 @@ public final class NanoVGContext
 		NanoVG.nvgTranslate(vg, x, y);
 	}
 
+	/** Affine projection used by Opai's software-compatible card flip. */
+	public void transform(float a, float b, float c, float d, float x, float y)
+	{
+		NanoVG.nvgTransform(vg, a, b, c, d, x, y);
+	}
+
 	public void scale(float x, float y, float scale)
 	{
 		NanoVG.nvgTranslate(vg, x, y);
@@ -1326,6 +1352,12 @@ public final class NanoVGContext
 	public void drawImageRegion(int texture, float x, float y, float width,
 		float height, float u0, float v0, float u1, float v1)
 	{
+		drawImageRegion(texture, x, y, width, height, u0, v0, u1, v1, 0xFFFFFFFF);
+	}
+
+	public void drawImageRegion(int texture, float x, float y, float width,
+		float height, float u0, float v0, float u1, float v1, int tint)
+	{
 		if(texture <= 0 || width <= 0 || height <= 0 || u1 <= u0 || v1 <= v0)
 			return;
 
@@ -1338,6 +1370,8 @@ public final class NanoVGContext
 		NVGPaint paint = scratchPaint;
 		NanoVG.nvgImagePattern(vg, x - u0 * scaleX, y - v0 * scaleY, scaleX,
 			scaleY, 0, image, 1F, paint);
+		paint.innerColor().set(getColor(tint));
+		paint.outerColor().set(getColor(tint));
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRect(vg, x, y, width, height);
 		NanoVG.nvgFillPaint(vg, paint);
@@ -1497,6 +1531,7 @@ public final class NanoVGContext
 
 		try
 		{
+			net.wurstclient.hud2.HUDMod.closeGlassBackground();
 			deleteFramebuffer(nativeBuffer);
 			deleteFramebuffer(smoothBuffer);
 			framebuffer = null;

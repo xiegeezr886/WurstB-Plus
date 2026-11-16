@@ -111,7 +111,8 @@ public final class NavigatorScreen extends Screen
 	{
 		return List.of(WURST.getHax().clickGuiHack, WURST.getHax().navigatorHack,
 			WURST.getOtfs().wurstLogoOtf, WURST.getOtfs().hackListOtf,
-			WURST.getOtfs().keybindManagerOtf, WURST.getOtfs().translationsOtf);
+			WURST.getOtfs().keybindManagerOtf, WURST.getOtfs().translationsOtf,
+			WURST.getOtfs().tabGuiOtf, WURST.getOtfs().vanillaSpoofOtf);
 	}
 
 	private void refreshFeatures()

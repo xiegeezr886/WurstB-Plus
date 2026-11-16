@@ -82,20 +82,20 @@ final class OpaiSettings
 
     private void renderBinding()
     {
-        NanoVGUI.fillRounded(x, bindingY, x + width, bindingY + 19.6F, BIND_RADIUS, OpaiStyle.FIELD);
-        NanoVGUI.fill(x + BIND_RADIUS, bindingY + 18.6F, x + width - BIND_RADIUS, bindingY + 19.6F,
-            waiting.getAsBoolean() ? OpaiStyle.ACCENT : OpaiStyle.MUTED);
+        net.wurstclient.gui.IslandButtonStyle.draw(x, bindingY, width, 19.6F,
+            true, 0, waiting.getAsBoolean(), OpaiStyle.ACCENT);
         String key = binding.key();
         String label = waiting.getAsBoolean() ? "按下按键…" : key == null ? "无" :
             key.replace("key.keyboard.", "").replace("key.mouse.", "mouse.");
         float keyWidth = Math.min(width * 0.65F, NanoVGUI.width(label, OpaiStyle.FONT));
         OpaiStyle.text("按键", x + 6, bindingY + 5.5F, width - keyWidth - 14, OpaiStyle.TEXT);
         OpaiStyle.text(label, x + width - keyWidth - 6, bindingY + 5.5F, keyWidth, OpaiStyle.TEXT);
-        NanoVGUI.fillRounded(x, bindingY + BIND_ACTIONS, x + width, bindingY + BIND_BOTTOM,
-            BIND_RADIUS, OpaiStyle.FIELD);
         String[] labels = {"Toggle", "Hold", "Smart"};
         for(int i = 0; i < labels.length; i++)
         {
+            net.wurstclient.gui.IslandButtonStyle.draw(x + i * width / 3,
+                bindingY + BIND_ACTIONS, width / 3 - 1, BIND_BOTTOM - BIND_ACTIONS,
+                true, 0, binding.action().ordinal() == i, OpaiStyle.ACCENT);
             float labelWidth = NanoVGUI.width(labels[i], OpaiStyle.FONT);
             NanoVGUI.text(labels[i], x + (i + 0.5F) * width / 3 - labelWidth / 2, bindingY + 28.5F,
                 binding.action().ordinal() == i ? OpaiStyle.ACCENT : OpaiStyle.TEXT, OpaiStyle.FONT);
@@ -170,6 +170,7 @@ final class OpaiSettings
         int drag;
         final OpaiColor picker = new OpaiColor();
         final NavigatorAnimation checked;
+        final NavigatorAnimation sliderProgress;
         float chevron;
 
         Value(Setting setting)
@@ -179,6 +180,7 @@ final class OpaiSettings
                 : setting instanceof TextFieldSetting ? new OpaiTextBox(null) : null;
             dropdown = setting instanceof EnumSetting<?> mode ? new OpaiDropdown(mode.getValues().length) : null;
             checked = new NavigatorAnimation(setting instanceof CheckboxSetting checkbox && checkbox.isChecked() ? 1 : 0);
+            sliderProgress = new NavigatorAnimation(setting instanceof SliderSetting slider ? clamp(slider.getPercentage()) : 0);
             chevron = setting.isExpanded() ? 1 : 0;
         }
 
@@ -218,18 +220,29 @@ final class OpaiSettings
                 if(!editing()) editor.set(number(slider.getValue()));
                 editor.render(x + width - 29, y + 2, 29, OpaiStyle.TEXT, now, true);
                 float fraction = clamp(slider.getPercentage());
+                // Moon: typed/external changes ease into place; dragging follows the pointer directly.
+                if(drag != 0) sliderProgress.set(fraction);
+                else sliderProgress.animate(fraction, 180, now, NavigatorAnimation.Easing.OUT_QUINT);
+                fraction = sliderProgress.value(now);
                 NanoVGUI.fillRounded(x, y + 15, x + width, y + 17.5F, 2, OpaiStyle.TRACK);
                 NanoVGUI.fillRounded(x, y + 15, x + width * fraction, y + 17.5F, 2, OpaiStyle.ACCENT);
+                float thumbX = Math.max(x, Math.min(x + width - 8, x + width * fraction - 4));
                 if(mouseX >= x && mouseX < x + width && mouseY >= y + 12 && mouseY < y + 20)
-                    NanoVGUI.circle(x + width * fraction, y + 16.25F, 7, 0x18B5BEF0);
-                NanoVGUI.circle(x + width * fraction, y + 16.25F, 4, OpaiStyle.ACCENT);
+                    NanoVGUI.fillRounded(thumbX - 2, y + 10.25F, thumbX + 10, y + 22.25F, 4, 0x18B5BEF0);
+                NanoVGUI.fillRounded(thumbX, y + 12.25F, thumbX + 8, y + 20.25F, 3, OpaiStyle.ACCENT);
                 return;
             }
             OpaiStyle.text(name, x, y + 3, width, OpaiStyle.TEXT);
             if(setting instanceof ColorSetting color) { renderColor(color); return; }
             boolean choice = dropdown != null;
             float fieldX = choice ? x - 2 : x, fieldWidth = choice ? width + 4 : width;
-            OpaiStyle.field(fieldX, y + LABEL, fieldWidth, FIELD, editing() || choice && dropdown.open());
+            if(setting instanceof TextFieldSetting)
+                OpaiStyle.field(fieldX, y + LABEL, fieldWidth, FIELD, editing());
+            else
+                net.wurstclient.gui.IslandButtonStyle.draw(fieldX, y + LABEL, fieldWidth, FIELD,
+                    true, mouseX >= fieldX && mouseX < fieldX + fieldWidth
+                        && mouseY >= y + LABEL && mouseY < y + LABEL + FIELD ? 1 : 0,
+                    choice && dropdown.open(), OpaiStyle.ACCENT);
             if(setting instanceof TextFieldSetting text)
             {
                 if(!editing()) editor.set(text.getValue());

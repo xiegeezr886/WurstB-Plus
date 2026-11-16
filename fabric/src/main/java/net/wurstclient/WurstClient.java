@@ -131,6 +131,8 @@ public enum WurstClient
 		
 		Path enabledHacksFile = wurstFolder.resolve("enabled-hacks.json");
 		hax = new HackList(enabledHacksFile);
+		net.wurstclient.leaves.BreakTracker.INSTANCE.register();
+		net.wurstclient.leaves.LeavesSlots.INSTANCE.register();
 		hackLifecycleManager = new HackLifecycleManager(hax, eventManager);
 		
 		cmds = new CmdList();
@@ -307,6 +309,16 @@ public enum WurstClient
 		return translator.translate(key, args);
 	}
 	
+	/**
+	 * Static shortcut for {@link #translate(String, Object...)} so plain GUI
+	 * screens (which are not {@link Feature}s) can localize their labels
+	 * without carrying a client reference.
+	 */
+	public static String tr(String key, Object... args)
+	{
+		return INSTANCE.translate(key, args);
+	}
+
 	public EventManager getEventManager()
 	{
 		return eventManager;

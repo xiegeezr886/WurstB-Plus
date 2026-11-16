@@ -370,7 +370,8 @@ public final class HudManager
 		boolean hovered = mod.getId().equals(editor.getHoveredId());
 		int color = hovered ? 0xFFFFFFFF : 0x66FFFFFF;
 		nvg.drawOutlineRoundedRect(mod.getX(), mod.getY(), mod.getWidth(),
-			mod.getHeight(), Math.max(2, 6F * mod.getScale()), 1F,
+			mod.getHeight(), HUDMod.backgroundRadius(mod.getUnscaledWidth(),
+				mod.getUnscaledHeight()) * mod.getScale(), 1F,
 			new java.awt.Color(color, true));
 
 		// Label every enabled module so empty overlays are identifiable.
@@ -422,7 +423,8 @@ public final class HudManager
 		}
 		NotificationSeverity severity = feature.isEnabled()
 			? NotificationSeverity.ENABLED : NotificationSeverity.DISABLED;
-		String title = feature.isEnabled() ? "Enabled" : "Disabled";
+		String title = WURST.translate(feature.isEnabled()
+			? "hud.notification.enabled" : "hud.notification.disabled");
 		addNotification(title, feature.getDisplayName(), severity);
 	}
 

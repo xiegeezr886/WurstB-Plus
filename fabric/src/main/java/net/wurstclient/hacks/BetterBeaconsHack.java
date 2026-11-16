@@ -44,7 +44,7 @@ public final class BetterBeaconsHack extends Hack implements GUIRenderListener
 	public BetterBeaconsHack()
 	{
 		super("BetterBeacons");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(showEffectNames);
 		addSetting(showLevelTable);
 		addSetting(expandedSelection);
