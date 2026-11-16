@@ -12,6 +12,7 @@
 | 26.2 三加载器 Baritone→Minecraft 字节码引用 | Fabric/Forge/NeoForge 各 **1781 条，0 条无法解析**（修复前 1837 条、5 条失败） |
 | 全部 67 个产物 Baritone→Minecraft 字节码引用 | **67/67 通过，0 条无法解析**（Fabric 用映射表翻译后校验；Forge/NeoForge 用 SRG/Mojang 映射 jar） |
 | 26.2 Fabric/Forge/NeoForge 真实进世界 + `#goto` 运行时验证 | **通过**：命令被接受并实际移动/到达目标点（见第 4 节坐标） |
+| 26.3 Fabric/Forge/NeoForge 真实进世界 + `#goto` 运行时验证 | **通过**（2026-11-14 补测；Forge 首次启动暴露 MixinExtras 缺失，修复后 PASS） |
 | 其余版本 | 包结构/元数据/Mixin 注册静态验证通过；**未逐个做进世界运行验证**（见第 6 节限制） |
 
 ## 2. 26.2 无法使用的根因
@@ -119,6 +120,20 @@ Baritone 1.19.0 (baritoe)
 > 注：NeoForge 官方安装器只生成 `minecraft-client-patched`，而生产启动器要求
 > `libraries/net/minecraft/client/26.2-2/client-26.2-2-srg.jar`。本机测试时把
 > patched jar 复制到该路径后启动成功；这是测试实例的补全，与 Baritone 无关。
+
+### 4.4 26.3 补测（2026-11-14）
+
+世界出生点 `208 66 496`，目标 `#goto 256 544`。
+
+| 加载器 | 结果 | 证据 |
+| --- | --- | --- |
+| Fabric | PASS | 玩家存档 `Pos [256.34, 70.0, 544.35]`，到达目标（水平位移约 68 格） |
+| Forge | PASS（修复后） | 首次启动崩溃：`ClassMetadataNotFoundException: ...wrapoperation.Operation`。Forge 66 不再把 classpath 上的 MixinExtras 交给 FML 的 jar-in-jar 定位器；已在 `versions/26.3` 的 `allJar` 中内嵌 `mixinextras-forge-0.5.4.jar` 并登记 JarJar metadata，重建后 PASS |
+| NeoForge | PASS | 日志 `Going to: GoalXZ{x=256,z=544}`；MixinExtras 由 NeoForge 26.3 自带的 `mixinextras-neoforge-0.5.5.jar` 提供 |
+
+> 26.3 内嵌的 Baritone 是 `1.20.0-dirty` 源码构建（540 entries、可读类名），与官方
+> `baritone-api-*-1.20.0.jar`（混淆包、465 entries）不是同一二进制；版本号、目标 MC 与
+> 字节码链接检查均通过。若要严格“官方产物”，需要改成官方 1.20.0 包后重新构建。
 
 ## 5. 全版本静态验证
 
