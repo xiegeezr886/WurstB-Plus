@@ -27,6 +27,7 @@ import net.wurstclient.util.json.JsonException;
 
 public final class HackList implements UpdateListener
 {
+	public final MusicPlayerHack musicPlayerHack = new MusicPlayerHack();
 	public final GlobalSettingHack globalSettingHack = new GlobalSettingHack();
 	public final FriendsManagerHack friendsManagerHack = new FriendsManagerHack();
 	public final ModuleListHack moduleListHack = new ModuleListHack();
@@ -109,6 +110,8 @@ public final class HackList implements UpdateListener
 	public final BaritoneClearAreaHack baritoneClearAreaHack =
 		new BaritoneClearAreaHack();
 	public final BaritoneMineHack baritoneMineHack = new BaritoneMineHack();
+	public final SeedCrackerHack seedCrackerHack = new SeedCrackerHack();
+	public final SeedMineHack seedMineHack = new SeedMineHack();
 	public final BaritoneTreeBotHack baritoneTreeBotHack =
 		new BaritoneTreeBotHack();
 	public final BaritoneWalkHack baritoneWalkHack = new BaritoneWalkHack();

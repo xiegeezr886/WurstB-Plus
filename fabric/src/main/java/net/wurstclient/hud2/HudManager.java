@@ -465,6 +465,11 @@ public final class HudManager
 			&& ((DynamicIslandMod)mods.get("DynamicIsland")).clickContainer(mouseX, mouseY, button);
 	}
 
+    public boolean clickMusicIsland(double x, double y, int button) {
+        return started && WURST.isEnabled() && isBaseVisible() && isDynamicIslandEnabled()
+            && ((DynamicIslandMod)mods.get("DynamicIsland")).clickMusic(x,y,button);
+    }
+
 	void onModuleEnabledChanged(HUDMod mod)
 	{
 		if(mod instanceof DynamicIslandMod) notificationRenderer.clear();
@@ -616,6 +621,7 @@ public final class HudManager
 		register(new net.wurstclient.hud2.mods.PotionCounterMod());
 		register(new net.wurstclient.hud2.mods.ArrayListMod());
 		register(new net.wurstclient.hud2.mods.LogoMod());
+		register(new net.wurstclient.hud2.mods.MoonLogoMod());
 		register(new net.wurstclient.hud2.mods.PlayerDisplayMod());
 		register(new net.wurstclient.hud2.mods.PackDisplayMod());
 		register(new net.wurstclient.hud2.mods.CalendarMod());
@@ -631,6 +637,7 @@ public final class HudManager
 		register(new net.wurstclient.hud2.mods.MinimapMod());
 		register(new net.wurstclient.hud2.mods.RearviewMod());
 		register(new net.wurstclient.hud2.mods.MusicInfoMod());
+		register(new net.wurstclient.hud2.mods.MusicLyricsMod());
 		register(new net.wurstclient.hud2.mods.WebBrowserMod());
 		register(new net.wurstclient.hud2.mods.GodbridgeAssistMod());
 		register(new net.wurstclient.hud2.mods.Skin3DMod());

@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 
 /** Blurs the freshly rendered background before any ClickGUI panels are drawn. */
-final class OpaiBackground implements AutoCloseable
+public final class OpaiBackground implements AutoCloseable
 {
     private PostChain blur;
     private RenderTarget reduced;
@@ -21,7 +21,7 @@ final class OpaiBackground implements AutoCloseable
     private boolean failed;
     private long refreshedAt;
 
-    void render(GuiGraphics graphics, float partialTicks)
+    public void render(GuiGraphics graphics, float partialTicks)
     {
         if(failed) return;
         var mc = WurstClient.MC;

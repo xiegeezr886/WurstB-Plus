@@ -32,10 +32,12 @@ public final class HudFonts
 	public static final HudFont NAVIGATOR_ICONS_2 = new HudFont("navigator-icons-2",
 		"assets/wurstpenguin/navigator/icons/Icon-3.ttf");
 
+	public static final HudFont MUSIC_ICONS = new HudFont("music-material-icons", PATH + "MusicMaterialIcons.ttf");
+
 	private HudFonts() {}
 
 	public static List<HudFont> all()
 	{
-		return List.of(REGULAR, MEDIUM, DEMIBOLD, ICON, NAVIGATOR_ICONS_1, NAVIGATOR_ICONS_2);
+		return List.of(REGULAR, MEDIUM, DEMIBOLD, ICON, NAVIGATOR_ICONS_1, NAVIGATOR_ICONS_2, MUSIC_ICONS);
 	}
 }

@@ -8,7 +8,7 @@ import java.util.List;
 /** Rendering-independent notice lifetime, activity priority and block telemetry. */
 public final class IslandState
 {
-	public enum Kind {IDLE, NOTICE, SCAFFOLD, BREAKING, CHEST}
+	public enum Kind {IDLE, NOTICE, SCAFFOLD, BREAKING, CHEST, MUSIC}
 	public enum NoticeKind {TOGGLE, SUCCESS, WARNING, INFO}
 	public record Notice(String key, String title, String detail, NoticeKind kind,
 		boolean enabled, long started, long deadline, float fromToggle, long appeared)
@@ -70,6 +70,11 @@ public final class IslandState
 		return chest ? Kind.CHEST : breaking ? Kind.BREAKING
 			: !notices.isEmpty() ? Kind.NOTICE : scaffold ? Kind.SCAFFOLD : Kind.IDLE;
 	}
+
+    public Kind kind(boolean chest, boolean breaking, boolean scaffold, boolean music) {
+        Kind activity = kind(chest, breaking, scaffold);
+        return activity == Kind.IDLE && music ? Kind.MUSIC : activity;
+    }
 
 	public void blocks(int remaining, long now)
 	{

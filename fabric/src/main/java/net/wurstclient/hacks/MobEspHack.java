@@ -35,6 +35,8 @@ public final class MobEspHack extends Hack implements UpdateListener,
 	CameraTransformViewBobbingListener, RenderListener
 {
 	private final EspStyleSetting style = new EspStyleSetting();
+	private final CheckboxSetting moonGlow = new CheckboxSetting("Moon glow",
+		"Adds a static light-purple glow around entity models.", false);
 	
 	private final EspBoxSizeSetting boxSize = new EspBoxSizeSetting(
 		"\u00a7lAccurate\u00a7r mode shows the exact hitbox of each mob.\n"
@@ -104,6 +106,7 @@ public final class MobEspHack extends Hack implements UpdateListener,
 		super("MobESP");
 		setCategory(Category.RENDER);
 		addSetting(style);
+		addSetting(moonGlow);
 		addSetting(boxSize);
 		addSetting(maxDistance);
 		addSetting(colorMode);
@@ -163,6 +166,9 @@ public final class MobEspHack extends Hack implements UpdateListener,
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
+		if(moonGlow.isChecked())
+			net.wurstclient.util.render.MoonEntityGlow.INSTANCE.queue(mobs,
+				throughWalls.isChecked());
 		EntityEspRenderer.render(matrixStack, partialTicks, mobs, style,
 			boxSize.getExtraSize(), fillOpacity.getValue(),
 			lineOpacity.getValue(), nearFadeDistance.getValue(),

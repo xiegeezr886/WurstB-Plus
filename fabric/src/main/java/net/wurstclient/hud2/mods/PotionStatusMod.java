@@ -94,8 +94,7 @@ public final class PotionStatusMod extends HUDMod
             {
                 nvg.setAlpha(alpha);
                 float s = getScale();
-                nvg.drawHorizontalGradientRoundedRect(getX() + x * s, getY() + y * s,
-                    cardWidth * s, cardHeight * s, 6 * s, tintedBackground(effect.color()), 0x8F121216);
+                OpaiStatusCard.draw(nvg, getX() + x * s, getY() + y * s, cardWidth * s, cardHeight * s, s, effect.color());
                 drawIcon(effect, x + 9, y + (cardHeight - 13.8F) / 2, 13.8F);
                 float nameY = showDuration.isChecked() ? y + 5.5F : y + (cardHeight - 9) / 2;
                 drawText(name, x + 33, nameY, 9, HudFonts.DEMIBOLD, new Color(effect.color() | 0xFF000000, true));
@@ -133,15 +132,6 @@ public final class PotionStatusMod extends HUDMod
         if(ticks < 0) return "*:*";
         int seconds = ticks / 20;
         return seconds / 60 + ":" + (seconds % 60 < 10 ? "0" : "") + seconds % 60;
-    }
-    private static int tintedBackground(int rgb)
-    {
-        // CSS color-mix(in srgb, effect 20%, #121216b8), premultiplied alpha.
-        float a = .2F + .8F * 184 / 255F;
-        int r = Math.round(((rgb >> 16 & 255) * .2F + 18 * .8F * 184 / 255F) / a);
-        int g = Math.round(((rgb >> 8 & 255) * .2F + 18 * .8F * 184 / 255F) / a);
-        int b = Math.round(((rgb & 255) * .2F + 22 * .8F * 184 / 255F) / a);
-        return Math.round(a * 255) << 24 | r << 16 | g << 8 | b;
     }
     private static float ease(long now, long since)
     {

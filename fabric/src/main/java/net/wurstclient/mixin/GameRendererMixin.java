@@ -110,6 +110,7 @@ public abstract class GameRendererMixin implements AutoCloseable
 		RenderEvent event = new RenderEvent(matrices, tickDelta);
 		EventManager.fire(event);
 		WurstClient.INSTANCE.getPostEffectQueue().flush(matrices, tickDelta);
+		net.wurstclient.util.render.MoonEntityGlow.INSTANCE.flush(matrices, tickDelta);
 	}
 	
 	@ModifyReturnValue(at = @At("RETURN"),
@@ -142,6 +143,7 @@ public abstract class GameRendererMixin implements AutoCloseable
 			|| minecraft.hitResult == null)
 			return;
 
+		reach.updatePick();
 		HitResult result = minecraft.hitResult;
 		float allowed = result instanceof EntityHitResult
 			? reach.getEntityRange() : reach.getBlockRange();

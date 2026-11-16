@@ -54,6 +54,16 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	
 	private Screen tempCurrentScreen;
 	private boolean hideNextItemUse;
+
+	@Inject(method = "moveTowardsClosestSpace(DD)V", at = @At("HEAD"),
+		cancellable = true)
+	private void epsilon$preventBlockPush(double x, double z, CallbackInfo ci)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if((Object)this == WurstClient.MC.player && hax != null
+			&& hax.antiKnockbackHack.preventsBlockPush())
+			ci.cancel();
+	}
 	
 	public ClientPlayerEntityMixin(WurstClient wurst, ClientLevel world,
 		GameProfile profile)
