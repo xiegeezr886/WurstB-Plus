@@ -357,7 +357,7 @@ public final class ScaffoldWalkHack extends Hack
 	public ScaffoldWalkHack()
 	{
 		super("ScaffoldWalk");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 
 		modes.put(Mode.VANILLA, new SimpleTowerMode(this, Mode.VANILLA));
 		modes.put(Mode.ANTI_GAMING_CHAIR,
@@ -779,6 +779,7 @@ public final class ScaffoldWalkHack extends Hack
     @Override
     public void onRenderGUI(net.minecraft.client.gui.GuiGraphics context, float partialTicks) {
         if(!blockCounter.isChecked() || MC.player == null || MC.level == null) return;
+        if(WURST.getHudManager().isDynamicIslandEnabled()) return;
         net.wurstclient.hud2.nanovg.NanoVGUI.pass(context, () -> island.render(context,
             (MC.getWindow().getGuiScaledWidth() - island.getWidth()) / 2, 20));
     }
@@ -1106,6 +1107,24 @@ public final class ScaffoldWalkHack extends Hack
 				return i;
 		}
 		return -1;
+	}
+
+	/** Counts exactly the stacks available to this Scaffold mode, including predicted usage. */
+	public int getRemainingBlockCount()
+	{
+		if(MC.player == null) return 0;
+		int total = 0;
+		for(int i = 0; i < 9; i++)
+		{
+			ItemStack stack = MC.player.getInventory().getItem(i);
+			if(ScaffoldUtils.isPlaceableStack(stack))
+				total += Math.max(0, realStackSizeMap == null ? stack.getCount()
+					: realStackSizeMap.getOrDefault(i, stack.getCount()));
+		}
+		ItemStack offhand = MC.player.getOffhandItem();
+		if(!isTellyMode() && ScaffoldUtils.isPlaceableStack(offhand))
+			total += offhand.getCount();
+		return total;
 	}
 
     public boolean updateHeldBlockSlot() {

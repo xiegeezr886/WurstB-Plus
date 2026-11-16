@@ -34,7 +34,7 @@ public final class ReachHack extends Hack
 	public ReachHack()
 	{
 		super("Reach");
-		setCategory(Category.OTHER);
+		setCategory(Category.PLAYER);
 		addSetting(entityRange);
 		addSetting(blockRange);
 		addSetting(extraMode);

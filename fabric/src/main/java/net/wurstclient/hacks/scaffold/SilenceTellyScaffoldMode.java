@@ -1236,7 +1236,7 @@ public final class SilenceTellyScaffoldMode implements ScaffoldMode
         if(message.equals(lastDebugMessage) && WurstClient.MC.player.tickCount - lastDebugAge < 8) return;
         lastDebugMessage = message;
         lastDebugAge = WurstClient.MC.player.tickCount;
-        net.wurstclient.util.ChatUtils.message("SilenceTelly | " + message);
+        net.wurstclient.util.ChatUtils.message("SilenceTelly | %s", message);
     }
 
 	private float randomFloat(float min, float max)

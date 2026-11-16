@@ -32,7 +32,7 @@ public final class BaritoneClearAreaHack extends Hack
 	public BaritoneClearAreaHack()
 	{
 		super("BaritoneClearArea");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 	}
 
 	@Override

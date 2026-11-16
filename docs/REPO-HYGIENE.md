@@ -39,9 +39,11 @@
 
 > **目录分类说明**
 >
-> - [`reference/clients/`](../reference/clients) —— 行为对照用的客户端源码集（OpenEpsilon、
->   OpenOpal、OpenZen、OpenMyau、OpenVape、Rise），索引见
->   [clients/README.md](../reference/clients/README.md)。
+> - [`reference/clients/`](../reference/clients) —— 行为对照用的客户端源码与反编译材料：
+>   7 个 GitHub 浅克隆（Rise、NeoRaven、moon-rebase、OpaiBounce、OpenOpal、Epsilon、
+>   LeavesHack）、2 个用户包（LiquidBounce Nextgen、SoarClient 7.1.2）、以及 JelloBounce /
+>   RedFix / Solstice 的反编译与修复产物。完整来源、提交与许可见
+>   [clients/README.md](../reference/clients/README.md)（借物表）。
 > - `reference/upstream-sources/FatalityClickGui/` —— **fatality.win 风格的 ClickGUI
 >   独立组件库**：31 个 `Fa*.java`（3,645 行）+ `fa_model.fsh` + 4 个字体，
 >   **无构建文件**，按仓库自带 README 的接入指南使用。它是本项目 GUI 的参考实现。
@@ -68,15 +70,32 @@
 | `reference/clients/OpenOpal/` | [ZSZ7/OpenOpal](https://github.com/ZSZ7/OpenOpal/tree/main) | `LICENSE`：GPLv3 正文；另有 `THIRD_PARTY_NOTICES.md` | 可重新克隆；删除前保存自行修改 |
 | `reference/clients/Epsilon/` | [NekoyaHouse/Epsilon](https://github.com/NekoyaHouse/Epsilon) | `LICENSE`：GPLv3 正文；另有 `NOTICE.md` 第三方声明 | 可重新克隆；删除前保存自行修改 |
 | `reference/clients/LeavesHack/` | [MrBZBZ/LeavesHack](https://github.com/MrBZBZ/LeavesHack) | `LICENSE`：AGPLv3 正文 | 可重新克隆；删除前保存自行修改 |
+| `reference/clients/LiquidBounce-Nextgen-main/` | 用户提供的 LiquidBounce Nextgen 0.38.0 源码包 | `LICENSE`：GPLv3 正文 | 可重新获取；删除前保存自行修改 |
+| `reference/clients/SoarClient-7.1.2-Full/` | 用户提供的 SoarClient 7.1.2 Full 包（客户端 + 源码，MC 1.8.9） | `source/legacy-src/LICENSE`：LGPL-3.0 正文 | 可从原始下载包重新复制；删除前保存自行修改 |
 
-上表仅记录仓库提供的许可证文件，不替代其中各第三方代码与资源的许可声明。
+上表仅记录仓库/压缩包提供的许可证文件，不替代其中各第三方代码与资源的许可声明。
 
-同日另复制了用户提供的本地压缩包，原始下载文件保留，SHA-256 校验一致。
-来源路径、字节数及校验值见本地 `reference/clients/README.md`。
+### 同日新增：反编译与修复材料
 
-| 本地路径 | 来源 | 许可状态 | 可否删除 |
+以下目录均为**只读参考**，不进入构建产物；除 JelloBounce 主题（GPL-3.0）外，
+其余上游未在本目录内提供许可声明，**不得直接复制**。
+
+| 本地路径 | 是什么 | 许可状态 | 可否删除 |
 | --- | --- | --- | --- |
-| `reference/clients/SoarClient-Custom/(11-6)SoarClient Custom.zip` | 用户 Downloads 目录中的同名 ZIP | 仅保存原包，未核对内部许可证 | 可从原始下载文件重新复制 |
+| `reference/clients/jellobounce-decompiled/` | LiquidBounce Web 主题 JelloBounce 的反编译/重建（含 `theme/`、`verification/`） | GPL-3.0（LiquidBounce 主题） | 可重跑反编译；删除前保存 `theme/` 改动 |
+| `reference/clients/dist/` | JelloBounce 生产构建 `dist.zip` 的解包（对比基线） | GPL-3.0 | 可从原始 `dist.zip` 重新解包 |
+| `reference/clients/tools/` | JelloBounce CSS/JS diff 脚本（项目自建） | 项目内工具 | 可重写；删除前确认无引用 |
+| `reference/clients/RedFix-decompiled/` | RedFix HvH 26.2（LiquidBounce 0.40.0 二次品牌化）反编译源码 | 上游 GPL-3.0；RedFix 未附许可 | 可重跑反编译（需原 jar） |
+| `reference/clients/RedFix-repaired/` | 上述反编译工程的可构建修复版 | 同上 | 可重建；删除前保存修复改动 |
+| `reference/clients/Solstice-decompiled/` | Solstice 基岩版原生 C++ DLL（1.21.111.1）反编译 | **未声明许可** | 可重跑 Ghidra；删除前保存命名脚本 |
+
+另存有 4 个压缩包（`jellobounce-decompiled.zip`、`RedFix-decompiled-src.zip`、
+`RedFix-repaired-project.zip`、`RedFix.HvH-client-26.2-decompiled.zip`）与 2 个 CSS 分组
+JSON 中间结果；体积与内容见 [clients/README.md](../reference/clients/README.md) 第四节。
+
+> 旧记录中的 `reference/clients/SoarClient-Custom/(11-6)SoarClient Custom.zip`
+> （212,459,153 字节，SHA-256 `463188B3…A153B`）目前不在该目录；`SoarClient-7.1.2-Full/`
+> 是同一来源的完整包整理结果，原始来源信息保留在 `clients/README.md`。
 
 ---
 

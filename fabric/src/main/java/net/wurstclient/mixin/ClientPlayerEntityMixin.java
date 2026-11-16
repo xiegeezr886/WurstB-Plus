@@ -301,6 +301,7 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		HackList hax = WurstClient.INSTANCE.getHax();
 		return super.isStayingOnGroundSurface()
 			|| hax != null && (hax.safeWalkHack.shouldClipEdges()
+				|| hax.printerHack.shouldSafeWalk()
 				|| hax.scaffoldWalkHack.shouldSafeWalk());
 	}
 	

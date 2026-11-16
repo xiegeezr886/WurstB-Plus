@@ -177,6 +177,16 @@ tasks.register('allJar', Jar) {
     from("../../baritone-maven/baritone/baritone-forge/1.20.0-26.3/baritone-forge-1.20.0-26.3.jar") {
         into "META-INF/jarjar"
     }
+    // Forge 66 no longer exposes the MixinExtras library jar to FML's jar-in-jar
+    // locator, so bundle it ourselves; without it every @WrapOperation mixin
+    // fails with ClassMetadataNotFoundException at startup.
+    from({
+        configurations.runtimeClasspath.files.findAll {
+            it.name.startsWith('mixinextras-forge-')
+        }
+    }) {
+        into "META-INF/jarjar"
+    }
     exclude 'net/minecraft/**', 'net/minecraftforge/**'
     exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'module-info.class'
 }

@@ -11,6 +11,7 @@ import java.awt.Color;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 
+import net.wurstclient.WurstClient;
 import net.wurstclient.hud2.nanovg.HudFonts;
 import net.wurstclient.hud2.nanovg.HudIcon;
 import net.wurstclient.hud2.nanovg.NanoVGContext;
@@ -36,6 +37,15 @@ public final class HudNotificationRenderer
 	private long lastFrameNanos;
 
 	public HudNotificationRenderer() {}
+
+	public void clear()
+	{
+		synchronized(active)
+		{
+			active.clear();
+			lastFrameNanos = 0;
+		}
+	}
 
 	public void addNotification(String title, String message,
 		NotificationSeverity severity)
@@ -79,18 +89,14 @@ public final class HudNotificationRenderer
 		float cardHeight = CARD_HEIGHT * scale;
 		int iconArgb = severityColor(NotificationSeverity.INFO);
 
-		nvg.drawShadow(x + 2 * scale, y + 3 * scale, cardWidth, cardHeight,
-			6 * scale);
-		nvg.drawGradientRoundedRect(x, y, cardWidth, cardHeight, 6 * scale,
-			new Color(0xBC000000, true), new Color(0xA0000000, true));
-		nvg.drawOutlineRoundedRect(x, y, cardWidth, cardHeight, 6 * scale,
-			1 * scale, new Color(0x24FFFFFF, true));
+		drawBackground(nvg, x, y, cardWidth, cardHeight, scale);
 		nvg.drawText(HudIcon.INFO, x + 11 * scale, y + 8 * scale,
 			17 * scale, HudFonts.ICON, new Color(iconArgb, true));
-		nvg.drawText("Notifications", x + 34 * scale, y + 6 * scale,
-			9.5F * scale, HudFonts.MEDIUM, Color.WHITE);
-		nvg.drawText("HUD notification preview", x + 34 * scale,
-			y + 20 * scale, 8 * scale, HudFonts.REGULAR,
+		nvg.drawText(WurstClient.INSTANCE.translate("hud.notification.preview_title"),
+			x + 34 * scale, y + 6 * scale, 9.5F * scale, HudFonts.MEDIUM,
+			Color.WHITE);
+		nvg.drawText(WurstClient.INSTANCE.translate("hud.notification.preview_message"),
+			x + 34 * scale, y + 20 * scale, 8 * scale, HudFonts.REGULAR,
 			new Color(0xFFD0D0D0));
 		return cardHeight;
 	}
@@ -172,13 +178,12 @@ public final class HudNotificationRenderer
 		int alpha = Math.round(255 * visibility);
 		int iconArgb = withAlpha(severityColor(entry.severity), alpha);
 
-		nvg.drawShadow(cardX + 2 * scale, cardY + 3 * scale, cardWidth,
-			cardHeight, 6 * scale);
-		nvg.drawGradientRoundedRect(cardX, cardY, cardWidth, cardHeight,
-			6 * scale, toColor(withAlpha(0xBC000000, alpha)),
-			toColor(withAlpha(0xA0000000, alpha)));
-		nvg.drawOutlineRoundedRect(cardX, cardY, cardWidth, cardHeight,
-			6 * scale, 1 * scale, toColor(withAlpha(0x24FFFFFF, alpha)));
+		nvg.save();
+		try
+		{
+			nvg.setAlpha(visibility);
+			drawBackground(nvg, cardX, cardY, cardWidth, cardHeight, scale);
+		}finally {nvg.restore();}
 
 		// Severity glyph, like Soar's notification icon.
 		nvg.drawText(iconFor(entry.severity), cardX + 11 * scale,
@@ -195,6 +200,24 @@ public final class HudNotificationRenderer
 			HudFonts.MEDIUM, toColor(withAlpha(0xFFFFFFFF, alpha)));
 		nvg.drawText(message, textX, cardY + 20 * scale, 8 * scale,
 			HudFonts.REGULAR, toColor(withAlpha(0xFFD0D0D0, alpha)));
+	}
+
+	private static void drawBackground(NanoVGContext nvg, float x, float y,
+		float width, float height, float scale)
+	{
+		float radius = HUDMod.backgroundRadius(width / scale, height / scale)
+			* scale;
+		if(HUDMod.getTheme() == HudTheme.RISE_GLASS)
+		{
+			HUDMod.drawGlassBackground(nvg, x, y, width, height, radius,
+				scale, 0);
+			return;
+		}
+		nvg.drawShadow(x + 2 * scale, y + 3 * scale, width, height, radius);
+		nvg.drawGradientRoundedRect(x, y, width, height, radius,
+			new Color(0xBC000000, true), new Color(0xA0000000, true));
+		nvg.drawOutlineRoundedRect(x, y, width, height, radius,
+			scale, new Color(0x24FFFFFF, true));
 	}
 
 	private float frameDelta(long now)
@@ -248,13 +271,15 @@ public final class HudNotificationRenderer
 
 	private static int severityColor(NotificationSeverity severity)
 	{
+		if(severity == NotificationSeverity.INFO)
+			return HUDMod.accentColor(255);
 		try
 		{
 			return 0xFF000000 | Color.decode(severity.getColorHex()).getRGB()
 				& 0xFFFFFF;
 		}catch(NumberFormatException e)
 		{
-			return 0xFF4677FF;
+			return HUDMod.accentColor(255);
 		}
 	}
 

@@ -81,8 +81,26 @@ public final class NanoVGUI
 		passTo(graphics, WurstClient.MC.getMainRenderTarget(), body);
 	}
 
+	/** Supersamples only this screen pass; the world and regular HUD retain their resolution. */
+	public static void passSmooth(GuiGraphics graphics, Runnable body)
+	{
+		if(WurstClient.MC == null) return;
+		passTo(graphics, WurstClient.MC.getMainRenderTarget(), body, 1.5F);
+	}
+
+	/** Supersampled GUI content for temporary transition layers. */
+	public static void passSmoothTo(GuiGraphics graphics, RenderTarget target, Runnable body)
+	{
+		passTo(graphics, target, body, 1.5F);
+	}
+
 	/** Draws the same GUI primitives into an offscreen post-processing mask. */
 	public static void passTo(GuiGraphics graphics, RenderTarget target, Runnable body)
+	{
+		passTo(graphics, target, body, 1);
+	}
+
+	private static void passTo(GuiGraphics graphics, RenderTarget target, Runnable body, float sampling)
 	{
 		// Krypton/GLES wrappers corrupt the framebuffer when NanoVG renders
 		// a screen pass; skip the pass entirely there so vanilla screens
@@ -105,7 +123,7 @@ public final class NanoVGUI
 
 		try(GlStateGuard ignored = GlStateGuard.capture())
 		{
-			if(!NVG.beginFrame())
+			if(!NVG.beginFrame(sampling))
 				return;
 
 			active = true;
@@ -498,23 +516,20 @@ public final class NanoVGUI
 		if(text == null || text.isEmpty() || maxWidth <= 0)
 			return "";
 
-		StringBuilder out = new StringBuilder();
-		float total = 0;
-		for(int i = 0; i < text.length(); i++)
+		if(width(text, size) <= maxWidth) return text;
+		// Measure complete prefixes: summing glyph ink bounds loses spaces,
+		// bearings and kerning, and requires one native call per character.
+		int low = 0, high = text.codePointCount(0, text.length());
+		while(low < high)
 		{
-			char c = text.charAt(i);
-			if(c == '\u00a7' && i + 1 < text.length())
-			{
-				out.append(c).append(text.charAt(++i));
-				continue;
-			}
-			float charWidth = NVG.getTextWidth(String.valueOf(c), size, FONT);
-			if(total + charWidth > maxWidth)
-				break;
-			out.append(c);
-			total += charWidth;
+			int middle = (low + high + 1) / 2;
+			int end = text.offsetByCodePoints(0, middle);
+			if(width(text.substring(0, end), size) <= maxWidth) low = middle;
+			else high = middle - 1;
 		}
-		return out.toString();
+		int end = text.offsetByCodePoints(0, low);
+		if(end > 0 && text.charAt(end - 1) == '\u00a7') end--;
+		return text.substring(0, end);
 	}
 
 	public static String substrByWidth(String text, float maxWidth, float size)

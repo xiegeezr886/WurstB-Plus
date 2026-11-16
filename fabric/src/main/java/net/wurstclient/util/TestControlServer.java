@@ -641,7 +641,8 @@ public final class TestControlServer
 			if(WurstClient.MC.player == null)
 				return "{\"ok\":false,\"error\":\"no player\"}";
 			var player = WurstClient.MC.player;
-			return "{\"ok\":true,\"x\":" + player.getX() + ",\"y\":"
+			return "{\"ok\":true,\"fps\":" + WurstClient.MC.getFps()
+				+ ",\"x\":" + player.getX() + ",\"y\":"
 				+ player.getY() + ",\"z\":" + player.getZ() + ",\"yaw\":"
 				+ player.getYRot() + ",\"pitch\":" + player.getXRot()
 				+ ",\"onGround\":" + player.onGround() + ",\"selected\":"
@@ -657,6 +658,10 @@ public final class TestControlServer
 				+ ",\"fallDistance\":" + player.fallDistance
 				+ ",\"horizontalCollision\":" + player.horizontalCollision
 				+ ",\"tickCount\":" + player.tickCount
+				+ ",\"destroying\":" + (WurstClient.MC.gameMode != null
+					&& WurstClient.MC.gameMode.isDestroying())
+				+ ",\"destroyProgress\":" + (WurstClient.MC.gameMode == null ? 0
+					: ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)WurstClient.MC.gameMode).getDestroyProgress())
 				+ ",\"paused\":" + WurstClient.MC.isPaused()
 				+ ",\"screen\":" + (WurstClient.MC.screen == null ? "null"
 					: "\"" + escape(
@@ -845,6 +850,43 @@ public final class TestControlServer
 				return "{\"ok\":false,\"error\":\"no minecraft\"}";
 			switch(name)
 			{
+				case "title":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.TitleScreen());
+				break;
+				case "current":
+				break;
+				case "click":
+				if(WurstClient.MC.screen != null)
+				{
+					double x = Double.parseDouble(query.getOrDefault("x", "0"));
+					double y = Double.parseDouble(query.getOrDefault("y", "0"));
+					WurstClient.MC.screen.mouseClicked(x, y, 0);
+					WurstClient.MC.screen.mouseReleased(x, y, 0);
+				}
+				break;
+				case "scroll":
+				if(WurstClient.MC.screen != null)
+					WurstClient.MC.screen.mouseScrolled(
+						Double.parseDouble(query.getOrDefault("x", "0")),
+						Double.parseDouble(query.getOrDefault("y", "0")),
+						Double.parseDouble(query.getOrDefault("delta", "0")));
+				break;
+				case "key":
+				if(WurstClient.MC.screen != null)
+					WurstClient.MC.screen.keyPressed(Integer.parseInt(query.getOrDefault("key", "256")), 0, 0);
+				break;
+				case "singleplayer":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.worldselection.SelectWorldScreen(
+					new net.minecraft.client.gui.screens.TitleScreen()));
+				break;
+				case "multiplayer":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen(
+					new net.minecraft.client.gui.screens.TitleScreen()));
+				break;
+				case "accounts":
+				WurstClient.MC.setScreen(new net.wurstclient.altmanager.screens.AltManagerScreen(
+					new net.minecraft.client.gui.screens.TitleScreen(), WurstClient.INSTANCE.getAltManager()));
+				break;
 				case "pause":
 				WurstClient.MC.setScreen(
 					new net.minecraft.client.gui.screens.PauseScreen(true));
@@ -854,10 +896,19 @@ public final class TestControlServer
 				WurstClient.MC.setScreen(null);
 				break;
 
+				case "close":
+					// Exercise the screen lifecycle, including any pending exit animation.
+					if(WurstClient.MC.screen != null) WurstClient.MC.screen.onClose();
+					break;
+
 				default:
 				return "{\"ok\":false,\"error\":\"unknown screen\"}";
 			}
-			return "{\"ok\":true}";
+			var screen = WurstClient.MC.screen;
+			return "{\"ok\":true,\"screen\":\""
+				+ (screen == null ? "none" : escape(screen.getClass().getSimpleName()))
+				+ "\",\"width\":" + (screen == null ? 0 : screen.width)
+				+ ",\"height\":" + (screen == null ? 0 : screen.height) + "}";
 		});
 		send(exchange, 200, "application/json", result);
 	}

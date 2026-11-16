@@ -37,10 +37,10 @@ final class NavigatorInteractionTest
 	}
 
 	@Test
-	void originalNavigatorCategoriesKeepTheirOrder()
+	void redFixCategoriesKeepHudAndInterfaceAccessible()
 	{
-		assertEquals(List.of("搜索", "方块", "移动", "战斗", "渲染", "聊天",
-			"娱乐", "物品", "其他", "HUD", "界面"),
+		assertEquals(List.of("搜索", "战斗", "玩家", "移动", "渲染", "世界",
+			"其他", "漏洞", "娱乐", "HUD", "界面"),
 			java.util.Arrays.stream(NavigatorCategory.values()).map(NavigatorCategory::label).toList());
 	}
 

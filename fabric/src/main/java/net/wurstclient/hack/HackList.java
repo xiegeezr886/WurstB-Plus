@@ -27,6 +27,9 @@ import net.wurstclient.util.json.JsonException;
 
 public final class HackList implements UpdateListener
 {
+	public final GlobalSettingHack globalSettingHack = new GlobalSettingHack();
+	public final FriendsManagerHack friendsManagerHack = new FriendsManagerHack();
+	public final ModuleListHack moduleListHack = new ModuleListHack();
 	public final CollisionsHack collisionsHack = new CollisionsHack();
 	public final NoMiningTraceHack noMiningTraceHack = new NoMiningTraceHack();
 	public final GhostHandHack ghostHandHack = new GhostHandHack();

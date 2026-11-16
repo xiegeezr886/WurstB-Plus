@@ -38,7 +38,7 @@ public final class BaritoneTreeBotHack extends Hack implements UpdateListener
 	public BaritoneTreeBotHack()
 	{
 		super("BaritoneTreeBot");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(range);
 		addSetting(replant);
 	}

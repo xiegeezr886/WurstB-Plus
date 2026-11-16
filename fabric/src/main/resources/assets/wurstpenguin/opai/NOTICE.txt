@@ -1,4 +1,4 @@
-OpaiBounce ClickGUI adaptation for WurstB+ Plus v1.5.2
+OpaiBounce ClickGUI and Dynamic Island adaptations for WurstB+ Plus v1.5.2
 
 Reference: https://github.com/snmwdd/OpaiBounce
 Pinned commit: 6a6bc99 (see reference/clients/v1.5.2-sources.json).
@@ -8,6 +8,15 @@ are adapted from src/routes/clickgui/{Panel,Module,Description}.svelte,
 src/opai/{OpaiSetting,Reveal}.svelte, motion.ts and opai.scss.
 The adaptation uses Wurst's existing categories, settings, actions and NanoVG
 renderer. It retains the existing MiSans fonts and does not bundle Opai media.
+
+Dynamic Island geometry, activity priority, notification queue, toggle animation,
+block telemetry and damped spring are adapted from src/opai/Island.svelte,
+IslandNoticeIcon.svelte, ChestIsland.svelte, SlotRipple.svelte, blockStats.ts
+and motion.ts. Container quick-move behavior follows script/OpaiBounceScript.js.
+The Java HUD uses local Minecraft state and the existing NanoVG/item cache.
+
+wurst-logo.png is derived from the Wurst logo supplied by the user on
+2026-11-14 (626FB848-0DFC-4DC6-B99F-EEBCC4BCB2B2.png), not from OpaiBounce.
 
 Upstream attribution includes CCBlueX and contributors (LiquidBounce),
 Opai / StylesFoundation, Samsara contributors and Jon_awa.
