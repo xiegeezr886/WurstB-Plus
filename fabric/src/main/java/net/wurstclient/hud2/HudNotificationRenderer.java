@@ -207,6 +207,7 @@ public final class HudNotificationRenderer
 	{
 		float radius = HUDMod.backgroundRadius(width / scale, height / scale)
 			* scale;
+		HUDMod.drawMoonGlow(nvg, x, y, width, height, radius, scale);
 		if(HUDMod.getTheme() == HudTheme.RISE_GLASS)
 		{
 			HUDMod.drawGlassBackground(nvg, x, y, width, height, radius,

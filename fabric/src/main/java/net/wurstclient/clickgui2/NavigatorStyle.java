@@ -6,11 +6,15 @@ import org.lwjgl.nanovg.NanoVG;
 import org.lwjgl.system.MemoryStack;
 
 /** Opai palette with a translucent category sidebar and solid module area. */
-final class NavigatorStyle
+public final class NavigatorStyle
 {
-    static final int BACKGROUND = 0xFF000000 | (OpaiStyle.BODY & 0xFFFFFF);
-    static final int SIDEBAR = (OpaiStyle.BODY & 0xFF000000) | (OpaiStyle.HEADER & 0xFFFFFF);
-    static final int CARD = 0x32000000 | (OpaiStyle.SETTINGS & 0xFFFFFF);
+    public static final float WINDOW_RADIUS = 12, CARD_RADIUS = 3;
+    public static final int BACKGROUND = 0xFF000000 | (OpaiStyle.BODY & 0xFFFFFF);
+    public static final int SIDEBAR = (OpaiStyle.BODY & 0xFF000000) | (OpaiStyle.HEADER & 0xFFFFFF);
+    public static final int CARD = 0x32000000 | (OpaiStyle.SETTINGS & 0xFFFFFF);
+    public static final int TEXT = OpaiStyle.TEXT, MUTED = OpaiStyle.MUTED;
+    public static final int FIELD = OpaiStyle.FIELD, ACCENT = OpaiStyle.ACCENT, INK = OpaiStyle.INK;
+    public static final int SETTINGS = OpaiStyle.SETTINGS, TRACK = OpaiStyle.TRACK, OPTION = OpaiStyle.OPTION;
     static final int AMBIENT = 0x01000000 | (OpaiStyle.ACCENT & 0xFFFFFF);
     static final int VALUE_TEXT = 0xDC000000 | (OpaiStyle.TEXT & 0xFFFFFF);
     static final int LABEL = 0xC8000000 | (OpaiStyle.MUTED & 0xFFFFFF);
@@ -53,7 +57,7 @@ final class NavigatorStyle
     }
 
     /** Keep the shadow outside the window so it cannot darken translucent panels. */
-    static void outerShadow(int layers, float x, float y, float width,
+    public static void outerShadow(int layers, float x, float y, float width,
         float height, float strength, float radius, float cutoutRadius)
     {
         var context = NanoVGUI.context();

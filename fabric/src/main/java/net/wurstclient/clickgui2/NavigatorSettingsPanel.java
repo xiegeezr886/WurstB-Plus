@@ -123,6 +123,7 @@ final class NavigatorSettingsPanel extends Window
 				if(component != child && component instanceof NavigatorValueComponent value)
 					value.blur();
 			child.handleMouseClick(x, y, button);
+            net.wurstclient.neoraven.RavenUiSound.click();
 			return true;
 		}
 		return false;

@@ -162,13 +162,7 @@ public final class WurstTitleMenu
             NanoVGUI.push();
             NanoVGUI.context().setAlpha(chromeAlpha);
             float logoHeight = Math.min(40, layout.size());
-            // White contour glow stays visible against the lavender wallpaper.
-            // Two blur radii are baked into one texture; no per-frame blur pass.
-            float glowPadding = logoHeight * .2F;
-            NanoVGUI.image(LOGO_GLOW, margin - glowPadding, margin - glowPadding,
-                logoHeight * 1.5F + 2 * glowPadding, logoHeight + 2 * glowPadding,
-                0, 0xE6FFFFFF);
-            NanoVGUI.image(LOGO, margin, margin, logoHeight * 1.5F, logoHeight, 0, 0xFFFFFFFF);
+            ClientLogo.draw(NanoVGUI.context(), margin, margin, logoHeight);
             String user = NanoVGUI.plainSubstrByWidth(minecraft.getUser().getName(),
                 Math.max(0, width / 2F - account.getWidth() - margin * 2), 9);
             NanoVGUI.text(user, account.getX() - 8 - NanoVGUI.width(user, 9),

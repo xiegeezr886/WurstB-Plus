@@ -6,6 +6,8 @@
 package net.wurstclient.hud2.mods;
 
 import java.awt.Color;
+import net.wurstclient.neoraven.music.*;
+import net.minecraft.client.gui.screens.ChatScreen;
 import java.util.LinkedHashMap;
 
 import org.lwjgl.nanovg.NanoVG;
@@ -313,7 +315,11 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 			ping = HudCompat.ping() + " ms";
 			nextInfoUpdate = now + 250;
 		}
-		Kind kind = isEditing() ? Kind.IDLE : state.kind(chestRows > 0, breaking, scaffold);
+        MusicManager music = MusicManager.get();
+        music.observePlayback();
+        boolean musicVisible = music.current() != null && (music.isLoadingTrack()
+            || music.isPlaying() || !music.pausedFor(10000) || MC.screen instanceof ChatScreen);
+        Kind kind = isEditing() ? Kind.IDLE : state.kind(chestRows > 0, breaking, scaffold, musicVisible);
 		boolean changed = kind != previousKind;
 		if(changed)
 		{
@@ -332,7 +338,11 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 			+ 12 + 3.5F + measure(user, 8) + 12 + 12 + 1 + measure(ping, 8)
 			+ measure(to + connection, 8) + 12 + 12 + 3.5F + measure(fps, 8) + 12.5F;
 		float targetWidth = idleWidth, targetHeight = 23;
-		if(kind == Kind.NOTICE)
+        boolean expandedMusic = MC.screen instanceof ChatScreen;
+        if(kind == Kind.MUSIC) {
+            targetWidth = expandedMusic ? 296 : 240;
+            targetHeight = expandedMusic ? 100 : 48;
+        } else if(kind == Kind.NOTICE)
 		{
 			targetWidth = 100;
 			for(Notice notice : state.notices())
@@ -390,6 +400,7 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 				height * getScale(), getScale(), chestRows, now);
 		switch(kind)
 		{
+			case MUSIC -> drawMusic(left, targetWidth, expandedMusic);
 			case IDLE -> drawIdle(left, user, connection);
 			case NOTICE -> drawNotices(left, targetWidth, now, visibility * (changedAt == 0 ? 1 : fade));
 			case SCAFFOLD -> drawActivity(left, targetWidth, true, now);
@@ -398,6 +409,67 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		}
 		restore();
 	}
+
+    private String musicLyric = "", oldMusicLyric = "";
+    private long musicLyricAt;
+    private void drawMusic(float left, float width, boolean expanded) {
+        MusicManager music = MusicManager.get();
+        Song song = music.current();
+        if(song == null) return;
+        float artSize = expanded ? 34 : 28;
+        drawRoundedRect(left+9, 8, artSize, artSize, 8, new Color(0xFF343044,true));
+        var art = CoverCache.get(song.cover(96));
+        if(art != null) nvg.drawRoundedImage(MC.getTextureManager().getTexture(art).getId(),
+            getX()+(left+9)*getScale(), getY()+8*getScale(), artSize*getScale(), artSize*getScale(),8*getScale(),1);
+        else icon(HudIcon.MUSIC, left+9+artSize/2, 8+artSize/2, 16, ACCENT);
+        float tx = left+artSize+17;
+        text(fit(song.name, 10, width-artSize-50), tx, 15, 10, TEXT);
+        String next = MusicView.lyric();
+        long time = now();
+        if(!next.equals(musicLyric)) { oldMusicLyric = musicLyric; musicLyric=next; musicLyricAt=time; }
+        float fade = Math.min(1,(time-musicLyricAt)/240F);
+        if(fade<1) text(fit(oldMusicLyric,8,width-artSize-48),tx,30-fade*4,8,new Color(228,225,230,(int)((1-fade)*180)));
+        text(fit(musicLyric,8,width-artSize-48),tx,30+(1-fade)*4,8,new Color(228,225,230,(int)(fade*180)));
+        // RMS bars reflect decoded PCM, rather than an unrelated looping animation.
+        for(int i=0;i<3;i++) {
+            float bar=3+Math.min(12,music.engine().level()*65)*(i==1?1:.65F);
+            drawRoundedRect(left+width-20+i*4,22-bar/2,2,bar,1,ACCENT);
+        }
+        float progressY = expanded ? 53 : 41;
+        drawRoundedRect(left+10,progressY,width-20,2,1,new Color(0xFF44414E,true));
+        drawRoundedRect(left+10,progressY,(width-20)*MusicView.progress(),2,1,ACCENT);
+        if(expanded) {
+            text(MusicView.time(music.positionMs()),left+10,65,8,TEXT);
+            text(MusicView.time(music.durationMs()),left+width-35,65,8,TEXT);
+            text(music.repeat()==MusicManager.Repeat.ONE ? "单曲" : music.repeat()==MusicManager.Repeat.ALL ? "循环" : "顺序",left+15,83,8,ACCENT);
+            icon(HudIcon.BACK,left+width/2-42,81,14,TEXT);
+            drawRoundedRect(left+width/2-13,68,26,26,13,new Color(0x334F4B72,true));
+            icon(music.isPlaying()?HudIcon.PAUSE:HudIcon.PLAY,left+width/2,81,15,TEXT);
+            icon(HudIcon.FORWARD,left+width/2+42,81,14,TEXT);
+            icon(HudIcon.EXTERNAL_LINK,left+width-24,81,13,TEXT);
+        }
+    }
+
+    /** Chat supplies a cursor; normal gameplay and the HUD editor never consume music clicks. */
+    public boolean clickMusic(double mx, double my, int button) {
+        if(button != 0 || !isEnabled() || isEditing() || !(MC.screen instanceof ChatScreen)
+            || previousKind != Kind.MUSIC || visibility < .95F || MC.options.keyPlayerList.isDown()
+            || now()-changedAt < 200 || getUnscaledHeight()<95) return false;
+        float x=(float)(mx-getX())/getScale(), y=(float)(my-getY())/getScale();
+        float width=Math.min(296,getWidth()/getScale());
+        if(x<0 || x>width || y<0 || y>100) return false;
+        MusicManager music=MusicManager.get();
+        if(y>=47 && y<=61 && x>=10 && x<=width-10)
+            music.seek((long)(music.durationMs()*(x-10)/(width-20)));
+        else if(y>=68) {
+            if(x<50) music.cycleRepeat();
+            else if(Math.abs(x-(width/2-42))<18) music.previous();
+            else if(Math.abs(x-width/2)<18) music.togglePlay();
+            else if(Math.abs(x-(width/2+42))<18) music.next();
+            else if(x>width-45) MC.setScreen(new MusicScreen(MC.screen));
+        } else if(x<48) MC.setScreen(new MusicScreen(MC.screen));
+        return true;
+    }
 
 	private float measure(String text, float size)
 	{

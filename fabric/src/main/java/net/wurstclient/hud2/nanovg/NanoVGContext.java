@@ -1459,6 +1459,19 @@ public final class NanoVGContext
 		}
 	}
 
+    /** Release borrowed NanoVG handles before an evicted music texture can be reused by GL. */
+    public void forgetTexture(int texture) {
+        if(vg == 0) return;
+        var iterator = textureImages.entrySet().iterator();
+        while(iterator.hasNext()) {
+            var entry = iterator.next();
+            if((int)(entry.getKey() >>> 32) == texture) {
+                NanoVG.nvgDeleteImage(vg, entry.getValue());
+                iterator.remove();
+            }
+        }
+    }
+
 	private int textureImage(int texture, float width, float height)
 	{
 		if(texture <= 0 || width <= 0 || height <= 0)

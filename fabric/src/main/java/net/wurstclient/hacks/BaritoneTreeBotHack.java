@@ -13,6 +13,7 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.hack.HackConflictGroup;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
@@ -38,6 +39,7 @@ public final class BaritoneTreeBotHack extends Hack implements UpdateListener
 	public BaritoneTreeBotHack()
 	{
 		super("BaritoneTreeBot");
+		addConflictGroup(HackConflictGroup.BARITONE_CONTROL);
 		setCategory(Category.WORLD);
 		addSetting(range);
 		addSetting(replant);

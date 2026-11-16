@@ -270,6 +270,28 @@ public final class TestControlServer
 				handleCommand(exchange, method, query);
 				break;
 
+					case "/music":
+					send(exchange, 200, "application/json", onClientThread(() -> {
+						var music = net.wurstclient.neoraven.music.MusicManager.get();
+						var data = new com.google.gson.JsonObject();
+						data.addProperty("track", music.current() == null ? "" : music.current().name);
+						data.addProperty("playing", music.isPlaying());
+						data.addProperty("loading", music.isLoadingTrack());
+						data.addProperty("positionMs", music.positionMs());
+						data.addProperty("durationMs", music.durationMs());
+						data.addProperty("volume", music.volume());
+						data.addProperty("output", music.activeOutput());
+						data.addProperty("level", music.engine().level());
+						data.addProperty("error", music.playbackError());
+						data.addProperty("audioError", music.engine().error());
+						data.addProperty("searchCount", music.searchResults().size());
+						data.addProperty("searchError", music.searchError());
+						data.addProperty("localCount", music.localTracks().size());
+						data.addProperty("lyrics", music.lyrics().size());
+						data.addProperty("qrState", music.qrState().name());
+						return data.toString();
+					}));
+					break;
 					case "/screen":
 					handleScreen(exchange, method, query);
 					break;
@@ -854,6 +876,54 @@ public final class TestControlServer
 				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.TitleScreen());
 				break;
 				case "current":
+				break;
+				case "music":
+				WurstClient.MC.setScreen(new net.wurstclient.neoraven.music.MusicScreen(WurstClient.MC.screen));
+				break;
+				case "loading-progress":
+				var progress = new net.minecraft.client.gui.screens.ProgressScreen(false);
+				progress.progressStart(net.minecraft.network.chat.Component.translatable("menu.generatingTerrain"));
+				progress.progressStagePercentage(42);
+				WurstClient.MC.setScreen(progress);
+				break;
+				case "loading-terrain":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.ReceivingLevelScreen());
+				break;
+				case "loading-generating":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.LevelLoadingScreen(
+					new net.minecraft.server.level.progress.StoringChunkProgressListener(2)));
+				break;
+				case "loading-status":
+				return "{\"ready\":" + net.wurstclient.neoraven.loading.NeoRavenLoadingShape.ready() + "}";
+				case "seed-create":
+				if(WurstClient.MC.level != null || java.nio.file.Files.exists(WurstClient.MC.gameDirectory.toPath().resolve("saves/seed-mining-qa")))
+					return "{\"ok\":false,\"error\":\"world active or test save exists\"}";
+				WurstClient.MC.createWorldOpenFlows().createFreshLevel("seed-mining-qa",
+					new net.minecraft.world.level.LevelSettings("Seed mining QA", net.minecraft.world.level.GameType.CREATIVE, false,
+						net.minecraft.world.Difficulty.PEACEFUL, true, new net.minecraft.world.level.GameRules(), net.minecraft.world.level.WorldDataConfiguration.DEFAULT),
+					new net.minecraft.world.level.levelgen.WorldOptions(8675309L, true, false), net.minecraft.world.level.levelgen.presets.WorldPresets::createNormalWorldDimensions);
+				break;
+				case "seed-test-result":
+				if(WurstClient.MC.getSingleplayerServer() == null || WurstClient.MC.player == null)
+					return "{\"ok\":false,\"error\":\"integrated test world required\"}";
+				long testSeed = query.containsKey("seed") ? Long.parseLong(query.get("seed")) : WurstClient.MC.getSingleplayerServer().overworld().getSeed();
+				new net.wurstclient.seed.SeedCrackerBridge().pushWorldSeed(testSeed);
+				break;
+				case "seed-status":
+				var seedValue = net.wurstclient.seed.SeedCrackerBridge.SESSION.seed();
+				var seedMine = WurstClient.INSTANCE.getHax().seedMineHack;
+				var predictions = seedMine.predictions();
+				long matching = WurstClient.MC.level == null ? 0 : predictions.stream().filter(p -> WurstClient.MC.level.getBlockState(p.pos()).is(p.block())).count();
+				return "{\"seed\":" + (seedValue.isPresent() ? "\"" + seedValue.getAsLong() + "\"" : "null")
+					+ ",\"status\":\"" + escape(seedMine.status()) + "\",\"predictions\":" + predictions.size() + ",\"matching\":" + matching
+					+ ",\"pathing\":" + BaritoneUtils.isPathing() + ",\"collector\":" + kaptainwutax.seedcrackerX.config.Config.get().active + "}";
+				case "chat":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.ChatScreen(""));
+				break;
+				case "text":
+				if(WurstClient.MC.screen != null)
+					for(char c : query.getOrDefault("text", "").toCharArray())
+						WurstClient.MC.screen.charTyped(c, 0);
 				break;
 				case "click":
 				if(WurstClient.MC.screen != null)

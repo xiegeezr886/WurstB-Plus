@@ -30,6 +30,8 @@ public abstract class HUDMod extends Feature
 	private static final int ACCENT_RGB = 0xB5BEF0;
 	private static HudTheme theme = HudTheme.NORMAL;
 	private static final HudGlassBackground GLASS = new HudGlassBackground();
+	private static final net.wurstclient.hud2.target.MoonHudGlow MOON_GLOW =
+		new net.wurstclient.hud2.target.MoonHudGlow();
 	private static final int[] LEGACY_COLORS = {0x000000, 0x0000AA,
 		0x00AA00, 0x00AAAA, 0xAA0000, 0xAA00AA, 0xFFAA00, 0xAAAAAA,
 		0x555555, 0x5555FF, 0x55FF55, 0x55FFFF, 0xFF5555, 0xFF55FF,
@@ -310,6 +312,7 @@ public abstract class HUDMod extends Feature
 		float w = width * scale;
 		float h = height * scale;
 		radius = backgroundRadius(width, height) * scale;
+		drawMoonGlow(nvg, x, y, w, h, radius, scale);
 
 		int color1 = accentColor(220);
 		int color2 = accentColor2(220);
@@ -393,6 +396,15 @@ public abstract class HUDMod extends Feature
 	public static void closeGlassBackground()
 	{
 		GLASS.close();
+		MOON_GLOW.close();
+	}
+
+	public static void drawMoonGlow(NanoVGContext nvg, float x, float y,
+		float width, float height, float radius, float scale)
+	{
+		var manager = net.wurstclient.WurstClient.INSTANCE.getHudManager();
+		if(manager != null && manager.getSettings().hasMoonGlow())
+			MOON_GLOW.draw(nvg, x, y, width, height, radius, scale);
 	}
 
 	private void drawShadowScreen(float x, float y, float width,

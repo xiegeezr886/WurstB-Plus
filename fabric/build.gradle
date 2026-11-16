@@ -41,6 +41,10 @@ dependencies {
 	// JSR305 (needed for BlockPos @Immutable)
 	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 
+	// NeoRaven music decoder and QR login (bundled for standalone installs).
+	include implementation("com.googlecode.soundlibs:jlayer:1.0.1.4") { transitive = false }
+	include implementation("com.google.zxing:core:3.5.3")
+
 	// Discord support
 	include implementation("org.java-websocket:Java-WebSocket:1.5.3")
 
@@ -57,6 +61,12 @@ dependencies {
 	// still gets the copy nested inside Baritone via the include below.
 	modImplementation "dev.babbaj:nether-pathfinder:1.4.1"
 	include "baritone:baritone-api-fabric:1.10.3"
+
+	// Official SeedCrackerX 2.14.4 (Minecraft 1.20/1.20.1), pinned locally.
+	modImplementation "local.seedfinding:seedcrackerX:2.14.4"
+	include "local.seedfinding:seedcrackerX:2.14.4"
+	// Loom's dev remap does not retain the upstream nested runtime libraries.
+	modImplementation fileTree(dir: "libs/seedcrackerx-deps", include: ["*.jar"])
 
 	// MixinExtras
 	compileOnly "io.github.llamalad7:mixinextras-common:0.5.5"

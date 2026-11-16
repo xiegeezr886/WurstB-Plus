@@ -24,10 +24,14 @@ public final class MusicInfoMod extends HUDMod
 	@Override
 	protected void draw()
 	{
-		drawBackground(160, 34);
-		drawText(WURST.translate("Music"), 6, 4, 9, HudFonts.DEMIBOLD);
-		drawText(WURST.translate("Nothing is playing"), 6, 17, 9, HudFonts.REGULAR,
-			getFontColor(200));
-		setSize(160, 34);
+        var music = net.wurstclient.neoraven.music.MusicManager.get();
+        var song = music.current();
+        if(song == null && !isEditing()) return;
+        drawBackground(190, 38);
+        save(); scissor(5,2,180,34);
+        drawText(song == null ? "音乐播放器" : song.name,6,5,10,HudFonts.DEMIBOLD);
+        drawText(net.wurstclient.neoraven.music.MusicView.lyric(),6,21,8,HudFonts.REGULAR,getFontColor(200));
+        restore();
+        setSize(190,38);
 	}
 }
