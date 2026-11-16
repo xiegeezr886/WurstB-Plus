@@ -1,5 +1,9 @@
 # 第三方组件许可与归属
 
+## SeedCrackerX / OpenSeed
+
+Fabric 1.20.1 内嵌 [SeedCrackerX](https://github.com/19MisterX98/SeedcrackerX) 官方 2.14.4 发布包（MIT），保留其嵌套库及元数据，新增独立结果桥接和 Baritone 联动。普通/散布矿脉重放算法改编自 [kuxiaole/OpenSeed](https://github.com/kuxiaole/OpenSeed) 提交 `3411dd42cbb17cf9e937f872bce7ec0cb19eeccc` 的 OreXrayManager。该公开仓库声明为反编译重建，MIT 只适用于 SeedCrackerX 部分，其额外代码授权未明确，不能宣称整个仓库均为 MIT。原用户提供的 OpenSeed-Crack 地址不可访问，无法确认此镜像的继承关系。随包保留 `META-INF/licenses/seedcrackerx/`、`META-INF/licenses/openseed/` 来源与许可说明；没有引入 OpenSeed 原版 JAR、认证或云端上传功能。详见 [适配说明](docs/SEED-MINING-v1.5.2.md)。
+
 本文件列出 WurstB+ Plus 随包分发或内嵌的第三方组件及其许可情况。
 
 **为什么需要这份文件**：架构审计发现仓库此前**没有任何跟踪的 NOTICE / THIRD-PARTY 文件**，
@@ -353,3 +357,25 @@ Fabric 1.20.1 世界和服务器选择界面的布局、条目及卡片翻转参
 以 Java/NanoVG 适配现有 Minecraft 后端。账户管理器共用列表与翻转动效，三个列表采用中文按钮，
 按钮材质保留客户端原有黑色半透圆角样式，开始菜单采用用户指定的先渐隐再翻转顺序。随包许可及上游 NOTICE 位于
 `META-INF/licenses/opai-menus/`；范围与验证见 [移植说明](docs/MENUS-OPAI-v1.5.2.md)。
+
+## Moon 流转辉光
+
+新增 Logo HUD 的无背景图片布局参考同一 Moon 源码的 `WatermarkHudRenderer.renderLogo()`（Apache-2.0），替换为用户提供的开始菜单图标，保持图片比例。详见 [Logo HUD 说明](docs/LOGO-HUD-MOON-v1.5.2.md)。
+
+HUD 与 PlayerESP / MobESP 的流转着色参考 [moon-rebase](https://github.com/xiaozhuhou233/moon-rebase) 固定提交 `55cd694e898025531de94e61e169ba6eb221f9f3` 的 `FlowingGlow` 和 `flowing_glow.frag`。已将空间/时间着色公式适配为 GLSL 150，并使用当前客户端的 NanoVG 与 Minecraft 模型渲染。Apache-2.0 许可证、文件来源及 SHA-256 位于 `META-INF/licenses/moon-glow/`；具体差异见 [移植记录](docs/MOON-GLOW-v1.5.2.md)。
+
+## Epsilon / NeoRaven 战斗与 Scaffold
+
+Fabric 1.20.1 战斗模块与 Scaffold 适配 [Matr1ze/NeoRaven](https://github.com/Matr1ze/NeoRaven) 和 [NekoyaHouse/Epsilon](https://github.com/NekoyaHouse/Epsilon) 的目标排序、延时轮换、范围分离和攻击冷却行为。上游 GPL-3.0 许可与固定提交信息随包位于 `META-INF/licenses/neoraven/`、`META-INF/licenses/epsilon/`；旧 OpenOpal 转向与特效保留原署名。范围、模块文件映射与差异见 [战斗迁移说明](docs/COMBAT-EPSILON-v1.5.2.md)。
+
+## NeoRaven 音乐播放器
+
+Fabric 1.20.1 音乐播放器改编自 NeoRaven 提交 `1a4ae731837f28087c263763cf176d9ec0261c37`（GPL-3.0），移植音乐管理、网易云接口、歌词与播放逻辑，并适配现有 NanoVG 界面和灵动岛。Material Icons 字体保留 Apache-2.0 许可证。捆绑依赖 JLayer 1.0.1.4（LGPL-2.1-or-later）和 ZXing core 3.5.3（Apache-2.0）；许可证、来源和改动说明分别随包位于 `META-INF/licenses/neoraven/`、`jlayer/`、`zxing/`。未分发音乐录音。详见 [音乐播放器移植说明](docs/MUSIC-NEORAVEN-v1.5.2.md)。
+
+## Opai 歌词 HUD
+
+独立 MusicLyrics HUD 改编自 [snmwdd/OpaiBounce](https://github.com/snmwdd/OpaiBounce) 的 LyricScroller、lyricSlide 和 MusicHud，适配现有播放器与 HUD 编辑器。上游许可证、完整 NOTICE、固定提交与来源哈希随包保留在 `META-INF/licenses/opai-lyrics/`；没有复制音乐服务、字体或录音。详见 [适配说明](docs/MUSIC-LYRICS-OPAI-v1.5.2.md)。
+
+## NeoRaven 世界加载动画
+
+Fabric 1.20.1 的世界加载动画改编自 [Matr1ze/NeoRaven](https://github.com/Matr1ze/NeoRaven) 提交 `1a4ae731837f28087c263763cf176d9ec0261c37` 的 `LoadingOverlay`、`M3LoadingIndicator` 与 `m3_loading.fsh`（GPL-3.0）。保留四种 SDF 形态和动画时序，适配 GLSL 150、现有背景与字体。许可证和改编说明随包位于 `META-INF/licenses/neoraven/`；范围及验证见 [加载动画说明](docs/LOADING-NEORAVEN-v1.5.2.md)。
