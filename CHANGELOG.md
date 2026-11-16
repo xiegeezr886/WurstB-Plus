@@ -3,8 +3,62 @@
 WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖 **23 个 MC 版本（1.20.1–26.3）× Forge / NeoForge / Fabric = 67 个独立 Gradle 工程**；发布资产与下载入口见 [README.md](README.md)。
 
 > **版本分布（重要）**：只有根目录 Forge 1.20.1 工程推进到 **v1.6.0**；
-> 其余 66 个工程的当前源码为 **v1.5.1**；v1.6 的 GUI/音乐/Skia 子系统尚未移植。
+> `fabric/` 的 Minecraft 1.20.1 工程在 `codex/v1.5.2` 分支推进至 **v1.5.2**；其余 65 个工程仍为 **v1.5.1**；v1.6 的 GUI/音乐/Skia 子系统尚未移植。
 > 独立目录 `VAP-v1.5.0-1.20.1` 的根工程另保留 **v1.5.1-Forge-1.20.1**，不计入本仓库的 67 个工程。
+
+---
+
+## v1.5.2 菜单统一与交互完善（2026-11-16，开发分支，未发布）
+
+- 单人、多人和账号管理统一为 Opai 卡片列表；按钮改为中文并沿用客户端原来的黑色半透圆角材质，移除三页顶部大标题。
+- 开始菜单先 240ms 渐隐，再展开 700ms 卡片翻转；从渲染入口跳过原版全景绘制，修复动画交接时闪现原版背景。
+- 三个列表加入圆滑滚动、键盘选择滚入可见区域，以及浅紫横向渐变高亮和选中 / 悬停淡入淡出。
+- 保留世界和服务器的现有操作后端；账号保留登录、添加、收藏、编辑、导入导出、恢复会话和确认流程，扩展操作放入「更多」。
+- 同步本轮累计开发文档：Nextgen 开始菜单、Rise TargetHUD、Soar HUD 主题、Opai 药水效果、RedFix HackList / 分类、Moon CGUI 交互、LeavesHack 模块适配和中文本地化。
+- 验证：Fabric 1.20.1 完整 build 与 85 项测试通过；最终移除标题后 assemble 通过。独立实例检查三个入口 / 返回、服务器编辑、账号添加 / 收藏 / 编辑、滚动和高亮动画。未实际加载测试世界或验证外部服务器、在线认证。
+- 范围及实现细节见 [开发状态](docs/DEVELOPMENT-v1.5.2.md) 与 [菜单说明](docs/MENUS-OPAI-v1.5.2.md)。
+
+---
+
+## v1.5.2 界面文案与 HUD 标签汉化（2026-11-15，源码已改，未发布）
+
+范围仍为 `fabric/`（Minecraft 1.20.1 Fabric，v1.5.2 基线）。
+
+- HUD 模块标签 26 处改为 `WURST.translate(...)`（如 `No armor`、`No boss`、`Nothing is playing`、`Health: %.1f / %.1f`、`Tab list hidden`），中英词典同步补齐。
+- GUI 界面文案：HUD 编辑器标题、Wurst 选项页签（设置/管理/链接）、按键管理器与按键编辑器、配置档、缩放管理、服务器搜索与清理界面、离线/正版账号界面（标题、账号统计、加号按钮、删除提示）、NoChatReports 提示与“可举报”标签，统一走 `WurstClient.tr(...)`（新增静态快捷方法）。
+- 命令 `Syntax:` 前缀改为翻译键；Other Feature / 命令的主操作按钮文案（View Changelog、Export Data、Disable/Enable、Show Statistics、Get Position 等）与 HUD 模块的 `Toggle` 改为翻译键。
+- `PossibleKeybind` 支持可变参数翻译描述（`Toggle %s`、`Check %s`、`Increase %s`、`Set %s to %s`、八种颜色等 17 条），设置面板生成按键提示时自动使用当前语言。
+- 数字：`zh_cn.json` 5335 → 5432（+97），`en_us.json` 733 → 830（+97，含格式串的英文基础条目）。
+- 验证：`compileJava` 与 `clean build` 通过；jar 内 `zh_cn` 5432 键、`en_us` 830 键；抽查界面标签、按键描述、`Syntax: %s`、HUD 标签在两种语言下均正确。
+- 未覆盖：账号编辑器输入框占位文案（`AltEditorScreen`）、个别 Hack 的自定义提示（AdaAutoHotbar、BaritoneMine、ImgTips、ImgWorldStats 等）、部分第三方专名与枚举展示仍保留英文。
+
+---
+
+## v1.5.2 聊天提示与命令提示汉化（2026-11-15，源码已改，未发布）
+
+在上一轮界面/设置汉化的基础上，把游戏内聊天反馈也接入翻译系统；范围仍为 `fabric/`（Minecraft 1.20.1 Fabric，v1.5.2 基线）。
+
+- `ChatUtils.message/warning/error/syntaxError` 现在把英文原文当作翻译键查表（与设置说明同一机制）：字面量消息只需补 `zh_cn.json`，动态消息改成 `%s` 格式串。
+- 82 条动态聊天消息自动改为格式串（如 `"Keybinds loaded: " + name` → `"Keybinds loaded: %s", name`），另有约 10 条复数/`String.format`/三元拼接的提示手工改写（GiveCmd、PathCmd、MacrosCmd、WaypointsCmd、BookBot、ImgTips 图腾计数、GAntiExplosion、GSuperVClip、KnockbackDirection 等）。
+- `WARNING` / `ERROR` / `Syntax error:` 前缀与 HUD 通知标题（Info / Enabled / Disabled）改为翻译键。
+- `CmdError` / `CmdSyntaxError` 新增可变参数构造器；77 条动态命令错误改为格式串，52 条字面量错误通过聊天层自动翻译；命令用法（`getSyntax()`）也进入翻译键。
+- `EnumSetting` 新增 `getTranslatedValueName()`，ClickGUI 下拉框（`ComboBoxComponent` / `ComboBoxPopup`）显示中文枚举值；保存值、`.set` 命令与配置格式保持不变。
+- 新增 `zh_cn.json` 键 768 条（4567 → 5335）：聊天 129、命令错误/用法 136、枚举值 476、聊天前缀与通知标题 6、图腾计数 8、`Total: N xxx` 汇总 6、常量提示（OptiFine / VanillaTweaks）2、中文格式串 5；`en_us.json` 补 238 条（495 → 733）英文基础条目，保证英文与其他语言下 `String.format` 正常。
+- 验证：`fabric` 工程 `compileJava`、`build` 通过；脚本校验 265 条消息键 0 缺失、占位符与 `§` 计数全部一致，476 条枚举值无空值，216 条格式键在 `en_us.json` 中均存在。
+- 未覆盖：`PossibleKeybind` 的按键描述（如 “Toggle Killaura”）与 `getPrimaryAction()` 按钮文案仍为英文；Hypixel 地图、模型 ID 等专有名词按原样保留。
+
+---
+
+## v1.5.2 简体中文本地化（2026-11-15，源码已改，未发布）
+
+范围：`fabric/`（Minecraft 1.20.1 Fabric，v1.5.2 基线）。
+
+- `assets/wurst/translations/zh_cn.json` 由 2636 键扩到 4567 键：补 179 条设置名、34 条 HUD 模块说明、17 条 Other Feature 名称与 16 条说明，并把 1632 条设置说明译成中文。设置说明的英文原文本身就是翻译键（`WText.translated`），因此只加键、不改调用点。
+- v1.5.2 新增界面的残留英文改为翻译键：灵动岛（模块开关通知、搭路/挖掘状态、连接信息）、通知预览卡片、TargetInfo 胜负标签，以及 HUD 兼容层的「单人游戏 / 未连接 / 游戏模式 / 原版资源包」文案；`en_us.json` 同步补 27 条英文，其余语言仍回退到英文。
+- `OtherFeature` 新增 `getRenderName()` 翻译（键 `other_feature.name.*`）；`getName()` 仍是原始名，命令、按键绑定与配置文件格式不受影响。
+- 顺带补齐 10 条此前残留英文的设置名（Invert Y、Compact、Keyboard、Outline、Gap、Thickness、Image、Trail length、Design、Keybind），并将 6 个 Hack 中 28 条用 `WText.literal` 硬编码的设置说明改为 `WText.translated` 翻译键后补上中文。
+- 验证：`fabric` 工程 `compileJava` 与 `build` 通过；覆盖检查确认 433 个 Hack、35 个 HUD 模块、17 个 Other Feature 的名称与说明均有中文键，新增 27 条 UI 键在中英两种语言中都存在，28 条改造后的说明键全部能在 `zh_cn.json` 中解析到。
+- 未覆盖：聊天提示与命令提示已在下一节单独处理。
 
 ---
 
