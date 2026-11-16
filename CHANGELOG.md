@@ -3,8 +3,19 @@
 WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖 **23 个 MC 版本（1.20.1–26.3）× Forge / NeoForge / Fabric = 67 个独立 Gradle 工程**；发布资产与下载入口见 [README.md](README.md)。
 
 > **版本分布（重要）**：只有根目录 Forge 1.20.1 工程推进到 **v1.6.0**；
-> `fabric/` 的 Minecraft 1.20.1 工程在 `codex/v1.5.2` 分支推进至 **v1.5.2**；其余 65 个工程仍为 **v1.5.1**；v1.6 的 GUI/音乐/Skia 子系统尚未移植。
+> `fabric/` 的 Minecraft 1.20.1 工程推进至 **v1.5.2** 并已合并到 `main`；其余 65 个工程仍为 **v1.5.1**；v1.6 的 GUI/音乐/Skia 子系统尚未移植。
 > 独立目录 `VAP-v1.5.0-1.20.1` 的根工程另保留 **v1.5.1-Forge-1.20.1**，不计入本仓库的 67 个工程。
+
+---
+
+## v1.5.2 资源、SeedCrackerX 与 Baritone 联动（2026-11-16，main 开发源码，未发布）
+
+- 添加 Moon 流转辉光和 NeoRaven 加载动画 GLSL 着色器、音乐界面 Material Icons 字体，以及 SeedCrackerX 2.14.4 官方发布 JAR 与所需嵌套库；逐项来源、许可证、SHA-256 和打包路径见 [开发文档资源清单](docs/DEVELOPMENT-v1.5.2.md#v152-打包资源清单)。
+- SeedCrackerX 结构收集通过种子哈希与连接会话校验；OpenSeed 矿脉预测配合 BaritoneMine 的矿物列表寻路挖掘，提供预览、破解后自动开挖和 Baritone 自动化互斥。
+- NeoRaven 加载界面提示跟随客户端语言；LogoHUD 增加独立、默认关闭的辉光设置。菜单、音乐、HUD 与战斗适配细节见本版本专门文档。
+- 实机：目标钻石实际挖出并取得 2 颗；下界样本预测的 39 个远古残骸位置均匹配已加载测试区块；SeedCrackerX 从沙漠神殿实际收集到 9/32 位基础数据，但未完成全种子破解。
+- 验证：Fabric 1.20.1 完整构建通过，146 项测试零失败；加载中文截图、LogoHUD 开关、预览、停止、冲突接管与自动联动均实测。v1.5.2 正式发布资产尚未生成或上传。
+- 完整功能范围、资源清单、构建及验证边界见 [v1.5.2 开发文档](docs/DEVELOPMENT-v1.5.2.md) 与 [SeedMine 移植记录](docs/SEED-MINING-v1.5.2.md)。
 
 ---
 
