@@ -58,6 +58,7 @@ logs/
 # Project-local flatDir jars.
 !versions/*/libs/*.jar
 !fabric/libs/*.jar
+!fabric/libs/seedcrackerx-deps/*.jar
 !fabric/versions/*/libs/*.jar
 !neoforge/versions/*/libs/*.jar
 !baritone-api-forge-*.jar
