@@ -33,7 +33,7 @@ public final class HudSettingsFeature extends Feature
 		"Adds a static light-purple glow around HUD backgrounds.", false);
 
 	private final CheckboxSetting logoGlow = new CheckboxSetting("Logo glow",
-		"Shows the contour glow on the title logo.", false);
+		"Shows the contour glow on the title logo.", true);
 
 	private final SliderSetting notificationDuration =
 		new SliderSetting("Notification duration",
