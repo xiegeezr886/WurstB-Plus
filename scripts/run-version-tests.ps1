@@ -23,6 +23,8 @@ param(
     [string]$BaritoneCommand = "",
     [ValidateRange(0, 600)]
     [int]$MovementSeconds = 0,
+    [ValidateRange(0, 120)]
+    [int]$CommandDelaySeconds = 8,
     [string]$EvidenceDir = "",
     [string]$GraphicsBackend = "",
     [string]$ScreenshotDir = "",
@@ -419,11 +421,14 @@ public static class WurstTestWindow {
     }
 
     public static bool SendVirtualKey(ushort virtualKey) {
+        ushort scan = (ushort)MapVirtualKey(virtualKey, 0);
         INPUT[] inputs = new INPUT[2];
         inputs[0].type = INPUT_KEYBOARD;
         inputs[0].data.keyboard.virtualKey = virtualKey;
+        inputs[0].data.keyboard.scanCode = scan;
         inputs[1].type = INPUT_KEYBOARD;
         inputs[1].data.keyboard.virtualKey = virtualKey;
+        inputs[1].data.keyboard.scanCode = scan;
         inputs[1].data.keyboard.flags = KEYEVENTF_KEYUP;
         return SendInput(2, inputs, Marshal.SizeOf(typeof(INPUT))) == 2;
     }
@@ -1025,7 +1030,7 @@ function Test-Version($jarPath, $instanceDir) {
             $baselineShot = $true
         }
         if ($QuickPlayWorld -and $worldLoaded -and $BaritoneCommand -and -not $commandSent -and
-            (Get-Date) - $worldLoadedAt -gt (New-TimeSpan -Seconds 8)) {
+            (Get-Date) - $worldLoadedAt -gt (New-TimeSpan -Seconds $CommandDelaySeconds)) {
             if (-not (Send-GameText $p $BaritoneCommand)) {
                 $result = @{ Status = "FAIL"; Note = "could not send Baritone command to Minecraft window" }
                 break
