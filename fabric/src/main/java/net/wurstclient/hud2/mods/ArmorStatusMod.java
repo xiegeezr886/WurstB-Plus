@@ -49,7 +49,7 @@ public final class ArmorStatusMod extends HUDMod
 		if(rows == 0)
 		{
 			drawBackground(90, 20);
-			drawText("No armor", 6, 5, 9, HudFonts.REGULAR,
+			drawText(WURST.translate("No armor"), 6, 5, 9, HudFonts.REGULAR,
 				getFontColor(200));
 			setSize(90, 20);
 			return;

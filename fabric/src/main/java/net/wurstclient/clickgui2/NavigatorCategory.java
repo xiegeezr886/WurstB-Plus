@@ -3,14 +3,14 @@ package net.wurstclient.clickgui2;
 import net.wurstclient.Category;
 import net.wurstclient.Feature;
 
-/** Original navigator categories and icons, drawn with Rise's sidebar geometry. */
+/** RedFix gameplay categories, plus search and client/HUD tools. */
 enum NavigatorCategory
 {
-	SEARCH("搜索", GuiIcon.SEARCH), BLOCKS("方块", GuiIcon.WORLD),
-	MOVEMENT("移动", GuiIcon.MOVEMENT), COMBAT("战斗", GuiIcon.COMBAT),
-	RENDER("渲染", GuiIcon.RENDER), CHAT("聊天", GuiIcon.PLAYER),
-	FUN("娱乐", GuiIcon.FUN), ITEMS("物品", GuiIcon.BOOK),
-	OTHER("其他", GuiIcon.MISC), HUD("HUD", GuiIcon.CLIENT),
+	SEARCH("搜索", GuiIcon.SEARCH), COMBAT("战斗", GuiIcon.COMBAT),
+	PLAYER("玩家", GuiIcon.PLAYER), MOVEMENT("移动", GuiIcon.MOVEMENT),
+	RENDER("渲染", GuiIcon.RENDER), WORLD("世界", GuiIcon.WORLD),
+	MISC("其他", GuiIcon.MISC), EXPLOIT("漏洞", GuiIcon.EXPLOIT),
+	FUN("娱乐", GuiIcon.FUN), HUD("HUD", GuiIcon.CLIENT),
 	INTERFACE("界面", GuiIcon.CLIENT);
 	final String key;
 	final GuiIcon icon;
@@ -26,14 +26,14 @@ enum NavigatorCategory
 		Category category = feature.getCategory();
 		if(category == null) return INTERFACE;
 		return switch(category) {
-			case BLOCKS -> BLOCKS;
+			case WORLD -> WORLD;
 			case MOVEMENT -> MOVEMENT;
 			case COMBAT -> COMBAT;
 			case RENDER -> RENDER;
-			case CHAT -> CHAT;
+			case PLAYER -> PLAYER;
 			case FUN -> FUN;
-			case ITEMS -> ITEMS;
-			case OTHER -> OTHER;
+			case EXPLOIT -> EXPLOIT;
+			case MISC -> MISC;
 			case HUD -> HUD;
 		};
 	}

@@ -26,7 +26,7 @@ public final class ClickGui
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private static final Minecraft MC = WurstClient.MC;
 	private static final float[] BLEACH_BG_COLOR = {0.018F, 0.018F, 0.018F};
-	private static final float[] BLEACH_AC_COLOR = {0.0F, 0.3882353F, 0.4F};
+	private static final float[] BLEACH_AC_COLOR = {181 / 255F, 190 / 255F, 240 / 255F};
 	private static final int BLEACH_TEXT_COLOR = 0xFFE8E8E8;
 	
 	private final ArrayList<Window> windows = new ArrayList<>();

@@ -32,7 +32,6 @@ import net.wurstclient.clickgui2.GuiPreferences.TargetType;
 import net.wurstclient.clickgui2.animation.SmoothScroll;
 import net.wurstclient.clickgui2.window.Window;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
-import net.wurstclient.keybinds.PossibleKeybind;
 import net.wurstclient.options.EnterProfileNameScreen;
 import net.wurstclient.util.ChatUtils;
 import net.wurstclient.util.json.JsonException;
@@ -55,6 +54,9 @@ public final class ClickGuiScreen extends Screen
 	private static final int MUTED = OpaiStyle.MUTED;
 
 	private final List<TemplateWindow> windows = new ArrayList<>();
+    private final OpaiBackground background = new OpaiBackground();
+    private final DuoGlassTransition glass = DuoGlassTransition.shared();
+    private DuoGlassMotion motion;
 	private final Map<String, TemplateWindow> namedWindows = new java.util.HashMap<>();
 	private EditBox searchBox;
 	private TemplateWindow draggedWindow;
@@ -62,6 +64,8 @@ public final class ClickGuiScreen extends Screen
 	private int dragOffsetY;
 	private boolean searchVisible;
 	private int layoutStartX;
+	private GuiReferenceViewport viewport;
+	private int viewWidth, viewHeight;
 	private Feature bindingFeature;
     private final Map<Feature, OpaiSettings> inlineSettings = new java.util.IdentityHashMap<>();
     private final java.util.Set<Feature> expanded = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
@@ -70,12 +74,16 @@ public final class ClickGuiScreen extends Screen
     private float canvasOffset;
     private int canvasWidth;
     private long openedAt, previousFrame;
+    private long frameId;
     private float frameSeconds;
     private TemplateWindow hoverWindow;
     private boolean showingSearch, stateLoaded, panning;
     private float normalCanvasOffset;
     private final java.util.Set<String> savedExpanded = new java.util.HashSet<>();
     private Feature hoveredFeature;
+    private Feature descriptionFeature;
+    private long descriptionSince;
+    private final Map<Feature, ModulePresentation> modulePresentations = new java.util.IdentityHashMap<>();
     private int mouseCanvasX, mouseCanvasY;
     private Feature rippleFeature;
     private float rippleX, rippleY;
@@ -90,14 +98,18 @@ public final class ClickGuiScreen extends Screen
 	@Override
 	protected void init()
 	{
+		viewport = GuiReferenceViewport.fit(width, height, GuiReferenceViewport.OPAI_HEIGHT);
+		viewWidth = viewport.width();
+		viewHeight = viewport.height();
 		WURST.getGui().init();
         snapshotPanels();
         openedAt = System.currentTimeMillis();
+        if(motion == null) motion = new DuoGlassMotion(openedAt);
         previousFrame = 0;
         loadPanelState();
         GuiIcon.configureFiltering(MC);
 		String query = searchBox == null ? "" : searchBox.getValue();
-		int searchX = Math.max(12, width - SEARCH_WIDTH - 12);
+		int searchX = Math.max(12, viewWidth - SEARCH_WIDTH - 12);
 		searchBox = new EditBox(MC.font, searchX, 7, SEARCH_WIDTH, 14,
 			Component.literal("搜索功能"));
 		searchBox.setBordered(false);
@@ -118,7 +130,7 @@ public final class ClickGuiScreen extends Screen
         windows.clear();
 		namedWindows.clear();
 		String query = searchBox == null ? "" : searchBox.getValue().trim();
-        startY = Math.max(8, Math.round(height * 0.112F));
+        startY = Math.max(8, Math.round(viewHeight * 0.112F));
 		List<Feature> features = FeatureMenuSupport.getAllFeatures();
         for(Feature feature : features)
             if(savedExpanded.contains(feature.getName())) {
@@ -147,8 +159,8 @@ public final class ClickGuiScreen extends Screen
 			if(feature.getCategory() != null)
 				categorized.get(feature.getCategory()).add(feature);
 
-        layoutStartX = Math.min(30, Math.round(width * 0.0382F));
-        canvasWidth = layoutStartX + 9 * (WINDOW_WIDTH + WINDOW_GAP) + 20;
+        layoutStartX = Math.min(30, Math.round(viewWidth * 0.0382F));
+        canvasWidth = layoutStartX + 12 * (WINDOW_WIDTH + WINDOW_GAP) + 20;
         buildReferenceLayout(categorized);
         windows.sort(java.util.Comparator.comparingInt(window -> {
             String id = namedWindows.entrySet().stream().filter(entry -> entry.getValue() == window)
@@ -156,37 +168,44 @@ public final class ClickGuiScreen extends Screen
             var saved = panelState.get(id);
             return saved != null && saved.has("z") ? saved.get("z").getAsInt() : 0;
         }));
-        canvasOffset = Mth.clamp(canvasOffset, 0, Math.max(0, canvasWidth - width));
+        canvasOffset = Mth.clamp(canvasOffset, 0, Math.max(0, canvasWidth - viewWidth));
 	}
 
 	private void buildReferenceLayout(Map<Category, List<Feature>> categorized)
 	{
 		add(new CategoryWindow(columnX(0), startY, "HUD", GuiIcon.CLIENT,
 			categorized.get(Category.HUD), MAX_VISIBLE_ROWS), "hud");
-		add(new CategoryWindow(columnX(1), startY, "视觉类", GuiIcon.RENDER,
+		add(new CategoryWindow(columnX(1), startY, "渲染", GuiIcon.RENDER,
 			categorized.get(Category.RENDER), MAX_VISIBLE_ROWS), "visual");
-		add(new CategoryWindow(columnX(2), startY, "移动类", GuiIcon.MOVEMENT,
+		add(new CategoryWindow(columnX(2), startY, "移动", GuiIcon.MOVEMENT,
 			categorized.get(Category.MOVEMENT), MAX_VISIBLE_ROWS), "movement");
 		CategoryWindow client = add(new CategoryWindow(columnX(3), startY,
 			"客户端", GuiIcon.CLIENT, getInterfaceFeatures(), MAX_VISIBLE_ROWS),
 			"client");
 		add(new CategoryWindow(columnX(3),
-			client.y2 + COMBAT_STACK_GAP, "战斗类", GuiIcon.COMBAT,
+			client.y2 + COMBAT_STACK_GAP, "战斗", GuiIcon.COMBAT,
 			categorized.get(Category.COMBAT), COMBAT_VISIBLE_ROWS), "combat");
-		add(new CategoryWindow(columnX(4), startY, "世界类", GuiIcon.WORLD,
-			combine(categorized, Category.BLOCKS, Category.ITEMS),
+		add(new CategoryWindow(columnX(4), startY, "世界", GuiIcon.WORLD,
+			categorized.get(Category.WORLD),
 			MAX_VISIBLE_ROWS), "world");
-		add(new CategoryWindow(columnX(5), startY, "其他类", GuiIcon.MISC,
+		add(new CategoryWindow(columnX(5), startY, "其他", GuiIcon.MISC,
 			getOtherFeatures(categorized),
 			MAX_VISIBLE_ROWS), "other");
 		add(new TargetWindow(columnX(6), startY), "target");
 		add(new ConfigWindow(columnX(7), startY), "config");
 		add(new FontWindow(columnX(8), startY), "font");
+		// New groups get unused columns so saved panel positions remain valid.
+		add(new CategoryWindow(columnX(9), startY, "玩家", GuiIcon.PLAYER,
+			categorized.get(Category.PLAYER), MAX_VISIBLE_ROWS), "player");
+		add(new CategoryWindow(columnX(10), startY, "漏洞", GuiIcon.EXPLOIT,
+			categorized.get(Category.EXPLOIT), MAX_VISIBLE_ROWS), "exploit");
+		add(new CategoryWindow(columnX(11), startY, "娱乐", GuiIcon.FUN,
+			categorized.get(Category.FUN), MAX_VISIBLE_ROWS), "fun");
 
-		int settingsY = Mth.clamp(Math.round(height * 0.58F), startY,
-			Math.max(startY, height - 90));
-		int mainY = Mth.clamp(Math.round(height * 0.49F), startY,
-			Math.max(startY, height - 150));
+		int settingsY = Mth.clamp(Math.round(viewHeight * 0.58F), startY,
+			Math.max(startY, viewHeight - 90));
+		int mainY = Mth.clamp(Math.round(viewHeight * 0.49F), startY,
+			Math.max(startY, viewHeight - 150));
 		add(new GlobalSettingsWindow(columnX(6), settingsY), "settings");
 		add(new MainMenuWindow(columnX(8), mainY), "main");
 	}
@@ -227,31 +246,36 @@ public final class ClickGuiScreen extends Screen
 
 	private List<Feature> getInterfaceFeatures()
 	{
-		return List.of(WURST.getHax().clickGuiHack,
+		return List.of(WURST.getHax().clickGuiHack, WURST.getHax().navigatorHack,
 			WURST.getOtfs().wurstLogoOtf, WURST.getOtfs().hackListOtf,
-			WURST.getOtfs().keybindManagerOtf);
+			WURST.getOtfs().keybindManagerOtf, WURST.getOtfs().tabGuiOtf,
+			WURST.getOtfs().translationsOtf, WURST.getOtfs().vanillaSpoofOtf);
 	}
 
 	private List<Feature> getOtherFeatures(
 		Map<Category, List<Feature>> categorized)
 	{
-		ArrayList<Feature> features = new ArrayList<>(combine(categorized,
-			Category.OTHER, Category.CHAT, Category.FUN));
-		features.add(WURST.getHax().navigatorHack);
-		features.add(WURST.getOtfs().tabGuiOtf);
-		features.add(WURST.getOtfs().translationsOtf);
-		features.add(WURST.getOtfs().vanillaSpoofOtf);
-		return features;
+		return categorized.get(Category.MISC);
 	}
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
     {
+        renderReference(graphics, (int)viewport.local(mouseX), (int)viewport.local(mouseY), partialTicks);
+    }
+
+    private void renderReference(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+    {
         long now = System.currentTimeMillis();
+        if(motion.finished(now)) { MC.setScreen(null); return; }
+        float fold = motion.value(now);
+        frameId++;
         frameSeconds = previousFrame == 0 ? 0.016F : Math.min(0.1F, (now - previousFrame) / 1000F);
         previousFrame = now;
         hoveredFeature = null;
         for(Feature feature : inlineSettings.keySet()) {
+            inlineSettings.get(feature).beginFrame();
+            inlineSettings.get(feature).advance(frameSeconds);
             float target = expanded.contains(feature) ? 1 : 0;
             expansion.put(feature, approach(expansion.getOrDefault(feature, target), target));
         }
@@ -264,40 +288,62 @@ public final class ClickGuiScreen extends Screen
         hoverWindow = null;
         for(int i = windows.size() - 1; i >= 0; i--)
             if(windows.get(i).contains(localX, mouseY)) { hoverWindow = windows.get(i); break; }
-        boolean ready = now - openedAt >= 320;
-        NanoVGUI.pass(graphics, () -> {
-            if(MC.level == null) net.wurstclient.gui.MainMenuBackground.render(width, height, 255);
+        boolean ready = motion.ready(now);
+        background.render(graphics, partialTicks);
+        if(MC.level == null) NanoVGUI.passSmooth(graphics,
+            () -> net.wurstclient.gui.MainMenuBackground.render(width, height, 255));
+        glass.render(graphics, fold, 0, 0, width, height, target -> {
+        NanoVGUI.passSmoothTo(graphics, target, () -> {
             NanoVGUI.push();
-            NanoVGUI.context().scale(0, 0, width, height, OpaiStyle.openingScale(now - openedAt));
-            NanoVGUI.context().setAlpha(now - openedAt >= 320 ? 1 : (float)(1 - Math.exp(-30 * (now - openedAt) / 1000.0)));
+            NanoVGUI.context().scale(0, 0, viewport.scale());
+            NanoVGUI.push();
             NanoVGUI.translate(-canvasOffset, 0);
             for(TemplateWindow window : windows) window.render(graphics, ready ? localX : -10000, ready ? mouseY : -10000, partialTicks);
             NanoVGUI.pop();
-            renderToolbar(graphics, mouseX, mouseY);
-            if(hoveredFeature != null && !searchVisible && draggedWindow == null) renderDescription(mouseX, mouseY);
+            renderToolbar(graphics, ready ? mouseX : -10000, ready ? mouseY : -10000);
+            if(hoveredFeature != descriptionFeature) {
+                descriptionFeature = hoveredFeature;
+                descriptionSince = now;
+            }
+            if(ready && hoveredFeature != null && now - descriptionSince >= 450
+                && !searchVisible && draggedWindow == null && bindingFeature == null)
+                renderDescription(mouseX, mouseY);
+            NanoVGUI.pop();
         });
-        if(searchVisible) searchBox.render(graphics, mouseX, mouseY, partialTicks);
+        if(searchVisible) {
+            target.bindWrite(true);
+            graphics.pose().pushPose();
+            graphics.pose().scale(viewport.scale(), viewport.scale(), 1);
+            searchBox.render(graphics, mouseX, mouseY, partialTicks);
+            graphics.flush();
+            graphics.pose().popPose();
+        }
+        });
+        inlineSettings.values().forEach(OpaiSettings::endFrame);
     }
 
     private void renderToolbar(GuiGraphics graphics, int mouseX, int mouseY)
     {
-        if(!showingSearch && canvasWidth > width) {
-            float track = width - 46;
-            float thumb = Math.max(24, track * width / canvasWidth);
-            float left = 6 + canvasOffset / (canvasWidth - width) * (track - thumb);
-            NanoVGUI.fillRounded(6, height - 5, width - 40, height - 3, 1, 0x3356413E);
-            NanoVGUI.fillRounded(left, height - 5, left + thumb, height - 3, 1, 0x999E8D8B);
+        if(!showingSearch && canvasWidth > viewWidth) {
+            float track = viewWidth - 46;
+            float thumb = Math.max(24, track * viewWidth / canvasWidth);
+            float left = 6 + canvasOffset / (canvasWidth - viewWidth) * (track - thumb);
+            NanoVGUI.fillRounded(6, viewHeight - 5, viewWidth - 40, viewHeight - 3, 1, 0x33454C70);
+            NanoVGUI.fillRounded(left, viewHeight - 5, left + thumb, viewHeight - 3, 1, 0x999097B5);
         }
-        NanoVGUI.fillRounded(width - 31, height - 31, width - 7, height - 7, 5, OpaiStyle.ACCENT);
-        float px = width - 24, py = height - 15;
-        NanoVGUI.line(px, py, px + 8, py - 8, 2.5F, OpaiStyle.INK);
-        NanoVGUI.line(px + 1.5F, py + 1.5F, px + 9.5F, py - 6.5F, 2.5F, OpaiStyle.INK);
-        NanoVGUI.line(px - 1, py + 3, px, py, 1, OpaiStyle.INK);
-        NanoVGUI.line(px - 1, py + 3, px + 1.5F, py + 1.5F, 1, OpaiStyle.INK);
+        net.wurstclient.gui.IslandButtonStyle.draw(viewWidth - 31, viewHeight - 31,
+            24, 24, true, mouseX >= viewWidth - 31 && mouseX < viewWidth - 7
+                && mouseY >= viewHeight - 31 && mouseY < viewHeight - 7 ? 1 : 0,
+            false, OpaiStyle.ACCENT);
+        float px = viewWidth - 24, py = viewHeight - 15;
+        NanoVGUI.line(px, py, px + 8, py - 8, 2.5F, OpaiStyle.ACCENT);
+        NanoVGUI.line(px + 1.5F, py + 1.5F, px + 9.5F, py - 6.5F, 2.5F, OpaiStyle.ACCENT);
+        NanoVGUI.line(px - 1, py + 3, px, py, 1, OpaiStyle.ACCENT);
+        NanoVGUI.line(px - 1, py + 3, px + 1.5F, py + 1.5F, 1, OpaiStyle.ACCENT);
         if(searchVisible)
         {
-            OpaiStyle.field(width - 158, 8, 148, 21, searchBox.isFocused());
-            searchBox.setX(width - 152); searchBox.setY(14); searchBox.setWidth(136);
+            OpaiStyle.field(viewWidth - 158, 8, 148, 21, searchBox.isFocused());
+            searchBox.setX(viewWidth - 152); searchBox.setY(14); searchBox.setWidth(136);
             searchBox.setTextColor(TEXT);
 
         }
@@ -319,27 +365,34 @@ public final class ClickGuiScreen extends Screen
             if(line.isEmpty()) break;
             lines.add(line); description = description.substring(line.length());
         }
-        float h = lines.size() * 10 + 8;
-        float x = Math.max(4, Math.min(width - 164, mouseX + 6));
-        float y = Math.max(4, Math.min(height - h - 4, mouseY - h / 2));
-        NanoVGUI.fillRounded(x, y, x + 160, y + h, 4.5F, 0xEB272425);
-        NanoVGUI.outlineRounded(x, y, x + 160, y + h, 4.5F, 0.5F, 0x66716665);
-        for(int i = 0; i < lines.size(); i++) NanoVGUI.text(lines.get(i), x + 4, y + 4 + i * 10, TEXT, 7);
+        float h = lines.size() * 10 + 22;
+        float x = Math.max(4, Math.min(viewWidth - 164, mouseX + 12));
+        float y = Math.max(4, Math.min(viewHeight - h - 4, mouseY + 16));
+        if(y <= mouseY && y + h >= mouseY) y = Math.max(4, mouseY - h - 10);
+        NanoVGUI.fillRounded(x, y, x + 160, y + h, 4.5F, OpaiStyle.TOOLTIP);
+        NanoVGUI.outlineRounded(x, y, x + 160, y + h, 4.5F, 0.5F, OpaiStyle.TOOLTIP_BORDER);
+        OpaiStyle.text(featureLabel(hoveredFeature), x + 5, y + 5, 150, OpaiStyle.ACCENT);
+        for(int i = 0; i < lines.size(); i++) NanoVGUI.text(lines.get(i), x + 5, y + 19 + i * 10, TEXT, 7);
     }
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-        if(System.currentTimeMillis() - openedAt < 320) return true;
-        if(button == 0 && !showingSearch && mouseY >= height - 9 && mouseX >= 6 && mouseX < width - 40) {
+        mouseX = viewport.local(mouseX); mouseY = viewport.local(mouseY);
+        if(!motion.ready(System.currentTimeMillis())) return true;
+        if(bindingFeature != null) {
+            // The existing processor consumes keyboard events only.
+            if(button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) bindingFeature = null;
+            return true;
+        }
+        if(button == 0 && !showingSearch && mouseY >= viewHeight - 9 && mouseX >= 6 && mouseX < viewWidth - 40) {
             panning = true; moveCanvas(mouseX); return true;
         }
-        if(button == 0 && mouseX >= width - 31 && mouseX < width - 7 && mouseY >= height - 31 && mouseY < height - 7) {
+        if(button == 0 && mouseX >= viewWidth - 31 && mouseX < viewWidth - 7 && mouseY >= viewHeight - 31 && mouseY < viewHeight - 7) {
             MC.setScreen(new net.wurstclient.hud2.GuiEditHUD()); return true;
         }
         if(searchVisible && searchBox.mouseClicked(mouseX, mouseY, button)) { blurValues(); return true; }
         searchBox.setFocused(false);
-        blurValues();
         mouseX += canvasOffset;
 		for(int i = windows.size() - 1; i >= 0; i--)
 		{
@@ -349,7 +402,11 @@ public final class ClickGuiScreen extends Screen
 			windows.remove(i);
 			windows.add(window);
 			if(window.isBodyOver(mouseX, mouseY))
-				return window.clickBody(mouseX, mouseY, button);
+            {
+                if(!(window instanceof CategoryWindow)) blurValues();
+                return window.clickBody(mouseX, mouseY, button);
+            }
+			blurValues();
 			if(!window.isHeaderOver(mouseX, mouseY))
 				return true;
 			if(button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)
@@ -362,14 +419,21 @@ public final class ClickGuiScreen extends Screen
 			}
 			return true;
 		}
-		return super.mouseClicked(mouseX, mouseY, button);
+        blurValues();
+		return super.mouseClicked(mouseX - canvasOffset, mouseY, button);
 	}
 
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button,
 		double dragX, double dragY)
 	{
+        if(!motion.ready(System.currentTimeMillis())) return true;
+        mouseX = viewport.local(mouseX); mouseY = viewport.local(mouseY);
+        dragX = viewport.local(dragX); dragY = viewport.local(dragY);
         if(button == 0 && panning) { moveCanvas(mouseX); return true; }
+        if(button == 0)
+            for(OpaiSettings settings : inlineSettings.values())
+                if(settings.drag(mouseX + canvasOffset, mouseY)) return true;
 		if(button != GLFW.GLFW_MOUSE_BUTTON_LEFT || draggedWindow == null)
 			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
         int x = (int)(mouseX + canvasOffset) - dragOffsetX;
@@ -382,6 +446,7 @@ public final class ClickGuiScreen extends Screen
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
+        mouseX = viewport.local(mouseX); mouseY = viewport.local(mouseY);
         WURST.getGui().handleMouseRelease(mouseX, mouseY, button);
         inlineSettings.values().forEach(OpaiSettings::release);
         rippleReleased = System.currentTimeMillis();
@@ -398,12 +463,17 @@ public final class ClickGuiScreen extends Screen
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta)
 	{
+        if(!motion.ready(System.currentTimeMillis())) return true;
+        mouseX = viewport.local(mouseX); mouseY = viewport.local(mouseY);
         inlineSettings.values().forEach(OpaiSettings::release);
         if(hasShiftDown()) { pan(delta > 0 ? -1 : 1); return true; }
         mouseX += canvasOffset;
         for(int i = windows.size() - 1; i >= 0; i--) {
             TemplateWindow panel = windows.get(i);
-            if(panel.contains(mouseX, mouseY)) { panel.scroll(mouseX, mouseY, delta); return true; }
+            if(panel.contains(mouseX, mouseY)) {
+                if(panel instanceof CategoryWindow category && category.scrollSetting(mouseX, mouseY, delta)) return true;
+                panel.scroll(mouseX, mouseY, delta); return true;
+            }
         }
 		pan(delta > 0 ? -1 : 1); return true;
 	}
@@ -411,6 +481,11 @@ public final class ClickGuiScreen extends Screen
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
+        if(motion.closing()) return true;
+        if(!motion.ready(System.currentTimeMillis())) {
+            if(keyCode == GLFW.GLFW_KEY_ESCAPE) onClose();
+            return true;
+        }
 		if(bindingFeature != null)
 		{
 			Feature feature = bindingFeature;
@@ -418,15 +493,15 @@ public final class ClickGuiScreen extends Screen
 			if(keyCode == GLFW.GLFW_KEY_ESCAPE)
 				return true;
 
-			String command = getBindableCommand(feature);
-			if(command == null)
+			OpaiBinding binding = settingsFor(feature).binding();
+			if(binding == null)
 				return true;
 			if(keyCode == GLFW.GLFW_KEY_DELETE
 				|| keyCode == GLFW.GLFW_KEY_BACKSPACE)
-				WURST.getKeybinds().unbindCommand(command);
+				binding.bind(null);
 			else
-				WURST.getKeybinds().bindCommand(
-					InputConstants.getKey(keyCode, scanCode).getName(), command);
+				binding.bind(InputConstants.getKey(keyCode, scanCode).getName());
+            modulePresentations.remove(feature);
 			return true;
 		}
         for(OpaiSettings settings : inlineSettings.values())
@@ -466,25 +541,37 @@ public final class ClickGuiScreen extends Screen
     @Override
     public boolean charTyped(char character, int modifiers)
     {
+        if(!motion.ready(System.currentTimeMillis())) return true;
         for(OpaiSettings settings : inlineSettings.values()) if(settings.editing()) return settings.character(character);
         return searchVisible && searchBox.charTyped(character, modifiers);
     }
 
     private void moveCanvas(double mouseX)
     {
-        float track = width - 46;
-        float thumb = Math.max(24, track * width / Math.max(width, canvasWidth));
-        canvasOffset = (float)Mth.clamp((mouseX - 6 - thumb / 2) / Math.max(1, track - thumb), 0, 1) * Math.max(0, canvasWidth - width);
+        float track = viewWidth - 46;
+        float thumb = Math.max(24, track * viewWidth / Math.max(viewWidth, canvasWidth));
+        canvasOffset = (float)Mth.clamp((mouseX - 6 - thumb / 2) / Math.max(1, track - thumb), 0, 1) * Math.max(0, canvasWidth - viewWidth);
         blurValues();
     }
 
     private void pan(int direction)
     {
-        canvasOffset = Mth.clamp(canvasOffset + direction * (WINDOW_WIDTH + WINDOW_GAP), 0, Math.max(0, canvasWidth - width));
+        canvasOffset = Mth.clamp(canvasOffset + direction * (WINDOW_WIDTH + WINDOW_GAP), 0, Math.max(0, canvasWidth - viewWidth));
         blurValues();
     }
 
     private void blurValues() { inlineSettings.values().forEach(OpaiSettings::blur); }
+
+    private void blurValuesExcept(OpaiSettings active)
+    {
+        inlineSettings.values().forEach(settings -> { if(settings != active) settings.blur(); });
+    }
+
+    private OpaiSettings settingsFor(Feature feature)
+    {
+        return inlineSettings.computeIfAbsent(feature, value -> new OpaiSettings(value,
+            () -> bindingFeature = value, () -> bindingFeature == value));
+    }
 
     private void loadPanelState()
     {
@@ -512,8 +599,22 @@ public final class ClickGuiScreen extends Screen
     }
 
     @Override
+    public void onClose()
+    {
+        if(motion.closing()) return;
+        motion.close(System.currentTimeMillis());
+        blurValues();
+        searchBox.setFocused(false);
+        bindingFeature = null;
+        mouseReleased(0, 0, GLFW.GLFW_MOUSE_BUTTON_LEFT);
+    }
+
+    @Override
     public void removed()
     {
+        glass.close();
+        motion = null;
+        background.close();
         blurValues();
         draggedWindow = null;
         snapshotPanels();
@@ -542,8 +643,7 @@ public final class ClickGuiScreen extends Screen
 
 	private String getBindableCommand(Feature feature)
 	{
-		return feature.getPossibleKeybinds().stream().findFirst()
-			.map(PossibleKeybind::getCommand).orElse(null);
+		return OpaiBinding.commandFor(feature);
 	}
 
 	@Override
@@ -597,11 +697,12 @@ public final class ClickGuiScreen extends Screen
 	private abstract class TemplateWindow extends Window
 	{
 		protected final int windowWidth;
+        private final GuiIcon headerIcon;
 		protected boolean open;
 		private boolean visible = true;
 		private float scrollOffset;
         private float reveal = 1;
-        private OpaiPanelLayout layout;
+        protected OpaiPanelLayout layout;
 		private final SmoothScroll smoothScroll = new SmoothScroll();
 		private int homeX;
 		private int homeY;
@@ -612,6 +713,7 @@ public final class ClickGuiScreen extends Screen
 			super(x, y, x + windowWidth, y + HEADER_HEIGHT, title,
 				ItemStack.EMPTY);
 			this.windowWidth = windowWidth;
+            headerIcon = icon;
 			homeX = x;
 			homeY = y;
 		}
@@ -626,10 +728,11 @@ public final class ClickGuiScreen extends Screen
 
         protected float rowHeight(int index) { return ROW_HEIGHT; }
         protected float totalHeight() { return layout.total(); }
-        private float bodyHeight() { return Math.min(totalHeight(), Math.max(20, Math.min(320.5F, height - y1 - HEADER_HEIGHT - 28))); }
+        private float bodyHeight() { return Math.min(totalHeight(), Math.max(20, Math.min(320.5F, viewHeight - y1 - HEADER_HEIGHT - 28))); }
         private void toggleOpen() { open = !open; blurValues(); }
         protected void updateHeight() {
-            layout = new OpaiPanelLayout(rowCount(), this::rowHeight);
+            if(layout == null) layout = new OpaiPanelLayout(rowCount(), this::rowHeight);
+            else layout.measure(rowCount(), this::rowHeight);
             scrollOffset = layout.clampScroll(scrollOffset, bodyHeight());
             if(smoothScroll.getCurrent() > layout.clampScroll(smoothScroll.getCurrent(), bodyHeight())) smoothScroll.snapTo(scrollOffset);
             smoothScroll.setTarget(scrollOffset);
@@ -639,7 +742,7 @@ public final class ClickGuiScreen extends Screen
         private void resetPosition() { moveTo(homeX, homeY); }
         private void moveTo(int x, int y) {
             x1 = Mth.clamp(x, 0, Math.max(0, canvasWidth - windowWidth));
-            y1 = Mth.clamp(y, 0, Math.max(0, height - HEADER_HEIGHT - 24)); updateHeight();
+            y1 = Mth.clamp(y, 0, Math.max(0, viewHeight - HEADER_HEIGHT - 24)); updateHeight();
         }
         private void clampToScreen() { moveTo(x1, y1); }
         private boolean contains(double mouseX, double mouseY) {
@@ -647,9 +750,12 @@ public final class ClickGuiScreen extends Screen
         }
         private boolean isHeaderOver(double mouseX, double mouseY) { return contains(mouseX, mouseY) && mouseY < y1 + HEADER_HEIGHT; }
         private boolean isBodyOver(double mouseX, double mouseY) { return open && contains(mouseX, mouseY) && mouseY >= y1 + HEADER_HEIGHT; }
+        protected int hitBody(double mouseY) {
+            return layout.hit(mouseY - y1 - HEADER_HEIGHT, smoothScroll.getCurrent(), y2 - y1 - HEADER_HEIGHT);
+        }
         private boolean clickBody(double mouseX, double mouseY, int button) {
-            int index = layout.hit(mouseY - y1 - HEADER_HEIGHT, smoothScroll.getCurrent(), y2 - y1 - HEADER_HEIGHT);
-            if(index < 0) return true;
+            int index = hitBody(mouseY);
+            if(index < 0) { blurValues(); return true; }
             float rowY = y1 + HEADER_HEIGHT - smoothScroll.getCurrent() + layout.start(index);
             if(this instanceof CategoryWindow category) return category.clickFeature(index, mouseX, mouseY, rowY, button);
             return clickRow(index, index, mouseX, button);
@@ -662,11 +768,15 @@ public final class ClickGuiScreen extends Screen
         @Override
         public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             if(!visible) return;
-            updateHeight(); selected = isTopVisibleWindow(this);
+            if(previousFrame - openedAt >= 320 && (x2 <= canvasOffset || x1 >= canvasOffset + viewWidth
+                || y2 <= 0 || y1 >= viewHeight)) return;
+            selected = isTopVisibleWindow(this);
             NanoVGUI.fillRounded(x1, y1, x2, y2, 7, OpaiStyle.BODY);
             NanoVGUI.fillRounded(x1, y1, x2, y1 + HEADER_HEIGHT, 7, OpaiStyle.HEADER);
             if(reveal > 0) NanoVGUI.fill(x1, y1 + HEADER_HEIGHT / 2F, x2, y1 + HEADER_HEIGHT, OpaiStyle.HEADER);
-            NanoVGUI.text(title, x1 + 10, y1 + 6, TEXT, 9.2F);
+            headerIcon.draw(graphics, x1 + 10, y1 + 6, 9, OpaiStyle.ACCENT);
+            NanoVGUI.text(NanoVGUI.plainSubstrByWidth(title, windowWidth - 34, 9.2F),
+                x1 + 24, y1 + 6, TEXT, 9.2F);
             if(reveal <= 0) return;
             NanoVGUI.pushScissor(x1, y1 + HEADER_HEIGHT, windowWidth, y2 - y1 - HEADER_HEIGHT - 3);
             float origin = y1 + HEADER_HEIGHT - smoothScroll.update();
@@ -683,7 +793,7 @@ public final class ClickGuiScreen extends Screen
                 float thumb = bodyHeight() * bodyHeight() / totalHeight();
                 float offset = smoothScroll.getCurrent() / (totalHeight() - bodyHeight());
                 float top = y1 + HEADER_HEIGHT + (bodyHeight() - thumb) * offset;
-                NanoVGUI.fillRounded(x2 - 1.5F, top, x2 - 0.5F, top + thumb, 0.5F, 0x669E8D8B);
+                NanoVGUI.fillRounded(x2 - 1.5F, top, x2 - 0.5F, top + thumb, 0.5F, OpaiStyle.SCROLLBAR);
             }
         }
     }
@@ -710,28 +820,50 @@ public final class ClickGuiScreen extends Screen
             Feature feature = features.get(index);
             float amount = expansion.getOrDefault(feature, expanded.contains(feature) ? 1F : 0F);
             if(amount <= 0) return ROW_HEIGHT;
-            return ROW_HEIGHT + inlineSettings.computeIfAbsent(feature, OpaiSettings::new).height() * amount;
+            return ROW_HEIGHT + settingsFor(feature).height() * amount;
         }
 
         @Override
         protected void renderRow(GuiGraphics graphics, int index, float rowY, boolean hovering) {
             Feature feature = features.get(index);
             float amount = expansion.getOrDefault(feature, 0F);
-            if(feature.isEnabled()) NanoVGUI.fill(x1, rowY, x2, rowY + ROW_HEIGHT, OpaiStyle.ENABLED);
-            else if(hovering) NanoVGUI.fill(x1, rowY, x2, rowY + ROW_HEIGHT, 0x0CEDE0DE);
+            ModulePresentation presentation = modulePresentations.computeIfAbsent(feature, ModulePresentation::new);
+            long now = System.currentTimeMillis();
+            presentation.enabled.animate(feature.isEnabled() ? 1 : 0, 180, now,
+                NavigatorAnimation.Easing.OUT_QUINT);
+            float enabled = presentation.enabled.value(now);
+            if(hovering) NanoVGUI.fill(x1, rowY, x2, rowY + ROW_HEIGHT, OpaiStyle.HOVER);
+            if(enabled > 0) NanoVGUI.fill(x1, rowY, x2, rowY + ROW_HEIGHT,
+                (Math.round(enabled * 255) << 24) | (OpaiStyle.ENABLED & 0xFFFFFF));
             if(rippleFeature == feature) {
-                long now = System.currentTimeMillis();
                 float progress = Math.min(1, (now - rippleStarted) / 800F);
                 float fade = rippleReleased == 0 ? 1 : Math.max(0, 1 - (now - rippleReleased) / 240F);
                 NanoVGUI.pushScissor(x1, rowY, windowWidth, ROW_HEIGHT);
-                NanoVGUI.circle(rippleX, rowY + rippleY, windowWidth * (1 - (float)Math.pow(1 - progress, 3)), ((int)(fade * 76) << 24) | 0xFFFFFF);
+                float radius = (float)Math.hypot(Math.max(rippleX - x1, x2 - rippleX), Math.max(rippleY, ROW_HEIGHT - rippleY));
+                NanoVGUI.circle(rippleX, rowY + rippleY, radius * (1 - (float)Math.pow(1 - progress, 3)), ((int)(fade * 76) << 24) | 0xFFFFFF);
                 NanoVGUI.popScissor();
             }
-            OpaiStyle.text(bindingFeature == feature ? "按下按键…" : featureLabel(feature), x1 + 10, rowY + 6, windowWidth - 20, feature.isEnabled() ? OpaiStyle.INK : TEXT);
+            int textColor = OpaiStyle.mix(TEXT, OpaiStyle.INK, enabled);
+            float textRight = x2 - 10;
+            if(bindingFeature != feature) {
+                String key = presentation.key(now);
+                if(!key.isEmpty()) {
+                    key = NanoVGUI.plainSubstrByWidth(key, 36, 6.5F);
+                    float keyWidth = NanoVGUI.width(key, 6.5F) + 8;
+                    NanoVGUI.fillRounded(textRight - keyWidth, rowY + 4,
+                        textRight, rowY + ROW_HEIGHT - 4, 3, OpaiStyle.mix(0x24151924, 0x180C185C, enabled));
+                    NanoVGUI.text(key, textRight - keyWidth + 4, rowY + 6.3F, textColor, 6.5F);
+                    textRight -= keyWidth + 5;
+                }
+            }
+            OpaiStyle.text(bindingFeature == feature ? "按下按键…" : featureLabel(feature),
+                x1 + 10, rowY + 6, Math.max(0, textRight - x1 - 10), textColor);
             if(hovering) hoveredFeature = feature;
             if(amount > 0) {
-                float settingsBottom = rowY + rowHeight(index);
+                float settingsBottom = rowY + layout.height(index);
                 NanoVGUI.fill(x1, rowY + ROW_HEIGHT, x2, settingsBottom, OpaiStyle.SETTINGS);
+                NanoVGUI.fill(x1 + 3, rowY + ROW_HEIGHT + 3, x1 + 4,
+                    Math.max(rowY + ROW_HEIGHT + 3, settingsBottom - 3), 0x55B5BEF0);
                 NanoVGUI.pushScissor(x1, rowY + ROW_HEIGHT, windowWidth, settingsBottom - rowY - ROW_HEIGHT);
                 inlineSettings.get(feature).render(graphics, x1 + 10, rowY + ROW_HEIGHT, windowWidth - 20,
                     Math.max(y1 + HEADER_HEIGHT, rowY + ROW_HEIGHT), Math.min(y2 - 3, settingsBottom), mouseCanvasX, mouseCanvasY);
@@ -742,30 +874,71 @@ public final class ClickGuiScreen extends Screen
         private boolean clickFeature(int index, double mouseX, double mouseY, float rowY, int button) {
             Feature feature = features.get(index);
             if(mouseY >= rowY + ROW_HEIGHT) {
-                if(expanded.contains(feature)) inlineSettings.computeIfAbsent(feature, OpaiSettings::new).click(mouseX, mouseY, button);
+                OpaiSettings settings = settingsFor(feature);
+                blurValuesExcept(settings);
+                if(!expanded.contains(feature) || !settings.click(mouseX, mouseY, button)) settings.blur();
                 return true;
             }
-            if(button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) { if(getBindableCommand(feature) != null) bindingFeature = feature; }
-            else if(button == GLFW.GLFW_MOUSE_BUTTON_RIGHT || feature.getPrimaryAction().isEmpty()) {
-                if(!feature.getSettings().isEmpty()) {
+            blurValues();
+            boolean bindable = getBindableCommand(feature) != null;
+            switch(MoonRowInteraction.action(mouseX - x1, windowWidth, button,
+                !feature.getSettings().isEmpty() || bindable, bindable, !feature.getPrimaryAction().isEmpty())) {
+                case BIND -> bindingFeature = feature;
+                case EXPAND -> {
                     expansion.putIfAbsent(feature, 0F);
                     if(!expanded.remove(feature)) expanded.add(feature);
-                    else inlineSettings.computeIfAbsent(feature, OpaiSettings::new).blur();
-                    inlineSettings.computeIfAbsent(feature, OpaiSettings::new);
+                    else settingsFor(feature).blur();
+                    settingsFor(feature);
                 }
-            }else if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                rippleFeature = feature; rippleX = (float)mouseX; rippleY = (float)(mouseY - rowY);
-                rippleStarted = System.currentTimeMillis(); rippleReleased = 0;
-                FeatureMenuSupport.runPrimaryAction(feature);
+                case TOGGLE -> {
+                    rippleFeature = feature; rippleX = (float)mouseX; rippleY = (float)(mouseY - rowY);
+                    rippleStarted = System.currentTimeMillis(); rippleReleased = 0;
+                    FeatureMenuSupport.runPrimaryAction(feature);
+                }
+                case NONE -> {}
             }
             return true;
+        }
+        private boolean scrollSetting(double mouseX, double mouseY, double delta) {
+            int index = hitBody(mouseY);
+            if(index < 0) return false;
+            Feature feature = features.get(index);
+            return expanded.contains(feature) && inlineSettings.containsKey(feature)
+                && inlineSettings.get(feature).scroll(mouseX, mouseY, delta);
         }
         @Override
         protected boolean clickRow(int index, int row, double mouseX, int button) { return false; }
     }
 
+    /** Refresh key labels at most four times a second, never scan binds on every frame. */
+    private static final class ModulePresentation
+    {
+        final NavigatorAnimation enabled;
+        private final OpaiBinding binding;
+        private String key = "";
+        private long nextRefresh;
+        ModulePresentation(Feature feature)
+        {
+            enabled = new NavigatorAnimation(feature.isEnabled() ? 1 : 0);
+            String command = OpaiBinding.commandFor(feature);
+            binding = command == null ? null : new OpaiBinding(WURST.getKeybinds(), command);
+        }
+        String key(long now)
+        {
+            if(binding != null && now >= nextRefresh) {
+                key = MoonRowInteraction.keyLabel(binding.key());
+                nextRefresh = now + 250;
+            }
+            return key;
+        }
+    }
+
 	private abstract class RowsWindow extends TemplateWindow
 	{
+        private final Map<Integer, NavigatorAnimation> switches = new java.util.HashMap<>();
+        private List<PanelRow> frameRows;
+        private long rowsFrame = -1;
+
 		private RowsWindow(int x, int y, String title, GuiIcon icon,
 			int maxVisibleRows)
 		{
@@ -774,26 +947,43 @@ public final class ClickGuiScreen extends Screen
 
 		protected abstract List<PanelRow> rows();
 
+        private List<PanelRow> currentRows()
+        {
+            if(frameRows == null || rowsFrame != frameId)
+            {
+                frameRows = rows();
+                rowsFrame = frameId;
+            }
+            return frameRows;
+        }
+
 		@Override
 		protected int rowCount()
 		{
-			return rows().size();
+			return currentRows().size();
 		}
 
 		@Override
 		protected void renderRow(GuiGraphics graphics, int index, float rowY,
 			boolean hovering)
 		{
-            PanelRow row = rows().get(index);
+            PanelRow row = currentRows().get(index);
             boolean active = row.active.getAsBoolean();
             boolean selectedRow = row.kind != RowKind.SWITCH && active;
             if(row.kind == RowKind.SECTION) NanoVGUI.fill(x1, rowY, x2, rowY + ROW_HEIGHT, OpaiStyle.SETTINGS);
             else if(selectedRow) NanoVGUI.fill(x1, rowY, x2, rowY + ROW_HEIGHT, OpaiStyle.ENABLED);
-            else if(hovering && row.kind != RowKind.DISABLED) NanoVGUI.fill(x1, rowY, x2, rowY + ROW_HEIGHT, 0x0CEDE0DE);
+            else if(hovering && row.kind != RowKind.DISABLED) NanoVGUI.fill(x1, rowY, x2, rowY + ROW_HEIGHT, OpaiStyle.HOVER);
             OpaiStyle.text(row.label.get(), x1 + 10, rowY + 6,
                 windowWidth - (row.kind == RowKind.SWITCH ? 49 : 20),
                 selectedRow ? OpaiStyle.INK : hovering ? TEXT : MUTED);
-            if(row.kind == RowKind.SWITCH) OpaiStyle.toggle(x2 - 36, rowY + 1.8F, active);
+            if(row.kind == RowKind.SWITCH) {
+                long now = System.currentTimeMillis();
+                NavigatorAnimation animation = switches.computeIfAbsent(index,
+                    ignored -> new NavigatorAnimation(active ? 1 : 0));
+                animation.animate(active ? 1 : 0, OpaiStyle.SWITCH_MILLIS, now,
+                    NavigatorAnimation.Easing.LINEAR);
+                OpaiStyle.toggle(x2 - 36, rowY + 1.8F, animation.value(now));
+            }
 		}
 
 		@Override
@@ -802,7 +992,7 @@ public final class ClickGuiScreen extends Screen
 		{
 			if(button != GLFW.GLFW_MOUSE_BUTTON_LEFT)
 				return false;
-			PanelRow panelRow = rows().get(index);
+			PanelRow panelRow = currentRows().get(index);
 			if(panelRow.kind == RowKind.SECTION
 				|| panelRow.kind == RowKind.DISABLED)
 				return true;
@@ -1035,18 +1225,24 @@ public final class ClickGuiScreen extends Screen
 		{
 			return List.of(
                 actionRow("HUD", () -> isWindowVisible("hud"), () -> toggleWindowVisibility("hud")),
-				actionRow("战斗类", () -> isWindowVisible("combat"),
+				actionRow("战斗", () -> isWindowVisible("combat"),
 					() -> toggleWindowVisibility("combat")),
-				actionRow("视觉类", () -> isWindowVisible("visual"),
+				actionRow("玩家", () -> isWindowVisible("player"),
+					() -> toggleWindowVisibility("player")),
+				actionRow("渲染", () -> isWindowVisible("visual"),
 					() -> toggleWindowVisibility("visual")),
-				actionRow("移动类", () -> isWindowVisible("movement"),
+				actionRow("移动", () -> isWindowVisible("movement"),
 					() -> toggleWindowVisibility("movement")),
 				actionRow("客户端", () -> isWindowVisible("client"),
 					() -> toggleWindowVisibility("client")),
-				actionRow("世界类", () -> isWindowVisible("world"),
+				actionRow("世界", () -> isWindowVisible("world"),
 					() -> toggleWindowVisibility("world")),
-				actionRow("其他类", () -> isWindowVisible("other"),
+				actionRow("其他", () -> isWindowVisible("other"),
 					() -> toggleWindowVisibility("other")),
+				actionRow("漏洞", () -> isWindowVisible("exploit"),
+					() -> toggleWindowVisibility("exploit")),
+				actionRow("娱乐", () -> isWindowVisible("fun"),
+					() -> toggleWindowVisibility("fun")),
 				actionRow("配置", () -> isWindowVisible("config"),
 					() -> toggleWindowVisibility("config")),
 				actionRow("目标", () -> isWindowVisible("target"),

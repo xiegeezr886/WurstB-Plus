@@ -44,7 +44,7 @@ public final class GuiEditHUD extends Screen
 
 	public GuiEditHUD()
 	{
-		super(Component.literal("HUD Editor"));
+		super(Component.literal(WurstClient.tr("HUD Editor")));
 		manager = WURST.getHudManager();
 		mods = manager.getMods();
 	}

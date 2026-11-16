@@ -66,7 +66,7 @@ public final class MassTpaHack extends Hack
 	public MassTpaHack()
 	{
 		super("MassTPA");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(commandSetting);
 		addSetting(delay);
 		addSetting(ignoreErrors);
@@ -151,8 +151,7 @@ public final class MassTpaHack extends Hack
 				return;
 			
 			event.cancel();
-			ChatUtils.error("This server doesn't have a "
-				+ command.toUpperCase() + " command.");
+			ChatUtils.error("This server doesn't have a %s command.", command.toUpperCase());
 			setEnabled(false);
 			
 		}else if(message.contains("accepted") && message.contains("request")
@@ -162,8 +161,7 @@ public final class MassTpaHack extends Hack
 				return;
 			
 			event.cancel();
-			ChatUtils.message("Someone accepted your " + command.toUpperCase()
-				+ " request. Stopping.");
+			ChatUtils.message("Someone accepted your %s request. Stopping.", command.toUpperCase());
 			setEnabled(false);
 		}
 	}

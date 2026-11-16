@@ -57,6 +57,8 @@ public final class NanoVGContext
 
 	private long vg;
 	private NVGLUFramebuffer framebuffer;
+	private final FramebufferSlot nativeBuffer = new FramebufferSlot();
+	private final FramebufferSlot smoothBuffer = new FramebufferSlot();
 	private int framebufferWidth;
 	private int framebufferHeight;
 	private float guiScale = 1;
@@ -79,6 +81,12 @@ public final class NanoVGContext
 	private final Map<String, Long> imageTimestamps = new HashMap<>();
 	private final Map<Long, Integer> textureImages = new HashMap<>();
 	private NVGPaint scratchPaint;
+
+	private static final class FramebufferSlot
+	{
+		NVGLUFramebuffer framebuffer;
+		int width, height;
+	}
 
 	private NanoVGContext() {}
 
@@ -346,38 +354,59 @@ public final class NanoVGContext
 
 	private boolean ensureFramebuffer()
 	{
+		return ensureFramebuffer(1);
+	}
+
+	private boolean ensureFramebuffer(float requestedSampling)
+	{
 		if(vg == 0 || WurstClient.MC == null)
 			return false;
 
 		Minecraft mc = WurstClient.MC;
 		int width = mc.getWindow().getWidth();
 		int height = mc.getWindow().getHeight();
+		// Keep GUI supersampling bounded to a 4K target and reuse its own
+		// buffer so the native HUD pass never reallocates it between frames.
+		float sampling = Math.min(requestedSampling,
+			(float)Math.sqrt(8_388_608.0 / Math.max(1.0, (double)width * height)));
+		sampling = Math.min(sampling, 4096F / Math.max(1, Math.max(width, height)));
+		if(sampling < 1.1F) sampling = 1;
+		width = Math.max(1, Math.round(width * sampling));
+		height = Math.max(1, Math.round(height * sampling));
+		FramebufferSlot slot = sampling > 1 ? smoothBuffer : nativeBuffer;
 		float scale = (float)mc.getWindow().getGuiScale();
 		if(scale <= 0)
 			scale = 1;
-
-		if(framebuffer != null && width == framebufferWidth
-			&& height == framebufferHeight && scale == guiScale)
+		if(slot.framebuffer != null && width == slot.width && height == slot.height)
+		{
+			framebuffer = slot.framebuffer;
+			framebufferWidth = width;
+			framebufferHeight = height;
+			guiScale = scale * sampling;
 			return true;
+		}
 
-		if(framebuffer != null)
+		if(slot.framebuffer != null && (width != slot.width || height != slot.height))
 		{
 			// nvgluDeleteFramebuffer() already deletes the NanoVG image that
 			// wraps the colour texture. Deleting it here as well frees the
 			// same image slot twice and can corrupt NanoVG's image table,
 			// which shows up as black/missing images after a resize.
-			if(glesBackend)
-				NanoVGGLES3.nvgluDeleteFramebuffer(vg, framebuffer);
-			else
-				NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
-			framebuffer = null;
+			deleteFramebuffer(slot);
 		}
 
-		framebuffer = glesBackend
-			? NanoVGGLES3.nvgluCreateFramebuffer(vg, width, height, 0)
-			: NanoVGGL3.nvgluCreateFramebuffer(vg, width, height, 0);
+		if(slot.framebuffer == null)
+		{
+			slot.framebuffer = glesBackend
+				? NanoVGGLES3.nvgluCreateFramebuffer(vg, width, height, 0)
+				: NanoVGGL3.nvgluCreateFramebuffer(vg, width, height, 0);
+			slot.width = width;
+			slot.height = height;
+		}
+		framebuffer = slot.framebuffer;
 		if(framebuffer == null || framebuffer.fbo() == 0)
 		{
+			deleteFramebuffer(slot);
 			framebuffer = null;
 			logFailure("could not create the offscreen framebuffer");
 			return false;
@@ -389,18 +418,23 @@ public final class NanoVGContext
 		{
 			logFailure("incomplete framebuffer 0x"
 				+ Integer.toHexString(status));
-			if(glesBackend)
-				NanoVGGLES3.nvgluDeleteFramebuffer(vg, framebuffer);
-			else
-				NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
+			deleteFramebuffer(slot);
 			framebuffer = null;
 			return false;
 		}
 
 		framebufferWidth = width;
 		framebufferHeight = height;
-		guiScale = scale;
+		guiScale = scale * sampling;
 		return true;
+	}
+
+	private void deleteFramebuffer(FramebufferSlot slot)
+	{
+		if(slot.framebuffer == null) return;
+		if(glesBackend) NanoVGGLES3.nvgluDeleteFramebuffer(vg, slot.framebuffer);
+		else NanoVGGL3.nvgluDeleteFramebuffer(vg, slot.framebuffer);
+		slot.framebuffer = null;
 	}
 
 		private boolean drawToSkia()
@@ -415,10 +449,15 @@ public final class NanoVGContext
 
 	public boolean beginFrame()
 	{
+		return beginFrame(1);
+	}
+
+	public boolean beginFrame(float sampling)
+	{
 		if(!create())
 			return false;
 		prepareTextureUpload();
-		if(!ensureFramebuffer())
+		if(!ensureFramebuffer(sampling) && (sampling <= 1 || !ensureFramebuffer(1)))
 			return false;
 
 		if(glesBackend)
@@ -444,7 +483,15 @@ public final class NanoVGContext
 			prewarmed = true;
 		}
 		frameOpen = true;
+		frameSerial++;
 		return true;
+	}
+
+	private long frameSerial;
+
+	public long getFrameSerial()
+	{
+		return frameSerial;
 	}
 
 	/**
@@ -638,6 +685,18 @@ public final class NanoVGContext
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
 		NanoVG.nvgFillColor(vg, getColor(argb));
+		NanoVG.nvgFill(vg);
+	}
+
+	/** Fixed left-to-right gradient, without the animated theme rotation. */
+	public void drawHorizontalGradientRoundedRect(float x, float y,
+		float width, float height, float radius, int left, int right)
+	{
+		NVGPaint paint = scratchPaint;
+		NanoVG.nvgBeginPath(vg);
+		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
+		NanoVG.nvgFillPaint(vg, NanoVG.nvgLinearGradient(vg, x, y,
+			x + width, y, getColor(left), getColor(right), paint));
 		NanoVG.nvgFill(vg);
 	}
 
@@ -1118,6 +1177,12 @@ public final class NanoVGContext
 		NanoVG.nvgTranslate(vg, x, y);
 	}
 
+	/** Affine projection used by Opai's software-compatible card flip. */
+	public void transform(float a, float b, float c, float d, float x, float y)
+	{
+		NanoVG.nvgTransform(vg, a, b, c, d, x, y);
+	}
+
 	public void scale(float x, float y, float scale)
 	{
 		NanoVG.nvgTranslate(vg, x, y);
@@ -1287,6 +1352,12 @@ public final class NanoVGContext
 	public void drawImageRegion(int texture, float x, float y, float width,
 		float height, float u0, float v0, float u1, float v1)
 	{
+		drawImageRegion(texture, x, y, width, height, u0, v0, u1, v1, 0xFFFFFFFF);
+	}
+
+	public void drawImageRegion(int texture, float x, float y, float width,
+		float height, float u0, float v0, float u1, float v1, int tint)
+	{
 		if(texture <= 0 || width <= 0 || height <= 0 || u1 <= u0 || v1 <= v0)
 			return;
 
@@ -1299,6 +1370,8 @@ public final class NanoVGContext
 		NVGPaint paint = scratchPaint;
 		NanoVG.nvgImagePattern(vg, x - u0 * scaleX, y - v0 * scaleY, scaleX,
 			scaleY, 0, image, 1F, paint);
+		paint.innerColor().set(getColor(tint));
+		paint.outerColor().set(getColor(tint));
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRect(vg, x, y, width, height);
 		NanoVG.nvgFillPaint(vg, paint);
@@ -1458,16 +1531,10 @@ public final class NanoVGContext
 
 		try
 		{
-			if(framebuffer != null)
-			{
-				// nvgluDeleteFramebuffer() deletes the image itself; deleting it
-				// here as well would free the same slot twice.
-				if(glesBackend)
-					NanoVGGLES3.nvgluDeleteFramebuffer(vg, framebuffer);
-				else
-					NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
-				framebuffer = null;
-			}
+			net.wurstclient.hud2.HUDMod.closeGlassBackground();
+			deleteFramebuffer(nativeBuffer);
+			deleteFramebuffer(smoothBuffer);
+			framebuffer = null;
 
 			for(int image : images.values())
 				if(image != 0)

@@ -5,14 +5,22 @@ import java.util.function.IntToDoubleFunction;
 /** One measurement shared by panel painting, scrolling and pointer hit tests. */
 final class OpaiPanelLayout
 {
-    private final float[] starts;
-    private final float[] heights;
-    private final float total;
+    private float[] starts = new float[0];
+    private float[] heights = new float[0];
+    private float total;
 
     OpaiPanelLayout(int count, IntToDoubleFunction measure)
     {
-        starts = new float[count];
-        heights = new float[count];
+        measure(count, measure);
+    }
+
+    void measure(int count, IntToDoubleFunction measure)
+    {
+        if(starts.length != count)
+        {
+            starts = new float[count];
+            heights = new float[count];
+        }
         float offset = 0;
         for(int i = 0; i < count; i++)
         {

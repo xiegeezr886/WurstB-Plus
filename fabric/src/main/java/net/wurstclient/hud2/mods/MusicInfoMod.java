@@ -25,8 +25,8 @@ public final class MusicInfoMod extends HUDMod
 	protected void draw()
 	{
 		drawBackground(160, 34);
-		drawText("Music", 6, 4, 9, HudFonts.DEMIBOLD);
-		drawText("Nothing is playing", 6, 17, 9, HudFonts.REGULAR,
+		drawText(WURST.translate("Music"), 6, 4, 9, HudFonts.DEMIBOLD);
+		drawText(WURST.translate("Nothing is playing"), 6, 17, 9, HudFonts.REGULAR,
 			getFontColor(200));
 		setSize(160, 34);
 	}

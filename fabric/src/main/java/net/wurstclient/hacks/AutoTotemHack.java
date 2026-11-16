@@ -48,7 +48,7 @@ public final class AutoTotemHack extends Hack implements UpdateListener
 	public AutoTotemHack()
 	{
 		super("AutoTotem");
-		setCategory(Category.COMBAT);
+		setCategory(Category.PLAYER);
 		addSetting(showCounter);
 		addSetting(delay);
 		addSetting(health);

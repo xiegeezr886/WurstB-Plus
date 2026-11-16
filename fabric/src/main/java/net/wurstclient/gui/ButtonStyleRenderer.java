@@ -39,10 +39,9 @@ import net.wurstclient.mixin.AbstractSliderButtonAccessor;
  */
 public final class ButtonStyleRenderer
 {
-	private static final int ACCENT = 0xFF006366;
-	private static final int TEXT_COLOR = 0xFFF2F6F6;
-	private static final int DISABLED_TEXT = 0xFF707A7B;
-	private static final int BASE_FILL = 0xD9141B1C;
+	private static final int ACCENT = 0xFFB5BEF0;
+	private static final int TEXT_COLOR = 0xFFF2F2F8;
+	private static final int DISABLED_TEXT = 0xFF77798C;
 
 	private static final Map<AbstractWidget, HoverAnimation> HOVER =
 		new WeakHashMap<>();
@@ -219,7 +218,7 @@ public final class ButtonStyleRenderer
 		if(progressX > trackLeft)
 			NanoVGUI.fillRounded(trackLeft, trackY, progressX,
 				trackY + trackHeight, 1,
-				slider.active ? ACCENT : 0xFF3A3F40);
+				slider.active ? ACCENT : 0xFF3A3D50);
 
 		float knobWidth = 6;
 		float knobHeight = Math.min(10, height - 8);
@@ -243,12 +242,8 @@ public final class ButtonStyleRenderer
 	private static void drawCard(AbstractWidget widget, int x1, int y1,
 		int width, int height, boolean compact, float hover)
 	{
-		int radius = compact ? 5 : 7;
-		int accent = widget.active ? ACCENT : 0xFF3A3F40;
-		int fill = mixColor(BASE_FILL, withAlpha(accent, 230), hover * 0.72F);
-		NanoVGUI.fillRounded(x1, y1, x1 + width, y1 + height, radius, fill);
-		NanoVGUI.outlineRounded(x1, y1, x1 + width, y1 + height, radius,
-			withAlpha(0xFFFFFFFF, 22 + Math.round(hover * 48)));
+		IslandButtonStyle.draw(x1, y1, width, height, widget.active,
+			hover, widget.isFocused(), ACCENT);
 	}
 
 	private static void drawCheckbox(Checkbox checkbox, int x1, int y1,
@@ -264,9 +259,9 @@ public final class ButtonStyleRenderer
 			float cx = x + size / 2F;
 			float cy = y + size / 2F;
 			NanoVGUI.line(x + 2.5F, cy, cx - 0.5F, y + size - 3F, 1.6F,
-				0xFFFFFFFF);
+				0xFF0C185C);
 			NanoVGUI.line(cx - 0.5F, y + size - 3F, x + size - 2.5F,
-				y + 2.5F, 1.6F, 0xFFFFFFFF);
+				y + 2.5F, 1.6F, 0xFF0C185C);
 		}else
 			NanoVGUI.outlineRounded(x, y, x + size, y + size, 3,
 				0x60FFFFFF);
@@ -277,21 +272,6 @@ public final class ButtonStyleRenderer
 		HoverAnimation animation = HOVER.computeIfAbsent(widget,
 			ignored -> new HoverAnimation(20));
 		return animation.update(widget.active && widget.isHoveredOrFocused());
-	}
-
-	private static int mixColor(int first, int second, float amount)
-	{
-		float weight = Math.max(0, Math.min(1, amount));
-		float inverse = 1 - weight;
-		int alpha = Math.round((first >>> 24) * inverse
-			+ (second >>> 24) * weight);
-		int red = Math.round((first >> 16 & 0xFF) * inverse
-			+ (second >> 16 & 0xFF) * weight);
-		int green = Math.round((first >> 8 & 0xFF) * inverse
-			+ (second >> 8 & 0xFF) * weight);
-		int blue = Math.round((first & 0xFF) * inverse
-			+ (second & 0xFF) * weight);
-		return alpha << 24 | red << 16 | green << 8 | blue;
 	}
 
 	private static int withAlpha(int color, int alpha)
