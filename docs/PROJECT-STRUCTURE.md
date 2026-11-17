@@ -10,7 +10,7 @@
 
 ```
 .
-├── src/                    根工程 · Forge 1.20.1 · v1.6.0（唯一带 v1.6 子系统的工程）
+├── src/                    根工程 · Forge 1.20.1 · v1.5.1（由项目内 dist 基线替换）
 ├── fabric/                 Fabric 1.20.1
 ├── neoforge/               NeoForge 1.20.1
 ├── versions/<mc>/          Forge 新版本工程        20 个
@@ -29,6 +29,8 @@
 
 其中 `versions/1.20.5` 与 `versions/1.21.2` **不存在**，因为 Forge 没有发布这两个版本；
 对应 MC 版本只有 `fabric/versions/` 与 `neoforge/versions/` 两侧。
+
+2026-11-17：旧根工程 v1.6.0 已移至仓库外备份；迁移与恢复见 [ROOT-FORGE-1.5.1.md](ROOT-FORGE-1.5.1.md)。下文架构审计中的 v1.6 数字是历史记录。
 
 ## 二、为什么是"完整复制的源码树"
 
