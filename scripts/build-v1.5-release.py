@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-r"""重建 v1.5 发布矩阵：63 个工程 → build/release-v1.5/。
+r"""重建 v1.5 发布矩阵：67 个工程 → build/release-v1.5/。
 
 为什么需要它：`docs/RELEASE.md` 记录的权威脚本 build-v1.5-release.py 在仓库外
 （D:\WurstB\tmp-recon\，不随仓库分发），已随那台机器丢失。本脚本按 RELEASE.md 的
 规则重建同一套产物，规则如下：
 
-  * 矩阵 = `versions/*`（Forge，除 1.20.1 与 26.3）+ `fabric/versions/*`（除 26.3）
-    + `neoforge/versions/*`（除 26.3）+ 两个 1.20.1 根工程 `fabric/`、`neoforge/`。
-    根目录 Forge 1.20.1 是 v1.6.0 形态，不在 v1.5 重建范围内（Release 保留其旧产物）。
+  * 矩阵 = `versions/*`（Forge，除 1.20.1）+ `fabric/versions/*`
+    + `neoforge/versions/*` + 三个 1.20.1 根工程 `.`、`fabric/`、`neoforge/`。
+    根目录 Forge 1.20.1 已恢复 v1.5.1，也纳入构建；历史 Release 资产不自动上传。
   * 生产任务：Forge ≤1.21.1 → `jarJar`，≥1.21.3 → `allJar`；Fabric / NeoForge → `build`。
-  * JDK：MC ≤1.21.11 → JDK 21；26.x → JDK 25（与 scripts/smoke-launch.py 同一套判定）。
+  * JDK：MC 1.20.1–1.20.4 → 17；1.20.5–1.21.11 → 21；26.x → 25。
   * 产物命名：`WurstB+.Plus-<mod_version 去掉 v>-<Loader>-<mc>.jar`（Release 上的统一命名）。
 
 用法：
@@ -46,7 +46,7 @@ JDK_ENV = {17: 'WURSTBPLUS_JAVA17', 21: 'WURSTBPLUS_JAVA21',
            25: 'WURSTBPLUS_JAVA25'}
 
 SKIP_MC = set()             # 26.3 也一并构建：它是 Release v1.5.0 上尚未发布的版本
-ROOT_FORGE_SKIP = True      # 根 Forge 1.20.1 是 v1.6.0 形态，保留旧产物
+ROOT_FORGE_SKIP = False     # 2026-11-17: 根 Forge 1.20.1 已恢复项目内 v1.5.1 源码
 
 
 def asset_name(jar_basename):
@@ -120,7 +120,7 @@ def gradle_command(project_dir):
 
 
 def projects():
-    """(工程名, 目录, 加载器, mc) —— 与 RELEASE.md 的 63 个重建目标一致。"""
+    """(工程名, 目录, 加载器, mc) —— 当前 67 个构建目标。"""
     out = []
     for base, loader in (('versions', 'Forge'), ('fabric/versions', 'Fabric'),
                          ('neoforge/versions', 'NeoForge')):
@@ -137,6 +137,8 @@ def projects():
         p = os.path.join(ROOT, sub)
         mc = gradle_props(p).get('minecraft_version', '1.20.1')
         out.append(('%s-%s' % (loader, mc), p, loader, mc))
+    if not ROOT_FORGE_SKIP:
+        out.append(('Forge-1.20.1', ROOT, 'Forge', '1.20.1'))
     return out
 
 
@@ -156,7 +158,7 @@ def task_for(loader, mc):
     `Task 'remapJar' not found` 失败。
     """
     if loader == 'Forge':
-        return 'jarJar' if mc in ('1.20.2', '1.20.3', '1.20.4', '1.20.6',
+        return 'jarJar' if mc in ('1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.6',
                                   '1.21', '1.21.1') else 'allJar'
     if loader == 'Fabric':
         return 'jar' if mc.startswith('26.') else 'remapJar'
