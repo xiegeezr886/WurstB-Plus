@@ -1,5 +1,7 @@
 # 第三方组件许可与归属
 
+2026-11-17：根工程已替换为项目内 Forge 1.20.1 v1.5.1。以下涉及旧根工程 Skiko、FFmpeg、Compose 等组件的说明保留为历史发布归属，不表示它们仍随当前根工程打包。旧源码及文档备份见 [迁移说明](docs/ROOT-FORGE-1.5.1.md)。
+
 ## SeedCrackerX / OpenSeed
 
 Fabric 1.20.1 内嵌 [SeedCrackerX](https://github.com/19MisterX98/SeedcrackerX) 官方 2.14.4 发布包（MIT），保留其嵌套库及元数据，新增独立结果桥接和 Baritone 联动。普通/散布矿脉重放算法改编自 [kuxiaole/OpenSeed](https://github.com/kuxiaole/OpenSeed) 提交 `3411dd42cbb17cf9e937f872bce7ec0cb19eeccc` 的 OreXrayManager。该公开仓库声明为反编译重建，MIT 只适用于 SeedCrackerX 部分，其额外代码授权未明确，不能宣称整个仓库均为 MIT。原用户提供的 OpenSeed-Crack 地址不可访问，无法确认此镜像的继承关系。随包保留 `META-INF/licenses/seedcrackerx/`、`META-INF/licenses/openseed/` 来源与许可说明；没有引入 OpenSeed 原版 JAR、认证或云端上传功能。详见 [适配说明](docs/SEED-MINING-v1.5.2.md)。

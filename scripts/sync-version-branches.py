@@ -184,7 +184,7 @@ def branch_keeps(path, roots, v):
 
 def label(root):
     if root == "src":
-        return "`src/` —— 根目录 Forge 1.20.1 工程（v1.6.0）"
+        return "`src/` —— 根目录 Forge 1.20.1 工程（v1.5.1）"
     if "/" not in root:
         return f"`{root}/` —— {LOADER_OF[root]} 1.20.1 根工程"
     return f"`{root}/` —— {LOADER_OF[root.split('/', 1)[0]]}"
