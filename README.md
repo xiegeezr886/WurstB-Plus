@@ -20,6 +20,14 @@ Minecraft 客户端（utility mod）。同一套功能被移植到 **Forge / Neo
 
 ---
 
+## Windows 下载器
+
+提供使用 Axolotl 实际 Vue 组件源码构建的 Fluent / Material 风格桌面下载器 **WDownloader**，支持分步选择 **发布版本、Minecraft 游戏版本和加载器**。
+默认保存到系统下载文件夹，使用 **4 路多线程下载**（可选 1 / 2 / 4 / 8），内置 GitHub 直连与多个加速代理，下载前自动测速、失败切换线路并校验文件完整性。
+使用和构建方法见 [下载器说明](downloader/README.md)。
+
+---
+
 ## 版本支持矩阵
 
 | Minecraft | Forge | NeoForge | Fabric | Java |
