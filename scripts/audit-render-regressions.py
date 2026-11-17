@@ -3,7 +3,8 @@
 
 Checks lifecycle and GL state invariants, not visual correctness. Run the real
 OpenGL tests separately with run-render263-tests.py --project <project>.
-The root v1.6.0 project is intentionally excluded.
+The restored root dist/v1.5.1 snapshot is outside this historical 66-project
+render gate; its baseline/build verification is in docs/ROOT-FORGE-1.5.1.md.
 """
 import json
 from pathlib import Path
