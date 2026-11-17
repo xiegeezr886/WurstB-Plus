@@ -10,12 +10,20 @@
   <img src="../logo.png" alt="WurstB+ Plus" width="768"/>
 </p>
 
+## 当前根工程与发布状态（2026-11-17）
+
+根目录现在是 Forge 1.20.1 **v1.5.1**，源码取自项目内 `dist/VAP-v1.5.1-Forge-1.20.1`。
+旧 v1.6.0 已移到仓库外备份，恢复方式见 [根工程迁移说明](ROOT-FORGE-1.5.1.md)。
+Fabric 1.20.1 保持 v1.5.2；其他工程保持 v1.5.1。`build-v1.5-release.py` 现在纳入根 Forge 工程，使用 `jarJar`。
+下方 v1.6 子系统、旧构建排除和历史发布矩阵是原版维护记录，不再描述当前根工程；不要用旧 v1.6 构建步骤替代当前 `./gradlew jarJar`。
+既有 GitHub Release 资产不因本次替换而改变；Fabric v1.5.2 资产已于 2026-11-16 单独更新。
+
 ## 项目概览
 
 WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项目。工作区内共有 **67 个独立 Gradle 构建工程**，全部已有打包产物：
 
 - **64 个版本工程**：`versions/` 20（Forge）+ `fabric/versions/` 22 + `neoforge/versions/` 22，覆盖 MC 1.20.2–1.20.6、1.21–1.21.11、26.1、26.1.1、26.1.2、26.2、26.3（1.20.5 与 1.21.2 无官方 Forge，只有 NeoForge / Fabric）；
-- **3 个 1.20.1 根工程**：根目录 Forge（**v1.6.0**）、`fabric/`（当前开发源码 **v1.5.2**）与 `neoforge/`（当前源码 **v1.5.1**）。Fabric 1.20.1 的最新发布二进制仍为 v1.5.1，v1.5.2 尚未发布。
+- **3 个 1.20.1 根工程**：根目录 Forge（**v1.5.1**）、`fabric/`（当前开发源码 **v1.5.2**）与 `neoforge/`（当前源码 **v1.5.1**）。Fabric 1.20.1 的 v1.5.2 预发布资产已于 2026-11-16 更新。
 
 **67 个工程中，66 个的 v1.5.0 产物已在 v1.5.0 发布时按当时源码重新构建**，并与留存的原 1.20.1 Forge 产物一起发布在 GitHub Release
 [**WurstB+ Plus 1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0)（**共 67 个资产**，命名统一为
@@ -26,14 +34,12 @@ WurstB+ Plus 是一个基于 Wurst 代码结构扩展的 Minecraft 客户端项�
 
 详细文件索引见 [PROJECT_INDEX.md](../PROJECT_INDEX.md)，版本变更见 [CHANGELOG.md](../CHANGELOG.md)，移植计划与逐版本状态见 [docs/PORTING-NEW-VERSIONS.md](PORTING-NEW-VERSIONS.md)。
 
-> **版本分布**：只有根目录 **Forge 1.20.1 工程（v1.6.0）** 包含 v1.6 新子系统；
-> `fabric/` 1.20.1 开发源码为 v1.5.2，其余 65 个工程为 v1.5.1；v1.5.1 Release 保留当时的完整资产矩阵，Fabric 1.20.1 v1.5.2 尚无正式产物；
-> v1.6 子系统尚未移植，见「v1.6 新增子系统」。
+> **当前版本分布**：根目录 Forge 1.20.1 为 v1.5.1，Fabric 1.20.1 为 v1.5.2，其余工程为 v1.5.1；原 v1.6.0 已归档。
 >
 > **v1.5.1 Release（Latest，2026-11-07 全量重传）**：67 个 jar 资产
 > （Fabric 23 / Forge 21 / NeoForge 23），均由当前 v1.5.1 源码重新编译；其中
 > Forge 1.20.1 由 `VAP-v1.5.0-1.20.1` 工程单独构建（修复 accessor 登记）。根目录
-> Forge 1.20.1（v1.6.0）不在此 Release，见 v1.6.0 预发布。tag 仍为 `v1.5.1`。
+> Forge 1.20.1 当时的 v1.6.0 源码不在此 Release，见历史 v1.6.0 预发布。tag 仍为 `v1.5.1`。
 
 ## 渲染兼容性（NanoVG / X-Ray / Vulkan）
 
