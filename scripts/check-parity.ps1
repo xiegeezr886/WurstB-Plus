@@ -199,7 +199,7 @@ $total = $drift.Count + $renderDrift.Count
 if(-not $Quiet) {
 	Write-Host ("baseline: {0} ({1} hacks, {2} otfs, {3} cmds, {4} hud mods, {5} nanovg files)" -f `
 		$baselineName, $baseHacks.Count, $baseOtfs.Count, $baseCmds.Count, $baseMods.Count, $baseNvg.Count)
-	Write-Host ("projects checked: {0} (root Forge 1.20.1 / v1.6.0 excluded)" -f ($projects.Count - 1))
+	Write-Host ("projects checked: {0} (restored root Forge 1.20.1 dist/v1.5.1 snapshot excluded; see docs/ROOT-FORGE-1.5.1.md)" -f ($projects.Count - 1))
 }
 
 foreach($d in $drift) {

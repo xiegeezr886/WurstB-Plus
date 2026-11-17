@@ -9,7 +9,7 @@
 [![Loaders](https://img.shields.io/badge/Loaders-Forge%20%7C%20NeoForge%20%7C%20Fabric-6E6E6E?style=flat-square)](#版本支持矩阵)
 [![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#版本支持矩阵)
 [![Gradle projects](https://img.shields.io/badge/Gradle_projects-67-4C1D95?style=flat-square)](#仓库结构)
-[![preview](https://img.shields.io/badge/preview-v1.6.0-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)
+[![preview](https://img.shields.io/badge/preview-v1.5.2-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
 
 </div>
@@ -24,7 +24,7 @@ Minecraft 客户端（utility mod）。同一套功能被移植到 **Forge / Neo
 
 | Minecraft | Forge | NeoForge | Fabric | Java |
 | --- | :---: | :---: | :---: | :---: |
-| **1.20.1** | ✓ <sup>v1.6.0</sup> | ✓ | ✓ | 17 |
+| **1.20.1** | ✓ <sup>v1.5.1</sup> | ✓ | ✓ | 17 |
 | 1.20.2 · 1.20.3 · 1.20.4 | ✓ | ✓ | ✓ | 17 |
 | 1.20.5 | — | ✓ | ✓ | 21 |
 | 1.20.6 | ✓ | ✓ | ✓ | 21 |
@@ -45,17 +45,14 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.1-Forge
 | --- | --- | --- |
 | [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 个资产 | 1.5.0 线的历史主力发布 |
 | [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | **67 个资产（全矩阵）** | **最新发布（Latest）**：66 个 v1.5.1 工程 + 1 个 1.20.1 Forge 修复包，共 67 个 jar |
-| **v1.5.2** | Fabric 1.20.1 | `main` 上的开发源码已更新；尚未创建 Release 或上传发布 jar |
-| [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | 预发布（prerelease），含 v1.6 新子系统 |
+| [**v1.5.2**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2) | Fabric 1.20.1 | 预发布；2026-11-16 已更新 JAR |
+| [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | 历史预发布；源码已移出当前根工程 |
 
-> **说明：** 其余 65 个多版本工程和 `neoforge/` 1.20.1 当前保持 **v1.5.1**，
-> `fabric/` 1.20.1 当前源码已推进至 **v1.5.2**，但还没有对应 Release jar；v1.5.1 Release 保留当时发布的全矩阵二进制。第 67 个是 `VAP-v1.5.0-1.20.1` 工程单独构建的
-> Forge 1.20.1 修复包。根目录 Forge 1.20.1 是 **v1.6.0**（唯一带 v1.6 新子系统的工程），
-> 只随 v1.6.0 Release 发布；v1.5.0 Release 保留 1.5.0 时期的 67 个历史资产。
-
-> **四客户端移植基线（2026-11-08）：** 第 1–18 批已合入上述 66 个 v1.5.1 工程及独立的
-> `VAP-v1.5.0-1.20.1` 根工程；本仓库根目录的 **v1.6.0 尚未合入这 18 批**。
-> 批次内容、验证范围及未完成项见 [CHANGELOG.md](CHANGELOG.md)。
+> **当前源码（2026-11-17）：** 根目录 Forge 1.20.1 已使用项目内
+> `dist/VAP-v1.5.1-Forge-1.20.1` 替换为 **v1.5.1**；`fabric/` 1.20.1 为 **v1.5.2**，
+> 其他工程为 v1.5.1。旧 v1.6.0 源码已移到仓库外独立备份，不再参与根工程构建。
+> 既有 GitHub Release 与历史标签保留；源码替换不代表重新发布整个矩阵。
+> 迁移范围、恢复方式与验证见 [根工程基线说明](docs/ROOT-FORGE-1.5.1.md)。
 
 ---
 
@@ -63,7 +60,7 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.1-Forge
 
 ```text
 .
-├── src/                    根工程 · Forge 1.20.1 · v1.6.0
+├── src/                    根工程 · Forge 1.20.1 · v1.5.1
 ├── fabric/                 Fabric 1.20.1 · v1.5.2（源码开发中）
 ├── neoforge/               NeoForge 1.20.1 · v1.5.1
 ├── versions/               Forge 新版本工程        20 个
