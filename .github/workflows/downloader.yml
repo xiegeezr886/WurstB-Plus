@@ -1,0 +1,35 @@
+name: Build Windows downloader
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'downloader/**'
+      - '.github/workflows/downloader.yml'
+  pull_request:
+    paths:
+      - 'downloader/**'
+      - '.github/workflows/downloader.yml'
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test and publish single executable
+        shell: pwsh
+        run: ./downloader/build.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WDownloader-win-x64
+          path: downloader/artifacts/release/win-x64/WDownloader.exe
+          if-no-files-found: error

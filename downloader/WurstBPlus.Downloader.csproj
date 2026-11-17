@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>WDownloader</AssemblyName>
+    <RootNamespace>WurstBPlus.Downloader</RootNamespace>
+    <Product>WDownloader</Product>
+    <Title>WDownloader</Title>
+    <ApplicationIcon>Assets/WDownloader.ico</ApplicationIcon>
+    <Version>1.2.0</Version>
+    <!-- Keep native runtime files alongside the EXE: no writable TEMP/.net cache required. -->
+    <PublishSingleFile>false</PublishSingleFile>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Assets/WDownloader.ico" />
+    <Compile Remove="Core/**;Tests/**" />
+    <Compile Remove="Bootstrap/**" />
+    <Page Remove="Core/**;Tests/**" />
+    <EmbeddedResource Remove="Core/**;Tests/**" />
+    <None Remove="Core/**;Tests/**" />
+    <ProjectReference Include="Core/WurstBPlus.Downloader.Core.csproj" />
+    <EmbeddedResource Include="ReleaseSnapshot.json" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3537.50" />
+    <EmbeddedResource Include="Frontend/dist/index.html" LogicalName="Downloader.Frontend.html" />
+    <EmbeddedResource Include="Frontend/public/licenses/*" />
+    <Compile Remove="Frontend/**" />
+    <Page Remove="Frontend/**" />
+    <None Remove="Frontend/node_modules/**;Frontend/dist/**" />
+  </ItemGroup>
+</Project>
