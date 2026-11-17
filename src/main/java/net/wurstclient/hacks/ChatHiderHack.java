@@ -51,7 +51,7 @@ public final class ChatHiderHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
-		if(MC.player == null)
+		if(!isEnabled() || MC.player == null)
 			return;
 
 		if(MC.screen instanceof ChatScreen)

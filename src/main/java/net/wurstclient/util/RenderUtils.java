@@ -982,12 +982,6 @@ public enum RenderUtils
 		buffer.vertex(matrix, xs2, ys2, 0).color(shadowColor2).endVertex();
 	}
 	
-	public record ColoredPoint(Vec3 point, int color)
-	{}
-	
-	public record ColoredBox(AABB box, int color)
-	{}
-
 	public static void submitText(PoseStack matrices, float x, float y,
 		FormattedCharSequence text, boolean dropShadow, Font.DisplayMode mode,
 		int light, int color, int backgroundColor, int offset)
@@ -1000,4 +994,9 @@ public enum RenderUtils
 		matrices.popPose();
 		buffers.endBatch();
 	}
+		public record ColoredPoint(Vec3 point, int color)
+	{}
+	
+	public record ColoredBox(AABB box, int color)
+	{}
 }

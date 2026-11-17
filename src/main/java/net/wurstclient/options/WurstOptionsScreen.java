@@ -21,9 +21,7 @@ import net.minecraft.network.chat.Component;
 import net.wurstclient.WurstClient;
 import net.wurstclient.commands.FriendsCmd;
 import net.wurstclient.hacks.XRayHack;
-import net.wurstclient.hud2.HudEditorScreen;
-import net.wurstclient.gui.visual.VisualRenderer;
-import net.wurstclient.gui.visual.VisualTheme;
+import net.wurstclient.hud2.GuiEditHUD;
 import net.wurstclient.other_features.VanillaSpoofOtf;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.ChatUtils;
@@ -101,7 +99,7 @@ public class WurstOptionsScreen extends Screen
 		new WurstOptionsButton(-50, 96, () -> "HUD Editor",
 			"Drag and reposition HUD elements on screen. Right-click to"
 				+ " cycle alignment. Click to enable/disable elements.",
-			b -> minecraft.setScreen(new HudEditorScreen()));
+			b -> minecraft.setScreen(new GuiEditHUD()));
 	}
 	
 	@Override
@@ -120,10 +118,7 @@ public class WurstOptionsScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		VisualRenderer.gridBackground(context, width, height);
-		VisualRenderer.panel(context, width / 2 - 164,
-			height / 4 - 36, width / 2 + 164, height / 4 + 116,
-			VisualTheme.RADIUS_LARGE, false);
+		renderBackground(context);
 		renderTitles(context);
 		super.render(context, mouseX, mouseY, partialTicks);
 		renderButtonTooltip(context, mouseX, mouseY);
@@ -137,14 +132,14 @@ public class WurstOptionsScreen extends Screen
 		int y2 = height / 4 + 24 - 28;
 		
 		context.drawCenteredString(tr, WurstClient.CLIENT_NAME + " 设置", middleX, y1,
-			VisualTheme.TEXT);
+			0xffffff);
 		
 		context.drawCenteredString(tr, "Settings", middleX - 104, y2,
-			VisualTheme.TEXT_DIMMED);
+			0xcccccc);
 		context.drawCenteredString(tr, "Managers", middleX, y2,
-			VisualTheme.TEXT_DIMMED);
+			0xcccccc);
 		context.drawCenteredString(tr, "Links", middleX + 104, y2,
-			VisualTheme.TEXT_DIMMED);
+			0xcccccc);
 	}
 	
 	private void renderButtonTooltip(GuiGraphics context, int mouseX,

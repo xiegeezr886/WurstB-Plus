@@ -22,14 +22,12 @@ import net.wurstclient.events.PreMotionListener;
  */
 public final class RotationQueue
 {
-	private static final int DIRECT_REQUEST_LEASE_TICKS = 1;
 	private static final Minecraft MC = WurstClient.MC;
 	private static final Object LOCK = new Object();
 	private static final Set<RotationQueue> ACTIVE = new LinkedHashSet<>();
 	private static final RotationDispatcher DISPATCHER = new RotationDispatcher();
 	private static boolean dispatcherRegistered;
 	private static long requestSequence;
-	private static long dispatchTick;
 
 	private final Queue<RotationTarget> targets = new ArrayDeque<>();
 	private RotationTarget current;
@@ -37,9 +35,11 @@ public final class RotationQueue
 	private int step;
 	private Rotation lastSent;
 	private Rotation nextRotation;
+	private Object requestPlayer;
+	private int requestTick;
+	private boolean applied;
 	private boolean registered;
 	private long requestOrder;
-	private long directRequestTick = -1;
 	private Priority priority;
 
 	public RotationQueue()
@@ -62,12 +62,14 @@ public final class RotationQueue
 
 	public void setRotation(Rotation target)
 	{
-		if(target == null)
+		if(target == null || MC.player == null
+			|| !Float.isFinite(target.yaw()) || !Float.isFinite(target.pitch()))
 			return;
 		synchronized(LOCK)
 		{
 			nextRotation = target;
-			directRequestTick = dispatchTick;
+			requestPlayer = MC.player;
+			requestTick = MC.player.tickCount;
 			requestOrder = ++requestSequence;
 			start();
 		}
@@ -140,8 +142,9 @@ public final class RotationQueue
 			step = 0;
 			lastSent = null;
 			nextRotation = null;
-			directRequestTick = -1;
 			requestOrder = 0;
+			requestPlayer = null;
+			applied = false;
 		}
 	}
 
@@ -149,7 +152,7 @@ public final class RotationQueue
 	{
 		synchronized(LOCK)
 		{
-			return !hasDispatchableWork();
+			return !hasWork();
 		}
 	}
 
@@ -161,20 +164,18 @@ public final class RotationQueue
 		}
 	}
 
+	/** True only for the winner of the latest movement phase. */
+	public boolean wasApplied()
+	{
+		synchronized(LOCK)
+		{
+			return applied;
+		}
+	}
+
 	private boolean hasWork()
 	{
 		return current != null || !targets.isEmpty() || nextRotation != null;
-	}
-
-	private boolean hasDispatchableWork()
-	{
-		if(nextRotation != null && !RotationRequestPolicy.isFresh(
-			directRequestTick, dispatchTick, DIRECT_REQUEST_LEASE_TICKS))
-		{
-			nextRotation = null;
-			directRequestTick = -1;
-		}
-		return hasWork();
 	}
 
 	private Rotation pollRotation()
@@ -186,7 +187,6 @@ public final class RotationQueue
 			Rotation result = nextRotation;
 			lastSent = result;
 			nextRotation = null;
-			directRequestTick = -1;
 			return result;
 		}
 
@@ -222,16 +222,27 @@ public final class RotationQueue
 	{
 		@Override
 		public void onPreMotion()
+		{}
+
+		@Override
+		public void afterPreMotion()
 		{
-			if(MC.player == null)
-				return;
 
 			Rotation next;
 			synchronized(LOCK)
 			{
-				dispatchTick++;
-				RotationQueue owner = ACTIVE.stream()
-					.filter(RotationQueue::hasDispatchableWork)
+				for(RotationQueue queue : ACTIVE)
+				{
+					queue.applied = false;
+					if(MC.player == null)
+						queue.clear();
+					else if(queue.nextRotation != null
+						&& (queue.requestPlayer != MC.player
+							|| MC.player.tickCount < queue.requestTick
+							|| (long)MC.player.tickCount - queue.requestTick > 1))
+						queue.nextRotation = null;
+				}
+				RotationQueue owner = ACTIVE.stream().filter(RotationQueue::hasWork)
 					.max((left, right) -> {
 						int priorityComparison = Integer.compare(
 							left.priority.weight, right.priority.weight);
@@ -241,6 +252,11 @@ public final class RotationQueue
 							right.requestOrder);
 					}).orElse(null);
 				next = owner == null ? null : owner.pollRotation();
+				if(owner != null)
+					owner.applied = next != null;
+				// A one-shot request that lost arbitration must never replay later.
+				for(RotationQueue queue : ACTIVE)
+					queue.nextRotation = null;
 			}
 			if(next == null)
 				return;

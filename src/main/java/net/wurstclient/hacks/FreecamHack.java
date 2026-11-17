@@ -33,8 +33,7 @@ import net.wurstclient.util.RenderUtils;
 public final class FreecamHack extends Hack implements UpdateListener,
 	PacketOutputListener, IsPlayerInWaterListener, AirStrafingSpeedListener,
 	IsPlayerInLavaListener, CameraTransformViewBobbingListener,
-	IsNormalCubeListener, SetOpaqueCubeListener, RenderListener,
-	IsSpectatorListener
+	IsNormalCubeListener, SetOpaqueCubeListener, RenderListener
 {
 	private final SliderSetting speed =
 		new SliderSetting("Speed", 1, 0.05, 10, 0.05, ValueDisplay.DECIMAL);
@@ -58,13 +57,6 @@ public final class FreecamHack extends Hack implements UpdateListener,
 	}
 	
 	@Override
-	public void onIsSpectator(IsSpectatorEvent event)
-	{
-		if(isEnabled())
-			event.setSpectator(true);
-	}
-	
-	@Override
 	protected void onEnable()
 	{
 		EVENTS.add(UpdateListener.class, this);
@@ -76,7 +68,6 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		EVENTS.add(IsNormalCubeListener.class, this);
 		EVENTS.add(SetOpaqueCubeListener.class, this);
 		EVENTS.add(RenderListener.class, this);
-		EVENTS.add(IsSpectatorListener.class, this);
 		
 		fakePlayer = new FakePlayerEntity();
 		previousFlying = MC.player.getAbilities().flying;
@@ -101,7 +92,6 @@ public final class FreecamHack extends Hack implements UpdateListener,
 		EVENTS.remove(IsNormalCubeListener.class, this);
 		EVENTS.remove(SetOpaqueCubeListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
-		EVENTS.remove(IsSpectatorListener.class, this);
 		
 		fakePlayer.resetPlayerPosition();
 		fakePlayer.despawn();

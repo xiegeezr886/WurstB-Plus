@@ -20,6 +20,7 @@ import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.mixin.CreativeModeInventoryScreenAccessor;
 import net.wurstclient.mixinterface.IKeyBinding;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.ScreenRegistry;
@@ -117,8 +118,8 @@ public final class InvWalkHack extends Hack implements UpdateListener
 		if(!(screen instanceof CreativeModeInventoryScreen))
 			return false;
 		
-		return CreativeModeInventoryScreen.selectedTab == CreativeModeTabs
-			.searchTab();
+		return CreativeModeInventoryScreenAccessor.getSelectedTab()
+			== CreativeModeTabs.searchTab();
 	}
 	
 	private boolean hasTextBox(Screen screen)

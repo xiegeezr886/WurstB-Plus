@@ -26,7 +26,6 @@ import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictGroup;
-import net.wurstclient.mixinterface.IKeyBinding;
 import net.wurstclient.settings.AttackSpeedSliderSetting;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.PauseAttackOnContainersSetting;
@@ -35,8 +34,6 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.settings.filterlists.EntityFilterList;
-import net.wurstclient.util.CombatRotationController;
-import net.wurstclient.util.CombatTargetSession;
 import net.wurstclient.util.EntityUtils;
 import net.wurstclient.util.RotationQueue;
 import net.wurstclient.util.RotationUtils;
@@ -72,10 +69,7 @@ public final class FightBotHack extends Hack
 	private EntityPathFinder pathFinder;
 	private PathProcessor processor;
 	private int ticksProcessing;
-	private final CombatRotationController rotationController =
-		new CombatRotationController(RotationQueue.Priority.COMBAT);
-	private final CombatTargetSession<Entity> targetSession =
-		new CombatTargetSession<>();
+	private RotationQueue rotationQueue;
 	
 	public FightBotHack()
 	{
@@ -96,20 +90,16 @@ public final class FightBotHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		if(MC.player == null || MC.level == null)
-		{
-			setEnabled(false);
-			return;
-		}
-
 		WURST.getHax().tunnellerHack.setEnabled(false);
-		pathFinder = null;
-		processor = null;
-		targetSession.clear();
+		
+		pathFinder = new EntityPathFinder(MC.player);
+		
 		speed.resetTimer();
 		EVENTS.add(UpdateListener.class, this);
 		EVENTS.add(RenderListener.class, this);
-		rotationController.start();
+		rotationQueue =
+			new RotationQueue(RotationQueue.Priority.COMBAT);
+		rotationQueue.start();
 	}
 
 	@Override
@@ -117,27 +107,22 @@ public final class FightBotHack extends Hack
 	{
 		EVENTS.remove(UpdateListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
-		rotationController.stop();
-		suspendTargeting(false);
-		releaseMovementKeys();
+		rotationQueue.stop();
+		rotationQueue = null;
+		
+		pathFinder = null;
+		processor = null;
+		ticksProcessing = 0;
+		PathProcessor.releaseControls();
 	}
 	
 	@Override
 	public void onUpdate()
 	{
-		if(MC.player == null || MC.level == null || MC.gameMode == null)
-		{
-			setEnabled(false);
-			return;
-		}
-
 		speed.updateTimer();
 		
 		if(pauseOnContainers.shouldPause())
-		{
-			suspendTargeting(true);
 			return;
-		}
 		
 		// set entity
 		Stream<Entity> stream = EntityUtils.getAttackableEntities();
@@ -148,24 +133,16 @@ public final class FightBotHack extends Hack
 				Comparator.comparingDouble(e -> MC.player.distanceToSqr(e)))
 			.orElse(null);
 		if(entity == null)
-		{
-			suspendTargeting(true);
 			return;
-		}
-		CombatTargetSession.Selection<Entity> selection =
-			targetSession.track(entity);
-		if(selection.changed())
-		{
-			speed.resetTimer();
-			resetPath();
-		}
 		
 		WURST.getHax().autoSwordHack.setSlot(entity);
 		
 		if(useAi.isChecked())
 		{
 			// reset pathfinder
-			if(needsNewPath(entity))
+			if((processor == null || processor.isDone() || ticksProcessing >= 10
+				|| !pathFinder.isPathStillValid(processor.getIndex()))
+				&& (pathFinder.isDone() || pathFinder.isFailed()))
 			{
 				pathFinder = new EntityPathFinder(entity);
 				processor = null;
@@ -176,7 +153,7 @@ public final class FightBotHack extends Hack
 			if(!pathFinder.isDone() && !pathFinder.isFailed())
 			{
 				PathProcessor.lockControls();
-				rotationController.request(RotationUtils.getNeededRotations(
+				rotationQueue.setRotation(RotationUtils.getNeededRotations(
 					entity.getBoundingBox().getCenter()));
 				pathFinder.think();
 				pathFinder.formatPath();
@@ -184,19 +161,13 @@ public final class FightBotHack extends Hack
 			}
 			
 			// process path
-			if(processor != null && !processor.isDone())
+			if(!processor.isDone())
 			{
 				processor.process();
 				ticksProcessing++;
 			}
 		}else
 		{
-			if(pathFinder != null || processor != null)
-			{
-				PathProcessor.releaseControls();
-				resetPath();
-			}
-
 			// jump if necessary
 			if(MC.player.horizontalCollision && MC.player.onGround())
 				MC.player.jumpFromGround();
@@ -226,7 +197,7 @@ public final class FightBotHack extends Hack
 			// follow entity
 			MC.options.keyUp.setDown(
 				MC.player.distanceTo(entity) > distance.getValueF());
-			rotationController.request(RotationUtils.getNeededRotations(
+			rotationQueue.setRotation(RotationUtils.getNeededRotations(
 				entity.getBoundingBox().getCenter()));
 		}
 		
@@ -247,70 +218,9 @@ public final class FightBotHack extends Hack
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
-		if(pathFinder == null)
-			return;
 		PathCmd pathCmd = WURST.getCmds().pathCmd;
 		pathFinder.renderPath(matrixStack, pathCmd.isDebugMode(),
 			pathCmd.isDepthTest());
-	}
-
-	private void suspendTargeting(boolean resetTimer)
-	{
-		if(resetTimer && targetSession.getTarget() != null)
-			speed.resetTimer();
-		targetSession.clear();
-		rotationController.clear();
-		PathProcessor.releaseControls();
-		resetPath();
-		releaseMovementKeys();
-	}
-
-	/**
-	 * 松开被本 hack 强制按下的移动键。这里用 {@code resetPressedState()} 而不是
-	 * {@code setDown(false)}：前者按玩家**真实**按键状态恢复
-	 * （{@code mixin/KeyBindingMixin.java:29-38} 直接查 GLFW），后者会把玩家此刻
-	 * 正按着的键一并取消。
-	 *
-	 * <p>
-	 * 旧实现只按下这些键、从来不复位：关掉 FightBot（或因为打开容器而暂停）之后，
-	 * {@code keyUp} / {@code keyShift} / {@code keyJump} 会停在最后一次被设置的状态，
-	 * 表现为"关掉之后角色自己一直往前走"。
-	 */
-	private void releaseMovementKeys()
-	{
-		IKeyBinding.get(MC.options.keyUp).resetPressedState();
-		IKeyBinding.get(MC.options.keyShift).resetPressedState();
-		IKeyBinding.get(MC.options.keyJump).resetPressedState();
-	}
-	
-	/**
-	 * 是否需要重新寻路。与原条件**语义完全一致**，只是抽出来并写清优先级
-	 * （原表达式是 {@code A || B || (C && D)}，靠 {@code &&} 优先级高于 {@code ||}）：
-	 *
-	 * <ul>
-	 * <li>没有寻路器、或目标换了 → 重来；
-	 * <li>否则只有"处理器已完成 / 处理超过 10 tick / 路径已失效"**且**
-	 * "寻路器已完成或已失败"时才重来 —— 寻路器还在思考时不会被打断
-	 * （否则每 tick 都会重新开始搜索）。
-	 * </ul>
-	 */
-	private boolean needsNewPath(Entity target)
-	{
-		if(pathFinder == null || pathFinder.entity != target)
-			return true;
-		
-		boolean processorStale = processor == null || processor.isDone()
-			|| ticksProcessing >= 10
-			|| !pathFinder.isPathStillValid(processor.getIndex());
-		
-		return processorStale && (pathFinder.isDone() || pathFinder.isFailed());
-	}
-
-	private void resetPath()
-	{
-		pathFinder = null;
-		processor = null;
-		ticksProcessing = 0;
 	}
 	
 	private class EntityPathFinder extends PathFinder

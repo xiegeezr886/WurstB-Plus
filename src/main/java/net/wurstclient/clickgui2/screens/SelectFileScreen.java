@@ -22,6 +22,7 @@ import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.FileSetting;
 
 public final class SelectFileScreen extends Screen
@@ -126,14 +127,20 @@ public final class SelectFileScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
+		NanoVGUI.clearDeferred();
 		renderBackground(context);
 		listGui.render(context, mouseX, mouseY, partialTicks);
-		
-		context.drawCenteredString(minecraft.font,
-			setting.getTranslatedName(), width / 2, 12, 0xffffff);
-		
 		super.render(context, mouseX, mouseY, partialTicks);
-		
+
+		NanoVGUI.pass(context, () -> {
+			NanoVGUI.pushScissor(0, 36, width, height - 100);
+			NanoVGUI.runDeferred();
+			NanoVGUI.popScissor();
+
+			NanoVGUI.centeredText(setting.getTranslatedName(), width / 2, 12,
+				0xFFFFFFFF, 9F);
+		});
+
 		if(doneButton.isHoveredOrFocused() && !doneButton.active)
 			context.renderComponentTooltip(font,
 				Arrays.asList(Component.literal("请先选择一个文件。")),
@@ -180,13 +187,14 @@ public final class SelectFileScreen extends Screen
 			int entryWidth, int entryHeight, int mouseX, int mouseY,
 			boolean hovered, float tickDelta)
 		{
-			Font tr = minecraft.font;
-			
 			String fileName = "" + path.getFileName();
-			context.drawString(tr, fileName, x + 28, y, 0xF0F0F0);
-			
-			String relPath = "" + minecraft.gameDirectory.toPath().relativize(path);
-			context.drawString(tr, relPath, x + 28, y + 9, 0xA0A0A0);
+			String relPath = ""
+				+ minecraft.gameDirectory.toPath().relativize(path);
+
+			NanoVGUI.defer(() -> {
+				NanoVGUI.text(fileName, x + 28, y, 0xF0F0F0, 9F);
+				NanoVGUI.text(relPath, x + 28, y + 9, 0xA0A0A0, 9F);
+			});
 		}
 	}
 	

@@ -48,8 +48,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.StringUtil;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.*;
-import net.wurstclient.gui.visual.VisualRenderer;
-import net.wurstclient.gui.visual.VisualTheme;
 import net.wurstclient.mixinterface.IMinecraftClient;
 import net.wurstclient.util.MultiProcessingUtils;
 import net.wurstclient.util.json.JsonException;
@@ -407,9 +405,7 @@ public final class AltManagerScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		VisualRenderer.gridBackground(context, width, height);
-		VisualRenderer.panel(context, width / 2 - 155, 32,
-			width / 2 + 155, height - 52, VisualTheme.RADIUS_LARGE, false);
+		renderBackground(context);
 		listGui.render(context, mouseX, mouseY, partialTicks);
 		
 		// skin preview
@@ -425,14 +421,13 @@ public final class AltManagerScreen extends Screen
 		
 		// title text
 		context.drawCenteredString(font, "账号管理",
-			width / 2, 4, VisualTheme.TEXT);
+			width / 2, 4, 16777215);
 		context.drawCenteredString(font,
-			"Alts: " + altManager.getList().size(), width / 2, 14,
-			VisualTheme.TEXT_DIMMED);
+			"Alts: " + altManager.getList().size(), width / 2, 14, 10526880);
 		context.drawCenteredString(
 			font, "premium: " + altManager.getNumPremium()
 				+ ", cracked: " + altManager.getNumCracked(),
-			width / 2, 24, VisualTheme.TEXT_DIMMED);
+			width / 2, 24, 10526880);
 		
 		// red flash for errors
 		if(errorTimer > 0)

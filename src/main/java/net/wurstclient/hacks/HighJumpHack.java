@@ -9,20 +9,24 @@ package net.wurstclient.hacks;
 
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.events.JumpPowerListener;
-import net.wurstclient.events.JumpPowerListener.JumpPowerEvent;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.util.JumpHeightSolver;
 
 @SearchTags({"high jump"})
-public final class HighJumpHack extends Hack implements JumpPowerListener
+public final class HighJumpHack extends Hack
 {
+	private final EnumSetting<Mode> mode = new EnumSetting<>("Mode",
+		"Height adds jump motion; Multiplier scales the block jump factor.",
+		Mode.values(), Mode.HEIGHT);
+	private final SliderSetting multiplier = new SliderSetting("Jump multiplier",
+		"Multiplier applied before jump boost effects.", 1, 0, 10, 0.1,
+		ValueDisplay.DECIMAL);
+
 	private final SliderSetting height = new SliderSetting("Height",
 		"Jump height in blocks.\n"
-			+ "Solved against vanilla jump physics, so it stays accurate\n"
-			+ "at higher values as well.",
+			+ "This gets very inaccurate at higher values.",
 		6, 1, 100, 1, ValueDisplay.INTEGER);
 	
 	public HighJumpHack()
@@ -31,35 +35,24 @@ public final class HighJumpHack extends Hack implements JumpPowerListener
 		
 		setCategory(Category.MOVEMENT);
 		addSetting(height);
+		addSetting(mode);
+		addSetting(multiplier);
 	}
 	
-	@Override
-	protected void onEnable()
+	public float getAdditionalJumpMotion()
 	{
-		EVENTS.add(JumpPowerListener.class, this);
+		return isEnabled() && mode.getSelected() == Mode.HEIGHT
+			? height.getValueF() * 0.1F : 0;
 	}
-	
-	@Override
-	protected void onDisable()
+
+	public float getJumpMultiplier()
 	{
-		EVENTS.remove(JumpPowerListener.class, this);
+		return isEnabled() && mode.getSelected() == Mode.MULTIPLIER
+			? multiplier.getValueF() : 1;
 	}
-	
-	/**
-	 * 把这次跳跃的跳跃力改成"最高点正好等于 {@code Height} 格"所需的初速。
-	 *
-	 * <p>
-	 * 基准值来自事件（{@code ClientPlayerEntityMixin#getJumpPower()} 传的是
-	 * {@code super.getJumpPower()}），这样跳跃提升、蜂蜜块之类改变基础跳跃力的
-	 * 因素不会被重复叠加。
-	 */
-	@Override
-	public void onJumpPower(JumpPowerEvent event)
+
+	private enum Mode
 	{
-		if(!isEnabled())
-			return;
-		
-		event.setJumpPower(
-			(float)JumpHeightSolver.requiredVelocity(height.getValueF()));
+		HEIGHT, MULTIPLIER
 	}
 }

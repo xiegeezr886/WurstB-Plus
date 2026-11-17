@@ -18,9 +18,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.BlockSetting;
 import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.RenderUtils;
 
 public final class EditBlockScreen extends Screen
 {
@@ -99,46 +99,47 @@ public final class EditBlockScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		PoseStack matrixStack = context.pose();
-		Font tr = minecraft.font;
-		
 		renderBackground(context);
-		context.drawCenteredString(tr, setting.getTranslatedName(), width / 2, 20,
-			0xFFFFFF);
-		
 		blockField.render(context, mouseX, mouseY, partialTicks);
 		super.render(context, mouseX, mouseY, partialTicks);
-		
-		matrixStack.pushPose();
-		matrixStack.translate(-64 + width / 2 - 100, 115, 0);
-		
-		boolean lblAbove =
-			!blockField.getValue().isEmpty() || blockField.isFocused();
-		String lblText =
-			lblAbove ? "方块ID或编号:" : "方块ID或编号";
-		int lblX = lblAbove ? 50 : 68;
-		int lblY = lblAbove ? -66 : -50;
-		int lblColor = lblAbove ? 0xF0F0F0 : 0x808080;
-		context.drawString(tr, lblText, lblX, lblY, lblColor);
-		
-		int border = blockField.isFocused() ? 0xffffffff : 0xffa0a0a0;
-		int black = 0xff000000;
-		
-		context.fill(48, -56, 64, -36, border);
-		context.fill(49, -55, 65, -37, black);
-		context.fill(242, -56, 246, -36, border);
-		context.fill(241, -55, 245, -37, black);
-		
-		matrixStack.popPose();
-		
+
 		String nameOrId = blockField.getValue();
 		Block blockToAdd = BlockUtils.getBlockFromNameOrID(nameOrId);
-		
+
 		if(blockToAdd == null)
 			blockToAdd = Blocks.AIR;
-		
-		RenderUtils.drawItem(context, new ItemStack(blockToAdd),
-			-64 + width / 2 - 100 + 52, 115 - 52, false);
+
+		Block renderedBlock = blockToAdd;
+		NanoVGUI.pass(context, () -> {
+			NanoVGUI.centeredText(setting.getTranslatedName(), width / 2, 20,
+				0xFFFFFFFF, 9F);
+
+			int baseX = -64 + width / 2 - 100;
+			int baseY = 115;
+
+			boolean lblAbove =
+				!blockField.getValue().isEmpty() || blockField.isFocused();
+			String lblText = lblAbove ? "方块ID或编号:" : "方块ID或编号";
+			int lblX = baseX + (lblAbove ? 50 : 68);
+			int lblY = baseY + (lblAbove ? -66 : -50);
+			int lblColor = lblAbove ? 0xF0F0F0 : 0x808080;
+			NanoVGUI.text(lblText, lblX, lblY, lblColor, 9F);
+
+			int border = blockField.isFocused() ? 0xffffffff : 0xffa0a0a0;
+			int black = 0xff000000;
+
+			NanoVGUI.fill(baseX + 48, baseY - 56, baseX + 64, baseY - 36,
+				border);
+			NanoVGUI.fill(baseX + 49, baseY - 55, baseX + 65, baseY - 37,
+				black);
+			NanoVGUI.fill(baseX + 242, baseY - 56, baseX + 246, baseY - 36,
+				border);
+			NanoVGUI.fill(baseX + 241, baseY - 55, baseX + 245, baseY - 37,
+				black);
+
+			NanoVGUI.item(context, new ItemStack(renderedBlock), baseX + 52,
+				baseY - 52, false);
+		});
 	}
 	
 	@Override

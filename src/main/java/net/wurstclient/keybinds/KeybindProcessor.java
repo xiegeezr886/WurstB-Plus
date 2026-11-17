@@ -18,9 +18,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.wurstclient.WurstClient;
-import net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen;
-import net.wurstclient.clickgui2.component.VapeClickGuiScreen;
-import net.wurstclient.clickgui2.epsilon.EpsilonDropdownScreen;
+import net.wurstclient.clickgui2.ClickGuiScreen;
 import net.wurstclient.command.CmdProcessor;
 import net.wurstclient.events.KeyPressListener;
 import net.wurstclient.hack.Hack;
@@ -63,14 +61,8 @@ public final class KeybindProcessor implements KeyPressListener
 		if(screen != null && !ScreenRegistry.isAny(screen,
 			ScreenRegistry.CLICK_GUI, ScreenRegistry.NAVIGATOR))
 			return;
-		if(screen instanceof SuperSoftClickGuiScreen clickGui
+		if(screen instanceof ClickGuiScreen clickGui
 			&& clickGui.isWaitingForKeybind())
-			return;
-		if(screen instanceof VapeClickGuiScreen vapeGui
-			&& vapeGui.isWaitingForKeybind())
-			return;
-		if(screen instanceof EpsilonDropdownScreen epsilonGui
-			&& epsilonGui.isWaitingForKeybind())
 			return;
 
 		String cmds = keybinds.getCommands(keyName);
@@ -87,12 +79,7 @@ public final class KeybindProcessor implements KeyPressListener
 			|| ScreenRegistry.NAVIGATOR.matches(screen)
 				&& containsCmd(cmds, "navigator"))
 		{
-			if(screen instanceof SuperSoftClickGuiScreen clickGui)
-				clickGui.onClose();
-			else if(screen instanceof EpsilonDropdownScreen epsilonGui)
-				epsilonGui.onClose();
-			else
-				WurstClient.MC.setScreen(null);
+			WurstClient.MC.setScreen(null);
 			return;
 		}
 
@@ -204,6 +191,13 @@ public final class KeybindProcessor implements KeyPressListener
 
 			if(hack == null)
 			{
+				net.wurstclient.hud2.HUDMod hud = WurstClient.INSTANCE
+					.getHudManager().getModule(cmd);
+				if(hud != null)
+				{
+					hud.setEnabled(!hud.isEnabled());
+					return;
+				}
 				cmdProcessor.process(cmd);
 				return;
 			}

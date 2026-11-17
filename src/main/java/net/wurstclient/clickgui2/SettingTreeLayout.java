@@ -5,12 +5,12 @@ import java.util.Collection;
 import java.util.List;
 import net.wurstclient.settings.Setting;
 
-public final class SettingTreeLayout
+final class SettingTreeLayout
 {
 	private SettingTreeLayout()
 	{}
 
-	public static List<Setting> flatten(Collection<? extends Setting> roots)
+	static List<Setting> flatten(Collection<? extends Setting> roots)
 	{
 		ArrayList<Setting> visible = new ArrayList<>();
 		for(Setting setting : roots)

@@ -1,5 +1,7 @@
 # v1.5.2 开发基线
 
+2026-11-17 仓库调整：根目录 Forge 1.20.1 已替换为项目内 v1.5.1，原 v1.6.0 移至仓库外。此文描述的 Fabric 1.20.1 v1.5.2 保持不变；见 [根工程迁移记录](ROOT-FORGE-1.5.1.md)。
+
 ## SeedCrackerX / OpenSeed 挖矿联动（2026-11-16）
 
 新增世界分类 SeedCracker / SeedMine：内嵌官方 SeedCrackerX 2.14.4，通过会话与种子哈希校验接收结果，按原版 1.20.1 放置规则重放 OpenSeed 矿脉预测，并提交 Baritone 寻路挖掘。共用 BaritoneMine 矿物列表，支持预览和破解后自动开挖，Baritone 模块互斥。来源、使用说明、准确性限制与尚待实机验证部分见 [移植记录](SEED-MINING-v1.5.2.md)。

@@ -12,7 +12,7 @@ import net.wurstclient.other_feature.OtherFeature;
 import net.wurstclient.util.ChatUtils;
 import net.wurstclient.util.FuzzySearch;
 
-public final class FeatureMenuSupport
+final class FeatureMenuSupport
 {
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private static final Map<Feature, String> ONE_LINE_DESCRIPTIONS =
@@ -24,10 +24,13 @@ public final class FeatureMenuSupport
 	{
 	}
 
-	public static List<Feature> getAllFeatures()
+	static List<Feature> getAllFeatures()
 	{
+		int hudCount = WURST.getHudManager() == null ? 0
+			: WURST.getHudManager().getFeatureCount();
 		int featureCount = WURST.getHax().countHax()
-			+ WURST.getCmds().countCmds() + WURST.getOtfs().countOtfs();
+			+ WURST.getCmds().countCmds() + WURST.getOtfs().countOtfs()
+			+ hudCount;
 		if(featureCount == cachedFeatureCount)
 			return allFeatures;
 
@@ -35,6 +38,8 @@ public final class FeatureMenuSupport
 		features.addAll(WURST.getHax().getAllHax());
 		features.addAll(WURST.getCmds().getAllCmds());
 		features.addAll(WURST.getOtfs().getAllOtfs());
+		if(WURST.getHudManager() != null)
+			features.addAll(WURST.getHudManager().getAllFeatures());
 		allFeatures = List.copyOf(features);
 		cachedFeatureCount = featureCount;
 		ONE_LINE_DESCRIPTIONS.clear();
@@ -75,7 +80,7 @@ public final class FeatureMenuSupport
 			FuzzySearch.score(combined, query), 60));
 	}
 
-	public static List<Feature> searchFeatures(List<Feature> features, String query)
+	static List<Feature> searchFeatures(List<Feature> features, String query)
 	{
 		return features.stream()
 			.map(feature -> new ScoredFeature(feature,
@@ -101,7 +106,7 @@ public final class FeatureMenuSupport
 	private record ScoredFeature(Feature feature, int score)
 	{}
 
-	public static boolean runPrimaryAction(Feature feature)
+	static boolean runPrimaryAction(Feature feature)
 	{
 		if(feature.getPrimaryAction().isEmpty())
 			return false;
@@ -120,6 +125,8 @@ public final class FeatureMenuSupport
 
 	static String getTypeName(Feature feature)
 	{
+		if(feature instanceof net.wurstclient.hud2.HUDMod)
+			return "HUD";
 		if(feature instanceof Hack)
 			return "功能";
 		if(feature instanceof Command)

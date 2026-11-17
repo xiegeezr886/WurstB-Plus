@@ -40,10 +40,8 @@ import net.wurstclient.settings.SwingHandSetting;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.settings.filterlists.AnchorAuraFilterList;
 import net.wurstclient.settings.filterlists.EntityFilterList;
-import net.wurstclient.util.AnchorAuraInteractPlanner;
 import net.wurstclient.util.BlockUtils;
 import net.wurstclient.util.ChatUtils;
-import net.wurstclient.util.CombatRotationController;
 import net.wurstclient.util.DamageUtils;
 import net.wurstclient.util.FakePlayerEntity;
 import net.wurstclient.util.InventoryUtils;
@@ -104,8 +102,7 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 	private final EntityFilterList entityFilters =
 		AnchorAuraFilterList.create();
 
-	private final CombatRotationController rotationController =
-		new CombatRotationController(RotationQueue.Priority.COMBAT);
+	private RotationQueue rotationQueue;
 	private BlockPos pendingPos;
 	private PendingAction pendingAction = PendingAction.NONE;
 	private int actionDelay;
@@ -139,7 +136,9 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 	{
 		clearPending();
 		placeTimer = placeDelay.getValueI();
-		rotationController.start();
+		rotationQueue =
+			new RotationQueue(RotationQueue.Priority.COMBAT);
+		rotationQueue.start();
 		EVENTS.add(UpdateListener.class, this);
 	}
 
@@ -148,7 +147,8 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 	{
 		EVENTS.remove(UpdateListener.class, this);
 		clearPending();
-		rotationController.stop();
+		rotationQueue.stop();
+		rotationQueue = null;
 	}
 	
 	@Override
@@ -289,26 +289,9 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 	private BlockPos findBestAnchor(ArrayList<BlockPos> anchors,
 		ArrayList<Entity> targets)
 	{
-		double[] scores = new double[anchors.size()];
-		boolean[] usable = new boolean[anchors.size()];
-		
-		for(int i = 0; i < anchors.size(); i++)
-		{
-			BlockPos pos = anchors.get(i);
-			/*
-			 * 先做伤害判定（它本来就要对每个候选算一次），再做几何可达性判定：
-			 * findClickSide 在开了视线检查时每个面一次射线，放在后面短路可以
-			 * 少跑一批伤害上就不可能入选的候选。
-			 */
-			usable[i] =
-				isDamageSafe(pos, targets) && findClickSide(pos) != null;
-			
-			if(usable[i])
-				scores[i] = getTargetDamage(pos, targets);
-		}
-		
-		int best = AnchorAuraInteractPlanner.findBestUsable(scores, usable);
-		return best < 0 ? null : anchors.get(best);
+		return anchors.stream().filter(pos -> isDamageSafe(pos, targets))
+			.max(Comparator.comparingDouble(pos -> getTargetDamage(pos, targets)))
+			.orElse(null);
 	}
 
 	private BlockPos findBestPlacement(ArrayList<Entity> targets)
@@ -317,25 +300,10 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 		for(Entity target : targets)
 			candidates.addAll(getFreeBlocksNear(target));
 
-		ArrayList<BlockPos> list = new ArrayList<>(candidates);
-		double[] scores = new double[list.size()];
-		boolean[] usable = new boolean[list.size()];
-		
-		for(int i = 0; i < list.size(); i++)
-		{
-			BlockPos pos = list.get(i);
-			// 同 findBestAnchor：先伤害后几何，短路掉一批射线
-			usable[i] =
-				isDamageSafe(pos, targets) && findPlaceSide(pos) != null;
-			
-			if(usable[i])
-				scores[i] = getTargetDamage(pos, targets) - DamageUtils
-					.calculateDamage(Vec3.atCenterOf(pos), MC.player, 5)
-					* 0.25F;
-		}
-		
-		int best = AnchorAuraInteractPlanner.findBestUsable(scores, usable);
-		return best < 0 ? null : list.get(best);
+		return candidates.stream().filter(pos -> isDamageSafe(pos, targets))
+			.max(Comparator.comparingDouble(pos -> getTargetDamage(pos, targets)
+				- DamageUtils.calculateDamage(Vec3.atCenterOf(pos), MC.player, 5)
+					* 0.25F)).orElse(null);
 	}
 
 	private boolean isDamageSafe(BlockPos pos, ArrayList<Entity> targets)
@@ -361,11 +329,7 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 		return best;
 	}
 	
-	/**
-	 * 在 pos 的六个面里找第一个「能点到」的面：面心在 range 内、这个面朝向玩家，
-	 * 开了视线检查时还要求能看见。找不到就返回 null。
-	 */
-	private Direction findClickSide(BlockPos pos)
+	private boolean rightClickBlock(BlockPos pos)
 	{
 		Vec3 eyesPos = RotationUtils.getEyesPos();
 		Vec3 posVec = Vec3.atCenterOf(pos);
@@ -374,45 +338,32 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 		
 		for(Direction side : Direction.values())
 		{
-			Vec3 hitVec =
-				posVec.add(Vec3.atLowerCornerOf(side.getNormal()).scale(0.5));
+			Vec3 hitVec = posVec.add(Vec3.atLowerCornerOf(side.getNormal()).scale(0.5));
+			double distanceSqHitVec = eyesPos.distanceToSqr(hitVec);
 			
-			// check if hitVec is within range and the side faces the player
-			if(!AnchorAuraInteractPlanner.canClickFace(
-				eyesPos.distanceToSqr(hitVec), distanceSqPosVec, rangeSq))
+			if(distanceSqHitVec > rangeSq)
+				continue;
+			
+			// check if side is facing towards player
+			if(distanceSqHitVec >= distanceSqPosVec)
 				continue;
 			
 			if(checkLOS.isChecked()
 				&& !BlockUtils.hasLineOfSight(eyesPos, hitVec))
 				continue;
 			
-			return side;
+			face(hitVec);
+
+			// place block
+			IMC.getInteractionManager().rightClickBlock(pos, side, hitVec);
+			
+			return true;
 		}
 		
-		return null;
+		return false;
 	}
 	
-	private boolean rightClickBlock(BlockPos pos)
-	{
-		Direction side = findClickSide(pos);
-		if(side == null)
-			return false;
-		
-		Vec3 hitVec = Vec3.atCenterOf(pos)
-			.add(Vec3.atLowerCornerOf(side.getNormal()).scale(0.5));
-		face(hitVec);
-		
-		// click the block
-		IMC.getInteractionManager().rightClickBlock(pos, side, hitVec);
-		
-		return true;
-	}
-	
-	/**
-	 * 在 pos 的六个面里找第一个「能放置」的面：相邻方块可点击、面心在 range 内、
-	 * 这个面朝向玩家，开了视线检查时还要求能看见。找不到就返回 null。
-	 */
-	private Direction findPlaceSide(BlockPos pos)
+	private boolean placeAnchor(BlockPos pos)
 	{
 		Vec3 eyesPos = RotationUtils.getEyesPos();
 		double rangeSq = range.getValueSq();
@@ -430,43 +381,33 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 			Vec3 dirVec = Vec3.atLowerCornerOf(side.getNormal());
 			Vec3 hitVec = posVec.add(dirVec.scale(0.5));
 			
-			// check if hitVec is within range and the side faces the player
-			if(!AnchorAuraInteractPlanner.canPlaceFace(
-				eyesPos.distanceToSqr(hitVec),
-				eyesPos.distanceToSqr(posVec.add(dirVec)), distanceSqPosVec,
-				rangeSq))
+			// check if hitVec is within range
+			if(eyesPos.distanceToSqr(hitVec) > rangeSq)
+				continue;
+			
+			// check if side is visible (facing away from player)
+			if(distanceSqPosVec > eyesPos.distanceToSqr(posVec.add(dirVec)))
 				continue;
 			
 			if(checkLOS.isChecked()
 				&& !BlockUtils.hasLineOfSight(eyesPos, hitVec))
 				continue;
 			
-			return side;
+			InventoryUtils.selectItem(Items.RESPAWN_ANCHOR,
+				takeItemsFrom.getSelected().maxInvSlot);
+			if(!MC.player.isHolding(Items.RESPAWN_ANCHOR))
+				return false;
+			
+			face(hitVec);
+
+			// place block
+			IMC.getInteractionManager().rightClickBlock(neighbor,
+				side.getOpposite(), hitVec);
+			
+			return true;
 		}
 		
-		return null;
-	}
-	
-	private boolean placeAnchor(BlockPos pos)
-	{
-		Direction side = findPlaceSide(pos);
-		if(side == null)
-			return false;
-		
-		InventoryUtils.selectItem(Items.RESPAWN_ANCHOR,
-			takeItemsFrom.getSelected().maxInvSlot);
-		if(!MC.player.isHolding(Items.RESPAWN_ANCHOR))
-			return false;
-		
-		Vec3 dirVec = Vec3.atLowerCornerOf(side.getNormal());
-		Vec3 hitVec = Vec3.atCenterOf(pos).add(dirVec.scale(0.5));
-		face(hitVec);
-		
-		// place block
-		IMC.getInteractionManager().rightClickBlock(pos.relative(side),
-			side.getOpposite(), hitVec);
-		
-		return true;
+		return false;
 	}
 	
 	private ArrayList<BlockPos> getNearbyAnchors()
@@ -570,7 +511,7 @@ public final class AnchorAuraHack extends Hack implements UpdateListener
 	{
 		Facing mode = faceBlocks.getSelected();
 		if(mode == Facing.SERVER)
-			rotationController.request(
+			rotationQueue.setRotation(
 				RotationUtils.getNeededRotations(vec));
 		else
 			mode.face(vec);

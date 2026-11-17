@@ -15,14 +15,9 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
-import net.wurstclient.clickgui2.ClickGuiScreens;
+import net.wurstclient.clickgui2.ClickGuiScreen;
 import net.wurstclient.clickgui2.NavigatorScreen;
-import net.wurstclient.clickgui2.NavigatorScreens;
-import net.wurstclient.clickgui2.component.SuperSoftClickGuiScreen;
-import net.wurstclient.clickgui2.component.VapeClickGuiScreen;
-import net.wurstclient.clickgui2.epsilon.EpsilonDropdownScreen;
-import net.wurstclient.clickgui2.epsilon.EpsilonPanelNavigatorScreen;
-import net.wurstclient.hud2.HudEditorScreen;
+import net.wurstclient.hud2.GuiEditHUD;
 
 public enum ScreenRegistry
 {
@@ -39,12 +34,12 @@ public enum ScreenRegistry
 	INVENTORY(EffectRenderingInventoryScreen.class),
 	CHAT(ChatScreen.class),
 	DEATH(DeathScreen.class),
-	CLICK_GUI(SuperSoftClickGuiScreen.class,
-		(client, parent) -> ClickGuiScreens.create(parent)),
+	CLICK_GUI(ClickGuiScreen.class,
+		(client, parent) -> new ClickGuiScreen()),
 	NAVIGATOR(NavigatorScreen.class,
-		(client, parent) -> NavigatorScreens.create(parent)),
-	HUD_EDITOR(HudEditorScreen.class,
-		(client, parent) -> new HudEditorScreen());
+		(client, parent) -> new NavigatorScreen()),
+	HUD_EDITOR(GuiEditHUD.class,
+		(client, parent) -> new GuiEditHUD());
 
 	private final Class<? extends Screen> screenType;
 	private final BiFunction<Minecraft, Screen, Screen> factory;
@@ -63,25 +58,11 @@ public enum ScreenRegistry
 
 	public boolean matches(Screen screen)
 	{
-		if(this == CLICK_GUI)
-			return screen instanceof SuperSoftClickGuiScreen
-				|| screen instanceof VapeClickGuiScreen
-				|| screen instanceof EpsilonDropdownScreen;
-		if(this == NAVIGATOR)
-			return screen instanceof NavigatorScreen
-				|| screen instanceof EpsilonPanelNavigatorScreen;
 		return screen != null && screenType.isInstance(screen);
 	}
 
 	public boolean matchesType(Class<? extends Screen> type)
 	{
-		if(this == CLICK_GUI)
-			return SuperSoftClickGuiScreen.class.isAssignableFrom(type)
-				|| VapeClickGuiScreen.class.isAssignableFrom(type)
-				|| EpsilonDropdownScreen.class.isAssignableFrom(type);
-		if(this == NAVIGATOR)
-			return NavigatorScreen.class.isAssignableFrom(type)
-				|| EpsilonPanelNavigatorScreen.class.isAssignableFrom(type);
 		return screenType.isAssignableFrom(Objects.requireNonNull(type));
 	}
 

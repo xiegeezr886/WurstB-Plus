@@ -9,7 +9,6 @@ package net.wurstclient;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -19,9 +18,7 @@ import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
 import net.wurstclient.altmanager.AltManager;
 import net.wurstclient.altmanager.Encryption;
-import net.wurstclient.background.BackgroundManager;
 import net.wurstclient.clickgui2.ClickGui;
-import net.wurstclient.clickgui2.ClickGuiStyle;
 import net.wurstclient.clickgui2.GuiPreferences;
 import net.wurstclient.command.CmdList;
 import net.wurstclient.command.CmdProcessor;
@@ -38,7 +35,6 @@ import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictManager;
 import net.wurstclient.hack.HackLifecycleManager;
 import net.wurstclient.hack.HackList;
-import net.wurstclient.hacks.RadialMenuHack;
 import net.wurstclient.hud.IngameHUD;
 import net.wurstclient.hud2.HudManager;
 import net.wurstclient.hud2.ClientMetricsManager;
@@ -57,10 +53,8 @@ import net.wurstclient.update.ProblematicResourcePackDetector;
 import net.wurstclient.update.WurstUpdater;
 import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.render.AsyncTextureLoader;
-import net.wurstclient.music.NeteaseMusicPlayer;
 import net.wurstclient.util.render.PostEffectQueue;
 import net.wurstclient.util.EntitySnapshotManager;
-import net.wurstclient.util.WurstDebugLog;
 import net.wurstclient.util.inventory.InventoryActionQueue;
 import net.wurstclient.util.TestControlServer;
 
@@ -71,7 +65,7 @@ public enum WurstClient
 	public static Minecraft MC;
 	public static IMinecraftClient IMC;
 	
-	public static final String VERSION = "1.6.0";
+	public static final String VERSION = "1.5.1";
 	public static final String MC_VERSION = "1.20.1";
 	public static final String CLIENT_NAME = "WurstB+ Plus";
 	public static final String MOD_ID = "wurstpenguin";
@@ -114,27 +108,16 @@ public enum WurstClient
 	public void initialize()
 	{
 		System.out.println("Starting " + CLIENT_NAME + "...");
-		configureProxyFromEnvironment();
-
+		
 		MC = Minecraft.getInstance();
 		IMC = (IMinecraftClient)MC;
 		wurstFolder = createWurstFolder();
-		
-		// 调试日志：默认写到 <游戏目录>/wurst/logs/，每个游戏实例一份，互不覆盖。
-		// 放在这里是因为它是第一个拿到 wurstFolder 的地方；它自身不抛异常，
-		// 就算磁盘不可写也只是禁用日志，不影响启动。
-		WurstDebugLog.init(wurstFolder);
-		WurstDebugLog.debug("WurstClient",
-			"启动 " + CLIENT_NAME + "，日志文件 " + WurstDebugLog.getLogFile());
-		
 		guiPreferences = new GuiPreferences(wurstFolder);
 		
 		eventManager = new EventManager(this);
 		hackConflictManager = new HackConflictManager();
 		rotationFaker = new RotationFaker();
-		// 高优先级：RotationFaker.onPostMotion() 会清空本 tick 的朝向请求，
-		// 必须排在其它 PostMotion 监听器之前，否则同 tick 里 hacks 设的朝向会被抹掉。
-		eventManager.add(PostMotionListener.class, rotationFaker, 1000);
+		eventManager.add(PostMotionListener.class, rotationFaker);
 		eventManager.add(PacketOutputListener.class, rotationFaker);
 
 		clientMetricsManager = new ClientMetricsManager();
@@ -149,14 +132,6 @@ public enum WurstClient
 		Path enabledHacksFile = wurstFolder.resolve("enabled-hacks.json");
 		hax = new HackList(enabledHacksFile);
 		hackLifecycleManager = new HackLifecycleManager(hax, eventManager);
-
-		// 长按 Tab 的功能圆盘不在 HackList 的写死字段里，只能自己注册进 hax。
-		// 位置有讲究：必须在这里，也就是 SettingsFile 之前。SettingsFile 的构造器
-		// 会对 hax 的功能表做**一次性快照**（SettingsFile.java:43,51-53），之后 load()
-		// 与 save() 都只遍历那份快照；如果晚于快照再注册，RadialMenuHack 的 entries
-		// 设置既不会被读取也不会被写回，用户自定义的条目每次重启都会悄悄丢回默认值。
-		// 同时这也是唯一的一次性触发点，别挪回每帧的渲染路径。
-		RadialMenuHack.get();
 		
 		cmds = new CmdList();
 		
@@ -167,10 +142,9 @@ public enum WurstClient
 
 		Path settingsFile = wurstFolder.resolve("settings.json");
 		settingsProfileFolder = wurstFolder.resolve("settings");
-		this.settingsFile = new SettingsFile(settingsFile, hax, cmds, otfs);
-		ClickGuiStyle persistedClickGuiStyle = guiPreferences.getClickGuiStyle();
+		this.settingsFile = new SettingsFile(settingsFile, hax, cmds, otfs,
+			hudManager);
 		this.settingsFile.load();
-		hax.clickGuiHack.applyStyle(persistedClickGuiStyle);
 		hax.tooManyHaxHack.loadBlockedHacksFile();
 
 		Path keybindsFile = wurstFolder.resolve("keybinds.json");
@@ -206,7 +180,6 @@ public enum WurstClient
 		eventManager.add(GUIRenderListener.class, hud);
 
 		hudManager.start();
-
 		
 		updater = new WurstUpdater();
 		eventManager.add(UpdateListener.class, updater);
@@ -217,7 +190,7 @@ public enum WurstClient
 		Path altsFile = wurstFolder.resolve("alts.encrypted_json");
 		Path encFolder = Encryption.chooseEncryptionFolder();
 		altManager = new AltManager(altsFile, encFolder);
-		
+
 		if(!shutdownHookRegistered)
 		{
 			shutdownHookRegistered = true;
@@ -275,6 +248,8 @@ public enum WurstClient
 	}
 	public void shutdown()
 	{
+		if(hudManager != null)
+			hudManager.saveState();
 		shutdownBaritoneExecutor();
 		if(discordRpcManager != null)
 			discordRpcManager.shutdown();
@@ -284,60 +259,9 @@ public enum WurstClient
 			entitySnapshotManager.stop();
 		if(inventoryActionQueue != null && eventManager != null)
 			inventoryActionQueue.stop();
-		NeteaseMusicPlayer.INSTANCE.shutdown();
 		AsyncTextureLoader.shutdown();
-		BackgroundManager.shutdown();
 	}
 	
-	/**
-	 * Java ignores the HTTP_PROXY / HTTPS_PROXY environment variables. Chinese
-	 * launchers often only export those, so the skin download (and every other
-	 * Java HTTP request) goes out directly and times out. Bridge them to the
-	 * JVM proxy properties once, unless the launcher already set a proxy.
-	 */
-	private static void configureProxyFromEnvironment()
-	{
-		if(System.getProperty("http.proxyHost") != null
-			|| System.getProperty("https.proxyHost") != null)
-			return;
-
-		String raw = System.getenv("HTTPS_PROXY");
-
-		if(raw == null || raw.isBlank())
-			raw = System.getenv("HTTP_PROXY");
-
-		if(raw == null || raw.isBlank())
-		{
-			// No environment override: let Java honour the Windows system
-			// proxy when the user has enabled it.
-			System.setProperty("java.net.useSystemProxies", "true");
-			return;
-		}
-
-		try
-		{
-			URI uri = URI.create(raw.contains("://") ? raw : "http://" + raw);
-			String host = uri.getHost();
-
-			if(host == null || host.isBlank())
-				return;
-
-			int port = uri.getPort() > 0 ? uri.getPort() : 8080;
-			String portText = Integer.toString(port);
-
-			System.setProperty("http.proxyHost", host);
-			System.setProperty("http.proxyPort", portText);
-			System.setProperty("https.proxyHost", host);
-			System.setProperty("https.proxyPort", portText);
-			System.setProperty("http.nonProxyHosts", "localhost|127.*");
-			System.out.println("[Wurst] Using proxy " + host + ":" + port);
-
-		}catch(RuntimeException e)
-		{
-			System.out.println("[Wurst] Ignoring invalid proxy setting: " + raw);
-		}
-	}
-
 	/**
 	 * Baritone creates a non-daemon static thread pool (baritone.Baritone.threadPool)
 	 * whose workers keep the JVM alive after the client stops. Minecraft 26.x has a
@@ -456,7 +380,17 @@ public enum WurstClient
 			return cmd;
 
 		OtherFeature otf = getOtfs().getOtfByName(name);
-		return otf;
+		if(otf != null)
+			return otf;
+
+		// HUD modules and the HUD settings feature are features too; keybinds
+		// and commands must be able to resolve them by name.
+		if(getHudManager() != null)
+			for(Feature hud : getHudManager().getAllFeatures())
+				if(name.equalsIgnoreCase(hud.getName()))
+					return hud;
+
+		return null;
 	}
 	
 	public KeybindList getKeybinds()

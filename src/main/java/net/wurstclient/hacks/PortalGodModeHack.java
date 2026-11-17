@@ -9,8 +9,7 @@
  */
 package net.wurstclient.hacks;
 
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
@@ -21,8 +20,8 @@ import net.wurstclient.hack.Hack;
 public final class PortalGodModeHack extends Hack
 	implements PacketOutputListener
 {
-	private final List<ServerboundAcceptTeleportationPacket> packets =
-		new ArrayList<>();
+	private ServerboundAcceptTeleportationPacket lastPacket;
+	private ClientPacketListener packetConnection;
 
 	public PortalGodModeHack()
 	{
@@ -33,7 +32,8 @@ public final class PortalGodModeHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		packets.clear();
+		lastPacket = null;
+		packetConnection = null;
 		EVENTS.add(PacketOutputListener.class, this);
 	}
 
@@ -42,19 +42,23 @@ public final class PortalGodModeHack extends Hack
 	{
 		EVENTS.remove(PacketOutputListener.class, this);
 
-		if(MC.getConnection() != null && !packets.isEmpty())
-			MC.getConnection().send(packets.get(packets.size() - 1));
-
-		packets.clear();
+		ServerboundAcceptTeleportationPacket packet = lastPacket;
+		ClientPacketListener connection = packetConnection;
+		lastPacket = null;
+		packetConnection = null;
+		if(connection != null && connection == MC.getConnection() && packet != null)
+			connection.send(packet);
 	}
 
 	@Override
 	public void onSentPacket(PacketOutputEvent event)
 	{
-		if(!(event.getPacket() instanceof ServerboundAcceptTeleportationPacket packet))
+		if(!isEnabled() || MC.getConnection() == null
+			|| !(event.getPacket() instanceof ServerboundAcceptTeleportationPacket packet))
 			return;
 
-		packets.add(packet);
+		lastPacket = packet;
+		packetConnection = MC.getConnection();
 		event.cancel();
 	}
 }

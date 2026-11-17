@@ -25,7 +25,6 @@ public final class OtfList
 	public final NoChatReportsOtf noChatReportsOtf = new NoChatReportsOtf();
 	public final NoTelemetryOtf noTelemetryOtf = new NoTelemetryOtf();
 	public final ReconnectOtf reconnectOtf = new ReconnectOtf();
-	public final RotationGridOtf rotationGridOtf = new RotationGridOtf();
 	public final ServerFinderOtf serverFinderOtf = new ServerFinderOtf();
 	public final TabGuiOtf tabGuiOtf = new TabGuiOtf();
 	public final TranslationsOtf translationsOtf = new TranslationsOtf();

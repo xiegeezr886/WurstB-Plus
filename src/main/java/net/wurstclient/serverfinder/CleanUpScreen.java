@@ -25,8 +25,6 @@ import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.CommonColors;
 import net.wurstclient.mixinterface.IMultiplayerScreen;
-import net.wurstclient.gui.visual.VisualRenderer;
-import net.wurstclient.gui.visual.VisualTheme;
 
 public class CleanUpScreen extends Screen
 {
@@ -217,14 +215,12 @@ public class CleanUpScreen extends Screen
 	public void render(GuiGraphics context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		VisualRenderer.gridBackground(context, width, height);
-		VisualRenderer.panel(context, width / 2 - 116, 12,
-			width / 2 + 116, height - 28, VisualTheme.RADIUS_LARGE, false);
+		renderBackground(context);
 		context.drawCenteredString(font, "清理", width / 2,
 			20, CommonColors.WHITE);
 		context.drawCenteredString(font,
 			"Please select the servers you want to remove:", width / 2, 36,
-			VisualTheme.TEXT_DIMMED);
+			0xFFA0A0A0);
 		
 		super.render(context, mouseX, mouseY, partialTicks);
 		renderButtonTooltip(context, mouseX, mouseY);

@@ -1,32 +1,23 @@
 /*
- * Copyright (c) 2015-2026 CCBlueX
- * Copyright (c) 2025-2026 Penguin
- *
- * This source code is subject to the terms of the GNU General Public
- * License, version 3. If a copy of the GPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+ * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Adapted from Meteor Client. Copyright (c) Meteor Development.
+ * SPDX-License-Identifier: GPL-3.0
  */
 package net.wurstclient.hacks;
 
-import java.util.Set;
-
-import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
-import net.minecraft.world.entity.RelativeMovement;
+import net.minecraft.client.player.LocalPlayer;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.mixin.ClientboundPlayerPositionPacketMixin;
 import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.util.RotationCorrectionPolicy;
 
-@SearchTags({"no rotate", "NoRotateSet", "server rotation"})
-public final class NoRotateHack extends Hack implements PacketInputListener
+@SearchTags({"no rotate", "norotate", "server rotation", "anti rotate"})
+public final class NoRotateHack extends Hack
 {
-	private final CheckboxSetting preserveYaw =
-		new CheckboxSetting("Preserve yaw", true);
-	private final CheckboxSetting preservePitch =
-		new CheckboxSetting("Preserve pitch", true);
+	private final CheckboxSetting preserveYaw = new CheckboxSetting(
+		"Preserve yaw", "Keeps your yaw when the server rotates you.", true);
+	private final CheckboxSetting preservePitch = new CheckboxSetting(
+		"Preserve pitch", "Keeps your pitch when the server rotates you.", true);
 
 	public NoRotateHack()
 	{
@@ -36,33 +27,39 @@ public final class NoRotateHack extends Hack implements PacketInputListener
 		addSetting(preservePitch);
 	}
 
-	@Override
-	protected void onEnable()
+	public SavedRotation capture()
 	{
-		EVENTS.add(PacketInputListener.class, this);
+		LocalPlayer player = MC.player;
+		if(!isEnabled() || player == null
+			|| !preserveYaw.isChecked() && !preservePitch.isChecked())
+			return null;
+		return new SavedRotation(player, player.getYRot(), player.getXRot(),
+			player.yRotO, player.xRotO, player.yHeadRot, player.yHeadRotO,
+			player.yBodyRot, player.yBodyRotO);
 	}
 
-	@Override
-	protected void onDisable()
+	public void restore(SavedRotation saved)
 	{
-		EVENTS.remove(PacketInputListener.class, this);
-	}
-
-	@Override
-	public void onReceivedPacket(PacketInputEvent event)
-	{
-		if(MC.player == null
-			|| !(event.getPacket() instanceof ClientboundPlayerPositionPacket packet))
+		if(saved == null || !isEnabled() || MC.player != saved.player())
 			return;
-
-		Set<RelativeMovement> relatives = packet.getRelativeArguments();
-		ClientboundPlayerPositionPacketMixin accessor =
-			(ClientboundPlayerPositionPacketMixin)(Object)packet;
+		LocalPlayer player = saved.player();
 		if(preserveYaw.isChecked())
-			accessor.wurst_setYRot(RotationCorrectionPolicy.packetRotation(
-				MC.player.getYRot(), relatives.contains(RelativeMovement.Y_ROT)));
+		{
+			player.setYRot(saved.yaw());
+			player.yRotO = saved.previousYaw();
+			player.yHeadRot = saved.headYaw();
+			player.yHeadRotO = saved.previousHeadYaw();
+			player.yBodyRot = saved.bodyYaw();
+			player.yBodyRotO = saved.previousBodyYaw();
+		}
 		if(preservePitch.isChecked())
-			accessor.wurst_setXRot(RotationCorrectionPolicy.packetRotation(
-				MC.player.getXRot(), relatives.contains(RelativeMovement.X_ROT)));
+		{
+			player.setXRot(saved.pitch());
+			player.xRotO = saved.previousPitch();
+		}
 	}
+
+	public record SavedRotation(LocalPlayer player, float yaw, float pitch,
+		float previousYaw, float previousPitch, float headYaw,
+		float previousHeadYaw, float bodyYaw, float previousBodyYaw) {}
 }

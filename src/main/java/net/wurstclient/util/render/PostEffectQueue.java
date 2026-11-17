@@ -194,8 +194,7 @@ public final class PostEffectQueue
 		OUTLINE("outline"),
 		PULSE("pulse"),
 		GRADIENT("gradient"),
-		SMOKE("smoke"),
-		BLOOM("bloom");
+		SMOKE("smoke");
 
 		private final String fileName;
 

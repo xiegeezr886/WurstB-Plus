@@ -27,7 +27,6 @@ import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictGroup;
-import net.wurstclient.mixinterface.IKeyBinding;
 import net.wurstclient.settings.AttackSpeedSliderSetting;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.PauseAttackOnContainersSetting;
@@ -90,7 +89,6 @@ public final class ProtectHack extends Hack
 	
 	private Entity friend;
 	private Entity enemy;
-	private Entity attackTarget;
 	
 	private double distanceF = 2;
 	private double distanceE = 3;
@@ -121,12 +119,6 @@ public final class ProtectHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		if(MC.player == null || MC.level == null)
-		{
-			setEnabled(false);
-			return;
-		}
-
 		WURST.getHax().followHack.setEnabled(false);
 		WURST.getHax().tunnellerHack.setEnabled(false);
 		
@@ -145,15 +137,8 @@ public final class ProtectHack extends Hack
 					.comparingDouble(e -> MC.player.distanceToSqr(e)))
 				.orElse(null);
 		}
-		if(friend == null)
-		{
-			setEnabled(false);
-			return;
-		}
-
-		pathFinder = null;
-		processor = null;
-		attackTarget = null;
+		
+		pathFinder = new EntityPathFinder(friend, distanceF);
 		
 		speed.resetTimer();
 		EVENTS.add(UpdateListener.class, this);
@@ -172,27 +157,21 @@ public final class ProtectHack extends Hack
 		PathProcessor.releaseControls();
 		
 		enemy = null;
-		attackTarget = null;
-		friend = null;
-		releaseMovementKeys();
+		
+		if(friend != null)
+		{
+			MC.options.keyUp.setDown(false);
+			friend = null;
+		}
 	}
 	
 	@Override
 	public void onUpdate()
 	{
-		if(MC.player == null || MC.level == null || MC.gameMode == null)
-		{
-			setEnabled(false);
-			return;
-		}
-
 		speed.updateTimer();
 		
 		if(pauseOnContainers.shouldPause())
-		{
-			suspendAutomation();
 			return;
-		}
 		
 		// check if player died, friend died or disappeared
 		if(friend == null || friend.isRemoved()
@@ -221,19 +200,15 @@ public final class ProtectHack extends Hack
 		Entity target =
 			enemy == null || MC.player.distanceToSqr(friend) >= 24 * 24
 				? friend : enemy;
-		Entity nextAttackTarget = target == enemy ? enemy : null;
-		if(nextAttackTarget != attackTarget)
-		{
-			attackTarget = nextAttackTarget;
-			speed.resetTimer();
-		}
 		
 		double distance = target == enemy ? distanceE : distanceF;
 		
 		if(useAi.isChecked())
 		{
 			// reset pathfinder
-			if(needsNewPath(target))
+			if((processor == null || processor.isDone() || ticksProcessing >= 10
+				|| !pathFinder.isPathStillValid(processor.getIndex()))
+				&& (pathFinder.isDone() || pathFinder.isFailed()))
 			{
 				pathFinder = new EntityPathFinder(target, distance);
 				processor = null;
@@ -252,19 +227,13 @@ public final class ProtectHack extends Hack
 			}
 			
 			// process path
-			if(processor != null && !processor.isDone())
+			if(!processor.isDone())
 			{
 				processor.process();
 				ticksProcessing++;
 			}
 		}else
 		{
-			if(pathFinder != null || processor != null)
-			{
-				PathProcessor.releaseControls();
-				resetPath();
-			}
-
 			// jump if necessary
 			if(MC.player.horizontalCollision && MC.player.onGround())
 				MC.player.jumpFromGround();
@@ -305,8 +274,6 @@ public final class ProtectHack extends Hack
 			// check cooldown
 			if(!speed.isTimeToAttack())
 				return;
-			if(MC.player.distanceToSqr(enemy) > distanceE * distanceE)
-				return;
 			
 			// attack enemy
 			MC.gameMode.attack(MC.player, enemy);
@@ -318,7 +285,7 @@ public final class ProtectHack extends Hack
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
-		if(!useAi.isChecked() || pathFinder == null)
+		if(!useAi.isChecked())
 			return;
 		
 		PathCmd pathCmd = WURST.getCmds().pathCmd;
@@ -329,60 +296,6 @@ public final class ProtectHack extends Hack
 	public void setFriend(Entity friend)
 	{
 		this.friend = friend;
-	}
-
-	private void suspendAutomation()
-	{
-		if(attackTarget != null)
-			speed.resetTimer();
-		attackTarget = null;
-		enemy = null;
-		PathProcessor.releaseControls();
-		resetPath();
-		releaseMovementKeys();
-	}
-
-	/**
-	 * 松开被本 hack 强制按下的移动键。用 {@code resetPressedState()} 而不是
-	 * {@code setDown(false)}：前者按玩家**真实**按键状态恢复
-	 * （{@code mixin/KeyBindingMixin.java:29-38} 直接查 GLFW），后者会把玩家此刻
-	 * 正按着的键一并取消 —— 旧实现是 {@code MC.options.keyUp.setDown(false)}，
-	 * 关掉 Protect 时如果玩家正按着 W，会表现为"松手前走不动"。
-	 *
-	 * <p>
-	 * 另外旧实现只复位了 {@code keyUp}，飞行高度控制用的 {@code keyShift} /
-	 * {@code keyJump} 会停在最后一次被设置的状态（一直潜行 / 一直跳）。
-	 */
-	private void releaseMovementKeys()
-	{
-		IKeyBinding.get(MC.options.keyUp).resetPressedState();
-		IKeyBinding.get(MC.options.keyShift).resetPressedState();
-		IKeyBinding.get(MC.options.keyJump).resetPressedState();
-	}
-	
-	/**
-	 * 是否需要重新寻路。与原条件**语义完全一致**，只是抽出来并写清优先级
-	 * （原表达式是 {@code A || B || (C && D)}，靠 {@code &&} 优先级高于 {@code ||}）：
-	 * 没有寻路器 / 目标换了就重来；否则只有"处理器已完成、处理超过 10 tick、
-	 * 或路径已失效"**且**"寻路器已完成或已失败"时才重来，避免打断还在思考的搜索。
-	 */
-	private boolean needsNewPath(Entity target)
-	{
-		if(pathFinder == null || pathFinder.entity != target)
-			return true;
-		
-		boolean processorStale = processor == null || processor.isDone()
-			|| ticksProcessing >= 10
-			|| !pathFinder.isPathStillValid(processor.getIndex());
-		
-		return processorStale && (pathFinder.isDone() || pathFinder.isFailed());
-	}
-
-	private void resetPath()
-	{
-		pathFinder = null;
-		processor = null;
-		ticksProcessing = 0;
 	}
 	
 	private class EntityPathFinder extends PathFinder

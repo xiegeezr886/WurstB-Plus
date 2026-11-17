@@ -15,6 +15,7 @@ import net.wurstclient.clickgui2.animation.HoverAnimation;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.clickgui2.Component;
 import net.wurstclient.clickgui2.screens.SelectFileScreen;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.settings.FileSetting;
 
 public final class FileComponent extends Component
@@ -67,15 +68,15 @@ public final class FileComponent extends Component
 		float hover = hoverAnimation.update(hBox);
 		FlatRenderer.drawControl(context, x1, y1, x2, y2, 3,
 			GUI.getTheme(), hover, false);
-		context.fill(x3, y1 + 2, x3 + 1, y2 - 2,
+		NanoVGUI.fill(x3, y1 + 2, x3 + 1, y2 - 2,
 			GUI.getTheme().accent(0.24F));
-		
+
 		// text
 		int txtColor = GUI.getTxtColor();
 		String labelText = setting.getTranslatedName() + ":";
 		String buttonText = setting.getSelectedFileName();
-		context.drawString(TR, labelText, x1, y1 + 2, txtColor, false);
-		context.drawString(TR, buttonText, x3 + 2, y1 + 2, txtColor, false);
+		NanoVGUI.text(labelText, x1, y1 + 2, txtColor, 9F);
+		NanoVGUI.text(buttonText, x3 + 2, y1 + 2, txtColor, 9F);
 	}
 	
 	private int getButtonWidth()

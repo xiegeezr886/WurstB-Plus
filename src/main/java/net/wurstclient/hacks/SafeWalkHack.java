@@ -11,20 +11,15 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.phys.AABB;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.events.ClipAtLedgeListener;
-import net.wurstclient.events.ClipAtLedgeListener.ClipAtLedgeEvent;
-import net.wurstclient.events.StayingOnGroundSurfaceListener;
-import net.wurstclient.events.StayingOnGroundSurfaceListener.StayingOnGroundSurfaceEvent;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.mixinterface.IKeyBinding;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
-@SearchTags({"safe walk", "Eagle", "eagle", "SneakSafety", "sneak safety",
-	"SpeedBridgeHelper", "speed bridge helper"})
+@SearchTags({"safe walk", "SneakSafety", "sneak safety", "SpeedBridgeHelper",
+	"speed bridge helper"})
 public final class SafeWalkHack extends Hack
-	implements ClipAtLedgeListener, StayingOnGroundSurfaceListener
 {
 	private final CheckboxSetting sneak =
 		new CheckboxSetting("Sneak at edges", "Visibly sneak at edges.", false);
@@ -58,31 +53,17 @@ public final class SafeWalkHack extends Hack
 	{
 		WURST.getHax().parkourHack.setEnabled(false);
 		sneaking = false;
-		EVENTS.add(ClipAtLedgeListener.class, this);
-		EVENTS.add(StayingOnGroundSurfaceListener.class, this);
 	}
 	
 	@Override
 	protected void onDisable()
 	{
-		EVENTS.remove(ClipAtLedgeListener.class, this);
-		EVENTS.remove(StayingOnGroundSurfaceListener.class, this);
-		
 		if(sneaking)
 			setSneaking(false);
 	}
 	
-	@Override
-	public void onStayingOnGroundSurface(StayingOnGroundSurfaceEvent event)
+	public void onClipAtLedge(boolean clipping)
 	{
-		if(shouldClipEdges())
-			event.setStayingOnGroundSurface(true);
-	}
-	
-	@Override
-	public void onClipAtLedge(ClipAtLedgeEvent event)
-	{
-		boolean clipping = event.isClipping();
 		LocalPlayer player = MC.player;
 		
 		if(!shouldClipEdges() || !sneak.isChecked())

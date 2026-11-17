@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import net.minecraft.world.item.Items;
 import net.wurstclient.Category;
-
+import net.wurstclient.mixin.MinecraftAccessor;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
@@ -77,7 +77,7 @@ public final class AdaManualCrystalHack extends Hack implements UpdateListener
 			&& ThreadLocalRandom.current().nextBoolean())
 			target++;
 
-		if(MC.rightClickDelay > target)
-			MC.rightClickDelay = target;
+		if(((MinecraftAccessor)MC).getRightClickDelay() > target)
+			((MinecraftAccessor)MC).setRightClickDelay(target);
 	}
 }

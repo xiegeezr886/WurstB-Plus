@@ -61,7 +61,7 @@ public enum GoogleTranslate
 		String html = getHTML(text, langFrom, langTo);
 		if(html == null)
 			return null;
-		
+
 		String translated = parseHTML(html);
 		if(translated == null)
 			return null;
@@ -123,7 +123,6 @@ public enum GoogleTranslate
 		URLConnection connection = url.openConnection();
 		
 		connection.setConnectTimeout(5000);
-		connection.setReadTimeout(5000);
 		connection.setRequestProperty("User-Agent",
 			"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
 		

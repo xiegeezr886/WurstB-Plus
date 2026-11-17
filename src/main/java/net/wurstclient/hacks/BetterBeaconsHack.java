@@ -33,12 +33,21 @@ public final class BetterBeaconsHack extends Hack implements GUIRenderListener
 		"Show level table", "Shows the effect range of every beacon level.",
 		true);
 
+	private final CheckboxSetting expandedSelection = new CheckboxSetting(
+		"Expanded selection", "Shows all six beacon effects. Secondary effects require level 4.", true);
+
+	public boolean hasExpandedSelection()
+	{
+		return isEnabled() && expandedSelection.isChecked();
+	}
+
 	public BetterBeaconsHack()
 	{
 		super("BetterBeacons");
 		setCategory(Category.ITEMS);
 		addSetting(showEffectNames);
 		addSetting(showLevelTable);
+		addSetting(expandedSelection);
 	}
 
 	@Override

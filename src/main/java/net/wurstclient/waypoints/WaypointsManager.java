@@ -56,8 +56,8 @@ public final class WaypointsManager implements RenderListener
 			{
 				WsonObject obj = wson.getObject(i);
 				String name = obj.getString("name");
-				ResourceLocation dim = ResourceLocation
-					.parse(obj.getString("dimension"));
+				ResourceLocation dim = new ResourceLocation(
+					obj.getString("dimension"));
 				int x = obj.getInt("x");
 				int y = obj.getInt("y");
 				int z = obj.getInt("z");

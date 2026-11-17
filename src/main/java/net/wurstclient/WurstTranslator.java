@@ -86,7 +86,10 @@ public class WurstTranslator implements ResourceManagerReloadListener
 	 */
 	public String translateEnglish(String key, Object... args)
 	{
-		// Resource reload has not populated Minecraft's English map at startup.
+		// Early in startup (HudManager.start -> HudElement.getTranslatedName)
+		// the resource reload listener has not populated these maps yet.
+		// Returning the key keeps the game alive instead of crashing with an
+		// NPE in ClientLanguage.
 		String string = englishOnlyStrings.get(key);
 		if(string == null && mcEnglish != null)
 			string = mcEnglish.getOrDefault(key);

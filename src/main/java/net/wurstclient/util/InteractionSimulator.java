@@ -10,10 +10,8 @@ package net.wurstclient.util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
 import net.wurstclient.WurstClient;
 import net.wurstclient.settings.SwingHandSetting.SwingHand;
 
@@ -31,59 +29,6 @@ public enum InteractionSimulator
 	;
 	
 	private static final Minecraft MC = WurstClient.MC;
-
-	/**
-	 * Uses the first equipped item that accepts the interaction, following
-	 * vanilla's main-hand then off-hand order.
-	 */
-	public static void rightClickItem(SwingHand swing)
-	{
-		for(InteractionHand hand : InteractionHand.values())
-		{
-			ItemStack stack = MC.player.getItemInHand(hand);
-			if(interactItemAndSwing(stack, swing, hand))
-				return;
-		}
-	}
-
-	public static void rightClickItem()
-	{
-		rightClickItem(SwingHand.CLIENT);
-	}
-	
-	/**
-	 * Right-clicks the entity at the given hit result, replicating the
-	 * {@code case ENTITY} branch of {@link Minecraft#startUseItem()}
-	 * (1.20.2 反编译源 {@code Minecraft.java:1739-1753}）：先 {@code interactAt}，
-	 * 没被消费再 {@code interact}，被消费才挥手；两只手依次尝试，都没消费才轮到
-	 * 同一只手的 {@code useItem}（与 {@link #rightClickBlock} 的手序一致）。
-	 */
-	public static void rightClickEntity(EntityHitResult hitResult,
-		SwingHand swing)
-	{
-		Entity entity = hitResult.getEntity();
-		if(!MC.level.getWorldBorder().isWithinBounds(entity.blockPosition()))
-			return;
-
-		for(InteractionHand hand : InteractionHand.values())
-		{
-			InteractionResult result = MC.gameMode.interactAt(MC.player,
-				entity, hitResult, hand);
-			if(!result.consumesAction())
-				result = MC.gameMode.interact(MC.player, entity, hand);
-
-			if(result.consumesAction())
-			{
-				if(result.shouldSwing())
-					swing.swing(hand);
-
-				return;
-			}
-
-			if(interactItemAndSwing(MC.player.getItemInHand(hand), swing, hand))
-				return;
-		}
-	}
 	
 	/**
 	 * @see #rightClickBlock(BlockHitResult, SwingHand)

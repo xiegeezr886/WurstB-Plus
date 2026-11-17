@@ -16,7 +16,6 @@ import net.wurstclient.events.PacketOutputListener;
 import net.wurstclient.events.PacketOutputListener.PacketOutputEvent;
 import net.wurstclient.events.PostMotionListener;
 import net.wurstclient.util.Rotation;
-import net.wurstclient.util.RotationGcdPolicy;
 import net.wurstclient.util.RotationUtils;
 
 public final class RotationFaker
@@ -66,13 +65,6 @@ public final class RotationFaker
 			return;
 
 		currentRotation = normalize(rotation.yaw(), rotation.pitch());
-
-		// 可选：把要发给服务器的朝向吸附到鼠标灵敏度栅格上（见 RotationGridOtf）
-		if(WurstClient.INSTANCE.getOtfs().rotationGridOtf
-			.isSensitivityGridEnabled())
-			currentRotation = RotationGcdPolicy.patch(currentRotation,
-				new Rotation(getServerYaw(), getServerPitch()),
-				WurstClient.MC.options.sensitivity().get());
 	}
 
 	public Rotation getCurrentRotation()

@@ -27,7 +27,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.WurstClient;
 import net.wurstclient.event.EventManager;
-import net.wurstclient.events.StuckInBlockListener.StuckInBlockEvent;
 import net.wurstclient.events.VelocityFromEntityCollisionListener.VelocityFromEntityCollisionEvent;
 import net.wurstclient.events.VelocityFromFluidListener.VelocityFromFluidEvent;
 import net.wurstclient.util.HitboxExpansionPolicy;
@@ -42,13 +41,11 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 		CallbackInfo ci)
 	{
 		Entity self = (Entity)(Object)this;
-		if(self != WurstClient.MC.player)
+		if(self != WurstClient.MC.player || WurstClient.INSTANCE.getHax() == null)
 			return;
-
-		StuckInBlockEvent event = new StuckInBlockEvent(state);
-		EventManager.fire(event);
-
-		if(event.isCancelled())
+		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
+			&& WurstClient.INSTANCE.getHax().noSlowdownHack
+				.shouldBypassStuckBlock(state))
 			ci.cancel();
 	}
 

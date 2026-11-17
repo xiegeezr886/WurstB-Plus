@@ -43,7 +43,8 @@ public abstract class ControlsListWidgetMixin
 		if(!(entry instanceof KeyBindsList.KeyEntry kbEntry))
 			return original.call(instance, entry);
 		
-		Component name = kbEntry.name;
+		Component name = ((net.wurstclient.mixin.KeyEntryAccessor)(Object)kbEntry)
+			.getName();
 		if(name == null || !(name
 			.getContents() instanceof TranslatableContents trContent))
 			return original.call(instance, entry);

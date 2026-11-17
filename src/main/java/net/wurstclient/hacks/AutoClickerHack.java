@@ -1,139 +1,130 @@
 /*
- * Copyright (c) 2025-2026 Penguin
+ * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
  * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
  */
+// Ported from Meteor Client (GPL-3.0).
 package net.wurstclient.hacks;
 
-import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.events.PreMotionListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.hack.HackConflictGroup;
-import net.wurstclient.mixinterface.IKeyBinding;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.util.AttackTimerPolicy;
 
-@SearchTags({"auto clicker", "autoclicker", "left clicker", "连点器",
-	"左键连点"})
-public final class AutoClickerHack extends Hack
-	implements UpdateListener, PreMotionListener
+@SearchTags({"auto clicker", "autoclicker", "auto click", "CPS", "clicker"})
+public final class AutoClickerHack extends Hack implements UpdateListener
 {
-	private final SliderSetting minCps = new SliderSetting("Minimum CPS", 8, 1,
-		20, 0.5, ValueDisplay.DECIMAL);
-	private final SliderSetting maxCps = new SliderSetting("Maximum CPS", 12, 1,
-		20, 0.5, ValueDisplay.DECIMAL);
-	private final CheckboxSetting holdToClick =
-		new CheckboxSetting("Hold to click", true);
-	private final SliderSetting startDelay = new SliderSetting("Start delay", 0,
-		0, 1000, 10, ValueDisplay.INTEGER.withSuffix("ms"));
+	private final SliderSetting leftCps = new SliderSetting("Left CPS",
+		"Left clicks per second. 0 disables left clicking.", 10, 0, 20, 1,
+		ValueDisplay.INTEGER.withLabel(0, "off"));
 
-	private final RandomSource random =
-		RandomSource.createNewThreadLocalInstance();
-	private boolean active;
-	private boolean pressedByUs;
-	private long nextClickNanos;
+	private final SliderSetting rightCps = new SliderSetting("Right CPS",
+		"Right clicks per second. 0 disables right clicking.", 10, 0, 20, 1,
+		ValueDisplay.INTEGER.withLabel(0, "off"));
+
+	private final CheckboxSetting onlyWhileHeld = new CheckboxSetting(
+		"Only while held",
+		"Only clicks while the corresponding mouse button is held down.", true);
+
+	private final CheckboxSetting inScreens = new CheckboxSetting(
+		"While in screens",
+		"Whether to click while a screen is open.\n\n"
+			+ "\u00a7c\u00a7lWARNING:\u00a7r This can make menus click themselves.",
+		false);
+
+	private long lastLeftClick;
+	private long lastRightClick;
 
 	public AutoClickerHack()
 	{
 		super("AutoClicker");
 		setCategory(Category.COMBAT);
-		addConflictGroup(HackConflictGroup.COMBAT_TARGETING);
-		addSetting(minCps);
-		addSetting(maxCps);
-		addSetting(holdToClick);
-		addSetting(startDelay);
+		addSetting(leftCps);
+		addSetting(rightCps);
+		addSetting(onlyWhileHeld);
+		addSetting(inScreens);
 	}
 
 	@Override
 	protected void onEnable()
 	{
-		active = false;
-		pressedByUs = false;
+		lastLeftClick = 0;
+		lastRightClick = 0;
 		EVENTS.add(UpdateListener.class, this);
-		EVENTS.add(PreMotionListener.class, this);
 	}
 
 	@Override
 	protected void onDisable()
 	{
-		releaseClick();
 		EVENTS.remove(UpdateListener.class, this);
-		EVENTS.remove(PreMotionListener.class, this);
-		active = false;
 	}
 
 	@Override
 	public void onUpdate()
 	{
-		// Safety net in case PreMotion didn't run since the last click.
-		releaseClick();
-
-		if(!canClick())
-		{
-			active = false;
-			return;
-		}
-
-		long now = System.nanoTime();
-		if(!active)
-		{
-			active = true;
-			nextClickNanos = AttackTimerPolicy.deadline(now,
-				(long)(startDelay.getValue() * 1_000_000D));
-		}
-		if(!AttackTimerPolicy.isElapsed(now, nextClickNanos))
-			return;
-
-		IKeyBinding.get(MC.options.keyAttack).simulatePress(true);
-		pressedByUs = true;
-		scheduleNextClick(now);
-	}
-
-	@Override
-	public void onPreMotion()
-	{
-		releaseClick();
-	}
-
-	private void releaseClick()
-	{
-		if(!pressedByUs)
-			return;
-		pressedByUs = false;
-
-		IKeyBinding keyAttack = IKeyBinding.get(MC.options.keyAttack);
-		keyAttack.simulatePress(false);
-		// Don't cancel the player's real attack key if they're still holding it.
-		keyAttack.resetPressedState();
-	}
-
-	private boolean canClick()
-	{
 		if(MC.player == null || MC.level == null || MC.gameMode == null)
-			return false;
-		if(MC.screen != null)
-			return false;
-		if(MC.player.isUsingItem())
-			return false;
-		if(holdToClick.isChecked() && !MC.options.keyAttack.isDown())
-			return false;
-		return true;
+			return;
+
+		if(!inScreens.isChecked() && MC.screen != null)
+			return;
+
+		LocalPlayer player = MC.player;
+		long now = System.currentTimeMillis();
+
+		if(leftCps.getValue() > 0 && player.isUsingItem())
+			return;
+
+		if(leftCps.getValue() > 0
+			&& (!onlyWhileHeld.isChecked() || MC.options.keyAttack.isDown())
+			&& now - lastLeftClick >= 1000.0 / leftCps.getValue())
+		{
+			leftClick(player);
+			lastLeftClick = now;
+		}
+
+		if(rightCps.getValue() > 0
+			&& (!onlyWhileHeld.isChecked() || MC.options.keyUse.isDown())
+			&& now - lastRightClick >= 1000.0 / rightCps.getValue())
+		{
+			// 1.20.x: Minecraft#startUseItem is private, so use the
+			// interaction manager's useItem path instead.
+			MC.gameMode.useItem(player, InteractionHand.MAIN_HAND);
+			lastRightClick = now;
+		}
 	}
 
-	private void scheduleNextClick(long now)
+	private void leftClick(LocalPlayer player)
 	{
-		double low = Math.min(minCps.getValue(), maxCps.getValue());
-		double high = Math.max(minCps.getValue(), maxCps.getValue());
-		double cps = Mth.lerp(random.nextDouble(), low, high);
-		nextClickNanos = AttackTimerPolicy.deadline(now,
-			AttackTimerPolicy.delayNanos(cps, 0, 0));
+		if(player.isHandsBusy() || MC.hitResult == null)
+			return;
+
+		switch(MC.hitResult.getType())
+		{
+			case ENTITY:
+			MC.gameMode.attack(player,
+				((EntityHitResult)MC.hitResult).getEntity());
+			break;
+
+			case BLOCK:
+			BlockHitResult blockHit = (BlockHitResult)MC.hitResult;
+			MC.gameMode.startDestroyBlock(blockHit.getBlockPos(),
+				blockHit.getDirection());
+			break;
+
+			case MISS:
+			break;
+		}
+
+		if(!player.isSpectator())
+			player.swing(InteractionHand.MAIN_HAND);
 	}
 }

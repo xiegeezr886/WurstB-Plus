@@ -4,6 +4,7 @@
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
  * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+ * Flight guards adapted from Meteor Client (GPL-3.0).
  */
 package net.wurstclient.hacks;
 
@@ -30,12 +31,14 @@ public final class SneakHack extends Hack
 	
 	private final CheckboxSetting offWhileFlying =
 		new CheckboxSetting("Turn off while flying",
-			"Automatically disables Legit Sneak while you are flying or using"
+			"Automatically pauses Sneak while you are flying or using"
 				+ " Freecam, so that it doesn't force you to fly down.\n\n"
 				+ "Keep in mind that this also means you won't be hidden from"
 				+ " other players while doing these things.",
 			false);
 	
+	private LocalPlayer packetPlayer;
+
 	public SneakHack()
 	{
 		super("Sneak");
@@ -63,30 +66,28 @@ public final class SneakHack extends Hack
 		EVENTS.remove(PreMotionListener.class, this);
 		EVENTS.remove(PostMotionListener.class, this);
 		
-		switch(mode.getSelected())
-		{
-			case LEGIT:
-			IKeyBinding.get(MC.options.keyShift).resetPressedState();
-			break;
-			
-			case PACKET:
-			sendSneakPacket(Action.RELEASE_SHIFT_KEY);
-			break;
-		}
+		releaseSneak();
 	}
 	
 	@Override
 	public void onPreMotion()
 	{
+		if(!isEnabled())
+			return;
+		if(MC.player == null || offWhileFlying.isChecked() && isFlying())
+		{
+			releaseSneak();
+			return;
+		}
+
 		IKeyBinding sneakKey = IKeyBinding.get(MC.options.keyShift);
 		
 		switch(mode.getSelected())
 		{
 			case LEGIT:
-			if(offWhileFlying.isChecked() && isFlying())
-				sneakKey.resetPressedState();
-			else
-				sneakKey.setPressed(true);
+			if(packetPlayer != null)
+				releaseSneak();
+			sneakKey.setPressed(true);
 			break;
 			
 			case PACKET:
@@ -100,13 +101,24 @@ public final class SneakHack extends Hack
 	@Override
 	public void onPostMotion()
 	{
-		if(mode.getSelected() != SneakMode.PACKET)
+		if(!isEnabled() || MC.player == null
+			|| mode.getSelected() != SneakMode.PACKET
+			|| offWhileFlying.isChecked() && isFlying())
 			return;
 		
 		sendSneakPacket(Action.RELEASE_SHIFT_KEY);
 		sendSneakPacket(Action.PRESS_SHIFT_KEY);
 	}
 	
+	private void releaseSneak()
+	{
+		IKeyBinding.get(MC.options.keyShift).resetPressedState();
+		LocalPlayer owner = packetPlayer;
+		packetPlayer = null;
+		if(owner != null && owner == MC.player)
+			sendSneakPacket(Action.RELEASE_SHIFT_KEY);
+	}
+
 	private boolean isFlying()
 	{
 		if(MC.player.getAbilities().flying)
@@ -124,6 +136,12 @@ public final class SneakHack extends Hack
 	private void sendSneakPacket(Action mode)
 	{
 		LocalPlayer player = MC.player;
+		if(player == null || player.connection == null)
+		{
+			packetPlayer = null;
+			return;
+		}
+		packetPlayer = mode == Action.PRESS_SHIFT_KEY ? player : null;
 		ServerboundPlayerCommandPacket packet =
 			new ServerboundPlayerCommandPacket(player, mode);
 		player.connection.send(packet);

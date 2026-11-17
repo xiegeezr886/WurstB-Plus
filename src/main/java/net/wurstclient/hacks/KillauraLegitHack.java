@@ -209,7 +209,7 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 			target = null;
 			return;
 		}
-		if(pauseWhileMining.isChecked() && MC.gameMode.isDestroying())
+		if(pauseWhileMining.isChecked() && ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying())
 		{
 			target = null;
 			return;
@@ -245,7 +245,7 @@ public final class KillauraLegitHack extends Hack implements UpdateListener,
 		if(target == null || MC.player == null || MC.gameMode == null
 			|| MC.screen instanceof AbstractContainerScreen
 			|| !attackWhileUsing.isChecked() && MC.player.isUsingItem()
-			|| pauseWhileMining.isChecked() && MC.gameMode.isDestroying()
+			|| pauseWhileMining.isChecked() && ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying()
 			|| !isValidTarget(target))
 			return;
 		
