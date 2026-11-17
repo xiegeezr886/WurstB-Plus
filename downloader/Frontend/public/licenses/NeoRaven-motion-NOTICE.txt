@@ -1,0 +1,17 @@
+WDownloader loading and download progress motion
+Upstream: https://github.com/Matr1ze/NeoRaven
+Commit: 1a4ae731837f28087c263763cf176d9ec0261c37
+License: GPL-3.0; see NeoRaven-LICENSE.txt.
+Original copyright remains with upstream authors and contributors.
+
+Ported from this client's NeoRavenLoadingShape, m3_loading.frag and Ease:
+four radial forms, emphasized cubic-bezier easing, 900 ms morph,
+1800 ms rotation and 5% scale pulse. LoadingShape.cs samples the shader's
+zero contour for antialiased GDI+ / WPF rendering, shared by the single-EXE
+bootstrap and native host. Color remains #B5BEF0.
+
+MusicProgress.vue ports MusicCanvas.wave and MusicTransportMotion:
+3.24 px stroke, 40 px wavelength, 28 px/s phase, amplitude ramps,
+85/90 ms exponential smoothing and original accent / remaining-track colors.
+Adaptations: real download progress, indeterminate probing, reduced motion,
+resize handling and lifecycle cleanup. No music assets are included.

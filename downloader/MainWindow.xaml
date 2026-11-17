@@ -1,0 +1,17 @@
+<Window x:Class="WurstBPlus.Downloader.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+ xmlns:local="clr-namespace:WurstBPlus.Downloader"
+ xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+ Title="WDownloader" Icon="Assets/WDownloader.ico" Width="1040" Height="700" MinWidth="800" MinHeight="600" Background="White"
+ WindowStyle="None" ResizeMode="CanResize" WindowStartupLocation="CenterScreen"
+ Loaded="Window_Loaded" Closing="Window_Closing" SourceInitialized="Window_SourceInitialized">
+ <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="12"/></shell:WindowChrome.WindowChrome>
+ <Border BorderBrush="#E4E7EE" BorderThickness="1"><Grid>
+  <wv:WebView2 x:Name="Browser" DefaultBackgroundColor="White" Visibility="Hidden"/>
+  <Grid x:Name="StartupOverlay" Background="White" MouseLeftButtonDown="Startup_Drag">
+   <local:LoadingIndicator Width="96" Height="96" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.Name="正在加载"/>
+   <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="43" Height="36" Margin="0,12,15,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Click="Startup_Close" AutomationProperties.Name="关闭"/>
+  </Grid>
+ </Grid></Border>
+</Window>
