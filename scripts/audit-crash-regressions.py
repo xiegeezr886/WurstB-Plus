@@ -186,8 +186,9 @@ def check_sources(root=ROOT):
                     'Files.createTempFile', 'StandardCopyOption.ATOMIC_MOVE',
                     'NOFOLLOW_LINKS')):
                 fail('native cache lacks platform isolation, integrity or atomic extraction')
-        encryption = ((root / 'common/src/main/java/net/wurstclient/altmanager/Encryption.java')
-                      if project == root else java / 'altmanager/Encryption.java')
+        encryption = java / 'altmanager/Encryption.java'
+        if project == root and 'common/src/main/java' in build:
+            encryption = root / 'common/src/main/java/net/wurstclient/altmanager/Encryption.java'
         text = encryption.read_text('utf-8-sig')
         counts['encryption'] += 1
         if not all(token in text for token in (
@@ -290,6 +291,9 @@ def check_sources(root=ROOT):
     # is compiled into the owning module alongside the loader, not read from packs.
     native_sources = [root / 'src/main/java/net/wurstclient/background/FfmpegNatives.java',
                       root / 'src/main/java/net/wurstclient/render/skia/SkikoNatives.java']
+    # The restored v1.5.1 root has neither the v1.6 loaders nor their payloads.
+    # Still reject unpinned payloads if they are accidentally reintroduced.
+    native_sources = [source for source in native_sources if source.exists()]
     pinned = ''.join(f.read_text('utf-8-sig') for f in native_sources)
     for source in native_sources:
         text = source.read_text('utf-8-sig')
