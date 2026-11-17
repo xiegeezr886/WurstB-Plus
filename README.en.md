@@ -9,7 +9,7 @@
 [![Loaders](https://img.shields.io/badge/Loaders-Forge%20%7C%20NeoForge%20%7C%20Fabric-6E6E6E?style=flat-square)](#version-support)
 [![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#version-support)
 [![Gradle projects](https://img.shields.io/badge/Gradle_projects-67-4C1D95?style=flat-square)](#repository-layout)
-[![preview](https://img.shields.io/badge/preview-v1.6.0-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0)
+[![preview](https://img.shields.io/badge/preview-v1.5.2-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
 
 </div>
@@ -25,7 +25,7 @@ independent Gradle projects.
 
 | Minecraft | Forge | NeoForge | Fabric | Java |
 | --- | :---: | :---: | :---: | :---: |
-| **1.20.1** | ✓ <sup>v1.6.0</sup> | ✓ | ✓ | 17 |
+| **1.20.1** | ✓ <sup>v1.5.1</sup> | ✓ | ✓ | 17 |
 | 1.20.2 · 1.20.3 · 1.20.4 | ✓ | ✓ | ✓ | 17 |
 | 1.20.5 | — | ✓ | ✓ | 21 |
 | 1.20.6 | ✓ | ✓ | ✓ | 21 |
@@ -47,13 +47,14 @@ WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.1-Forge-1.21
 | --- | --- | --- |
 | [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 assets | The historical release of the 1.5.0 line |
 | [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | **67 assets (full matrix)** | **Latest release**: 66 v1.5.1 projects + one fixed Forge 1.20.1 build, 67 jars in total |
-| [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | Prerelease, carries the new v1.6 subsystems |
+| [**v1.5.2**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2) | Fabric 1.20.1 | Prerelease; JAR updated on 2026-11-16 |
+| [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | Historical prerelease; root source archived outside the repository |
 
-> **Note:** All 66 v1.5.1 projects (Fabric 23 + Forge 20 + NeoForge 23) are on the **v1.5.1**
-> development line and the v1.5.1 release ships every one of their jars. The 67th asset is a
-> fixed Forge 1.20.1 build produced by the separate `VAP-v1.5.0-1.20.1` project. The root
-> Forge 1.20.1 project is **v1.6.0** (the only one with the v1.6 subsystems) and is published
-> only in the v1.6.0 release. The v1.5.0 release keeps its 67 historical 1.5.0 assets.
+> **Current source (2026-11-17):** The root Forge 1.20.1 project now uses the
+> v1.5.1 source from `dist/VAP-v1.5.1-Forge-1.20.1`. Fabric 1.20.1 is v1.5.2;
+> all other maintained projects are v1.5.1. The old v1.6.0 root source was moved
+> to a separate local archive outside this repository. Existing release assets
+> and historical tags remain unchanged. See [migration notes](docs/ROOT-FORGE-1.5.1.md).
 
 ---
 
@@ -61,8 +62,8 @@ WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.1-Forge-1.21
 
 ```text
 .
-├── src/                    root project  · Forge 1.20.1   · v1.6.0
-├── fabric/                 Fabric 1.20.1                  · v1.5.1
+├── src/                    root project  · Forge 1.20.1   · v1.5.1
+├── fabric/                 Fabric 1.20.1                  · v1.5.2
 ├── neoforge/               NeoForge 1.20.1                · v1.5.1
 ├── versions/               Forge new-version projects      20
 ├── fabric/versions/        Fabric new-version projects     22
