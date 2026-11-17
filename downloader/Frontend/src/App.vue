@@ -75,7 +75,7 @@ function titleDown(event:MouseEvent){if(event.button===0 && !(event.target as El
     </div>
     <section v-else-if="page==='versions'" key="versions" class="page-content flow-card">
      <h2 tabindex="-1">选择版本</h2>
-     <div class="version-fields"><label>发布版本<select v-model="release" :disabled="state.busy" aria-label="发布版本"><option v-for="r in state.releases" :key="r.tag" :value="r.tag">{{r.label}}</option></select></label><label>Minecraft 游戏版本<select v-model="minecraft" :disabled="state.busy" aria-label="Minecraft 游戏版本"><option v-for="v in versions" :key="v">{{v}}</option></select></label></div>
+     <div class="version-fields"><label>发布版本<select v-model="release" :disabled="state.busy" aria-label="发布版本"><option v-for="r in state.releases" :key="r.tag" :value="r.tag">{{r.tag}}</option></select></label><label>Minecraft 游戏版本<select v-model="minecraft" :disabled="state.busy" aria-label="Minecraft 游戏版本"><option v-for="v in versions" :key="v">{{v}}</option></select></label></div>
      <Button type="colored" color="brand" size="xl" :disabled="state.busy||!asset" @click="next">下一步：选择加载器</Button>
     </section>
     <section v-else-if="page==='loader'" key="loader" class="page-content flow-card">
