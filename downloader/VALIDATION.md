@@ -3,7 +3,7 @@
 ## 当前发布
 
 - 最终分发文件：`artifacts/release/win-x64/WDownloader.exe`，已同步到 `C:\Users\OMEN\Desktop\WDownloader.exe`。
-- 单个 EXE，72,972,288 字节；SHA-256：`1c7f55918a49d8828417d7d01cd3e4aa9fd5112a5ac25067931bdf38728dfa1c`。
+- 单个 EXE，72,972,288 字节；SHA-256：`f9338b7c793c49d4989ab72f3138f6371e32ff8f03810b14b23a17fed94c9532`。
 - ZIP 仅作内部构建资源，不是用户发布包。Windows Framework 启动器校验并释放自包含运行库至系统文档 `WDownloader/Runtime/<哈希>`；应用数据、WebView2 和临时目录均在系统文档下。
 - 未修改 Windows ACL 或完整性标签。项目目录继承 Low Mandatory Level；桌面副本用于普通账户运行。
 
@@ -12,6 +12,7 @@
 - Vue 类型检查、Vite 生产构建、.NET 8 Windows x64 发布、Framework 单文件启动器编译通过。
 - 实际使用 Axolotl 本地源码，参考提交 `dae3f4cf9e7665e3ae8f65f729215338446e213e`，来源见前端 vendor 通知。
 - 主界面字标为 `#0C185C`，左上角只显示灵动岛 Logo；官方 Fabric / Forge / NeoForge 狐狸图片完整显示；SVG 保留 viewBox。
+- 发布版本选项只显示版本号，移除“预发布 / 正式版”后缀；更新后构建与页面流程检查通过。
 - 设置页移除“系统下载文件夹”按钮；下载详情移除线程数、源域名以及完成后的校验提示。
 - 启动器和 WPF 共用客户端世界加载形状算法：900 ms 变形、1800 ms 旋转、5% 呼吸和强调缓动。原生加载覆盖运行库准备、WebView2 初始化及首轮列表加载。
 - 加载完成时，原生覆盖层 180 ms 淡出；宿主发送 reveal 消息，HTML 主界面 420 ms 淡入、内容上移 8 px。WebView2 是原生子窗口，所以使用 HTML 透明度过渡。支持减少动画设置。
