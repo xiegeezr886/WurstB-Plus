@@ -1,12 +1,12 @@
 pluginManagement {
-	repositories {
-		// 国内镜像：国内网络下优先命中，官方仓库保留在后面兜底
-		gradlePluginPortal()
-		maven {
-			name = "MinecraftForge"
-			url = "https://maven.minecraftforge.net/"
-		}
-	}
+    repositories {
+        // 国内镜像：国内网络下优先命中，官方仓库保留在后面兜底
+        gradlePluginPortal()
+        maven {
+            name = "MinecraftForge"
+            url = "https://maven.minecraftforge.net/"
+        }
+    }
 }
 
 rootProject.name = "WurstB+ Plus"
