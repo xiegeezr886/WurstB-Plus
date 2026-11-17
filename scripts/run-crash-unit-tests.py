@@ -51,10 +51,8 @@ def main():
                 download.unlink(missing_ok=True)
     sources = [ROOT / p for p in (
         'common/src/main/java/net/wurstclient/altmanager/Encryption.java',
-        'src/main/java/net/wurstclient/util/BundledNativeFiles.java',
         'fabric/src/main/java/net/wurstclient/hud2/nanovg/NanoVGNativeLoader.java',
-        'src/test/java/net/wurstclient/altmanager/EncryptionTest.java',
-        'src/test/java/net/wurstclient/util/BundledNativeFilesTest.java',
+        'scripts/tests/java/EncryptionTest.java',
         'fabric/src/test/java/net/wurstclient/hud2/nanovg/NanoVGNativeLoaderTest.java')]
     for folder in ('altmanager/credentials', 'util/json'):
         sources.extend((ROOT / 'common/src/main/java/net/wurstclient' / folder).glob('*.java'))
