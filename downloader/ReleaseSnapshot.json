@@ -1,0 +1,842 @@
+{
+  "fetched_at": "2026-11-17T10:42:54.3297020+00:00",
+  "releases": [
+    {
+      "tag_name": "v1.5.2",
+      "name": "WurstB+ Plus 1.5.2",
+      "prerelease": true,
+      "draft": false,
+      "published_at": "2026-11-15T09:25:32Z",
+      "assets": [
+        {
+          "name": "WurstB+.Plus-1.5.2-Fabric-1.20.1.jar",
+          "size": 58382164,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.2/WurstB%2B.Plus-1.5.2-Fabric-1.20.1.jar",
+          "digest": "sha256:04a0c09600adb61fcc680dc3c324f36d53bf4126488537c95c6246c5b5cbcc17"
+        }
+      ]
+    },
+    {
+      "tag_name": "v1.5.1",
+      "name": "WurstB+ Plus 1.5.1",
+      "prerelease": false,
+      "draft": false,
+      "published_at": "2026-10-26T10:30:18Z",
+      "assets": [
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.20.6.jar",
+          "size": 56744164,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.20.6.jar",
+          "digest": "sha256:764a1f948ce46f1b04f4ee34108c42a49b37eea28a8f19fcbe83cea63b5577a3"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.20.1.jar",
+          "size": 55363977,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.20.1.jar",
+          "digest": "sha256:e709f588dec1a8ca0e41130a1b2d1e88241970a51e816081c191a60c296f2dba"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.20.2.jar",
+          "size": 54471442,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.20.2.jar",
+          "digest": "sha256:c989d1a43cebcfc6ca863a7483094f719232544d01c513ae0b8b71a9dbc66426"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.20.3.jar",
+          "size": 54448593,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.20.3.jar",
+          "digest": "sha256:3f1ea69ac15f03f872e218ed6b6fed1f2920401d929fd3d9894b3c41099ead2d"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.20.4.jar",
+          "size": 54448491,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.20.4.jar",
+          "digest": "sha256:ba3bc21140849e058fc0fe3c254b4102e2c073efd54f79f24bdc4c46c359379a"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.20.5.jar",
+          "size": 54469951,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.20.5.jar",
+          "digest": "sha256:56bb7ffd2b271e2af42ac7e6fc7ff19677cd3a08ed486b2c5c1c51a057572831"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.20.6.jar",
+          "size": 54470046,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.20.6.jar",
+          "digest": "sha256:49cfc7fd47c155798b9f1917aa8861527e0e1409581adb5976a9c512e82a9bdb"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.1.jar",
+          "size": 51036738,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.1.jar",
+          "digest": "sha256:04c71cfe836bf8f540a59f474a5c9a5c6b9fdb0f493c6e97e06e0f206184bcdc"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.10.jar",
+          "size": 54305571,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.10.jar",
+          "digest": "sha256:f5f4195e19deeb0b4abd89da038f86097ecb67e23d2c68e8fe6bdfeb20200955"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.11.jar",
+          "size": 54544975,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.11.jar",
+          "digest": "sha256:dc5da4191f0ca308d530c01f697cf2072569dfd46ec08b2e1aa6f44d2074fccc"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.2.jar",
+          "size": 54473676,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.2.jar",
+          "digest": "sha256:3a9ea5e3d4df18c165571539e383aa30f96e6acb6abd65fc5bf9678cd5a9fd6f"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.3.jar",
+          "size": 54249907,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.3.jar",
+          "digest": "sha256:4815161cf4f99f77cc24979a72f073a424dabcd67055edbcff7010d63502dc42"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.4.jar",
+          "size": 51014587,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.4.jar",
+          "digest": "sha256:84bee4cc5db887d673610e155c04ae5a078261d5d524f8477f28d6560e687534"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.5.jar",
+          "size": 51031881,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.5.jar",
+          "digest": "sha256:962951ca57d9c4183c46c577ff146afbe8fd383a8ecdf6994d572ec7745f6709"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.6.jar",
+          "size": 51070208,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.6.jar",
+          "digest": "sha256:5ffd7464306275bd9fe34405ecc5719979430752023192656fe9a83c69641bd0"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.7.jar",
+          "size": 51071222,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.7.jar",
+          "digest": "sha256:994d82ef32289f73f91be6f39001176e47ed5bdda062f7f320900bfb935845bd"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.8.jar",
+          "size": 51070974,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.8.jar",
+          "digest": "sha256:327dc118b2d5cf00e542341d0ca209db7b2b2f09f06b4a964f0995f820a8813d"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.9.jar",
+          "size": 54304826,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.9.jar",
+          "digest": "sha256:67e7088fe4df4ab558d6aaf7633d55787176fc26d11350d51a92463b4339b012"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-1.21.jar",
+          "size": 51036599,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-1.21.jar",
+          "digest": "sha256:ade93fa7afbb9c5b2dad3d98f93cfeecbee2f542a18923378292ce3f7af38579"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-26.1.1.jar",
+          "size": 54358155,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-26.1.1.jar",
+          "digest": "sha256:43a8a1f43ecb785aeaf6354938885ebfd33e86fc4dda8364dfb407c10cac0309"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-26.1.2.jar",
+          "size": 54364015,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-26.1.2.jar",
+          "digest": "sha256:43520ae11215c31ccf69d0c32671ae709b3ae56148a69a75218a43eb03b3087f"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-26.1.jar",
+          "size": 54358749,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-26.1.jar",
+          "digest": "sha256:c2b92660699e9aed3de232d94bc48827915172b76d89b9c34c160cde73a3cdf3"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-26.3.jar",
+          "size": 54386935,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-26.3.jar",
+          "digest": "sha256:b008c3db4aa2a1bdfb64b0396afb295802af011b0b3f6111e3f66cc087b3ba3f"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.20.1.jar",
+          "size": 49701035,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.20.1.jar",
+          "digest": "sha256:409fc671f7aa297544e85e48e353f59f30e0b12ff0d2a013b23abd2b1260ba29"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.20.2.jar",
+          "size": 54218714,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.20.2.jar",
+          "digest": "sha256:0f4781c874cfb2b36fe18a1a739a19673f6930f5f65321c88f27d3651afaddaa"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.20.3.jar",
+          "size": 54198599,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.20.3.jar",
+          "digest": "sha256:43207348b9f51f73d67a4e1ce85551eb2fd39f2d83f89d4d0a0935ec58f1cc06"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.20.4.jar",
+          "size": 54197222,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.20.4.jar",
+          "digest": "sha256:8cbf2a538c73c8d1fce6c1f15a1b14e4c17cfc704f624c264fd6fbccd79e4f94"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.20.6.jar",
+          "size": 54218720,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.20.6.jar",
+          "digest": "sha256:c479aa190195185f792fa09fead013a50bae87e9ceca71ba5b21e7c75b2c1bd6"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.1.jar",
+          "size": 51021468,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.1.jar",
+          "digest": "sha256:c2cf11a95353a029480a9fdfe43d3b59853d4f1ce560ee223d89785b72c1f058"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.10.jar",
+          "size": 53696955,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.10.jar",
+          "digest": "sha256:b062d64d419505e6501b6ccc0676fbd2e9b4f72d78378824ad25021b2d13a75f"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.11.jar",
+          "size": 53951008,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.11.jar",
+          "digest": "sha256:3e061c4c28c6e76c87658c0d6cb2326640517c45e9849850b7da62e0b3719542"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.3.jar",
+          "size": 53870064,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.3.jar",
+          "digest": "sha256:61abaf87e37bff0e2438b0492f933df0ae16ec0737d028ec0e380e66759093b7"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.4.jar",
+          "size": 49726528,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.4.jar",
+          "digest": "sha256:970912ce4f0383751754f8b280d31b0fb41b3113063d3c24bb75573cb191516d"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.5.jar",
+          "size": 50443970,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.5.jar",
+          "digest": "sha256:5c6c020200dac1a93176a9d16c2369308cb5a4ccdaa685edd99ece077b1e0db6"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.6.jar",
+          "size": 50465392,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.6.jar",
+          "digest": "sha256:4ca18b1acb2d328ba2b8f543ae19ffeb49c86b87617cb2e9521c057d8709addf"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.7.jar",
+          "size": 50468417,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.7.jar",
+          "digest": "sha256:f2d989c0ebb37387e1bc51a2dc01f67c1b72f691f6f57076334be7aff0d02c37"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.8.jar",
+          "size": 50461738,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.8.jar",
+          "digest": "sha256:5189c69d2fe2e36382570f024b4c063e481d5cf4765964a9ad9c8496352775bf"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.9.jar",
+          "size": 53697506,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.9.jar",
+          "digest": "sha256:08242de846a089ca18b94e66f31fa420874163d82f84b29aedb0a9a8cd64c3b9"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-1.21.jar",
+          "size": 51021808,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-1.21.jar",
+          "digest": "sha256:148ad78c42c5ad9797a5115327973244ce3ab6757f374fce88fa102255eec463"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-26.1.1.jar",
+          "size": 53763191,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-26.1.1.jar",
+          "digest": "sha256:1d5458927f229a3c7a2c5564162245cef4be88fdee4708de44d5c0edd1e755b5"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-26.1.2.jar",
+          "size": 53764679,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-26.1.2.jar",
+          "digest": "sha256:eb226e38edd30be58debb4fe14361da3f7a90481e54034d68c035bb7bfb6f360"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-26.1.jar",
+          "size": 53763456,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-26.1.jar",
+          "digest": "sha256:c7e43bfd636afcdc0c4915509ad243fef6e1b124ce5ed596bd3920952b71fed9"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.20.1.jar",
+          "size": 49677237,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.20.1.jar",
+          "digest": "sha256:96fdabbb75d1a8ea0a73ee933116b47fd6861702638402fdea61966c7aab83fa"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.20.2.jar",
+          "size": 53645680,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.20.2.jar",
+          "digest": "sha256:0dd14a76107c0466a41b757fd8cdecd1e2e7d5acf07540e27082c93022dad2d6"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.20.3.jar",
+          "size": 53623733,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.20.3.jar",
+          "digest": "sha256:d24d999d952baf62a21045e7f730542eb23a85a37d38db0298131d181b30f639"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.20.4.jar",
+          "size": 53622804,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.20.4.jar",
+          "digest": "sha256:d81a54e91fb7129dae9c39ac968c7853f953f080bad545a071ae1837a92358f5"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.20.5.jar",
+          "size": 53653656,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.20.5.jar",
+          "digest": "sha256:0e570e02d2a236d7b9adf65bdd08c417c8b6daa871e13de4b96a777fe7308102"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.1.jar",
+          "size": 53895071,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.1.jar",
+          "digest": "sha256:13091332cb6a858d2f6b396d03f4d433ef9166d31e78a2ed27cae156f4352488"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.10.jar",
+          "size": 53665491,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.10.jar",
+          "digest": "sha256:36c2f2bc85cbe3fa6927a302f7a5527cb0d01276c05c2d2dfc03a6446873ab96"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.11.jar",
+          "size": 53910778,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.11.jar",
+          "digest": "sha256:65a413b0158bdad835efdec7df1428844d005654c87df639e7be84e21ffbb6b1"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.2.jar",
+          "size": 53815361,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.2.jar",
+          "digest": "sha256:7df8dda7021f482e0eb21709b61115daf64b2fba26d6864893ab8391669797f9"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.3.jar",
+          "size": 53820617,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.3.jar",
+          "digest": "sha256:026a467069cd48d977e77adbd1f61a320913cccae02c1b4e23a34ec6c97875b5"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.4.jar",
+          "size": 49680676,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.4.jar",
+          "digest": "sha256:5c1143be3fdfa01e4696044a9894a96ccd8ad5010f667f0a03b4b57a32f7f8c8"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.5.jar",
+          "size": 50400403,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.5.jar",
+          "digest": "sha256:debc273f660ec4c6e314c9b6ae3369cb0ee9a9c9f03c9a0222fe4a9c234cf88d"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.6.jar",
+          "size": 50430908,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.6.jar",
+          "digest": "sha256:5f34371e1fb68e1f292bb8197f96b0fc84724a00964474da206c3e665639779f"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.7.jar",
+          "size": 50429967,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.7.jar",
+          "digest": "sha256:e8142a952b9d0e1e45182879d808dc08418e40da710d92e4cf3da9d80a238f11"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.8.jar",
+          "size": 50431069,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.8.jar",
+          "digest": "sha256:31629a11d6e75fecddce3a552d8c075f97bdb4bb1c86a0eb4f8421ea9e028065"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.9.jar",
+          "size": 53665474,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.9.jar",
+          "digest": "sha256:5b6e46b5f9fbbc8afedd3c2a93658d1ea7b7d64061243306e2a5247d9d7bd67a"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-1.21.jar",
+          "size": 50638633,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-1.21.jar",
+          "digest": "sha256:9343c9b8454e6565b7bb6363ac33f2043be1feb91a33e2537a8f6ce057cd49a5"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-26.1.1.jar",
+          "size": 53723588,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-26.1.1.jar",
+          "digest": "sha256:bc947eb7ab2d3ccce5b3067e994bd697ed7f1263a22128c65a3517936c57f490"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-26.1.2.jar",
+          "size": 53724464,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-26.1.2.jar",
+          "digest": "sha256:05490eb91ed7da7840fa86c710136a94c6d78e79a17b246f38fee9ff29fe3eb7"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-26.1.jar",
+          "size": 53724308,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-26.1.jar",
+          "digest": "sha256:387f4c9f6230866f7a403e318ac63d0fb3a5a3f86dc16fb7626805cbd0a842fd"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Fabric-26.2.jar",
+          "size": 52793046,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Fabric-26.2.jar",
+          "digest": "sha256:220f2174da7542b43f7fd5e8abdfaa329446882b5d08c63a914415215d78b547"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-26.2.jar",
+          "size": 52203950,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-26.2.jar",
+          "digest": "sha256:47c1b38155095e7176db5aabb64e82b24b59076204bd5c374fb9cae983a4f640"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-26.2.jar",
+          "size": 52162885,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-26.2.jar",
+          "digest": "sha256:9b0b394e6e0a00aab66906c9026016b6f5593a8cf66382b9c362c99274e9ee87"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-Forge-26.3.jar",
+          "size": 53066838,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-Forge-26.3.jar",
+          "digest": "sha256:234e69f00c16f26675e20cf00602c6a49932ca6a40684c11cc95f0648c44c643"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.1-NeoForge-26.3.jar",
+          "size": 53748756,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.1/WurstB%2B.Plus-1.5.1-NeoForge-26.3.jar",
+          "digest": "sha256:2e04e932eb2de7e199ba5478db930ef4c083cfbcde41e0876fd90833014203c6"
+        }
+      ]
+    },
+    {
+      "tag_name": "v1.5.0",
+      "name": "WurstB+ Plus 1.5.0",
+      "prerelease": false,
+      "draft": false,
+      "published_at": "2026-07-25T12:02:04Z",
+      "assets": [
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.20.1.jar",
+          "size": 30039777,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.20.1.jar",
+          "digest": "sha256:2d352e148553935bc0d56902613916b9e8e012560d9dbef9e0c94e896c673ce5"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.20.2.jar",
+          "size": 33467392,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.20.2.jar",
+          "digest": "sha256:5f82115b553e69e40b3f11fde4b4b841197e2714f9dd8522e5ec3547ef49f030"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.20.3.jar",
+          "size": 33481502,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.20.3.jar",
+          "digest": "sha256:6fff68a0c469fa144a26a71974e7d4b9df20c37e351e5d89f27fde04ff193179"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.20.4.jar",
+          "size": 33481503,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.20.4.jar",
+          "digest": "sha256:997e3b3799c7bef06d1c9f36aa2b6a234af29ffeed1a359ed4394f7bc313f64f"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.20.5.jar",
+          "size": 33473728,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.20.5.jar",
+          "digest": "sha256:d6bc9b6f221d310b7f2d52de0f61a5b700aa6a5f66219211d85504f931502f64"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.20.6.jar",
+          "size": 33473729,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.20.6.jar",
+          "digest": "sha256:ca19a4cc7cb21191d497143650681afe30a7b6b6d1dc6a02fe33f43bfb04421c"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.1.jar",
+          "size": 30034977,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.1.jar",
+          "digest": "sha256:0522a45fe0fcfa04979f9a3795597c9a9dc5c949fcf580a0052238c697fdf815"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.10.jar",
+          "size": 33285033,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.10.jar",
+          "digest": "sha256:e30cc0ff7534e8243e1a02029824ec324b6c0ea259e14aa4abb077b11ecf5143"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.11.jar",
+          "size": 33499421,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.11.jar",
+          "digest": "sha256:7c14f487d632226f2f74b030b69ede447f30fc10e51cd6431afe225874aaa247"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.2.jar",
+          "size": 33471967,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.2.jar",
+          "digest": "sha256:9699ed8727c7278422938bf98b43f91fc950529cae7a08f4279cc859801d4127"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.3.jar",
+          "size": 33254413,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.3.jar",
+          "digest": "sha256:ef46cffd2f34648ccc4e230ffcdf3407053f7ddc7f54fe54dd14b1884a7b8c54"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.4.jar",
+          "size": 30018570,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.4.jar",
+          "digest": "sha256:9d1a8431c5062c47a2da4ac30985513ae2caadf6c19f68dbae762b849757f9db"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.5.jar",
+          "size": 30027298,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.5.jar",
+          "digest": "sha256:e36b4df5f2f6cbb9726b3fe96b72aabe866b5b60b08dde347d2ff1e6c2d39739"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.6.jar",
+          "size": 30049985,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.6.jar",
+          "digest": "sha256:1bf8053026a0b536f0ea02df754798119b877cee693528e98de93437a2078aeb"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.7.jar",
+          "size": 30050485,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.7.jar",
+          "digest": "sha256:b5677ed11d2b1ceec0db61833ccf9b9da5a5ffd6a6a8e6a8c5e755bdd7130f59"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.8.jar",
+          "size": 30050490,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.8.jar",
+          "digest": "sha256:7d1f36955b97129af3e1e710c74670bcf3dcb58a424bf86992ae80f63479d918"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.9.jar",
+          "size": 33285004,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.9.jar",
+          "digest": "sha256:c88e082d7c8ab7a2a1461138d95a91925849719727aa36cdca84695b8df3c8c2"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-1.21.jar",
+          "size": 30034970,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-1.21.jar",
+          "digest": "sha256:1722932f6c9b33a21622b948510674ef8c1ab7057e057963d92df2e880a588f0"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-26.1.1.jar",
+          "size": 33570858,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-26.1.1.jar",
+          "digest": "sha256:9a9385a773901fd865165666ece9d7c41554e65fb9f3ae7e94b13d49d64a4cd1"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-26.1.2.jar",
+          "size": 33574411,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-26.1.2.jar",
+          "digest": "sha256:c2db9f41838c91effb556eb2c56e9af4fd0265782e0bf3489aa7946d9e4adf6d"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-26.1.jar",
+          "size": 33570909,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-26.1.jar",
+          "digest": "sha256:004a8aeea7b1e7163a573ddc975f567c6d73f2bc6842fee08cdb4e675c7b6a4d"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-26.2.jar",
+          "size": 33583710,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-26.2.jar",
+          "digest": "sha256:536d7180f535d1ec99c284f63685de3721c82f4f6dcb17b5daa2c0dcabb737d0"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Fabric-26.3.jar",
+          "size": 33589433,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Fabric-26.3.jar",
+          "digest": "sha256:736d63bc3c3580318e230ae881548c6a036f1b0eb96f2ee268e394248ef0a71a"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.20.2.jar",
+          "size": 33868928,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.20.2.jar",
+          "digest": "sha256:b8b87c9849d1ccf0eeb5064744b22084f25ca083c379ee2fcb4d9174834853c5"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.20.3.jar",
+          "size": 33869700,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.20.3.jar",
+          "digest": "sha256:90f8d41552af0516efe1327a7de13e5a8bd0be9b844c3d4ab4bc395583801e21"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.20.4.jar",
+          "size": 33869700,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.20.4.jar",
+          "digest": "sha256:b625508d0cffc59fd2515c17922daa33b92b88728c22349dbdaf34bdb1825dbb"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.20.6.jar",
+          "size": 33842311,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.20.6.jar",
+          "digest": "sha256:bc26128e9f0fa3e35ee4a12e65965cf74502e37d8ce8c03fba4701c3cf516cac"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.1.jar",
+          "size": 30646100,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.1.jar",
+          "digest": "sha256:8477c4b8a5a8aa8c125a26f7fb7fb62765228fb45380f5eaf122e5fd36432198"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.10.jar",
+          "size": 33321729,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.10.jar",
+          "digest": "sha256:8e3a7655d0c4ad9790bfc5c0b1e89b3d033899ef2ac48886cfc309386d0d69e1"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.11.jar",
+          "size": 33549931,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.11.jar",
+          "digest": "sha256:99a682be86b467a8629a4e4882f1703989a34d186f38f17230d4b2cdb944b6d3"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.3.jar",
+          "size": 33516473,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.3.jar",
+          "digest": "sha256:47f7399c9816331806b23d811d86e5fa98276f22b6acfb00b06ec8a1fa674f3f"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.4.jar",
+          "size": 29373402,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.4.jar",
+          "digest": "sha256:8776af0fe6144fcb345fe938fb21a8cc51af3ea3088d50f0a9c6afaa6abee139"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.5.jar",
+          "size": 30079147,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.5.jar",
+          "digest": "sha256:bc44a43152e7afd879328dabea525547a87e4645503c89b40d428dbb768b4086"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.6.jar",
+          "size": 30089128,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.6.jar",
+          "digest": "sha256:1abf5c3eca0e94b4246ce7109a290672201a2f07027b5f5829b48d81ba4f1afa"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.7.jar",
+          "size": 30091122,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.7.jar",
+          "digest": "sha256:31a3173c6100923175bb55a5e74cd82b0adfe157b1ec4ce9422dcbfa160a26a6"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.8.jar",
+          "size": 30088151,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.8.jar",
+          "digest": "sha256:6a5232c19800fd3784359a14734b663a2f485be66b300d7c92b7c17f8e34bc17"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.9.jar",
+          "size": 33321259,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.9.jar",
+          "digest": "sha256:11c5f112a593318a9f536d96e5d7b5b3c5a16899c3e7a12d26eddee6309070c4"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.21.jar",
+          "size": 30646175,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.21.jar",
+          "digest": "sha256:7c7e20ee4e8cf3a58356f5dd4b886fd58060895f94a5b999f686d9cad298eb86"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-26.1.1.jar",
+          "size": 33601400,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-26.1.1.jar",
+          "digest": "sha256:2c0e564fb1c5d5cbcbc590b21a7bb8a69aa4abd024300ec4173d5490b55811cf"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-26.1.2.jar",
+          "size": 33601463,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-26.1.2.jar",
+          "digest": "sha256:460d9b249920b688ff8090b1fbb6143e39f039e539c4f1890e63af22b20f1565"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-26.1.jar",
+          "size": 33601450,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-26.1.jar",
+          "digest": "sha256:ea5c2956754d584e7f527cc86bd2daa05aabe318c33e035c5c0d1f25f62651ef"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-26.2.jar",
+          "size": 33609613,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-26.2.jar",
+          "digest": "sha256:5899828214b9c43c21cb8b6dbcdb15f2cbbc142d07cacebea52398934e34f7e4"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-26.3.jar",
+          "size": 33614822,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-26.3.jar",
+          "digest": "sha256:a5a4cf07a33f90e0fa83bb8b4db867b91a76f3f5f747fc8d86861f2c689fe9c8"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.20.2.jar",
+          "size": 33323186,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.20.2.jar",
+          "digest": "sha256:4f84227be96bd7f4fd3bf612fd6692ebcc5c6f5d85dfe2adad18bec6a3c8f056"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.20.3.jar",
+          "size": 33323133,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.20.3.jar",
+          "digest": "sha256:2fdf98da1dddb060a27f758c44532d74b784921e9db82c784e9343f7b7e06f80"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.20.4.jar",
+          "size": 33323133,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.20.4.jar",
+          "digest": "sha256:99d5a895f3f30852ce7adda1b3f1c6125f263ec33a58adebd4adadf1c396cf13"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.20.5.jar",
+          "size": 33318152,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.20.5.jar",
+          "digest": "sha256:e25db9bb79a4cdab00765bc777b9bdf527f3c6b240c589931b3c6c4c590e128b"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.20.6.jar",
+          "size": 33318150,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.20.6.jar",
+          "digest": "sha256:1a24ae95b5dc4b60690abb84ef4432b5ca7e2a3dd2aabb41e313d7a55c767071"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.1.jar",
+          "size": 33558491,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.1.jar",
+          "digest": "sha256:7a979be6ea7ff8a2d831e6956747062571464085c080d9428a51ce36554f61ae"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.10.jar",
+          "size": 33300334,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.10.jar",
+          "digest": "sha256:aa9ebfaf7017f0704f23b1a73bdde75a456525ba6ed5f5c5300d21eb9be371ad"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.11.jar",
+          "size": 33518806,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.11.jar",
+          "digest": "sha256:6d7161c138fad75a703455996ab0db5b64e36e879a240ec63f0a6b9d571b7443"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.2.jar",
+          "size": 33475633,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.2.jar",
+          "digest": "sha256:1b81129b2514bc86f9c38dcd1f7271c5cabe311ee621be1342199bc887aba243"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.3.jar",
+          "size": 33482045,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.3.jar",
+          "digest": "sha256:3c20553165d695e67922dc7e652f4fc0d8472bd388559fe365be71381877ca82"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.4.jar",
+          "size": 29340697,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.4.jar",
+          "digest": "sha256:14a5586c35ccde62688fbca67d07993f0f4d0d2a8af571f39dd175dfd9efefb7"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.5.jar",
+          "size": 30046493,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.5.jar",
+          "digest": "sha256:c5d351eb49576118b55c0efa8551aa09d8e04b30cf2859e662c6b43f8c22bdf3"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.6.jar",
+          "size": 30065604,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.6.jar",
+          "digest": "sha256:e947ad21e794d16384dcaabfa53b4fa4ce371b8bee6f202dfa89abbc193693d5"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.7.jar",
+          "size": 30065610,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.7.jar",
+          "digest": "sha256:f104a2489cd66b3d24c1e7d8409964e3ccc47ff1c0aa3c87ea8ec9b68d01f637"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.8.jar",
+          "size": 30066081,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.8.jar",
+          "digest": "sha256:d300cd1cd170e6d0cdb15d1134c3e412c412ec928e1347f86d8f2676063ea7e8"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.9.jar",
+          "size": 33300334,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.9.jar",
+          "digest": "sha256:d86927fd5a50a294079b4b622b8459288e87d9f07e5b66ee628c8f53daef827d"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.21.jar",
+          "size": 30302216,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.21.jar",
+          "digest": "sha256:3f66f5ba58249be42a6cde9cdeccc019d399789bc4516f00fcc0600405205663"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-26.1.1.jar",
+          "size": 33572447,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-26.1.1.jar",
+          "digest": "sha256:f5afa5b842225281fcf6092ecf1deffaa62796fac70cec4e836af8b9dfa6d7c7"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-26.1.2.jar",
+          "size": 33572575,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-26.1.2.jar",
+          "digest": "sha256:d94f7df7cc54881cf003bc19abc10e24271ab799bcab5955394855bb13519c8a"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-26.1.jar",
+          "size": 33572502,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-26.1.jar",
+          "digest": "sha256:858e0286f68a3e512e47eb2c54b261d9f1b292fb2d8fca94c2fbf803ba473fb3"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-26.2.jar",
+          "size": 33581645,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-26.2.jar",
+          "digest": "sha256:d19dd5599428cee83fa7a3671723d4093b9196219dbeab15a0a8f983265f89fa"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-26.3.jar",
+          "size": 33587019,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-26.3.jar",
+          "digest": "sha256:a1edc6a1691579ee2dd7b9889649639f94e0c3d6bd602e4306c88a3c58c5f462"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-Forge-1.20.1.jar",
+          "size": 29729103,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-Forge-1.20.1.jar",
+          "digest": "sha256:623276703278c1da666e541851c429830631012c271ccfba7d247926608ae854"
+        },
+        {
+          "name": "WurstB+.Plus-1.5.0-NeoForge-1.20.1.jar",
+          "size": 29351415,
+          "browser_download_url": "https://github.com/xiegeezr886/WurstB-Plus/releases/download/v1.5.0/WurstB%2B.Plus-1.5.0-NeoForge-1.20.1.jar",
+          "digest": "sha256:e2b6af45c776e9659695898b82f467a063738297384a35eea9afcf90063a9385"
+        }
+      ]
+    }
+  ]
+}
