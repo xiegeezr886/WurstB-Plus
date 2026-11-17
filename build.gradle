@@ -1,647 +1,164 @@
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.commons.ClassRemapper
-import org.objectweb.asm.commons.Remapper
-
 buildscript {
-	repositories {
-		mavenCentral()
-		maven {
-			// 国内镜像，避免 Maven Central 直连超时
-			name = "Aliyun Central"
-		}
-		maven {
-			name = "Sponge"
-			url = "https://repo.spongepowered.org/repository/maven-public/"
-		}
-	}
-	dependencies {
-		classpath "org.spongepowered:mixingradle:0.7-SNAPSHOT"
-		// 重定位内嵌库用的字节码工具
-		classpath "org.ow2.asm:asm-commons:9.7"
-	}
+    repositories {
+        maven {
+            name = "Sponge"
+            url = "https://repo.spongepowered.org/repository/maven-public/"
+        }
+    }
+    dependencies {
+        classpath "org.spongepowered:mixingradle:0.7-SNAPSHOT"
+    }
 }
 
 plugins {
-	id "eclipse"
-	id "idea"
-	id "maven-publish"
-	id "net.minecraftforge.gradle" version "[6.0,6.2)"
+    id "eclipse"
+    id "idea"
+    id "maven-publish"
+    id "net.minecraftforge.gradle" version "[6.0,6.2)"
 }
 
 apply plugin: "org.spongepowered.mixin"
 
 version = project.mod_version
-group = project.maven_group
+group = project.mod_group_id
 
 base {
-	archivesName = project.archives_base_name
+    archivesName = "WurstB+ Plus"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-	mappings channel: "official", version: project.minecraft_version
-	accessTransformer = file(
-		"src/main/resources/META-INF/accesstransformer.cfg")
-	copyIdeResources = true
+    mappings channel: "official", version: project.minecraft_version
+    accessTransformer = file(
+        "src/main/resources/META-INF/accesstransformer.cfg")
+    copyIdeResources = true
 
-	runs {
-		configureEach {
-			workingDirectory project.file("run")
-			property "forge.logging.markers", "REGISTRIES"
-			property "forge.logging.console.level", "info"
+    runs {
+        configureEach {
+            workingDirectory project.file("run")
+            property "forge.logging.markers", "REGISTRIES"
+            property "forge.logging.console.level", "info"
 
-			mods {
-				"${project.mod_id}" {
-					source sourceSets.main
-				}
-			}
-		}
+            mods {
+                "${project.mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
 
-		client {}
-	}
+        client {}
+    }
 }
 
 repositories {
-	mavenCentral()
-	maven {
-		// 国内镜像，避免 Maven Central 直连超时
-		name = "Aliyun Central"
-	}
-	maven {
-		name = "Sponge"
-		url = "https://repo.spongepowered.org/repository/maven-public/"
-	}
-	maven {
-		name = "JitPack"
-		url = "https://jitpack.io"
-	}
-	flatDir {
-		dirs "."
-	}
+    maven {
+        name = "Sponge"
+        url = "https://repo.spongepowered.org/repository/maven-public/"
+    }
+    mavenCentral()
+    flatDir {
+        dirs projectDir
+    }
 }
 
 jarJar.enable()
 
-// ---- 整合包兼容构建 ----
-// 背景：jarJar 内嵌的库会被 Forge 放到 JPMS 模块路径上。大型整合包里往往已经有
-// 同一个库（作为独立 mod、或别的 mod 内嵌、或像 KotlinForForge 那样自带 kotlin），
-// 于是同一个包被两个模块导出，而第三个模块同时读取它们 —— ModLauncher 构建模块层
-// 时直接抛 ResolutionException，游戏在 Forge 加载任何 mod 之前就崩。
-// 实测：v1.6.0（内嵌 17 个库）在 900-mod 整合包里必崩，v1.5.0（内嵌 2 个）正常。
-//
-//   ./gradlew jarJar -PpackCompat      只跳过已被崩溃日志点名的三个库
-//                                      （kotlin-stdlib / kotlinx-coroutines / jlayer）
-//   ./gradlew jarJar -PpackCompatFull  只内嵌 baritone + mixinextras（= v1.5.0 形态）
-//
-// 两者都会把产物名加上 -packCompat 后缀，不影响正常构建。
-def packCompatLite = project.hasProperty("packCompat")
-def packCompatFull = project.hasProperty("packCompatFull")
-def packCompatAny = packCompatLite || packCompatFull
-
-def skipNestedLib = { String spec ->
-	// baritone 与 mixinextras 是 WurstB+ 自身运行必需的（mixin 依赖它们），
-	// 任何兼容构建都保留，否则产物直接不可用。
-	if(spec.startsWith("baritone:") || spec.startsWith("io.github.llamalad7:"))
-		return false
-	if(packCompatFull)
-		return true
-	if(!packCompatLite)
-		return false
-	// 保守名单：v1.6.0 崩溃日志里被点名的模块所对应的库
-	return spec.startsWith("org.jetbrains.kotlin:")
-		|| spec.startsWith("org.jetbrains.kotlinx:")
-		|| spec.startsWith("com.googlecode.soundlibs:jlayer:")
+configurations {
+	hudNatives
 }
 
 dependencies {
-	minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
+    implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
+    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
 
-	implementation fg.deobf(
-		"io.github.llamalad7:mixinextras-forge:${project.mixinextras_version}")
-	compileOnly "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
-	annotationProcessor "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
-	jarJar(group: "io.github.llamalad7", name: "mixinextras-forge",
-		version: "[${project.mixinextras_version},)")
-	annotationProcessor "org.spongepowered:mixin:0.8.7:processor"
-	implementation "org.java-websocket:Java-WebSocket:1.5.3"
-	minecraftLibrary("org.java-websocket:Java-WebSocket:1.5.3") {
-		exclude group: "org.slf4j", module: "slf4j-api"
-	}
-	jarJar("org.java-websocket:Java-WebSocket:[1.5.3]") {
-		transitive = false
-	}
-	implementation "io.netty:netty-codec-socks:4.1.82.Final"
-	implementation "io.netty:netty-handler-proxy:4.1.82.Final"
-	jarJar("io.netty:netty-codec-socks:[4.1.82.Final]") {
-		transitive = false
-	}
-	jarJar("io.netty:netty-handler-proxy:[4.1.82.Final]") {
-		transitive = false
-	}
-	implementation("com.github.goxr3plus:java-stream-player:10.0.2") {
-		exclude group: "junit", module: "junit"
-	}
-	minecraftLibrary("com.github.goxr3plus:java-stream-player:10.0.2") {
-		exclude group: "junit", module: "junit"
-	}
-	[
-		"com.googlecode.soundlibs:mp3spi:1.9.5.4",
-		"com.googlecode.soundlibs:jlayer:1.0.1.4",
-		"org.jflac:jflac-codec:1.5.2",
-		"com.github.trilarion:vorbis-support:1.1.0",
-		"com.googlecode.soundlibs:tritonus-all:0.3.7.2",
-		"com.googlecode.soundlibs:jorbis:0.0.17-2",
-		"com.github.goxr3plus:jaudiotagger:2.2.7"
-	].each { dependency ->
-		minecraftLibrary(dependency) {
-			transitive = false
-		}
-	}
-	jarJar("com.github.goxr3plus:java-stream-player:[10.0.2,10.1)") {
-		transitive = false
-	}
-	jarJar("com.googlecode.soundlibs:mp3spi:[1.9.5.4]") {
-		transitive = false
-	}
-	jarJar("com.googlecode.soundlibs:jlayer:[1.0.1.4]") {
-		transitive = false
-	}
-	jarJar("org.jflac:jflac-codec:[1.5.2]") {
-		transitive = false
-	}
-	jarJar("com.github.trilarion:vorbis-support:[1.1.0]") {
-		transitive = false
-	}
-	jarJar("com.googlecode.soundlibs:tritonus-all:[0.3.7.2]") {
-		transitive = false
-	}
-	jarJar("com.googlecode.soundlibs:jorbis:[0.0.17-2]") {
-		transitive = false
-	}
-	jarJar("com.github.goxr3plus:jaudiotagger:[2.2.7]") {
-		transitive = false
-	}
-	implementation "com.google.zxing:core:3.5.3"
-	minecraftLibrary "com.google.zxing:core:3.5.3"
-	jarJar("com.google.zxing:core:[3.5.3]") {
-		transitive = false
-	}
-	// ---- 视频背景（MP4 解码）----
-	// 解码走随模组发布的精简版 FFmpeg 7.1.1（LGPL、仅解码器）+ 一个 JNI shim：
-	// 7 个 DLL（7,605,466 字节）作为**普通资源**放在
-	// src/main/resources/assets/wurst/ffmpeg/ 下，运行时由 FfmpegNatives 解压到
-	// gameDir/ffmpeg/ 再按依赖顺序 System.load。同目录还有 LGPL 的许可文本
-	// （COPYING.LGPLv2.1、LICENSE.md）——LGPL 要求随分发附带。
-	//
-	// 刻意不走 jarJar / minecraftLibrary：jarJar 会重定位资源路径，而 DLL 之间
-	// 是按文件名互相依赖的（avcodec 找 avutil、avformat 找 zlib1），路径一乱就
-	// 加载不起来；也不会被 Forge 放进模块路径。
-	//
-	// 构建方式（configure 行、依赖、体积）、许可义务与实测性能见
-	// native/ffmpeg/README.md；应用侧的策略（尺寸、降级、AV1 限制）见
-	// docs/title-background.md 第 6 节。
-	implementation fg.deobf("baritone:baritone-api-forge:1.20.1")
-	jarJar(group: "baritone", name: "baritone-api-forge",
-		version: "[1.20.1,1.21)")
-	// ---- Skia 矢量渲染管线（歌词像素级等价渲染用）----
-	// natives（skiko-windows-x64.dll + icudtl.dat）不 jarJar：jarJar 会重定位
-	// 资源路径，Skiko 将无法在 jar 内定位它们。改为随 mod 资源打包
-	// （assets/wurst/skiko/），运行时由 SkikoNatives 解压到 gameDir 并
-	// 通过 skiko.library.path / skiko.data.path 系统属性显式加载。
-	implementation "org.jetbrains.skiko:skiko-awt:0.8.19"
-	jarJar("org.jetbrains.skiko:skiko-awt:[0.8.19]") {
-		transitive = false
-	}
-	jarJar("org.jetbrains.kotlin:kotlin-stdlib:[1.9.21,1.9.21]") {
-		transitive = false
-	}
-	jarJar("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:[1.8.0,1.8.0]") {
-		transitive = false
-	}
-	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
-	testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
-}
+    minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
 
-// 整合包兼容构建：把要跳过的库从 jarJar 配置里摘掉。
-// 注意 implementation / minecraftLibrary 声明保持不动 —— 编译期照常能解析这些类，
-// 只是不再打进产物，运行期由整合包提供。
-if(packCompatAny)
-{
-	configurations.jarJar.dependencies.removeAll { dep ->
-		skipNestedLib("${dep.group}:${dep.name}:")
-	}
+    implementation fg.deobf(
+        "io.github.llamalad7:mixinextras-forge:0.5.4")
+    compileOnly "io.github.llamalad7:mixinextras-common:0.5.4"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:0.5.4"
+    jarJar(group: "io.github.llamalad7", name: "mixinextras-forge",
+        version: "[0.5.4,)")
+    annotationProcessor "org.spongepowered:mixin:0.8.7:processor"
+    implementation "org.java-websocket:Java-WebSocket:1.5.3"
+    implementation "io.netty:netty-codec-socks:4.1.82.Final"
+    implementation "io.netty:netty-handler-proxy:4.1.82.Final"
+    implementation fg.deobf("baritone:baritone-api-forge:1.20.1")
+    jarJar(group: "baritone", name: "baritone-api-forge",
+        version: "[1.20.1,1.20.2)")
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 }
 
 mixin {
-	add sourceSets.main, "wurstpenguin-refmap.json"
+	add sourceSets.main, "${project.mod_id}-refmap.json"
 	config "wurst.mixins.json"
-	config "mixins.baritone.json"
 }
 
 processResources {
-	def displayVersion = project.version.toString().startsWith("v")
-		? project.version.toString().substring(1)
-		: project.version.toString()
-	inputs.property("version", displayVersion)
+    def displayVersion = project.version.toString().startsWith("v")
+        ? project.version.toString().substring(1)
+        : project.version.toString()
+    inputs.property("version", displayVersion)
 
-	filesMatching("META-INF/mods.toml") {
-		expand(version: displayVersion)
-	}
+    filesMatching("META-INF/mods.toml") {
+        expand(version: displayVersion)
+    }
+    filesMatching("wurst.mixins.json") {
+        expand(version: displayVersion)
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
-	options.encoding = "UTF-8"
-	options.release = 17
-}
-
-tasks.withType(Test).configureEach {
-	useJUnitPlatform()
-
-	// 视频背景的原生解码器（精简版 FFmpeg）：测试直接从仓库里那份构建产物加载。
-	// FfmpegNatives 认得这个系统属性，于是解码用例不需要 Minecraft 的资源解压
-	// 那条路也能跑；目录不在（别的机器上没构建过 natives）时用例自己跳过。
-	systemProperty "wurst.ffmpeg.dir",
-		file("native/ffmpeg/dll").absolutePath
+    options.encoding = "UTF-8"
+    options.release = 17
 }
 
 java {
-	withSourcesJar()
+    withSourcesJar()
 }
 
 jar {
 	archiveClassifier = "dev"
 	manifest {
-		attributes(
-			"MixinConfigs": "wurst.mixins.json,mixins.baritone.json",
-			"MixinConnector": "baritone.launch.BaritoneMixinConnector",
-			"Specification-Title": project.mod_id,
-			"Specification-Vendor": project.mod_authors,
-			"Specification-Version": "1",
-			"Implementation-Title": project.name,
-			"Implementation-Version": project.version,
-			"Implementation-Vendor": project.mod_authors)
-	}
+        attributes(
+            "MixinConfigs": "wurst.mixins.json",
+            "Specification-Title": project.mod_id,
+            "Specification-Vendor": project.mod_authors,
+            "Specification-Version": "1",
+            "Implementation-Title": project.name,
+            "Implementation-Version": project.version,
+            "Implementation-Vendor": project.mod_authors)
+    }
 
-	from("LICENSE.txt") {
-		rename { "LICENSE-${project.base.archivesName.get()}.txt" }
-	}
+    from("LICENSE.txt") {
+        rename { "LICENSE-${project.base.archivesName.get()}.txt" }
+    }
 
-	exclude "intentionally_untranslated.json"
-	finalizedBy "reobfJar"
+    exclude "intentionally_untranslated.json"
+    finalizedBy "reobfJar"
 }
-
-// 兼容构建的产物名沿用发布资产的 backup-<时间戳> 约定：
-//   WurstB+.Plus-v1.6.0-Forge-1.20.1.backup-20260920-000207.jar
-def packCompatStamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
-def packCompatJarName = "WurstB+.Plus-${project.version}.backup-${packCompatStamp}.jar"
-def defaultJarName = "${project.base.archivesName.get()}-${project.version}.jar"
-def jarFileName = packCompatAny ? packCompatJarName : defaultJarName
 
 tasks.named("jarJar").configure {
-	archiveFileName = jarFileName
-	finalizedBy "reobfJarJar"
-	finalizedBy "copyJarToTestMods"
+    archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
+    finalizedBy "reobfJarJar"
 }
 
-// 每次 jarJar 构建完成后，自动把最终产物复制到本地测试实例的 mods 目录。
-tasks.register("copyJarToTestMods") {
-	dependsOn "reobfJarJar"
-	doLast {
-		// 兼容构建的产物是给整合包用的，不往开发测试实例里放
-		if(packCompatAny)
-		{
-			println "packCompat build: skipping copyJarToTestMods"
-			return
-		}
-		def targetDir = file(".test/versions/1.20.1-Forge_47.4.22/mods")
-		targetDir.mkdirs()
-		// 清理旧版本 jar，避免多个 WurstB+ 版本并存导致 Forge 重复加载
-		targetDir.eachFile { oldJar ->
-			if(oldJar.name.endsWith(".jar")
-				&& oldJar.name.contains("WurstB+ Plus"))
-				oldJar.delete()
-		}
-		copy {
-			from "build/libs/${project.base.archivesName.get()}-${project.version}.jar"
-			into targetDir
-		}
-		println "Deployed to " + targetDir.absolutePath
-	}
+processResources {
+    from({ configurations.hudNatives.collect { zipTree(it) } }) {
+        include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+        exclude "META-INF/**", "module-info.class", "**/*.signature"
+    }
 }
-
-// ============================================================================
-//  整合包兼容：重定位内嵌库中与其它 mod 冲突的包
-// ============================================================================
-//  为什么需要：jarJar 内嵌的库会被 Forge 放进 JPMS 模块路径，而没有 module-info
-//  的 jar 是「自动模块」，会导出它的全部包。整合包里若已有别的模块导出同一个包，
-//  而第三个模块同时读取两者，ModLauncher 组装模块层时直接抛
-//      java.lang.module.ResolutionException: Modules A and B export package P to C
-//  游戏在 Forge 加载任何 mod 之前就崩。实测：v1.6.0 在 900-mod 整合包里必崩，
-//  报错点名的三处正是 kotlin / kotlinx.coroutines / javazoom。
-//
-//  做法：把这三个包重定位到 net.wurstclient.shaded.*。包名不再重复，冲突消失，
-//  而 Skia 渲染与音乐播放功能完整保留（依赖仍随 jar 分发，保持自包含）。
-//
-//  刻意不动的两个：
-//    org.jetbrains.skia / org.jetbrains.skiko
-//        skiko 的 JNI 原生符号按原类名生成，改名会直接让 Skia 加载不了原生库。
-//    com.llamalad7.mixinextras
-//        必须保持原包名才能被 Mixin 识别，改名会让本工程的 mixin 全部失效。
-//
-//  另注：kotlin-stdlib / kotlinx-coroutines 的 META-INF/versions/9/module-info.class
-//  必须删除，否则重定位后模块描述符里仍写着导出旧包名，冲突照样存在。
-//
-//  用 -PnoRelocate 可关闭。
-def RELOCATE_PREFIXES = [
-	// —— 第一批：实测崩溃日志点名的三个 ——
-	// kotlin / kotlinx.coroutines / _COROUTINE **不在**这里：skiko 的原生初始化
-	// 必须看到原包名，重定位会让游戏一碰 Skia 就硬崩。这三项改由 SkikoModules
-	// 的 module-info 做限定导出隔离，见下方「Skiko / Kotlin 的模块隔离」。
-	"javazoom/"                     : "net/wurstclient/shaded/javazoom/",
-	// —— 第二批：整合包里同样有其它 mod 提供（modid 重复）的纯 Java 库 ——
-	// 一次性全部重定位，避免逐个试错（每次试错都要用户启动一次游戏）。
-	"com/google/zxing/"             : "net/wurstclient/shaded/com/google/zxing/",
-	"com/goxr3plus/"                : "net/wurstclient/shaded/com/goxr3plus/",
-	"com/jcraft/jogg/"              : "net/wurstclient/shaded/com/jcraft/jogg/",
-	"com/jcraft/jorbis/"            : "net/wurstclient/shaded/com/jcraft/jorbis/",
-	"com/github/trilarion/"         : "net/wurstclient/shaded/com/github/trilarion/",
-	"org/jaudiotagger/"             : "net/wurstclient/shaded/org/jaudiotagger/",
-	"org/java_websocket/"           : "net/wurstclient/shaded/org/java_websocket/",
-	"org/jflac/"                    : "net/wurstclient/shaded/org/jflac/",
-	"org/tritonus/"                 : "net/wurstclient/shaded/org/tritonus/",
-	"io/netty/handler/codec/socks/" : "net/wurstclient/shaded/io/netty/handler/codec/socks/",
-	"io/netty/handler/codec/socksx/": "net/wurstclient/shaded/io/netty/handler/codec/socksx/",
-	"io/netty/handler/proxy/"       : "net/wurstclient/shaded/io/netty/handler/proxy/",
-]
-
-// 注意：不能用 ASM 自带的 SimpleRemapper —— 它的 map() 只有一句
-//     return mapping.get(internalName);
-// 是「精确全名」查找，键写成 "kotlin/" 这类包前缀永远匹配不上，结果是静默地
-// 一个类都不改（实测踩过：module-info 被删了、类名却全没动，且不报错）。
-class WurstPrefixRemapper extends Remapper {
-	private final Map<String, String> prefixes
-
-	WurstPrefixRemapper(Map<String, String> prefixes) {
-		this.prefixes = prefixes
-	}
-
-	@Override
-	String map(String internalName) {
-		if(internalName == null)
-			return null
-		for(Map.Entry<String, String> e : prefixes.entrySet())
-			if(internalName.startsWith(e.key))
-				return e.value + internalName.substring(e.key.length())
-		return internalName
-	}
-
-	@Override
-	String mapPackageName(String name) {
-		String internal = name.replace('.', '/')
-		String mapped = map(internal)
-		return mapped.equals(internal) ? name : mapped.replace('/', '.')
-	}
-}
-
-def relocateClassBytes = { byte[] input ->
-	ClassReader reader = new ClassReader(input)
-	ClassWriter writer = new ClassWriter(0)
-	reader.accept(new ClassRemapper(writer, new WurstPrefixRemapper(RELOCATE_PREFIXES)), 0)
-	return writer.toByteArray()
-}
-
-def remapServiceFile = { byte[] data ->
-	String text = new String(data, java.nio.charset.StandardCharsets.UTF_8)
-	RELOCATE_PREFIXES.each { from, to ->
-		text = text.replace(from.replace("/", "."), to.replace("/", "."))
-	}
-	return text.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-}
-
-def relocStats = [classes: 0, renamed: 0, failures: []]
-
-// 条目路径也要跟着重定位。只改类字节里的内部名而不改路径，会做出一个自相矛盾的
-// jar（路径 kotlin/x.class 但类自称 net/wurstclient/shaded/kotlin/x），
-// 加载时必然 NoClassDefFoundError: ... (wrong name: ...)，比不重定位还糟。
-// 多版本 jar 的 META-INF/versions/<N>/ 前缀要单独处理，否则匹配不到包前缀。
-def remapEntryName = { String path ->
-	String prefix = ""
-	String rest = path
-	def m = path =~ /^(META-INF\/versions\/\d+\/)(.*)$/
-	if(m.matches())
-	{
-		prefix = m.group(1)
-		rest = m.group(2)
-	}
-	for(Map.Entry<String, String> e : RELOCATE_PREFIXES.entrySet())
-		if(rest.startsWith(e.key))
-			return prefix + e.value + rest.substring(e.key.length())
-	return path
-}
-
-// ---- Skiko / Kotlin 的模块隔离 ----
-// 背景（2026-09-26 实测）：skiko 是 Kotlin 写的，它的原生初始化 `_nAfterLoad`
-// 必须能看到**原包名**的 kotlin.*。把 kotlin 重定位成 net.wurstclient.shaded.kotlin
-// 之后，一碰 Skia 就 JVM 硬崩（EXCEPTION_ACCESS_VIOLATION，三份 hs_err 逐行相同）；
-// 只把 kotlin/kotlinx/_COROUTINE 三项移出重定位、其余库照旧，Skiko 立刻恢复正常。
-// 但 kotlin 又不能以「自动模块导出 kotlin 包」的形式出现，否则与 KotlinForForge
-// 那类整合包冲突——这正是当初加重定位的原因。
-//
-// 解法：给这三个内嵌 jar 各生成一个 module-info，让 kotlin 只**限定导出**给 skiko：
-//   * 自动模块（本模组、其它 mod）看不到被限定导出的 kotlin → 不再 split package
-//   * skiko 是本工程自己的具名模块，只 requires kotlin.stdlib → 也只看到这一份
-// 于是「保留原名」与「不导出 kotlin」同时成立，不必重定位 Kotlin 一个字节。
-def SkikoModules = [
-	"kotlin-stdlib-"              : [name: "kotlin.stdlib",
-	                                  req: ["java.base"],
-	                                  export: [], qualify: true],
-	"kotlinx-coroutines-core-jvm-": [name: "kotlinx.coroutines",
-	                                  req: ["java.base", "kotlin.stdlib"],
-	                                  export: [], qualify: true],
-	"skiko-awt-"                  : [name: "wurstb.skiko",
-	                                  req: ["java.base", "java.desktop",
-	                                        "kotlin.stdlib",
-	                                        "kotlinx.coroutines"],
-	                                  export: ["org.jetbrains.skia",
-	                                           "org.jetbrains.skiko"],
-	                                  qualify: false],
-]
-
-def buildModuleInfo = { String moduleName, List<String> requires,
-	List<String> exports, List<String> qualifiedPackages ->
-	def O = org.objectweb.asm.Opcodes
-	def cw = new org.objectweb.asm.ClassWriter(0)
-	cw.visit(O.V9, O.ACC_MODULE, "module-info", null, null, null)
-	def mv = cw.visitModule(moduleName, 0, null)
-	requires.each { mv.visitRequire(it, 0, null) }
-	exports.each { mv.visitExport(it, 0, (String[])null) }
-	// 限定导出：只对 wurstb.skiko 可见
-	qualifiedPackages.each { mv.visitExport(it, 0, (String[])["wurstb.skiko"]) }
-	mv.visitEnd()
-	cw.visitEnd()
-	return cw.toByteArray()
-}
-
-def rewriteNestedJar = { byte[] jarBytes, String jarName ->
-	// 先全部读进来：生成 module-info 需要先知道这个 jar 里有哪些包
-	def entries = new LinkedHashMap<String, byte[]>()
-	def times = new HashMap<String, Long>()
-	def zin = new java.util.zip.ZipInputStream(new ByteArrayInputStream(jarBytes))
-	def entry
-	while((entry = zin.getNextEntry()) != null)
-	{
-		if(!entry.name.endsWith("module-info.class"))
-		{
-			entries.put(entry.name, zin.readAllBytes())
-			times.put(entry.name, entry.time)
-		}
-	}
-	zin.close()
-
-	def skiko = SkikoModules.find { k, v -> jarName.startsWith(k) }?.value
-
-	def bout = new ByteArrayOutputStream()
-	def zout = new java.util.zip.ZipOutputStream(bout)
-	if(skiko)
-	{
-		// skiko 这条链：一个字节都不重定位，改用 module-info 做隔离
-		def packages = entries.keySet()
-			.findAll { it.endsWith(".class") && !it.contains("META-INF") }
-			.collect { it.substring(0, it.lastIndexOf('/')) }
-			.unique()
-			.sort()
-		byte[] mi = buildModuleInfo(skiko.name, skiko.req, skiko.export,
-			skiko.qualify ? packages : [])
-		def e = new java.util.zip.ZipEntry("module-info.class")
-		zout.putNextEntry(e)
-		zout.write(mi)
-		zout.closeEntry()
-		entries.each { n, data ->
-			def e2 = new java.util.zip.ZipEntry(n)
-			if(times[n]) e2.time = times[n]
-			zout.putNextEntry(e2)
-			zout.write(data)
-			zout.closeEntry()
-		}
-		zout.close()
-		return bout.toByteArray()
-	}
-
-	entries.each { name, data ->
-		if(name.endsWith(".class"))
-		{
-			try
-			{
-				data = relocateClassBytes(data)
-				relocStats.classes++
-			}
-			catch(Throwable t)
-			{
-				// 不静默吞掉：重定位失败必须看得见，否则会误判成「已生效」
-				if(relocStats.failures.size() < 5)
-					relocStats.failures << "${name}: ${t}"
-			}
-		}
-		else if(name.startsWith("META-INF/services/"))
-			data = remapServiceFile(data)
-		String outName = remapEntryName(name)
-		if(!outName.equals(name))
-			relocStats.renamed++
-		def ne = new java.util.zip.ZipEntry(outName)
-		if(times[name]) ne.time = times[name]
-		zout.putNextEntry(ne)
-		zout.write(data)
-		zout.closeEntry()
-	}
-	zout.close()
-	return bout.toByteArray()
-}
-
-def relocateNestedJars = { File jarFile ->
-	if(!jarFile.exists())
-		return
-	def tmp = File.createTempDir("wurst-reloc", "")
-	try
-	{
-		def outJar = new File(tmp, jarFile.name)
-		def zin = new java.util.zip.ZipInputStream(
-			new BufferedInputStream(new FileInputStream(jarFile)))
-		def zout = new java.util.zip.ZipOutputStream(
-			new BufferedOutputStream(new FileOutputStream(outJar)))
-		def entry
-		int count = 0
-		while((entry = zin.getNextEntry()) != null)
-		{
-			String name = entry.name
-			byte[] data = zin.readAllBytes()
-			String outName = name
-			if(name.startsWith("META-INF/jarjar/")
-				&& name.endsWith(".jar"))
-			{
-				data = rewriteNestedJar(data,
-					name.substring("META-INF/jarjar/".length()))
-				count++
-			}
-			else if(name.endsWith(".class"))
-			{
-				// 外层自身的类也要改写：本工程有类直接引用了 com.google.zxing /
-				// com.goxr3plus / io.netty.handler.proxy，这些包重定位后引用必须
-				// 同步更新，否则会指向不存在的类。
-				try
-				{
-					data = relocateClassBytes(data)
-					relocStats.classes++
-				}
-				catch(Throwable t)
-				{
-					if(relocStats.failures.size() < 5)
-						relocStats.failures << "${name}: ${t}"
-				}
-				outName = remapEntryName(name)
-			}
-			else if(name.startsWith("META-INF/services/"))
-				data = remapServiceFile(data)
-			if(!outName.equals(name))
-				relocStats.renamed++
-			def ne = new java.util.zip.ZipEntry(outName)
-			ne.time = entry.time
-			zout.putNextEntry(ne)
-			zout.write(data)
-			zout.closeEntry()
-		}
-		zin.close()
-		zout.close()
-		java.nio.file.Files.move(outJar.toPath(), jarFile.toPath(),
-			java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-		println "relocateNestedLibs: rewrote ${count} nested jars, ${relocStats.classes} classes processed, ${relocStats.renamed} entries renamed, in ${jarFile.name}"
-		relocStats.failures.each { println "  !! relocate failure: ${it}" }
-	}
-	finally
-	{
-		tmp.deleteDir()
-	}
-}
-
-// 挂在 reobfJarJar 的末尾：那时 build/libs 下的产物才是最终形态
-tasks.matching { it.name == "reobfJarJar" }.configureEach {
-	doLast {
-		if(project.hasProperty("noRelocate"))
-		{
-			println "relocateNestedLibs: skipped (-PnoRelocate)"
-			return
-		}
-		relocateNestedJars(tasks.named("jarJar").get().archiveFile.get().asFile)
-	}
-}
-
-// ---------------------------------------------------------------------------
-// 共享源码：把「在所有工程里逐字节相同」的文件收拢到一处，各工程引用它，
-// 不再各存一份。这批文件共 293 个、原先在仓库里有 19,631 个物理副本 ——
-// 提取后只留一份，是消除「67 份复制树」的第一步。
-//
-// 只收「出现在全部 67 个工程且零变体」的文件，所以增删都不改变任何工程的
-// 可见源集合；有变体的文件一律留在各工程自己的 src/main/java 里。
-// ---------------------------------------------------------------------------
-sourceSets.main.java.srcDir "common/src/main/java"
