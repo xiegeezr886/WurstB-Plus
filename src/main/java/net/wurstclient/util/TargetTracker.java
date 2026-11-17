@@ -11,7 +11,6 @@
  */
 package net.wurstclient.util;
 
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 
@@ -30,31 +29,20 @@ public final class TargetTracker<T>
 		ToDoubleFunction<T> score, boolean sticky, int switchDelay,
 		double switchAdvantageFraction)
 	{
-		Objects.requireNonNull(validator, "validator");
-		Objects.requireNonNull(score, "score");
-		boolean currentValid = isValid(validator, target);
-		if(sticky && currentValid)
+		if(sticky && isValid(validator, target))
 			return target;
-		boolean candidateValid = !Objects.equals(candidate, target)
-			&& isValid(validator, candidate);
-		if(!currentValid)
-			return replace(candidateValid ? candidate : null,
+		if(!isValid(validator, target))
+			return replace(isValid(validator, candidate) ? candidate : null,
 				switchDelay);
-		if(!candidateValid)
+		if(candidate == null || candidate == target)
 			return target;
 		if(switchCooldown > 0)
 			return target;
 
 		double currentScore = score.applyAsDouble(target);
 		double candidateScore = score.applyAsDouble(candidate);
-		if(!Double.isFinite(candidateScore))
-			return target;
-		if(!Double.isFinite(currentScore))
-			return replace(candidate, switchDelay);
-		double advantageFraction = Double.isFinite(switchAdvantageFraction)
-			? Math.max(0, switchAdvantageFraction) : 0;
-		double requiredAdvantage = Math.max(0.05,
-			Math.abs(currentScore) * advantageFraction);
+		double requiredAdvantage = Math.max(0.05, Math.abs(currentScore)
+			* Math.max(0, switchAdvantageFraction));
 		if(candidateScore + requiredAdvantage < currentScore)
 			return replace(candidate, switchDelay);
 		return target;

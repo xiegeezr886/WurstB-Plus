@@ -20,9 +20,7 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.hacks.velocity.JumpResetVelocityMode;
-import net.wurstclient.hacks.velocity.ModifyVelocityMode;
-import net.wurstclient.hacks.velocity.VelocityMode;
+import net.wurstclient.mixin.ClientboundExplodePacketMixin;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
@@ -85,6 +83,8 @@ public final class NoVelocityHack extends Hack
 	private final CheckboxSetting requireSprint = new CheckboxSetting(
 		"Require sprint", "Only performs JumpReset while sprinting.", true);
 
+	private int pendingJumpTicks = -1;
+
 	public NoVelocityHack()
 	{
 		super("NoVelocity");
@@ -113,7 +113,7 @@ public final class NoVelocityHack extends Hack
 	@Override
 	protected void onEnable()
 	{
-		mode.getSelected().impl().reset();
+		pendingJumpTicks = -1;
 		EVENTS.add(PacketInputListener.class, this);
 		EVENTS.add(UpdateListener.class, this);
 	}
@@ -123,7 +123,7 @@ public final class NoVelocityHack extends Hack
 	{
 		EVENTS.remove(PacketInputListener.class, this);
 		EVENTS.remove(UpdateListener.class, this);
-		mode.getSelected().impl().reset();
+		pendingJumpTicks = -1;
 	}
 
 	@Override
@@ -132,15 +132,13 @@ public final class NoVelocityHack extends Hack
 		if(MC.player == null)
 			return;
 
-		VelocityMode selectedMode = mode.getSelected().impl();
 		if(event.getPacket() instanceof ClientboundSetEntityMotionPacket packet
 			&& packet.getId() == MC.player.getId())
 			handleEntityVelocity(event, packet);
 		else if(event.getPacket() instanceof ClientboundExplodePacket packet
-			&& explosions.isChecked() && selectedMode.handlesExplosions()
+			&& explosions.isChecked() && mode.getSelected() == Mode.MODIFY
 			&& shouldApply())
-			selectedMode.onExplosion(packet, getHorizontalMultiplier(),
-				getVerticalMultiplier());
+			handleExplosionVelocity(packet);
 	}
 
 	private void handleEntityVelocity(PacketInputEvent event,
@@ -151,10 +149,33 @@ public final class NoVelocityHack extends Hack
 		if(!shouldApply())
 			return;
 
-		// 具体怎么处理交给模式类（见 net.wurstclient.hacks.velocity）：
-		// 返回 true 表示这个包已经被模式接管，不再交给原版。
-		if(mode.getSelected().impl().onEntityVelocity(this, event, incoming))
-			event.cancel();
+		if(mode.getSelected() == Mode.JUMP_RESET)
+		{
+			if(!VelocityPlanner.isFallDamageVelocity(incoming))
+				pendingJumpTicks = jumpDelay.getValueI();
+			return;
+		}
+
+		Vec3 modified = VelocityPlanner.modify(incoming,
+			MC.player.getDeltaMovement(), horizontal.getValue() / 100,
+			vertical.getValue() / 100, retainHorizontal.getValue() / 100,
+			retainVertical.getValue() / 100);
+		MC.player.setDeltaMovement(modified);
+		event.cancel();
+	}
+
+	private void handleExplosionVelocity(ClientboundExplodePacket packet)
+	{
+		double horizontalMultiplier = horizontal.getValue() / 100;
+		double verticalMultiplier = vertical.getValue() / 100;
+		ClientboundExplodePacketMixin accessor =
+			(ClientboundExplodePacketMixin)(Object)packet;
+		accessor.wurst_setKnockbackX(
+			(float)(packet.getKnockbackX() * horizontalMultiplier));
+		accessor.wurst_setKnockbackY(
+			(float)(packet.getKnockbackY() * verticalMultiplier));
+		accessor.wurst_setKnockbackZ(
+			(float)(packet.getKnockbackZ() * horizontalMultiplier));
 	}
 
 	private boolean shouldApply()
@@ -171,68 +192,36 @@ public final class NoVelocityHack extends Hack
 	@Override
 	public void onUpdate()
 	{
-		mode.getSelected().impl().onUpdate(this);
-	}
+		if(mode.getSelected() != Mode.JUMP_RESET)
+		{
+			pendingJumpTicks = -1;
+			return;
+		}
+		if(pendingJumpTicks < 0 || MC.player == null)
+			return;
+		if(pendingJumpTicks > 0)
+		{
+			pendingJumpTicks--;
+			return;
+		}
+		if(!MC.player.onGround()
+			|| requireSprint.isChecked() && !MC.player.isSprinting())
+			return;
 
-	/** 供模式类读取 Horizontal 设置（百分比转成倍率）。 */
-	public double getHorizontalMultiplier()
-	{
-		return horizontal.getValue() / 100;
-	}
-
-	/** 供模式类读取 Vertical 设置（百分比转成倍率）。 */
-	public double getVerticalMultiplier()
-	{
-		return vertical.getValue() / 100;
-	}
-
-	/** 供模式类读取 Retain horizontal 设置（百分比转成倍率）。 */
-	public double getRetainHorizontalMultiplier()
-	{
-		return retainHorizontal.getValue() / 100;
-	}
-
-	/** 供模式类读取 Retain vertical 设置（百分比转成倍率）。 */
-	public double getRetainVerticalMultiplier()
-	{
-		return retainVertical.getValue() / 100;
-	}
-
-	/** 供 JumpReset 模式读取 Jump delay 设置。 */
-	public int getJumpDelay()
-	{
-		return jumpDelay.getValueI();
-	}
-
-	/** 供模式类读取 Only when moving 设置。 */
-	public boolean isOnlyMoving()
-	{
-		return onlyMoving.isChecked();
-	}
-
-	/** 供 JumpReset 模式读取 Require sprint 设置。 */
-	public boolean isRequireSprint()
-	{
-		return requireSprint.isChecked();
+		MC.player.jumpFromGround();
+		pendingJumpTicks = -1;
 	}
 
 	private enum Mode
 	{
-		MODIFY("Modify", new ModifyVelocityMode()),
-		JUMP_RESET("JumpReset", new JumpResetVelocityMode());
+		MODIFY("Modify"),
+		JUMP_RESET("JumpReset");
 
 		private final String name;
-		private final VelocityMode impl;
 
-		Mode(String name, VelocityMode impl)
+		Mode(String name)
 		{
 			this.name = name;
-			this.impl = impl;
-		}
-
-		public VelocityMode impl()
-		{
-			return impl;
 		}
 
 		@Override

@@ -9,7 +9,6 @@ package net.wurstclient.settings;
 
 import net.minecraft.util.RandomSource;
 import net.wurstclient.WurstClient;
-import net.wurstclient.util.AttackTimerPolicy;
 
 public final class AttackSpeedSliderSetting extends SliderSetting
 {
@@ -44,11 +43,12 @@ public final class AttackSpeedSliderSetting extends SliderSetting
 	public void resetTimer(double maxRandMS)
 	{
 		double value = getValue();
-		double gaussianSample = maxRandMS > 0 && Double.isFinite(maxRandMS)
-			? random.nextGaussian() : 0;
-		long delay = AttackTimerPolicy.delayNanos(value, gaussianSample,
-			maxRandMS);
-		nextAttackNanos = AttackTimerPolicy.deadline(System.nanoTime(), delay);
+		double baseDelayMS = value <= 0 ? 0 : 1000 / value;
+		double randomOffsetMS = maxRandMS <= 0 ? 0
+			: random.nextGaussian() * maxRandMS;
+		double delayMS = Math.max(0, baseDelayMS + randomOffsetMS);
+		nextAttackNanos =
+			System.nanoTime() + (long)(delayMS * 1_000_000L);
 	}
 	
 	public void updateTimer()
@@ -59,11 +59,9 @@ public final class AttackSpeedSliderSetting extends SliderSetting
 	public boolean isTimeToAttack()
 	{
 		double value = getValue();
-		if(WurstClient.MC.player == null || !Double.isFinite(value))
-			return false;
 		if(value <= 0 && WurstClient.MC.player.getAttackStrengthScale(0) < 1)
 			return false;
 		
-		return AttackTimerPolicy.isElapsed(System.nanoTime(), nextAttackNanos);
+		return System.nanoTime() - nextAttackNanos >= 0;
 	}
 }

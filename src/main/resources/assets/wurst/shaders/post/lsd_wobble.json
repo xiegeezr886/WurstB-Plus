@@ -4,7 +4,7 @@
   ],
   "passes": [
     {
-      "name": "wurst:lsd_wobble",
+      "name": "lsd_wobble",
       "intarget": "minecraft:main",
       "outtarget": "swap"
     },

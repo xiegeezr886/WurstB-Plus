@@ -1,10 +1,8 @@
 /*
- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
  * Copyright (c) 2015-2026 CCBlueX
- *
- * This source code is subject to the terms of the GNU General Public
- * License, version 3. If a copy of the GPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+ * Adapted from Meteor Client. Copyright (c) Meteor Development.
+ * SPDX-License-Identifier: GPL-3.0
  */
 package net.wurstclient.hacks;
 
@@ -14,34 +12,52 @@ import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.util.ReachPolicy;
 
-@SearchTags({"range"})
+@SearchTags({"range", "extra reach"})
 public final class ReachHack extends Hack
 {
 	private final SliderSetting entityRange = new SliderSetting("Entity range",
 		"Maximum range for selecting and attacking entities.", 6, 1, 15,
 		0.05, ValueDisplay.DECIMAL).aliases("Range");
-
 	private final SliderSetting blockRange = new SliderSetting("Block range",
 		"Maximum range for selecting and interacting with blocks.", 5, 1, 15,
 		0.05, ValueDisplay.DECIMAL);
-	private final CheckboxSetting onlyWhileSprinting = new CheckboxSetting(
-		"Only while sprinting", "Only extends entity range while sprinting.",
-		false);
-	private final CheckboxSetting disableInFluid = new CheckboxSetting(
-		"Disable in fluids", "Uses vanilla entity range in water or lava.", true);
-	
+	private final CheckboxSetting extraMode = new CheckboxSetting("Extra reach",
+		"Add the extra distances to the game's current reach instead of using the absolute ranges.", false);
+	private final SliderSetting extraEntityRange = new SliderSetting(
+		"Extra entity reach", "Distance to add to the current entity reach.",
+		0, 0, 15, 0.05, ValueDisplay.DECIMAL);
+	private final SliderSetting extraBlockRange = new SliderSetting(
+		"Extra block reach", "Distance to add to the current block reach.",
+		0, 0, 15, 0.05, ValueDisplay.DECIMAL);
+
 	public ReachHack()
 	{
 		super("Reach");
 		setCategory(Category.OTHER);
 		addSetting(entityRange);
 		addSetting(blockRange);
-		addSetting(onlyWhileSprinting);
-		addSetting(disableInFluid);
+		addSetting(extraMode);
+		addSetting(extraEntityRange);
+		addSetting(extraBlockRange);
 	}
-	
+
+	public double changeEntityRange(double original)
+	{
+		if(!isEnabled())
+			return original;
+		return extraMode.isChecked() ? original + extraEntityRange.getValue()
+			: entityRange.getValue();
+	}
+
+	public double changeBlockRange(double original)
+	{
+		if(!isEnabled())
+			return original;
+		return extraMode.isChecked() ? original + extraBlockRange.getValue()
+			: blockRange.getValue();
+	}
+
 	public float getReachDistance()
 	{
 		return Math.max(getEntityRange(), getBlockRange());
@@ -49,19 +65,13 @@ public final class ReachHack extends Hack
 
 	public float getEntityRange()
 	{
-		boolean playerAvailable = MC.player != null;
-		boolean inFluid = playerAvailable && (MC.player.isInWaterOrBubble()
-			|| MC.player.isInLava());
-		return ReachPolicy.resolveEntityRange(entityRange.getValueF(), 3,
-			playerAvailable, playerAvailable && MC.player.isSprinting(),
-			onlyWhileSprinting.isChecked(), inFluid, disableInFluid.isChecked());
+		return (float)changeEntityRange(MC.gameMode != null
+			&& MC.gameMode.hasInfiniteItems() ? 6 : 3);
 	}
 
 	public float getBlockRange()
 	{
-		return blockRange.getValueF();
+		return (float)changeBlockRange(MC.gameMode != null
+			&& MC.gameMode.hasInfiniteItems() ? 5 : 4.5);
 	}
-	
-	// See ClientPlayerInteractionManagerMixin.onGetReachDistance() and
-	// ClientPlayerInteractionManagerMixin.hasExtendedReach()
 }

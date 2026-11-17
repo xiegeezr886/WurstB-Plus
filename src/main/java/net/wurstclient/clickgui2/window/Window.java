@@ -4,19 +4,13 @@
  */
 package net.wurstclient.clickgui2.window;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.theme.FlatTheme;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,11 +67,11 @@ public class Window {
 			drawContext.pose().pushPose();
 			drawContext.pose().translate(x1 + 2, y1 + 2, 0);
 			drawContext.pose().scale(0.6f, 0.6f, 1f);
-			drawContext.renderItem(icon, 0, 0);
+			NanoVGUI.item(drawContext, icon, 0, 0, false);
 			drawContext.pose().popPose();
 		}
 
-		drawContext.drawString(MC.font, title, x1 + 14, y1 + 3, -1);
+		NanoVGUI.text(title, x1 + 14, y1 + 3, 0xFFFFFFFF, 9F);
 	}
 
 	protected void drawBackground(GuiGraphics drawContext, int mouseX,
@@ -86,7 +80,7 @@ public class Window {
 		boolean focused = selected || isOver(mouseX, mouseY);
 		FlatRenderer.drawWindowPanel(drawContext, x1, y1, x2, y2, 2,
 			theme, focused);
-		drawContext.fill(x1 + 4, y1 + 13, x2 - 4, y1 + 14,
+		NanoVGUI.fill(x1 + 4, y1 + 13, x2 - 4, y1 + 14,
 			theme.accent(focused ? 0.5F : 0.28F));
 	}
 
@@ -121,26 +115,6 @@ public class Window {
 
 	public static void horizontalGradient(GuiGraphics g, int x1, int y1,
 		int x2, int y2, int color1, int color2) {
-		float a1 = (color1 >> 24 & 255) / 255F;
-		float r1 = (color1 >> 16 & 255) / 255F;
-		float g1 = (color1 >> 8 & 255) / 255F;
-		float b1 = (color1 & 255) / 255F;
-		float a2 = (color2 >> 24 & 255) / 255F;
-		float r2 = (color2 >> 16 & 255) / 255F;
-		float g2 = (color2 >> 8 & 255) / 255F;
-		float b2 = (color2 & 255) / 255F;
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		Tesselator t = Tesselator.getInstance();
-		BufferBuilder b = t.getBuilder();
-		b.begin(VertexFormat.Mode.QUADS,
-			DefaultVertexFormat.POSITION_COLOR);
-		b.vertex(x1, y1, 0).color(r1, g1, b1, a1).endVertex();
-		b.vertex(x1, y2, 0).color(r1, g1, b1, a1).endVertex();
-		b.vertex(x2, y2, 0).color(r2, g2, b2, a2).endVertex();
-		b.vertex(x2, y1, 0).color(r2, g2, b2, a2).endVertex();
-		t.end();
-		RenderSystem.disableBlend();
+		NanoVGUI.fillHorizontalGradient(x1, y1, x2, y2, color1, color2);
 	}
 }

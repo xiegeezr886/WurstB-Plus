@@ -41,7 +41,6 @@ import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictGroup;
 import net.wurstclient.hack.HackList;
-import net.wurstclient.mixinterface.IKeyBinding;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
@@ -142,16 +141,10 @@ public final class TunnellerHack extends Hack
 		EVENTS.remove(UpdateListener.class, this);
 		EVENTS.remove(RenderListener.class, this);
 		
-		// 这个模块会强制按下前进/潜行键（WalkForwardTask、PlaceTorchTask 等），
-		// 旧实现从不复位：反例是一边按住 W 一边关掉 Tunneller，或任务刚按下前进键时
-		// 关掉模块，角色会一直往前走。resetPressedState() 按玩家真实按键恢复，
-		// 不会把玩家自己正按着的键吃掉。
-		releaseMovementKeys();
-		
 		overlay.resetProgress();
 		if(currentBlock != null)
 		{
-			MC.gameMode.isDestroying = true;
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			currentBlock = null;
 		}
@@ -164,18 +157,6 @@ public final class TunnellerHack extends Hack
 			vertexBuffers[i].close();
 			vertexBuffers[i] = null;
 		}
-	}
-	
-	/**
-	 * 松开被本模块强制按下的移动键（前进 / 后退 / 左 / 右 / 跳跃 / 潜行）。
-	 */
-	private void releaseMovementKeys()
-	{
-		Options gs = MC.options;
-		KeyMapping[] bindings = {gs.keyUp, gs.keyDown, gs.keyLeft,
-			gs.keyRight, gs.keyJump, gs.keyShift};
-		for(KeyMapping binding : bindings)
-			IKeyBinding.get(binding).resetPressedState();
 	}
 	
 	@Override
@@ -198,7 +179,7 @@ public final class TunnellerHack extends Hack
 		KeyMapping[] bindings = {gs.keyUp, gs.keyDown, gs.keyLeft,
 			gs.keyRight, gs.keyJump, gs.keyShift};
 		for(KeyMapping binding : bindings)
-			IKeyBinding.get(binding).resetPressedState();
+			binding.setDown(false);
 		
 		for(Task task : tasks)
 		{
@@ -643,7 +624,7 @@ public final class TunnellerHack extends Hack
 			
 			BlockPos pos3 = start.relative(direction, length + 1);
 			WURST.getRotationFaker().faceVectorClientIgnorePitch(toVec3d(pos3));
-			IKeyBinding.get(forward).resetPressedState();
+			forward.setDown(false);
 			MC.player.setSprinting(false);
 			
 			if(disableTimer > 0)
@@ -823,7 +804,7 @@ public final class TunnellerHack extends Hack
 			return;
 		
 		// check timer
-		if(MC.rightClickDelay > 0)
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		// place block
@@ -834,7 +815,7 @@ public final class TunnellerHack extends Hack
 		SwingHand.SERVER.swing(InteractionHand.MAIN_HAND);
 		
 		// reset timer
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 	}
 	
 	private boolean breakBlock(BlockPos pos)

@@ -1,101 +1,158 @@
 /*
- * Copyright (c) 2015-2026 CCBlueX
- * Copyright (c) 2025-2026 Penguin
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
  * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
  */
+/*
+ * Ported from Meteor Client (GPL-3.0).
+ */
 package net.wurstclient.hacks;
 
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.multiplayer.ClientLevel;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.KeyPressListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.EnumSetting;
-import net.wurstclient.util.AirJumpPolicy;
-import net.wurstclient.util.AirJumpPolicy.State;
+import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
-@SearchTags({"air jump", "double jump", "midair jump"})
-public final class AirJumpHack extends Hack implements UpdateListener
+@SearchTags({"air jump", "airjump", "double jump"})
+public final class AirJumpHack extends Hack implements UpdateListener, KeyPressListener
 {
-	private final EnumSetting<Mode> mode =
-		new EnumSetting<>("Mode", Mode.values(), Mode.FREE);
+	private final SliderSetting jumpSpeed = new SliderSetting("Jump speed",
+		"Upward velocity applied by each mid-air jump.", 0.42, 0.1, 2, 0.01,
+		ValueDisplay.DECIMAL);
 
-	private boolean jumpWasDown;
-	private boolean doubleJumpAvailable;
+	private boolean wasJumpDown;
+	private boolean wasSneakDown;
+	private boolean jumpHandled;
+	private boolean sneakHandled;
+	private LocalPlayer statePlayer;
+	private ClientLevel stateWorld;
+	private int level;
+	private final CheckboxSetting maintainLevel = new CheckboxSetting("Maintain level",
+		"Hold jump to keep the last jump level; press sneak to lower it.", false);
+	private final CheckboxSetting nativeJump = new CheckboxSetting("Native jump",
+		"Use vanilla jump motion, including sprint and jump effects.", false);
 
 	public AirJumpHack()
 	{
 		super("AirJump");
 		setCategory(Category.MOVEMENT);
-		addSetting(mode);
+		addSetting(jumpSpeed);
+		addSetting(maintainLevel);
+		addSetting(nativeJump);
 	}
 
 	@Override
 	protected void onEnable()
 	{
-		jumpWasDown = MC.options.keyJump.isDown();
-		doubleJumpAvailable = true;
+		statePlayer = null;
+		refreshState();
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(KeyPressListener.class, this);
 	}
 
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
-		jumpWasDown = false;
-		doubleJumpAvailable = true;
+		EVENTS.remove(KeyPressListener.class, this);
+		statePlayer = null;
+		stateWorld = null;
+		jumpHandled = sneakHandled = false;
+	}
+
+	private void refreshState()
+	{
+		if(statePlayer == MC.player && stateWorld == MC.level)
+			return;
+		statePlayer = MC.player;
+		stateWorld = MC.level;
+		level = statePlayer == null ? 0 : statePlayer.blockPosition().getY();
+		wasJumpDown = MC.options.keyJump.isDown();
+		wasSneakDown = MC.options.keyShift.isDown();
+		jumpHandled = sneakHandled = false;
+	}
+
+	@Override
+	public void onKeyPress(KeyPressEvent event)
+	{
+		refreshState();
+		if(event.getAction() != InputConstants.PRESS || !canJump())
+			return;
+		if(MC.options.keyJump.matches(event.getKeyCode(), event.getScanCode()))
+		{
+			level = MC.player.blockPosition().getY();
+			jump();
+			jumpHandled = true;
+		}
+		else if(MC.options.keyShift.matches(event.getKeyCode(), event.getScanCode()))
+		{
+			level--;
+			sneakHandled = true;
+		}
 	}
 
 	@Override
 	public void onUpdate()
 	{
-		LocalPlayer player = MC.player;
-		if(player == null)
-		{
-			jumpWasDown = MC.options.keyJump.isDown();
-			return;
-		}
-
-		if(player.onGround())
-			doubleJumpAvailable = true;
+		refreshState();
 		boolean jumpDown = MC.options.keyJump.isDown();
-		boolean pressedEdge = jumpDown && !jumpWasDown;
-		jumpWasDown = jumpDown;
+		boolean sneakDown = MC.options.keyShift.isDown();
+		boolean pressed = jumpDown && !wasJumpDown && !jumpHandled;
+		boolean lowerLevel = sneakDown && !wasSneakDown && !sneakHandled;
+		boolean alreadyJumped = jumpHandled;
+		wasJumpDown = jumpDown;
+		wasSneakDown = sneakDown;
+		jumpHandled = sneakHandled = false;
 
-		boolean doubleMode = mode.getSelected() == Mode.DOUBLE;
-		State state = new State(pressedEdge, player.onGround(), doubleMode,
-			doubleJumpAvailable, player.isSpectator(), player.isPassenger(),
-			player.getAbilities().flying, player.isFallFlying(),
-			player.isInWaterOrBubble() || player.isInLava(), player.onClimbable());
-		if(!AirJumpPolicy.canJump(state))
+		LocalPlayer player = MC.player;
+		if(player != null && player.onGround())
+			level = player.blockPosition().getY();
+		if(!canJump())
 			return;
 
-		boolean wasOnGround = player.onGround();
-		player.jumpFromGround();
-		player.setOnGround(false);
-		if(doubleMode && !wasOnGround)
-			doubleJumpAvailable = false;
+		if(lowerLevel)
+			level--;
+		if(pressed)
+		{
+			level = player.blockPosition().getY();
+			jump();
+		}
+		else if(!alreadyJumped && maintainLevel.isChecked() && jumpDown
+			&& player.blockPosition().getY() <= level && player.getDeltaMovement().y <= 0)
+			jump();
 	}
 
-	private enum Mode
+	private boolean canJump()
 	{
-		FREE("Jump freely"),
-		DOUBLE("Double jump");
+		LocalPlayer player = MC.player;
+		if(player == null || MC.level == null || MC.screen != null
+			|| WURST.getHax().freecamHack.isEnabled())
+			return false;
+		return !(player.onGround() || player.isSpectator() || player.isPassenger()
+			|| player.isFallFlying() || player.getAbilities().flying
+			|| player.isInWater() || player.isInLava()
+			|| player.onClimbable());
+	}
 
-		private final String name;
-
-		Mode(String name)
+	private void jump()
+	{
+		LocalPlayer player = MC.player;
+		if(nativeJump.isChecked())
 		{
-			this.name = name;
+			player.jumpFromGround();
+			return;
 		}
-
-		@Override
-		public String toString()
-		{
-			return name;
-		}
+		Vec3 velocity = player.getDeltaMovement();
+		player.setDeltaMovement(velocity.x, jumpSpeed.getValue(), velocity.z);
 	}
 }

@@ -25,22 +25,19 @@ public final class RollingClickArray
 		if(cycleLength <= 0 || iterations <= 0)
 			throw new IllegalArgumentException(
 				"cycleLength and iterations must be positive");
-		long arrayLength = (long)cycleLength * iterations;
-		if(arrayLength > Integer.MAX_VALUE)
-			throw new IllegalArgumentException("click array is too large");
 		this.cycleLength = cycleLength;
 		this.iterations = iterations;
-		array = new int[(int)arrayLength];
+		array = new int[cycleLength * iterations];
 	}
 
 	public int get(int relativeIndex)
 	{
-		return array[wrappedIndex(relativeIndex)];
+		return array[Math.floorMod(head + relativeIndex, array.length)];
 	}
 
 	public void set(int relativeIndex, int value)
 	{
-		array[wrappedIndex(relativeIndex)] = value;
+		array[Math.floorMod(head + relativeIndex, array.length)] = value;
 	}
 
 	public boolean advance()
@@ -50,7 +47,7 @@ public final class RollingClickArray
 
 	public boolean advance(int amount)
 	{
-		head = (int)Math.floorMod((long)head + amount, array.length);
+		head = Math.floorMod(head + amount, array.length);
 		return head % cycleLength == 0;
 	}
 
@@ -66,18 +63,13 @@ public final class RollingClickArray
 			throw new IllegalArgumentException(
 				"Array size must match cycle length");
 
-		if(head % cycleLength != 0)
+		if(head == 0)
+			System.arraycopy(cycleArray, 0, array, cycleLength, cycleLength);
+		else if(head == cycleLength)
+			System.arraycopy(cycleArray, 0, array, 0, cycleLength);
+		else
 			throw new IllegalStateException(
-				"Head must be aligned to the cycle length");
-
-		int destination = (int)(((long)head
-			+ (long)cycleLength * (iterations - 1)) % array.length);
-		System.arraycopy(cycleArray, 0, array, destination, cycleLength);
-	}
-
-	private int wrappedIndex(int relativeIndex)
-	{
-		return (int)Math.floorMod((long)head + relativeIndex, array.length);
+				"Head must be at 0 or cycle length");
 	}
 
 	public int getCycleLength()
@@ -88,11 +80,6 @@ public final class RollingClickArray
 	public int getIterations()
 	{
 		return iterations;
-	}
-
-	public int length()
-	{
-		return array.length;
 	}
 
 	int[] copyArray()

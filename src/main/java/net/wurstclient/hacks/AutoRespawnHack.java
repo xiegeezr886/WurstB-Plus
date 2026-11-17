@@ -13,27 +13,23 @@ import net.wurstclient.WurstClient;
 import net.wurstclient.events.DeathListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.waypoints.Waypoint;
 
 @SearchTags({"auto respawn", "AutoRevive", "auto revive"})
 public final class AutoRespawnHack extends Hack implements DeathListener
 {
-	private final CheckboxSetting respawn = new CheckboxSetting("Respawn",
-		"Automatically respawn after dying.", true);
-	private final CheckboxSetting antiGlitchScreen = new CheckboxSetting(
-		"Anti glitch screen", "Closes the death screen if it shows up while"
-			+ " you're still alive.",
-		true);
 	private final CheckboxSetting button =
 		new CheckboxSetting("Death screen button", "Shows a button on the death"
 			+ " screen that lets you quickly enable AutoRespawn.", true);
+	private final CheckboxSetting deathWaypoint = new CheckboxSetting("Death waypoint",
+		"自动复活前，在导航点列表记录最近一次死亡坐标。", true);
 	
 	public AutoRespawnHack()
 	{
 		super("AutoRespawn");
 		setCategory(Category.COMBAT);
-		addSetting(respawn);
-		addSetting(antiGlitchScreen);
 		addSetting(button);
+		addSetting(deathWaypoint);
 	}
 	
 	@Override
@@ -48,29 +44,14 @@ public final class AutoRespawnHack extends Hack implements DeathListener
 		EVENTS.remove(DeathListener.class, this);
 	}
 	
-	/**
-	 * 与参考 {@code module/misc/AutoRespawn.kt:29-32} 的条件一致：
-	 * <pre>
-	 * if (respawn || antiGlitchScreen &amp;&amp; player.health &gt; 0.0f) { ... }
-	 * </pre>
-	 * 即"关掉自动重生、但死亡界面出现在还活着的时候（假死/回滚）仍然关掉它"。
-	 */
 	@Override
 	public void onDeath()
 	{
-		if(!respawn.isChecked() && !(antiGlitchScreen.isChecked()
-			&& MC.player.getHealth() > 0))
+		if(MC.player == null || MC.level == null)
 			return;
-		
-		respawnNow();
-	}
-	
-	/**
-	 * 无条件重生。死亡界面上的那个按钮走这条路径：用户既然点了按钮，就是要重生，
-	 * 不应该被 {@code Respawn} 的设置挡住。
-	 */
-	public void respawnNow()
-	{
+		if(deathWaypoint.isChecked())
+			WURST.getWaypointsManager().add(new Waypoint("Last death",
+				MC.level.dimension().location(), MC.player.blockPosition(), 0xFF3030));
 		MC.player.respawn();
 		MC.setScreen(null);
 	}

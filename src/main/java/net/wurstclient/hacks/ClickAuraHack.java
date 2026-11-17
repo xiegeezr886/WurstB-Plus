@@ -9,7 +9,6 @@ package net.wurstclient.hacks;
 
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.LeftClickListener;
@@ -44,8 +43,7 @@ public final class ClickAuraHack extends Hack
 		"Determines which entity will be attacked first.\n"
 			+ "\u00a7lDistance\u00a7r - Attacks the closest entity.\n"
 			+ "\u00a7lAngle\u00a7r - Attacks the entity that requires the least head movement.\n"
-			+ "\u00a7lHealth\u00a7r - Attacks the weakest entity.\n"
-			+ "\u00a7lScore\u00a7r - Weighs distance, health, armour, blast exposure and crosshair angle together.",
+			+ "\u00a7lHealth\u00a7r - Attacks the weakest entity.",
 		Priority.values(), Priority.ANGLE);
 	
 	private final SliderSetting fov =
@@ -118,8 +116,7 @@ public final class ClickAuraHack extends Hack
 	
 	private boolean attack()
 	{
-		if(MC.player == null || MC.level == null || MC.gameMode == null
-			|| pauseOnContainers.shouldPause() || !speed.isTimeToAttack())
+		if(!speed.isTimeToAttack() || pauseOnContainers.shouldPause())
 			return false;
 
 		Entity target = CombatTargetUtils.get(range.getValue(), fov.getValue(),
@@ -129,9 +126,9 @@ public final class ClickAuraHack extends Hack
 			return false;
 		
 		WURST.getHax().autoSwordHack.setSlot(target);
-
-		Vec3 hitVec = aimAt.getAimPoint(target);
-		RotationUtils.getNeededRotations(hitVec).sendPlayerLookPacket();
+		
+		RotationUtils.getNeededRotations(aimAt.getAimPoint(target))
+			.sendPlayerLookPacket();
 		MC.gameMode.attack(MC.player, target);
 		swingHand.swing(InteractionHand.MAIN_HAND);
 		speed.resetTimer();

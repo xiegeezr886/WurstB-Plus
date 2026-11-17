@@ -58,6 +58,8 @@ public abstract class GameRendererMixin implements AutoCloseable
 	private void onRenderWorldViewBobbing(float tickDelta, long limitTime,
 		PoseStack matrices, CallbackInfo ci)
 	{
+		WurstClient.INSTANCE.getHax().freelookHack
+			.applyCameraRotation(matrices);
 		CameraTransformViewBobbingEvent event =
 			new CameraTransformViewBobbingEvent();
 		EventManager.fire(event);
@@ -112,10 +114,11 @@ public abstract class GameRendererMixin implements AutoCloseable
 	
 	@ModifyReturnValue(at = @At("RETURN"),
 		method = "getFov(Lnet/minecraft/client/Camera;FZ)D")
-	private double onGetFov(double original)
+	private double onGetFov(double original,
+		net.minecraft.client.Camera camera, float partialTicks, boolean world)
 	{
-		return WurstClient.INSTANCE.getOtfs().zoomOtf
-			.changeFovBasedOnZoom(original);
+		return (double)WurstClient.INSTANCE.getHax().customFovHack
+			.changeFov(original, world);
 	}
 	
 	@Inject(at = @At(value = "INVOKE",
@@ -185,5 +188,34 @@ public abstract class GameRendererMixin implements AutoCloseable
 	{
 		if(WurstClient.INSTANCE.getHax().noHurtcamHack.isEnabled())
 			ci.cancel();
+	}
+
+	/**
+	 * Draws the NanoVG HUD after Minecraft has finished the GUI pass.
+	 * The HUD renders into its own framebuffer and is then composited onto
+	 * the main target, so it cannot disturb the vanilla render pipeline.
+	 */
+	@Inject(at = @At("HEAD"), method = "render(FJZ)V")
+	private void onPrepareHud(float partialTick, long nanoTime,
+		boolean renderLevel, CallbackInfo ci)
+	{
+		if(WurstClient.INSTANCE.getHudManager() != null)
+			WurstClient.INSTANCE.getHudManager().prepareFrame(partialTick);
+	}
+
+	/**
+	 * Composites the HUD right after the vanilla GUI pass and before the
+	 * screen render, so open screens (game menu, ClickGUI, Navigator, ...)
+	 * draw their overlay on top of it instead of the HUD floating above them.
+	 */
+	@Inject(at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/gui/Gui;render(Lnet/minecraft/client/gui/GuiGraphics;F)V",
+		shift = At.Shift.AFTER),
+		method = "render(FJZ)V")
+	private void onRenderHud(float partialTick, long nanoTime,
+		boolean renderLevel, CallbackInfo ci)
+	{
+		if(WurstClient.INSTANCE.getHudManager() != null)
+			WurstClient.INSTANCE.getHudManager().renderFrame(partialTick);
 	}
 }

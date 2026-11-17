@@ -59,9 +59,6 @@ public enum CombatActionPolicy
 	 * 接着找。1.9+ 的攻击蓄力按攻击者计算，同一 tick 内只有第一刀是满蓄力，所以多目标
 	 * 只能靠错开 tick 来达成满伤害。
 	 *
-	 * <p>
-	 * 抽成纯函数是为了可单测：游标的取模与跳过逻辑最容易在列表增删时写错。
-	 *
 	 * @param current
 	 *            当前游标，可为任意整数（内部按 size 取模）
 	 * @param size
@@ -94,13 +91,6 @@ public enum CombatActionPolicy
 			&& !state.handsBusy() && !state.blindness() && !state.levitation()
 			&& !state.slowFalling() && state.attackStrength() > 0.9F
 			&& (allowSprinting || !state.sprinting());
-	}
-
-	public static boolean canStartSpoofedCritical(CriticalState state,
-		boolean requiresGround, boolean canStopSprinting)
-	{
-		return canCritical(state, true, canStopSprinting)
-			&& (!requiresGround || state.onGround());
 	}
 
 	public record CriticalState(boolean onGround, boolean inFluid,

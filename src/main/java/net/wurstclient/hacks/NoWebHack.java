@@ -35,6 +35,7 @@ public final class NoWebHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
-		MC.player.stuckSpeedMultiplier = Vec3.ZERO;
+		((net.wurstclient.mixin.EntityAccessor)(Object)MC.player)
+			.setStuckSpeedMultiplier(Vec3.ZERO);
 	}
 }

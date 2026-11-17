@@ -53,7 +53,6 @@ public final class CmdList
 	public final MacrosCmd macrosCmd = new MacrosCmd();
 	public final ModifyCmd modifyCmd = new ModifyCmd();
 	public final PathCmd pathCmd = new PathCmd();
-	public final PerimeterCmd perimeterCmd = new PerimeterCmd();
 	public final PotionCmd potionCmd = new PotionCmd();
 	public final ProtectCmd protectCmd = new ProtectCmd();
 	public final ProxyCmd proxyCmd = new ProxyCmd();
@@ -62,8 +61,6 @@ public final class CmdList
 	public final RvCmd rvCmd = new RvCmd();
 	public final SvCmd svCmd = new SvCmd();
 	public final SayCmd sayCmd = new SayCmd();
-	public final SeedCmd seedCmd = new SeedCmd();
-	public final TwilightCmd twilightCmd = new TwilightCmd();
 	public final SetBlockCmd setBlockCmd = new SetBlockCmd();
 	public final SetCheckboxCmd setCheckboxCmd = new SetCheckboxCmd();
 	public final SetColorCmd setColorCmd = new SetColorCmd();
@@ -95,9 +92,6 @@ public final class CmdList
 				Command cmd = (Command)field.get(this);
 				cmds.put(cmd.getName(), cmd);
 			}
-			
-			registerBrigadierCommand(
-				new net.wurstclient.commands.PerimeterDigCommand());
 			
 		}catch(Exception e)
 		{

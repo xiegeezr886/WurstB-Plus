@@ -111,7 +111,6 @@ public final class HoleEspHack extends Hack
 
 					boolean obsidianHole = true;
 					boolean bedrockHole = true;
-					boolean wallHole = true;
 
 					for(int dx = -1; dx <= 1; dx++)
 						for(int dz = -1; dz <= 1; dz++)
@@ -120,20 +119,18 @@ public final class HoleEspHack extends Hack
 								continue;
 
 							BlockPos check = pos.offset(dx, 0, dz);
-							boolean replaceable = isReplaceable(check);
+							boolean obCheck = isObsidianLike(check)
+								|| isReplaceable(check);
+							boolean bedCheck = isBedrock(check)
+								|| isReplaceable(check);
 
-							// 旧实现把基岩也算成"黑曜石类"，于是只要 bedrockHole 为真
-							// obsidianHole 必然也为真：纯基岩洞会被当成"混合洞"涂成
-							// 混合色，而"Bedrock color"这条设置永远用不到。
-							// 这里把三种判定拆开：全基岩 / 全黑曜石 / 两者混合。
-							bedrockHole &= replaceable || isBedrock(check);
-							obsidianHole &= replaceable || isObsidian(check);
-							wallHole &= replaceable || isObsidianLike(check);
+							if(!obCheck)
+								obsidianHole = false;
+							if(!bedCheck)
+								bedrockHole = false;
 						}
 
-					// 一圈全部是基岩/黑曜石/可替换方块才算洞；是纯基岩还是纯黑曜石
-					// 由上面两个标记决定，都不是就是混合洞（渲染时用混合色）
-					if(wallHole)
+					if(obsidianHole || bedrockHole)
 						holes.add(new Hole(pos, bedrockHole, obsidianHole));
 				}
 	}
@@ -145,17 +142,16 @@ public final class HoleEspHack extends Hack
 		{
 			if(bedrockOnly.isChecked() && !hole.bedrockHole)
 				continue;
-			// "Obsidian" 关掉时只保留纯基岩洞（混合洞含黑曜石，一并隐藏）
-			if(!obsidian.isChecked() && !hole.bedrockHole)
+			if(!obsidian.isChecked() && !hole.bedrockHole && hole.obsidianHole)
 				continue;
 
 			int color;
-			if(hole.bedrockHole)
-				color = bedrockColor.getColorI();
-			else if(hole.obsidianHole)
-				color = obsidianColor.getColorI();
-			else
+			if(hole.bedrockHole && hole.obsidianHole)
 				color = mixedColor.getColorI();
+			else if(hole.bedrockHole)
+				color = bedrockColor.getColorI();
+			else
+				color = obsidianColor.getColorI();
 
 			AABB box = new AABB(hole.pos, hole.pos.offset(1, 1, 1));
 			float[] rgb = {((color >> 16) & 0xFF) / 255F,
@@ -183,15 +179,11 @@ public final class HoleEspHack extends Hack
 		return BlockUtils.getBlock(pos) == Blocks.BEDROCK;
 	}
 
-	private boolean isObsidian(BlockPos pos)
-	{
-		return BlockUtils.getBlock(pos) == Blocks.OBSIDIAN
-			|| BlockUtils.getBlock(pos) == Blocks.CRYING_OBSIDIAN;
-	}
-
 	private boolean isObsidianLike(BlockPos pos)
 	{
-		return isObsidian(pos) || isBedrock(pos);
+		return BlockUtils.getBlock(pos) == Blocks.OBSIDIAN
+			|| BlockUtils.getBlock(pos) == Blocks.CRYING_OBSIDIAN
+			|| BlockUtils.getBlock(pos) == Blocks.BEDROCK;
 	}
 
 	private record Hole(BlockPos pos, boolean bedrockHole,

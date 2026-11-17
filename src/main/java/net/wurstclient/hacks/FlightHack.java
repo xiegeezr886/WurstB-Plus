@@ -17,13 +17,10 @@ import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.hack.HackConflictGroup;
 import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.hacks.flight.BoostFlightMode;
-import net.wurstclient.hacks.flight.FlightMode;
-import net.wurstclient.hacks.flight.RocketFlightMode;
-import net.wurstclient.hacks.flight.VanillaFlightMode;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.util.MovementPlanner;
 
 @SearchTags({"FlyHack", "fly hack", "flying"})
 public final class FlightHack extends Hack implements UpdateListener
@@ -123,13 +120,18 @@ public final class FlightHack extends Hack implements UpdateListener
 		if(slowSneaking.isChecked() && MC.options.keyShift.isDown())
 			horizontal *= 0.3;
 
-		FlightMode selectedMode = mode.getSelected().impl();
-		Vec3 movement = selectedMode.getHorizontalMovement(
-			player.getDeltaMovement(), forward, sideways, player.getYRot(),
-			horizontal);
+		Vec3 movement = switch(mode.getSelected())
+		{
+			case VANILLA, ROCKET -> MovementPlanner.setHorizontal(
+				player.getDeltaMovement(), forward, sideways, player.getYRot(),
+				horizontal);
+			case BOOST -> MovementPlanner.clampHorizontal(
+				MovementPlanner.blendHorizontal(player.getDeltaMovement(), forward,
+					sideways, player.getYRot(), horizontal, 0.1), horizontal);
+		};
 
 		double vertical = verticalSpeed.getValue()
-			* selectedMode.getVerticalMultiplier();
+			* (mode.getSelected() == Mode.ROCKET ? 3 : 1);
 		double y = MC.options.keyJump.isDown() ? vertical
 			: MC.options.keyShift.isDown() ? -vertical : glide.getValue();
 		boolean verticalInput = MC.options.keyJump.isDown()
@@ -166,22 +168,15 @@ public final class FlightHack extends Hack implements UpdateListener
 
 	private enum Mode
 	{
-		VANILLA("Vanilla", new VanillaFlightMode()),
-		BOOST("Boost", new BoostFlightMode()),
-		ROCKET("Rocket", new RocketFlightMode());
+		VANILLA("Vanilla"),
+		BOOST("Boost"),
+		ROCKET("Rocket");
 
 		private final String name;
-		private final FlightMode impl;
 
-		Mode(String name, FlightMode impl)
+		Mode(String name)
 		{
 			this.name = name;
-			this.impl = impl;
-		}
-
-		public FlightMode impl()
-		{
-			return impl;
 		}
 
 		@Override

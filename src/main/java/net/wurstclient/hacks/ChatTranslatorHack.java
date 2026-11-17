@@ -110,12 +110,8 @@ public final class ChatTranslatorHack extends Hack
 		String translated = GoogleTranslate.translate(message,
 			fromLang.getValue(), toLang.getValue());
 		
-		if(translated == null)
-			return;
-		
-		// 聊天记录是渲染线程要遍历的双端队列，只能回到客户端线程再改
-		MC.execute(() -> MC.gui.getChat()
-			.addMessage(toLang.prefixText(translated)));
+		if(translated != null)
+			MC.gui.getChat().addMessage(toLang.prefixText(translated));
 	}
 	
 	@Override
@@ -149,12 +145,6 @@ public final class ChatTranslatorHack extends Hack
 		if(translated == null)
 			translated = message;
 		
-		String outgoing = translated;
-		
-		// sendChat() 会动连接状态并把包交给网络线程，必须在客户端线程上调用
-		MC.execute(() -> {
-			if(MC.getConnection() != null)
-				MC.getConnection().sendChat(outgoing);
-		});
+		MC.getConnection().sendChat(translated);
 	}
 }

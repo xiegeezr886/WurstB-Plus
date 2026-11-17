@@ -22,6 +22,9 @@ import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.RenderListener;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.wurstclient.hacks.autoplace.DirectionalPaver;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.BlockSetting;
 import net.wurstclient.settings.EnumSetting;
@@ -36,7 +39,7 @@ import net.wurstclient.util.text.WText;
 
 @SearchTags({"auto place block", "auto place", "scaffold", "obsidian", "web",
 	"AutoPlaceBlock"})
-public final class AutoPlaceBlockHack extends Hack implements UpdateListener
+public final class AutoPlaceBlockHack extends Hack implements UpdateListener, RenderListener
 {
 	private final BlockSetting block = new BlockSetting("Block",
 		WText.literal("Which block to place."), "minecraft:obsidian", false);
@@ -54,6 +57,7 @@ public final class AutoPlaceBlockHack extends Hack implements UpdateListener
 		ValueDisplay.INTEGER.withSuffix(" ticks"));
 
 	private int timer;
+	private final DirectionalPaver paver = new DirectionalPaver();
 
 	public AutoPlaceBlockHack()
 	{
@@ -63,19 +67,25 @@ public final class AutoPlaceBlockHack extends Hack implements UpdateListener
 		addSetting(mode);
 		addSetting(range);
 		addSetting(delay);
+		for(var setting : paver.settings())
+			addSetting(setting);
 	}
 
 	@Override
 	protected void onEnable()
 	{
 		timer = 0;
+		paver.reset();
 		EVENTS.add(UpdateListener.class, this);
+		EVENTS.add(RenderListener.class, this);
 	}
 
 	@Override
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
+		EVENTS.remove(RenderListener.class, this);
+		paver.reset();
 	}
 
 	@Override
@@ -83,6 +93,11 @@ public final class AutoPlaceBlockHack extends Hack implements UpdateListener
 	{
 		if(MC.player == null || MC.level == null || MC.player.isSpectator())
 			return;
+		if(mode.getSelected() == PlaceMode.DIRECTIONAL_PAVING)
+		{
+			paver.tick(block.getBlock(), range.getValue());
+			return;
+		}
 
 		if(timer > 0)
 		{
@@ -101,14 +116,23 @@ public final class AutoPlaceBlockHack extends Hack implements UpdateListener
 			return;
 
 		int oldSlot = MC.player.getInventory().selected;
-		InventoryUtils.selectItem(item, 36);
-		if(!MC.player.getMainHandItem().is(item))
-			return;
+		try
+		{
+			InventoryUtils.selectItem(item, 36);
+			if(!MC.player.getMainHandItem().is(item))
+				return;
+			if(BlockPlacer.placeOneBlock(pos))
+				timer = delay.getValueI();
+		}finally
+		{
+			MC.player.getInventory().selected = oldSlot;
+		}
+	}
 
-		if(BlockPlacer.placeOneBlock(pos))
-			timer = delay.getValueI();
-
-		MC.player.getInventory().selected = oldSlot;
+	@Override
+	public void onRender(PoseStack matrices, float partialTicks)
+	{
+		if(mode.getSelected() == PlaceMode.DIRECTIONAL_PAVING) paver.render(matrices);
 	}
 
 	private BlockPos findPlacement()
@@ -210,7 +234,8 @@ public final class AutoPlaceBlockHack extends Hack implements UpdateListener
 	{
 		UNDER_PLAYER("Under player"),
 		NEAR_TARGET("Near target"),
-		AROUND_PLAYER("Around player");
+		AROUND_PLAYER("Around player"),
+		DIRECTIONAL_PAVING("Directional paving");
 
 		private final String name;
 

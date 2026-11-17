@@ -98,7 +98,7 @@ public final class AutoToolHack extends Hack
 	@Override
 	public void onUpdate()
 	{
-		if(prevSelectedSlot == -1 || MC.gameMode.isDestroying())
+		if(prevSelectedSlot == -1 || ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).getIsDestroying())
 			return;
 		
 		HitResult hitResult = MC.hitResult;

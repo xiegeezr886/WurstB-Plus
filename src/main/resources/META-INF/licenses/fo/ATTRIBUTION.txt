@@ -1,0 +1,9 @@
+Upstream: https://github.com/jialebot6666/FO
+Local source snapshot: reference/tools/FO-src/fo
+License: CC0-1.0
+License SHA-256: f4e7f373b9b996950337e8d41a4a2939c2d90b7725e9baf3d5084a22717ad328
+Adapted for WurstB+ Plus v1.5.1 on 2026-11-07.
+AutoLog (AutoLogPlus) -> AutoLeave: height, armor durability, portal, position, health, totems, timeout/reconnect conditions. Existing Wurst health/totem gate retained.
+Original notices remain applicable. Local adaptation: WurstB+ Plus contributors.
+Source snapshot module hashes:
+reference/tools/FO-src/fo/src/main/java/com/fo/addon/modules/AutoLog.java SHA-256 e338d0509f0c324459bd0ee292523cb083ff538ab982fded55c0268ddf72d54d

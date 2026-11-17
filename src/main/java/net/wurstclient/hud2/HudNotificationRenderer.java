@@ -1,218 +1,296 @@
+/*
+ * Copyright (c) 2026 WurstB+ Plus contributors
+ *
+ * This source code is subject to the terms of the GNU Affero General Public
+ * License, version 3. If a copy of the AGPL was not distributed with this
+ * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
+ */
 package net.wurstclient.hud2;
 
-import java.util.ArrayList;
+import java.awt.Color;
+import java.util.ArrayDeque;
 import java.util.Iterator;
-import java.util.List;
-import java.util.function.Predicate;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.wurstclient.WurstClient;
-import net.wurstclient.compose.ComposeNotifications;
-import net.wurstclient.events.GUIRenderListener;
+import net.wurstclient.hud2.nanovg.HudFonts;
+import net.wurstclient.hud2.nanovg.HudIcon;
+import net.wurstclient.hud2.nanovg.NanoVGContext;
 
-public final class HudNotificationRenderer implements GUIRenderListener
+/**
+ * Soar-style notification card with a black frosted-glass body.
+ *
+ * <p>Multiple cards are shown at once. The newest card sits on the module
+ * anchor and older cards are pushed upwards, so a burst of notifications
+ * never blocks the queue. Each card slides in from the right with a back-ease,
+ * stays for the configured duration, then slides back out while fading.
+ */
+public final class HudNotificationRenderer
 {
-	private final ArrayList<NotificationEntry> entries = new ArrayList<>();
-	private static final int MAX_NOTIFICATIONS = 5;
+	private static final float CARD_WIDTH = 230;
+	private static final float CARD_HEIGHT = 36;
+	private static final float CARD_GAP = 4;
+	private static final long ENTER_MS = 220;
+	private static final long EXIT_MS = 240;
+	private static final int MAX_VISIBLE = 5;
 
-	/** HackAI NotificationContainer 的动画参数。 */
-	private static final long ENTER_MS = 300;
-	private static final long EXIT_MS = 250;
+	private final ArrayDeque<Entry> active = new ArrayDeque<>();
+	private long lastFrameNanos;
 
-	HudNotificationRenderer() {}
+	public HudNotificationRenderer() {}
 
-	void addNotification(HudNotification notification)
+	public void addNotification(String title, String message,
+		NotificationSeverity severity)
 	{
-		synchronized(entries)
+		synchronized(active)
 		{
-			NotificationSeverity severity = notification.getSeverity();
 			if(severity == NotificationSeverity.ENABLED
 				|| severity == NotificationSeverity.DISABLED)
-				for(Iterator<NotificationEntry> it = entries.iterator();
-					it.hasNext();)
+				for(Iterator<Entry> it = active.iterator(); it.hasNext();)
 				{
-					NotificationEntry e = it.next();
-					if(e.notification.getMessage()
-						.equals(notification.getMessage()))
+					Entry entry = it.next();
+					// Keep "Enabled" and "Disabled" for the same feature as
+					// separate cards; only drop duplicates of the same state.
+					if(entry.severity == severity
+						&& entry.message.equals(message))
 						it.remove();
 				}
 
-			while(entries.size() >= MAX_NOTIFICATIONS)
-				entries.remove(0);
-			entries.add(new NotificationEntry(notification));
+			while(active.size() >= MAX_VISIBLE)
+				active.removeFirst();
+			active.addLast(new Entry(title, message, severity,
+				System.currentTimeMillis()));
 		}
 	}
 
-	void removeNotificationIf(Predicate<HudNotification> predicate)
+	public int getCount()
 	{
-		synchronized(entries)
+		synchronized(active)
 		{
-			entries.removeIf(e -> predicate.test(e.notification));
+			return active.size();
 		}
 	}
 
-	void renderPreview(GuiGraphics graphics, int x, int y)
+	/**
+	 * Static preview used by the HUD editor when no notification is active.
+	 */
+	public float renderPreview(NanoVGContext nvg, float x, float y,
+		float scale)
 	{
-		ComposeNotifications.Card preview = new ComposeNotifications.Card(
-			"Notifications", "HUD notification preview");
-		ComposeNotifications.render(graphics, List.of(preview), x, y, false,
-			false, false, System.nanoTime());
+		float cardWidth = CARD_WIDTH * scale;
+		float cardHeight = CARD_HEIGHT * scale;
+		int iconArgb = severityColor(NotificationSeverity.INFO);
+
+		nvg.drawShadow(x + 2 * scale, y + 3 * scale, cardWidth, cardHeight,
+			6 * scale);
+		nvg.drawGradientRoundedRect(x, y, cardWidth, cardHeight, 6 * scale,
+			new Color(0xBC000000, true), new Color(0xA0000000, true));
+		nvg.drawOutlineRoundedRect(x, y, cardWidth, cardHeight, 6 * scale,
+			1 * scale, new Color(0x24FFFFFF, true));
+		nvg.drawText(HudIcon.INFO, x + 11 * scale, y + 8 * scale,
+			17 * scale, HudFonts.ICON, new Color(iconArgb, true));
+		nvg.drawText("Notifications", x + 34 * scale, y + 6 * scale,
+			9.5F * scale, HudFonts.MEDIUM, Color.WHITE);
+		nvg.drawText("HUD notification preview", x + 34 * scale,
+			y + 20 * scale, 8 * scale, HudFonts.REGULAR,
+			new Color(0xFFD0D0D0));
+		return cardHeight;
 	}
 
-	@Override
-	public void onRenderGUI(GuiGraphics graphics, float partialTicks)
+	/**
+	 * Draws the active notification stack and returns the height of one card.
+	 */
+	public float render(NanoVGContext nvg, float x, float y, float scale,
+		long durationMs)
 	{
-		if(!WurstClient.INSTANCE.isEnabled())
+		long now = System.currentTimeMillis();
+		float cardWidth = CARD_WIDTH * scale;
+		float cardHeight = CARD_HEIGHT * scale;
+		float gap = CARD_GAP * scale;
+		float frameDelta = frameDelta(now);
+
+		synchronized(active)
+		{
+			// Drop cards whose exit animation has finished.
+			for(Iterator<Entry> it = active.iterator(); it.hasNext();)
+			{
+				Entry entry = it.next();
+				if(now - entry.start > durationMs + EXIT_MS)
+					it.remove();
+			}
+
+			if(active.isEmpty())
+				return 0;
+
+			// Newest card at the anchor, older cards pushed upwards.
+			int slot = 0;
+			for(Iterator<Entry> it = active.descendingIterator();
+				it.hasNext();)
+			{
+				Entry entry = it.next();
+				float targetY = y - slot * (cardHeight + gap);
+				if(Float.isNaN(entry.animY))
+					entry.animY = targetY;
+				else
+					entry.animY = approach(entry.animY, targetY, frameDelta);
+
+				drawCard(nvg, entry, x, entry.animY, cardWidth, cardHeight,
+					scale, now, durationMs);
+				slot++;
+			}
+		}
+
+		return cardHeight;
+	}
+
+	public float getHeight(float scale)
+	{
+		synchronized(active)
+		{
+			if(active.isEmpty())
+				return 0;
+			return active.size() * (CARD_HEIGHT + CARD_GAP) * scale - CARD_GAP
+				* scale;
+		}
+	}
+
+	private void drawCard(NanoVGContext nvg, Entry entry, float x, float y,
+		float cardWidth, float cardHeight, float scale, long now,
+		long durationMs)
+	{
+		long age = now - entry.start;
+		float enter = clamp(age / (float)ENTER_MS);
+		float exit = clamp((age - durationMs) / (float)EXIT_MS);
+		float enterEase = easeOutBack(enter);
+		float exitEase = easeInBack(exit);
+		float visibility = Math.max(0,
+			Math.min(1, enterEase * (1 - exitEase)));
+		if(visibility <= 0.001F)
 			return;
 
-		HudLayout layout = WurstClient.INSTANCE.getHudManager().getLayout();
-		HudLayout.HudElementConfig config = layout.get("notifications");
-		if(config == null || !config.isEnabled())
-			return;
+		float slide = (1 - enterEase) * 160 * scale + exitEase * 160 * scale;
+		float cardX = x + slide;
+		float cardY = y;
+		int alpha = Math.round(255 * visibility);
+		int iconArgb = withAlpha(severityColor(entry.severity), alpha);
 
-		int screenW = graphics.guiWidth();
-		int screenH = graphics.guiHeight();
-		float anchorX;
-		if(config.getHorizontalAlignment()
-			.equals(HudLayout.HudElementConfig.HORIZONTAL_RIGHT))
-			anchorX = screenW - config.getHorizontalOffset();
-		else if(config.getHorizontalAlignment()
-			.equals(HudLayout.HudElementConfig.HORIZONTAL_CENTER))
-			anchorX = screenW / 2F + config.getHorizontalOffset();
-		else
-			anchorX = config.getHorizontalOffset();
+		nvg.drawShadow(cardX + 2 * scale, cardY + 3 * scale, cardWidth,
+			cardHeight, 6 * scale);
+		nvg.drawGradientRoundedRect(cardX, cardY, cardWidth, cardHeight,
+			6 * scale, toColor(withAlpha(0xBC000000, alpha)),
+			toColor(withAlpha(0xA0000000, alpha)));
+		nvg.drawOutlineRoundedRect(cardX, cardY, cardWidth, cardHeight,
+			6 * scale, 1 * scale, toColor(withAlpha(0x24FFFFFF, alpha)));
 
-		float anchorY;
-		if(config.getVerticalAlignment()
-			.equals(HudLayout.HudElementConfig.VERTICAL_BOTTOM))
-			anchorY = screenH - config.getVerticalOffset();
-		else if(config.getVerticalAlignment()
-			.equals(HudLayout.HudElementConfig.VERTICAL_CENTER))
-			anchorY = screenH / 2F + config.getVerticalOffset();
-		else
-			anchorY = config.getVerticalOffset();
+		// Severity glyph, like Soar's notification icon.
+		nvg.drawText(iconFor(entry.severity), cardX + 11 * scale,
+			cardY + 8 * scale, 17 * scale, HudFonts.ICON,
+			toColor(iconArgb));
 
-		long now = System.nanoTime();
+		float textX = cardX + 34 * scale;
+		float maxTextWidth = cardWidth - 46 * scale;
+		String title = nvg.getLimitText(entry.title, 9.5F * scale,
+			HudFonts.MEDIUM, maxTextWidth);
+		String message = nvg.getLimitText(entry.message, 8 * scale,
+			HudFonts.REGULAR, maxTextWidth);
+		nvg.drawText(title, textX, cardY + 6 * scale, 9.5F * scale,
+			HudFonts.MEDIUM, toColor(withAlpha(0xFFFFFFFF, alpha)));
+		nvg.drawText(message, textX, cardY + 20 * scale, 8 * scale,
+			HudFonts.REGULAR, toColor(withAlpha(0xFFD0D0D0, alpha)));
+	}
 
-		graphics.pose().pushPose();
+	private float frameDelta(long now)
+	{
+		long previous = lastFrameNanos;
+		lastFrameNanos = now * 1_000_000L;
+		if(previous == 0)
+			return 0;
+		return Math.min(0.1F,
+			(now * 1_000_000L - previous) / 1_000_000_000F);
+	}
+
+	private static float approach(float current, float target, float delta)
+	{
+		if(delta <= 0)
+			return current;
+		return current + (target - current)
+			* (1 - (float)Math.exp(-22 * delta));
+	}
+
+	private static float clamp(float value)
+	{
+		return Math.max(0, Math.min(1, value));
+	}
+
+	private static float easeOutBack(float value)
+	{
+		float c1 = 1.70158F;
+		float c3 = c1 + 1;
+		float shifted = value - 1;
+		return 1 + c3 * shifted * shifted * shifted
+			+ c1 * shifted * shifted;
+	}
+
+	private static float easeInBack(float value)
+	{
+		float c1 = 1.70158F;
+		float c3 = c1 + 1;
+		return c3 * value * value * value - c1 * value * value;
+	}
+
+	private static String iconFor(NotificationSeverity severity)
+	{
+		return switch(severity)
+		{
+			case SUCCESS, ENABLED -> HudIcon.CHECK_CIRCLE;
+			case ERROR, DISABLED -> HudIcon.X_CIRCLE;
+			case INFO -> HudIcon.INFO;
+		};
+	}
+
+	private static int severityColor(NotificationSeverity severity)
+	{
 		try
 		{
-			graphics.pose().translate(anchorX, anchorY, 0);
-			graphics.pose().scale(config.getScale(), config.getScale(), 1);
-			synchronized(entries)
-			{
-				// 构建 Compose 卡片快照（数据与计时保留在本类）
-				ArrayList<ComposeNotifications.Card> cards =
-					new ArrayList<>();
-				for(Iterator<NotificationEntry> it = entries.iterator();
-					it.hasNext();)
-				{
-					NotificationEntry entry = it.next();
-
-					if(entry.notification.isExpired())
-						entry.active = false;
-
-					entry.update(now);
-
-					if(!entry.active && entry.fade <= 0)
-					{
-						it.remove();
-						continue;
-					}
-
-					HudNotification n = entry.notification;
-					ComposeNotifications.Card card =
-						new ComposeNotifications.Card(
-							truncate(n.getTitle(), 26),
-							truncate(n.getMessage(), 34), n.getContent());
-					card.anim = entry.anim;
-					card.fade = entry.fade;
-					cards.add(card);
-				}
-				boolean rightAligned = config.getHorizontalAlignment().equals(
-					HudLayout.HudElementConfig.HORIZONTAL_RIGHT);
-				boolean centerAligned = config.getHorizontalAlignment().equals(
-					HudLayout.HudElementConfig.HORIZONTAL_CENTER);
-				boolean bottomAligned = config.getVerticalAlignment().equals(
-					HudLayout.HudElementConfig.VERTICAL_BOTTOM);
-				ComposeNotifications.render(graphics, cards, 0, 0,
-					rightAligned, bottomAligned, centerAligned, now);
-			}
-		}finally
+			return 0xFF000000 | Color.decode(severity.getColorHex()).getRGB()
+				& 0xFFFFFF;
+		}catch(NumberFormatException e)
 		{
-			graphics.pose().popPose();
+			return 0xFF4677FF;
 		}
 	}
 
-	private static String truncate(String text, int maxLen)
+	/**
+	 * Multiplies the colour's own alpha by the fade factor instead of
+	 * replacing it. Replacing it turned the 14% white border into an opaque
+	 * white ring and the frosted body into solid black.
+	 */
+	private static int withAlpha(int argb, int alpha)
 	{
-		if(text.length() <= maxLen)
-			return text;
-		return text.substring(0, maxLen - 1) + "…";
+		int factor = Math.max(0, Math.min(255, alpha));
+		int base = argb >>> 24;
+		int result = base * factor / 255;
+		return (argb & 0xFFFFFF) | result << 24;
 	}
 
-	private static final class NotificationEntry
+	private static Color toColor(int argb)
 	{
-		final HudNotification notification;
-		boolean active = true;
-		/** 位置动画 0..1：入场 0→1，存活 1，退场 1→0。 */
-		float anim;
-		/** alpha 乘数：入场/存活 1，退场随动画淡出。 */
-		float fade = 1;
-		private final long enterStartNanos = System.nanoTime();
-		private boolean entered;
-		private long exitAtNanos;
-		private boolean exiting;
-		private long exitStartNanos;
+		return new Color(argb, true);
+	}
 
-		NotificationEntry(HudNotification notification)
-		{
-			this.notification = notification;
-		}
+	private static final class Entry
+	{
+		private final String title;
+		private final String message;
+		private final NotificationSeverity severity;
+		private final long start;
+		private float animY = Float.NaN;
 
-		/**
-		 * HackAI NotificationContainer 阶段机：入场 300ms easeOut 横滑
-		 * （期间不淡入），入场完成后启动存活计时，到点退场 250ms easeIn
-		 * 滑出 + 淡出。
-		 */
-		void update(long now)
+		private Entry(String title, String message,
+			NotificationSeverity severity, long start)
 		{
-			if(!entered)
-			{
-				long elapsed = now - enterStartNanos;
-				if(elapsed >= ENTER_MS * 1_000_000L)
-				{
-					entered = true;
-					exitAtNanos = notification.isPersistent()
-						? Long.MAX_VALUE
-						: now + notification.getDurationMillis() * 1_000_000L;
-					anim = 1;
-				}else
-					anim = ComposeNotifications.easeOut(
-						elapsed / (float)(ENTER_MS * 1_000_000L));
-				return;
-			}
-			if(!exiting && now >= exitAtNanos)
-			{
-				exiting = true;
-				exitStartNanos = now;
-			}
-			if(exiting)
-			{
-				float t = (now - exitStartNanos)
-					/ (float)(EXIT_MS * 1_000_000L);
-				if(t >= 1)
-				{
-					active = false;
-					anim = 0;
-					fade = 0;
-				}else
-				{
-					float p = 1 - ComposeNotifications.easeIn(t);
-					anim = p;
-					fade = p;
-				}
-			}
+			this.title = title;
+			this.message = message;
+			this.severity = severity;
+			this.start = start;
 		}
 	}
 }

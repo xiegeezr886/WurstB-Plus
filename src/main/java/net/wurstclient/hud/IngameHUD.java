@@ -11,12 +11,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.events.GUIRenderListener;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.util.ScreenRegistry;
 
 public final class IngameHUD implements GUIRenderListener
 {
-	private final WurstLogo wurstLogo = new WurstLogo();
-	private final HackListHUD hackList = new HackListHUD();
 	private TabGui tabGui;
 	
 	@Override
@@ -25,27 +24,30 @@ public final class IngameHUD implements GUIRenderListener
 		if(!WurstClient.INSTANCE.isEnabled())
 			return;
 
+		// The HUD editor owns the screen; hide TabGui and pinned ClickGUI
+		// windows so they cannot look like stray empty boxes.
+		if(WurstClient.MC.screen instanceof net.wurstclient.hud2.GuiEditHUD)
+			return;
+
 		if(tabGui == null)
 			tabGui = new TabGui();
 		
 		ClickGui clickGui = WurstClient.INSTANCE.getGui();
-		
+
 		clickGui.updateColors();
-		
-		tabGui.render(context, partialTicks);
 
-		if(!ScreenRegistry.isAny(WurstClient.MC.screen,
-			ScreenRegistry.CLICK_GUI, ScreenRegistry.NAVIGATOR))
-			clickGui.renderPinnedWindows(context, partialTicks);
-	}
-	
-	public HackListHUD getHackList()
-	{
-		return hackList;
-	}
+		boolean drawTabGui = tabGui.isVisible();
+		boolean drawPinned = !ScreenRegistry.isAny(WurstClient.MC.screen,
+			ScreenRegistry.CLICK_GUI, ScreenRegistry.NAVIGATOR)
+			&& clickGui.hasVisiblePinnedWindows();
+		if(!drawTabGui && !drawPinned)
+			return;
 
-	public WurstLogo getWurstLogo()
-	{
-		return wurstLogo;
+		NanoVGUI.pass(context, () -> {
+			if(drawTabGui)
+				tabGui.render(context, partialTicks);
+			if(drawPinned)
+				clickGui.renderPinnedWindows(context, partialTicks);
+		});
 	}
 }

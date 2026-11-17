@@ -21,11 +21,6 @@ import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.PlayerAttacksEntityListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.hacks.criticals.CriticalsMode;
-import net.wurstclient.hacks.criticals.JumpCriticalsMode;
-import net.wurstclient.hacks.criticals.MiniJumpCriticalsMode;
-import net.wurstclient.hacks.criticals.NoGroundCriticalsMode;
-import net.wurstclient.hacks.criticals.PacketCriticalsMode;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
@@ -95,9 +90,8 @@ public final class CriticalsHack extends Hack
 			return;
 
 		CriticalState state = getState();
-		Mode selectedMode = mode.getSelected();
-		if(!CombatActionPolicy.canStartSpoofedCritical(state,
-			selectedMode.requiresGround(), stopSprinting.isChecked()))
+		if(!CombatActionPolicy.canCritical(state, true,
+			stopSprinting.isChecked()))
 			return;
 		if(stopSprinting.isChecked() && MC.player.isSprinting())
 		{
@@ -106,10 +100,27 @@ public final class CriticalsHack extends Hack
 			MC.player.setSprinting(false);
 		}
 
-		// 具体打法交给模式类（见 net.wurstclient.hacks.criticals）：
-		// 返回 false 表示这次不打暴击，跳过粒子。
-		if(!selectedMode.doCriticals(this))
-			return;
+		switch(mode.getSelected())
+		{
+			case PACKET -> sendPacketProfile(packetProfile.getSelected());
+			case NO_GROUND -> sendOffset(-0.000001, false);
+			case MINI_JUMP -> {
+				if(!MC.player.onGround())
+					return;
+				MC.player.push(0, jumpHeight.getValue(), 0);
+				MC.player.fallDistance = 0.1F;
+				MC.player.setOnGround(false);
+				sendOffset(jumpHeight.getValue(), false);
+				sendOffset(0.000001, false);
+			}
+			case JUMP -> {
+				if(!MC.player.onGround())
+					return;
+				MC.player.jumpFromGround();
+				sendOffset(0.42, false);
+				sendOffset(0.000001, false);
+			}
+		}
 
 		if(particles.isChecked())
 			MC.player.crit(target);
@@ -130,20 +141,7 @@ public final class CriticalsHack extends Hack
 			MC.player.isSprinting());
 	}
 
-	/** 供模式类读取当前选中的发包方案。 */
-	public PacketProfile getPacketProfile()
-	{
-		return packetProfile.getSelected();
-	}
-
-	/** 供 Mini jump 模式读取跳跃高度。 */
-	public double getJumpHeight()
-	{
-		return jumpHeight.getValue();
-	}
-
-	/** 供模式类发包：把玩家位置按 offset 抬一下。 */
-	public void sendPacketProfile(PacketProfile profile)
+	private void sendPacketProfile(PacketProfile profile)
 	{
 		switch(profile)
 		{
@@ -186,8 +184,7 @@ public final class CriticalsHack extends Hack
 		}
 	}
 
-	/** 供模式类发包：把玩家位置按 offset 抬一下。 */
-	public void sendOffset(double offset, boolean onGround)
+	private void sendOffset(double offset, boolean onGround)
 	{
 		MC.player.connection.send(new Pos(MC.player.getX(),
 			MC.player.getY() + offset, MC.player.getZ(), onGround));
@@ -195,28 +192,16 @@ public final class CriticalsHack extends Hack
 
 	private enum Mode
 	{
-		PACKET("Packet", new PacketCriticalsMode()),
-		NO_GROUND("NoGround", new NoGroundCriticalsMode()),
-		MINI_JUMP("Mini jump", new MiniJumpCriticalsMode()),
-		JUMP("Jump", new JumpCriticalsMode());
+		PACKET("Packet"),
+		NO_GROUND("NoGround"),
+		MINI_JUMP("Mini jump"),
+		JUMP("Jump");
 
 		private final String name;
-		private final CriticalsMode impl;
 
-		Mode(String name, CriticalsMode impl)
+		Mode(String name)
 		{
 			this.name = name;
-			this.impl = impl;
-		}
-
-		public boolean requiresGround()
-		{
-			return impl.requiresGround();
-		}
-
-		public boolean doCriticals(CriticalsHack hack)
-		{
-			return impl.doCriticals(hack);
 		}
 
 		@Override
@@ -226,8 +211,7 @@ public final class CriticalsHack extends Hack
 		}
 	}
 
-	/** 发包方案（供模式类使用，因此是 public 的嵌套枚举）。 */
-	public enum PacketProfile
+	private enum PacketProfile
 	{
 		WURST("Wurst"),
 		GRIMAC("GrimAC"),

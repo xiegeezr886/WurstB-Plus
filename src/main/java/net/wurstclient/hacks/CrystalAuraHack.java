@@ -42,7 +42,6 @@ import net.wurstclient.settings.SwingHandSetting.SwingHand;
 import net.wurstclient.settings.filterlists.CrystalAuraFilterList;
 import net.wurstclient.settings.filterlists.EntityFilterList;
 import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.CombatRotationController;
 import net.wurstclient.util.CrystalAuraPlanner;
 import net.wurstclient.util.DamageUtils;
 import net.wurstclient.util.FakePlayerEntity;
@@ -117,8 +116,7 @@ public final class CrystalAuraHack extends Hack implements UpdateListener
 
 	private int breakTimer;
 	private int placeTimer;
-	private final CombatRotationController rotationController =
-		new CombatRotationController(RotationQueue.Priority.COMBAT);
+	private RotationQueue rotationQueue;
 
 	public CrystalAuraHack()
 	{
@@ -155,7 +153,9 @@ public final class CrystalAuraHack extends Hack implements UpdateListener
 
 		breakTimer = 0;
 		placeTimer = 0;
-		rotationController.start();
+		rotationQueue =
+			new RotationQueue(RotationQueue.Priority.COMBAT);
+		rotationQueue.start();
 		EVENTS.add(UpdateListener.class, this);
 	}
 
@@ -163,7 +163,8 @@ public final class CrystalAuraHack extends Hack implements UpdateListener
 	protected void onDisable()
 	{
 		EVENTS.remove(UpdateListener.class, this);
-		rotationController.stop();
+		rotationQueue.stop();
+		rotationQueue = null;
 	}
 
 	@Override
@@ -413,7 +414,7 @@ public final class CrystalAuraHack extends Hack implements UpdateListener
 	{
 		Facing mode = faceBlocks.getSelected();
 		if(mode == Facing.SERVER)
-			rotationController.request(
+			rotationQueue.setRotation(
 				RotationUtils.getNeededRotations(vec));
 		else
 			mode.face(vec);

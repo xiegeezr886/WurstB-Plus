@@ -11,23 +11,20 @@ package net.wurstclient.hacks;
 
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
-import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
 @SearchTags({"custom fov", "fov", "field of view", "zoom"})
-public final class CustomFovHack extends Hack implements UpdateListener
+public final class CustomFovHack extends Hack
 {
 	private final SliderSetting fov = new SliderSetting("FOV",
 		"The field of view used while this hack is enabled.", 110, 30, 170, 1,
 		ValueDisplay.INTEGER.withSuffix("\u00b0"));
 
 	private final SliderSetting itemFov = new SliderSetting("Item FOV",
-		"The field of view used for held items. Handled by the game's renderer.",
+		"The independent field of view used for held items.",
 		70, 30, 170, 1, ValueDisplay.INTEGER.withSuffix("\u00b0"));
-
-	private Integer oldFov;
 
 	public CustomFovHack()
 	{
@@ -37,33 +34,15 @@ public final class CustomFovHack extends Hack implements UpdateListener
 		addSetting(itemFov);
 	}
 
-	@Override
-	protected void onEnable()
+	public double changeFov(double original, boolean world)
 	{
-		oldFov = MC.options.fov().get();
-		EVENTS.add(UpdateListener.class, this);
-		applyFov();
-	}
-
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(UpdateListener.class, this);
-		if(oldFov != null)
-			MC.options.fov().set(oldFov);
-		oldFov = null;
-	}
-
-	@Override
-	public void onUpdate()
-	{
-		applyFov();
-	}
-
-	private void applyFov()
-	{
-		int value = fov.getValueI();
-		if(!MC.options.fov().get().equals(value))
-			MC.options.fov().set(value);
+		if(isEnabled())
+		{
+			original = world ? fov.getValue() : itemFov.getValue();
+			if(!world)
+				return original;
+		}
+        if(!isEnabled()) original = WURST.getHax().scaffoldWalkHack.getSilenceTellyFov(original);
+		return WURST.getOtfs().zoomOtf.changeFovBasedOnZoom(original);
 	}
 }

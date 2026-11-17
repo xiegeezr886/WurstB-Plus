@@ -15,6 +15,10 @@ import net.wurstclient.event.Listener;
 public interface PreMotionListener extends Listener
 {
 	public void onPreMotion();
+
+	/** Resolves shared requests after every module has published its plan. */
+	default void afterPreMotion()
+	{}
 	
 	public static class PreMotionEvent extends Event<PreMotionListener>
 	{
@@ -25,6 +29,8 @@ public interface PreMotionListener extends Listener
 		{
 			for(PreMotionListener listener : listeners)
 				listener.onPreMotion();
+			for(PreMotionListener listener : listeners)
+				listener.afterPreMotion();
 		}
 		
 		@Override

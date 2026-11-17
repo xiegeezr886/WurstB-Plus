@@ -1,97 +1,52 @@
 package net.wurstclient.gui.title;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.minecraft.MinecraftProfileTexture;
-import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.realmsclient.RealmsMainScreen;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.texture.AbstractTexture;
-import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.gui.ModListScreen;
+import net.minecraft.util.Mth;
+import net.minecraftforge.versions.forge.ForgeVersion;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
-import net.wurstclient.background.BackgroundManager;
-import net.wurstclient.clickgui2.FlatRenderer;
-import net.wurstclient.gui.title.TitleMenuLayout.Rect;
-import net.wurstclient.gui.title.WurstTitleButton.Style;
-import net.wurstclient.gui.visual.VisualRenderer;
-import net.wurstclient.gui.visual.VisualTheme;
-import net.wurstclient.mixin.SkinManagerAccessor;
+import net.wurstclient.gui.MainMenuBackground;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.util.ScreenRegistry;
 
-/**
- * 标题主界面的内容，由 {@code TitleScreenMixin} 在标题界面上调用。
- *
- * <p>
- * 版式按用户给的参考图（{@code docs/title-menu.md} 记了量到的像素）：全屏壁纸 +
- * 底部渐变压暗，左上角账号胶囊，右上角齿轮，左下角白色字标，底部一整条动作条，
- * 里面 4 个等宽按钮。几何全部在 {@link TitleMenuLayout} 里算，这里只管画。</p>
- *
- * <p>
- * 交互元素仍然是原版控件（{@code AbstractButton} 的子类），所以输入、悬停、
- * 旁白都是原版那一套；弹出的齿轮菜单用 {@code visible} 开关，不动态增删控件，
- * 免得在渲染中途改控件表。</p>
- */
 public final class WurstTitleMenu
 {
-	private static final ResourceLocation SINGLEPLAYER = fdp("singleplayer");
-	private static final ResourceLocation MULTIPLAYER = fdp("multiplayer");
-	private static final ResourceLocation OPTIONS = fdp("options");
-	private static final ResourceLocation POWER = fdp("power");
-	private static final ResourceLocation USER = fdp("user");
-	private static final ResourceLocation INFO = fdp("info");
-	private static final ResourceLocation SETTINGS = icon("settings");
-	private static final ResourceLocation RENDER = icon("render");
-	private static final ResourceLocation LOGO = new ResourceLocation("wurst",
-		"textures/gui/wurstb_logo_white.png");
+	private static final int ICON_TEXTURE_SIZE = 88;
+	private static final int ACCENT = 0xFF006366;
+	private static final int TEXT = 0xFFF1F7F7;
+	private static final int MUTED_TEXT = 0xFFA4B4B5;
+	private static final int DIM_TEXT = 0xFF738687;
 
-
-	/** 壁纸整体压暗，保证白字在任何壁纸上都读得出来。 */
-	private static final int BACKGROUND_SCRIM = 0x33000000;
-	/** 底部渐变压暗，参考图上动作条那一段明显比上方暗。 */
-	private static final int BOTTOM_SCRIM = 0x66000000;
-	private static final float BOTTOM_SCRIM_START = 0.45F;
-
-	/** 参考图上按 50% 黑压出来的胶囊与动作条底色。 */
-	private static final int CHIP_FILL = 0x80000000;
-	private static final int RAIL_FILL = 0x80000000;
-	private static final int MENU_FILL = 0xF01B1E24;
-	private static final int TEXT_MUTED = 0xB3FFFFFF;
+	private static final ResourceLocation SINGLEPLAYER = icon("singleplayer");
+	private static final ResourceLocation MULTIPLAYER = icon("multiplayer");
+	private static final ResourceLocation REALMS = icon("realms");
+	private static final ResourceLocation OPTIONS = icon("options");
+	private static final ResourceLocation USER = icon("user");
+	private static final ResourceLocation INFO = icon("info");
+	private static final ResourceLocation EXIT = icon("exit");
 
 	private final Screen parent;
-	private final List<WurstTitleButton> menuRows = new ArrayList<>();
-	private final TitleLogoVector logoTexture = new TitleLogoVector();
+	private final List<WurstTitleButton> buttons = new ArrayList<>();
 
 	private Minecraft minecraft;
-	private TitleMenuLayout layout;
-	private Component playerName;
-	private Component welcome;
-	private static ResourceLocation skin;
-	private static boolean skinRequested;
-	private static final ResourceLocation AVATAR_TEXTURE =
-		new ResourceLocation(WurstClient.MOD_ID, "title_avatar");
-	private DynamicTexture avatarTexture;
-	private ResourceLocation avatarSource;
-	private int avatarPixels = -1;
-	private int avatarRetryCooldown;
-	private boolean avatarFromFallback;
-	private int avatarUpgradeCountdown;
-	private String avatarLogState = "";
-	private boolean menuOpen;
+	private int margin;
+	private int cardX;
+	private int cardY;
+	private int cardWidth;
+	private int cardHeight;
+	private int cardGap;
+	private int utilityY;
 
 	public WurstTitleMenu(Screen parent)
 	{
@@ -102,605 +57,122 @@ public final class WurstTitleMenu
 		Consumer<AbstractWidget> addWidget)
 	{
 		this.minecraft = minecraft;
-		menuRows.clear();
-		menuOpen = false;
+		configureIconFiltering();
+		buttons.clear();
+		updateLayout(screenWidth, screenHeight);
 
-		playerName = Component.literal(minecraft.getUser().getName());
-		welcome = Component.translatable("wurst.title.welcome");
+		int y = cardY;
+		addButton(addWidget, cardX, y, cardWidth, cardHeight, "单人游戏",
+			SINGLEPLAYER, () -> ScreenRegistry.WORLD_SELECTION.open(parent),
+			false, false);
+		y += cardHeight + cardGap;
+		addButton(addWidget, cardX, y, cardWidth, cardHeight, "多人游戏",
+			MULTIPLAYER,
+			() -> ScreenRegistry.MULTIPLAYER.open(parent), false,
+			false);
+		y += cardHeight + cardGap;
+		addButton(addWidget, cardX, y, cardWidth, cardHeight, "Minecraft Realms",
+			REALMS, () -> minecraft.setScreen(new RealmsMainScreen(parent)), false,
+			false);
+		y += cardHeight + cardGap;
+		addButton(addWidget, cardX, y, cardWidth, cardHeight, "游戏设置",
+			OPTIONS, () -> ScreenRegistry.OPTIONS.open(parent), false, false);
 
-		// Resizing the window re-runs init(). getInsecureSkinLocation often
-		// falls back to Alex/Steve there (the profile textures are not fetched
-		// yet), so never overwrite an already resolved real skin with it.
-		ResourceLocation resolved = resolveSkin(minecraft);
-		if(skin == null || (isDefaultSkinLocation(skin) && resolved != null
-			&& !isDefaultSkinLocation(resolved)))
-			skin = resolved;
-		requestSkin(minecraft);
-		configureTextures(minecraft);
-
-		Font font = minecraft.font;
-		int chipTextWidth = Math.max(font.width(playerName),
-			font.width(welcome));
-		layout = new TitleMenuLayout(screenWidth, screenHeight, chipTextWidth);
-
-		// 底部动作条
-		addWidget.accept(action(0, "wurst.title.singleplayer", SINGLEPLAYER,
-			() -> ScreenRegistry.WORLD_SELECTION.open(parent)));
-		addWidget.accept(action(1, "wurst.title.multiplayer", MULTIPLAYER,
-			() -> ScreenRegistry.MULTIPLAYER.open(parent)));
-		addWidget.accept(action(2, "wurst.title.settings", OPTIONS,
-			() -> ScreenRegistry.OPTIONS.open(parent)));
-		addWidget.accept(action(3, "wurst.title.quit", POWER, minecraft::stop));
-
-		// 右上角齿轮
-		Rect gear = layout.gear();
-		addWidget.accept(new WurstTitleButton(gear.x(), gear.y(),
-			gear.width(), gear.height(),
-			Component.translatable("wurst.title.menu"), SETTINGS,
-			this::toggleMenu, Style.ICON, layout.gearRadius(),
-			layout.gearIconSize()));
-
-		// 齿轮菜单：默认收起来，靠 visible 开关
-		addMenuRow(addWidget, 0, "wurst.title.background", RENDER,
-			() -> minecraft.setScreen(new BackgroundSelectScreen(parent)));
-		addMenuRow(addWidget, 1, "wurst.title.accounts", USER,
-			() -> minecraft.setScreen(new AltManagerScreen(parent,
-				WurstClient.INSTANCE.getAltManager())));
-		addMenuRow(addWidget, 2, "wurst.title.mods", INFO,
-			() -> minecraft.setScreen(new ModListScreen(parent)));
+		int compactGap = 7;
+		int compactWidth = (cardWidth - compactGap * 2) / 3;
+		int compactHeight = 30;
+		addButton(addWidget, cardX, utilityY, compactWidth, compactHeight,
+			"账号", USER, () -> minecraft.setScreen(new AltManagerScreen(parent,
+				WurstClient.INSTANCE.getAltManager())), true, false);
+		addButton(addWidget, cardX + compactWidth + compactGap, utilityY,
+			compactWidth, compactHeight, "模组", INFO,
+			() -> minecraft.setScreen(new Screen(Component.literal("模组"))
+			{
+			}), true, false);
+		addButton(addWidget, cardX + (compactWidth + compactGap) * 2, utilityY,
+			cardWidth - (compactWidth + compactGap) * 2, compactHeight,
+			"退出", EXIT, minecraft::stop, true, true);
 	}
 
-	private WurstTitleButton action(int index, String translationKey,
-		ResourceLocation icon, Runnable run)
+	private void addButton(Consumer<AbstractWidget> addWidget, int x, int y,
+		int width, int height, String text, ResourceLocation icon,
+		Runnable action, boolean compact, boolean dangerous)
 	{
-		Rect rect = layout.action(index);
-		return new WurstTitleButton(rect.x(), rect.y(), rect.width(),
-			rect.height(), Component.translatable(translationKey), icon, run,
-			Style.ACTION, layout.buttonRadius(), layout.actionIconSize());
-	}
-
-	private void addMenuRow(Consumer<AbstractWidget> addWidget, int index,
-		String translationKey, ResourceLocation icon, Runnable run)
-	{
-		Rect rect = layout.menuRows().get(index);
-		WurstTitleButton row = new WurstTitleButton(rect.x(), rect.y(),
-			rect.width(), rect.height(), Component.translatable(translationKey),
-			icon, run, Style.ROW, layout.menuRadius(),
-			layout.menuIconSize());
-		row.visible = false;
-		menuRows.add(row);
-		addWidget.accept(row);
-	}
-
-	private void toggleMenu()
-	{
-		menuOpen = !menuOpen;
-
-		for(WurstTitleButton row : menuRows)
-			row.visible = menuOpen;
+		WurstTitleButton button = new WurstTitleButton(x, y, width, height,
+			Component.literal(text), icon, action, compact, dangerous);
+		buttons.add(button);
+		addWidget.accept(button);
 	}
 
 	public void render(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks, int screenWidth, int screenHeight)
 	{
-		if(layout == null)
-			return;
+		// Clear the main target first: the NanoVG pass blends its framebuffer
+		// over whatever the title screen had drawn before it.
+		graphics.fill(0, 0, screenWidth, screenHeight, 0xFF02090A);
 
-		drawBackground(graphics, mouseX, mouseY, screenWidth, screenHeight);
-		drawChip(graphics);
-		drawLogo(graphics);
-		drawRail(graphics);
-
-		if(menuOpen)
-			drawMenu(graphics);
+		NanoVGUI.pass(graphics, () -> {
+			drawBackground(graphics, screenWidth, screenHeight);
+			drawBrand(graphics, screenWidth);
+			drawFooter(graphics, screenWidth, screenHeight);
+			for(WurstTitleButton button : buttons)
+				button.renderNanoVG(graphics);
+		});
 	}
 
-	/**
-	 * 用户选的壁纸；没选或还没解码好时退回内置网格。两种都要压暗，菜单才在
-	 * 任何背景上都读得出来。
-	 */
-	private void drawBackground(GuiGraphics graphics, int mouseX, int mouseY,
-		int screenWidth, int screenHeight)
+	private void updateLayout(int screenWidth, int screenHeight)
 	{
-		if(BackgroundManager.get().render(graphics, screenWidth, screenHeight,
-			mouseX, mouseY))
-			graphics.fill(0, 0, screenWidth, screenHeight, BACKGROUND_SCRIM);
-		else
-			VisualRenderer.gridBackground(graphics, screenWidth, screenHeight);
-
-		graphics.fillGradient(0,
-			Math.round(screenHeight * BOTTOM_SCRIM_START), screenWidth,
-			screenHeight, 0x00000000, BOTTOM_SCRIM);
+		margin = Mth.clamp(screenWidth / 35, 14, 30);
+		cardWidth = Mth.clamp(Math.round(screenWidth * 0.29F), 260, 340);
+		cardHeight = screenHeight < 280 ? 34 : 46;
+		cardGap = screenHeight < 280 ? 5 : 9;
+		cardX = (screenWidth - cardWidth) / 2;
+		int cardsHeight = cardHeight * 4 + cardGap * 3;
+		cardY = Math.max(screenHeight < 280 ? 44 : 70,
+			(screenHeight - cardsHeight - 36) / 2);
+		utilityY = cardY + cardsHeight + (screenHeight < 280 ? 6 : 12);
 	}
 
-	private void drawChip(GuiGraphics graphics)
+	private void drawBackground(GuiGraphics graphics, int screenWidth,
+		int screenHeight)
 	{
-		Rect chip = layout.chip();
-		FlatRenderer.fillRoundedRect(graphics, chip.x(), chip.y(), chip.right(),
-			chip.bottom(), layout.chipRadius(), CHIP_FILL);
-
-		drawAvatar(graphics, layout.avatar());
-
-		Font font = minecraft.font;
-		graphics.drawString(font, playerName, layout.chipTextX(),
-			layout.chipNameY(), VisualTheme.TEXT, false);
-		graphics.drawString(font, welcome, layout.chipTextX(),
-			layout.chipSubtitleY(), TEXT_MUTED, false);
+		MainMenuBackground.render(screenWidth, screenHeight,
+			MainMenuBackground.MENU_ALPHA);
 	}
 
-	/**
-	 * 左下角的白色字标。
-	 *
-	 * <p>
-	 * 贴图由 {@link TitleLogoVector} 按**实际绘制像素数**光栅化：资源里是描摹出来的
-	 * 矢量路径，任何窗口尺寸都是等尺寸渲染，所以不存在位图缩小被 GPU 的 2×2 采样
-	 * 啃掉发丝的问题（那条坑的实机对比见 {@code docs/title-logo-native-vs-baked.png}）。</p>
-	 *
-	 * <p>
-	 * 这里刻意不设 {@code setFilter}：等尺寸采样用不到过滤，而资源贴图的过滤在
-	 * 懒加载时会被 MC 按默认值重置，写了反而容易误以为它生效。</p>
-	 *
-	 * <p>
-	 * 原版 {@code GuiGraphics.setColor} 改的是<b>全局 shader 颜色</b>，会给整帧
-	 * 后面的东西染色，所以这里不画投影，只画一遍本体。</p>
-	 */
-	private void drawLogo(GuiGraphics graphics)
+	private void drawBrand(GuiGraphics graphics, int screenWidth)
 	{
-		Rect logo = layout.logo();
-		int pixels = TitleLogoVector.physicalWidth(logo.width(),
-			minecraft.getWindow().getGuiScale());
-		TitleLogoVector.Bound bound = logoTexture.bind(pixels);
-
-		graphics.blit(bound.location(), logo.x(), logo.y(), logo.width(),
-			logo.height(), 0F, 0F, bound.width(), bound.height(), bound.width(),
-			bound.height());
+		String prefix = "WurstB+ ";
+		float size = 16F;
+		int x = cardX;
+		int y = 35;
+		NanoVGUI.text(prefix, x, y, TEXT, size);
+		NanoVGUI.text("Plus", x + NanoVGUI.width(prefix, size), y, ACCENT,
+			size);
 	}
 
-
-	/** 动作条的底板；4 个按钮是控件，画在这上面。 */
-	private void drawRail(GuiGraphics graphics)
+	private void drawFooter(GuiGraphics graphics, int screenWidth,
+		int screenHeight)
 	{
-		Rect rail = layout.rail();
-		FlatRenderer.fillRoundedRect(graphics, rail.x(), rail.y(), rail.right(),
-			rail.bottom(), layout.railRadius(), RAIL_FILL);
-	}
-
-	private void drawMenu(GuiGraphics graphics)
-	{
-		Rect menu = layout.menu();
-		FlatRenderer.fillRoundedRect(graphics, menu.x(), menu.y(), menu.right(),
-			menu.bottom(), layout.menuRadius(), MENU_FILL);
-	}
-
-	/**
-	 * 标题界面也要主动请求一次本地账号的皮肤：没有进过世界时原版不会替我们
-	 * 注册，贴图就一直不存在，头像位置只剩下占位块。
-	 */
-	private static void requestSkin(Minecraft minecraft)
-	{
-		if(skinRequested)
-			return;
-
-		skinRequested = true;
-
-		try
-		{
-			GameProfile profile = minecraft.getUser().getGameProfile();
-			minecraft.getSkinManager().registerSkins(profile, (type, location,
-				texture) -> {
-				// The profile's textures property is often empty until the
-				// session lookup completes, so the initial resolution above
-				// falls back to the default skin. Take the real location as
-				// soon as the skin manager reports it.
-				if(type != MinecraftProfileTexture.Type.SKIN
-					|| !isSkinReadable(location))
-					return;
-
-				// Don't downgrade a real skin to the vanilla default when a
-				// later session lookup falls back to Alex/Steve.
-				boolean currentReal = skin != null
-					&& !isDefaultSkinLocation(skin);
-				boolean newReal = !isDefaultSkinLocation(location);
-
-				if(!currentReal || newReal)
-					skin = location;
-			}, false);
-		}catch(RuntimeException e)
-		{
-			skinRequested = false;
-		}
-	}
-
-	private void drawAvatar(GuiGraphics graphics, Rect avatar)
-	{
-		int size = avatar.width();
-
-		if(size <= 0)
-			return;
-
-		ResourceLocation source = skin;
-		ResourceLocation fallback = DefaultPlayerSkin.getDefaultSkin();
-
-		if(source == null)
-			source = fallback;
-
-		int pixels = Math.max(8, Math.min(256, size * Math.max(1,
-			(int)Math.round(minecraft.getWindow().getGuiScale()))));
-
-		ensureAvatarTexture(source, fallback, pixels);
-
-		if(avatarTexture == null)
-		{
-			FlatRenderer.fillRoundedRect(graphics, avatar.x(), avatar.y(),
-				avatar.right(), avatar.bottom(), avatar.width() / 2,
-				0x40FFFFFF);
-			return;
-		}
-
-		graphics.blit(AVATAR_TEXTURE, avatar.x(), avatar.y(), size, size, 0, 0,
-			pixels, pixels, pixels, pixels);
-	}
-
-	/**
-	 * Builds a rounded-square copy of the skin's face at the current GUI
-	 * scale. Doing this on the CPU gives anti-aliased corners; scissoring
-	 * can only cut whole rectangles and leaves a staircase at small sizes.
-	 */
-	private void ensureAvatarTexture(ResourceLocation source,
-		ResourceLocation fallback, int pixels)
-	{
-		boolean showing = false;
-
-		if(avatarTexture != null)
-		{
-			AbstractTexture current = minecraft.getTextureManager()
-				.getTexture(AVATAR_TEXTURE);
-			showing = current == avatarTexture;
-		}
-
-		if(showing && source != null && source.equals(avatarSource)
-			&& pixels == avatarPixels)
-		{
-			// The real skin may still be downloading; retry about once a
-			// second while the default skin stands in for it.
-			if(!avatarFromFallback || --avatarUpgradeCountdown > 0)
-				return;
-
-			avatarUpgradeCountdown = 60;
-			SkinImage upgrade = loadSkinImage(source);
-
-			if(upgrade != null)
-				buildAvatar(upgrade, source, pixels, false);
-
-			return;
-		}
-
-		if(showing)
-		{
-			// The skin location (or GUI scale) changed. Keep the avatar that
-			// is already on screen until the new one is readable: tearing it
-			// down to the fallback here is what turned a correct skin into
-			// Alex while the real texture was being re-registered.
-			if(avatarRetryCooldown > 0)
-			{
-				avatarRetryCooldown--;
-				return;
-			}
-
-			SkinImage loaded = loadSkinImage(source);
-
-			if(loaded == null)
-			{
-				avatarRetryCooldown = 20;
-				return;
-			}
-
-			buildAvatar(loaded, source, pixels, false);
-			return;
-		}
-
-		boolean changed = source != null && (!source.equals(avatarSource)
-			|| pixels != avatarPixels);
-
-		avatarSource = source;
-		avatarPixels = pixels;
-
-		if(changed)
-			avatarRetryCooldown = 0;
-
-		if(source == null || avatarRetryCooldown > 0)
-		{
-			avatarRetryCooldown = Math.max(0, avatarRetryCooldown - 1);
-			return;
-		}
-
-		SkinImage loaded = loadSkinImage(source);
-		boolean usedFallback = false;
-
-		if(loaded == null && fallback != null && !fallback.equals(source))
-		{
-			loaded = loadSkinImage(fallback);
-			usedFallback = loaded != null;
-		}
-
-		if(loaded == null)
-		{
-			// The skin is registered asynchronously; try again in a moment
-			// instead of hitting the resource manager every frame.
-			avatarRetryCooldown = 20;
-			return;
-		}
-
-		buildAvatar(loaded, source, pixels, usedFallback);
-	}
-
-	private void buildAvatar(SkinImage loaded, ResourceLocation source,
-		int pixels, boolean usedFallback)
-	{
-		NativeImage image = loaded.image();
-
-		try
-		{
-			NativeImage rounded = buildRoundedAvatar(image, pixels);
-			DynamicTexture texture = new DynamicTexture(rounded);
-			texture.setFilter(true, false);
-
-			minecraft.getTextureManager().release(AVATAR_TEXTURE);
-			minecraft.getTextureManager().register(AVATAR_TEXTURE, texture);
-			avatarTexture = texture;
-			avatarSource = source;
-			avatarPixels = pixels;
-			avatarFromFallback = usedFallback;
-			avatarUpgradeCountdown = 60;
-
-			String state = usedFallback ? "default until " + source
-				: "using " + source;
-			if(!state.equals(avatarLogState))
-			{
-				avatarLogState = state;
-				System.out.println("[Wurst] Title avatar: " + state);
-			}
-		}finally
-		{
-			if(loaded.owned())
-				image.close();
-		}
-	}
-
-	private SkinImage loadSkinImage(ResourceLocation source)
-	{
-		// Downloaded skins are HttpTextures (SimpleTexture), whose pixels
-		// cannot be read back. Read the on-disk cache instead.
-		if(source.getPath().startsWith("skins/"))
-			return loadCachedSkin(source);
-
-		AbstractTexture texture = minecraft.getTextureManager()
-			.getTexture(source);
-
-		if(texture instanceof DynamicTexture dynamic
-			&& dynamic.getPixels() != null)
-		{
-			NativeImage pixels = dynamic.getPixels();
-			if(pixels.getWidth() >= 48 && pixels.getHeight() >= 16)
-				return new SkinImage(pixels, false);
-		}
-
-		try
-		{
-			var resource = minecraft.getResourceManager().getResource(source);
-			if(resource.isEmpty())
-				return null;
-
-			try(InputStream in = resource.get().open())
-			{
-				NativeImage pixels = NativeImage.read(in);
-				return new SkinImage(pixels, true);
-			}
-		}catch(IOException | RuntimeException e)
-		{
-			return null;
-		}
-	}
-
-	private SkinImage loadCachedSkin(ResourceLocation source)
-	{
-		try
-		{
-			File file = cachedSkinFile(source);
-
-			if(file == null || !file.isFile() || file.length() <= 0)
-				return null;
-
-			try(InputStream in = new FileInputStream(file))
-			{
-				NativeImage pixels = NativeImage.read(in);
-
-				if(pixels.getWidth() >= 48 && pixels.getHeight() >= 16)
-					return new SkinImage(pixels, true);
-
-				pixels.close();
-				return null;
-			}
-		}catch(IOException | RuntimeException e)
-		{
-			return null;
-		}
-	}
-
-	private static File cachedSkinFile(ResourceLocation source)
-	{
-		String hash = source.getPath().substring("skins/".length());
-
-		try
-		{
-			File directory = ((SkinManagerAccessor)Minecraft.getInstance()
-				.getSkinManager()).wurst$skinsDirectory();
-
-			return new File(
-				new File(directory, hash.length() > 2 ? hash.substring(0, 2)
-					: "xx"),
-				hash);
-		}catch(RuntimeException e)
-		{
-			return null;
-		}
-	}
-
-	/**
-	 * Whether the skin callback's location can actually be rendered right now.
-	 * The manager reports a location before an HttpTexture has finished
-	 * downloading; switching to it too early would replace a working skin
-	 * with the fallback.
-	 */
-	private static boolean isDefaultSkinLocation(ResourceLocation location)
-	{
-		return location.getNamespace().equals("minecraft")
-			&& location.getPath().startsWith("textures/entity/player/");
-	}
-
-	private static boolean isSkinReadable(ResourceLocation location)
-	{
-		if(location == null)
-			return false;
-
-		Minecraft mc = Minecraft.getInstance();
-
-		try
-		{
-			AbstractTexture texture = mc.getTextureManager()
-				.getTexture(location);
-
-			if(texture instanceof DynamicTexture dynamic
-				&& dynamic.getPixels() != null)
-				return true;
-
-			if(location.getPath().startsWith("skins/"))
-			{
-				File file = cachedSkinFile(location);
-				return file != null && file.isFile() && file.length() > 0;
-			}
-
-			return mc.getResourceManager().getResource(location).isPresent();
-
-		}catch(RuntimeException e)
-		{
-			return false;
-		}
-	}
-
-	private static NativeImage buildRoundedAvatar(NativeImage skin, int pixels)
-	{
-		NativeImage result = new NativeImage(NativeImage.Format.RGBA, pixels,
-			pixels, false);
-		double radius = pixels * 0.25D;
-
-		for(int y = 0; y < pixels; y++)
-		{
-			int sy = Math.min(7, y * 8 / pixels);
-
-			for(int x = 0; x < pixels; x++)
-			{
-				int sx = Math.min(7, x * 8 / pixels);
-				int face = skin.getPixelRGBA(8 + sx, 8 + sy);
-				int hat = skin.getPixelRGBA(40 + sx, 8 + sy);
-				int color = blendOver(hat, face);
-				double coverage = cornerCoverage(x, y, pixels, radius);
-				int alpha = (int)Math.round(
-					((color >>> 24) & 0xFF) * coverage);
-
-				result.setPixelRGBA(x, y, (alpha << 24) | (color & 0xFFFFFF));
-			}
-		}
-
-		return result;
-	}
-
-	/** Source-over blend of two ABGR pixels. */
-	private static int blendOver(int source, int destination)
-	{
-		int sourceAlpha = (source >>> 24) & 0xFF;
-
-		if(sourceAlpha == 0)
-			return destination;
-		if(sourceAlpha == 255)
-			return source;
-
-		int inverse = 255 - sourceAlpha;
-		int red = (((source & 0xFF) * sourceAlpha)
-			+ ((destination & 0xFF) * inverse)) / 255;
-		int green = ((((source >>> 8) & 0xFF) * sourceAlpha)
-			+ (((destination >>> 8) & 0xFF) * inverse)) / 255;
-		int blue = ((((source >>> 16) & 0xFF) * sourceAlpha)
-			+ (((destination >>> 16) & 0xFF) * inverse)) / 255;
-		int alpha = sourceAlpha
-			+ (((destination >>> 24) & 0xFF) * inverse) / 255;
-
-		return (alpha << 24) | (blue << 16) | (green << 8) | red;
-	}
-
-	/** Fraction of the pixel covered by a rounded rectangle. */
-	private static double cornerCoverage(int x, int y, int size,
-		double radius)
-	{
-		double center = size / 2D;
-		double inner = center - radius;
-		int inside = 0;
-
-		for(int subY = 0; subY < 8; subY++)
-			for(int subX = 0; subX < 8; subX++)
-			{
-				double px = x + (subX + 0.5D) / 8D;
-				double py = y + (subY + 0.5D) / 8D;
-				double qx = Math.abs(px - center) - inner;
-				double qy = Math.abs(py - center) - inner;
-				double distance = Math.hypot(Math.max(qx, 0),
-					Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - radius;
-
-				if(distance <= 0)
-					inside++;
-			}
-
-		return inside / 64D;
-	}
-
-	private record SkinImage(NativeImage image, boolean owned)
-	{
-	}
-
-	/**
-	 * 玩家皮肤：本地账号的皮肤在登录时就写进了 profile 的 textures 属性，
-	 * {@code getInsecureSkinLocation} 只是把它登记成贴图，不会发网络请求，也
-	 * 不会返回 null（认不出来时给默认皮肤）。
-	 */
-	private static ResourceLocation resolveSkin(Minecraft minecraft)
-	{
-		try
-		{
-			GameProfile profile = minecraft.getUser().getGameProfile();
-			return minecraft.getSkinManager().getInsecureSkinLocation(profile);
-		}catch(RuntimeException e)
-		{
-			return null;
-		}
-	}
-
-	private static void configureTextures(Minecraft minecraft)
-	{
-		for(ResourceLocation location : List.of(SINGLEPLAYER, MULTIPLAYER,
-			OPTIONS, POWER, USER, INFO, SETTINGS, RENDER, LOGO))
-			minecraft.getTextureManager().getTexture(location)
-				.setFilter(true, false);
-	}
-
-	private static ResourceLocation fdp(String name)
-	{
-		return new ResourceLocation("wurst",
-			"textures/gui/fdp/" + name + ".png");
+		String runtime = "Minecraft "
+			+ SharedConstants.getCurrentVersion().getName() + "  /  NeoForge "
+			+ ForgeVersion.getVersion();
+		NanoVGUI.text(runtime, margin, screenHeight - 18, MUTED_TEXT, 9F);
+		String brand = "WurstB+ Plus";
+		NanoVGUI.text(brand, screenWidth - margin
+			- NanoVGUI.width(brand, 9F), screenHeight - 18, DIM_TEXT, 9F);
 	}
 
 	private static ResourceLocation icon(String name)
 	{
-		return new ResourceLocation("wurst",
-			"textures/gui/icons/" + name + ".png");
+		return new ResourceLocation("wurst", "textures/gui/fdp/" + name
+			+ ".png");
+	}
+
+	private void configureIconFiltering()
+	{
+		for(ResourceLocation icon : List.of(SINGLEPLAYER, MULTIPLAYER, REALMS,
+			OPTIONS, USER, INFO, EXIT))
+			minecraft.getTextureManager().getTexture(icon).setFilter(true, false);
 	}
 }

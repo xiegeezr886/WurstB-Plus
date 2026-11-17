@@ -14,6 +14,7 @@ import net.minecraft.client.gui.components.BossHealthOverlay;
 import net.minecraft.world.BossEvent;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hack.HackList;
+import net.wurstclient.hud2.mods.BossHealthMod;
 import net.wurstclient.mixinterface.IBossHealthOverlay;
 
 @Mixin(BossHealthOverlay.class)
@@ -28,6 +29,14 @@ public abstract class BossHealthOverlayMixin implements IBossHealthOverlay
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
 		if(hax != null && hax.bossStackHack.isEnabled())
+		{
+			ci.cancel();
+			return;
+		}
+
+		BossHealthMod bossHud = BossHealthMod.getInstance();
+		if(bossHud != null && bossHud.isEnabled()
+			&& !bossHud.isVanillaPosition())
 			ci.cancel();
 	}
 }

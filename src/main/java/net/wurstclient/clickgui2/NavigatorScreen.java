@@ -1,20 +1,13 @@
 /*
- * Rise 6.1.30 standard ClickGUI port for WurstB+ Plus Navigator.
+ * Compact centered module dashboard for WurstB+ Plus.
  * Copyright (c) 2025 Penguin
  */
 package net.wurstclient.clickgui2;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -22,7 +15,9 @@ import net.minecraft.util.Mth;
 import net.wurstclient.Category;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
+import net.wurstclient.clickgui2.animation.SmoothScroll;
 import net.wurstclient.clickgui2.theme.FlatTheme;
+import net.wurstclient.hud2.nanovg.NanoVGUI;
 import org.lwjgl.glfw.GLFW;
 
 public final class NavigatorScreen extends Screen
@@ -31,64 +26,54 @@ public final class NavigatorScreen extends Screen
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private static final int MAX_PANEL_WIDTH = 540;
 	private static final int MAX_PANEL_HEIGHT = 400;
-	private static final int MODULE_GAP = 7;
-	private static final int SEARCH_CONTENT_OFFSET = 35;
-	private static final int CATEGORY_TRANSITION_MS = 200;
-	private static final float SEARCH_TEXT_SCALE = 0.78F;
+	private static final int MODULE_HEIGHT = 25;
+	private static final int MODULE_GAP = 4;
+	private static final int CATEGORY_HEIGHT = 13;
+	private static final float SEARCH_TEXT_SCALE = 0.72F;
 
-	private static final String AUTO_SEARCH_CHARS =
-		"abcdefghijklmnopqrstuvwxyz1234567890 ";
+	private static final int OVERLAY = 0x18000000;
+	private static final int PANEL = 0xFF050505;
+	private static final int SIDEBAR = 0xFF090909;
+	private static final int CONTENT = 0xFF050505;
+	private static final int ROW = 0xFF0D0D0D;
+	private static final int ROW_HOVER = 0xFF151515;
+	private static final int DIVIDER = 0xFF1C1C1C;
+	private static final int ACCENT = 0xFF006366;
+	private static final int TEXT = 0xFFF2F4F7;
+	private static final int MUTED = 0xFF727B88;
+	private static final int DIM = 0xFF4C5562;
 
 	private static final String[] CATEGORY_NAMES = {
-		"\u641c\u7d22", "\u65b9\u5757", "\u79fb\u52a8", "\u6218\u6597",
+		"\u5168\u90e8", "\u65b9\u5757", "\u79fb\u52a8", "\u6218\u6597",
 		"\u6e32\u67d3", "\u804a\u5929", "\u5a31\u4e50", "\u7269\u54c1",
-		"\u5176\u4ed6", "\u754c\u9762", "\u98ce\u683c"};
-	private static final GuiIcon[] CATEGORY_ICONS = {GuiIcon.SEARCH,
-		GuiIcon.WORLD, GuiIcon.MOVEMENT, GuiIcon.COMBAT, GuiIcon.RENDER,
-		GuiIcon.PLAYER, GuiIcon.FUN, GuiIcon.BOOK, GuiIcon.MISC,
-		GuiIcon.CLIENT, GuiIcon.CONFIG};
+		"\u5176\u4ed6", "HUD", "\u754c\u9762"};
+	private static final GuiIcon[] CATEGORY_ICONS = {GuiIcon.MENU, GuiIcon.WORLD,
+		GuiIcon.MOVEMENT, GuiIcon.COMBAT, GuiIcon.RENDER, GuiIcon.PLAYER,
+		GuiIcon.FUN, GuiIcon.BOOK, GuiIcon.MISC, GuiIcon.CLIENT,
+		GuiIcon.CLIENT};
 
 	private final List<Feature> visibleFeatures = new ArrayList<>();
-	private List<Feature> previousFeatures = List.of();
-	private final Map<Feature, RiseModuleComponent> moduleComponents =
-		new IdentityHashMap<>();
-	private final List<RiseSidebarCategory> categories = new ArrayList<>();
-	private final RiseScrollState moduleScroll = new RiseScrollState();
-	private final RiseAnimation scaleAnimation =
-		new RiseAnimation(RiseAnimation.Easing.EASE_OUT_EXPO, 300);
-	private final RiseAnimation opacityAnimation =
-		new RiseAnimation(RiseAnimation.Easing.EASE_OUT_EXPO, 300);
-	private final RiseAnimation searchOpacity =
-		new RiseAnimation(RiseAnimation.Easing.LINEAR, 64);
-	private final RiseAnimation sidebarOpacity =
-		new RiseAnimation(RiseAnimation.Easing.LINEAR, 128);
-
 	private ScaledEditBox searchBox;
-	private int selectedCategory;
-	private int previousCategory;
+	private NavigatorSettingsPanel settingsPanel;
+	private Feature selectedFeature;
+	private int selectedCategory = 3;
+	private int moduleScroll;
 	private int categoryScroll;
-	private long categoryChangedAt = Long.MIN_VALUE;
-	private int panelX = -1;
-	private int panelY = -1;
+	private final SmoothScroll moduleSmooth = new SmoothScroll();
+	private final SmoothScroll categorySmooth = new SmoothScroll();
+	private int panelX;
+	private int panelY;
 	private int panelWidth;
 	private int panelHeight;
 	private int sidebarWidth;
-	private int contentHeight;
-	private boolean initialized;
-	private boolean closing;
-	private boolean suppressSearchRefresh;
-	private boolean typedWhileSearchOpen;
 	private boolean dragging;
 	private int dragOffsetX;
 	private int dragOffsetY;
-	private float animationProgress;
+	private boolean scrollbarDragging;
 
 	public NavigatorScreen()
 	{
 		super(Component.literal(WurstClient.CLIENT_NAME));
-		for(int index = 0; index < CATEGORY_NAMES.length; index++)
-			categories.add(new RiseSidebarCategory(CATEGORY_NAMES[index],
-				CATEGORY_ICONS[index]));
 	}
 
 	@Override
@@ -96,44 +81,22 @@ public final class NavigatorScreen extends Screen
 	{
 		updateDimensions();
 		GuiIcon.configureFiltering(MC);
-		if(!initialized || panelX < 0 || panelY < 0
-			|| panelX + panelWidth > width || panelY + panelHeight > height)
-		{
-			panelX = (width - panelWidth) / 2;
-			panelY = (height - panelHeight) / 2;
-		}
+		panelX = (width - panelWidth) / 2;
+		panelY = (height - panelHeight) / 2;
 
 		String query = searchBox == null ? "" : searchBox.getValue();
-		searchBox = new ScaledEditBox(MC.font, 0, 0, 150, 16,
-			RiseFont.text("\u5f00\u59cb\u8f93\u5165\u4ee5\u641c\u7d22..."),
-			SEARCH_TEXT_SCALE);
+		searchBox = new ScaledEditBox(MC.font, 0, 0, sidebarWidth - 24,
+			16, Component.literal("\u641c\u7d22"), SEARCH_TEXT_SCALE);
 		searchBox.setBordered(false);
 		searchBox.setMaxLength(80);
-		searchBox.setHint(RiseFont.text("\u5f00\u59cb\u8f93\u5165\u4ee5\u641c\u7d22..."));
-		searchBox.setFormatter((text, cursor) -> RiseFont.sequence(text));
-		searchBox.setTextColor(RiseColors.TEXT.argb());
-		searchBox.setTextColorUneditable(RiseColors.TRINARY_TEXT.argb());
+		searchBox.setHint(Component.literal("\u641c\u7d22"));
+		searchBox.setTextColor(TEXT);
+		searchBox.setTextColorUneditable(MUTED);
 		searchBox.setValue(query);
-		searchBox.setResponder(ignored -> {
-			if(!suppressSearchRefresh)
-			{
-				moduleScroll.reset();
-				refreshFeatures(false);
-			}
-		});
+		searchBox.setResponder(ignored -> refreshFeatures());
 		addRenderableWidget(searchBox);
-		WURST.getGui().initEmbedded();
-		refreshFeatures(false);
-		if(!initialized)
-		{
-			scaleAnimation.setValue(0);
-			opacityAnimation.setValue(0);
-			searchOpacity.setValue(1);
-			previousCategory = selectedCategory;
-			previousFeatures = List.copyOf(visibleFeatures);
-			categoryChangedAt = System.currentTimeMillis() - 150;
-			initialized = true;
-		}
+		WURST.getGui().init();
+		refreshFeatures();
 	}
 
 	private void updateDimensions()
@@ -149,76 +112,35 @@ public final class NavigatorScreen extends Screen
 		panelY = Mth.clamp(panelY, 0, Math.max(0, height - panelHeight));
 	}
 
-	private void refreshFeatures(boolean categoryChange)
+	private void refreshFeatures()
 	{
-		if(categoryChange)
-		{
-			previousFeatures = List.copyOf(visibleFeatures);
-			categoryChangedAt = System.currentTimeMillis();
-			moduleScroll.reset();
-		}
-
 		String query = searchBox == null ? "" : searchBox.getValue().trim();
 		visibleFeatures.clear();
-		if(selectedCategory == 0)
-		{
-			if(query.isEmpty())
-				visibleFeatures.addAll(FeatureMenuSupport.getAllFeatures());
-			else
-				visibleFeatures.addAll(searchRiseFeatures(query));
-		}else if(selectedCategory <= Category.values().length)
+		if(!query.isEmpty())
+			visibleFeatures.addAll(FeatureMenuSupport.searchFeatures(
+				FeatureMenuSupport.getAllFeatures(), query));
+		else if(selectedCategory == 0)
+			visibleFeatures.addAll(FeatureMenuSupport.getAllFeatures());
+		else if(selectedCategory <= Category.values().length)
 		{
 			Category category = Category.values()[selectedCategory - 1];
 			for(Feature feature : FeatureMenuSupport.getAllFeatures())
 				if(feature.getCategory() == category)
 					visibleFeatures.add(feature);
-		}else if(selectedCategory == CATEGORY_NAMES.length - 1)
-		{
-			// 风格页：无模块列表，只渲染切换开关。
-			visibleFeatures.clear();
 		}else
 			visibleFeatures.addAll(getInterfaceFeatures());
 
-		if(selectedCategory != 0 || query.isEmpty())
+		if(query.isEmpty())
 			visibleFeatures.sort(Comparator.comparing(Feature::getDisplayName,
 				String.CASE_INSENSITIVE_ORDER));
-	}
-
-	private List<Feature> searchRiseFeatures(String query)
-	{
-		List<Feature> sorted = new ArrayList<>(FeatureMenuSupport.getAllFeatures());
-		Collator collator = Collator.getInstance();
-		sorted.sort((first, second) -> collator.compare(first.getDisplayName(),
-			second.getDisplayName()));
-		String normalized = query.toLowerCase(Locale.ROOT);
-		List<String> words = new ArrayList<>(List.of(normalized.split(" ")));
-		words.add(normalized.replace(" ", ""));
-		LinkedHashSet<Feature> matches = new LinkedHashSet<>();
-		for(String word : words)
-			for(Feature feature : sorted)
-			{
-				String needle = word.replace(" ", "");
-				boolean found = List.of(feature.getName(),
-					feature.getDisplayName(), feature.getSearchTags()).stream()
-					.map(alias -> alias.toLowerCase(Locale.ROOT)
-						.replace(" ", "").replace("\u00a7", ""))
-					.anyMatch(alias -> alias.contains(needle));
-				if(found)
-					matches.add(feature);
-			}
-		return List.copyOf(matches);
-	}
-
-	private void switchCategory(int category)
-	{
-		if(category == selectedCategory)
-			return;
-		previousCategory = selectedCategory;
-		selectedCategory = category;
-		searchBox.setFocused(false);
-		if(category == 0)
-			typedWhileSearchOpen = false;
-		refreshFeatures(true);
+		if(selectedFeature == null || !visibleFeatures.contains(selectedFeature))
+			selectedFeature = visibleFeatures.isEmpty() ? null
+				: visibleFeatures.get(0);
+		if(settingsPanel != null
+			&& !visibleFeatures.contains(settingsPanel.getFeature()))
+			closeSettings();
+		moduleScroll = 0;
+		moduleSmooth.snapTo(0);
 	}
 
 	private List<Feature> getInterfaceFeatures()
@@ -235,370 +157,386 @@ public final class NavigatorScreen extends Screen
 	{
 		updateDimensions();
 		WURST.getGui().updateColors();
-		animationProgress = scaleAnimation.run(closing ? 0 : 1);
-		float opacity = opacityAnimation.run(closing ? 0 : 1);
-		if(closing && animationProgress <= 0.001F)
-		{
-			MC.setScreen(null);
-			return;
-		}
 
-		float scale = Math.max(0.01F, animationProgress);
-		int localMouseX = (int)Math.round(unscaleX(mouseX, scale));
-		int localMouseY = (int)Math.round(unscaleY(mouseY, scale));
-		boolean clip = true;
+		NanoVGUI.pass(graphics, () -> {
+			NanoVGUI.fill(0, 0, width, height, OVERLAY);
+			FlatUiRenderer.panel(graphics, panelX, panelY,
+				panelX + panelWidth, panelY + panelHeight, 8, PANEL,
+				0xFF202020);
+			FlatUiRenderer.fill(graphics, panelX + 1, panelY + 1,
+				panelX + sidebarWidth, panelY + panelHeight - 1, 7, SIDEBAR);
+			NanoVGUI.fill(panelX + sidebarWidth, panelY + 1,
+				panelX + panelWidth - 1, panelY + panelHeight - 1, CONTENT);
+			NanoVGUI.fill(panelX + sidebarWidth, panelY + 10,
+				panelX + sidebarWidth + 1, panelY + panelHeight - 10,
+				DIVIDER);
 
-		graphics.pose().pushPose();
-		applyScale(graphics, scale);
-		graphics.flush();
-		RenderSystem.setShaderColor(1, 1, 1, opacity);
-		if(animationProgress > 0.993F)
-			RiseShadow.draw(graphics, panelX, panelY,
-				panelX + panelWidth, panelY + panelHeight, 12, 18,
-				0x1E000000);
-		FlatUiRenderer.fill(graphics, panelX, panelY, panelX + panelWidth,
-			panelY + panelHeight, 12, RiseColors.BACKGROUND.argb());
-		graphics.enableScissor(panelX + 1, panelY + 1,
-			panelX + panelWidth - 1, panelY + panelHeight - 1);
-		renderSidebarArea(graphics, localMouseX, localMouseY);
-		moduleScroll.update();
-		int renderingCategory = transitionCategory();
-		List<Feature> renderingFeatures = transitionFeatures();
-		if(renderingCategory == 0)
-			renderSearchHeader(graphics, localMouseX, localMouseY, partialTicks,
-				clip);
-		else
-			searchBox.visible = false;
-		if(renderingCategory == CATEGORY_NAMES.length - 1)
-			renderStylePage(graphics, localMouseX, localMouseY, clip);
-		else
-			renderModules(graphics, renderingFeatures, renderingCategory == 0,
-				localMouseX, localMouseY, partialTicks, clip);
-		renderCategoryTransition(graphics);
-		WURST.getGui().renderPopups(graphics, localMouseX, localMouseY);
-		WURST.getGui().renderTooltip(graphics, localMouseX, localMouseY);
-		graphics.disableScissor();
-		graphics.flush();
-		RenderSystem.setShaderColor(1, 1, 1, 1);
-		graphics.pose().popPose();
+			renderSidebar(graphics, mouseX, mouseY, partialTicks);
+		});
+
+		if(searchBox.visible)
+			searchBox.render(graphics, mouseX, mouseY, partialTicks);
+
+		NanoVGUI.pass(graphics, () -> {
+			if(settingsPanel == null)
+				renderModules(graphics, mouseX, mouseY);
+			else
+				renderSettings(graphics, mouseX, mouseY, partialTicks);
+
+			WURST.getGui().renderPopups(graphics, mouseX, mouseY);
+			WURST.getGui().renderTooltip(graphics, mouseX, mouseY);
+		});
 	}
 
-	private void renderSidebarArea(GuiGraphics graphics, int mouseX, int mouseY)
+	private void renderSidebar(GuiGraphics graphics, int mouseX, int mouseY,
+		float partialTicks)
 	{
-		graphics.flush();
-		float[] previousColor = RenderSystem.getShaderColor().clone();
-		float opacity = sidebarOpacity.run(1);
-		RenderSystem.setShaderColor(previousColor[0], previousColor[1],
-			previousColor[2], previousColor[3] * opacity);
-		FlatUiRenderer.fill(graphics, panelX + 1, panelY + 1,
-			panelX + sidebarWidth, panelY + panelHeight - 1, 11,
-			RiseColors.SECONDARY.argb());
-		renderSidebar(graphics, mouseX, mouseY);
-		graphics.flush();
-		RenderSystem.setShaderColor(previousColor[0], previousColor[1],
-			previousColor[2], previousColor[3]);
-	}
+		String brandPrefix = "WurstB+ ";
+		String brandAccent = "Plus";
+		float brandSize = 11F;
+		float brandWidth = NanoVGUI.width(brandPrefix, brandSize)
+			+ NanoVGUI.width(brandAccent, brandSize);
+		float brandScale = Math.min(1F,
+			(sidebarWidth - 16F) / Math.max(1F, brandWidth));
+		brandSize *= brandScale;
+		NanoVGUI.text(brandPrefix, panelX + 8, panelY + 9, TEXT, brandSize);
+		NanoVGUI.text(brandAccent,
+			panelX + 8 + NanoVGUI.width(brandPrefix, brandSize), panelY + 9,
+			ACCENT, brandSize);
 
-	private void renderSidebar(GuiGraphics graphics, int mouseX, int mouseY)
-	{
-		Font font = MC.font;
-		String brand = "WurstB+";
-		float versionScale = 0.55F;
-		int brandWidth = RiseFont.width(font, brand);
-		float versionWidth = RiseFont.width(font, WurstClient.VERSION)
-			* versionScale;
-		float brandScale = Math.min(1.05F, (sidebarWidth - 22F - versionWidth)
-			/ Math.max(1, brandWidth));
-		graphics.pose().pushPose();
-		graphics.pose().translate(panelX + 14, panelY + 13, 0);
-		graphics.pose().scale(brandScale, brandScale, 1);
-		RiseFont.draw(graphics, font, brand, 0, 0, RiseColors.TEXT.argb());
-		graphics.pose().popPose();
-		graphics.pose().pushPose();
-		graphics.pose().translate(panelX + 16 + brandWidth * brandScale,
-			panelY + 11, 0);
-		graphics.pose().scale(versionScale, versionScale, 1);
-		RiseFont.draw(graphics, font, WurstClient.VERSION, 0, 0,
-			navigatorAccent());
-		graphics.pose().popPose();
+		int searchX = panelX + 12;
+		int searchY = panelY + 27;
+		GuiIcon.SEARCH.draw(graphics, searchX, searchY + 2, 8, MUTED);
+		searchBox.setX(searchX + 12);
+		searchBox.setY(searchY);
+		searchBox.setWidth(Math.max(12, sidebarWidth - 40));
+		searchBox.visible = settingsPanel == null;
 
-		int top = panelY + 38;
-		int bottom = panelY + panelHeight - 24;
-		int visibleRows = Math.max(1,
-			(bottom - top) / RiseSidebarCategory.HEIGHT);
+		int top = panelY + 43;
+		int bottom = panelY + panelHeight - 8;
+		int visibleRows = Math.max(1, (bottom - top) / CATEGORY_HEIGHT);
 		categoryScroll = Mth.clamp(categoryScroll, 0,
 			Math.max(0, CATEGORY_NAMES.length - visibleRows));
-		if(animationProgress >= 0.995F)
-			graphics.enableScissor(panelX + 5, top, panelX + sidebarWidth - 4,
-				bottom);
-		for(int row = 0; row < visibleRows; row++)
+		categorySmooth.setTarget(categoryScroll * (float)CATEGORY_HEIGHT);
+
+		float offset = categorySmooth.update();
+		int baseIndex = (int)Math.floor(offset / CATEGORY_HEIGHT);
+		float subOffset = offset - baseIndex * CATEGORY_HEIGHT;
+
+		NanoVGUI.pushScissor(panelX + 4, top, sidebarWidth - 8,
+			bottom - top);
+		for(int row = -1; row <= visibleRows; row++)
 		{
-			int index = row + categoryScroll;
-			if(index >= CATEGORY_NAMES.length)
-				break;
-			int y = top + row * RiseSidebarCategory.HEIGHT;
-			boolean hovering = inside(mouseX, mouseY, panelX + 9, y,
-				panelX + sidebarWidth - 7, y + RiseSidebarCategory.HEIGHT);
-			categories.get(index).render(graphics, font, panelX + 9, y,
-				sidebarWidth - 16, selectedCategory == index, hovering,
-				navigatorAccent());
+			int index = baseIndex + row;
+			if(index < 0 || index >= CATEGORY_NAMES.length)
+				continue;
+			int y = Math.round(top + row * CATEGORY_HEIGHT - subOffset);
+			boolean selected = searchBox.getValue().isBlank()
+				&& selectedCategory == index;
+			boolean hovering = inside(mouseX, mouseY, panelX + 8, y,
+				panelX + sidebarWidth - 8, y + 13);
+			if(selected || hovering)
+			{
+				int selectionRight = Math.min(panelX + sidebarWidth - 8,
+					panelX + 26
+						+ Math.round(NanoVGUI.width(CATEGORY_NAMES[index],
+							8F)));
+				FlatUiRenderer.fill(graphics, panelX + 8, y,
+					selectionRight, y + 12, 2,
+					selected ? accentColor() : 0xFF151515);
+			}
+			int color = selected ? TEXT : MUTED;
+			CATEGORY_ICONS[index].draw(graphics, panelX + 10, y + 2, 8, color);
+			NanoVGUI.text(CATEGORY_NAMES[index], panelX + 21, y + 3, TEXT,
+				8F);
 		}
-		if(animationProgress >= 0.995F)
-			graphics.disableScissor();
+		NanoVGUI.popScissor();
+	}
+
+	private void renderModules(GuiGraphics graphics, int mouseX, int mouseY)
+	{
+		int left = panelX + sidebarWidth + 6;
+		int right = panelX + panelWidth - 5;
+		int listTop = panelY + 3;
+		int listBottom = panelY + panelHeight - 4;
+		int visibleRows = Math.max(1,
+			(listBottom - listTop + MODULE_GAP) / (MODULE_HEIGHT + MODULE_GAP));
+		moduleScroll = Mth.clamp(moduleScroll, 0,
+			Math.max(0, visibleFeatures.size() - visibleRows));
+		int step = MODULE_HEIGHT + MODULE_GAP;
+		moduleSmooth.setTarget(moduleScroll * (float)step);
+
+		float offset = moduleSmooth.update();
+		int baseIndex = (int)Math.floor(offset / step);
+		float subOffset = offset - baseIndex * step;
+
+		NanoVGUI.pushScissor(left, listTop, right - left, listBottom - listTop);
+		for(int row = -1; row <= visibleRows; row++)
+		{
+			int index = baseIndex + row;
+			if(index < 0 || index >= visibleFeatures.size())
+				continue;
+			int y = Math.round(listTop + row * step - subOffset);
+			renderModule(graphics, visibleFeatures.get(index), left, y, right,
+				mouseX, mouseY);
+		}
+		NanoVGUI.popScissor();
+		if(visibleFeatures.size() > visibleRows)
+		{
+			int trackHeight = listBottom - listTop;
+			int thumbHeight = Math.max(12,
+				Math.round(trackHeight * visibleRows
+					/ (float)visibleFeatures.size()));
+			int maxScroll = visibleFeatures.size() - visibleRows;
+			float animatedRow = moduleSmooth.getCurrent() / step;
+			int thumbY = listTop + Math.round((trackHeight - thumbHeight)
+				* animatedRow / (float)Math.max(1, maxScroll));
+			NanoVGUI.fill(right - 2, listTop, right, listBottom, 0xFF111111);
+			NanoVGUI.fill(right - 2, thumbY, right, thumbY + thumbHeight,
+				accentColor());
+		}
+
+		if(visibleFeatures.isEmpty())
+			NanoVGUI.centeredText("\u6ca1\u6709\u5339\u914d\u7684\u529f\u80fd",
+				(left + right) / 2, listTop + 28, MUTED, 9F);
+	}
+
+	private void renderModule(GuiGraphics graphics, Feature feature, int left,
+		int y, int right, int mouseX, int mouseY)
+	{
+		boolean hovering = inside(mouseX, mouseY, left, y, right,
+			y + MODULE_HEIGHT);
+		FlatUiRenderer.fill(graphics, left, y, right, y + MODULE_HEIGHT, 4,
+			hovering ? ROW_HOVER : ROW);
+
+		int textWidth = Math.max(40, right - left - 56);
+		String name = NanoVGUI.plainSubstrByWidth(feature.getDisplayName(),
+			textWidth, 8F);
+		String description = NanoVGUI.plainSubstrByWidth(
+			FeatureMenuSupport.getOneLineDescription(feature), textWidth, 8F);
+		NanoVGUI.text(name, left + 7, y + 4,
+			feature.isEnabled() ? accentColor() : TEXT, 8F);
+		NanoVGUI.text(description, left + 7, y + 15, MUTED, 8F);
+		if(!feature.getSettings().isEmpty())
+			GuiIcon.CHEVRON.drawRotated(graphics, right - 13, y + 9, 7, MUTED,
+				-90);
 
 	}
 
-	private void renderSearchHeader(GuiGraphics graphics, int mouseX, int mouseY,
-		float partialTicks, boolean clip)
+	private void renderSettings(GuiGraphics graphics, int mouseX, int mouseY,
+		float partialTicks)
 	{
-		float opacity = searchOpacity.run(moduleScroll.target() < 0 ? 0 : 1);
-		searchBox.setTextColor(withAlpha(RiseColors.TEXT.argb(), opacity));
-		searchBox.setTextColorUneditable(
-			withAlpha(RiseColors.TRINARY_TEXT.argb(), opacity));
-		int top = panelY + 9 + (int)Math.round(moduleScroll.scroll());
-		int center = contentLeft() + (contentRight() - contentLeft()) / 2;
-		searchBox.setX(center - 75);
-		searchBox.setY(top);
-		searchBox.setWidth(150);
-		searchBox.visible = top + 16 >= viewportTop() && top < listBottom();
-		if(searchBox.visible)
-		{
-			if(clip)
-				graphics.enableScissor(contentLeft() + 1, viewportTop(),
-					contentRight() - 1, listBottom());
-			searchBox.render(graphics, mouseX, mouseY, partialTicks);
-			if(clip)
-				graphics.disableScissor();
-		}
-	}
+		Feature feature = settingsPanel.getFeature();
+		int left = panelX + sidebarWidth + 6;
+		int right = panelX + panelWidth - 5;
+		int top = panelY + 8;
+		boolean backHover = inside(mouseX, mouseY, left, top - 3, left + 20,
+			top + 17);
+		FlatUiRenderer.fill(graphics, left, top - 3, left + 20, top + 17, 3,
+			backHover ? ROW_HOVER : ROW);
+		GuiIcon.CHEVRON.drawRotated(graphics, left + 6, top + 3, 8, TEXT, 90);
+		NanoVGUI.text(feature.getDisplayName(), left + 29, top,
+			feature.isEnabled() ? accentColor() : TEXT, 9F);
+		NanoVGUI.text(settingsPanel.getVisibleSettingCount() + " settings",
+			left + 29, top + 14, MUTED, 9F);
 
-	private void renderModules(GuiGraphics graphics, List<Feature> features,
-		boolean searchResult, int mouseX, int mouseY, float partialTicks,
-		boolean clip)
-	{
-		int left = contentLeft() + 8;
-		int right = contentRight() - 9;
-		int width = right - left;
-		int y = contentStart(searchResult)
-			+ (int)Math.round(moduleScroll.scroll());
-		int total = 0;
+		int toggleX = right - 32;
+		FlatUiRenderer.fill(graphics, toggleX, top + 3, right, top + 15, 6,
+			feature.isEnabled() ? accentColor() : DIM);
+		int knobX = feature.isEnabled() ? right - 11 : toggleX + 2;
+		FlatUiRenderer.fill(graphics, knobX, top + 5, knobX + 8, top + 13, 4,
+			TEXT);
+
+		int bodyTop = panelY + 36;
+		int bodyBottom = panelY + panelHeight - 7;
+		FlatUiRenderer.fill(graphics, left, bodyTop, right, bodyBottom, 4, ROW);
+		settingsPanel.layout(left + 6, bodyTop + 5, right - left - 12,
+			bodyBottom - bodyTop - 10);
 		FlatTheme theme = WURST.getGui().getTheme();
-		if(clip)
-			graphics.enableScissor(contentLeft() + 1, viewportTop(),
-				contentRight() - 1, listBottom());
-		for(Feature feature : features)
-		{
-			RiseModuleComponent component = moduleComponents.computeIfAbsent(feature,
-				RiseModuleComponent::new);
-			int componentHeight = component.updateHeight(width);
-			if(y + componentHeight >= viewportTop() && y < listBottom())
-				component.render(graphics, left, y, width, mouseX, mouseY,
-					searchResult, navigatorAccent(), theme, partialTicks, clip);
-			y += componentHeight + MODULE_GAP;
-			total += componentHeight + MODULE_GAP;
-		}
-		if(clip)
-			graphics.disableScissor();
-
-		contentHeight = total;
-		int bottomPadding = searchResult ? 37 : 7;
-		moduleScroll.setMinimum(Math.min(0,
-			panelHeight - bottomPadding - contentHeight));
-		int scrollbarTop = panelY + 7 + (searchResult ? 28 : 0);
-		int scrollbarHeight = panelHeight - 14 - (searchResult ? 28 : 0);
-		renderScrollbar(graphics, scrollbarTop, scrollbarHeight);
-		if(features.isEmpty())
-			graphics.drawCenteredString(MC.font,
-				RiseFont.text("\u6ca1\u6709\u5339\u914d\u7684\u529f\u80fd"),
-				(contentLeft() + contentRight()) / 2, panelY + 48,
-				RiseColors.TRINARY_TEXT.argb());
-	}
-
-	private void renderScrollbar(GuiGraphics graphics, int top, int maxHeight)
-	{
-		double minimum = moduleScroll.minimum();
-		if(minimum >= 0)
-			return;
-		int right = contentRight() - 4;
-		int thumbHeight = Math.max(1, (int)Math.round(maxHeight
-			- minimum / (minimum - maxHeight) * maxHeight));
-		double ratio = moduleScroll.scroll() / minimum;
-		int thumbY = top
-			+ (int)Math.round((maxHeight - thumbHeight) * ratio);
-		FlatUiRenderer.fill(graphics, right, thumbY, right + 1,
-			thumbY + thumbHeight, 1,
-			0x3CFFFFFF);
-	}
-
-	private void renderStylePage(GuiGraphics graphics, int mouseX, int mouseY,
-		boolean clip)
-	{
-		int left = contentLeft() + 20;
-		int right = contentRight() - 20;
-		int top = panelY + 7;
-		int bottom = panelY + 63;
-		FlatUiRenderer.fill(graphics, left, top, right, bottom, 10,
-			RiseTheme.OVERLAY);
-		graphics.drawString(MC.font,
-			RiseFont.text("风格"),
-			left + 16, top + 13,
-			RiseColors.TEXT.argb(), false);
-		/*
-		 * 这里原本是 Rise 模式开关。它已经移到客户端设置页（Epsilon 中央面板
-		 * 导航器的设置页，以及 ClickGUI 的设置列表），免得在 Rise 界面里做
-		 * "是否使用 Rise"这种自指切换；这里只显示当前状态和去处。
-		 */
-		graphics.drawString(MC.font,
-			RiseFont.text("开关已移到客户端设置页"),
-			left + 16, top + 28,
-			RiseColors.TRINARY_TEXT.argb(), false);
-		graphics.drawString(MC.font,
-			RiseFont.text("Rise 模式:开"),
-			left + 16, top + 44,
-			RiseColors.SECONDARY_TEXT.argb(), false);
-		if(clip)
-			graphics.enableScissor(left, top, right, bottom);
-		graphics.flush();
-		if(clip)
-			graphics.disableScissor();
-	}
-
-	private void renderCategoryTransition(GuiGraphics graphics)
-	{
-		long elapsed = System.currentTimeMillis() - categoryChangedAt;
-		if(elapsed < 0 || elapsed > CATEGORY_TRANSITION_MS * 2L)
-			return;
-		float progress = elapsed < CATEGORY_TRANSITION_MS
-			? elapsed / (float)CATEGORY_TRANSITION_MS
-			: 1 - (elapsed - CATEGORY_TRANSITION_MS)
-				/ (float)CATEGORY_TRANSITION_MS;
-		int alpha = Mth.clamp(Math.round(progress * 255), 0, 255);
-		graphics.fill(contentLeft(), panelY, contentRight(),
-			panelY + panelHeight, alpha << 24
-				| RiseColors.BACKGROUND.argb() & 0xFFFFFF);
-	}
-
-	private int transitionCategory()
-	{
-		long elapsed = System.currentTimeMillis() - categoryChangedAt;
-		return elapsed >= 0 && elapsed < CATEGORY_TRANSITION_MS
-			? previousCategory : selectedCategory;
-	}
-
-	private List<Feature> transitionFeatures()
-	{
-		long elapsed = System.currentTimeMillis() - categoryChangedAt;
-		return elapsed >= 0 && elapsed < CATEGORY_TRANSITION_MS
-			? previousFeatures : visibleFeatures;
+		settingsPanel.renderContent(graphics, mouseX, mouseY, partialTicks, theme);
 	}
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		if(closing)
-			return true;
-		float scale = Math.max(0.01F, animationProgress);
-		double localX = unscaleX(mouseX, scale);
-		double localY = unscaleY(mouseY, scale);
-
 		ClickGui gui = WURST.getGui();
-		boolean overPopup = gui.isMouseOverWindow(localX, localY);
-		gui.handleMouseClick((int)localX, (int)localY, button);
+		boolean overPopup = gui.isMouseOverWindow(mouseX, mouseY);
+		gui.handleMouseClick((int)mouseX, (int)mouseY, button);
 		if(overPopup)
 			return true;
 
-		if(inside(localX, localY, panelX, panelY, panelX + panelWidth,
-				panelY + 15))
+		if(searchBox.visible && inside(mouseX, mouseY, searchBox.getX() - 12,
+			searchBox.getY() - 3, searchBox.getX() + searchBox.getWidth() + 3,
+			searchBox.getY() + searchBox.getHeight() + 3))
+			return super.mouseClicked(mouseX, mouseY, button);
+
+		int category = categoryAt(mouseX, mouseY);
+		if(category >= 0)
+		{
+			closeSettings();
+			selectedCategory = category;
+			searchBox.setValue("");
+			refreshFeatures();
+			return true;
+		}
+
+		if(settingsPanel != null)
+		{
+			int left = panelX + sidebarWidth + 6;
+			int right = panelX + panelWidth - 5;
+			int top = panelY + 8;
+			if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT
+				&& inside(mouseX, mouseY, left, top - 3, left + 20, top + 17))
+			{
+				closeSettings();
+				return true;
+			}
+			if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT
+				&& inside(mouseX, mouseY, right - 36, top - 2, right + 2,
+					top + 20))
+			{
+				FeatureMenuSupport.runPrimaryAction(settingsPanel.getFeature());
+				return true;
+			}
+			if(settingsPanel.mouseClicked(mouseX, mouseY, button))
+				return true;
+		}else
+		{
+			Feature feature = featureAt(mouseX, mouseY);
+			if(feature != null)
+			{
+				selectedFeature = feature;
+				if(button == GLFW.GLFW_MOUSE_BUTTON_RIGHT
+					|| feature.getPrimaryAction().isEmpty())
+					openSettings(feature);
+				else if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
+					FeatureMenuSupport.runPrimaryAction(feature);
+				return true;
+			}
+		}
+
+		int moduleLeft = panelX + sidebarWidth + 6;
+		int moduleRight = panelX + panelWidth - 5;
+		int listTop = panelY + 3;
+		int listBottom = panelY + panelHeight - 4;
+		int visibleRows = Math.max(1,
+			(listBottom - listTop + MODULE_GAP) / (MODULE_HEIGHT + MODULE_GAP));
+		int trackHeight = listBottom - listTop;
+		int thumbHeight = Math.max(12,
+			Math.round(trackHeight * visibleRows
+				/ (float)Math.max(1, visibleFeatures.size())));
+		int maxScroll = Math.max(0,
+			visibleFeatures.size() - visibleRows);
+		int thumbY = listTop + Math.round((trackHeight - thumbHeight)
+			* moduleScroll / (float)Math.max(1, maxScroll));
+
+		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT
+			&& visibleFeatures.size() > visibleRows
+			&& inside(mouseX, mouseY, moduleRight - 3, listTop, moduleRight + 1,
+				listBottom))
+		{
+			if(mouseY < thumbY)
+				moduleScroll = Math.max(0, moduleScroll - visibleRows);
+			else if(mouseY > thumbY + thumbHeight)
+				moduleScroll = Math.min(maxScroll, moduleScroll + visibleRows);
+			else
+				scrollbarDragging = true;
+			moduleSmooth.setTarget(moduleScroll
+				* (float)(MODULE_HEIGHT + MODULE_GAP));
+			return true;
+		}
+
+		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT
+			&& inside(mouseX, mouseY, panelX + sidebarWidth, panelY,
+				panelX + panelWidth, panelY + 40))
 		{
 			dragging = true;
-			dragOffsetX = (int)localX - panelX;
-			dragOffsetY = (int)localY - panelY;
+			dragOffsetX = (int)mouseX - panelX;
+			dragOffsetY = (int)mouseY - panelY;
 			return true;
 		}
-
-		if(searchBox.visible && inside(localX, localY, searchBox.getX(),
-			searchBox.getY(), searchBox.getX() + searchBox.getWidth(),
-			searchBox.getY() + searchBox.getHeight()))
-			return super.mouseClicked(localX, localY, button);
-
-		int category = categoryAt(localX, localY);
-		if(category >= 0 && button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
-		{
-			switchCategory(category);
-			return true;
-		}
-
-		// 风格页现在只显示 Rise 模式状态；开关在客户端设置页，这里点击不做事
-		if(selectedCategory == CATEGORY_NAMES.length - 1)
-			return true;
-
-		if(handleModuleClick(localX, localY, button))
-			return true;
-
-		return super.mouseClicked(localX, localY, button);
-	}
-
-	private boolean handleModuleClick(double mouseX, double mouseY, int button)
-	{
-		int left = contentLeft() + 8;
-		int width = contentRight() - 9 - left;
-		int y = contentStart(selectedCategory == 0)
-			+ (int)Math.round(moduleScroll.scroll());
-		boolean handled = false;
-		for(Feature feature : visibleFeatures)
-		{
-			RiseModuleComponent component = moduleComponents.computeIfAbsent(feature,
-				RiseModuleComponent::new);
-			component.updateHeight(width);
-			if(component.mouseClicked(mouseX, mouseY, button, left, y, width))
-				handled = true;
-			y += component.height() + MODULE_GAP;
-		}
-		return handled;
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button,
 		double dragX, double dragY)
 	{
-		double localX = unscaleX(mouseX, Math.max(0.001F, animationProgress));
-		double localY = unscaleY(mouseY, Math.max(0.001F, animationProgress));
+		if(button != GLFW.GLFW_MOUSE_BUTTON_LEFT)
+			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+
+		if(scrollbarDragging)
+		{
+			int listTop = panelY + 3;
+			int listBottom = panelY + panelHeight - 4;
+			int visibleRows = Math.max(1,
+				(listBottom - listTop + MODULE_GAP)
+					/ (MODULE_HEIGHT + MODULE_GAP));
+			int trackHeight = listBottom - listTop;
+			int thumbHeight = Math.max(12,
+				Math.round(trackHeight * visibleRows
+					/ (float)Math.max(1, visibleFeatures.size())));
+			int maxScroll = Math.max(0,
+				visibleFeatures.size() - visibleRows);
+			float ratio = (float)((int)mouseY - listTop - thumbHeight / 2)
+				/ Math.max(1, trackHeight - thumbHeight);
+			moduleScroll = Mth.clamp(Math.round(ratio * maxScroll), 0,
+				maxScroll);
+			moduleSmooth.setTarget(moduleScroll
+				* (float)(MODULE_HEIGHT + MODULE_GAP));
+			return true;
+		}
+
 		if(!dragging)
-			return super.mouseDragged(localX, localY, button, dragX, dragY);
-		panelX = (int)localX - dragOffsetX;
-		panelY = (int)localY - dragOffsetY;
+			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+		panelX = Mth.clamp((int)mouseX - dragOffsetX, 0,
+			Math.max(0, width - panelWidth));
+		panelY = Mth.clamp((int)mouseY - dragOffsetY, 0,
+			Math.max(0, height - panelHeight));
 		return true;
 	}
 
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
-		double localX = unscaleX(mouseX, Math.max(0.001F, animationProgress));
-		double localY = unscaleY(mouseY, Math.max(0.001F, animationProgress));
-		WURST.getGui().handleMouseRelease(localX, localY, button);
-		dragging = false;
-		for(RiseModuleComponent component : moduleComponents.values())
-			component.mouseReleased(button);
-		return super.mouseReleased(localX, localY, button);
+		WURST.getGui().handleMouseRelease(mouseX, mouseY, button);
+		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
+		{
+			dragging = false;
+			scrollbarDragging = false;
+		}
+		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta)
 	{
-		double localX = unscaleX(mouseX, Math.max(0.001F, animationProgress));
-		double localY = unscaleY(mouseY, Math.max(0.001F, animationProgress));
-		if(WURST.getGui().isMouseOverWindow(localX, localY))
+		if(WURST.getGui().isMouseOverWindow(mouseX, mouseY))
 		{
-			WURST.getGui().handleMouseScroll(localX, localY, delta);
+			WURST.getGui().handleMouseScroll(mouseX, mouseY, delta);
 			return true;
 		}
-		if(inside(localX, localY, panelX, panelY, panelX + panelWidth,
-			panelY + panelHeight))
+		if(settingsPanel != null
+			&& settingsPanel.mouseScrolled(mouseX, mouseY, delta))
+			return true;
+
+		if(mouseX < panelX + sidebarWidth)
 		{
-			moduleScroll.wheel(delta);
+			int visibleRows = Math.max(1,
+				(panelHeight - 51) / CATEGORY_HEIGHT);
+			categoryScroll = Mth.clamp(categoryScroll + (delta > 0 ? -1 : 1),
+				0, Math.max(0, CATEGORY_NAMES.length - visibleRows));
+			categorySmooth.setTarget(categoryScroll * (float)CATEGORY_HEIGHT);
 			return true;
 		}
-		return super.mouseScrolled(localX, localY, delta);
+
+		int visibleRows = Math.max(1,
+			(panelHeight - 7 + MODULE_GAP) / (MODULE_HEIGHT + MODULE_GAP));
+		moduleScroll = Mth.clamp(moduleScroll + (delta > 0 ? -1 : 1), 0,
+			Math.max(0, visibleFeatures.size() - visibleRows));
+		moduleSmooth.setTarget(moduleScroll
+			* (float)(MODULE_HEIGHT + MODULE_GAP));
+		return true;
 	}
 
 	@Override
@@ -606,93 +544,16 @@ public final class NavigatorScreen extends Screen
 	{
 		if(keyCode == GLFW.GLFW_KEY_ESCAPE)
 		{
-			for(Feature feature : visibleFeatures)
-			{
-				RiseModuleComponent component = moduleComponents.get(feature);
-				if(component != null)
-					component.keyPressed(keyCode, modifiers);
-			}
 			onClose();
 			return true;
-		}
-		for(Feature feature : visibleFeatures)
-		{
-			RiseModuleComponent component = moduleComponents.get(feature);
-			if(component != null && component.keyPressed(keyCode, modifiers))
-				return true;
 		}
 		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	@Override
-	public boolean charTyped(char codePoint, int modifiers)
-	{
-		for(Feature feature : visibleFeatures)
-		{
-			RiseModuleComponent component = moduleComponents.get(feature);
-			if(component != null && component.charTyped(codePoint))
-				return true;
-		}
-		if(Character.isISOControl(codePoint) || hasActiveSettingText())
-			return super.charTyped(codePoint, modifiers);
-
-		boolean automaticCharacter = AUTO_SEARCH_CHARS.indexOf(
-			Character.toLowerCase(codePoint)) >= 0;
-		if(selectedCategory != 0 && automaticCharacter)
-			switchCategory(0);
-		if(selectedCategory == 0)
-		{
-			if(!typedWhileSearchOpen && automaticCharacter)
-			{
-				typedWhileSearchOpen = true;
-				suppressSearchRefresh = true;
-				try
-				{
-					searchBox.setValue("");
-				}finally
-				{
-					suppressSearchRefresh = false;
-				}
-			}
-			searchBox.setFocused(true);
-			return searchBox.charTyped(codePoint, modifiers);
-		}
-		return super.charTyped(codePoint, modifiers);
-	}
-
-	private boolean hasActiveSettingText()
-	{
-		for(Feature feature : visibleFeatures)
-		{
-			RiseModuleComponent component = moduleComponents.get(feature);
-			if(component != null && component.hasActiveText())
-				return true;
-		}
-		return false;
-	}
-
-	@Override
-	public void onClose()
-	{
-		if(closing)
-			return;
-		closing = true;
-		dragging = false;
-		searchBox.setFocused(false);
-		for(RiseModuleComponent component : moduleComponents.values())
-			component.closePopups();
-		scaleAnimation.setEasing(RiseAnimation.Easing.LINEAR);
-		scaleAnimation.setDuration(300);
-		opacityAnimation.setEasing(RiseAnimation.Easing.LINEAR);
-		opacityAnimation.setDuration(100);
-	}
-
-	@Override
 	public void removed()
 	{
-		for(RiseModuleComponent component : moduleComponents.values())
-			component.dispose();
-		moduleComponents.clear();
+		closeSettings();
 		super.removed();
 	}
 
@@ -704,60 +565,50 @@ public final class NavigatorScreen extends Screen
 
 	private int categoryAt(double mouseX, double mouseY)
 	{
-		int top = panelY + 38;
-		int bottom = panelY + panelHeight - 24;
-		if(!inside(mouseX, mouseY, panelX + 9, top,
-			panelX + sidebarWidth - 7, bottom))
+		int top = panelY + 43;
+		int bottom = panelY + panelHeight - 8;
+		if(!inside(mouseX, mouseY, panelX + 8, top,
+			panelX + sidebarWidth - 8, bottom))
 			return -1;
-		int row = (int)(mouseY - top) / RiseSidebarCategory.HEIGHT;
-		int index = row + categoryScroll;
-		return index < CATEGORY_NAMES.length ? index : -1;
+		float offset = categorySmooth.getCurrent();
+		int index = (int)Math.floor(
+			(mouseY - top + offset) / CATEGORY_HEIGHT);
+		return index >= 0 && index < CATEGORY_NAMES.length ? index : -1;
 	}
 
-	private int contentLeft()
+	private Feature featureAt(double mouseX, double mouseY)
 	{
-		return panelX + sidebarWidth;
+		int left = panelX + sidebarWidth + 6;
+		int right = panelX + panelWidth - 5;
+		int top = panelY + 3;
+		int bottom = panelY + panelHeight - 4;
+		if(!inside(mouseX, mouseY, left, top, right, bottom))
+			return null;
+		int step = MODULE_HEIGHT + MODULE_GAP;
+		float offset = moduleSmooth.getCurrent();
+		int index = (int)Math.floor((mouseY - top + offset) / step);
+		int localY = (int)((mouseY - top + offset) % step);
+		if(localY >= MODULE_HEIGHT)
+			return null;
+		return index >= 0 && index < visibleFeatures.size()
+			? visibleFeatures.get(index) : null;
 	}
 
-	private int contentRight()
+	private void openSettings(Feature feature)
 	{
-		return panelX + panelWidth;
+		if(feature.getSettings().isEmpty())
+			return;
+		closeSettings();
+		settingsPanel = new NavigatorSettingsPanel(feature);
+		searchBox.setFocused(false);
 	}
 
-	private int viewportTop()
+	private void closeSettings()
 	{
-		return panelY + 1;
-	}
-
-	private int contentStart(boolean search)
-	{
-		return panelY + (search ? SEARCH_CONTENT_OFFSET : 7);
-	}
-
-	private int listBottom()
-	{
-		return panelY + panelHeight - 7;
-	}
-
-	private void applyScale(GuiGraphics graphics, float scale)
-	{
-		float centerX = panelX + panelWidth / 2F;
-		float centerY = panelY + panelHeight / 2F;
-		graphics.pose().translate(centerX, centerY, 0);
-		graphics.pose().scale(scale, scale, 1);
-		graphics.pose().translate(-centerX, -centerY, 0);
-	}
-
-	private double unscaleX(double x, float scale)
-	{
-		double center = panelX + panelWidth / 2D;
-		return center + (x - center) / scale;
-	}
-
-	private double unscaleY(double y, float scale)
-	{
-		double center = panelY + panelHeight / 2D;
-		return center + (y - center) / scale;
+		if(settingsPanel == null)
+			return;
+		settingsPanel.dispose();
+		settingsPanel = null;
 	}
 
 	private static boolean inside(double x, double y, int left, int top,
@@ -766,14 +617,9 @@ public final class NavigatorScreen extends Screen
 		return x >= left && x < right && y >= top && y < bottom;
 	}
 
-	private int navigatorAccent()
-	{
-		return RiseTheme.ACCENT;
-	}
 
-	private static int withAlpha(int color, float opacity)
+	private int accentColor()
 	{
-		return color & 0xFFFFFF
-			| Math.round((color >>> 24) * Mth.clamp(opacity, 0, 1)) << 24;
+		return WURST.getGui().getTheme().accent(1);
 	}
 }

@@ -144,16 +144,12 @@ public final class AutoLibrarianHack extends Hack
 		
 		if(breakingJobSite)
 		{
-			MC.gameMode.isDestroying = true;
+			((net.wurstclient.mixin.MultiPlayerGameModeAccessor)(Object)MC.gameMode).setIsDestroying(true);
 			MC.gameMode.stopDestroyBlock();
 			breakingJobSite = false;
 		}
 		
 		overlay.resetProgress();
-		// 潜行键可能正被 placeJobSite() 强制按下（sneak-place），
-		// 此时玩家按的并不是 Shift，必须按真实按键状态还原，
-		// 否则关闭模块后会一直保持潜行。
-		IKeyBinding.get(MC.options.keyShift).resetPressedState();
 		villager = null;
 		jobSite = null;
 		placingJobSite = false;
@@ -223,6 +219,7 @@ public final class AutoLibrarianHack extends Hack
 			ChatUtils.message("村民未出售附魔书。");
 			closeTradeScreen();
 			breakingJobSite = true;
+			System.out.println("Breaking job site...");
 			return;
 		}
 		
@@ -234,6 +231,7 @@ public final class AutoLibrarianHack extends Hack
 		if(!wantedBooks.isWanted(bookOffer))
 		{
 			breakingJobSite = true;
+			System.out.println("Breaking job site...");
 			closeTradeScreen();
 			return;
 		}
@@ -273,6 +271,7 @@ public final class AutoLibrarianHack extends Hack
 		
 		if(params == null || BlockUtils.getState(jobSite).canBeReplaced())
 		{
+			System.out.println("Job site has been broken. Replacing...");
 			breakingJobSite = false;
 			placingJobSite = true;
 			return;
@@ -303,10 +302,13 @@ public final class AutoLibrarianHack extends Hack
 		{
 			if(BlockUtils.getBlock(jobSite) == Blocks.LECTERN)
 			{
+				System.out.println("Job site has been placed.");
 				placingJobSite = false;
 				
 			}else
 			{
+				System.out
+					.println("Found wrong block at job site. Breaking...");
 				breakingJobSite = true;
 				placingJobSite = false;
 			}
@@ -356,7 +358,7 @@ public final class AutoLibrarianHack extends Hack
 	
 	private void openTradeScreen()
 	{
-		if(MC.rightClickDelay > 0)
+		if(((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).getRightClickDelay() > 0)
 			return;
 		
 		MultiPlayerGameMode im = MC.gameMode;
@@ -364,7 +366,8 @@ public final class AutoLibrarianHack extends Hack
 		
 		if(player.distanceToSqr(villager) > range.getValueSq())
 		{
-			ChatUtils.error("村民超出范围。请考虑把村民困住，别让它走开。");
+			ChatUtils.error("村民超出范围。请考虑困住"
+				+ " the villager so it doesn't wander away.");
 			setEnabled(false);
 			return;
 		}
@@ -392,13 +395,13 @@ public final class AutoLibrarianHack extends Hack
 			swingHand.swing(hand);
 		
 		// set cooldown
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 	}
 	
 	private void closeTradeScreen()
 	{
 		MC.player.closeContainer();
-		MC.rightClickDelay = 4;
+		((net.wurstclient.mixin.MinecraftAccessor)(Object)MC).setRightClickDelay(4);
 	}
 	
 	private BookOffer findEnchantedBookOffer(MerchantOffers tradeOffers)
@@ -413,13 +416,18 @@ public final class AutoLibrarianHack extends Hack
 			if(enchantmentNbt.isEmpty())
 				continue;
 			
-			String enchantment = enchantmentNbt.getCompound(0).getString("id");
-			int level = enchantmentNbt.getCompound(0).getInt("lvl");
+			ListTag bookNbt = EnchantedBookItem.getEnchantments(stack);
+			String enchantment = bookNbt.getCompound(0).getString("id");
+			int level = bookNbt.getCompound(0).getInt("lvl");
 			int price = tradeOffer.getCostA().getCount();
 			BookOffer bookOffer = new BookOffer(enchantment, level, price);
 			
 			if(!bookOffer.isValid())
+			{
+				System.out.println("Found invalid enchanted book offer.\n"
+					+ "NBT data: " + stack.getTag());
 				continue;
+			}
 			
 			return bookOffer;
 		}
@@ -457,11 +465,13 @@ public final class AutoLibrarianHack extends Hack
 					+ " already experienced.)";
 			
 			ChatUtils.error(errorMsg);
-			ChatUtils.message("请确保你站的位置能够到图书管理员和讲台。");
+			ChatUtils.message("请确保图书管理员和讲台"
+				+ " are reachable from where you are standing.");
 			setEnabled(false);
 			return;
 		}
 		
+		System.out.println("Found villager at " + villager.blockPosition());
 	}
 	
 	private void setTargetJobSite()
@@ -484,11 +494,13 @@ public final class AutoLibrarianHack extends Hack
 		if(jobSite == null)
 		{
 			ChatUtils.error("找不到图书管理员的讲台。");
-			ChatUtils.message("请确保你站的位置能够到图书管理员和讲台。");
+			ChatUtils.message("请确保图书管理员和讲台"
+				+ " are reachable from where you are standing.");
 			setEnabled(false);
 			return;
 		}
 		
+		System.out.println("Found lectern at " + jobSite);
 	}
 	
 	@Override
