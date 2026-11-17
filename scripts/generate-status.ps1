@@ -139,7 +139,8 @@ function Count-Tests([string]$Dir) {
 }
 
 # --- v1.6 feature gate -------------------------------------------------------
-# Packages that exist ONLY in the root project (per the architecture audit).
+# Historical package names, not a version/capability assertion. The old v1.6
+# root was archived on 2026-11-17; newer independent implementations may reuse names.
 $V16Packages = @(
     'net\wurstclient\clickgui2\component', 'net\wurstclient\music', 'net\wurstclient\twilight',
     'net\wurstclient\background', 'net\wurstclient\compose', 'net\wurstclient\clickgui2\epsilon',
@@ -160,7 +161,7 @@ foreach ($rel in $projectRoots) {
 
     $v16Count = 0
     foreach ($pkg in $V16Packages) {
-        if (Test-Path -LiteralPath (Join-Path $srcJava $pkg)) { $v16Count++ }
+        if (Test-Path -LiteralPath (Join-Path $srcJava $pkg.Replace('\', '/'))) { $v16Count++ }
     }
 
     $rows.Add([PSCustomObject]@{
@@ -228,7 +229,7 @@ W ("| 加载器 | **{0}** |" -f ($loaders -join ' / '))
 W ("| `src/main/java` 文件 | **{0:N0}** |" -f $totalMain)
 W ("| 测试类 / 测试方法（全部工程合计） | **{0:N0} / {1:N0}** |" -f $totalTestClasses, $totalTests)
 W ("| 根工程源码 / 测试类 / 测试方法 | **{0:N0} / {1:N0} / {2:N0}** |" -f $rootRow.MainJava, $rootRow.TestClasses, $rootRow.TestMethods)
-W ("| 含 v1.6 子系统的工程 | **{0} / {1}** |" -f $withV16, $rows.Count)
+W ("| 含历史 v1.6 同名包的工程（不代表功能移植） | **{0} / {1}** |" -f $withV16, $rows.Count)
 W ("| 含 gradle-wrapper.jar 的工程 | **{0} / {1}** |" -f ($rows | Where-Object { $_.WrapperJar }).Count, $rows.Count)
 W ("| 含 LICENSE.txt 的工程 | **{0} / {1}** |" -f ($rows | Where-Object { $_.License }).Count, $rows.Count)
 W ("| `mod_version` 不同取值数 | **{0}** |" -f $uniqueModVersions)
@@ -254,7 +255,7 @@ W '源码修复不会更新已发布的旧 JAR。完整构建、游戏启动及�
 W ''
 W '## 工程清单'
 W ''
-W '| 工程 | 加载器 | MC | 加载器版本 | Java | Gradle | mod_version | 组 | 源码 | 测试类 | 测试方法 | v1.6 包 | wrapper | LICENSE |'
+W '| 工程 | 加载器 | MC | 加载器版本 | Java | Gradle | mod_version | 组 | 源码 | 测试类 | 测试方法 | 历史同名包 | wrapper | LICENSE |'
 W '| --- | --- | --- | --- | ---: | ---: | --- | --- | ---: | ---: | ---: | ---: | :---: | :---: |'
 foreach ($r in $rows | Sort-Object @{E={$_.Loader}}, @{E={$_.Minecraft}}) {
     W ("| `{0}` | {1} | {2} | {3} | {4} | {5} | `{6}` | `{7}` | {8} | {9} | {10} | {11}/13 | {12} | {13} |" -f `
@@ -285,15 +286,15 @@ foreach ($g in $rows | Group-Object ModVersion | Sort-Object Name) {
     W ("| `{0}` | {1} |" -f $g.Name, $g.Count)
 }
 W ''
-W '## v1.6 功能缺口'
+W '## 历史 v1.6 包名检查'
 W ''
-W 'v1.6 新增的 13 个源码包只存在于根工程。以下工程不含任何 v1.6 包：'
+W '2026-11-17：根工程已替换为 Forge 1.20.1 v1.5.1，旧 v1.6.0 移至仓库外备份。这里仅检查历史 13 个包名是否存在，同名目录不表示具备旧版功能。以下工程没有这些包名：'
 W ''
 $missingV16 = @($rows | Where-Object { $_.V16Packages -eq 0 } | Select-Object -ExpandProperty Path)
 W ("共 **{0}** 个：{1}" -f $missingV16.Count, (($missingV16 | ForEach-Object { "``$_``" }) -join '、'))
 W ''
-W '> 这是当前最大的功能缺口。README 的版本矩阵宣称支持全部 23 个 MC 版本，'
-W '> 但只有根工程 Forge 1.20.1 具备 v1.6 能力。'
+W '> 版本以工程清单的 mod_version 为准，功能与验证边界见各版本开发文档。'
+W '> 根工程替换及备份恢复说明见 [ROOT-FORGE-1.5.1.md](ROOT-FORGE-1.5.1.md)。'
 W ''
 
 $content = $sb.ToString()
