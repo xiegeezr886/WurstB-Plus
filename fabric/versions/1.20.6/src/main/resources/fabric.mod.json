@@ -13,6 +13,9 @@
   "entrypoints": {
     "client": [
       "net.wurstclient.WurstInitializer"
+    ],
+    "seedcrackerx": [
+      "net.wurstclient.seed.SeedCrackerBridge"
     ]
   },
   "mixins": [

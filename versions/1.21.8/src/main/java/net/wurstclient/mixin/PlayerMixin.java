@@ -27,8 +27,8 @@ public abstract class PlayerMixin
 	{
 		boolean keepSprint = isKeepSprintActive();
 		return velocity.multiply(
-			KeepSprintPolicy.attackMotionMultiplier(x, keepSprint), y,
-			KeepSprintPolicy.attackMotionMultiplier(z, keepSprint));
+			keepSprint ? WurstClient.INSTANCE.getHax().keepSprintHack.motionMultiplier(x) : x, y,
+			keepSprint ? WurstClient.INSTANCE.getHax().keepSprintHack.motionMultiplier(z) : z);
 	}
 
 	@Redirect(method = "attack(Lnet/minecraft/world/entity/Entity;)V",

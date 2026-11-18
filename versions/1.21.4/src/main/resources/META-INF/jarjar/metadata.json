@@ -11,6 +11,18 @@
       },
       "path": "META-INF/jarjar/baritone-forge-1.13.1-1.21.4.jar",
       "isObfuscated": false
+    },
+    {
+      "identifier": {
+        "group": "me.shedaniel.cloth",
+        "artifact": "cloth-config-forge"
+      },
+      "version": {
+        "range": "[17.0.144,18)",
+        "artifactVersion": "17.0.144"
+      },
+      "path": "META-INF/jarjar/cloth-config-forge-17.0.144-forge.jar",
+      "isObfuscated": false
     }
   ]
 }

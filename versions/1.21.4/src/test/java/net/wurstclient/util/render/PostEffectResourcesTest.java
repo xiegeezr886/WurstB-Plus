@@ -23,11 +23,11 @@ class PostEffectResourcesTest
 		{
 			String name = effect.toString().toLowerCase();
 			JsonObject json = JsonParser.parseString(Files.readString(
-				ROOT.resolve("post/target_" + name + ".json")))
+				ROOT.resolve("../post_effect/target_" + name + ".json")))
 				.getAsJsonObject();
 			assertEquals(2, json.getAsJsonArray("passes").size());
-			assertTrue(json.getAsJsonArray("targets").contains(
-				JsonParser.parseString("\"swap\"")));
+			assertTrue(json.getAsJsonObject("targets").has("swap"));
+            assertEquals("wurst:program/target_effect", json.getAsJsonArray("passes").get(0).getAsJsonObject().get("program").getAsString());
 		}
 	}
 

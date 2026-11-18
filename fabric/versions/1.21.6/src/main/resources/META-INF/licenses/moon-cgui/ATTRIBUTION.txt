@@ -1,0 +1,12 @@
+Moon CGUI behavior reference
+
+Source: https://github.com/xiaozhuhou233/moon-rebase
+Local reference commit: 55cd694 (v1.5.2 reference checkout).
+Reference files: src/moon/visual/gui/ModuleRowWidget.java,
+CategoryPanel.java, FloatSliderWidget.java, IntegerSliderWidget.java.
+The repository is distributed under Apache License 2.0 (included).
+
+WurstB+ uses its own Minecraft 1.20.1 renderer and settings model. Adapted
+behaviors include context expansion, compact binding
+labels, animated enabled state and smooth slider progress with direct dragging.
+No Moon binaries, fonts, shaders or module implementations are bundled.

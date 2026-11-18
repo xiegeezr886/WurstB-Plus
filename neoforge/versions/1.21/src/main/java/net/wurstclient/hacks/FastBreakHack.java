@@ -53,7 +53,7 @@ public final class FastBreakHack extends Hack
 	public FastBreakHack()
 	{
 		super("FastBreak");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(acceleration);
 		addSetting(legitMode);
 		addSetting(cooldown);

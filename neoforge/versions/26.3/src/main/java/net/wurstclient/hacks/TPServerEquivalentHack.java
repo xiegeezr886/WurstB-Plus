@@ -49,7 +49,7 @@ public final class TPServerEquivalentHack extends Hack
 	public TPServerEquivalentHack()
 	{
 		super("TPServerEquivalent");
-		setCategory(Category.MOVEMENT);
+		setCategory(Category.EXPLOIT);
 		addSetting(modules);
 		addSetting(logDecisions);
 		instance = this;
@@ -59,7 +59,7 @@ public final class TPServerEquivalentHack extends Hack
 	protected void onEnable()
 	{
 		cachedRaw = "";
-		ChatUtils.message("TPServerEquivalent: " + modules.getValue());
+		ChatUtils.message("TPServerEquivalent: %s", modules.getValue());
 	}
 
 	public static boolean isEnabledFor(String module)

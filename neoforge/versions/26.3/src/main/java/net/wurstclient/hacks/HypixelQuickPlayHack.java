@@ -40,7 +40,7 @@ public final class HypixelQuickPlayHack extends Hack
 	public HypixelQuickPlayHack()
 	{
 		super("HypixelQuickPlay");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(mode);
 		addSetting(keybind);
 	}

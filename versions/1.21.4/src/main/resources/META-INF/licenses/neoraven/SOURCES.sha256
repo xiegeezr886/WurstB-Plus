@@ -1,0 +1,11 @@
+e9641183343fdaf93101dede341344acd071f881904d9ea6f607a14a83bc9174  src/main/java/xyz/daikirai/module/combat/KillAuraModule.java
+896f191808ca8b4303504a556d0911b6e8a4a4b2ca92cc75f15827759e18f097  src/main/java/xyz/daikirai/module/combat/AimAssistModule.java
+843ebc2d7d368d6e7f4fa4eade18a3877304fe3dccd039dbf791a47663cf24cf  src/main/java/xyz/daikirai/module/combat/AutoClickerModule.java
+7f196a6e56fb629bbb223a18c0d8bae92286bb264df0ef02761b03c9ec26aef5  src/main/java/xyz/daikirai/module/combat/TPAuraModule.java
+6c0d827d73ff9902add88ba4f2840143a3c98ef42f690dd5813c7f2ec0053ba1  src/main/java/xyz/daikirai/module/combat/HitboxModule.java
+ccc6dd8139f804b90bd326c18c0f19984e174c4c9f749da8b71ac074a46d6da9  src/main/java/xyz/daikirai/module/combat/AutoGappleModule.java
+7941e21b38f6de458bfc9d03b6c87d04021a5fc344693de80600b52f63d502d3  src/main/java/xyz/daikirai/module/combat/ReachModule.java
+8ba766a8d83225cbff2e921deef850177f2d68dcc15e55ca2f4082e11c6b36e1  src/main/java/xyz/daikirai/module/player/DelayRemoverModule.java
+fbbe56771b487a23fb17df20be0c52c7bc8806d9c3c23ad52f5d3890232b16bd  src/main/java/xyz/daikirai/module/player/ScaffoldModule.java
+939c9f8224b3d3fc633a0c0f1d6ffa3c25749dfec780eaa253e7cd323967d011  src/main/java/xyz/daikirai/module/player/TowerModule.java
+dce8ec5290f4674100df6945df8a0ee96bcfd2ba684663c28e893d7f31b8751f  src/main/java/xyz/daikirai/module/movement/KeepSprintModule.java

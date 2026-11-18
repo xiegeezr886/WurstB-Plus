@@ -1,0 +1,14 @@
+OpaiBounce MusicLyrics HUD adaptation for WurstB+ Plus / Fabric 1.20.1
+Source: https://github.com/snmwdd/OpaiBounce
+Upstream: CCBlueX and contributors; Opai / StylesFoundation; Samsara contributors.
+See the retained upstream NOTICE and licenses for complete attribution.
+
+Adapted sources: src/opai/LyricScroller.svelte, lyricSlide in src/opai/musicMotion.ts,
+MusicLyrics visibility in src/opai/MusicHud.svelte, public/components/musiclyrics.json.
+Ported: right-aligned five-cue window, current/adjacent/distant opacity, 38 px spacing,
+330 ms CSS ease-out transitions, translation row, title fallback and edge fading.
+Changes: native Java/NanoVG rendering, existing NeoRaven playback/lyric data,
+HUD editor position/scale/settings persistence, MiSans instead of upstream fonts,
+clipped alpha bands for the edge mask and a native text shadow instead of CSS filters.
+No music service, font, artwork or recording is copied by this HUD adaptation.
+Reference hashes and pinned commit are in SOURCES.txt.

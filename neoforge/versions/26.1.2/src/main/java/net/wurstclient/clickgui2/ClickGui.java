@@ -7,26 +7,27 @@
  */
 package net.wurstclient.clickgui2;
 
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+
 import java.util.ArrayList;
 import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.util.Mth;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.theme.FlatTheme;
 import net.wurstclient.hacks.ClickGuiHack;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.util.RenderUtils;
+import net.minecraft.util.Mth;
 
 public final class ClickGui
 {
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private static final Minecraft MC = WurstClient.MC;
 	private static final float[] BLEACH_BG_COLOR = {0.018F, 0.018F, 0.018F};
-	private static final float[] BLEACH_AC_COLOR = {0.0F, 0.3882353F, 0.4F};
+	private static final float[] BLEACH_AC_COLOR = {181 / 255F, 190 / 255F, 240 / 255F};
 	private static final int BLEACH_TEXT_COLOR = 0xFFE8E8E8;
 	
 	private final ArrayList<Window> windows = new ArrayList<>();
@@ -88,6 +89,20 @@ public final class ClickGui
 	{
 		if(mouseButton == GLFW.GLFW_MOUSE_BUTTON_LEFT)
 			leftMouseButtonPressed = false;
+	}
+
+	/** Routes an external screen's values to popups without touching HUD windows. */
+	public boolean handleOverlayMouseClick(int mouseX, int mouseY, int button)
+	{
+		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
+			leftMouseButtonPressed = true;
+		ArrayList<Popup> previouslyOpen = new ArrayList<>(popups);
+		boolean handled = handlePopupMouseClick(mouseX, mouseY, button);
+		if(!handled)
+			previouslyOpen.forEach(Popup::close);
+		popups.removeIf(popup -> popup.isClosing()
+			|| popup.getOwner().getParent().isClosing());
+		return handled;
 	}
 	
 	public void handleMouseScroll(double mouseX, double mouseY, double delta)
@@ -382,12 +397,12 @@ public final class ClickGui
 		int boxWidth = tw + 3;
 		int boxHeight = th + 2;
 
-		// 先按鼠标位置选边，再夹回屏幕内。如果只选边不夹取，长提示框在
-		// 屏幕右侧/底部会整个翻到坐标外面去（负数坐标），也就是 issue #5
-		// 说的“超出 GUI 外”。
 		int xt1 = mouseX + tw + 11 <= sw ? mouseX + 8 : mouseX - tw - 8;
 		int yt1 = mouseY + th - 2 <= sh ? mouseY - 4 : mouseY - th - 4;
 
+		// Keep the tooltip on screen. Choosing a side is not enough on its own:
+		// a long tooltip near the right/bottom edge would flip to negative
+		// coordinates and render outside the GUI.
 		xt1 = Mth.clamp(xt1, 0, Math.max(0, sw - boxWidth));
 		yt1 = Mth.clamp(yt1, 0, Math.max(0, sh - boxHeight));
 

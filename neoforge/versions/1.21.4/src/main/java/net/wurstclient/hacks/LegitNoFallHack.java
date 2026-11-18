@@ -50,7 +50,7 @@ public final class LegitNoFallHack extends Hack implements UpdateListener
 	public LegitNoFallHack()
 	{
 		super("LegitNoFall");
-		setCategory(Category.MOVEMENT);
+		setCategory(Category.PLAYER);
 		addSetting(checkDown);
 		addSetting(inventorySwap);
 		addSetting(offSet);

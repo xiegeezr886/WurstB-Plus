@@ -72,11 +72,11 @@ public final class DigCmd extends Command
 			
 		}catch(NumberFormatException e)
 		{
-			throw new CmdSyntaxError("Invalid " + name + ": " + input);
+			throw new CmdSyntaxError("Invalid %s: %s", name, input);
 		}
 		
 		if(i == 0)
-			throw new CmdSyntaxError(name + " can't be zero");
+			throw new CmdSyntaxError("%s can't be zero", name);
 		
 		return i;
 	}

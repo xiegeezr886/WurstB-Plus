@@ -39,7 +39,7 @@ public final class FakeLagHack extends Hack
 	public FakeLagHack()
 	{
 		super("FakeLag");
-		setCategory(Category.MOVEMENT);
+		setCategory(Category.COMBAT);
 		addSetting(mode);
 		addSetting(pulseInterval);
 	}

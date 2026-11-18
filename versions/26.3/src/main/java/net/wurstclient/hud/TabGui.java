@@ -12,17 +12,17 @@ import java.util.LinkedHashMap;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.wurstclient.Category;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.events.KeyPressListener;
 import net.wurstclient.hacks.TooManyHaxHack;
+import net.wurstclient.hud2.HUDMod;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.other_features.TabGuiOtf;
 import net.wurstclient.util.ChatUtils;
-import net.wurstclient.util.RenderUtils;
 
 public final class TabGui implements KeyPressListener
 {
@@ -196,7 +196,7 @@ public final class TabGui implements KeyPressListener
 	private void drawSelection(GuiGraphicsExtractor context, int x1, int y1, int x2,
 		int y2)
 	{
-		int accent = RenderUtils.toIntColor(WURST.getGui().getAcColor(), 0.85F);
+		int accent = HUDMod.accentColor(217);
 		FlatRenderer.fillRoundedRect(context, x1, y1 + 1, x2, y2 - 1, 3,
 			withAlpha(accent, 53));
 		FlatRenderer.fillRoundedRect(context, x1, y1 + 2, x1 + 2, y2 - 2, 1,

@@ -32,13 +32,13 @@ public abstract class ItemInHandRendererMixin
 	@Inject(
 		method = "renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/item/ItemStack;getUseAnimation()Lnet/minecraft/world/item/ItemUseAnimation;",
-			shift = At.Shift.AFTER))
+			target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;applyItemArmTransform(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/entity/HumanoidArm;F)V",
+			ordinal = 4))
 	private void onRenderArmWithItemBlocking(AbstractClientPlayer player,
 		float tickProgress, float pitch, InteractionHand hand,
 		float swingProgress, ItemStack item, float equipProgress,
-		PoseStack matrices, MultiBufferSource entityRenderCommandQueue,
-		int light, CallbackInfo ci)
+		PoseStack matrices, MultiBufferSource buffers, int light,
+		CallbackInfo ci)
 	{
 		// Check if item has block animation component
 		if(item.getUseAnimation() != ItemUseAnimation.BLOCK)
@@ -52,10 +52,6 @@ public abstract class ItemInHandRendererMixin
 	/**
 	 * Lowers the shield (including custom shield items from datapacks) when
 	 * NOT blocking if NoShieldOverlay is enabled.
-	 *
-	 * 1.21.6 has no ItemStack#getSwingAnimation() to hook, so this targets the
-	 * swingArm() call of the "not using an item" branch instead (the 3rd
-	 * swingArm invocation inside renderArmWithItem).
 	 */
 	@Inject(
 		method = "renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
@@ -65,8 +61,8 @@ public abstract class ItemInHandRendererMixin
 	private void onRenderArmWithItemNotBlocking(AbstractClientPlayer player,
 		float tickProgress, float pitch, InteractionHand hand,
 		float swingProgress, ItemStack item, float equipProgress,
-		PoseStack matrices, MultiBufferSource entityRenderCommandQueue,
-		int light, CallbackInfo ci)
+		PoseStack matrices, MultiBufferSource buffers, int light,
+		CallbackInfo ci)
 	{
 		// Check if item has block animation component
 		if(item.getUseAnimation() != ItemUseAnimation.BLOCK)

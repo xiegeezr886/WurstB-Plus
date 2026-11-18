@@ -165,9 +165,10 @@ public class CheckboxSetting extends Setting implements CheckboxLock
 		command += getName().toLowerCase().replace(" ", "_") + " ";
 		
 		LinkedHashSet<PossibleKeybind> pkb = new LinkedHashSet<>();
-		pkb.add(new PossibleKeybind(command + "toggle", "Toggle " + fullName));
-		pkb.add(new PossibleKeybind(command + "on", "Check " + fullName));
-		pkb.add(new PossibleKeybind(command + "off", "Uncheck " + fullName));
+		pkb.add(new PossibleKeybind(command + "toggle", "Toggle %s",
+			fullName));
+		pkb.add(new PossibleKeybind(command + "on", "Check %s", fullName));
+		pkb.add(new PossibleKeybind(command + "off", "Uncheck %s", fullName));
 		
 		return pkb;
 	}

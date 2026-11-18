@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ *
+ * This source code is subject to the terms of the GNU General Public
+ * License, version 3. If a copy of the GPL was not distributed with this
+ * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
+ */
+package net.wurstclient.mixin.xray.sodium;
+
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.wurstclient.WurstClient;
+import net.wurstclient.hacks.XRayHack;
+
+/**
+ * Last updated for <a href=
+ * "https://github.com/CaffeineMC/sodium/blob/148316fbfca6c3c88274ad79e1010310c6a3749b/common/src/main/java/net/caffeinemc/mods/sodium/client/render/model/AbstractBlockRenderContext.java">Sodium
+ * mc26.1-0.8.7</a>
+ */
+@Pseudo
+@Mixin(targets = {
+	"net.caffeinemc.mods.sodium.client.render.model.AbstractBlockRenderContext"})
+public class AbstractBlockRenderContextMixin
+{
+	@Shadow
+	protected BlockState state;
+	
+	@Shadow
+	protected BlockPos pos;
+	
+	/**
+	 * Hides and shows blocks when using X-Ray with Sodium installed.
+	 */
+	@Inject(method = "isFaceCulled(Lnet/minecraft/core/Direction;)Z",
+		at = @At("HEAD"),
+		cancellable = true,
+		remap = false,
+		require = 0)
+	private void onIsFaceCulled(@Nullable Direction face,
+		CallbackInfoReturnable<Boolean> cir)
+	{
+		XRayHack xray = WurstClient.INSTANCE.getHax().xRayHack;
+		Boolean shouldDrawSide = xray.shouldDrawSide(state, pos);
+		
+		if(shouldDrawSide != null)
+			cir.setReturnValue(!shouldDrawSide);
+	}
+}

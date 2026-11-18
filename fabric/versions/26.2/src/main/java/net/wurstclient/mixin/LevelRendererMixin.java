@@ -49,6 +49,12 @@ public class LevelRendererMixin
 		matrixStack.mulPose(positionMatrix);
 		float tickProgress = tickCounter.getGameTimeDeltaPartialTick(false);
 		RenderEvent event = new RenderEvent(matrixStack, tickProgress, cameraState.projectionMatrix);
-		EventManager.fire(event);
+		var previous = net.wurstclient.util.render.V152Gpu.projection();
+        try {
+            net.wurstclient.util.render.V152Gpu.setProjection(cameraState.projectionMatrix, false);
+            EventManager.fire(event);
+            net.wurstclient.WurstClient.INSTANCE.getPostEffectQueue().flush(matrixStack, tickProgress);
+            net.wurstclient.util.render.MoonEntityGlow.INSTANCE.flush(matrixStack, tickProgress);
+        } finally { net.wurstclient.util.render.V152Gpu.restoreProjection(previous); }
 	}
 }

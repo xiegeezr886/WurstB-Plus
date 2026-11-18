@@ -39,7 +39,7 @@ public final class ClientSpooferHack extends Hack
 	public ClientSpooferHack()
 	{
 		super("ClientSpoofer");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(brandName);
 	}
 

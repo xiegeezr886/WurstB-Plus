@@ -101,7 +101,7 @@ public final class WaypointsCmd extends Command
 		{
 			WURST.getWaypointsManager()
 				.add(new Waypoint(name, dim, pos, color));
-			ChatUtils.message("Waypoint added: " + name);
+			ChatUtils.message("Waypoint added: %s", name);
 		}catch(NullPointerException e)
 		{
 			throw new CmdError("Waypoints system not available.");
@@ -114,7 +114,7 @@ public final class WaypointsCmd extends Command
 			throw new CmdSyntaxError(".waypoints remove <name>");
 
 		WURST.getWaypointsManager().remove(args[1]);
-		ChatUtils.message("Waypoint removed: " + args[1]);
+		ChatUtils.message("Waypoint removed: %s", args[1]);
 	}
 
 	private void list(String[] args) throws CmdException
@@ -126,17 +126,15 @@ public final class WaypointsCmd extends Command
 		page = Math.max(0, Math.min(page, pages - 1));
 		int rows = Math.min(8, Math.max(0, wps.size() - page * 8));
 
-		ChatUtils.message(
-			"Total: " + wps.size() + (wps.size() == 1 ? " waypoint" : " waypoints"));
+		ChatUtils.message("Total: %s waypoints", wps.size());
 		for(int i = page * 8; i < page * 8 + rows; i++)
 		{
 			Waypoint wp = wps.get(i);
 			String colorHex = String.format("#%06X", wp.getColor() & 0xFFFFFF);
-			ChatUtils.message(wp.getName() + ": " + wp.getPos().toShortString()
-				+ " [" + wp.getDimension().getPath() + "] " + colorHex);
+			ChatUtils.message("%s: %s [%s] %s", wp.getName(), wp.getPos().toShortString(), wp.getDimension().getPath(), colorHex);
 		}
 
-		ChatUtils.message("Page: " + (page + 1) + "/" + pages);
+		ChatUtils.message("Page: %s/%s", (page + 1), pages);
 	}
 
 	private int parsePage(String[] args) throws CmdSyntaxError

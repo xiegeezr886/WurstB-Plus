@@ -1,75 +1,97 @@
-/*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
- * Copyright (c) 2015-2026 CCBlueX
- * Adapted from Meteor Client. Copyright (c) Meteor Development.
- * SPDX-License-Identifier: GPL-3.0
- */
+/* NeoRaven ReachModule.java range and input gates, GPL-3.0.
+ * Existing 1.20.1 selection hooks are retained; block reach stays vanilla. */
 package net.wurstclient.hacks;
 
+import java.util.concurrent.ThreadLocalRandom;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.phys.EntityHitResult;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
+import net.wurstclient.epsilon.EpsilonTargets;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.util.Rotation;
 
-@SearchTags({"range", "extra reach"})
-public final class ReachHack extends Hack
-{
-	private final SliderSetting entityRange = new SliderSetting("Entity range",
-		"Maximum range for selecting and attacking entities.", 6, 1, 15,
-		0.05, ValueDisplay.DECIMAL).aliases("Range");
-	private final SliderSetting blockRange = new SliderSetting("Block range",
-		"Maximum range for selecting and interacting with blocks.", 5, 1, 15,
-		0.05, ValueDisplay.DECIMAL);
-	private final CheckboxSetting extraMode = new CheckboxSetting("Extra reach",
-		"Add the extra distances to the game's current reach instead of using the absolute ranges.", false);
-	private final SliderSetting extraEntityRange = new SliderSetting(
-		"Extra entity reach", "Distance to add to the current entity reach.",
-		0, 0, 15, 0.05, ValueDisplay.DECIMAL);
-	private final SliderSetting extraBlockRange = new SliderSetting(
-		"Extra block reach", "Distance to add to the current block reach.",
-		0, 0, 15, 0.05, ValueDisplay.DECIMAL);
+public final class ReachHack extends Hack {
+  private final SliderSetting min = new SliderSetting("Min", 3, 1, 6, .05, ValueDisplay.DECIMAL);
+  private final SliderSetting max = new SliderSetting("Max", 3.2, 1, 6, .05, ValueDisplay.DECIMAL);
+  private final CheckboxSetting weapon = new CheckboxSetting("Weapon only", true);
+  private final CheckboxSetting moving = new CheckboxSetting("Moving only", false);
+  private final CheckboxSetting sprint = new CheckboxSetting("Sprint only", false);
+  private final CheckboxSetting walls = new CheckboxSetting("Hit through blocks", false);
+  private Object player, world;
+  private int tick = -1;
+  private double sampled;
 
-	public ReachHack()
-	{
-		super("Reach");
-		setCategory(Category.OTHER);
-		addSetting(entityRange);
-		addSetting(blockRange);
-		addSetting(extraMode);
-		addSetting(extraEntityRange);
-		addSetting(extraBlockRange);
-	}
+  public ReachHack() {
+    super("Reach");
+    setCategory(Category.PLAYER);
+    addSetting(min);
+    addSetting(max);
+    addSetting(weapon);
+    addSetting(moving);
+    addSetting(sprint);
+    addSetting(walls);
+  }
 
-	public double changeEntityRange(double original)
-	{
-		if(!isEnabled())
-			return original;
-		return extraMode.isChecked() ? original + extraEntityRange.getValue()
-			: entityRange.getValue();
-	}
+  private boolean active() {
+    return isEnabled()
+        && EpsilonTargets.ready()
+        && MC.screen == null
+        && (!weapon.isChecked() || EpsilonTargets.weapon())
+        && (!moving.isChecked()
+            || MC.player.input.getMoveVector().y != 0
+            || MC.player.input.getMoveVector().x != 0)
+        && (!sprint.isChecked() || MC.player.isSprinting());
+  }
 
-	public double changeBlockRange(double original)
-	{
-		if(!isEnabled())
-			return original;
-		return extraMode.isChecked() ? original + extraBlockRange.getValue()
-			: blockRange.getValue();
-	}
+  protected void onEnable() {
+    tick = -1;
+  }
 
-	public float getReachDistance()
-	{
-		return Math.max(getEntityRange(), getBlockRange());
-	}
+  public double changeEntityRange(double original) {
+    if (!active()) return original;
+    // Share a sample across all renderer hooks in a tick to avoid inconsistent trimming.
+    if (player != MC.player || world != MC.level || tick != MC.player.tickCount) {
+      player = MC.player;
+      world = MC.level;
+      tick = MC.player.tickCount;
+      double low = Math.min(min.getValue(), max.getValue()),
+          high = Math.max(min.getValue(), max.getValue());
+      sampled = low == high ? low : ThreadLocalRandom.current().nextDouble(low, high);
+    }
+    return sampled;
+  }
 
-	public float getEntityRange()
-	{
-		return MC.player == null ? 0 : (float)MC.player.entityInteractionRange();
-	}
+  public double changeBlockRange(double original) {
+    return original;
+  }
 
-	public float getBlockRange()
-	{
-		return MC.player == null ? 0 : (float)MC.player.blockInteractionRange();
-	}
+  public float getReachDistance() {
+    return Math.max(getEntityRange(), getBlockRange());
+  }
+
+  public float getEntityRange() {
+    return (float) changeEntityRange(MC.gameMode != null && MC.player.hasInfiniteMaterials() ? 6 : 3);
+  }
+
+  public float getBlockRange() {
+    return MC.gameMode != null && MC.player.hasInfiniteMaterials() ? 5 : 4.5F;
+  }
+
+  public void updatePick() {
+    if (!active()) return;
+    EntityHitResult hit =
+        EpsilonTargets.ray(
+            getEntityRange(),
+            new Rotation(MC.player.getYRot(), MC.player.getXRot()),
+            walls.isChecked());
+    if (hit == null
+        || !(hit.getEntity() instanceof LivingEntity || hit.getEntity() instanceof ItemFrame))
+      return;
+    MC.hitResult = hit;
+    MC.crosshairPickEntity = hit.getEntity();
+  }
 }

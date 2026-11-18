@@ -81,7 +81,7 @@ public final class NotifierHack extends Hack
 	public NotifierHack()
 	{
 		super("Notifier");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(lowHealth);
 		addSetting(healthThreshold);
 		addSetting(totemPops);
@@ -293,7 +293,7 @@ public final class NotifierHack extends Hack
 			return;
 		}
 
-		ChatUtils.message(title + ": " + message);
+		ChatUtils.message("%s: %s", title, message);
 	}
 
 	private void clearTrackers()

@@ -59,7 +59,7 @@ public final class NukerLegitHack extends Hack
 	public NukerLegitHack()
 	{
 		super("NukerLegit");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addConflictGroup(HackConflictGroup.BLOCK_BREAKING_AUTOMATION);
 		addSetting(range);
 		commonSettings.getSettings().forEach(this::addSetting);

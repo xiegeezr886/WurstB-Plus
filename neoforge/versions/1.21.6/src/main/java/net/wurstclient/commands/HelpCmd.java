@@ -48,18 +48,16 @@ public final class HelpCmd extends Command
 		pages = Math.max(pages, 1);
 		
 		if(page > pages || page < 1)
-			throw new CmdSyntaxError("Invalid page: " + page);
+			throw new CmdSyntaxError("Invalid page: %s", page);
 		
-		String total = "Total: " + cmds.size() + " command";
-		total += cmds.size() != 1 ? "s" : "";
-		ChatUtils.message(total);
+		ChatUtils.message("Total: %s commands", cmds.size());
 		
 		int start = (page - 1) * CMDS_PER_PAGE;
 		int end = Math.min(page * CMDS_PER_PAGE, cmds.size());
 		
 		ChatUtils.message("命令列表 (第" + page + "/" + pages + ")");
 		for(int i = start; i < end; i++)
-			ChatUtils.message("- " + cmds.get(i).getName());
+			ChatUtils.message("- %s", cmds.get(i).getName());
 	}
 	
 	private void help(String cmdName) throws CmdException
@@ -71,7 +69,7 @@ public final class HelpCmd extends Command
 		if(cmd == null)
 			throw new CmdSyntaxError("未知命令: ." + cmdName);
 		
-		ChatUtils.message("Available help for ." + cmdName + ":");
+		ChatUtils.message("Available help for .%s:", cmdName);
 		cmd.printHelp();
 	}
 }

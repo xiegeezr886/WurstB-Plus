@@ -12,8 +12,13 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
+
+import com.mojang.blaze3d.pipeline.RenderTarget;
+
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.wurstclient.WurstClient;
@@ -23,14 +28,14 @@ import net.wurstclient.util.RenderUtils;
 /**
  * Shared NanoVG drawing front-end for every custom-drawn screen.
  *
- * <p>Each screen wraps its custom drawing in {@link #pass(GuiGraphics, Runnable)}.
+ * <p>Each screen wraps its custom drawing in {@link #pass(GuiGraphicsExtractor, Runnable)}.
  * The pass renders into NanoVG's offscreen framebuffer and composites the
  * result onto Minecraft's main target, so the vanilla pipeline is never left in
- * an unexpected state. Vanilla widgets that must keep using {@link GuiGraphics}
+ * an unexpected state. Vanilla widgets that must keep using {@link GuiGraphicsExtractor}
  * (EditBox, Button, item stacks) can be drawn between two passes.
  *
  * <p>Coordinates are Minecraft GUI coordinates (the same values the old
- * {@code GuiGraphics} calls used). Text is rendered with the bundled MiSans
+ * {@code GuiGraphicsExtractor} calls used). Text is rendered with the bundled MiSans
  * fonts and understands legacy {@code §} colour codes.
  */
 public final class NanoVGUI
@@ -72,6 +77,38 @@ public final class NanoVGUI
 	 */
 	public static void pass(GuiGraphicsExtractor graphics, Runnable body)
 	{
+		if(WurstClient.MC == null) return;
+		passTo(graphics, WurstClient.MC.gameRenderer.mainRenderTarget(), body);
+	}
+
+	/** Supersamples only this screen pass; the world and regular HUD retain their resolution. */
+	public static void passSmooth(GuiGraphicsExtractor graphics, Runnable body)
+	{
+		if(WurstClient.MC == null) return;
+		passTo(graphics, WurstClient.MC.gameRenderer.mainRenderTarget(), body, 1.5F);
+	}
+
+	/** Supersampled GUI content for temporary transition layers. */
+	public static void passSmoothTo(GuiGraphicsExtractor graphics, RenderTarget target, Runnable body)
+	{
+		passTo(graphics, target, body, 1.5F);
+	}
+
+	/** Draws the same GUI primitives into an offscreen post-processing mask. */
+	public static void passTo(GuiGraphicsExtractor graphics, RenderTarget target, Runnable body)
+	{
+		passTo(graphics, target, body, 1);
+	}
+
+	private static void passTo(GuiGraphicsExtractor graphics, RenderTarget target, Runnable body, float sampling)
+	{
+		// Krypton/GLES wrappers corrupt the framebuffer when NanoVG renders
+		// a screen pass; skip the pass entirely there so vanilla screens
+		// (pause menu, options, ...) stay visible.
+		NanoVGContext check = NanoVGContext.get();
+		if(check.create() && check.isGles())
+			return;
+
 		if(active)
 		{
 			body.run();
@@ -82,9 +119,10 @@ public final class NanoVGUI
 		if(mc == null || graphics == null || !NVG.create())
 			return;
 
+
 		try(GlStateGuard ignored = GlStateGuard.capture())
 		{
-			if(!NVG.beginFrame())
+			if(!NVG.beginFrame(sampling))
 				return;
 
 			active = true;
@@ -102,6 +140,11 @@ public final class NanoVGUI
 				active = false;
 				NVG.endFrame();
 			}
+
+			if(target != mc.gameRenderer.mainRenderTarget()) graphics.flush();
+            NanoVgBlitter.queueBlit(graphics, NVG);
+            if(target != mc.gameRenderer.mainRenderTarget())
+                try(var targetScope = net.wurstclient.util.render.V152Gpu.target(target)) { graphics.flush(); }
 		}catch(Throwable t)
 		{
 			System.err.println("[GUI] NanoVG pass failed");
@@ -113,7 +156,6 @@ public final class NanoVGUI
 			SCISSORS.clear();
 		}
 
-		NanoVgBlitter.queueBlit(graphics, NVG);
 		flushDeferredItems(graphics);
 	}
 
@@ -146,7 +188,6 @@ public final class NanoVGUI
 	{
 		if(ITEMS.isEmpty())
 			return;
-
 		List<DeferredItem> items = new ArrayList<>(ITEMS);
 		ITEMS.clear();
 		for(DeferredItem item : items)
@@ -167,7 +208,7 @@ public final class NanoVGUI
 			}
 			try
 			{
-				RenderUtils.drawItem(graphics, item.stack(), item.x(),
+				RenderUtils.drawItem(graphics.getInner(), item.stack(), item.x(),
 					item.y(), item.large());
 			}finally
 			{
@@ -241,7 +282,7 @@ public final class NanoVGUI
 
 		SCISSORS.push(new float[]{left, top, right, bottom});
 		NVG.save();
-		NVG.scissor(x, y, width, height);
+		NVG.scissor(left - translateX, top - translateY, right - left, bottom - top);
 	}
 
 	public static void popScissor()
@@ -432,6 +473,20 @@ public final class NanoVGUI
 			NVG.drawText(segment.toString(), cursor, y, current, size, FONT);
 	}
 
+	/** Draws a single string with a specific NanoVG font (used by Rise icons). */
+	public static void text(String text, float x, float y, int color,
+		float size, HudFont font)
+	{
+		if(!active || text == null || text.isEmpty())
+			return;
+		NVG.drawText(text, x, y, color, size, font);
+	}
+
+	public static float width(String text, float size, HudFont font)
+	{
+		return text == null || text.isEmpty() ? 0 : NVG.getTextWidth(text, size, font);
+	}
+
 	public static void centeredText(String text, float centerX, float y,
 		int color)
 	{
@@ -472,23 +527,20 @@ public final class NanoVGUI
 		if(text == null || text.isEmpty() || maxWidth <= 0)
 			return "";
 
-		StringBuilder out = new StringBuilder();
-		float total = 0;
-		for(int i = 0; i < text.length(); i++)
+		if(width(text, size) <= maxWidth) return text;
+		// Measure complete prefixes: summing glyph ink bounds loses spaces,
+		// bearings and kerning, and requires one native call per character.
+		int low = 0, high = text.codePointCount(0, text.length());
+		while(low < high)
 		{
-			char c = text.charAt(i);
-			if(c == '\u00a7' && i + 1 < text.length())
-			{
-				out.append(c).append(text.charAt(++i));
-				continue;
-			}
-			float charWidth = NVG.getTextWidth(String.valueOf(c), size, FONT);
-			if(total + charWidth > maxWidth)
-				break;
-			out.append(c);
-			total += charWidth;
+			int middle = (low + high + 1) / 2;
+			int end = text.offsetByCodePoints(0, middle);
+			if(width(text.substring(0, end), size) <= maxWidth) low = middle;
+			else high = middle - 1;
 		}
-		return out.toString();
+		int end = text.offsetByCodePoints(0, low);
+		if(end > 0 && text.charAt(end - 1) == '\u00a7') end--;
+		return text.substring(0, end);
 	}
 
 	public static String substrByWidth(String text, float maxWidth, float size)
@@ -539,12 +591,12 @@ public final class NanoVGUI
 	 * after the current NanoVG pass. Item models cannot be expressed as NanoVG
 	 * primitives, so they are kept on the vanilla pipeline.
 	 */
-	public static void item(GuiGraphicsExtractor graphics, ItemStack stack,
-		int x, int y, boolean large)
+	public static void item(GuiGraphicsExtractor graphics, ItemStack stack, int x, int y,
+		boolean large)
 	{
 		if(!active)
 		{
-			RenderUtils.drawItem(graphics, stack, x, y, large);
+			RenderUtils.drawItem(graphics.getInner(), stack, x, y, large);
 			return;
 		}
 

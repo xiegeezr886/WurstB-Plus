@@ -1,0 +1,15 @@
+Opai menu presentation and card flip adaptation for WurstB+ Plus / Fabric 1.20.1.
+Reference: https://github.com/snmwdd/OpaiBounce
+Sources: src/opai/ListScreen.svelte, listScreen.scss, menuMotion.ts, opai.scss.
+Upstream: CCBlueX and contributors; Opai / StylesFoundation.
+Retained licenses and upstream notices accompany this file.
+
+Adapted to Java/NanoVG: world/server list geometry, row cards, controls and
+quint-out card rotation with software affine projection and edge handoff.
+World loading, saved servers, pings and confirmation flows use Minecraft's
+existing implementations. Account management shares the list and flip timing.
+Buttons retain Wurst's translucent rounded style and use Chinese labels.
+Existing wallpaper, pale-purple palette, fonts and title layout remain.
+At the user's request, the title now fades out for 240ms before the list
+starts its flip. Returning lists fold away before the title fades in.
+No ViaVersion or proxy backend is added by this visual adaptation.

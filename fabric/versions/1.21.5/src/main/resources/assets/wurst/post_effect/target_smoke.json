@@ -1,0 +1,54 @@
+{
+  "targets": {
+    "swap": {}
+  },
+  "passes": [
+    {
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "minecraft:main"
+        }
+      ],
+      "output": "swap",
+      "uniforms": [
+        {
+          "name": "Mode",
+          "values": [
+            3
+          ],
+          "type": "int"
+        },
+        {
+          "name": "Time",
+          "type": "float"
+        }
+      ],
+      "vertex_shader": "minecraft:post/blit",
+      "fragment_shader": "wurst:program/target_effect"
+    },
+    {
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "swap"
+        }
+      ],
+      "output": "minecraft:main",
+      "uniforms": [
+        {
+          "name": "ColorModulate",
+          "type": "vec4",
+          "values": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "vertex_shader": "minecraft:post/blit",
+      "fragment_shader": "minecraft:post/blit"
+    }
+  ]
+}

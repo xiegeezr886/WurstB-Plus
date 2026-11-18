@@ -32,8 +32,8 @@ public final class TabEditorMod extends HUDMod
 			if(isEditing())
 			{
 				drawBackground(190, 32);
-				drawText("Tab list", 6, 5, 9, HudFonts.REGULAR);
-				drawText("Hold Tab to preview", 6, 17, 8,
+				drawText(WURST.translate("Tab list"), 6, 5, 9, HudFonts.REGULAR);
+				drawText(WURST.translate("Hold Tab to preview"), 6, 17, 8,
 					HudFonts.REGULAR, getFontColor(190));
 				setSize(190, 32);
 			}else

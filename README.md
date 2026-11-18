@@ -9,7 +9,7 @@
 [![Loaders](https://img.shields.io/badge/Loaders-Forge%20%7C%20NeoForge%20%7C%20Fabric-6E6E6E?style=flat-square)](#版本支持矩阵)
 [![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#版本支持矩阵)
 [![Gradle projects](https://img.shields.io/badge/Gradle_projects-67-4C1D95?style=flat-square)](#仓库结构)
-[![preview](https://img.shields.io/badge/preview-v1.5.2-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2)
+[![v1.5.2](https://img.shields.io/badge/version-v1.5.2-8A2BE2?style=flat-square)](docs/RELEASE-v1.5.2.md)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
 
 </div>
@@ -24,7 +24,7 @@ Minecraft 客户端（utility mod）。同一套功能被移植到 **Forge / Neo
 
 | Minecraft | Forge | NeoForge | Fabric | Java |
 | --- | :---: | :---: | :---: | :---: |
-| **1.20.1** | ✓ <sup>v1.5.1</sup> | ✓ | ✓ | 17 |
+| **1.20.1** | ✓ | ✓ | ✓ | 17 |
 | 1.20.2 · 1.20.3 · 1.20.4 | ✓ | ✓ | ✓ | 17 |
 | 1.20.5 | — | ✓ | ✓ | 21 |
 | 1.20.6 | ✓ | ✓ | ✓ | 21 |
@@ -38,21 +38,17 @@ Minecraft 客户端（utility mod）。同一套功能被移植到 **Forge / Neo
 **下载命名规则**（版本号不带 `v`）：
 
 ```text
-WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.1-Forge-1.21.5.jar
+WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.2-Fabric-1.20.1.jar
 ```
 
 | Release | 内容 | 说明 |
 | --- | --- | --- |
 | [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 个资产 | 1.5.0 线的历史主力发布 |
-| [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | **67 个资产（全矩阵）** | **最新发布（Latest）**：66 个 v1.5.1 工程 + 1 个 1.20.1 Forge 修复包，共 67 个 jar |
-| [**v1.5.2**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2) | Fabric 1.20.1 | 预发布；2026-11-16 已更新 JAR |
-| [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | 历史预发布；源码已移出当前根工程 |
+| [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | 67 个资产 | 历史全矩阵发布 |
+| [**v1.5.2**](docs/RELEASE-v1.5.2.md) | 67 个源代码工程 | 正式版本编号；下载范围以 GitHub Release 实际资产为准 |
 
-> **当前源码（2026-11-17）：** 根目录 Forge 1.20.1 已使用项目内
-> `dist/VAP-v1.5.1-Forge-1.20.1` 替换为 **v1.5.1**；`fabric/` 1.20.1 为 **v1.5.2**，
-> 其他工程为 v1.5.1。旧 v1.6.0 源码已移到仓库外独立备份，不再参与根工程构建。
-> 既有 GitHub Release 与历史标签保留；源码替换不代表重新发布整个矩阵。
-> 迁移范围、恢复方式与验证见 [根工程基线说明](docs/ROOT-FORGE-1.5.1.md)。
+Fabric 1.20.1 为 v1.5.2 功能基线。上表描述源码覆盖范围；安装前请按 Minecraft 版本和加载器核对实际 JAR。
+功能变更、安装与本轮验收见 [v1.5.2 发布说明](docs/RELEASE-v1.5.2.md)，分代记录见 [同步计划](docs/PORTING-v1.5.2.md)。
 
 ---
 
@@ -60,9 +56,9 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.1-Forge
 
 ```text
 .
-├── src/                    根工程 · Forge 1.20.1 · v1.5.1
-├── fabric/                 Fabric 1.20.1 · v1.5.2（源码开发中）
-├── neoforge/               NeoForge 1.20.1 · v1.5.1
+├── src/                    根工程 · Forge 1.20.1 · v1.5.2
+├── fabric/                 Fabric 1.20.1 · v1.5.2 功能基线
+├── neoforge/               NeoForge 1.20.1 · v1.5.2
 ├── versions/               Forge 新版本工程        20 个
 ├── fabric/versions/        Fabric 新版本工程       22 个
 ├── neoforge/versions/      NeoForge 新版本工程     22 个
@@ -74,17 +70,15 @@ WurstB+.Plus-<版本>-<加载器>-<mc>.jar        例：WurstB+.Plus-1.5.1-Forge
 **20 + 22 + 22 = 64 个版本工程**，再加 3 个 1.20.1 根工程，合计 **67 个独立 Gradle 构建**。
 每个工程都有完整的 `gradle-wrapper.jar`，离线环境也能解析 Gradle 发行版。
 
-> 逐工程的工具链、源码文件数、测试数、v1.6 功能缺口等**权威数字不在本文档手写**，
-> 见自动生成的 [docs/STATUS.md](docs/STATUS.md)（`scripts/generate-status.ps1`）。
-
 ---
 
 ## 文档索引
 
 | 文档 | 内容 |
 | --- | --- |
+| [docs/STATUS.md](docs/STATUS.md) | 自动生成的工程、工具链、源码和测试计数 |
+| [docs/PORTING-v1.5.2.md](docs/PORTING-v1.5.2.md) | 全版本同步范围、分批顺序与验收 |
 | [docs/PROTECTION.md](docs/PROTECTION.md) | 发布 JAR 混淆保护器 v2：字符串分块加密、私有调用间接化、数字隐藏、兼容规则与验证 |
-| [docs/STATUS.md](docs/STATUS.md) | **权威状态数字（自动生成，请勿手改）**：工程清单、工具链、测试数、v1.6 缺口 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更，含已知局限与偏差 |
 | [docs/PROJECT-STRUCTURE.md](docs/PROJECT-STRUCTURE.md) | 67 工程布局的由来、为何没有共享 sourceSet、如何新增 MC 版本 |
 | [docs/RELEASE.md](docs/RELEASE.md) | **发布与维护手册**（原 README）：**功能说明**（新增子系统、新增 Hack 清单、HUD 元素、已重构机制、架构概览）、**安装**、**构建与运行**、产物矩阵、打包校验、验证状态、**渲染兼容性（NanoVG / X-Ray / Vulkan）** |
@@ -113,11 +107,18 @@ LGPL 2.1 文本，适用于其中所述的 Minecraft Forge / FML 部分（含 MC
 FFmpeg 为 LGPL-2.1 构建，其**对应源码**（构建脚本、`COPYING.*`、JNI shim 源码）
 随仓库提供于 [`native/ffmpeg/`](native/ffmpeg)。
 
-> **验证范围：** 67 个 v1.5.1 资产均完成编译与打包校验，并已上传到 v1.5.1 Release；
-> 游戏内启动验证只覆盖部分组合（1.21.11 / 26.2 等），Forge/NeoForge 1.20.x–1.21.1 等
-> 仍只有编译/打包验证。Vulkan 仅 26.2/26.3 支持，且 NeoForge 26.2 的 Vulkan 启动受加载器 bug 阻塞。
+> **验证范围：** v1.5.2 的生产包、实机覆盖和已知限制见 [发布说明](docs/RELEASE-v1.5.2.md)。
+> Vulkan 仅 26.2/26.3 支持，且 NeoForge 26.2 的 Vulkan 启动受加载器 bug 阻塞。
 > 逐版本状态见 [docs/RELEASE.md](docs/RELEASE.md) 的「渲染兼容性（X-Ray / Vulkan）」与
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
+
+---
+
+## 下载器
+
+桌面下载器 **WDownloader** 支持分步选择发布版本、Minecraft 版本和加载器。
+文件默认保存到系统下载文件夹。下载器支持 1、2、4 或 8 路并发（默认 4 路），会自动测试下载线路、在失败时切换线路并校验文件完整性。
+使用和构建方法见 [下载器说明](downloader/README.md)。
 
 <div align="center">
 <sub>WurstB+ Plus · mod id <code>wurstpenguin</code> · 作者 Penguin</sub>

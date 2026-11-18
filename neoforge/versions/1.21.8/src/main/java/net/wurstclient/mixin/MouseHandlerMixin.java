@@ -36,6 +36,7 @@ public abstract class MouseHandlerMixin
 		int modifiers, CallbackInfo ci)
 	{
 		EventManager.fire(new MouseButtonPressEvent(button, action));
+        EventManager.fire(new net.wurstclient.events.MouseButtonListener.MouseButtonEvent(button, action));
 	}
 	
 	@Inject(method = "onScroll(JDD)V", at = @At("RETURN"))

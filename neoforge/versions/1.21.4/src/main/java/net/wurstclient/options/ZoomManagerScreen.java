@@ -83,7 +83,7 @@ public class ZoomManagerScreen extends Screen implements PressAKeyCallback
 	
 	private String onOrOff(boolean on)
 	{
-		return on ? "ON" : "OFF";
+		return on ? WurstClient.tr("ON") : WurstClient.tr("OFF");
 	}
 	
 	@Override
@@ -107,10 +107,10 @@ public class ZoomManagerScreen extends Screen implements PressAKeyCallback
 		SliderSetting level = zoom.getLevelSetting();
 		
 		renderBackground(context, mouseX, mouseY, partialTicks);
-		context.drawCenteredString(font, "Zoom Manager",
+		context.drawCenteredString(font, WurstClient.tr("Zoom Manager"),
 			width / 2, 40, 0xffffff);
 		context.drawString(font,
-			"Zoom Level: " + level.getValueString(), width / 2 - 75,
+			WurstClient.tr("Zoom Level: %s", level.getValueString()), width / 2 - 75,
 			height / 4 + 44, 0xcccccc);
 		
 		super.render(context, mouseX, mouseY, partialTicks);

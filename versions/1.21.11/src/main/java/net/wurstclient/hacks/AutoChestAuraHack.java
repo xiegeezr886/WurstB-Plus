@@ -159,7 +159,11 @@ public final class AutoChestAuraHack extends Hack
 				continue;
 
 			Vec3 hitVec = Vec3.atCenterOf(pos);
-			if(!BlockUtils.hasLineOfSight(hitVec))
+			// A ray to the center of a solid chest hits the chest itself.
+			// Accept that hit, while still rejecting intervening blocks.
+			var hit = BlockUtils.raycast(RotationUtils.getEyesPos(), hitVec);
+			if(hit.getType() != net.minecraft.world.phys.HitResult.Type.MISS
+				&& !hit.getBlockPos().equals(pos))
 				continue;
 
 			if(rotate.isChecked())

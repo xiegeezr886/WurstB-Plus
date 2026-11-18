@@ -1,0 +1,12 @@
+RedFix / LiquidBounce HUD adaptation
+
+Reference: reference/clients/RedFix-repaired, local source supplied for development.
+Original project: LiquidBounce, https://github.com/CCBlueX/LiquidBounce
+Copyright (c) 2015-2026 CCBlueX and contributors; GPL-3.0-or-later.
+
+Adapted: ArrayList component in index-B5FiXQoV.js / index-BG7KxVN5.css,
+components/arraylist.json, ModuleCategories.kt and module category assignments.
+Copied and rasterized: themes/liquidbounce/img/hud/tabgui/exploit.svg.
+
+The native renderer retains MiSans and Minecraft 1.20.1 modules. It does not
+include RedFix's browser engine or replace Wurst's module implementations.

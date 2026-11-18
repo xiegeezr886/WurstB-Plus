@@ -67,7 +67,7 @@ public final class ChatPrefixCustomHack extends Hack implements ChatInputListene
 	public ChatPrefixCustomHack()
 	{
 		super("ChatPrefixCustom");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(prefixText);
 		addSetting(colorMode);
 		addSetting(prefixColor);

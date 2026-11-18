@@ -55,6 +55,16 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 	
 	private Screen tempCurrentScreen;
 	private boolean hideNextItemUse;
+
+	@Inject(method = "moveTowardsClosestSpace(DD)V", at = @At("HEAD"),
+		cancellable = true)
+	private void epsilon$preventBlockPush(double x, double z, CallbackInfo ci)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if((Object)this == WurstClient.MC.player && hax != null
+			&& hax.antiKnockbackHack.preventsBlockPush())
+			ci.cancel();
+	}
 	
 	public ClientPlayerEntityMixin(WurstClient wurst, ClientLevel world,
 		GameProfile profile)
@@ -302,6 +312,7 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 		HackList hax = WurstClient.INSTANCE.getHax();
 		return super.isStayingOnGroundSurface()
 			|| hax != null && (hax.safeWalkHack.shouldClipEdges()
+				|| hax.printerHack.shouldSafeWalk()
 				|| hax.scaffoldWalkHack.shouldSafeWalk());
 	}
 	
@@ -347,4 +358,9 @@ public class ClientPlayerEntityMixin extends AbstractClientPlayer
 			return null;
 		return super.getEffect(effect);
 	}
+    @org.spongepowered.asm.mixin.injection.Inject(method = "tick()V", at = @org.spongepowered.asm.mixin.injection.At("HEAD"))
+    private void wurst$tickSeedCracker(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        var cracker = kaptainwutax.seedcrackerX.SeedCracker.get();
+        if(cracker != null) cracker.getDataStorage().tick();
+    }
 }

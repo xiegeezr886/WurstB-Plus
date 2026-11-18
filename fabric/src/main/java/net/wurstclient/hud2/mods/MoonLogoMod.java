@@ -7,7 +7,7 @@ import net.wurstclient.settings.CheckboxSetting;
 /** Moon WatermarkHudRenderer LOGO layout, with the user's menu artwork. */
 public final class MoonLogoMod extends HUDMod {
   private final CheckboxSetting glow = new CheckboxSetting(
-      "Logo glow", "Shows a glow around this HUD logo only.", false);
+      "Logo glow", "Shows a glow around this HUD logo only.", true);
 
   public MoonLogoMod() {
     super("LogoHUD", "Logo HUD", "Shows the menu logo as a movable Moon-style watermark.");

@@ -1,0 +1,24 @@
+NeoRaven music player adaptation for WurstB+ Plus / Fabric 1.20.1
+Upstream: https://github.com/Matr1ze/NeoRaven
+Commit: 1a4ae731837f28087c263763cf176d9ec0261c37
+License: GPL-3.0; original LICENSE included beside this notice.
+Original copyright remains with upstream authors and contributors.
+The upstream music source also credits Melodify for player/API design.
+
+Ported: queue/transport, JLayer MP3 decoding, Java Sound output, NetEase web API,
+weapi encryption, QR login, timed lyrics and lyric lookup.
+Adapted: asynchronous cover cache, NanoVG music screen and existing Dynamic Island.
+Changes: cancellation generations, bounded downloads, local MP3/LRC, lifecycle cleanup,
+fixed pale-purple theme, native Java 17/Fabric APIs and music-aware vanilla soundtrack.
+Material Icons font is copied from the upstream asset and keeps its Apache-2.0 license.
+MusicScreen/LyricPanel geometry, Material alpha helpers and Spring/Ease motion
+are adapted from NeoRaven, including its 840x520 canvas, screen fitting, GUI Scale,
+control radii, inline volume slider, lyric wrapping and focus/scroll behavior.
+Colors retain the fixed Navigator palette; the category rail is translucent and
+the content surface is opaque. Rendering uses native NanoVG rather than Onyx.
+Original music recordings and text fonts are not redistributed.
+Not included: Android/LWJGL2 game-audio backend, world-space 3D lyrics or Onyx renderer.
+Dependencies: JLayer 1.0.1.4 (LGPL-2.1-or-later), ZXing core 3.5.3 (Apache-2.0).
+Their original Maven jars are bundled under META-INF/jars; licenses and attribution
+are in META-INF/licenses/jlayer and META-INF/licenses/zxing.
+Source mapping and verification: docs/MUSIC-NEORAVEN-v1.5.2.md

@@ -26,7 +26,7 @@ import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
 import net.wurstclient.util.text.WText;
 
-public final class ColorSetting extends Setting
+public class ColorSetting extends Setting
 {
 	private Color color;
 	private final Color defaultColor;
@@ -156,25 +156,26 @@ public final class ColorSetting extends Setting
 	@Override
 	public Set<PossibleKeybind> getPossibleKeybinds(String featureName)
 	{
-		String description = "Set " + featureName + " " + getName() + " to ";
+		String fullName = featureName + " " + getName();
+		String description = "Set %s to ";
 		String command = ".setcolor " + featureName.toLowerCase() + " "
 			+ getName().toLowerCase().replace(" ", "_") + " ";
 		
 		LinkedHashSet<PossibleKeybind> pkb = new LinkedHashSet<>();
-		addPKB(pkb, command + "#FF0000", description + "red");
-		addPKB(pkb, command + "#00FF00", description + "green");
-		addPKB(pkb, command + "#0000FF", description + "blue");
-		addPKB(pkb, command + "#FFFF00", description + "yellow");
-		addPKB(pkb, command + "#00FFFF", description + "cyan");
-		addPKB(pkb, command + "#FF00FF", description + "magenta");
-		addPKB(pkb, command + "#FFFFFF", description + "white");
-		addPKB(pkb, command + "#000000", description + "black");
+		addPKB(pkb, command + "#FF0000", description + "red", fullName);
+		addPKB(pkb, command + "#00FF00", description + "green", fullName);
+		addPKB(pkb, command + "#0000FF", description + "blue", fullName);
+		addPKB(pkb, command + "#FFFF00", description + "yellow", fullName);
+		addPKB(pkb, command + "#00FFFF", description + "cyan", fullName);
+		addPKB(pkb, command + "#FF00FF", description + "magenta", fullName);
+		addPKB(pkb, command + "#FFFFFF", description + "white", fullName);
+		addPKB(pkb, command + "#000000", description + "black", fullName);
 		return pkb;
 	}
 	
 	private void addPKB(LinkedHashSet<PossibleKeybind> pkb, String command,
-		String description)
+		String description, Object... args)
 	{
-		pkb.add(new PossibleKeybind(command, description));
+		pkb.add(new PossibleKeybind(command, description, args));
 	}
 }

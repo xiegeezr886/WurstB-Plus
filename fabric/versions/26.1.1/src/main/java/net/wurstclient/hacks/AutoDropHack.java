@@ -38,7 +38,7 @@ public final class AutoDropHack extends Hack implements UpdateListener
 	public AutoDropHack()
 	{
 		super("AutoDrop");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(items);
 	}
 	

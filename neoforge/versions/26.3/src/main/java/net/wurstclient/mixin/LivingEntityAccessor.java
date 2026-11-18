@@ -20,6 +20,9 @@ public interface LivingEntityAccessor
 	public int wurst_getAttackStrengthTicker();
 
 	@Accessor("noJumpDelay")
+	public int wurst_getNoJumpDelay();
+
+	@Accessor("noJumpDelay")
 	public void wurst_setNoJumpDelay(int delay);
 
 	@Invoker("jumpFromGround")

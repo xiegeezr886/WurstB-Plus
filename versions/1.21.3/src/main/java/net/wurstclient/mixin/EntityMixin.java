@@ -90,6 +90,18 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 		if(event.isCancelled())
 			ci.cancel();
 	}
+
+	// Check the recipient: vanilla applies both participants' impulses here.
+	@WrapWithCondition(method = "push(Lnet/minecraft/world/entity/Entity;)V",
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/world/entity/Entity;push(DDD)V"), require = 2)
+	private boolean epsilon$allowCollisionPush(Entity recipient, double x,
+		double y, double z)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		return recipient != WurstClient.MC.player || hax == null
+			|| !hax.antiKnockbackHack.preventsEntityPush();
+	}
 	
 	/**
 	 * Makes invisible entities render as ghosts if TrueSight is enabled.
@@ -109,18 +121,12 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 			cir.setReturnValue(false);
 	}
 
-	@Inject(at = @At("RETURN"),
-		method = "getBoundingBox()Lnet/minecraft/world/phys/AABB;",
-		cancellable = true)
-	private void onGetBoundingBox(CallbackInfoReturnable<AABB> cir)
+	@Inject(at = @At("RETURN"), method = "getPickRadius()F", cancellable = true)
+	private void onGetPickRadius(CallbackInfoReturnable<Float> cir)
 	{
-		float extra = WurstClient.INSTANCE.getHax().hitboxesHack.getExtraSize();
-		Entity self = (Entity)(Object)this;
-		if(!HitboxExpansionPolicy.shouldExpand(self.level().isClientSide,
-			self instanceof LivingEntity, self == WurstClient.MC.player, extra))
-			return;
-
-		cir.setReturnValue(cir.getReturnValue().inflate(extra));
+		if(WurstClient.INSTANCE.getHax() == null) return;
+		float extra = WurstClient.INSTANCE.getHax().hitboxesHack.getExtraSize((Entity)(Object)this);
+		if(extra > 0) cir.setReturnValue(cir.getReturnValue() + extra);
 	}
 
 	/**

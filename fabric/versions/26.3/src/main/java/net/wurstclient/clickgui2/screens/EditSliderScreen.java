@@ -7,9 +7,11 @@
  */
 package net.wurstclient.clickgui2.screens;
 
+
+
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
@@ -91,14 +93,18 @@ public final class EditSliderScreen extends Screen
 	public void tick()
 	{
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX,
 		int mouseY, float partialTicks)
 	{
-		extractBackground(context, mouseX, mouseY, partialTicks);
-		valueField.extractRenderState(context, mouseX, mouseY, partialTicks);
-		super.extractRenderState(context, mouseX, mouseY, partialTicks);
+		extractBackground(context.getInner(), mouseX, mouseY, partialTicks);
+		valueField.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		super.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 
 		NanoVGUI.pass(context, () -> NanoVGUI.centeredText(
 			slider.getTranslatedName(), width / 2, 20, 0xFFFFFFFF, 9F));

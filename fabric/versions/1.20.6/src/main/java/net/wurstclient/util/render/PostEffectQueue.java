@@ -163,7 +163,8 @@ public final class PostEffectQueue
 		{
 			modelView.popMatrix();
 			RenderSystem.applyModelViewMatrix();
-			RenderSystem.restoreProjectionMatrix();
+			RenderSystem.applyModelViewMatrix();
+        RenderSystem.restoreProjectionMatrix();
 		}
 	}
 

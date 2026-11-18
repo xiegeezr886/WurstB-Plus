@@ -8,6 +8,8 @@
 // Ported from Soar Client v7.1.2 (LGPL-3.0).
 package net.wurstclient.hud2.mods;
 
+import java.awt.Color;
+
 import net.wurstclient.hud2.HUDMod;
 import net.wurstclient.hud2.HudAnimation;
 import net.wurstclient.hud2.nanovg.HudFonts;
@@ -59,8 +61,8 @@ public final class KeystrokesMod extends HUDMod
 			drawBackground(0, 64, 92, 22);
 			save();
 			scale(0, 64, 92, 22, animations[4].getValue());
-			drawRoundedRect(0, 64, 92, 22, 6,
-				getFontColor((int)(120 * animations[4].getValue())));
+			drawRoundedRect(0, 64, 92, 22, backgroundRadius(92, 22),
+				new Color(accentColor((int)(120 * animations[4].getValue())), true));
 			restore();
 			// The space bar shows a horizontal bar rather than a text label.
 			drawRoundedRect(26, 73.5F, 40, 3, 1.5F, getFontColor(200));
@@ -74,8 +76,8 @@ public final class KeystrokesMod extends HUDMod
 		drawBackground(x, y, 28, 28);
 		save();
 		scale(x, y, 28, 28, animation.getValue());
-		drawRoundedRect(x, y, 28, 28, 6,
-			getFontColor((int)(120 * animation.getValue())));
+		drawRoundedRect(x, y, 28, 28, backgroundRadius(28, 28),
+			new Color(accentColor((int)(120 * animation.getValue())), true));
 		restore();
 		if(!unmarkedSetting.isChecked())
 			drawCenteredText(name, x + 14, y + 9, 12, HudFonts.REGULAR);

@@ -1,0 +1,76 @@
+// Opt-in native-loader client QA. Use with verify_v152_matrix.gradle.
+gradle.beforeProject { project ->
+    if (!project.hasProperty('portQa')) return
+    project.plugins.withId('net.minecraftforge.gradle') {
+        Class toolType
+        try {
+            toolType = project.plugins.getPlugin('net.minecraftforge.gradle')
+                .class.classLoader.loadClass('net.minecraftforge.gradle.shadow.net.minecraftforge.gradleutils.shared.ToolsExtension')
+        } catch (ClassNotFoundException ignored) {
+            return // ForgeGradle 6 does not use Slime Launcher.
+        }
+        // Configure before task realization: configuration-on-demand can
+        // create runClient before projectsEvaluated fires.
+        project.extensions.getByType(toolType).configure('slimelauncher') { tool ->
+            tool.javaLauncher.set(project.javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(project.minecraft_version.startsWith('26.') ? 25 : 21))
+            })
+        }
+    }
+}
+
+gradle.projectsEvaluated {
+    if (!rootProject.hasProperty('portQa')) return
+    def repository = rootProject.rootDir
+    while (!new File(repository, 'scripts/port/prepare_v152.py').isFile()) repository = repository.parentFile
+    def relative = repository.toPath().relativize(rootProject.rootDir.toPath()).toString().replace('\\', '-')
+    def game = new File(repository, '.dsh-tmp/v152-matrix-runtime/' + relative)
+    def temp = new File(game, 'native-tmp')
+    game.mkdirs()
+    temp.mkdirs()
+    def port = rootProject.findProperty('portQaPort') ?: '18756'
+    if (rootProject.plugins.hasPlugin('net.minecraftforge.gradle')) {
+        def client = rootProject.minecraft.runs.client
+        if (client.hasProperty('workingDir')) {
+            // ForgeGradle 7 uses a DirectoryProperty instead of RunConfig's
+            // workingDirectory method from the older plugin.
+            client.workingDir.set(game)
+        } else {
+            client.workingDirectory(game)
+        }
+    } else if (rootProject.plugins.hasPlugin('net.neoforged.gradle.userdev')) {
+        rootProject.runs.client.workingDirectory(game)
+    } else if (rootProject.plugins.hasPlugin('net.neoforged.moddev')) {
+        rootProject.neoForge.runs.client.gameDirectory = game
+    } else {
+        throw new GradleException('Native QA requires ForgeGradle or NeoGradle')
+    }
+    rootProject.tasks.matching { it.name == 'runClient' }.configureEach {
+        if (rootProject.plugins.hasPlugin('net.minecraftforge.gradle')
+                && rootProject.minecraft.runs.client.hasProperty('workingDir')) {
+            // Slime Launcher resolves its default asset cache through APPDATA.
+            // Keep its files in the workspace; the QA launcher can link the
+            // already verified Minecraft asset cache under this directory.
+            environment 'APPDATA', new File(repository, '.dsh-tmp/native-qa-appdata').absolutePath
+        }
+        args '--width', '1280', '--height', '720', '--username', 'PortQA'
+        systemProperty 'wurst.test.port', port
+        systemProperty 'java.io.tmpdir', temp.absolutePath
+        systemProperty 'jna.tmpdir', temp.absolutePath
+        systemProperty 'org.lwjgl.system.SharedLibraryExtractPath', temp.absolutePath
+    }
+    // Dev runs supply the NanoVG API as a runtime library. Production bundles
+    // it in the mod; declaring the toggle forces restoration on the next build.
+    rootProject.tasks.named('processResources').configure {
+        inputs.property('nativeQaNanoVgApi', !rootProject.hasProperty('portQa'))
+        if (!rootProject.plugins.hasPlugin('net.neoforged.moddev')) {
+            exclude 'org/lwjgl/nanovg/**'
+            doFirst {
+                def api = new File(destinationDir, 'org/lwjgl/nanovg')
+                if (!api.toPath().normalize().startsWith(rootProject.layout.buildDirectory.get().asFile.toPath().normalize()))
+                    throw new GradleException('Unexpected QA resource output')
+                project.delete(api)
+            }
+        }
+    }
+}

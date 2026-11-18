@@ -40,7 +40,7 @@ public final class AutoStealHack extends Hack
 	public AutoStealHack()
 	{
 		super("AutoSteal");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(buttons);
 		addSetting(delay);
 		addSetting(reverseSteal);

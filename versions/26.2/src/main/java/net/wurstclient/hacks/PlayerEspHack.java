@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.joml.Matrix4f;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -55,6 +55,8 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 
 	private final EspStyleSetting style =
 		new EspStyleSetting(EspStyle.LINES_AND_BOXES);
+	private final CheckboxSetting moonGlow = new CheckboxSetting("Moon glow",
+		"Adds a static light-purple glow around entity models.", false);
 	
 	private final EspBoxSizeSetting boxSize = new EspBoxSizeSetting(
 		"\u00a7lAccurate\u00a7r mode shows the exact hitbox of each player.\n"
@@ -119,6 +121,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 		super("PlayerESP");
 		setCategory(Category.RENDER);
 		addSetting(renderMode);
+		addSetting(moonGlow);
 		addSetting(style);
 		addSetting(boxSize);
 		addSetting(maxDistance);
@@ -180,13 +183,20 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	public void onCameraTransformViewBobbing(
 		CameraTransformViewBobbingEvent event)
 	{
-		if(renderMode.getSelected() == RenderMode.THREE_D && style.hasLines())
+		if(!moonGlow.isChecked() && renderMode.getSelected() == RenderMode.THREE_D && style.hasLines())
 			event.cancel();
 	}
 	
 	@Override
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
+		if(moonGlow.isChecked())
+		{
+			screenBoxes = List.of();
+			net.wurstclient.util.render.MoonEntityGlow.INSTANCE.queue(players,
+				throughWalls.isChecked());
+			return;
+		}
 		if(renderMode.getSelected() == RenderMode.TWO_D)
 		{
 			updateScreenBoxes(matrixStack, partialTicks);
@@ -261,27 +271,27 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 				| (int)(fillOpacity.getValue() * 120) << 24;
 			int lineColor = box.color() & 0x00FFFFFF
 				| (int)(lineOpacity.getValue() * 255) << 24;
-			RenderUtils.fill2D(context, bounds.minX(), bounds.minY(),
+			RenderUtils.fill2D(context.getInner(), bounds.minX(), bounds.minY(),
 				bounds.maxX(), bounds.maxY(), fillColor);
-			RenderUtils.drawBorder2D(context, bounds.minX(), bounds.minY(),
+			RenderUtils.drawBorder2D(context.getInner(), bounds.minX(), bounds.minY(),
 				bounds.maxX(), bounds.maxY(), lineColor);
 
 			if(healthBar.isChecked())
 			{
 				float x1 = bounds.minX() - 4;
 				float y = Mth.lerp(box.health(), bounds.maxY(), bounds.minY());
-				RenderUtils.fill2D(context, x1, bounds.minY(), x1 + 2,
+				RenderUtils.fill2D(context.getInner(), x1, bounds.minY(), x1 + 2,
 					bounds.maxY(), 0xA0000000);
-				RenderUtils.fill2D(context, x1, y, x1 + 2, bounds.maxY(),
+				RenderUtils.fill2D(context.getInner(), x1, y, x1 + 2, bounds.maxY(),
 					lineColor);
 			}
 
 			if(armorBar.isChecked() && box.armor() > 0)
 			{
 				float width = (bounds.maxX() - bounds.minX()) * box.armor();
-				RenderUtils.fill2D(context, bounds.minX(), bounds.maxY() + 2,
+				RenderUtils.fill2D(context.getInner(), bounds.minX(), bounds.maxY() + 2,
 					bounds.maxX(), bounds.maxY() + 4, 0xA0000000);
-				RenderUtils.fill2D(context, bounds.minX(), bounds.maxY() + 2,
+				RenderUtils.fill2D(context.getInner(), bounds.minX(), bounds.maxY() + 2,
 					bounds.minX() + width, bounds.maxY() + 4, 0xFF55AAFF);
 			}
 		}

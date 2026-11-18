@@ -1,175 +1,193 @@
 package net.wurstclient.gui.title;
 
-import net.wurstclient.util.render.GuiGraphicsExtractor;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 import com.mojang.realmsclient.RealmsMainScreen;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
-import net.minecraftforge.client.gui.ModListScreen;
-import net.minecraftforge.versions.forge.ForgeVersion;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.screens.AltManagerScreen;
 import net.wurstclient.gui.MainMenuBackground;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.util.ScreenRegistry;
+import net.wurstclient.gui.opai.OpaiMenuMotion;
+import net.wurstclient.gui.opai.OpaiMenuFade;
+import net.minecraft.util.Util;
 
+/** Native menu with the user's original sizes, material and icons. */
 public final class WurstTitleMenu
 {
-	private static final int ICON_TEXTURE_SIZE = 88;
-	private static final int ACCENT = 0xFF006366;
-	private static final int TEXT = 0xFFF1F7F7;
-	private static final int MUTED_TEXT = 0xFFA4B4B5;
-	private static final int DIM_TEXT = 0xFF738687;
+    private static final Identifier LOGO = Identifier.fromNamespaceAndPath("wurstpenguin", "title-nextgen/wurst-logo.png");
+    private static final Identifier LOGO_GLOW = Identifier.fromNamespaceAndPath("wurstpenguin", "title-nextgen/wurst-logo-glow.png");
+    private final Screen parent;
+    private final List<WurstTitleButton> main = new ArrayList<>();
+    private final List<WurstTitleButton> tools = new ArrayList<>();
+    private Minecraft minecraft;
+    private TitleMenuLayout layout;
+    private boolean toolsShown, switching;
+    private long started, switched, pageStarted;
+    private WurstTitleButton account;
+    private OpaiMenuFade fade;
+    private Runnable destination;
 
-	private static final Identifier SINGLEPLAYER = icon("singleplayer");
-	private static final Identifier MULTIPLAYER = icon("multiplayer");
-	private static final Identifier REALMS = icon("realms");
-	private static final Identifier OPTIONS = icon("options");
-	private static final Identifier USER = icon("user");
-	private static final Identifier INFO = icon("info");
-	private static final Identifier EXIT = icon("exit");
-
-	private final Screen parent;
-	private final List<WurstTitleButton> buttons = new ArrayList<>();
-
-	private Minecraft minecraft;
-	private int margin;
-	private int cardX;
-	private int cardY;
-	private int cardWidth;
-	private int cardHeight;
-	private int cardGap;
-	private int utilityY;
-
-	public WurstTitleMenu(Screen parent)
-	{
-		this.parent = parent;
-	}
-
-	public void init(Minecraft minecraft, int screenWidth, int screenHeight,
-		Consumer<AbstractWidget> addWidget)
-	{
-		this.minecraft = minecraft;
-		configureIconFiltering();
-		buttons.clear();
-		updateLayout(screenWidth, screenHeight);
-
-		int y = cardY;
-		addButton(addWidget, cardX, y, cardWidth, cardHeight, "单人游戏",
-			SINGLEPLAYER, () -> ScreenRegistry.WORLD_SELECTION.open(parent),
-			false, false);
-		y += cardHeight + cardGap;
-		addButton(addWidget, cardX, y, cardWidth, cardHeight, "多人游戏",
-			MULTIPLAYER,
-			() -> ScreenRegistry.MULTIPLAYER.open(parent), false,
-			false);
-		y += cardHeight + cardGap;
-		addButton(addWidget, cardX, y, cardWidth, cardHeight, "Minecraft Realms",
-			REALMS, () -> minecraft.setScreen(new RealmsMainScreen(parent)), false,
-			false);
-		y += cardHeight + cardGap;
-		addButton(addWidget, cardX, y, cardWidth, cardHeight, "游戏设置",
-			OPTIONS, () -> ScreenRegistry.OPTIONS.open(parent), false, false);
-
-		int compactGap = 7;
-		int compactWidth = (cardWidth - compactGap * 2) / 3;
-		int compactHeight = 30;
-		addButton(addWidget, cardX, utilityY, compactWidth, compactHeight,
-			"账号", USER, () -> minecraft.setScreen(new AltManagerScreen(parent,
-				WurstClient.INSTANCE.getAltManager())), true, false);
-		addButton(addWidget, cardX + compactWidth + compactGap, utilityY,
-			compactWidth, compactHeight, "模组", INFO,
-			() -> minecraft.setScreen(new ModListScreen(parent)), true, false);
-		addButton(addWidget, cardX + (compactWidth + compactGap) * 2, utilityY,
-			cardWidth - (compactWidth + compactGap) * 2, compactHeight,
-			"退出", EXIT, minecraft::stop, true, true);
-	}
-
-	private void addButton(Consumer<AbstractWidget> addWidget, int x, int y,
-		int width, int height, String text, Identifier icon,
-		Runnable action, boolean compact, boolean dangerous)
-	{
-		WurstTitleButton button = new WurstTitleButton(x, y, width, height,
-			Component.literal(text), icon, action, compact, dangerous);
-		buttons.add(button);
-		addWidget.accept(button);
-	}
-
-	public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
-		float partialTicks, int screenWidth, int screenHeight)
-	{
-		// Clear the main target first: the NanoVG pass blends its framebuffer
-		// over whatever the title screen had drawn before it.
-		graphics.fill(0, 0, screenWidth, screenHeight, 0xFF02090A);
-
-		NanoVGUI.pass(graphics, () -> {
-			drawBackground(graphics, screenWidth, screenHeight);
-			drawBrand(graphics, screenWidth);
-			drawFooter(graphics, screenWidth, screenHeight);
-			for(WurstTitleButton button : buttons)
-				button.renderNanoVG(graphics);
-		});
-	}
-
-	private void updateLayout(int screenWidth, int screenHeight)
-	{
-		margin = Mth.clamp(screenWidth / 35, 14, 30);
-		cardWidth = Mth.clamp(Math.round(screenWidth * 0.29F), 260, 340);
-		cardHeight = screenHeight < 280 ? 34 : 46;
-		cardGap = screenHeight < 280 ? 5 : 9;
-		cardX = (screenWidth - cardWidth) / 2;
-		int cardsHeight = cardHeight * 4 + cardGap * 3;
-		cardY = Math.max(screenHeight < 280 ? 44 : 70,
-			(screenHeight - cardsHeight - 36) / 2);
-		utilityY = cardY + cardsHeight + (screenHeight < 280 ? 6 : 12);
-	}
-
-	private void drawBackground(GuiGraphicsExtractor graphics, int screenWidth,
-		int screenHeight)
-	{
-		MainMenuBackground.render(screenWidth, screenHeight,
-			MainMenuBackground.MENU_ALPHA);
-	}
-
-	private void drawBrand(GuiGraphicsExtractor graphics, int screenWidth)
-	{
-		String prefix = "WurstB+ ";
-		float size = 16F;
-		int x = cardX;
-		int y = 35;
-		NanoVGUI.text(prefix, x, y, TEXT, size);
-		NanoVGUI.text("Plus", x + NanoVGUI.width(prefix, size), y, ACCENT,
-			size);
-	}
-
-	private void drawFooter(GuiGraphicsExtractor graphics, int screenWidth,
-		int screenHeight)
-	{
-		String runtime = "Minecraft "
-			+ SharedConstants.getCurrentVersion().name() + "  /  Forge "
-			+ ForgeVersion.getVersion();
-		NanoVGUI.text(runtime, margin, screenHeight - 18, MUTED_TEXT, 9F);
-		String brand = "WurstB+ Plus";
-		NanoVGUI.text(brand, screenWidth - margin
-			- NanoVGUI.width(brand, 9F), screenHeight - 18, DIM_TEXT, 9F);
-	}
-
-	private static Identifier icon(String name)
-	{
-		return Identifier.fromNamespaceAndPath("wurst", "textures/gui/fdp/" + name
-			+ ".png");
-	}
-
-	private void configureIconFiltering()
-	{
-	}
+    public WurstTitleMenu(Screen parent) { this.parent = parent; }
+    public void init(Minecraft minecraft, int width, int height, Consumer<AbstractWidget> add)
+    {
+        this.minecraft = minecraft;
+        long now = Util.getMillis();
+        boolean returning = OpaiMenuMotion.enter(false, now) != null;
+        fade = returning ? new OpaiMenuFade(true, now) : null;
+        destination = null;
+        layout = TitleMenuLayout.of(width, height);
+        main.clear(); tools.clear();
+        started = System.nanoTime();
+        pageStarted = started + 700_000_000L;
+        if(returning) started = pageStarted = System.nanoTime() - 3_000_000_000L;
+        add(main, add, "单人游戏", "singleplayer", () -> openList(() -> ScreenRegistry.WORLD_SELECTION.open(parent)), false);
+        add(main, add, "多人游戏", "multiplayer", () -> openList(() -> ScreenRegistry.MULTIPLAYER.open(parent)), false);
+        add(main, add, "其他", "options", this::switchPage, false);
+        add(tools, add, "游戏设置", "options", () -> ScreenRegistry.OPTIONS.open(parent), false);
+        add(tools, add, "账号管理", "user", this::openAccounts, false);
+        add(tools, add, "Realms", "realms", () -> minecraft.setScreen(new RealmsMainScreen(parent)), false);
+        add(tools, add, "ClickGUI", "info", () -> ScreenRegistry.CLICK_GUI.open(parent), false);
+        add(tools, add, "Navigator", "navigator", () -> ScreenRegistry.NAVIGATOR.open(parent), false);
+        add(tools, add, "返回", null, this::switchPage, false);
+        add(tools, add, "退出", "exit", minecraft::stop, true);
+        account = new WurstTitleButton(Math.min(40, layout.size()), "账号", icon("user"), this::openAccounts, false);
+        account.presentation(width - layout.margin() - account.getWidth(), layout.margin(), 0, false);
+        add.accept(account);
+        net.wurstclient.util.render.V152Gpu.linear(minecraft.getTextureManager().getTexture(LOGO));
+        net.wurstclient.util.render.V152Gpu.linear(minecraft.getTextureManager().getTexture(LOGO_GLOW));
+    }
+    private void openAccounts()
+    {
+        openList(() -> minecraft.setScreen(new AltManagerScreen(parent, WurstClient.INSTANCE.getAltManager())));
+    }
+    private void openList(Runnable action)
+    {
+        if(destination != null) return;
+        destination = action;
+        fade = new OpaiMenuFade(false, Util.getMillis());
+        parent.setFocused(null);
+        main.forEach(b -> b.active = false);
+        tools.forEach(b -> b.active = false);
+        account.active = false;
+    }
+    private void add(List<WurstTitleButton> page, Consumer<AbstractWidget> add,
+        String text, String name, Runnable action, boolean dangerous)
+    {
+        Identifier texture = name == null ? null : icon(name);
+        if(texture != null) net.wurstclient.util.render.V152Gpu.linear(minecraft.getTextureManager().getTexture(texture));
+        WurstTitleButton button = new WurstTitleButton(layout.size(), text, texture, action, dangerous);
+        button.presentation(0, 0, 0, false);
+        page.add(button); add.accept(button);
+    }
+    private void switchPage()
+    {
+        if(switching) return;
+        switching = true;
+        switched = System.nanoTime();
+        main.forEach(b -> b.active = false);
+        tools.forEach(b -> b.active = false);
+        parent.setFocused(null);
+    }
+    private void animate(List<WurstTitleButton> page, float elapsed, boolean outgoing, boolean interactive)
+    {
+        for(int i = 0; i < page.size(); i++)
+        {
+            float t = clamp((elapsed - i * 100) / 400);
+            float progress = outgoing ? 1 - TitleMenuLayout.backIn(t) : TitleMenuLayout.backOut(t);
+            page.get(i).presentation(layout.x(i, page.size()) - (1 - progress) * Math.min(200, layout.width() * .4F),
+                layout.y(i, page.size()), progress, interactive && t >= 1);
+        }
+    }
+    public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+        float partialTicks, int width, int height)
+    {
+        long now = System.nanoTime();
+        long fadeNow = Util.getMillis();
+        if(fade != null && destination == null && fade.finished(fadeNow))
+        {
+            fade = null;
+            started = pageStarted = now - 3_000_000_000L;
+        }
+        if(destination != null && fade.finished(fadeNow))
+        {
+            NanoVGUI.pass(graphics, () -> MainMenuBackground.render(width, height, 255));
+            Runnable next = destination;
+            destination = null;
+            next.run();
+            return;
+        }
+        boolean flipping = fade != null;
+        final float menuOpacity = fade == null ? 1 : fade.opacity(fadeNow);
+        if(switching)
+        {
+            float elapsed = (now - switched) / 1_000_000F;
+            int delay = toolsShown ? 700 : 500;
+            var outgoing = toolsShown ? tools : main;
+            var incoming = toolsShown ? main : tools;
+            animate(outgoing, elapsed, true, false);
+            animate(incoming, elapsed - delay, false, false);
+            if(elapsed >= delay + 400 + (incoming.size() - 1) * 100)
+            {
+                outgoing.forEach(b -> b.presentation(0, 0, 0, false));
+                toolsShown = !toolsShown;
+                switching = false;
+                pageStarted = switched + delay * 1_000_000L;
+            }
+        }
+        else animate(toolsShown ? tools : main, (now - pageStarted) / 1_000_000F, false, !flipping);
+        float entry = (now - started) / 1_000_000F - 700;
+        float chrome = 1 - (float)Math.pow(1 - clamp(entry / 700), 3);
+        if(fade != null && destination == null) {
+            chrome = 1;
+            animate(toolsShown ? tools : main, 3000, false, !flipping);
+        }
+        final float chromeAlpha = chrome * menuOpacity;
+        account.presentation(width - layout.margin() - account.getWidth(), layout.margin(), chrome, chrome >= .999F && !flipping);
+        if(flipping) {
+            main.forEach(b -> b.active = false);
+            tools.forEach(b -> b.active = false);
+        }
+        graphics.fill(0, 0, width, height, 0xFF090A14);
+        NanoVGUI.pass(graphics, () -> {
+            MainMenuBackground.render(width, height, 255);
+            int margin = layout.margin();
+            NanoVGUI.push();
+            NanoVGUI.context().setAlpha(chromeAlpha);
+            float logoHeight = Math.min(40, layout.size());
+            ClientLogo.draw(NanoVGUI.context(), margin, margin, logoHeight);
+            String user = NanoVGUI.plainSubstrByWidth(minecraft.getUser().getName(),
+                Math.max(0, width / 2F - account.getWidth() - margin * 2), 9);
+            NanoVGUI.text(user, account.getX() - 8 - NanoVGUI.width(user, 9),
+                margin + 14, 0xFFB5BEF0, 9);
+            NanoVGUI.pop();
+            NanoVGUI.push();
+            for(WurstTitleButton b : main) b.renderNanoVG(mouseX, mouseY, menuOpacity);
+            for(WurstTitleButton b : tools) b.renderNanoVG(mouseX, mouseY, menuOpacity);
+            account.renderNanoVG(mouseX, mouseY, menuOpacity);
+            NanoVGUI.pop();
+            NanoVGUI.push();
+            NanoVGUI.context().setAlpha(menuOpacity);
+            NanoVGUI.text("Minecraft " + SharedConstants.getCurrentVersion().name()
+                + " / Forge", margin, height - 15, 0xFFB0B2C5, 8);
+            String version = "WurstB+ Plus " + WurstClient.VERSION;
+            NanoVGUI.text(version, width - margin - NanoVGUI.width(version, 8),
+                height - 15, 0xFFB0B2C5, 8);
+            NanoVGUI.pop();
+        });
+    }
+    private static float clamp(float t) { return Math.max(0, Math.min(1, t)); }
+    private static Identifier icon(String name)
+    {
+        if(name.equals("navigator"))
+            return Identifier.fromNamespaceAndPath("wurst", "textures/gui/icons/search.png");
+        return Identifier.fromNamespaceAndPath("wurst", "textures/gui/fdp/" + name + ".png");
+    }
 }

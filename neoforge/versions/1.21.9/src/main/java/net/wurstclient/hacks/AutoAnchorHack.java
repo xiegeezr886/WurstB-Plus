@@ -1,290 +1,309 @@
-/*
- * Copyright (c) 2025 LeavesHack contributors
- *
- * This source code is subject to the terms of the GNU Affero General Public
- * License, version 3. If a copy of the AGPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
- */
-// Ported from LeavesHack (AGPL-3.0).
+/* AutoAnchor placement/charge/detonation state machine from LeavesHack 13daf96.
+ * SPDX-License-Identifier: AGPL-3.0-or-later */
 package net.wurstclient.hacks;
 
-import java.util.Comparator;
-import java.util.stream.StreamSupport;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RespawnAnchorBlock;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import com.mojang.blaze3d.vertex.PoseStack;
+import java.awt.Color;
+import java.util.*;
+import net.minecraft.core.*;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.*;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.phys.*;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
-import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.*;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.leaves.*;
+import net.wurstclient.leaves.LeavesColorSetting;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.util.BlockPlacer;
-import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.DamageUtils;
-import net.wurstclient.util.FakePlayerEntity;
-import net.wurstclient.util.InventoryUtils;
-import net.wurstclient.util.RotationUtils;
-import net.wurstclient.util.text.WText;
+import net.wurstclient.util.*;
 
-@SearchTags({"auto anchor", "respawn anchor", "anchor aura", "AutoAnchor"})
-public final class AutoAnchorHack extends Hack implements UpdateListener
-{
-	private static final float ANCHOR_POWER = 5;
+public final class AutoAnchorHack extends Hack implements UpdateListener, RenderListener {
+  private final SliderSetting targetRange =
+      new SliderSetting("TargetRange", 12.0, 1, 20, 0.01, ValueDisplay.DECIMAL);
+  private final SliderSetting range =
+      new SliderSetting("range", 4.0, 1, 6, 0.01, ValueDisplay.DECIMAL);
+  private final SliderSetting delay =
+      new SliderSetting("delay-ms", 50, 0, 500, 1, ValueDisplay.INTEGER);
+  private final SliderSetting explodeDelay =
+      new SliderSetting("explode-delay-ms", 50, 0, 500, 1, ValueDisplay.INTEGER);
+  private final SliderSetting minDamage =
+      new SliderSetting("MinDamage", 4.0, 1, 36, 0.01, ValueDisplay.DECIMAL);
+  private final SliderSetting maxSelfDmg =
+      new SliderSetting("MaxSelfDmg", 12, 1, 36, 0.01, ValueDisplay.DECIMAL);
+  private final SliderSetting minRatio =
+      new SliderSetting("MinRatio", 2.0, 0.1, 10, 0.01, ValueDisplay.DECIMAL);
+  private final SliderSetting maxTargets =
+      new SliderSetting("MaxTargets", 4, 1, 8, 1, ValueDisplay.INTEGER);
+  private final SliderSetting targetRadius =
+      new SliderSetting("TargetRadius", 3.5, 1, 6, 0.01, ValueDisplay.DECIMAL);
+  private final CheckboxSetting usingPause = new CheckboxSetting("UsingPause", true);
+  private final CheckboxSetting onlyMain = new CheckboxSetting("OnlyMain", true);
+  private final CheckboxSetting preferHead = new CheckboxSetting("PreferHead", true);
+  private final CheckboxSetting placeHelper = new CheckboxSetting("PlaceHelper", true);
+  private final CheckboxSetting noSuicide = new CheckboxSetting("NoSuicide", true);
+  private final CheckboxSetting rotate = new CheckboxSetting("rotate", true);
+  private final CheckboxSetting inventory = new CheckboxSetting("InventorySwap", true);
+  private final CheckboxSetting renderDmg = new CheckboxSetting("RenderDmg", true);
+  private final LeavesColorSetting dmgColor =
+      new LeavesColorSetting("DamageColor", new Color(255, 255, 255, 255));
+  private final EnumSetting<PrinterHack.Shape> shapeMode =
+      new EnumSetting<>("Shape Mode", PrinterHack.Shape.values(), PrinterHack.Shape.BOTH);
+  private final LeavesColorSetting lineColor =
+      new LeavesColorSetting("Line", new Color(255, 255, 255, 255));
+  private final LeavesColorSetting sideColor =
+      new LeavesColorSetting("Side", new Color(255, 255, 255, 10));
+  private final SliderSetting renderSpeed =
+      new SliderSetting("RenderSpeed", 0.1, 0, 1, 0.01, ValueDisplay.DECIMAL);
+  private BlockPos currentPos;
+  private Vec3 rendered;
+  private final Map<BlockPos, Long> anchors = new HashMap<>();
+  private List<Player> targets = List.of();
+  private Object world;
+  private long nextPlace, nextExplode;
+  private float damage;
 
-	private final SliderSetting targetRange = new SliderSetting(
-		"Target range",
-		WText.literal("How far to search for a target to anchor."), 8, 1, 20,
-		0.5, ValueDisplay.DECIMAL);
+  public AutoAnchorHack() {
+    super("AutoAnchor");
+    setCategory(Category.COMBAT);
+    for (Setting s :
+        new Setting[] {
+          targetRange,
+          range,
+          delay,
+          explodeDelay,
+          minDamage,
+          maxSelfDmg,
+          minRatio,
+          maxTargets,
+          targetRadius,
+          usingPause,
+          onlyMain,
+          preferHead,
+          placeHelper,
+          noSuicide,
+          rotate,
+          inventory,
+          renderDmg,
+          dmgColor,
+          shapeMode,
+          lineColor,
+          sideColor,
+          renderSpeed
+        }) addSetting(s);
+  }
 
-	private final SliderSetting range = new SliderSetting("Range",
-		WText.literal("How far away anchors can be placed and detonated."), 4.5,
-		1, 6, 0.1, ValueDisplay.DECIMAL);
+  @Override
+  protected void onEnable() {
+    clear();
+    EVENTS.add(UpdateListener.class, this);
+    EVENTS.add(RenderListener.class, this);
+  }
 
-	private final SliderSetting delay =
-		new SliderSetting("Delay", WText.literal(
-			"Ticks to wait between placing another anchor."), 2, 0, 20, 1,
-			ValueDisplay.INTEGER.withSuffix(" ticks"));
+  @Override
+  protected void onDisable() {
+    EVENTS.remove(UpdateListener.class, this);
+    EVENTS.remove(RenderListener.class, this);
+    clear();
+  }
 
-	private final SliderSetting chargeDelay =
-		new SliderSetting("Charge delay",
-			WText.literal("Ticks to wait between charging and detonating."), 2, 0,
-			20, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
+  private void clear() {
+    world = MC.level;
+    currentPos = null;
+    rendered = null;
+    anchors.clear();
+    targets = List.of();
+    nextPlace = nextExplode = 0;
+  }
 
-	private final SliderSetting minDamage = new SliderSetting("Min damage",
-		WText.literal("Minimum damage the anchor must deal to the target."), 4,
-		0, 36, 0.5, ValueDisplay.DECIMAL);
+  public boolean isBusy() {
+    return isEnabled() && currentPos != null;
+  }
 
-	private final SliderSetting maxSelfDamage =
-		new SliderSetting("Max self damage",
-			WText.literal("Maximum damage the anchor may deal to you."), 10, 0,
-			36, 0.5, ValueDisplay.DECIMAL);
+  public BlockPos getCurrentPos() {
+    return isEnabled() ? currentPos : null;
+  }
 
-	private final CheckboxSetting antiSuicide = new CheckboxSetting(
-		"Anti suicide", WText.literal("Rejects anchors that could kill you."),
-		true);
+  @Override
+  public void onUpdate() {
+    if (world != MC.level) clear();
+    if (!LeavesUtils.ready() || MC.level.dimensionType().respawnAnchorWorks()) {
+      currentPos = null;
+      return;
+    }
+    if (WURST.getHax().crystalAuraPlusHack.prefersCrystal()
+        && WURST.getHax().crystalAuraPlusHack.isBusy()) {
+      currentPos = null;
+      return;
+    }
+    targets =
+        MC.level.players().stream()
+            .filter(
+                p ->
+                    p != MC.player
+                        && p.isAlive()
+                        && !p.isSpectator()
+                        && !WURST.getFriends().contains(p.getScoreboardName())
+                        && MC.player.distanceToSqr(p) <= targetRange.getValueSq())
+            .sorted(Comparator.comparingDouble(MC.player::distanceToSqr))
+            .limit(maxTargets.getValueI())
+            .map(p -> (Player) p)
+            .toList();
+    if (targets.isEmpty()) {
+      currentPos = null;
+      return;
+    }
+    if (usingPause.isChecked() && LeavesUtils.using(onlyMain.isChecked())) return;
+    if (InventoryUtils.indexOf(Items.RESPAWN_ANCHOR, inventory.isChecked() ? 36 : 9) < 0
+        || InventoryUtils.indexOf(Items.GLOWSTONE, inventory.isChecked() ? 36 : 9) < 0) {
+      currentPos = null;
+      return;
+    }
+    long now = System.nanoTime();
+    anchors.entrySet().removeIf(e -> now - e.getValue() > 1_200_000_000L);
+    currentPos = select();
+    if (currentPos != null) damage = targetDamage(currentPos);
+    if (currentPos != null
+        && now >= nextPlace
+        && MC.level.getBlockState(currentPos).canBeReplaced()
+        && validDamage(currentPos)) {
+      if (LeavesUtils.place(
+          currentPos,
+          Items.RESPAWN_ANCHOR,
+          range.getValue(),
+          inventory.isChecked(),
+          rotate.isChecked())) {
+        anchors.put(currentPos, now);
+        nextPlace = now + delay.getValueI() * 1_000_000L;
+      }
+    }
+    if (now < nextExplode) return;
+    Set<BlockPos> candidates = new HashSet<>(anchors.keySet());
+    if (currentPos != null) candidates.add(currentPos);
+    BlockPos best =
+        candidates.stream()
+            .filter(
+                p ->
+                    MC.level.getBlockState(p).is(Blocks.RESPAWN_ANCHOR)
+                        && inRange(p)
+                        && validDamage(p))
+            .max(Comparator.comparingDouble(this::targetDamage))
+            .orElse(null);
+    if (best == null) return;
+    Item item =
+        MC.level.getBlockState(best).getValue(RespawnAnchorBlock.CHARGE) < 1
+            ? Items.GLOWSTONE
+            : Items.RESPAWN_ANCHOR;
+    try (InventorySwap swap =
+        InventorySwap.acquire(InventoryUtils.indexOf(item, inventory.isChecked() ? 36 : 9))) {
+      if (swap == null) return;
+      Vec3 hit = Vec3.atCenterOf(best).add(0, 0.5, 0);
+      if (rotate.isChecked()) LeavesUtils.look(hit);
+      try {
+        MC.gameMode.useItemOn(
+            MC.player,
+            InteractionHand.MAIN_HAND,
+            new BlockHitResult(hit, Direction.UP, best, false));
+      } finally {
+        if (rotate.isChecked()) LeavesUtils.restoreLook();
+      }
+      anchors.put(best, now);
+      damage = targetDamage(best);
+      nextExplode = now + explodeDelay.getValueI() * 1_000_000L;
+    }
+  }
 
-	private int timer;
+  private BlockPos select() {
+    if (preferHead.isChecked()) {
+      BlockPos head = targets.get(0).blockPosition().above(2);
+      if (inRange(head) && validDamage(head)) {
+        if (placeable(head)) return head;
+        if (placeHelper.isChecked() && System.nanoTime() >= nextPlace)
+          for (Direction dir : Direction.Plane.HORIZONTAL) {
+            BlockPos helper = head.relative(dir);
+            if (placeable(helper)
+                && LeavesUtils.place(
+                    helper,
+                    Items.RESPAWN_ANCHOR,
+                    range.getValue(),
+                    inventory.isChecked(),
+                    rotate.isChecked())) {
+              anchors.put(helper, System.nanoTime());
+              nextPlace = System.nanoTime() + delay.getValueI() * 1_000_000L;
+              return head;
+            }
+          }
+      }
+    }
+    return BlockUtils.getAllInBoxStream(MC.player.blockPosition(), range.getValueCeil())
+        .filter(this::inRange)
+        .filter(this::placeable)
+        .filter(this::validDamage)
+        .max(Comparator.comparingDouble(this::targetDamage))
+        .map(BlockPos::immutable)
+        .orElse(null);
+  }
 
-	public AutoAnchorHack()
-	{
-		super("AutoAnchor");
-		setCategory(Category.COMBAT);
-		addSetting(targetRange);
-		addSetting(range);
-		addSetting(delay);
-		addSetting(chargeDelay);
-		addSetting(minDamage);
-		addSetting(maxSelfDamage);
-		addSetting(antiSuicide);
-	}
+  private boolean inRange(BlockPos pos) {
+    return MC.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(pos)) <= range.getValueSq()
+        && targets.stream()
+            .anyMatch(
+                p ->
+                    p.position().add(0, 1, 0).distanceToSqr(Vec3.atCenterOf(pos))
+                        < targetRadius.getValueSq());
+  }
 
-	@Override
-	protected void onEnable()
-	{
-		timer = 0;
-		EVENTS.add(UpdateListener.class, this);
-	}
+  private boolean placeable(BlockPos pos) {
+    return MC.level.getBlockState(pos).is(Blocks.RESPAWN_ANCHOR)
+        || MC.level.getBlockState(pos).canBeReplaced()
+            && BlockPlacer.getBlockPlacingParams(pos) != null
+            && MC.level
+                .getEntities(
+                    (net.minecraft.world.entity.Entity) null,
+                    new AABB(pos),
+                    e -> e.isAlive() && e.blocksBuilding)
+                .isEmpty();
+  }
 
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(UpdateListener.class, this);
-	}
+  private float targetDamage(BlockPos pos) {
+    float best = 0;
+    for (Player p : targets)
+      best = Math.max(best, LeavesDamage.damage(Vec3.atCenterOf(pos), p, 5, pos));
+    return best;
+  }
 
-	@Override
-	public void onUpdate()
-	{
-		if(MC.player == null || MC.level == null || MC.player.isSpectator())
-			return;
+  private boolean validDamage(BlockPos pos) {
+    float enemy = targetDamage(pos),
+        self = LeavesDamage.damage(Vec3.atCenterOf(pos), MC.player, 5, pos);
+    return enemy >= minDamage.getValue()
+        && self <= maxSelfDmg.getValue()
+        && (self <= 0 || enemy / self >= minRatio.getValue())
+        && (!noSuicide.isChecked()
+            || self < MC.player.getHealth() + MC.player.getAbsorptionAmount());
+  }
 
-		if(timer > 0)
-		{
-			timer--;
-			return;
-		}
-
-		LivingEntity target = findTarget();
-		if(target == null)
-			return;
-
-		BlockPos anchor = findBestAnchor(target);
-		if(anchor != null)
-		{
-			actOnAnchor(anchor);
-			return;
-		}
-
-		if(InventoryUtils.indexOf(Items.RESPAWN_ANCHOR, 36) == -1
-			|| InventoryUtils.indexOf(Items.GLOWSTONE, 36) == -1)
-			return;
-
-		BlockPos placement = findBestPlacement(target);
-		if(placement == null)
-			return;
-
-		int oldSlot = MC.player.getInventory().getSelectedSlot();
-		InventoryUtils.selectItem(Items.RESPAWN_ANCHOR, 36);
-		if(!MC.player.getMainHandItem().is(Items.RESPAWN_ANCHOR))
-			return;
-
-		if(BlockPlacer.placeOneBlock(placement))
-			timer = delay.getValueI();
-		MC.player.getInventory().setSelectedSlot(oldSlot);
-	}
-
-	private void actOnAnchor(BlockPos pos)
-	{
-		int charge = BlockUtils.getState(pos)
-			.getOptionalValue(RespawnAnchorBlock.CHARGE).orElse(0);
-
-		if(charge > 0)
-		{
-			int oldSlot = MC.player.getInventory().getSelectedSlot();
-			MC.player.getInventory().setSelectedSlot(findNonGlowstoneSlot());
-
-			if(!MC.player.getMainHandItem().is(Items.GLOWSTONE)
-				&& rightClickAnchor(pos))
-				timer = chargeDelay.getValueI();
-
-			MC.player.getInventory().setSelectedSlot(oldSlot);
-			return;
-		}
-
-		int oldSlot = MC.player.getInventory().getSelectedSlot();
-		InventoryUtils.selectItem(Items.GLOWSTONE, 36);
-
-		if(MC.player.getMainHandItem().is(Items.GLOWSTONE)
-			&& rightClickAnchor(pos))
-			timer = chargeDelay.getValueI();
-
-		MC.player.getInventory().setSelectedSlot(oldSlot);
-	}
-
-	private LivingEntity findTarget()
-	{
-		double rangeSq = targetRange.getValueSq();
-
-		return StreamSupport
-			.stream(MC.level.entitiesForRendering().spliterator(), false)
-			.filter(e -> e instanceof LivingEntity
-				&& ((LivingEntity)e).getHealth() > 0)
-			.filter(e -> e != MC.player)
-			.filter(e -> !(e instanceof FakePlayerEntity))
-			.filter(e -> !WURST.getFriends().contains(e.getScoreboardName()))
-			.filter(e -> MC.player.distanceToSqr(e) <= rangeSq)
-			.map(e -> (LivingEntity)e)
-			.min(Comparator.comparingDouble(e -> MC.player.distanceToSqr(e)))
-			.orElse(null);
-	}
-
-	private BlockPos findBestAnchor(LivingEntity target)
-	{
-		return BlockUtils.getAllInBoxStream(target.blockPosition(), 3)
-			.filter(pos -> BlockUtils.getBlock(pos) == Blocks.RESPAWN_ANCHOR)
-			.filter(this::inRange).filter(pos -> isDamageSafe(pos, target))
-			.max(Comparator.comparingDouble(
-				pos -> getTargetDamage(pos, target)))
-			.orElse(null);
-	}
-
-	private BlockPos findBestPlacement(LivingEntity target)
-	{
-		return BlockUtils.getAllInBoxStream(target.blockPosition(), 2)
-			.filter(pos -> BlockUtils.getState(pos).canBeReplaced())
-			.filter(this::inRange).filter(this::hasClickableNeighbor)
-			.filter(pos -> !hasEntity(pos))
-			.filter(pos -> isDamageSafe(pos, target))
-			.max(Comparator.comparingDouble(pos -> getTargetDamage(pos, target)
-				- DamageUtils.calculateDamage(Vec3.atCenterOf(pos), MC.player,
-					ANCHOR_POWER) * 0.25))
-			.orElse(null);
-	}
-
-	private boolean isDamageSafe(BlockPos pos, LivingEntity target)
-	{
-		float targetDamage = getTargetDamage(pos, target);
-		float selfDamage = DamageUtils.calculateDamage(Vec3.atCenterOf(pos),
-			MC.player, ANCHOR_POWER);
-
-		if(targetDamage < minDamage.getValueF()
-			|| selfDamage > maxSelfDamage.getValueF())
-			return false;
-
-		return !antiSuicide.isChecked()
-			|| selfDamage < MC.player.getHealth()
-				+ MC.player.getAbsorptionAmount();
-	}
-
-	private float getTargetDamage(BlockPos pos, LivingEntity target)
-	{
-		return DamageUtils.calculateDamage(Vec3.atCenterOf(pos), target,
-			ANCHOR_POWER);
-	}
-
-	private boolean inRange(BlockPos pos)
-	{
-		return RotationUtils.getEyesPos()
-			.distanceToSqr(Vec3.atCenterOf(pos)) <= range.getValueSq();
-	}
-
-	private boolean hasClickableNeighbor(BlockPos pos)
-	{
-		for(Direction side : Direction.values())
-		{
-			BlockPos neighbor = pos.relative(side);
-			if(BlockUtils.canBeClicked(neighbor)
-				&& !BlockUtils.getState(neighbor).canBeReplaced())
-				return true;
-		}
-
-		return false;
-	}
-
-	private boolean hasEntity(BlockPos pos)
-	{
-		return !MC.level.getEntities((Entity)null, new AABB(pos)).isEmpty();
-	}
-
-	private boolean rightClickAnchor(BlockPos pos)
-	{
-		Vec3 eyesPos = RotationUtils.getEyesPos();
-		Vec3 posVec = Vec3.atCenterOf(pos);
-		double distanceSqPosVec = eyesPos.distanceToSqr(posVec);
-
-		for(Direction side : Direction.values())
-		{
-			Vec3 hitVec = posVec
-				.add(Vec3.atLowerCornerOf(side.getUnitVec3i()).scale(0.5));
-			double distanceSqHitVec = eyesPos.distanceToSqr(hitVec);
-
-			if(distanceSqHitVec > range.getValueSq())
-				continue;
-			if(distanceSqHitVec >= distanceSqPosVec)
-				continue;
-
-			RotationUtils.getNeededRotations(hitVec).sendPlayerLookPacket();
-			IMC.getInteractionManager().rightClickBlock(pos, side, hitVec);
-			return true;
-		}
-
-		return false;
-	}
-
-	private int findNonGlowstoneSlot()
-	{
-		for(int slot = 0; slot < 9; slot++)
-			if(!MC.player.getInventory().getItem(slot)
-				.is(Items.GLOWSTONE))
-				return slot;
-
-		return MC.player.getInventory().getSelectedSlot();
-	}
+  @Override
+  public void onRender(PoseStack matrices, float partialTicks) {
+    if (currentPos == null || MC.level == null) {
+      rendered = null;
+      return;
+    }
+    Vec3 to = Vec3.atLowerCornerOf(currentPos);
+    rendered =
+        rendered == null ? to : rendered.add(to.subtract(rendered).scale(renderSpeed.getValue()));
+    AABB box = new AABB(rendered, rendered.add(1, 1, 1));
+    if (shapeMode.getSelected() != PrinterHack.Shape.LINES)
+      RenderUtils.drawSolidBox(matrices, box, sideColor.getColorI(), false);
+    if (shapeMode.getSelected() != PrinterHack.Shape.SIDES)
+      RenderUtils.drawOutlinedBox(matrices, box, lineColor.getColorI(), false);
+    if (renderDmg.isChecked())
+      LeavesRender.text(
+          matrices,
+          rendered.add(0.5, 0.5, 0.5),
+          String.format(java.util.Locale.ROOT, "%.1f", damage),
+          dmgColor.getColorI(),
+          1);
+  }
 }

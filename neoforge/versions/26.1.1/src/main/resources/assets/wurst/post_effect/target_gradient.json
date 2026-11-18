@@ -1,0 +1,57 @@
+{
+  "targets": {
+    "swap": {}
+  },
+  "passes": [
+    {
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "minecraft:main"
+        }
+      ],
+      "output": "swap",
+      "uniforms": {
+        "WurstEffect": [
+          {
+            "name": "Mode",
+            "type": "int",
+            "value": 2
+          },
+          {
+            "name": "Time",
+            "type": "float",
+            "value": 0
+          }
+        ]
+      },
+      "vertex_shader": "minecraft:core/screenquad",
+      "fragment_shader": "wurst:program/target_effect"
+    },
+    {
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "swap"
+        }
+      ],
+      "output": "minecraft:main",
+      "uniforms": {
+        "BlitConfig": [
+          {
+            "name": "ColorModulate",
+            "type": "vec4",
+            "value": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ]
+      },
+      "vertex_shader": "minecraft:core/screenquad",
+      "fragment_shader": "minecraft:post/blit"
+    }
+  ]
+}

@@ -51,7 +51,7 @@ public final class GSuperVClipHack extends Hack implements UpdateListener
 	public GSuperVClipHack()
 	{
 		super("GSuperVClip");
-		setCategory(Category.MOVEMENT);
+		setCategory(Category.EXPLOIT);
 		addSetting(moveDistance);
 		addSetting(steps);
 		addSetting(protectY);
@@ -117,8 +117,8 @@ public final class GSuperVClipHack extends Hack implements UpdateListener
 		ServerEquivTp.sendPos(target.x, target.y - FALL_DEBT_DELTA, target.z,
 			false);
 
-		ChatUtils.message(String.format(Locale.ROOT, "GSuperVClip: %.1f m",
-			target.y - start.y));
+		ChatUtils.message("GSuperVClip: %s m",
+			String.format(Locale.ROOT, "%.1f", target.y - start.y));
 	}
 
 	private void sendPath(Vec3 from, Vec3 to)

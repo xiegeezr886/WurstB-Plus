@@ -7,7 +7,7 @@
  */
 package net.wurstclient.serverfinder;
 
-
+import net.wurstclient.WurstClient;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -240,20 +240,20 @@ public class ServerFinderScreen extends Screen
 		context.drawCenteredString(font, "服务器搜索",
 			width / 2, 20, CommonColors.WHITE);
 		context.drawCenteredString(font,
-			"This will search for servers with similar IPs", width / 2, 40,
+			WurstClient.tr("This will search for servers with similar IPs"), width / 2, 40,
 			0xFFA0A0A0);
 		context.drawCenteredString(font,
-			"to the IP you type into the field below.", width / 2, 50,
+			WurstClient.tr("to the IP you type into the field below."), width / 2, 50,
 			0xFFA0A0A0);
 		context.drawCenteredString(font,
-			"The servers it finds will be added to your server list.",
+			WurstClient.tr("The servers it finds will be added to your server list."),
 			width / 2, 60, 0xFFA0A0A0);
 		
-		context.drawString(font, "Server address:",
+		context.drawString(font, WurstClient.tr("Server address:"),
 			width / 2 - 100, height / 4 + 24, 0xFFA0A0A0);
 		ipBox.render(context, mouseX, mouseY, partialTicks);
 		
-		context.drawString(font, "Max. threads:",
+		context.drawString(font, WurstClient.tr("Max. threads:"),
 			width / 2 - 100, height / 4 + 60, 0xFFA0A0A0);
 		maxThreadsBox.render(context, mouseX, mouseY, partialTicks);
 		
@@ -261,9 +261,9 @@ public class ServerFinderScreen extends Screen
 			width / 2, height / 4 + 73, 0xFFA0A0A0);
 		
 		context.drawString(font,
-			"Checked: " + checked + " / 1792", width / 2 - 100, height / 4 + 84,
+			WurstClient.tr("Checked: %s / 1792", checked), width / 2 - 100, height / 4 + 84,
 			0xFFA0A0A0);
-		context.drawString(font, "Working: " + working,
+		context.drawString(font, WurstClient.tr("Working: %s", working),
 			width / 2 - 100, height / 4 + 94, 0xFFA0A0A0);
 		
 		for(Renderable drawable : renderables)

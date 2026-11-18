@@ -9,22 +9,28 @@ package net.wurstclient;
 
 public enum Category
 {
-	BLOCKS("\u65B9\u5757"),
-	MOVEMENT("\u79FB\u52A8"),
-	COMBAT("\u6218\u6597"),
-	RENDER("\u6E32\u67D3"),
-	CHAT("\u804A\u5929"),
-	FUN("\u5A31\u4E50"),
-	ITEMS("\u7269\u54C1"),
-	OTHER("\u5176\u4ED6"),
-	HUD("HUD");
+	COMBAT("战斗", 0xFF6B6B),
+	PLAYER("玩家", 0xFFA94D),
+	MOVEMENT("移动", 0x4DABF7),
+	RENDER("渲染", 0xB197FC),
+	WORLD("世界", 0x69DB7C),
+	MISC("其他", 0x38D9A9),
+	EXPLOIT("漏洞", 0xF783AC),
+	FUN("娱乐", 0xFFD43B),
+	// HUD widgets remain a separate editor group, outside the gameplay list.
+	HUD("HUD", 0xB5BEF0);
 
 	private final String name;
+	private final int color;
 
-	private Category(String name)
+	private Category(String name, int color)
 	{
 		this.name = name;
+		this.color = color;
 	}
+
+	/** RedFix's category color used by its ArrayList theme. */
+	public int getColor() { return color; }
 
 	public String getName()
 	{

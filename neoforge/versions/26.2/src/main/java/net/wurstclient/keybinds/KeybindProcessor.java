@@ -19,6 +19,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.screens.Screen;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.ClickGuiScreen;
+import net.wurstclient.clickgui2.NavigatorScreen;
 import net.wurstclient.command.CmdProcessor;
 import net.wurstclient.events.KeyPressListener;
 import net.wurstclient.hack.Hack;
@@ -68,6 +69,9 @@ public final class KeybindProcessor implements KeyPressListener
 		String cmds = keybinds.getCommands(keyName);
 		if(cmds == null)
 			return;
+		// The navigator owns typing, including type-to-search and inline values.
+		if(screen instanceof NavigatorScreen && !containsCmd(cmds, "navigator"))
+			return;
 
 		handlePress(keyName, cmds, screen);
 	}
@@ -79,7 +83,7 @@ public final class KeybindProcessor implements KeyPressListener
 			|| ScreenRegistry.NAVIGATOR.matches(screen)
 				&& containsCmd(cmds, "navigator"))
 		{
-			WurstClient.MC.setScreenAndShow(null);
+			screen.onClose();
 			return;
 		}
 
@@ -205,7 +209,7 @@ public final class KeybindProcessor implements KeyPressListener
 			if(!hack.isEnabled() && hax.tooManyHaxHack.isEnabled()
 				&& hax.tooManyHaxHack.isBlocked(hack))
 			{
-				ChatUtils.error(hack.getName() + " is blocked by TooManyHax.");
+				ChatUtils.error("%s is blocked by TooManyHax.", hack.getName());
 				return;
 			}
 

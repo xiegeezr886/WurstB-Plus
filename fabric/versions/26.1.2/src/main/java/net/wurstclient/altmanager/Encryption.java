@@ -415,7 +415,8 @@ public final class Encryption
 
 		// The legacy key folder is shared by every Minecraft installation of
 		// this user. Deleting it after migrating one file would strand the
-		// account files that other installations have not migrated yet.
+		// account files that other installations have not migrated yet, unless
+		// the native key is byte-for-byte the same key (then nothing is lost).
 		if(legacyKeyDiffers())
 			return;
 
@@ -434,7 +435,6 @@ public final class Encryption
 				+ e.getMessage());
 		}
 	}
-
 
 	private boolean legacyKeyDiffers()
 	{

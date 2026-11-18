@@ -1,7 +1,9 @@
 package net.wurstclient.clickgui2;
 
+
+
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -18,8 +20,12 @@ final class ScaledEditBox extends EditBox
 			throw new IllegalArgumentException("Scale must be in (0, 1]");
 		this.scale = scale;
 	}
+@Override
+	public void extractWidgetRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		extractWidgetRenderState(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
 
-	@Override
 	public void extractWidgetRenderState(GuiGraphicsExtractor graphics,
 		int mouseX, int mouseY,
 		float partialTicks)
@@ -36,7 +42,7 @@ final class ScaledEditBox extends EditBox
 		{
 			int scaledMouseX = scaleCoordinate(mouseX, getX());
 			int scaledMouseY = scaleCoordinate(mouseY, getY());
-			super.extractWidgetRenderState(graphics, scaledMouseX, scaledMouseY,
+			super.extractWidgetRenderState(graphics.getInner(), scaledMouseX, scaledMouseY,
 				partialTicks);
 		}finally
 		{

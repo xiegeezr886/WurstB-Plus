@@ -30,7 +30,7 @@ public final class TNTTimerMod extends HUDMod
 		if(tnts.isEmpty())
 		{
 			drawBackground(90, 20);
-			drawText("No TNT", 6, 5, 9, HudFonts.REGULAR,
+			drawText(WURST.translate("No TNT"), 6, 5, 9, HudFonts.REGULAR,
 				getFontColor(200));
 			setSize(90, 20);
 			return;

@@ -41,6 +41,10 @@ import net.wurstclient.mixin.GuiGraphicsAccessor;
 public final class GuiGraphicsExtractor
 {
 	private final GuiGraphics inner;
+    public void flush() { V152GuiBridge.flush(this); }
+    public void renderTooltip(Font font, ItemStack stack, int x, int y) {
+        inner.setTooltipForNextFrame(font, stack, x, y);
+    }
 	private int scissorX1;
 	private int scissorY1;
 	private int scissorX2;

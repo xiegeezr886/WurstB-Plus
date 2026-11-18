@@ -67,7 +67,7 @@ public final class MacrosCmd extends Command
 		List<String> commands = parseCommands(cmdsStr);
 
 		WURST.getMacroManager().addMacro(new Macro(name, key, commands));
-		ChatUtils.message("Macro added: " + name);
+		ChatUtils.message("Macro added: %s", name);
 	}
 
 	private void remove(String[] args) throws CmdException
@@ -76,7 +76,7 @@ public final class MacrosCmd extends Command
 			throw new CmdSyntaxError(".macros remove <name>");
 
 		WURST.getMacroManager().removeMacro(args[1]);
-		ChatUtils.message("Macro removed: " + args[1]);
+		ChatUtils.message("Macro removed: %s", args[1]);
 	}
 
 	private void list(String[] args) throws CmdException
@@ -88,17 +88,16 @@ public final class MacrosCmd extends Command
 		page = Math.max(0, Math.min(page, pages - 1));
 		int rows = Math.min(8, Math.max(0, macros.size() - page * 8));
 
-		ChatUtils.message("Total: " + macros.size()
-			+ (macros.size() == 1 ? " macro" : " macros"));
+		ChatUtils.message("Total: %s macros", macros.size());
 		for(int i = page * 8; i < page * 8 + rows; i++)
 		{
 			Macro m = macros.get(i);
 			String status = m.isEnabled() ? "" : "\u00a77[OFF]\u00a7r ";
-			ChatUtils.message(status + m.getName() + ": " + m.getKey()
-				+ " -> " + String.join(" ; ", m.getCommands()));
+			ChatUtils.message("%s%s: %s -> %s", status, m.getName(),
+				m.getKey(), String.join(" ; ", m.getCommands()));
 		}
 
-		ChatUtils.message("Page: " + (page + 1) + "/" + pages);
+		ChatUtils.message("Page: %s/%s", (page + 1), pages);
 	}
 
 	private int parsePage(String[] args) throws CmdSyntaxError

@@ -39,5 +39,10 @@ public class LevelRendererMixin
 		matrixStack.mulPose(viewMatrix);
 		float tickProgress = tickCounter.getGameTimeDeltaPartialTick(false);
 		EventManager.fire(new RenderEvent(matrixStack, tickProgress));
+        try(var ignored = net.wurstclient.hud2.nanovg.GlStateGuard.capture()) {
+            kaptainwutax.seedcrackerX.finder.FinderQueue.get().renderFinders(viewMatrix, camera);
+        }
+        net.wurstclient.WurstClient.INSTANCE.getPostEffectQueue().flush(matrixStack, tickProgress);
+        net.wurstclient.util.render.MoonEntityGlow.INSTANCE.flush(matrixStack, tickProgress);
 	}
 }

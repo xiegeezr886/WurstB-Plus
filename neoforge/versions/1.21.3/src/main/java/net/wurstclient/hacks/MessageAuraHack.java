@@ -68,7 +68,7 @@ public final class MessageAuraHack extends Hack implements UpdateListener, World
 	public MessageAuraHack()
 	{
 		super("MessageAura");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(messages);
 		addSetting(delay);
 		addSetting(randomOrder);

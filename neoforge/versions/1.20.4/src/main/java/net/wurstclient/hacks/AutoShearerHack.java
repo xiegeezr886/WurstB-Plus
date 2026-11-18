@@ -57,7 +57,7 @@ public final class AutoShearerHack extends Hack implements UpdateListener
 	public AutoShearerHack()
 	{
 		super("AutoShearer");
-		setCategory(Category.OTHER);
+		setCategory(Category.PLAYER);
 		addSetting(range);
 		addSetting(color);
 		addSetting(targetBabies);

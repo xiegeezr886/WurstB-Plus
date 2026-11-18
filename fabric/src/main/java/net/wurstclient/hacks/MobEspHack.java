@@ -159,7 +159,7 @@ public final class MobEspHack extends Hack implements UpdateListener,
 	public void onCameraTransformViewBobbing(
 		CameraTransformViewBobbingEvent event)
 	{
-		if(style.hasLines())
+		if(!moonGlow.isChecked() && style.hasLines())
 			event.cancel();
 	}
 	
@@ -167,8 +167,11 @@ public final class MobEspHack extends Hack implements UpdateListener,
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
 		if(moonGlow.isChecked())
+		{
 			net.wurstclient.util.render.MoonEntityGlow.INSTANCE.queue(mobs,
 				throughWalls.isChecked());
+			return;
+		}
 		EntityEspRenderer.render(matrixStack, partialTicks, mobs, style,
 			boxSize.getExtraSize(), fillOpacity.getValue(),
 			lineOpacity.getValue(), nearFadeDistance.getValue(),

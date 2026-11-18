@@ -1,158 +1,157 @@
-/*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
- *
- * This source code is subject to the terms of the GNU General Public
- * License, version 3. If a copy of the GPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
- */
-// Ported from Meteor Client (GPL-3.0).
+/* Epsilon AutoClicker with NeoRaven weapon/block gates. GPL-3.0. */
 package net.wurstclient.hacks;
 
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
+import java.util.Random;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.BlockItem;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
+import net.wurstclient.epsilon.*;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.mixin.KeyMappingAccessor;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
-@SearchTags({"auto clicker", "autoclicker", "auto click", "CPS", "clicker"})
-public final class AutoClickerHack extends Hack implements UpdateListener
-{
-	private final SliderSetting leftCps = new SliderSetting("Left CPS",
-		"Left clicks per second. 0 disables left clicking.", 10, 0, 20, 1,
-		ValueDisplay.INTEGER.withLabel(0, "off"));
+public final class AutoClickerHack extends Hack implements UpdateListener {
+  private final EnumSetting<Button> button =
+      new EnumSetting<>("Button", Button.values(), Button.BOTH);
+  private final SliderSetting leftMin = number("Left min CPS", 8, 1, 520),
+      leftMax = number("Left max CPS", 12, 1, 520);
+  private final SliderSetting rightMin = number("Right min CPS", 8, 1, 520),
+      rightMax = number("Right max CPS", 12, 1, 520);
+  private final CheckboxSetting leftJitter = new CheckboxSetting("Left jitter", false),
+      rightJitter = new CheckboxSetting("Right jitter", false);
+  private final CheckboxSetting burst = new CheckboxSetting("Enable burst", true),
+      doubleClick = new CheckboxSetting("Enable double click", true),
+      miss = new CheckboxSetting("Enable miss", true);
+  private final SliderSetting burstChance = number("Burst chance", 15, 0, 100),
+      duration = number("Burst duration", 800, 100, 3000),
+      decay = number("Decay duration", 1200, 100, 5000);
+  private final SliderSetting
+      multiplier = new SliderSetting("Burst CPS multiplier", 1.8, 1, 3, .1, ValueDisplay.DECIMAL),
+      curve = new SliderSetting("Decay curve", 1.5, 1, 3, .1, ValueDisplay.DECIMAL);
+  private final SliderSetting doubleChance = number("Double click chance", 8, 0, 100),
+      doubleDelay = number("Double click delay", 40, 10, 100),
+      missChance = number("Miss chance", 5, 0, 100);
+  private final CheckboxSetting weapon = new CheckboxSetting("Weapon only", false),
+      blocks = new CheckboxSetting("Blocks only", false),
+      breaking = new CheckboxSetting("Break blocks", true);
+  private final EpsilonClickState left = new EpsilonClickState(new Random()),
+      right = new EpsilonClickState(new Random());
+  private Object player, world;
 
-	private final SliderSetting rightCps = new SliderSetting("Right CPS",
-		"Right clicks per second. 0 disables right clicking.", 10, 0, 20, 1,
-		ValueDisplay.INTEGER.withLabel(0, "off"));
+  private static SliderSetting number(String name, int value, int min, int max) {
+    return new SliderSetting(name, value, min, max, 1, ValueDisplay.INTEGER);
+  }
 
-	private final CheckboxSetting onlyWhileHeld = new CheckboxSetting(
-		"Only while held",
-		"Only clicks while the corresponding mouse button is held down.", true);
+  public AutoClickerHack() {
+    super("AutoClicker");
+    setCategory(Category.COMBAT);
+    for (Setting s :
+        new Setting[] {
+          button,
+          leftMin,
+          leftMax,
+          rightMin,
+          rightMax,
+          leftJitter,
+          rightJitter,
+          burst,
+          burstChance,
+          duration,
+          multiplier,
+          decay,
+          curve,
+          doubleClick,
+          doubleChance,
+          doubleDelay,
+          miss,
+          missChance,
+          weapon,
+          blocks,
+          breaking
+        }) addSetting(s);
+  }
 
-	private final CheckboxSetting inScreens = new CheckboxSetting(
-		"While in screens",
-		"Whether to click while a screen is open.\n\n"
-			+ "\u00a7c\u00a7lWARNING:\u00a7r This can make menus click themselves.",
-		false);
+  protected void onEnable() {
+    left.reset();
+    right.reset();
+    EVENTS.add(UpdateListener.class, this);
+  }
 
-	private long lastLeftClick;
-	private long lastRightClick;
+  protected void onDisable() {
+    left.reset();
+    right.reset();
+    EVENTS.remove(UpdateListener.class, this);
+  }
 
-	public AutoClickerHack()
-	{
-		super("AutoClicker");
-		setCategory(Category.COMBAT);
-		addSetting(leftCps);
-		addSetting(rightCps);
-		addSetting(onlyWhileHeld);
-		addSetting(inScreens);
-	}
+  public void onUpdate() {
+    if (player != MC.player || world != MC.level) {
+      left.reset();
+      right.reset();
+      player = MC.player;
+      world = MC.level;
+    }
+    if (!EpsilonTargets.ready() || MC.screen != null) {
+      left.reset();
+      right.reset();
+      return;
+    }
+    long now = System.nanoTime() / 1000000;
+    boolean attack =
+        button.getSelected() != Button.RIGHT
+            && MC.options.keyAttack.isDown()
+            && (!weapon.isChecked() || EpsilonTargets.weapon())
+            && !MC.player.isUsingItem()
+            && !WURST.getHax().killauraHack.isEnabled()
+            && !WURST.getHax().multiAuraHack.isEnabled();
+    if (MC.gameMode.isDestroying() && breaking.isChecked()) attack = false;
+    if (attack) click(left, MC.options.keyAttack, leftMin, leftMax, leftJitter, now);
+    else left.reset();
+    boolean use =
+        button.getSelected() != Button.LEFT
+            && MC.options.keyUse.isDown()
+            && (!blocks.isChecked() || MC.player.getMainHandItem().getItem() instanceof BlockItem)
+            && !WURST.getHax().scaffoldWalkHack.isEnabled();
+    if (use) click(right, MC.options.keyUse, rightMin, rightMax, rightJitter, now);
+    else right.reset();
+  }
 
-	@Override
-	protected void onEnable()
-	{
-		lastLeftClick = 0;
-		lastRightClick = 0;
-		EVENTS.add(UpdateListener.class, this);
-	}
+  private void click(
+      EpsilonClickState state,
+      KeyMapping key,
+      SliderSetting min,
+      SliderSetting max,
+      CheckboxSetting jitter,
+      long now) {
+    var config =
+        new EpsilonClickState.Config(
+            min.getValueI(),
+            max.getValueI(),
+            burst.isChecked(),
+            burstChance.getValueI(),
+            duration.getValueI(),
+            multiplier.getValue(),
+            decay.getValueI(),
+            curve.getValue(),
+            doubleClick.isChecked(),
+            doubleChance.getValueI(),
+            doubleDelay.getValueI(),
+            miss.isChecked(),
+            missChance.getValueI());
+    int count = state.tick(now, config);
+    for (int i = 0; i < count; i++) KeyMapping.click(((KeyMappingAccessor) key).wurst$getKey());
+    if (count > 0 && jitter.isChecked()) {
+      MC.player.setYRot(MC.player.getYRot() + (float) (Math.random() - .5) * .5F);
+      MC.player.setXRot(
+          Mth.clamp(MC.player.getXRot() + (float) (Math.random() - .5) * .5F, -90, 90));
+    }
+  }
 
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(UpdateListener.class, this);
-	}
-
-	@Override
-	public void onUpdate()
-	{
-		if(MC.player == null || MC.level == null || MC.gameMode == null)
-			return;
-
-		if(!inScreens.isChecked() && MC.screen != null)
-			return;
-
-		LocalPlayer player = MC.player;
-		long now = System.currentTimeMillis();
-
-		if(leftCps.getValue() > 0 && player.isUsingItem())
-			return;
-
-		if(leftCps.getValue() > 0
-			&& (!onlyWhileHeld.isChecked() || MC.options.keyAttack.isDown())
-			&& now - lastLeftClick >= 1000.0 / leftCps.getValue())
-		{
-			leftClick(player);
-			lastLeftClick = now;
-		}
-
-		if(rightCps.getValue() > 0
-			&& (!onlyWhileHeld.isChecked() || MC.options.keyUse.isDown())
-			&& now - lastRightClick >= 1000.0 / rightCps.getValue())
-		{
-			rightClick(player, InteractionHand.MAIN_HAND);
-			lastRightClick = now;
-		}
-	}
-
-	private void leftClick(LocalPlayer player)
-	{
-		if(player.isHandsBusy() || MC.hitResult == null)
-			return;
-
-		switch(MC.hitResult.getType())
-		{
-			case ENTITY:
-			MC.gameMode.attack(player,
-				((EntityHitResult)MC.hitResult).getEntity());
-			break;
-
-			case BLOCK:
-			BlockHitResult blockHit = (BlockHitResult)MC.hitResult;
-			MC.gameMode.startDestroyBlock(blockHit.getBlockPos(),
-				blockHit.getDirection());
-			break;
-
-			case MISS:
-			break;
-		}
-
-		if(!player.isSpectator())
-			player.swing(InteractionHand.MAIN_HAND);
-	}
-
-	private void rightClick(LocalPlayer player, InteractionHand hand)
-	{
-		if(MC.hitResult == null)
-		{
-			MC.gameMode.useItem(player, hand);
-			return;
-		}
-
-		switch(MC.hitResult.getType())
-		{
-			case ENTITY:
-			EntityHitResult entityHit = (EntityHitResult)MC.hitResult;
-			MC.gameMode.interactAt(player, entityHit.getEntity(), entityHit,
-				hand);
-			break;
-
-			case BLOCK:
-			MC.gameMode.useItemOn(player, hand,
-				(BlockHitResult)MC.hitResult);
-			break;
-
-			case MISS:
-			MC.gameMode.useItem(player, hand);
-			break;
-		}
-
-		if(!player.isSpectator())
-			player.swing(hand);
-	}
+  public enum Button {
+    LEFT,
+    RIGHT,
+    BOTH
+  }
 }

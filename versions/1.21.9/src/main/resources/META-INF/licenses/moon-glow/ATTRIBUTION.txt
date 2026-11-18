@@ -1,0 +1,10 @@
+Moon flowing glow adaptation
+Source: https://github.com/xiaozhuhou233/moon-rebase
+Commit: 55cd694e898025531de94e61e169ba6eb221f9f3
+License: Apache-2.0 (included); original authors retain their copyright.
+
+Adapted flowing_glow.frag spatial/time tint for Fabric 1.20.1 core OpenGL.
+HUD: analytic rounded coverage, bounded local textures, existing NanoVG compositing.
+Entity ESP: Minecraft model outline masks, shared separable blur and inside cutout.
+The default tint is now static light purple (#B5BEF0), with no time animation. This is not a copy of Moon's whole renderer.
+See docs/MOON-GLOW-v1.5.2.md for behavior and validation limits.

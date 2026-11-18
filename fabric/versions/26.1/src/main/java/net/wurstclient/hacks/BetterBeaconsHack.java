@@ -19,7 +19,7 @@ import net.wurstclient.SearchTags;
 import net.wurstclient.events.GUIRenderListener;
 import net.wurstclient.hack.Hack;
 import net.wurstclient.settings.CheckboxSetting;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 
 @SearchTags({"better beacons", "BeaconRange", "beacon range",
 	"beacon effects", "beacon level", "beacon radius"})
@@ -45,7 +45,7 @@ public final class BetterBeaconsHack extends Hack implements GUIRenderListener
 	public BetterBeaconsHack()
 	{
 		super("BetterBeacons");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(showEffectNames);
 		addSetting(showLevelTable);
 		addSetting(expandedSelection);

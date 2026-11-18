@@ -26,7 +26,7 @@ public final class AntiVoidHack extends Hack implements UpdateListener, WorldCha
 	public AntiVoidHack()
 	{
 		super("AntiVoid");
-		setCategory(Category.MOVEMENT);
+		setCategory(Category.PLAYER);
 		addSetting(onlyHole);
 		addSetting(mode);
 	}

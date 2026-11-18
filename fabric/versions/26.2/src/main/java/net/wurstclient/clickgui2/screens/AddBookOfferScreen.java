@@ -7,6 +7,8 @@
  */
 package net.wurstclient.clickgui2.screens;
 
+
+
 import org.joml.Matrix3x2fStack;
 import java.util.Objects;
 
@@ -15,7 +17,7 @@ import org.lwjgl.glfw.GLFW;
 import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
@@ -284,16 +286,20 @@ public final class AddBookOfferScreen extends Screen
 		priceMinusButton.active = offerToAdd != null && offerToAdd.price() > 1;
 		
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		NanoVGUI.clearDeferred();
-		listGui.extractRenderState(context, mouseX, mouseY, partialTicks);
-		levelField.extractRenderState(context, mouseX, mouseY, partialTicks);
-		priceField.extractRenderState(context, mouseX, mouseY, partialTicks);
-		super.extractRenderState(context, mouseX, mouseY, partialTicks);
+		listGui.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		levelField.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		priceField.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		super.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 
 		NanoVGUI.pass(context, () -> {
 			NanoVGUI.pushScissor(0, 32, width, height - 112);
@@ -371,8 +377,14 @@ public final class AddBookOfferScreen extends Screen
 			
 			return true;
 		}
-		
-		@Override
+@Override
+		public void extractContent(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+			boolean hovered, float partialTicks)
+		{
+			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
+				hovered, partialTicks);
+		}
+
 		public void extractContent(GuiGraphicsExtractor context, int mouseX,
 			int mouseY, boolean hovered, float tickDelta)
 		{

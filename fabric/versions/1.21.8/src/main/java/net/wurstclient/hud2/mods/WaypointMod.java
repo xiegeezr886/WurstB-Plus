@@ -34,7 +34,7 @@ public final class WaypointMod extends HUDMod
 		if(waypoints.isEmpty())
 		{
 			drawBackground(140, 20);
-			drawText("No waypoints", 6, 5, 9, HudFonts.REGULAR,
+			drawText(WURST.translate("No waypoints"), 6, 5, 9, HudFonts.REGULAR,
 				getFontColor(200));
 			setSize(140, 20);
 			return;

@@ -58,7 +58,7 @@ public final class FeaturesCmd extends Command
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Show Statistics";
+		return WURST.translate("Show Statistics");
 	}
 	
 	@Override

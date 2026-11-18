@@ -7,8 +7,7 @@
  */
 package net.wurstclient.serverfinder;
 
-import net.minecraft.client.gui.GuiGraphics;
-
+import net.wurstclient.WurstClient;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -231,7 +230,7 @@ public class ServerFinderScreen extends Screen
 		return super.mouseClicked(mouseX, mouseY, button);
 	}
 @Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	public void render(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
@@ -243,20 +242,20 @@ public class ServerFinderScreen extends Screen
 		context.centeredText(font, "服务器搜索",
 			width / 2, 20, CommonColors.WHITE);
 		context.centeredText(font,
-			"This will search for servers with similar IPs", width / 2, 40,
+			WurstClient.tr("This will search for servers with similar IPs"), width / 2, 40,
 			0xFFA0A0A0);
 		context.centeredText(font,
-			"to the IP you type into the field below.", width / 2, 50,
+			WurstClient.tr("to the IP you type into the field below."), width / 2, 50,
 			0xFFA0A0A0);
 		context.centeredText(font,
-			"The servers it finds will be added to your server list.",
+			WurstClient.tr("The servers it finds will be added to your server list."),
 			width / 2, 60, 0xFFA0A0A0);
 		
-		context.text(font, "Server address:",
+		context.text(font, WurstClient.tr("Server address:"),
 			width / 2 - 100, height / 4 + 24, 0xFFA0A0A0);
 		ipBox.render(context.getInner(), mouseX, mouseY, partialTicks);
 		
-		context.text(font, "Max. threads:",
+		context.text(font, WurstClient.tr("Max. threads:"),
 			width / 2 - 100, height / 4 + 60, 0xFFA0A0A0);
 		maxThreadsBox.render(context.getInner(), mouseX, mouseY, partialTicks);
 		
@@ -264,9 +263,9 @@ public class ServerFinderScreen extends Screen
 			width / 2, height / 4 + 73, 0xFFA0A0A0);
 		
 		context.text(font,
-			"Checked: " + checked + " / 1792", width / 2 - 100, height / 4 + 84,
+			WurstClient.tr("Checked: %s / 1792", checked), width / 2 - 100, height / 4 + 84,
 			0xFFA0A0A0);
-		context.text(font, "Working: " + working,
+		context.text(font, WurstClient.tr("Working: %s", working),
 			width / 2 - 100, height / 4 + 94, 0xFFA0A0A0);
 		
 		for(Renderable drawable : renderables)

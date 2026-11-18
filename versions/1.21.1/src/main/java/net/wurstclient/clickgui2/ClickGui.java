@@ -26,7 +26,7 @@ public final class ClickGui
 	private static final WurstClient WURST = WurstClient.INSTANCE;
 	private static final Minecraft MC = WurstClient.MC;
 	private static final float[] BLEACH_BG_COLOR = {0.018F, 0.018F, 0.018F};
-	private static final float[] BLEACH_AC_COLOR = {0.0F, 0.3882353F, 0.4F};
+	private static final float[] BLEACH_AC_COLOR = {181 / 255F, 190 / 255F, 240 / 255F};
 	private static final int BLEACH_TEXT_COLOR = 0xFFE8E8E8;
 	
 	private final ArrayList<Window> windows = new ArrayList<>();
@@ -88,6 +88,20 @@ public final class ClickGui
 	{
 		if(mouseButton == GLFW.GLFW_MOUSE_BUTTON_LEFT)
 			leftMouseButtonPressed = false;
+	}
+
+	/** Routes an external screen's values to popups without touching HUD windows. */
+	public boolean handleOverlayMouseClick(int mouseX, int mouseY, int button)
+	{
+		if(button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
+			leftMouseButtonPressed = true;
+		ArrayList<Popup> previouslyOpen = new ArrayList<>(popups);
+		boolean handled = handlePopupMouseClick(mouseX, mouseY, button);
+		if(!handled)
+			previouslyOpen.forEach(Popup::close);
+		popups.removeIf(popup -> popup.isClosing()
+			|| popup.getOwner().getParent().isClosing());
+		return handled;
 	}
 	
 	public void handleMouseScroll(double mouseX, double mouseY, double delta)

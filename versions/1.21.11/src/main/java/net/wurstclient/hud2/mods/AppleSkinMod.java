@@ -30,9 +30,9 @@ public final class AppleSkinMod extends HUDMod
 			: MC.player.getFoodData().getSaturationLevel();
 		float exhaustion = 0;
 
-		String[] lines = {String.format("Food: %d / 20", food),
-			String.format("Saturation: %.1f", saturation),
-			String.format("Exhaustion: %.2f", exhaustion)};
+		String[] lines = {WURST.translate("Food: %d / 20", food),
+			WURST.translate("Saturation: %.1f", saturation),
+			WURST.translate("Exhaustion: %.2f", exhaustion)};
 
 		float width = 130;
 		for(String line : lines)

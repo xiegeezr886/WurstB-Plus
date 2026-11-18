@@ -1,237 +1,94 @@
-/*
- * Copyright (c) 2026 Wurst-Imperium and contributors.
- *
- * This source code is subject to the terms of the GNU Affero General Public
- * License, version 3. If a copy of the AGPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
- */
-
-/* Ported from LeavesHack (AGPL-3.0). */
+/* PlaceRender ported from MrBZBZ/LeavesHack 13daf96. SPDX-License-Identifier: AGPL-3.0-or-later */
 package net.wurstclient.hacks;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.HashMap;
-import net.minecraft.client.multiplayer.ClientLevel;
+import java.util.LinkedHashMap;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.*;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
 import net.wurstclient.events.RenderListener;
-import net.wurstclient.events.UpdateListener;
-import net.wurstclient.events.WorldChangeListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.ColorSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.leaves.LeavesColorSetting;
+import net.wurstclient.leaves.LeavesRender;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.RenderUtils;
 
-/**
- * Draws a fading ghost box around blocks that have just appeared near the
- * player. LeavesHack's original version hooked its own BlockUtil placement
- * event; without that event, this port detects block changes in a small area
- * around the player instead.
- */
-@SearchTags({"place render", "PlaceRender", "placement preview",
-	"ghost block"})
-public final class PlaceRenderHack extends Hack
-	implements UpdateListener, RenderListener, WorldChangeListener
-{
-	private final SliderSetting trackRange = new SliderSetting("Track range",
-		"Radius around the player in which new blocks are detected.", 6, 2, 10,
-		1, ValueDisplay.INTEGER);
+public final class PlaceRenderHack extends Hack implements RenderListener {
+  private final EnumSetting<PrinterHack.Shape> shape =
+      new EnumSetting<>("ShapeMode", PrinterHack.Shape.values(), PrinterHack.Shape.BOTH);
+  private final SliderSetting speed =
+      new SliderSetting("Speed", 4, 1, 100, 1, ValueDisplay.INTEGER);
+  private final CheckboxSetting client = new CheckboxSetting("RenderClientPlace", true);
+  private final SliderSetting exponent =
+      new SliderSetting("Animation Exponent", 3, 0, 10, 0.1, ValueDisplay.DECIMAL);
+  private final LeavesColorSetting sideStart =
+      new LeavesColorSetting("SideStart", new Color(140, 142, 255, 50));
+  private final LeavesColorSetting sideEnd =
+      new LeavesColorSetting("SideEnd", new Color(140, 142, 255, 50));
+  private final LeavesColorSetting lineStart =
+      new LeavesColorSetting("LineStart", new Color(140, 142, 255, 255));
+  private final LeavesColorSetting lineEnd =
+      new LeavesColorSetting("LineEnd", new Color(140, 142, 255, 255));
+  private final LinkedHashMap<BlockPos, Double> entries = new LinkedHashMap<>();
+  private Object world;
 
-	private final SliderSetting timeout = new SliderSetting("Timeout",
-		"How long the placement preview stays visible.", 40, 5, 200, 1,
-		ValueDisplay.INTEGER.withSuffix(" ticks"));
+  public PlaceRenderHack() {
+    super("PlaceRender");
+    setCategory(Category.RENDER);
+    for (Setting s :
+        new Setting[] {shape, speed, client, exponent, sideStart, sideEnd, lineStart, lineEnd})
+      addSetting(s);
+  }
 
-	private final SliderSetting fadeExponent = new SliderSetting(
-		"Animation exponent",
-		"Higher values keep the preview at full size for longer.", 3, 1, 10,
-		1, ValueDisplay.INTEGER);
+  @Override
+  protected void onEnable() {
+    entries.clear();
+    world = MC.level;
+    EVENTS.add(RenderListener.class, this);
+  }
 
-	private final CheckboxSetting renderFill = new CheckboxSetting("Fill",
-		"Render the filled part of the preview.", true);
+  @Override
+  protected void onDisable() {
+    EVENTS.remove(RenderListener.class, this);
+    entries.clear();
+  }
 
-	private final CheckboxSetting depthTest = new CheckboxSetting("Depth test",
-		"Whether the preview is hidden behind blocks.", false);
+  public void record(BlockPos pos, boolean clientPlacement) {
+    if (!isEnabled() || clientPlacement && !client.isChecked()) return;
+    if (world != MC.level) {
+      entries.clear();
+      world = MC.level;
+    }
+    entries.putIfAbsent(pos.immutable(), 1D);
+    while (entries.size() > 512) entries.remove(entries.keySet().iterator().next());
+  }
 
-	private final ColorSetting fillColor =
-		new ColorSetting("Fill color", "Color of the filled preview.",
-			new Color(140, 142, 255, 100));
-
-	private final ColorSetting lineColor =
-		new ColorSetting("Line color", "Color of the preview outline.",
-			new Color(140, 142, 255, 255));
-
-	private final HashMap<BlockPos, BlockState> previous = new HashMap<>();
-	private final ArrayList<Placement> placements = new ArrayList<>();
-
-	private ClientLevel lastLevel;
-	private int ticks;
-
-	public PlaceRenderHack()
-	{
-		super("PlaceRender");
-		setCategory(Category.RENDER);
-		addSetting(trackRange);
-		addSetting(timeout);
-		addSetting(fadeExponent);
-		addSetting(renderFill);
-		addSetting(depthTest);
-		addSetting(fillColor);
-		addSetting(lineColor);
-	}
-
-	@Override
-	protected void onEnable()
-	{
-		clear();
-		lastLevel = MC.level;
-		EVENTS.add(UpdateListener.class, this);
-		EVENTS.add(RenderListener.class, this);
-		EVENTS.add(WorldChangeListener.class, this);
-	}
-
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(UpdateListener.class, this);
-		EVENTS.remove(RenderListener.class, this);
-		EVENTS.remove(WorldChangeListener.class, this);
-		clear();
-	}
-
-	@Override
-	public void onWorldChange(ClientLevel world)
-	{
-		clear();
-		lastLevel = world;
-	}
-
-	private void clear()
-	{
-		previous.clear();
-		placements.clear();
-		ticks = 0;
-	}
-
-	@Override
-	public void onUpdate()
-	{
-		if(MC.player == null || MC.level == null)
-		{
-			clear();
-			return;
-		}
-
-		if(MC.level != lastLevel)
-		{
-			clear();
-			lastLevel = MC.level;
-		}
-
-		ticks++;
-		scanForPlacements();
-
-		int lifetime = timeout.getValueI();
-		placements.removeIf(p -> ticks - p.startTick >= lifetime);
-	}
-
-	private void scanForPlacements()
-	{
-		int range = trackRange.getValueI();
-		BlockPos center = MC.player.blockPosition();
-		HashMap<BlockPos, BlockState> current = new HashMap<>();
-
-		for(BlockPos pos : BlockPos.betweenClosed(center.offset(-range, -range,
-			-range), center.offset(range, range, range)))
-		{
-			BlockPos immutable = pos.immutable();
-			BlockState now = MC.level.getBlockState(immutable);
-			BlockState before = previous.get(immutable);
-
-			if(before != null && isNewlyPlaced(before, now))
-				addPlacement(immutable);
-
-			current.put(immutable, now);
-		}
-
-		previous.clear();
-		previous.putAll(current);
-	}
-
-	private boolean isNewlyPlaced(BlockState before, BlockState now)
-	{
-		if(!before.isAir() && !before.canBeReplaced())
-			return false;
-		if(now.isAir() || now.canBeReplaced())
-			return false;
-
-		// Fluids, fire and similar blockless states have no item form.
-		return now.getBlock().asItem() != Items.AIR;
-	}
-
-	private void addPlacement(BlockPos pos)
-	{
-		placements.add(new Placement(pos, ticks));
-		if(placements.size() > 256)
-			placements.remove(0);
-	}
-
-	@Override
-	public void onRender(PoseStack matrixStack, float partialTicks)
-	{
-		if(MC.level == null || placements.isEmpty())
-			return;
-
-		int lifetime = timeout.getValueI();
-		boolean fill = renderFill.isChecked();
-		int fillRgb = fillColor.getColorI();
-		int lineRgb = lineColor.getColorI();
-
-		for(Placement placement : placements)
-		{
-			float progress = Mth.clamp(
-				(ticks - placement.startTick + partialTicks) / (float)lifetime,
-				0F, 1F);
-			float size = (float)Math.pow(1 - progress,
-				fadeExponent.getValue()) / 2;
-			double centerX = placement.pos.getX() + 0.5;
-			double centerY = placement.pos.getY() + 0.5;
-			double centerZ = placement.pos.getZ() + 0.5;
-
-			AABB box = new AABB(centerX - size, centerY - size, centerZ - size,
-				centerX + size, centerY + size, centerZ + size);
-
-			int alpha = (int)((1 - progress) * 255);
-			if(fill)
-				RenderUtils.drawSolidBox(matrixStack, box,
-					withAlpha(fillRgb, alpha), depthTest.isChecked());
-			RenderUtils.drawOutlinedBox(matrixStack, box,
-				withAlpha(lineRgb, alpha), depthTest.isChecked());
-		}
-	}
-
-	private static int withAlpha(int rgb, int alpha)
-	{
-		return alpha << 24 | (rgb & 0x00FFFFFF);
-	}
-
-	private static final class Placement
-	{
-		private final BlockPos pos;
-		private final int startTick;
-
-		private Placement(BlockPos pos, int startTick)
-		{
-			this.pos = pos;
-			this.startTick = startTick;
-		}
-	}
+  @Override
+  public void onRender(PoseStack matrices, float partialTicks) {
+    if (world != MC.level) {
+      entries.clear();
+      world = MC.level;
+    }
+    if (MC.level == null) return;
+    var iterator = entries.entrySet().iterator();
+    while (iterator.hasNext()) {
+      var e = iterator.next();
+      if (e.getValue() <= 0) {
+        iterator.remove();
+        continue;
+      }
+      double p = 1 - Math.pow(1 - Math.min(1, e.getValue()), exponent.getValue()), size = p / 2;
+      Vec3 center = Vec3.atCenterOf(e.getKey());
+      AABB box = new AABB(center.subtract(size, size, size), center.add(size, size, size));
+      if (shape.getSelected() != PrinterHack.Shape.LINES)
+        RenderUtils.drawSolidBox(
+            matrices, box, LeavesRender.lerp(sideStart.getColorI(), sideEnd.getColorI(), p), false);
+      if (shape.getSelected() != PrinterHack.Shape.SIDES)
+        RenderUtils.drawOutlinedBox(
+            matrices, box, LeavesRender.lerp(lineStart.getColorI(), lineEnd.getColorI(), p), false);
+      e.setValue(e.getValue() - speed.getValue() * 0.01);
+    }
+  }
 }

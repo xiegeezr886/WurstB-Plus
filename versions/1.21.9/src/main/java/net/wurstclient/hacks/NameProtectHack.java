@@ -19,7 +19,7 @@ public final class NameProtectHack extends Hack
 	public NameProtectHack()
 	{
 		super("NameProtect");
-		setCategory(Category.RENDER);
+		setCategory(Category.MISC);
 	}
 	
 	public String protect(String string)

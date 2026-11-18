@@ -130,7 +130,7 @@ public final class ImgTipsHack extends Hack implements UpdateListener,
 	public ImgTipsHack()
 	{
 		super("ImgTips");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(visualRange);
 		addSetting(notifyFriends);
 		addSetting(popCounter);
@@ -249,14 +249,15 @@ public final class ImgTipsHack extends Hack implements UpdateListener,
 			return;
 
 		int pops = totemPops.merge(player.getUUID(), 1, Integer::sum);
-		String suffix =
-			" " + pops + (pops == 1 ? " totem." : " totems.");
+		String key = pops == 1 ? "You popped %s totem."
+			: "You popped %s totems.";
+		String otherKey = pops == 1 ? "%s has popped %s totem."
+			: "%s has popped %s totems.";
 
 		if(player == MC.player)
-			ChatUtils.message("You popped" + suffix);
+			ChatUtils.message(key, pops);
 		else
-			ChatUtils.message(player.getName().getString() + " has popped"
-				+ suffix);
+			ChatUtils.message(otherKey, player.getName().getString(), pops);
 	}
 
 	private void checkDeaths()
@@ -286,16 +287,17 @@ public final class ImgTipsHack extends Hack implements UpdateListener,
 
 		if(pops > 0)
 		{
-			String suffix = " " + pops
-				+ (pops == 1 ? " totem." : " totems.");
+			boolean one = pops == 1;
 			if(player == MC.player)
-				ChatUtils.message("You died after popping" + suffix);
+				ChatUtils.message(one ? "You died after popping %s totem."
+					: "You died after popping %s totems.", pops);
 			else
-				ChatUtils.message(name + " died after popping" + suffix);
+				ChatUtils.message(one ? "%s died after popping %s totem."
+					: "%s died after popping %s totems.", name, pops);
 		}else if(player == MC.player)
 			ChatUtils.message("You died.");
 		else
-			ChatUtils.message(name + " died.");
+			ChatUtils.message("%s died.", name);
 
 		totemPops.remove(player.getUUID());
 	}
@@ -317,8 +319,7 @@ public final class ImgTipsHack extends Hack implements UpdateListener,
 					&& WURST.getFriends().isFriend(entry.getValue()))
 					continue;
 
-				ChatUtils.message(entry.getValue().getName().getString()
-					+ " entered your visual range.");
+				ChatUtils.message("%s entered your visual range.", entry.getValue().getName().getString());
 				playPing();
 			}
 
@@ -330,8 +331,7 @@ public final class ImgTipsHack extends Hack implements UpdateListener,
 					&& WURST.getFriends().isFriend(entry.getValue()))
 					continue;
 
-				ChatUtils.message(entry.getValue().getName().getString()
-					+ " left your visual range.");
+				ChatUtils.message("%s left your visual range.", entry.getValue().getName().getString());
 				playPing();
 			}
 		}
@@ -364,8 +364,7 @@ public final class ImgTipsHack extends Hack implements UpdateListener,
 		if(!deathCoords.isChecked() || MC.player == null)
 			return;
 
-		ChatUtils.message("You died at " + MC.player.getBlockX() + ", "
-			+ MC.player.getBlockY() + ", " + MC.player.getBlockZ());
+		ChatUtils.message("You died at %s, %s, %s", MC.player.getBlockX(), MC.player.getBlockY(), MC.player.getBlockZ());
 	}
 
 	@Override

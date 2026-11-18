@@ -20,7 +20,7 @@ public final class XCarryHack extends Hack implements PacketOutputListener
 	public XCarryHack()
 	{
 		super("XCarry");
-		setCategory(Category.ITEMS);
+		setCategory(Category.EXPLOIT);
 	}
 
 	@Override

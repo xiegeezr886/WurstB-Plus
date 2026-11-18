@@ -63,7 +63,7 @@ public final class AutoDeoxidizerHack extends Hack implements UpdateListener
 	public AutoDeoxidizerHack()
 	{
 		super("AutoDeoxidizer");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(range);
 		addSetting(delay);
 		addSetting(onlyFullyOxidized);

@@ -37,7 +37,7 @@ public final class ImageDisplayMod extends HUDMod
 		if(file == null || !file.isFile())
 		{
 			drawBackground(180, 28);
-			drawText("No image selected", 6, 9, 9, HudFonts.REGULAR,
+			drawText(WURST.translate("No image selected"), 6, 9, 9, HudFonts.REGULAR,
 				getFontColor(200));
 			setSize(180, 28);
 			return;

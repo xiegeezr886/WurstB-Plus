@@ -45,6 +45,6 @@ public final class RenameCmd extends Command
 			throw new CmdError("There is no item in your hand.");
 		
 		item.set(DataComponents.CUSTOM_NAME, Component.literal(message));
-		ChatUtils.message("Renamed item to \"" + message + "\u00a7r\".");
+		ChatUtils.message("Renamed item to \"%s§r\".", message);
 	}
 }

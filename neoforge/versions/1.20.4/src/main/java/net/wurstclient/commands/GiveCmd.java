@@ -50,7 +50,7 @@ public final class GiveCmd extends Command
 		if(args.length >= 2)
 		{
 			if(!MathUtils.isInteger(args[1]))
-				throw new CmdSyntaxError("Not a number: " + args[1]);
+				throw new CmdSyntaxError("Not a number: %s", args[1]);
 			
 			amount = Integer.parseInt(args[1]);
 			
@@ -82,6 +82,6 @@ public final class GiveCmd extends Command
 		
 		// give item
 		CmdUtils.giveItem(stack);
-		ChatUtils.message("Item" + (amount > 1 ? "s" : "") + " created.");
+		ChatUtils.message("Item created.");
 	}
 }

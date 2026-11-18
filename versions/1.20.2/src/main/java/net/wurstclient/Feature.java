@@ -96,6 +96,12 @@ public abstract class Feature
 		possibleKeybinds.add(new PossibleKeybind(command, description));
 	}
 	
+	protected final void addPossibleKeybind(String command, String key,
+		Object... args)
+	{
+		possibleKeybinds.add(new PossibleKeybind(command, key, args));
+	}
+
 	public final Set<PossibleKeybind> getPossibleKeybinds()
 	{
 		return Collections.unmodifiableSet(possibleKeybinds);

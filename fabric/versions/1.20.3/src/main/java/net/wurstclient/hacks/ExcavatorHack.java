@@ -63,7 +63,7 @@ public final class ExcavatorHack extends Hack
 	public ExcavatorHack()
 	{
 		super("Excavator");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addConflictGroup(HackConflictGroup.BLOCK_BREAKING_AUTOMATION);
 		addSetting(range);
 		addSetting(mode);

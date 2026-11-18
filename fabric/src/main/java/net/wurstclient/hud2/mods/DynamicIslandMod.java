@@ -46,6 +46,7 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 	private static final Color TILE = new Color(0xC8141616, true);
 	private final CheckboxSetting centered = new CheckboxSetting("Center horizontally",
 		"Keep the island centered. Dragging in the HUD editor turns this off.", true);
+	private final CheckboxSetting showStats = new CheckboxSetting("Show FPS and ping", false);
 	private final IslandState state = new IslandState();
 	private final IslandActivity activity = new IslandActivity();
 	private final IslandMotion widthMotion = new IslandMotion();
@@ -81,6 +82,7 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		setDefaultPosition(0, 12);
 		setDefaultEnabled(true);
 		addSetting(centered);
+		addSetting(showStats);
 	}
 
 	private static long now() { return System.nanoTime() / 1_000_000; }
@@ -311,8 +313,11 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		{
 			username = MC.getUser().getName();
 			server = HudCompat.serverIp();
-			fps = HudCompat.fps() + " fps";
-			ping = HudCompat.ping() + " ms";
+			if(showStats.isChecked())
+			{
+				fps = HudCompat.fps() + " fps";
+				ping = HudCompat.ping() + " ms";
+			}
 			nextInfoUpdate = now + 250;
 		}
         MusicManager music = MusicManager.get();
@@ -330,13 +335,13 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		float available = Math.max(40, Math.min(400,
 			MC.getWindow().getGuiScaledWidth() / getScale() - 16));
 		String to = WURST.translate("hud.dynamic_island.to");
-		float flexible = Math.max(0, available - 117 - measure("WurstB+", 8)
-			- measure(ping, 8) - measure(to, 8) - measure(fps, 8));
+		float statsWidth = showStats.isChecked()
+			? 13 + measure(ping, 8) + measure(to, 8) + 12 + 15.5F + measure(fps, 8) : 0;
+		float fixedWidth = 9 + 15.5F + measure("WurstB+", 8) + 12 + 15.5F + 12 + 12.5F + statsWidth;
+		float flexible = Math.max(0, available - fixedWidth);
 		String user = fit(username, 8, Math.min(90, flexible * .45F));
 		String connection = fit(server, 8, Math.min(125, flexible - measure(user, 8)));
-		float idleWidth = 9 + 12 + 3.5F + measure("WurstB+", 8) + 12
-			+ 12 + 3.5F + measure(user, 8) + 12 + 12 + 1 + measure(ping, 8)
-			+ measure(to + connection, 8) + 12 + 12 + 3.5F + measure(fps, 8) + 12.5F;
+		float idleWidth = fixedWidth + measure(user, 8) + measure(connection, 8);
 		float targetWidth = idleWidth, targetHeight = 23;
         boolean expandedMusic = MC.screen instanceof ChatScreen;
         if(kind == Kind.MUSIC) {
@@ -540,6 +545,11 @@ public final class DynamicIslandMod extends HUDMod implements UpdateListener, Wo
 		drawCircle(x + 6, 8.7F, 2.2F, TEXT);
 		drawRoundedRect(x + 2, 12, 8, 4.2F, 2, TEXT);
 		x = dot(label(user, x + 15.5F, TEXT));
+		if(!showStats.isChecked())
+		{
+			label(connection, x, TEXT);
+			return;
+		}
 		Color latency = HudCompat.ping() < 80 ? new Color(0x77EE66)
 			: HudCompat.ping() < 180 ? new Color(0xFFD166) : RED;
 		drawRoundedOutline(x + 1, 9, 6.7F, 5, 2.4F, 1.3F, latency);

@@ -83,7 +83,7 @@ public final class AutoBuildHack extends Hack
 	public AutoBuildHack()
 	{
 		super("AutoBuild");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(templateSetting);
 		addSetting(range);
 		addSetting(checkLOS);
@@ -292,11 +292,11 @@ public final class AutoBuildHack extends Hack
 		}catch(IOException | JsonException e)
 		{
 			Path fileName = path.getFileName();
-			ChatUtils.error("Couldn't load template '" + fileName + "'.");
+			ChatUtils.error("Couldn't load template '%s'.", fileName);
 			
 			String simpleClassName = e.getClass().getSimpleName();
 			String message = e.getMessage();
-			ChatUtils.message(simpleClassName + ": " + message);
+			ChatUtils.message("%s: %s", simpleClassName, message);
 			
 			e.printStackTrace();
 			setEnabled(false);

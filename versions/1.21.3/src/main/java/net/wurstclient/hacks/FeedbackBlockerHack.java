@@ -31,7 +31,7 @@ public final class FeedbackBlockerHack extends Hack implements ChatInputListener
 	public FeedbackBlockerHack()
 	{
 		super("FeedbackBlocker");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(ignoreCase);
 		addSetting(keywords);
 	}

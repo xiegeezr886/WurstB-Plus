@@ -8,7 +8,7 @@
 package net.wurstclient.commands;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 import net.wurstclient.Category;
 import net.wurstclient.command.CmdException;
@@ -60,7 +60,7 @@ public final class TacoCmd extends Command
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Be a BOSS!";
+		return WURST.translate("Be a BOSS!");
 	}
 	
 	@Override

@@ -60,7 +60,7 @@ public final class TacoCmd extends Command
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Be a BOSS!";
+		return WURST.translate("Be a BOSS!");
 	}
 	
 	@Override

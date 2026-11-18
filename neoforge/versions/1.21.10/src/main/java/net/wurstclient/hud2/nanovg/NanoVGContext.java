@@ -28,7 +28,6 @@ import org.lwjgl.nanovg.NanoVGGLES3;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.Minecraft;
@@ -58,6 +57,8 @@ public final class NanoVGContext
 
 	private long vg;
 	private NVGLUFramebuffer framebuffer;
+	private final FramebufferSlot nativeBuffer = new FramebufferSlot();
+	private final FramebufferSlot smoothBuffer = new FramebufferSlot();
 	private int framebufferWidth;
 	private int framebufferHeight;
 	private float guiScale = 1;
@@ -65,6 +66,12 @@ public final class NanoVGContext
 	private boolean frameOpen;
 	private boolean loggedFailure;
 	private boolean gles;
+	private boolean glesBackend;
+	private boolean androidText;
+	private boolean prewarmed;
+	private boolean useSkiaText;
+	private boolean skiaText;
+	private boolean skiaHud;
 	private boolean disabled;
 
 	private final Map<String, HudFont> fonts = new HashMap<>();
@@ -74,6 +81,12 @@ public final class NanoVGContext
 	private final Map<String, Long> imageTimestamps = new HashMap<>();
 	private final Map<Long, Integer> textureImages = new HashMap<>();
 	private NVGPaint scratchPaint;
+
+	private static final class FramebufferSlot
+	{
+		NVGLUFramebuffer framebuffer;
+		int width, height;
+	}
 
 	private NanoVGContext() {}
 
@@ -113,6 +126,7 @@ public final class NanoVGContext
 			return true;
 		if(disabled)
 			return false;
+
 		if("false".equalsIgnoreCase(System.getProperty("wurst.nanovg")))
 		{
 			disabled = true;
@@ -145,17 +159,45 @@ public final class NanoVGContext
 				scratchPaint = NVGPaint.create();
 
 			String glVersion = GL11.glGetString(GL11.GL_VERSION);
-			gles = glVersion != null && glVersion.contains("OpenGL ES");
-			System.out.println("[HUD] GL " + glVersion + " / "
-				+ GL11.glGetString(GL11.GL_RENDERER));
-			vg = gles
-				? NanoVGGLES3.nvgCreate(NanoVGGLES3.NVG_ANTIALIAS
-					| NanoVGGLES3.NVG_STENCIL_STROKES)
-				: NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS
-					| NanoVGGL3.NVG_STENCIL_STROKES);
+			String glRenderer = GL11.glGetString(GL11.GL_RENDERER);
+			gles = (glVersion != null && glVersion.contains("OpenGL ES"))
+				|| (glRenderer != null && glRenderer.contains("OpenGL ES"))
+				|| (glVersion != null && glVersion.contains("Krypton"));
+			System.out.println("[HUD] GL " + glVersion + " / " + glRenderer);
+			// Glyph pre-rasterization experiment: keep NanoVG text on, but
+			// warm the font atlas before the world is rendered.
+			androidText = gles;
+			useSkiaText = false;
+			skiaText = false;
+			skiaHud = false;
+
+			// Use the ES3 backend when the context really is OpenGL ES. Some
+			// Android wrappers (Krypton) report a desktop-like GL version and
+			// only expose GLES entry points through a shim; if the ES3 backend
+			// cannot be created we fall back to GL3 for screens/ClickGUI.
+			if(gles)
+			{
+				try
+				{
+					vg = NanoVGGLES3.nvgCreate(NanoVGGLES3.NVG_ANTIALIAS
+						| NanoVGGLES3.NVG_STENCIL_STROKES);
+					glesBackend = vg != 0;
+				}catch(Throwable t)
+				{
+					System.err.println(
+						"[HUD] NanoVGGLES3 unavailable: " + t);
+					vg = 0;
+				}
+			}
 			if(vg == 0)
 			{
-				logFailure("nvgCreateGL3 returned 0");
+				vg = NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS
+					| NanoVGGL3.NVG_STENCIL_STROKES);
+				glesBackend = false;
+			}
+			if(vg == 0)
+			{
+				logFailure("nvgCreate returned 0");
 				return false;
 			}
 
@@ -170,7 +212,7 @@ public final class NanoVGContext
 			}
 
 			available = true;
-			System.out.println("[HUD] NanoVG GL3 context created");
+			System.out.println("[HUD] NanoVG context created (" + (glesBackend ? "GLES3" : "GL3") + ")");
 			return true;
 		}catch(Throwable t)
 		{
@@ -312,34 +354,59 @@ public final class NanoVGContext
 
 	private boolean ensureFramebuffer()
 	{
+		return ensureFramebuffer(1);
+	}
+
+	private boolean ensureFramebuffer(float requestedSampling)
+	{
 		if(vg == 0 || WurstClient.MC == null)
 			return false;
 
 		Minecraft mc = WurstClient.MC;
 		int width = mc.getWindow().getWidth();
 		int height = mc.getWindow().getHeight();
+		// Keep GUI supersampling bounded to a 4K target and reuse its own
+		// buffer so the native HUD pass never reallocates it between frames.
+		float sampling = Math.min(requestedSampling,
+			(float)Math.sqrt(8_388_608.0 / Math.max(1.0, (double)width * height)));
+		sampling = Math.min(sampling, 4096F / Math.max(1, Math.max(width, height)));
+		if(sampling < 1.1F) sampling = 1;
+		width = Math.max(1, Math.round(width * sampling));
+		height = Math.max(1, Math.round(height * sampling));
+		FramebufferSlot slot = sampling > 1 ? smoothBuffer : nativeBuffer;
 		float scale = (float)mc.getWindow().getGuiScale();
 		if(scale <= 0)
 			scale = 1;
-
-		if(framebuffer != null && width == framebufferWidth
-			&& height == framebufferHeight && scale == guiScale)
-			return true;
-
-		if(framebuffer != null)
+		if(slot.framebuffer != null && width == slot.width && height == slot.height)
 		{
-			if(gles)
-				NanoVGGLES3.nvgluDeleteFramebuffer(vg, framebuffer);
-			else
-				NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
-			framebuffer = null;
+			framebuffer = slot.framebuffer;
+			framebufferWidth = width;
+			framebufferHeight = height;
+			guiScale = scale * sampling;
+			return true;
 		}
 
-		framebuffer = gles
-			? NanoVGGLES3.nvgluCreateFramebuffer(vg, width, height, 0)
-			: NanoVGGL3.nvgluCreateFramebuffer(vg, width, height, 0);
+		if(slot.framebuffer != null && (width != slot.width || height != slot.height))
+		{
+			// nvgluDeleteFramebuffer() already deletes the NanoVG image that
+			// wraps the colour texture. Deleting it here as well frees the
+			// same image slot twice and can corrupt NanoVG's image table,
+			// which shows up as black/missing images after a resize.
+			deleteFramebuffer(slot);
+		}
+
+		if(slot.framebuffer == null)
+		{
+			slot.framebuffer = glesBackend
+				? NanoVGGLES3.nvgluCreateFramebuffer(vg, width, height, 0)
+				: NanoVGGL3.nvgluCreateFramebuffer(vg, width, height, 0);
+			slot.width = width;
+			slot.height = height;
+		}
+		framebuffer = slot.framebuffer;
 		if(framebuffer == null || framebuffer.fbo() == 0)
 		{
+			deleteFramebuffer(slot);
 			framebuffer = null;
 			logFailure("could not create the offscreen framebuffer");
 			return false;
@@ -351,35 +418,53 @@ public final class NanoVGContext
 		{
 			logFailure("incomplete framebuffer 0x"
 				+ Integer.toHexString(status));
-			if(gles)
-				NanoVGGLES3.nvgluDeleteFramebuffer(vg, framebuffer);
-			else
-				NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
+			deleteFramebuffer(slot);
 			framebuffer = null;
 			return false;
 		}
 
 		framebufferWidth = width;
 		framebufferHeight = height;
-		guiScale = scale;
+		guiScale = scale * sampling;
 		return true;
+	}
+
+	private void deleteFramebuffer(FramebufferSlot slot)
+	{
+		if(slot.framebuffer == null) return;
+		if(glesBackend) NanoVGGLES3.nvgluDeleteFramebuffer(vg, slot.framebuffer);
+		else NanoVGGL3.nvgluDeleteFramebuffer(vg, slot.framebuffer);
+		slot.framebuffer = null;
+	}
+
+		private boolean drawToSkia()
+	{
+		return skiaHud && SkiaHudSurface.get().isActive();
+	}
+
+	public boolean isGles()
+	{
+		return gles;
 	}
 
 	public boolean beginFrame()
 	{
+		return beginFrame(1);
+	}
+
+	public boolean beginFrame(float sampling)
+	{
 		if(!create())
 			return false;
 		prepareTextureUpload();
-		if(!ensureFramebuffer())
+		if(!ensureFramebuffer(sampling) && (sampling <= 1 || !ensureFramebuffer(1)))
 			return false;
 
-		if(gles)
+		if(glesBackend)
 			NanoVGGLES3.nvgluBindFramebuffer(vg, framebuffer);
 		else
 			NanoVGGL3.nvgluBindFramebuffer(vg, framebuffer);
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebuffer.fbo());
-		GL13.glActiveTexture(GL13.GL_TEXTURE0);
-		GL33.glBindSampler(0, 0);
 		GL11.glViewport(0, 0, framebufferWidth, framebufferHeight);
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 		GL11.glColorMask(true, true, true, true);
@@ -392,8 +477,54 @@ public final class NanoVGContext
 
 		NanoVG.nvgBeginFrame(vg, framebufferWidth, framebufferHeight, 1F);
 		NanoVG.nvgScale(vg, guiScale, guiScale);
+		if(false)
+		{
+			prewarmGlyphs();
+			prewarmed = true;
+		}
 		frameOpen = true;
+		frameSerial++;
 		return true;
+	}
+
+	private long frameSerial;
+
+	public long getFrameSerial()
+	{
+		return frameSerial;
+	}
+
+	/**
+	 * Rasterizes the printable ASCII set at the font sizes used by the HUD
+	 * into NanoVG's font atlas. The atlas upload is what some Android GL
+	 * wrappers choke on, so doing it once while the title/GUI context is
+	 * active avoids mid-world uploads later.
+	 */
+	private void prewarmGlyphs()
+	{
+		StringBuilder sb = new StringBuilder(128);
+		for(char c = 32; c <= 126; c++)
+			sb.append(c);
+		String chars = sb.toString();
+
+		int[] sizes = {8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 22, 24};
+		int count = 0;
+		NanoVG.nvgTextAlign(vg,
+			NanoVG.NVG_ALIGN_LEFT | NanoVG.NVG_ALIGN_TOP);
+		NanoVG.nvgFillColor(vg, getColor(0xFFFFFFFF));
+		for(HudFont font : HudFonts.all())
+		{
+			if(!font.isLoaded())
+				continue;
+			NanoVG.nvgFontFace(vg, font.getName());
+			for(int size : sizes)
+			{
+				NanoVG.nvgFontSize(vg, size);
+				NanoVG.nvgText(vg, 0, 0, chars);
+				count += chars.length();
+			}
+		}
+		System.out.println("[HUD] Pre-rasterized " + count + " glyphs");
 	}
 
 	private static void prepareTextureUpload()
@@ -414,7 +545,7 @@ public final class NanoVGContext
 			return;
 		frameOpen = false;
 		NanoVG.nvgEndFrame(vg);
-		if(gles)
+		if(glesBackend)
 			NanoVGGLES3.nvgluBindFramebuffer(vg, null);
 		else
 			NanoVGGL3.nvgluBindFramebuffer(vg, null);
@@ -458,9 +589,11 @@ public final class NanoVGContext
 			|| framebuffer.image() == 0)
 			return;
 
+		// Drop any stale error so the check below only reports errors caused
+		// by the composite itself.
 		while(GL11.glGetError() != GL11.GL_NO_ERROR)
 		{
-			// drain stale errors
+			// drain
 		}
 
 		NanoVG.nvgBeginFrame(vg, framebufferWidth, framebufferHeight, 1F);
@@ -481,6 +614,9 @@ public final class NanoVGContext
 		int error = GL11.glGetError();
 		if(error != GL11.GL_NO_ERROR)
 		{
+			// A broken composite would paint an opaque black quad over the
+			// frame on some drivers. Turn the whole backend off instead of
+			// repeating that every frame.
 			disabled = true;
 			available = false;
 			logFailure("composite GL error 0x"
@@ -512,6 +648,12 @@ public final class NanoVGContext
 	public void drawRect(float x, float y, float width, float height,
 		Color color)
 	{
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().fillRect(x, y, width, height,
+				color.getRGB());
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRect(vg, x, y, width, height);
 		NanoVG.nvgFillColor(vg, getColor(color));
@@ -523,6 +665,11 @@ public final class NanoVGContext
 	{
 		if(width <= 0 || height <= 0 || argb >>> 24 == 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().fillRect(x, y, width, height, argb);
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRect(vg, x, y, width, height);
 		NanoVG.nvgFillColor(vg, getColor(argb));
@@ -534,9 +681,27 @@ public final class NanoVGContext
 	{
 		if(width < 0 || height < 0 || argb >>> 24 == 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().fillRoundRect(x, y, width, height, radius,
+				argb);
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
 		NanoVG.nvgFillColor(vg, getColor(argb));
+		NanoVG.nvgFill(vg);
+	}
+
+	/** Fixed left-to-right gradient, without the animated theme rotation. */
+	public void drawHorizontalGradientRoundedRect(float x, float y,
+		float width, float height, float radius, int left, int right)
+	{
+		NVGPaint paint = scratchPaint;
+		NanoVG.nvgBeginPath(vg);
+		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
+		NanoVG.nvgFillPaint(vg, NanoVG.nvgLinearGradient(vg, x, y,
+			x + width, y, getColor(left), getColor(right), paint));
 		NanoVG.nvgFill(vg);
 	}
 
@@ -545,6 +710,12 @@ public final class NanoVGContext
 	{
 		if(width < 0 || height < 0 || argb >>> 24 == 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().strokeRoundRect(x, y, width, height,
+				radius, strokeWidth, argb);
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
 		NanoVG.nvgStrokeWidth(vg, strokeWidth);
@@ -587,6 +758,11 @@ public final class NanoVGContext
 	{
 		if(radius <= 0 || argb >>> 24 == 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().drawCircle(x, y, radius, argb);
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgCircle(vg, x, y, radius);
 		NanoVG.nvgFillColor(vg, getColor(argb));
@@ -598,6 +774,12 @@ public final class NanoVGContext
 	{
 		if(argb >>> 24 == 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().drawLine(x1, y1, x2, y2, strokeWidth,
+				argb);
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgMoveTo(vg, x1, y1);
 		NanoVG.nvgLineTo(vg, x2, y2);
@@ -688,6 +870,22 @@ public final class NanoVGContext
 			|| !font.isLoaded())
 			return;
 
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().drawText(text, x, y, size, argb, font);
+			return;
+		}
+
+		if(skiaText)
+		{
+			SkiaTextCache.queue(text, x, y, argb, size, font);
+			return;
+		}
+
+		if(useSkiaText
+			&& SoftwareText.draw(this, text, x, y, argb, size, font))
+			return;
+
 		NanoVG.nvgFontSize(vg, size);
 		NanoVG.nvgFontFace(vg, font.getName());
 		NanoVG.nvgTextAlign(vg,
@@ -710,6 +908,12 @@ public final class NanoVGContext
 	{
 		if(width < 0 || height < 0)
 			return;
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().fillRoundRect(x, y, width, height, radius,
+				color.getRGB());
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRoundedRect(vg, x, y, width, height, radius);
 		NanoVG.nvgFillColor(vg, getColor(color));
@@ -720,6 +924,14 @@ public final class NanoVGContext
 		float height, float topLeftRadius, float topRightRadius,
 		float bottomLeftRadius, float bottomRightRadius, Color color)
 	{
+		if(drawToSkia())
+		{
+			float radius = Math.max(Math.max(topLeftRadius, topRightRadius),
+				Math.max(bottomLeftRadius, bottomRightRadius));
+			SkiaHudSurface.get().fillRoundRect(x, y, width, height, radius,
+				color.getRGB());
+			return;
+		}
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRoundedRectVarying(vg, x, y, width, height, topLeftRadius,
 			topRightRadius, bottomRightRadius, bottomLeftRadius);
@@ -864,6 +1076,25 @@ public final class NanoVGContext
 			|| !font.isLoaded())
 			return;
 
+		if(drawToSkia())
+		{
+			SkiaHudSurface.get().drawText(text, x, y, size, color.getRGB(),
+				font);
+			return;
+		}
+
+		if(skiaText)
+		{
+			SkiaTextCache.queue(text, x, y, color.getRGB(), size, font);
+			return;
+		}
+
+		if(useSkiaText)
+		{
+			drawText(text, x, y, color.getRGB(), size, font);
+			return;
+		}
+
 		NanoVG.nvgFontSize(vg, size);
 		NanoVG.nvgFontFace(vg, font.getName());
 		NanoVG.nvgTextAlign(vg,
@@ -949,6 +1180,12 @@ public final class NanoVGContext
 	public void translate(float x, float y)
 	{
 		NanoVG.nvgTranslate(vg, x, y);
+	}
+
+	/** Affine projection used by Opai's software-compatible card flip. */
+	public void transform(float a, float b, float c, float d, float x, float y)
+	{
+		NanoVG.nvgTransform(vg, a, b, c, d, x, y);
 	}
 
 	public void scale(float x, float y, float scale)
@@ -1120,6 +1357,12 @@ public final class NanoVGContext
 	public void drawImageRegion(int texture, float x, float y, float width,
 		float height, float u0, float v0, float u1, float v1)
 	{
+		drawImageRegion(texture, x, y, width, height, u0, v0, u1, v1, 0xFFFFFFFF);
+	}
+
+	public void drawImageRegion(int texture, float x, float y, float width,
+		float height, float u0, float v0, float u1, float v1, int tint)
+	{
 		if(texture <= 0 || width <= 0 || height <= 0 || u1 <= u0 || v1 <= v0)
 			return;
 
@@ -1132,6 +1375,8 @@ public final class NanoVGContext
 		NVGPaint paint = scratchPaint;
 		NanoVG.nvgImagePattern(vg, x - u0 * scaleX, y - v0 * scaleY, scaleX,
 			scaleY, 0, image, 1F, paint);
+		paint.innerColor().set(getColor(tint));
+		paint.outerColor().set(getColor(tint));
 		NanoVG.nvgBeginPath(vg);
 		NanoVG.nvgRect(vg, x, y, width, height);
 		NanoVG.nvgFillPaint(vg, paint);
@@ -1219,6 +1464,19 @@ public final class NanoVGContext
 		}
 	}
 
+    /** Release borrowed NanoVG handles before an evicted music texture can be reused by GL. */
+    public void forgetTexture(int texture) {
+        if(vg == 0) return;
+        var iterator = textureImages.entrySet().iterator();
+        while(iterator.hasNext()) {
+            var entry = iterator.next();
+            if((int)(entry.getKey() >>> 32) == texture) {
+                NanoVG.nvgDeleteImage(vg, entry.getValue());
+                iterator.remove();
+            }
+        }
+    }
+
 	private int textureImage(int texture, float width, float height)
 	{
 		if(texture <= 0 || width <= 0 || height <= 0)
@@ -1291,16 +1549,10 @@ public final class NanoVGContext
 
 		try
 		{
-			if(framebuffer != null)
-			{
-				// nvgluDeleteFramebuffer() deletes the image itself; deleting it
-				// here as well would free the same slot twice.
-				if(gles)
-					NanoVGGLES3.nvgluDeleteFramebuffer(vg, framebuffer);
-				else
-					NanoVGGL3.nvgluDeleteFramebuffer(vg, framebuffer);
-				framebuffer = null;
-			}
+			net.wurstclient.hud2.HUDMod.closeGlassBackground();
+			deleteFramebuffer(nativeBuffer);
+			deleteFramebuffer(smoothBuffer);
+			framebuffer = null;
 
 			for(int image : images.values())
 				if(image != 0)

@@ -288,6 +288,17 @@ public abstract class MinecraftClientMixin
 		}
 	}
 
+	@Inject(method = "close()V", at = @At("HEAD"))
+	private void moon$closeGlow(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci)
+	{
+		net.wurstclient.neoraven.music.MusicManager.get().shutdown();
+		net.wurstclient.neoraven.music.CoverCache.close();
+		net.wurstclient.neoraven.loading.NeoRavenLoadingShape.close();
+		net.wurstclient.hud2.HUDMod.closeGlassBackground();
+		net.wurstclient.util.render.MoonEntityGlow.INSTANCE.close();
+		net.wurstclient.util.render.MoonGlowProgram.INSTANCE.close();
+	}
+
 	@Inject(method = "getFps()I", at = @At("RETURN"), cancellable = true)
 	private void soar$onGetFps(
 		org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir)
@@ -305,7 +316,7 @@ public abstract class MinecraftClientMixin
 		org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci)
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
-		if(hax != null && hax.hitDelayFixHack.isEnabled())
+		if(hax != null && (hax.hitDelayFixHack.isEnabled() || hax.delayRemoverHack.removesMissDelay()))
 			missTime = 0;
 	}
 

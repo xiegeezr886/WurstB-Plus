@@ -55,7 +55,7 @@ public final class SonarBypassHack extends Hack
 	public SonarBypassHack()
 	{
 		super("SonarBypass");
-		setCategory(Category.OTHER);
+		setCategory(Category.EXPLOIT);
 		addSetting(brandName);
 		addSetting(blockFabric);
 		addSetting(strictPhysics);

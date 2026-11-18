@@ -7,15 +7,14 @@
  */
 package net.wurstclient.serverfinder;
 
-import com.mojang.blaze3d.Blaze3D;
+import net.wurstclient.WurstClient;
 import java.net.InetAddress;
-import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.util.Util;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
@@ -62,7 +61,7 @@ public class ServerFinderScreen extends Screen
 		addRenderableWidget(
 			Button
 				.builder(Component.literal("教程"),
-					b -> Blaze3D.openUri(URI.create("https://www.wurstclient.net/serverfinder-tutorial/")))
+					b -> com.mojang.blaze3d.Blaze3D.openUri(java.net.URI.create("https://www.wurstclient.net/serverfinder-tutorial/")))
 				.bounds(width / 2 - 100, height / 4 + 120 + 12, 200, 20)
 				.build());
 		
@@ -231,43 +230,47 @@ public class ServerFinderScreen extends Screen
 		
 		return super.mouseClicked(context, doubleClick);
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		
 		context.centeredText(font, "服务器搜索",
 			width / 2, 20, CommonColors.WHITE);
 		context.centeredText(font,
-			"This will search for servers with similar IPs", width / 2, 40,
+			WurstClient.tr("This will search for servers with similar IPs"), width / 2, 40,
 			0xFFA0A0A0);
 		context.centeredText(font,
-			"to the IP you type into the field below.", width / 2, 50,
+			WurstClient.tr("to the IP you type into the field below."), width / 2, 50,
 			0xFFA0A0A0);
 		context.centeredText(font,
-			"The servers it finds will be added to your server list.",
+			WurstClient.tr("The servers it finds will be added to your server list."),
 			width / 2, 60, 0xFFA0A0A0);
 		
-		context.text(font, "Server address:",
+		context.text(font, WurstClient.tr("Server address:"),
 			width / 2 - 100, height / 4 + 24, 0xFFA0A0A0);
-		ipBox.extractRenderState(context, mouseX, mouseY, partialTicks);
+		ipBox.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 		
-		context.text(font, "Max. threads:",
+		context.text(font, WurstClient.tr("Max. threads:"),
 			width / 2 - 100, height / 4 + 60, 0xFFA0A0A0);
-		maxThreadsBox.extractRenderState(context, mouseX, mouseY, partialTicks);
+		maxThreadsBox.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 		
 		context.centeredText(font, state.toString(),
 			width / 2, height / 4 + 73, 0xFFA0A0A0);
 		
 		context.text(font,
-			"Checked: " + checked + " / 1792", width / 2 - 100, height / 4 + 84,
+			WurstClient.tr("Checked: %s / 1792", checked), width / 2 - 100, height / 4 + 84,
 			0xFFA0A0A0);
-		context.text(font, "Working: " + working,
+		context.text(font, WurstClient.tr("Working: %s", working),
 			width / 2 - 100, height / 4 + 94, 0xFFA0A0A0);
 		
 		for(Renderable drawable : renderables)
-			drawable.extractRenderState(context, mouseX, mouseY, partialTicks);
+			drawable.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 	}
 	
 	@Override

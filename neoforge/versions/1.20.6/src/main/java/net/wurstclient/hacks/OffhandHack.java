@@ -44,7 +44,7 @@ public final class OffhandHack extends Hack implements UpdateListener
 	public OffhandHack()
 	{
 		super("Offhand");
-		setCategory(Category.COMBAT);
+		setCategory(Category.PLAYER);
 		addSetting(item);
 		addSetting(totemHealth);
 		addSetting(delay);

@@ -72,7 +72,7 @@ public final class StashFinderHack extends Hack implements UpdateListener
 	public StashFinderHack()
 	{
 		super("StashFinder");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(radius);
 		addSetting(minimumStorage);
 		addSetting(interval);

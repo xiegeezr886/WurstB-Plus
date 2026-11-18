@@ -92,7 +92,7 @@ public final class ScreenActionsHack extends Hack implements UpdateListener
 	public ScreenActionsHack()
 	{
 		super("ScreenActions");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(range);
 		addSetting(autoSearch);
 		addSetting(instantBreak);
@@ -155,7 +155,7 @@ public final class ScreenActionsHack extends Hack implements UpdateListener
 			}
 		}catch(Exception e)
 		{
-			ChatUtils.error("ScreenActions: " + e.getMessage());
+			ChatUtils.error("ScreenActions: %s", e.getMessage());
 		}
 	}
 

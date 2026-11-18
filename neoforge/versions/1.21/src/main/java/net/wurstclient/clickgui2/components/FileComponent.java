@@ -63,7 +63,8 @@ public final class FileComponent extends Component
 		if(hText)
 			GUI.setTooltip(setting.getWrappedDescription(200));
 		else if(hBox)
-			GUI.setTooltip("\u00a7e[left-click]\u00a7r to select file");
+			GUI.setTooltip(
+				WURST.translate("gui.wurst.component.file_hint"));
 		
 		float hover = hoverAnimation.update(hBox);
 		FlatRenderer.drawControl(context, x1, y1, x2, y2, 3,

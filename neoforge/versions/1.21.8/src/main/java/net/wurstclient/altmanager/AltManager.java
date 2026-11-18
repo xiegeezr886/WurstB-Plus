@@ -24,7 +24,12 @@ public final class AltManager
 	
 	public AltManager(Path altsFile, Path encFolder)
 	{
-		this.altsFile = new AltsFile(altsFile, encFolder);
+		this(new AltsFile(altsFile, encFolder));
+	}
+
+	AltManager(AltsFile altsFile)
+	{
+		this.altsFile = altsFile;
 		this.altsFile.load(this);
 	}
 	
@@ -135,6 +140,17 @@ public final class AltManager
 		else if(alt.isCheckedPremium())
 			numPremium--;
 		
+		altsFile.save(this);
+	}
+
+	/** Removes all saved accounts while keeping the active Minecraft session. */
+	public void clear()
+	{
+		if(alts.isEmpty())
+			return;
+		alts.clear();
+		numPremium = 0;
+		numCracked = 0;
 		altsFile.save(this);
 	}
 	

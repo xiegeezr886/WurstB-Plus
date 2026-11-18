@@ -1,0 +1,11 @@
+LiquidBounce Nextgen menu transition reference
+Source theme: https://github.com/DFH-clouds/LiquidBounce-Nextgen
+Upstream: https://github.com/CCBlueX/LiquidBounce
+License: GPL-3.0 (see LICENSE)
+
+The Fabric title menu adapts the circular page structure and staggered fly
+transitions of src-theme/src/routes/menu/title/Title.svelte and MainButton.svelte
+to native Java/NanoVG. At the user's request, original WurstB+ button sizes,
+icons are retained, with Nextgen white translucent fills and hover glow; labels are mainly Chinese and the
+clock is omitted. No upstream icons, background, brand logo or fonts are included.
+Wurst logo: user-supplied artwork, black backdrop and outer glow removed; antialiased transparent edges retained.

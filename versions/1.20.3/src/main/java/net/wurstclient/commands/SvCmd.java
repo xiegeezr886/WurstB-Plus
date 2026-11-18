@@ -48,7 +48,7 @@ public final class SvCmd extends Command
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Get Server Version";
+		return WURST.translate("Get Server Version");
 	}
 	
 	@Override

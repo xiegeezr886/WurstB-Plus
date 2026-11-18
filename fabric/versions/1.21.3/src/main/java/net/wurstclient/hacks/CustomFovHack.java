@@ -42,7 +42,7 @@ public final class CustomFovHack extends Hack
 			if(!world)
 				return original;
 		}
-        if(!isEnabled()) original = WURST.getHax().scaffoldWalkHack.getSilenceTellyFov(original);
+
 		return WURST.getOtfs().zoomOtf.changeFovBasedOnZoom(original);
 	}
 }

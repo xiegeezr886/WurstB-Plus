@@ -1,0 +1,7 @@
+OpenSeed ore replay reference
+Repository: https://github.com/kuxiaole/OpenSeed
+Commit: 3411dd42cbb17cf9e937f872bce7ec0cb19eeccc
+Source: src/kaptainwutax/seedcrackerX/xray/OreXrayManager.java
+Adapted vein/scattered geometry in OpenSeedVeins; vanilla 1.20.1 registries, placement rules and random source used by SeedOrePredictor.
+The repository describes itself as a decompiled reconstruction. Its MIT license applies to SeedCrackerX portions; it states that authorization for proprietary additions is unknown. No broader license is asserted here.
+No authentication, remote cracking, seed upload, buffs or original mod binary is included from OpenSeed.

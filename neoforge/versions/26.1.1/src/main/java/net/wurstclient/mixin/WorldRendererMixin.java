@@ -22,26 +22,11 @@ import net.wurstclient.WurstClient;
 @Mixin(LevelRenderer.class)
 public class WorldRendererMixin
 {
-	@Inject(at = @At("HEAD"),
-		method = "renderEntity(Lnet/minecraft/world/entity/Entity;DDDFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V",
-		cancellable = true)
-	private void onRenderEntity(Entity entity, double cameraX, double cameraY,
-		double cameraZ, float partialTicks, PoseStack PoseStack,
-		MultiBufferSource buffers, CallbackInfo ci)
+	@Inject(method = "entityOutlineTarget()Lcom/mojang/blaze3d/pipeline/RenderTarget;",
+		at = @At("HEAD"), cancellable = true)
+	private void moon$outlineTarget(CallbackInfoReturnable<com.mojang.blaze3d.pipeline.RenderTarget> cir)
 	{
-		if(WurstClient.INSTANCE.getHax().entityCullingHack.isEnabled()
-			&& WurstClient.INSTANCE.getHax().entityCullingHack.shouldCull(entity,
-				cameraX, cameraY, cameraZ, partialTicks, PoseStack))
-			ci.cancel();
-	}
-
-	@Inject(at = @At("HEAD"),
-		method = "doesMobEffectBlockSky(Lnet/minecraft/client/Camera;)Z",
-		cancellable = true)
-	private void onHasBlindnessOrDarkness(Camera camera,
-		CallbackInfoReturnable<Boolean> ci)
-	{
-		if(WurstClient.INSTANCE.getHax().antiBlindHack.isEnabled())
-			ci.setReturnValue(false);
+		var target = net.wurstclient.util.render.MoonEntityGlow.INSTANCE.captureTarget();
+		if(target != null) cir.setReturnValue(target);
 	}
 }

@@ -62,7 +62,7 @@ public final class GcoreTpDiagnosticHack extends Hack
 	public GcoreTpDiagnosticHack()
 	{
 		super("GcoreTpDiagnostic");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(logMovePackets);
 		addSetting(logS08);
 		addSetting(logTickState);

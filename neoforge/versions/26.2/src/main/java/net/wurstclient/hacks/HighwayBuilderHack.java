@@ -82,7 +82,7 @@ public final class HighwayBuilderHack extends Hack implements UpdateListener
 	public HighwayBuilderHack()
 	{
 		super("HighwayBuilder");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addConflictGroup(HackConflictGroup.BLOCK_BREAKING_AUTOMATION);
 		addSetting(heading);
 		addSetting(floorBlocks);

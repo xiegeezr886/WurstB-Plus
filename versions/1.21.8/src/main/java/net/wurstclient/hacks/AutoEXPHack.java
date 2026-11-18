@@ -50,7 +50,7 @@ public final class AutoEXPHack extends Hack implements UpdateListener
 	public AutoEXPHack()
 	{
 		super("AutoEXP");
-		setCategory(Category.COMBAT);
+		setCategory(Category.PLAYER);
 		addSetting(mode);
 		addSetting(minThreshold);
 		addSetting(maxThreshold);

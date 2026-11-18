@@ -25,6 +25,13 @@ public final class WurstForgeInitializer
 		modBus.addListener(this::onClientSetup);
 		NeoForge.EVENT_BUS.addListener(this::onRegisterClientCommands);
 		NeoForge.EVENT_BUS.addListener(this::onRenderGui);
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.RenderLevelStageEvent event) -> {
+            if(initialized && event.getStage() == net.neoforged.neoforge.client.event.RenderLevelStageEvent.Stage.AFTER_LEVEL)
+                try(var ignored = net.wurstclient.hud2.nanovg.GlStateGuard.capture()) {
+                    kaptainwutax.seedcrackerX.finder.FinderQueue.get().renderFinders(event.getPoseStack(), event.getCamera());
+                }
+        });
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) -> net.wurstclient.seed.SeedCrackerBridge.disconnect());
 	}
 
 	private void onClientSetup(FMLClientSetupEvent event)
@@ -36,6 +43,7 @@ public final class WurstForgeInitializer
 
 			initialized = true;
 			WurstClient.INSTANCE.initialize();
+            net.wurstclient.seed.SeedCrackerBridge.initialize();
 		});
 	}
 
@@ -44,6 +52,7 @@ public final class WurstForgeInitializer
 		if(initialized && WurstClient.INSTANCE.getCmds() != null)
 			WurstClient.INSTANCE.getCmds()
 				.buildBrigadierDispatcher(event.getDispatcher());
+        kaptainwutax.seedcrackerX.init.ClientCommands.registerCommands(event.getDispatcher());
 	}
 
 	private void onRenderGui(RenderGuiEvent.Post event)

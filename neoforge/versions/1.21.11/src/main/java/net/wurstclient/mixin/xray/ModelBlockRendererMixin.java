@@ -25,7 +25,6 @@ import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockAndTintGetter;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hacks.XRayHack;
@@ -66,35 +65,6 @@ public abstract class ModelBlockRendererMixin
 	}
 
 	/**
-	 * NeoForge's chunk renderer calls the 6-arg variant, which in turn calls
-	 * the 5-arg Block method; the 5-arg private overload above is only used by
-	 * other call paths.
-	 */
-	@WrapOperation(
-		method = "shouldRenderFace(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;ZLnet/minecraft/core/Direction;Lnet/minecraft/core/BlockPos;)Z",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"))
-	private static boolean onShouldRenderFace6(BlockGetter level, BlockPos pos,
-		BlockState state, BlockState otherState, Direction side,
-		Operation<Boolean> original, BlockAndTintGetter outerLevel,
-		BlockPos outerPos, BlockState outerState, boolean cull,
-		Direction outerDirection, BlockPos neighborPos)
-	{
-		XRayHack xray = WurstClient.INSTANCE.getHax().xRayHack;
-		Boolean shouldDrawSide = xray.shouldDrawSide(state, pos);
-
-		if(!xray.isOpacityMode() || xray.isVisible(state.getBlock(), pos))
-			currentOpacity.set(1F);
-		else
-			currentOpacity.set(xray.getOpacityFloat());
-
-		if(shouldDrawSide != null)
-			return shouldDrawSide;
-
-		return original.call(level, pos, state, otherState, side);
-	}
-
-	/**
 	 * Applies X-Ray's opacity mask to the block color after all the normal
 	 * coloring and shading is done, if neither Sodium nor Indigo are running.
 	 */
@@ -109,19 +79,13 @@ public abstract class ModelBlockRendererMixin
 	/**
 	 * Hides blocks like grass and snow when neither Sodium nor Indigo are
 	 * running.
-	 *
-	 * <p>
-	 * NeoForge's patched tesselate methods no longer contain a List.isEmpty
-	 * call, so this workaround cannot apply there. require = 0 keeps it
-	 * optional instead of crashing the client at mixin apply time.
 	 */
 	@WrapOperation(method = {
 		"tesselateWithoutAO(Lnet/minecraft/world/level/BlockAndTintGetter;Ljava/util/List;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZI)V",
 		"tesselateWithAO(Lnet/minecraft/world/level/BlockAndTintGetter;Ljava/util/List;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZI)V"},
 		at = @At(value = "INVOKE",
 			target = "Ljava/util/List;isEmpty()Z",
-			ordinal = 1),
-		require = 0)
+			ordinal = 1))
 	private boolean pretendEmptyToStopSecondRenderModelFaceFlatCall(
 		List<BakedQuad> instance, Operation<Boolean> original,
 		BlockAndTintGetter world, List<BlockModelPart> list, BlockState state,

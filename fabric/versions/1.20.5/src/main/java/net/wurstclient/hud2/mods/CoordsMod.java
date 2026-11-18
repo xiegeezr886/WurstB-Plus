@@ -24,7 +24,7 @@ public final class CoordsMod extends SimpleHUDMod
 		super("Coords", "Coordinates", "Shows the player's coordinates.");
 		setTranslationKey("coordinates");
 		setDefaultPosition(10, 54);
-		setDefaultEnabled(true);
+		setDefaultEnabled(false);
 		addSetting(iconSetting);
 		addSetting(biome);
 	}

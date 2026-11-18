@@ -197,7 +197,7 @@ public class BlockListSetting extends Setting
 		command += getName().toLowerCase().replace(" ", "_") + " ";
 		
 		LinkedHashSet<PossibleKeybind> pkb = new LinkedHashSet<>();
-		pkb.add(new PossibleKeybind(command + "reset", "Reset " + fullName));
+		pkb.add(new PossibleKeybind(command + "reset", "Reset %s", fullName));
 		
 		return pkb;
 	}

@@ -1,0 +1,12 @@
+Moon account screen adaptation for WurstB+ Plus, Minecraft 1.20.1 Fabric.
+Reference: https://github.com/xiaozhuhou233/moon-rebase
+Commit: 55cd694e898025531de94e61e169ba6eb221f9f3
+Sources: src/moon/client/account/AccountManagerScreen.java,
+         src/moon/client/MoonMenuButton.java
+Upstream license: Apache-2.0 (included as LICENSE).
+
+Modified: ported layout, row selection, scroll and button material to Minecraft
+1.20.1 / NanoVG. Retained Wurst account persistence and login implementation,
+client wallpaper, MiSans and pale-purple accent. Additional account operations
+are accessible through More. The editor retains the existing password fields;
+Moon's Microsoft OAuth implementation has not been ported.

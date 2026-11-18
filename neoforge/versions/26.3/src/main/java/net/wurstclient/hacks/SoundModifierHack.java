@@ -57,7 +57,7 @@ public final class SoundModifierHack extends Hack implements UpdateListener
 	public SoundModifierHack()
 	{
 		super("SoundModifier");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(master);
 		addSetting(music);
 		addSetting(records);

@@ -7,6 +7,8 @@
  */
 package net.wurstclient.clickgui2.screens;
 
+
+
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -16,7 +18,7 @@ import org.lwjgl.glfw.GLFW;
 import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.ConfirmScreen;
@@ -123,15 +125,19 @@ public final class SelectFileScreen extends Screen
 	{
 		doneButton.active = listGui.getSelected() != null;
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		NanoVGUI.clearDeferred();
-		extractBackground(context, mouseX, mouseY, partialTicks);
-		listGui.extractRenderState(context, mouseX, mouseY, partialTicks);
-		super.extractRenderState(context, mouseX, mouseY, partialTicks);
+		extractBackground(context.getInner(), mouseX, mouseY, partialTicks);
+		listGui.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		super.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 
 		NanoVGUI.pass(context, () -> {
 			NanoVGUI.pushScissor(0, 36, width, height - 100);
@@ -176,8 +182,14 @@ public final class SelectFileScreen extends Screen
 			return Component.translatable("narrator.select",
 				"文件 " + path.getFileName());
 		}
-		
-		@Override
+@Override
+		public void extractContent(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+			boolean hovered, float partialTicks)
+		{
+			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
+				hovered, partialTicks);
+		}
+
 		public void extractContent(GuiGraphicsExtractor context, int mouseX,
 			int mouseY, boolean hovered, float tickDelta)
 		{

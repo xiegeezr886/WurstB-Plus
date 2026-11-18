@@ -127,6 +127,8 @@ public abstract class GameRendererMixin implements AutoCloseable
 	private void onPrepareHud(DeltaTracker deltaTracker,
 		boolean renderLevel, CallbackInfo ci)
 	{
+        if(WurstClient.INSTANCE.getHax() != null)
+            WurstClient.INSTANCE.getHax().lsdHack.prepareFrame();
 		if(WurstClient.INSTANCE.getHudManager() != null)
 			WurstClient.INSTANCE.getHudManager().prepareFrame(
 				deltaTracker.getGameTimeDeltaPartialTick(false));
@@ -148,4 +150,15 @@ public abstract class GameRendererMixin implements AutoCloseable
 			WurstClient.INSTANCE.getHudManager().renderFrame(
 				deltaTracker.getGameTimeDeltaPartialTick(false));
 	}
+
+    @Inject(method = "renderLevel(Lnet/minecraft/client/DeltaTracker;)V", at = @At("RETURN"))
+    private void wurst$renderLsd(CallbackInfo ci) {
+        if(WurstClient.INSTANCE.getHax() != null)
+            WurstClient.INSTANCE.getHax().lsdHack.renderFrame();
+    }
+
+    @Inject(method = "close()V", at = @At("HEAD"))
+    private void wurst$closeLsd(CallbackInfo ci) {
+        net.wurstclient.util.render.LsdPostEffect.INSTANCE.close();
+    }
 }

@@ -7,7 +7,7 @@
  */
 package net.wurstclient.options;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 
 import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -84,7 +84,7 @@ public class ZoomManagerScreen extends Screen implements PressAKeyCallback
 	
 	private String onOrOff(boolean on)
 	{
-		return on ? "ON" : "OFF";
+		return on ? WurstClient.tr("ON") : WurstClient.tr("OFF");
 	}
 	
 	@Override
@@ -99,7 +99,7 @@ public class ZoomManagerScreen extends Screen implements PressAKeyCallback
 		return false;
 	}
 @Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	public void render(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
@@ -110,11 +110,12 @@ public class ZoomManagerScreen extends Screen implements PressAKeyCallback
 		ZoomOtf zoom = WurstClient.INSTANCE.getOtfs().zoomOtf;
 		SliderSetting level = zoom.getLevelSetting();
 		
-		context.centeredText(font, "Zoom Manager",
-			width / 2, 40, 0xFFffffff);
+		renderBackground(context.getInner(), mouseX, mouseY, partialTicks);
+		context.centeredText(font, WurstClient.tr("Zoom Manager"),
+			width / 2, 40, 0xffffff);
 		context.text(font,
-			"Zoom Level: " + level.getValueString(), width / 2 - 75,
-			height / 4 + 44, 0xFFcccccc);
+			WurstClient.tr("Zoom Level: %s", level.getValueString()), width / 2 - 75,
+			height / 4 + 44, 0xcccccc);
 		
 		super.render(context.getInner(), mouseX, mouseY, partialTicks);
 	}

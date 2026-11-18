@@ -1,216 +1,303 @@
-/*
- * Copyright (c) 2026 Wurst-Imperium and contributors.
- *
- * This source code is subject to the terms of the GNU Affero General Public
- * License, version 3. If a copy of the AGPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
- */
-
-/* Ported from LeavesHack (AGPL-3.0). */
+/* Printer behavior adapted from MrBZBZ/LeavesHack 13daf96.
+ * SPDX-License-Identifier: AGPL-3.0-or-later */
 package net.wurstclient.hacks;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Comparator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
-import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.*;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.BlockSetting;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.leaves.InventorySwap;
+import net.wurstclient.leaves.LeavesColorSetting;
+import net.wurstclient.leaves.LitematicaBridge;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.settings.SwingHandSetting;
-import net.wurstclient.settings.SwingHandSetting.SwingHand;
-import net.wurstclient.util.BaritoneUtils;
-import net.wurstclient.util.BlockPlacer;
-import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.InventoryUtils;
+import net.wurstclient.util.*;
 
-/**
- * Simplified port of LeavesHack's Printer. The original prints a Litematica
- * schematic; this version prints the selected block in front of the player
- * while walking, optionally asking Baritone to keep moving forward.
- */
-@SearchTags({"printer", "auto build", "block printer"})
-public final class PrinterHack extends Hack implements UpdateListener
-{
-	private final BlockSetting block = new BlockSetting("Block",
-		"The block that Printer places.", "minecraft:cobblestone", false);
+/** Prints actual Litematica states, validating the placement orientation first. */
+public final class PrinterHack extends Hack
+    implements UpdateListener, RenderListener, MoveInputListener {
+  private final CheckboxSetting rotate =
+      new CheckboxSetting("Rotate", "Rotate before placing blocks.", true);
+  private final SliderSetting radius =
+      new SliderSetting("Radius", "Schematic printing range.", 4, 1, 6, 1, ValueDisplay.INTEGER);
+  private final CheckboxSetting inventorySwap =
+      new CheckboxSetting(
+          "Inventory swap", "Use materials from the main inventory and restore the slot.", true);
+  private final CheckboxSetting safeWalk =
+      new CheckboxSetting("Safe walk", "Prevent walking off edges while printing.", true);
+  private final CheckboxSetting ignoreSneak =
+      new CheckboxSetting("Ignore sneak", "Sneak when placing against interactive blocks.", true);
+  private final SliderSetting shiftTime =
+      new SliderSetting(
+          "Shift time",
+          "Wait before placing against interactive blocks.",
+          100,
+          0,
+          1000,
+          10,
+          ValueDisplay.INTEGER.withSuffix(" ms"));
+  private final SliderSetting sneakSpeed =
+      new SliderSetting(
+          "Sneak speed",
+          "Movement percentage while waiting to place.",
+          0,
+          0,
+          20,
+          1,
+          ValueDisplay.INTEGER);
+  private final EnumSetting<ListMode> listMode =
+      new EnumSetting<>("List mode", ListMode.values(), ListMode.BLACKLIST);
+  private final BlockListSetting blacklist =
+      new BlockListSetting("Blacklist", "Schematic blocks to skip.");
+  private final BlockListSetting whitelist =
+      new BlockListSetting("Whitelist", "Schematic blocks allowed in whitelist mode.");
+  private final LeavesColorSetting lineColor =
+      new LeavesColorSetting("Line color", "Printing outline color.", Color.WHITE);
+  private final LeavesColorSetting sideColor =
+      new LeavesColorSetting("Side color", "Printing fill color.", new Color(255, 255, 255, 50));
+  private final EnumSetting<Shape> shape =
+      new EnumSetting<>("Shape mode", Shape.values(), Shape.BOTH);
+  private BlockPos preview, pending;
+  private long readyAt;
+  private net.minecraft.client.player.LocalPlayer owner;
 
-	private final SliderSetting radius = new SliderSetting("Radius",
-		"How far around the player to look for placement positions.", 3, 1, 6,
-		1, ValueDisplay.INTEGER);
+  public PrinterHack() {
+    super("Printer");
+    setCategory(Category.WORLD);
+    for (Setting s :
+        new Setting[] {
+          rotate,
+          radius,
+          inventorySwap,
+          safeWalk,
+          ignoreSneak,
+          shiftTime,
+          sneakSpeed,
+          listMode,
+          blacklist,
+          whitelist,
+          shape,
+          lineColor,
+          sideColor
+        }) addSetting(s);
+  }
 
-	private final SliderSetting delay = new SliderSetting("Delay",
-		"Ticks to wait between printing attempts.", 1, 0, 10, 1,
-		ValueDisplay.INTEGER.withSuffix(" ticks"));
+  @Override
+  protected void onEnable() {
+    clear();
+    EVENTS.add(UpdateListener.class, this);
+    EVENTS.add(RenderListener.class, this);
+    EVENTS.add(MoveInputListener.class, this);
+    if (!net.wurstclient.util.PlatformUtils.isModLoaded("litematica")) {
+      ChatUtils.error("Printer requires Litematica and MaLiLib.");
+      setEnabled(false);
+    }
+  }
 
-	private final SliderSetting blocksPerTick =
-		new SliderSetting("Blocks per tick", "Maximum blocks placed per attempt.",
-			2, 1, 8, 1, ValueDisplay.INTEGER);
+  @Override
+  protected void onDisable() {
+    EVENTS.remove(UpdateListener.class, this);
+    EVENTS.remove(RenderListener.class, this);
+    EVENTS.remove(MoveInputListener.class, this);
+    clear();
+  }
 
-	private final SwingHandSetting swingHand =
-		new SwingHandSetting(this, SwingHand.CLIENT);
+  private void clear() {
+    preview = pending = null;
+    readyAt = 0;
+    owner = MC.player;
+  }
 
-	private final CheckboxSetting onlyWhileMoving = new CheckboxSetting(
-		"Only while moving",
-		"Only place blocks while the player is actually moving.", true);
+  @Override
+  public void onUpdate() {
+    if (owner != MC.player) clear();
+    preview = null;
+    if (MC.player == null
+        || MC.level == null
+        || MC.gameMode == null
+        || MC.screen != null
+        || MC.player.isSpectator()
+        || MC.player.containerMenu != MC.player.inventoryMenu
+        || !MC.player.inventoryMenu.getCarried().isEmpty()) {
+      clear();
+      return;
+    }
+    var schematic = LitematicaBridge.getWorld();
+    if (schematic == null) {
+      pending = null;
+      return;
+    }
+    ArrayList<BlockPos> positions = new ArrayList<>();
+    for (BlockPos pos : BlockUtils.getAllInBox(MC.player.blockPosition(), radius.getValueI()))
+      if (MC.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(pos))
+          <= radius.getValue() * radius.getValue()) positions.add(pos.immutable());
+    positions.sort(
+        Comparator.comparingDouble(
+            p -> MC.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(p))));
+    for (BlockPos pos : positions) {
+      BlockState required = schematic.getBlockState(pos);
+      if (required.isAir()
+          || !(required.getBlock().asItem() instanceof BlockItem)
+          || !MC.level.getBlockState(pos).canBeReplaced()) continue;
+      if (listMode.getSelected() == ListMode.BLACKLIST
+          ? blacklist.contains(required.getBlock())
+          : !whitelist.contains(required.getBlock())) continue;
+      if (!MC.level.isUnobstructed(
+          required, pos, net.minecraft.world.phys.shapes.CollisionContext.empty())) continue;
+      int slot =
+          InventoryUtils.indexOf(required.getBlock().asItem(), inventorySwap.isChecked() ? 36 : 9);
+      if (slot < 0) continue;
+      try (InventorySwap swap = InventorySwap.acquire(slot)) {
+        if (swap == null) return;
+        if (print(pos, required)) return;
+      }
+    }
+    pending = null;
+  }
 
-	private final CheckboxSetting baritoneWalk = new CheckboxSetting(
-		"Baritone walk",
-		"Uses Baritone to keep walking forward while Printer is enabled.",
-		false);
+  private boolean print(BlockPos pos, BlockState required) {
+    float yaw = MC.player.getYRot(), pitch = MC.player.getXRot();
+    try {
+      for (Direction side : Direction.values()) {
+        BlockPos neighbor = pos.relative(side);
+        BlockState support = MC.level.getBlockState(neighbor);
+        if (support.canBeReplaced() || support.getShape(MC.level, neighbor).isEmpty()) continue;
+        Vec3 hit = Vec3.atCenterOf(pos).add(Vec3.atLowerCornerOf(side.getNormal()).scale(0.5));
+        if (required.hasProperty(BlockStateProperties.SLAB_TYPE)
+            && side.getAxis() != Direction.Axis.Y)
+          hit =
+              new Vec3(
+                  hit.x,
+                  pos.getY()
+                      + (required.getValue(BlockStateProperties.SLAB_TYPE) == SlabType.TOP
+                          ? 0.9
+                          : 0.1),
+                  hit.z);
+        BlockHitResult result = new BlockHitResult(hit, side.getOpposite(), neighbor, false);
+        // Try the current direction first, then the six cardinal orientations.
+        for (int orientation = 0; orientation < (rotate.isChecked() ? 7 : 1); orientation++) {
+          float targetYaw = orientation == 0 ? yaw : (orientation - 1) % 4 * 90;
+          float targetPitch = orientation == 5 ? -90 : orientation == 6 ? 90 : pitch;
+          MC.player.setYRot(targetYaw);
+          MC.player.setXRot(targetPitch);
+          BlockPlaceContext context =
+              new BlockPlaceContext(
+                  MC.player, InteractionHand.MAIN_HAND, MC.player.getMainHandItem(), result);
+          BlockState predicted = required.getBlock().getStateForPlacement(context);
+          if (!context.getClickedPos().equals(pos) || !matchesOrientation(required, predicted))
+            continue;
+          boolean sneak =
+              support.hasBlockEntity()
+                  || support.getBlock() instanceof net.minecraft.world.level.block.DoorBlock
+                  || support.getBlock() instanceof net.minecraft.world.level.block.TrapDoorBlock
+                  || support.getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock
+                  || support.getBlock()
+                      instanceof net.minecraft.world.level.block.CraftingTableBlock;
+          if (sneak && !ignoreSneak.isChecked() && !MC.player.isShiftKeyDown()) continue;
+          preview = pos;
+          if (sneak && ignoreSneak.isChecked()) {
+            if (!pos.equals(pending)) {
+              pending = pos;
+              readyAt = System.nanoTime() + shiftTime.getValueI() * 1_000_000L;
+            }
+            if (System.nanoTime() < readyAt) return true;
+          }
+          boolean pressed = sneak && !MC.player.isShiftKeyDown();
+          try {
+            if (pressed)
+              MC.player.connection.send(
+                  new ServerboundPlayerCommandPacket(
+                      MC.player, ServerboundPlayerCommandPacket.Action.PRESS_SHIFT_KEY));
+            if (rotate.isChecked())
+              net.wurstclient.leaves.LeavesUtils.rotate(targetYaw, targetPitch);
+            if (MC.gameMode
+                .useItemOn(MC.player, InteractionHand.MAIN_HAND, result)
+                .consumesAction()) WURST.getHax().globalSettingHack.swing(false);
+          } finally {
+            if (pressed)
+              MC.player.connection.send(
+                  new ServerboundPlayerCommandPacket(
+                      MC.player, ServerboundPlayerCommandPacket.Action.RELEASE_SHIFT_KEY));
+            if (rotate.isChecked() && WURST.getHax().globalSettingHack.snapBack())
+              MC.player.connection.send(
+                  new ServerboundMovePlayerPacket.Rot(yaw, pitch, MC.player.onGround()));
+          }
+          pending = null;
+          return true;
+        }
+      }
+    } finally {
+      MC.player.setYRot(yaw);
+      MC.player.setXRot(pitch);
+    }
+    return false;
+  }
 
-	private final SliderSetting walkDistance = new SliderSetting(
-		"Walk distance", "How far ahead Baritone should path.",
-		32, 8, 128, 1, ValueDisplay.INTEGER)
-			.visibleWhen(baritoneWalk::isChecked);
+  public static boolean matchesOrientation(BlockState required, BlockState predicted) {
+    if (predicted == null || required.getBlock() != predicted.getBlock()) return false;
+    for (var property : required.getProperties()) {
+      String name = property.getName();
+      if ((name.equals("facing")
+              || name.equals("axis")
+              || name.equals("half")
+              || name.equals("type")
+              || name.equals("rotation"))
+          && !required.getValue(property).equals(predicted.getValue(property))) return false;
+    }
+    return true;
+  }
 
-	private int timer;
-	private int baritoneTimer;
+  public boolean shouldSafeWalk() {
+    return isEnabled()
+        && safeWalk.isChecked()
+        && MC.player != null
+        && MC.player.onGround()
+        && !MC.player.isSpectator()
+        && !MC.player.getAbilities().flying
+        && !MC.player.isFallFlying();
+  }
 
-	public PrinterHack()
-	{
-		super("Printer");
-		setCategory(Category.BLOCKS);
-		addSetting(block);
-		addSetting(radius);
-		addSetting(delay);
-		addSetting(blocksPerTick);
-		addSetting(swingHand);
-		addSetting(onlyWhileMoving);
-		addSetting(baritoneWalk);
-		addSetting(walkDistance);
-	}
+  @Override
+  public void onMoveInput(MoveInputEvent event) {
+    if (pending == null || System.nanoTime() >= readyAt) return;
+    float speed = sneakSpeed.getValueF() / 100F;
+    event.setForward(event.getForward() * speed);
+    event.setSideways(event.getSideways() * speed);
+  }
 
-	@Override
-	protected void onEnable()
-	{
-		timer = 0;
-		baritoneTimer = 0;
-		EVENTS.add(UpdateListener.class, this);
-	}
+  @Override
+  public void onRender(PoseStack matrices, float partialTicks) {
+    if (preview == null || MC.level == null) return;
+    if (shape.getSelected() != Shape.LINES)
+      RenderUtils.drawSolidBox(matrices, new AABB(preview), sideColor.getColorI(), false);
+    if (shape.getSelected() != Shape.SIDES)
+      RenderUtils.drawOutlinedBox(matrices, new AABB(preview), lineColor.getColorI(), false);
+  }
 
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(UpdateListener.class, this);
-	}
+  public enum ListMode {
+    BLACKLIST,
+    WHITELIST
+  }
 
-	@Override
-	public void onUpdate()
-	{
-		if(MC.player == null || MC.level == null)
-			return;
-
-		if(baritoneWalk.isChecked())
-			updateBaritone();
-
-		if(timer > 0)
-		{
-			timer--;
-			return;
-		}
-		timer = delay.getValueI();
-
-		printBlocks();
-	}
-
-	private void updateBaritone()
-	{
-		if(!BaritoneUtils.IS_AVAILABLE)
-			return;
-
-		if(baritoneTimer > 0)
-		{
-			baritoneTimer--;
-			return;
-		}
-		if(BaritoneUtils.isPathing())
-			return;
-
-		BaritoneUtils.walkDirection(MC.player.getYRot(),
-			walkDistance.getValue());
-		baritoneTimer = 40;
-	}
-
-	private void printBlocks()
-	{
-		Vec3 velocity = MC.player.getDeltaMovement();
-		if(onlyWhileMoving.isChecked()
-			&& velocity.x * velocity.x + velocity.z * velocity.z < 1.0E-4)
-			return;
-
-		Block wanted = block.getBlock();
-		Item item = wanted.asItem();
-		if(item == Items.AIR || InventoryUtils.indexOf(item, 36) == -1)
-			return;
-
-		int previousSlot = MC.player.getInventory().selected;
-		InventoryUtils.selectItem(item, 36);
-		if(!MC.player.getMainHandItem().is(item))
-		{
-			MC.player.getInventory().selected = previousSlot;
-			return;
-		}
-
-		Direction facing = MC.player.getDirection();
-		BlockPos origin = MC.player.blockPosition();
-		Vec3 front = MC.player.position()
-			.add(facing.getStepX() * 1.5, -0.5, facing.getStepZ() * 1.5);
-
-		ArrayList<BlockPos> candidates = new ArrayList<>();
-		for(BlockPos pos : BlockUtils.getAllInBox(origin,
-			radius.getValueI()))
-		{
-			int dy = pos.getY() - origin.getY();
-			if(dy > 0 || dy < -1)
-				continue;
-
-			double dx = pos.getX() + 0.5 - MC.player.getX();
-			double dz = pos.getZ() + 0.5 - MC.player.getZ();
-			if(dx * facing.getStepX() + dz * facing.getStepZ() < 0)
-				continue;
-
-			BlockState state = BlockUtils.getState(pos);
-			if(!state.canBeReplaced())
-				continue;
-
-			AABB box = new AABB(pos);
-			if(MC.player.getBoundingBox().intersects(box))
-				continue;
-			if(!MC.level.getEntities((Entity)null, box).isEmpty())
-				continue;
-
-			candidates.add(pos.immutable());
-		}
-
-		candidates.sort(Comparator.comparingDouble(
-			pos -> front.distanceToSqr(Vec3.atCenterOf(pos))));
-
-		int placed = 0;
-		int limit = blocksPerTick.getValueI();
-		for(BlockPos pos : candidates)
-		{
-			if(placed >= limit)
-				break;
-			if(!BlockPlacer.placeOneBlock(pos))
-				continue;
-
-			swingHand.swing(InteractionHand.MAIN_HAND);
-			placed++;
-		}
-
-		MC.player.getInventory().selected = previousSlot;
-	}
+  public enum Shape {
+    BOTH,
+    LINES,
+    SIDES
+  }
 }

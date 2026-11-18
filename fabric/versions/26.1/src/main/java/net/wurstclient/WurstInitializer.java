@@ -13,18 +13,15 @@ public final class WurstInitializer implements ClientModInitializer
 {
 	public static final String MOD_ID = WurstClient.MOD_ID;
 	private static boolean initialized;
-	
+
 	@Override
 	public void onInitializeClient()
 	{
-		// GUIRenderEvent/RenderEvent 由 mixin 触发
-		// (IngameHudMixin/GuiMixin/LevelRendererMixin)
-		
-		// 初始化 WurstClient
-		if(!initialized)
-		{
-			initialized = true;
-			WurstClient.INSTANCE.initialize();
-		}
+		if(initialized)
+			return;
+
+		initialized = true;
+		WurstClient.INSTANCE.initialize();
+        net.wurstclient.seed.SeedCrackerBridge.initialize();
 	}
 }

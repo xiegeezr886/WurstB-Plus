@@ -24,7 +24,7 @@ public final class FPSSpooferHack extends Hack
 	public FPSSpooferHack()
 	{
 		super("FPSSpoofer");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(multiplier);
 	}
 

@@ -113,7 +113,7 @@ public interface GuiComponentContract
 	/**
 	 * 鼠标滚轮。
 	 */
-	default boolean mouseScrolled(double mouseX, double mouseY, double delta)
+	default boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double delta)
 	{
 		return false;
 	}

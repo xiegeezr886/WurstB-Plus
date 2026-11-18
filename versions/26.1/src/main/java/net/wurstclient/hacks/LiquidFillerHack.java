@@ -70,7 +70,7 @@ public final class LiquidFillerHack extends Hack implements UpdateListener
 	public LiquidFillerHack()
 	{
 		super("LiquidFiller");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(block);
 		addSetting(liquid);
 		addSetting(range);

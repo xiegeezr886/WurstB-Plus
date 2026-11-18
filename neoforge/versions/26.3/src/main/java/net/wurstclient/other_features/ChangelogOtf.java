@@ -28,7 +28,7 @@ public final class ChangelogOtf extends OtherFeature
 	@Override
 	public String getPrimaryAction()
 	{
-		return "View Changelog";
+		return WurstClient.tr("View Changelog");
 	}
 	
 	@Override

@@ -36,7 +36,7 @@ public final class HandNoClipHack extends Hack
 	{
 		super("HandNoClip");
 		
-		setCategory(Category.BLOCKS);
+		setCategory(Category.EXPLOIT);
 		addSetting(blocks);
 	}
 	

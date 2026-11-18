@@ -1,701 +1,601 @@
-/*
- * Copyright (c) 2026 Wurst-Imperium and contributors.
- *
- * This source code is subject to the terms of the GNU Affero General Public
- * License, version 3. If a copy of the AGPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
- */
-
-/* Ported from LeavesHack (AGPL-3.0). */
+/* PushCrystal build solver adapted from LeavesHack 13daf96.
+ * SPDX-License-Identifier: AGPL-3.0-or-later */
 package net.wurstclient.hacks;
 
-import java.awt.Color;
-import java.util.Comparator;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import java.awt.Color;
+import java.util.*;
+import net.minecraft.core.*;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.*;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.piston.PistonBaseBlock;
+import net.minecraft.world.level.block.piston.PistonHeadBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
-import net.wurstclient.events.RenderListener;
-import net.wurstclient.events.UpdateListener;
+import net.wurstclient.events.*;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.hack.HackConflictGroup;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.ColorSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.leaves.*;
+import net.wurstclient.leaves.LeavesColorSetting;
+import net.wurstclient.leaves.PistonBuildSolver.BlockKind;
+import net.wurstclient.leaves.PistonBuildSolver.Placement;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.settings.SwingHandSetting;
-import net.wurstclient.settings.SwingHandSetting.SwingHand;
-import net.wurstclient.util.BlockBreaker;
-import net.wurstclient.util.BlockPlacer;
-import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.DamageUtils;
-import net.wurstclient.util.FakePlayerEntity;
-import net.wurstclient.util.InventoryUtils;
-import net.wurstclient.util.RenderUtils;
-import net.wurstclient.util.Rotation;
-import net.wurstclient.util.RotationUtils;
-
-/**
- * Simplified port of LeavesHack's PushCrystal. It places a crystal on an
- * existing obsidian/bedrock base near the target, then optionally pushes it
- * one block towards the target with a piston and a redstone block before
- * detonating it. The original's full build solver and Litematica integration
- * are not ported.
- */
-@SearchTags({"push crystal", "PushCrystal", "piston crystal"})
-public final class PushCrystalHack extends Hack
-	implements UpdateListener, RenderListener
-{
-	private final SliderSetting targetRange = new SliderSetting(
-		"Target range", "How far to search for a target.", 6, 1, 16, 0.5,
-		ValueDisplay.DECIMAL);
-
-	private final SliderSetting searchRange = new SliderSetting(
-		"Search range", "How far around the target to search for a base.",
-		5, 1, 8, 0.5, ValueDisplay.DECIMAL);
-
-	private final SliderSetting placeRange = new SliderSetting("Place range",
-		"How far to reach when placing blocks.", 4.5, 1, 6, 0.05,
-		ValueDisplay.DECIMAL);
-
-	private final SliderSetting minDamage = new SliderSetting("Min damage",
-		"Minimum damage the crystal must deal to the target.", 4, 0, 36, 0.5,
-		ValueDisplay.DECIMAL);
-
-	private final SliderSetting maxSelfDamage = new SliderSetting(
-		"Max self damage", "Maximum allowed damage to the local player.", 12, 0,
-		36, 0.5, ValueDisplay.DECIMAL);
-
-	private final CheckboxSetting antiSuicide = new CheckboxSetting(
-		"Anti suicide", "Rejects crystals that could kill the local player.",
-		true);
-
-	private final SliderSetting actionDelay = new SliderSetting("Action delay",
-		"Ticks to wait between placement steps.", 3, 0, 20, 1,
-		ValueDisplay.INTEGER.withSuffix(" ticks"));
-
-	private final CheckboxSetting pushWithPiston = new CheckboxSetting(
-		"Piston push",
-		"Push the crystal towards the target with a piston and redstone block.",
-		true);
-
-	private final CheckboxSetting breakPiston = new CheckboxSetting(
-		"Break piston", "Break the piston after detonating the crystal.", true)
-			.visibleWhen(pushWithPiston::isChecked);
-
-	private final CheckboxSetting rotate = new CheckboxSetting("Rotate",
-		"Rotates the player when placing the piston and crystal.", true);
-
-	private final CheckboxSetting pauseOnUse = new CheckboxSetting(
-		"Pause while using", "Pauses while you are using an item.", true);
-
-	private final SwingHandSetting swingHand =
-		new SwingHandSetting(this, SwingHand.CLIENT);
-
-	private final CheckboxSetting render = new CheckboxSetting("Render",
-		"Shows the planned crystal and piston positions.", true);
-
-	private final ColorSetting crystalColor = new ColorSetting("Crystal color",
-		"Color of the planned crystal position.", new Color(255, 0, 0, 80));
-
-	private final ColorSetting pistonColor = new ColorSetting("Piston color",
-		"Color of the planned piston position.", new Color(255, 255, 255, 80));
-
-	private final ColorSetting redstoneColor = new ColorSetting(
-		"Redstone color", "Color of the planned redstone block position.",
-		new Color(255, 100, 0, 80));
-
-	private Plan plan;
-	private Phase phase = Phase.NONE;
-	private int timer;
-	private int waitTicks;
-
-	public PushCrystalHack()
-	{
-		super("PushCrystal");
-		setCategory(Category.COMBAT);
-		addConflictGroup(HackConflictGroup.COMBAT_TARGETING);
-		addSetting(targetRange);
-		addSetting(searchRange);
-		addSetting(placeRange);
-		addSetting(minDamage);
-		addSetting(maxSelfDamage);
-		addSetting(antiSuicide);
-		addSetting(actionDelay);
-		addSetting(pushWithPiston);
-		addSetting(breakPiston);
-		addSetting(rotate);
-		addSetting(pauseOnUse);
-		addSetting(swingHand);
-		addSetting(render);
-		addSetting(crystalColor);
-		addSetting(pistonColor);
-		addSetting(redstoneColor);
-	}
-
-	@Override
-	protected void onEnable()
-	{
-		reset();
-		timer = 0;
-		EVENTS.add(UpdateListener.class, this);
-		EVENTS.add(RenderListener.class, this);
-	}
-
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(UpdateListener.class, this);
-		EVENTS.remove(RenderListener.class, this);
-		reset();
-	}
-
-	@Override
-	public void onUpdate()
-	{
-		if(MC.player == null || MC.level == null)
-		{
-			reset();
-			return;
-		}
-
-		if(pauseOnUse.isChecked() && (MC.player.isUsingItem()
-			|| MC.options.keyUse.isDown()))
-		{
-			reset();
-			return;
-		}
-
-		if(timer > 0)
-		{
-			timer--;
-			return;
-		}
-
-		LivingEntity target = findTarget();
-		if(target == null)
-		{
-			reset();
-			return;
-		}
-
-		if(plan == null)
-		{
-			plan = findPlan(target);
-			if(plan == null)
-				return;
-			phase = Phase.CRYSTAL;
-			waitTicks = 0;
-		}
-
-		switch(phase)
-		{
-			case CRYSTAL:
-			updateCrystal();
-			break;
-
-			case PISTON:
-			updatePiston();
-			break;
-
-			case REDSTONE:
-			updateRedstone();
-			break;
-
-			case DETONATE:
-			updateDetonate();
-			break;
-
-			case CLEANUP:
-			updateCleanup();
-			break;
-
-			default:
-			break;
-		}
-	}
-
-	private void updateCrystal()
-	{
-		if(crystalExists(plan.crystalPos))
-		{
-			phase = pushWithPiston.isChecked() ? Phase.PISTON : Phase.DETONATE;
-			return;
-		}
-
-		if(!isReplaceable(plan.crystalPos)
-			|| !isReplaceable(plan.crystalPos.above()))
-		{
-			reset();
-			return;
-		}
-
-		if(!placeCrystal(plan))
-			return;
-
-		timer = actionDelay.getValueI() + 1;
-		phase = pushWithPiston.isChecked() ? Phase.PISTON : Phase.DETONATE;
-	}
-
-	private void updatePiston()
-	{
-		if(!pushWithPiston.isChecked() || plan.pistonPos == null)
-		{
-			phase = Phase.DETONATE;
-			return;
-		}
-
-		BlockState state = BlockUtils.getState(plan.pistonPos);
-		if(!state.canBeReplaced())
-		{
-			if(isPiston(state.getBlock()))
-				phase = Phase.REDSTONE;
-			else
-				reset();
-			return;
-		}
-
-		if(!placePiston(plan))
-			return;
-
-		timer = actionDelay.getValueI() + 1;
-		phase = Phase.REDSTONE;
-	}
-
-	private void updateRedstone()
-	{
-		if(plan.redstonePos == null)
-		{
-			reset();
-			return;
-		}
-
-		if(BlockUtils.getBlock(plan.redstonePos) == Blocks.REDSTONE_BLOCK)
-		{
-			phase = Phase.DETONATE;
-			waitTicks = 0;
-			timer = actionDelay.getValueI() + 1;
-			return;
-		}
-
-		if(!BlockUtils.getState(plan.redstonePos).canBeReplaced())
-		{
-			reset();
-			return;
-		}
-
-		if(!placeRedstone(plan))
-			return;
-
-		timer = actionDelay.getValueI() + 1;
-		waitTicks = 0;
-		phase = Phase.DETONATE;
-	}
-
-	private void updateDetonate()
-	{
-		// Give the piston a few ticks to extend before attacking.
-		if(waitTicks < 3)
-		{
-			waitTicks++;
-			timer = 1;
-			return;
-		}
-
-		attackCrystal(plan);
-
-		if(breakPiston.isChecked() && plan.pistonPos != null)
-		{
-			phase = Phase.CLEANUP;
-			timer = 1;
-			return;
-		}
-
-		reset();
-		timer = actionDelay.getValueI() + 1;
-	}
-
-	private void updateCleanup()
-	{
-		if(plan.pistonPos != null
-			&& isPiston(BlockUtils.getBlock(plan.pistonPos)))
-		{
-			BlockBreaker.breakOneBlock(plan.pistonPos);
-			timer = 1;
-			return;
-		}
-
-		reset();
-		timer = actionDelay.getValueI() + 1;
-	}
-
-	private LivingEntity findTarget()
-	{
-		double rangeSq = Math.pow(targetRange.getValue(), 2);
-		Comparator<Entity> closestToPlayer =
-			Comparator.comparingDouble(e -> MC.player.distanceToSqr(e));
-
-		Stream<Entity> stream = StreamSupport
-			.stream(MC.level.entitiesForRendering().spliterator(), false)
-			.filter(e -> !e.isRemoved())
-			.filter(e -> e instanceof LivingEntity
-				&& ((LivingEntity)e).getHealth() > 0)
-			.filter(e -> e != MC.player).filter(e -> !(e instanceof FakePlayerEntity))
-			.filter(e -> !(e instanceof Player player
-				&& player.getAbilities().instabuild))
-			.filter(e -> !WURST.getFriends().contains(e.getScoreboardName()))
-			.filter(e -> MC.player.distanceToSqr(e) <= rangeSq);
-
-		return (LivingEntity)stream.sorted(closestToPlayer).findFirst()
-			.orElse(null);
-	}
-
-	private Plan findPlan(LivingEntity target)
-	{
-		double search = searchRange.getValue();
-		double searchSq = Math.pow(search, 2);
-		float selfHealth =
-			MC.player.getHealth() + MC.player.getAbsorptionAmount();
-		Vec3 targetCenter = target.position().add(0,
-			target.getEyeHeight(target.getPose()) * 0.5, 0);
-		Plan best = null;
-		double bestScore = Double.NEGATIVE_INFINITY;
-
-		for(BlockPos crystalPos : BlockUtils.getAllInBox(
-			target.blockPosition(), (int)Math.ceil(search)))
-		{
-			if(targetCenter.distanceToSqr(Vec3.atCenterOf(crystalPos)) > searchSq)
-				continue;
-
-			BlockPos basePos = crystalPos.below();
-			if(!isCrystalBase(basePos))
-				continue;
-			if(!isReplaceable(crystalPos)
-				|| !isReplaceable(crystalPos.above()))
-				continue;
-			if(!isWithinPlaceRange(crystalPos)
-				|| !isWithinPlaceRange(basePos))
-				continue;
-			if(!hasFreeCrystalSpace(crystalPos))
-				continue;
-
-			Vec3 explosion = new Vec3(crystalPos.getX() + 0.5,
-				crystalPos.getY(), crystalPos.getZ() + 0.5);
-			float damage = DamageUtils.calculateDamage(explosion, target);
-			float selfDamage =
-				DamageUtils.calculateDamage(explosion, MC.player);
-			if(damage < minDamage.getValueF()
-				|| selfDamage > maxSelfDamage.getValueF())
-				continue;
-			if(antiSuicide.isChecked() && selfDamage >= selfHealth)
-				continue;
-
-			Direction pushDir = getPushDirection(crystalPos, target);
-			BlockPos pistonPos = null;
-			BlockPos redstonePos = null;
-
-			if(pushWithPiston.isChecked())
-			{
-				pistonPos = crystalPos.relative(pushDir.getOpposite());
-				if(!isReplaceable(pistonPos)
-					|| !isWithinPlaceRange(pistonPos)
-					|| !hasFreePistonSpace(pistonPos))
-					continue;
-
-				redstonePos = findRedstonePos(pistonPos, crystalPos, pushDir);
-				if(redstonePos == null)
-					continue;
-			}
-
-			double score = damage - selfDamage * 0.25;
-			if(score > bestScore)
-			{
-				bestScore = score;
-				best = new Plan(basePos.immutable(), crystalPos.immutable(),
-					pushDir, pistonPos, redstonePos, damage, selfDamage);
-			}
-		}
-
-		return best;
-	}
-
-	private Direction getPushDirection(BlockPos crystalPos, LivingEntity target)
-	{
-		BlockPos targetPos = target.blockPosition();
-		int dx = targetPos.getX() - crystalPos.getX();
-		int dz = targetPos.getZ() - crystalPos.getZ();
-
-		if(Math.abs(dx) >= Math.abs(dz))
-			return dx >= 0 ? Direction.EAST : Direction.WEST;
-		return dz >= 0 ? Direction.SOUTH : Direction.NORTH;
-	}
-
-	private BlockPos findRedstonePos(BlockPos pistonPos, BlockPos crystalPos,
-		Direction pushDir)
-	{
-		for(Direction side : Direction.values())
-		{
-			if(side == pushDir)
-				continue;
-
-			BlockPos pos = pistonPos.relative(side);
-			if(pos.equals(crystalPos) || pos.equals(crystalPos.above()))
-				continue;
-			if(!isReplaceable(pos) || !isWithinPlaceRange(pos))
-				continue;
-
-			return pos.immutable();
-		}
-
-		return null;
-	}
-
-	private boolean placeCrystal(Plan plan)
-	{
-		InventoryUtils.selectItem(Items.END_CRYSTAL, 36);
-		if(!MC.player.getMainHandItem().is(Items.END_CRYSTAL))
-			return false;
-
-		Vec3 hitVec = Vec3.atCenterOf(plan.basePos).add(0, 0.5, 0);
-		face(hitVec);
-		IMC.getInteractionManager().rightClickBlock(plan.basePos,
-			Direction.UP, hitVec);
-		swingHand.swing(InteractionHand.MAIN_HAND);
-		return true;
-	}
-
-	private boolean placePiston(Plan plan)
-	{
-		InventoryUtils.selectItem(stack -> stack.is(Items.PISTON)
-			|| stack.is(Items.STICKY_PISTON), 36);
-		if(!MC.player.getMainHandItem().is(Items.PISTON)
-			&& !MC.player.getMainHandItem().is(Items.STICKY_PISTON))
-			return false;
-
-		BlockPlacer.BlockPlacingParams params =
-			BlockPlacer.getBlockPlacingParams(plan.pistonPos);
-		if(params == null)
-			return false;
-
-		// Pistons face away from the player, so look opposite to the push.
-		if(rotate.isChecked())
-			WURST.getRotationFaker().setRotationPacket(
-				new Rotation(getYaw(plan.pushDir.getOpposite()), 5));
-
-		IMC.getInteractionManager().rightClickBlock(params.neighbor(),
-			params.side(), params.hitVec());
-		swingHand.swing(InteractionHand.MAIN_HAND);
-		return true;
-	}
-
-	private boolean placeRedstone(Plan plan)
-	{
-		InventoryUtils.selectItem(Items.REDSTONE_BLOCK, 36);
-		if(!MC.player.getMainHandItem().is(Items.REDSTONE_BLOCK))
-			return false;
-
-		if(!BlockPlacer.placeOneBlock(plan.redstonePos))
-			return false;
-
-		swingHand.swing(InteractionHand.MAIN_HAND);
-		return true;
-	}
-
-	private void attackCrystal(Plan plan)
-	{
-		BlockPos pushed =
-			plan.pistonPos == null ? plan.crystalPos
-				: plan.crystalPos.relative(plan.pushDir);
-		int minX = Math.min(plan.crystalPos.getX(), pushed.getX());
-		int minZ = Math.min(plan.crystalPos.getZ(), pushed.getZ());
-		int maxX = Math.max(plan.crystalPos.getX(), pushed.getX());
-		int maxZ = Math.max(plan.crystalPos.getZ(), pushed.getZ());
-		AABB box = new AABB(minX, plan.crystalPos.getY(), minZ, maxX + 1,
-			plan.crystalPos.getY() + 2, maxZ + 1);
-
-		for(Entity entity : MC.level.getEntities((Entity)null, box))
-		{
-			if(!(entity instanceof EndCrystal) || entity.isRemoved())
-				continue;
-
-			face(entity.getBoundingBox().getCenter());
-			MC.gameMode.attack(MC.player, entity);
-			swingHand.swing(InteractionHand.MAIN_HAND);
-			return;
-		}
-	}
-
-	private boolean hasFreeCrystalSpace(BlockPos crystalPos)
-	{
-		AABB box = new AABB(crystalPos.getX(), crystalPos.getY(),
-			crystalPos.getZ(), crystalPos.getX() + 1, crystalPos.getY() + 2,
-			crystalPos.getZ() + 1);
-
-		for(Entity entity : MC.level.getEntities((Entity)null, box))
-			if(!(entity instanceof EndCrystal))
-				return false;
-
-		return true;
-	}
-
-	private boolean hasFreePistonSpace(BlockPos pos)
-	{
-		AABB box = new AABB(pos);
-		if(MC.player.getBoundingBox().intersects(box))
-			return false;
-
-		for(Entity entity : MC.level.getEntities((Entity)null, box))
-			if(!(entity instanceof EndCrystal))
-				return false;
-
-		return true;
-	}
-
-	private boolean crystalExists(BlockPos crystalPos)
-	{
-		AABB box = new AABB(crystalPos.getX(), crystalPos.getY(),
-			crystalPos.getZ(), crystalPos.getX() + 1, crystalPos.getY() + 2,
-			crystalPos.getZ() + 1);
-
-		for(Entity entity : MC.level.getEntities((Entity)null, box))
-			if(entity instanceof EndCrystal && !entity.isRemoved())
-				return true;
-
-		return false;
-	}
-
-	private boolean isCrystalBase(BlockPos pos)
-	{
-		Block block = BlockUtils.getBlock(pos);
-		return block == Blocks.OBSIDIAN || block == Blocks.BEDROCK;
-	}
-
-	private boolean isReplaceable(BlockPos pos)
-	{
-		return BlockUtils.getState(pos).canBeReplaced();
-	}
-
-	private boolean isWithinPlaceRange(BlockPos pos)
-	{
-		return RotationUtils.getEyesPos()
-			.distanceToSqr(Vec3.atCenterOf(pos)) <= placeRange.getValueSq();
-	}
-
-	private static boolean isPiston(Block block)
-	{
-		return block == Blocks.PISTON || block == Blocks.STICKY_PISTON;
-	}
-
-	private void face(Vec3 vec)
-	{
-		if(rotate.isChecked())
-			WURST.getRotationFaker().faceVectorPacket(vec);
-	}
-
-	private static float getYaw(Direction direction)
-	{
-		return switch(direction)
-		{
-			case SOUTH -> 0F;
-			case WEST -> 90F;
-			case NORTH -> 180F;
-			case EAST -> -90F;
-			default -> 0F;
-		};
-	}
-
-	private void reset()
-	{
-		plan = null;
-		phase = Phase.NONE;
-		waitTicks = 0;
-	}
-
-	@Override
-	public void onRender(PoseStack matrixStack, float partialTicks)
-	{
-		if(!render.isChecked() || plan == null)
-			return;
-
-		boolean depthTest = false;
-		int crystal = crystalColor.getColorI(120);
-		int piston = pistonColor.getColorI(120);
-		int redstone = redstoneColor.getColorI(120);
-
-		AABB crystalBox = new AABB(plan.crystalPos.getX(),
-			plan.crystalPos.getY(), plan.crystalPos.getZ(),
-			plan.crystalPos.getX() + 1, plan.crystalPos.getY() + 2,
-			plan.crystalPos.getZ() + 1);
-		RenderUtils.drawSolidBox(matrixStack, crystalBox, crystal, depthTest);
-		RenderUtils.drawOutlinedBox(matrixStack, crystalBox, crystal,
-			depthTest);
-
-		if(plan.pistonPos != null)
-		{
-			AABB pistonBox = new AABB(plan.pistonPos);
-			RenderUtils.drawSolidBox(matrixStack, pistonBox, piston,
-				depthTest);
-			RenderUtils.drawOutlinedBox(matrixStack, pistonBox, piston,
-				depthTest);
-		}
-
-		if(plan.redstonePos != null)
-		{
-			AABB redstoneBox = new AABB(plan.redstonePos);
-			RenderUtils.drawSolidBox(matrixStack, redstoneBox, redstone,
-				depthTest);
-			RenderUtils.drawOutlinedBox(matrixStack, redstoneBox, redstone,
-				depthTest);
-		}
-	}
-
-	private enum Phase
-	{
-		NONE,
-		CRYSTAL,
-		PISTON,
-		REDSTONE,
-		DETONATE,
-		CLEANUP
-	}
-
-	private static final class Plan
-	{
-		private final BlockPos basePos;
-		private final BlockPos crystalPos;
-		private final Direction pushDir;
-		private final BlockPos pistonPos;
-		private final BlockPos redstonePos;
-		@SuppressWarnings("unused")
-		private final float targetDamage;
-		@SuppressWarnings("unused")
-		private final float selfDamage;
-
-		private Plan(BlockPos basePos, BlockPos crystalPos, Direction pushDir,
-			BlockPos pistonPos, BlockPos redstonePos, float targetDamage,
-			float selfDamage)
-		{
-			this.basePos = basePos;
-			this.crystalPos = crystalPos;
-			this.pushDir = pushDir;
-			this.pistonPos = pistonPos;
-			this.redstonePos = redstonePos;
-			this.targetDamage = targetDamage;
-			this.selfDamage = selfDamage;
-		}
-	}
+import net.wurstclient.util.*;
+
+public final class PushCrystalHack extends Hack implements UpdateListener, RenderListener {
+  private final SliderSetting targetRange =
+      new SliderSetting("TargetRange", 6.0, 1.0, 16.0, 0.01, ValueDisplay.DECIMAL);
+  private final SliderSetting searchRange =
+      new SliderSetting("SearchRange", 5.0, 1.0, 8.0, 0.01, ValueDisplay.DECIMAL);
+  private final SliderSetting placeRange =
+      new SliderSetting("PlaceRange", 4.5, 1.0, 6.0, 0.01, ValueDisplay.DECIMAL);
+  private final SliderSetting minDamage =
+      new SliderSetting("MinDamage", 4.0, 0.0, 36.0, 0.01, ValueDisplay.DECIMAL);
+  private final SliderSetting maxSelfDamage =
+      new SliderSetting("MaxSelfDamage", 12.0, 0.0, 36.0, 0.01, ValueDisplay.DECIMAL);
+  private final CheckboxSetting noSuicide = new CheckboxSetting("NoSuicide", true);
+  private final SliderSetting actionDelay =
+      new SliderSetting("ActionDelay", 3, 0, 10, 1, ValueDisplay.INTEGER);
+  private final SliderSetting breakDelay =
+      new SliderSetting("BreakDelay", 200, 0, 500, 1, ValueDisplay.INTEGER);
+  private final CheckboxSetting preferCrystal = new CheckboxSetting("PreferCrystal", true);
+  private final CheckboxSetting pauseWhileUsing = new CheckboxSetting("PauseWhileUsing", true);
+  private final CheckboxSetting rotate = new CheckboxSetting("Rotate", true);
+  private final CheckboxSetting packetPlace = new CheckboxSetting("PacketPlace", true);
+  private final CheckboxSetting mine = new CheckboxSetting("Mine", true);
+  private final CheckboxSetting yawDeceive = new CheckboxSetting("YawDeceive", true);
+  private final SliderSetting maxBuildBlocks =
+      new SliderSetting("MaxBuildBlocks", 5, 1, 9, 1, ValueDisplay.INTEGER);
+  private final CheckboxSetting inventorySwap = new CheckboxSetting("InventorySwap", true);
+  private final CheckboxSetting render = new CheckboxSetting("Render", true);
+  private final EnumSetting<PrinterHack.Shape> shapeMode =
+      new EnumSetting<>("ShapeMode", PrinterHack.Shape.values(), PrinterHack.Shape.BOTH);
+  private final LeavesColorSetting crystalColor =
+      new LeavesColorSetting("CrystalColor", new Color(255, 0, 0, 80));
+  private final LeavesColorSetting pistonColor =
+      new LeavesColorSetting("PistonColor", new Color(255, 255, 255, 80));
+  private final LeavesColorSetting redstoneColor =
+      new LeavesColorSetting("RedstoneColor", new Color(255, 100, 0, 80));
+
+  private Player target;
+  private Player lastTarget;
+  private BlockPos lastBestPos;
+  private CrystalPushPlan currentPlan;
+  private BlockPos pendingBreakPos;
+  private int pendingBreakTicks;
+  private BlockPos lastPiston;
+  private Direction lastPistonDirection;
+  private int actionCooldown;
+  private long lastBreak;
+  private Object world;
+  private List<FinalCandidate> searchCandidates;
+  private int candidateIndex, directionIndex;
+  private PistonBuildSolver solver;
+  private Vec3 searchOrigin;
+
+  public PushCrystalHack() {
+    super("PushCrystal");
+    setCategory(Category.COMBAT);
+    for (Setting s :
+        new Setting[] {
+          targetRange,
+          searchRange,
+          placeRange,
+          minDamage,
+          maxSelfDamage,
+          noSuicide,
+          actionDelay,
+          breakDelay,
+          preferCrystal,
+          pauseWhileUsing,
+          rotate,
+          packetPlace,
+          mine,
+          yawDeceive,
+          maxBuildBlocks,
+          inventorySwap,
+          render,
+          shapeMode,
+          crystalColor,
+          pistonColor,
+          redstoneColor
+        }) addSetting(s);
+  }
+
+  @Override
+  protected void onEnable() {
+    EVENTS.add(UpdateListener.class, this);
+    EVENTS.add(RenderListener.class, this);
+    reset();
+  }
+
+  private void reset() {
+    world = MC.level;
+    searchCandidates = null;
+    solver = null;
+    target = null;
+    lastTarget = null;
+    lastBestPos = null;
+    currentPlan = null;
+    pendingBreakPos = null;
+    pendingBreakTicks = 0;
+    lastPiston = null;
+    lastPistonDirection = null;
+    actionCooldown = 0;
+    lastBreak = 0;
+  }
+
+  @Override
+  protected void onDisable() {
+    EVENTS.remove(UpdateListener.class, this);
+    EVENTS.remove(RenderListener.class, this);
+    target = null;
+    lastTarget = null;
+    lastBestPos = null;
+    currentPlan = null;
+    pendingBreakPos = null;
+    lastPiston = null;
+    lastPistonDirection = null;
+  }
+
+  @Override
+  public String getRenderName() {
+    return getName() + (target == null ? "" : " [" + target.getName().getString() + "]");
+  }
+
+  @Override
+  public void onUpdate() {
+    if (world != MC.level) reset();
+    if (!LeavesUtils.ready()) return;
+    if (MC.player == null || MC.level == null) return;
+    if (preferCrystal.isChecked() && WURST.getHax().crystalAuraPlusHack.isBusy()) return;
+    if (mine.isChecked() && lastPiston != null && lastPistonDirection != null) {
+      if (LeavesBlocks.getBlock(lastPiston) instanceof PistonBaseBlock
+          && LeavesBlocks.getBlock(lastPiston.relative(lastPistonDirection))
+              instanceof PistonHeadBlock) {
+        Direction side = LeavesBlocks.getClickSide(lastPiston);
+        if (side != null) {
+          MC.gameMode.startDestroyBlock(lastPiston, side);
+          lastPiston = null;
+          lastPistonDirection = null;
+        }
+      }
+    }
+    target = LeavesUtils.enemy(targetRange.getValue());
+    if (target == null) {
+      lastTarget = null;
+      lastBestPos = null;
+      currentPlan = null;
+      pendingBreakPos = null;
+      return;
+    }
+    if (target != lastTarget) {
+      lastTarget = target;
+      searchCandidates = null;
+      solver = null;
+      lastBestPos = null;
+    }
+    if (pendingBreakPos != null) {
+      pendingBreakTicks++;
+      if (LeavesBlocks.hasCrystalPlaceAccurate(pendingBreakPos)) {
+        LeavesBlocks.attackCrystal(pendingBreakPos, rotate.isChecked(), false);
+        pendingBreakPos = null;
+        pendingBreakTicks = 0;
+        currentPlan = null;
+        actionCooldown = actionDelay.getValueI();
+      } else if (pendingBreakTicks > 3) {
+        pendingBreakPos = null;
+        pendingBreakTicks = 0;
+      }
+      return;
+    }
+
+    if (actionCooldown > 0) {
+      actionCooldown--;
+      return;
+    }
+    if (pauseWhileUsing.isChecked() && (MC.player.isUsingItem() || MC.options.keyUse.isDown()))
+      return;
+    int crystalSlot = findItem(Items.END_CRYSTAL);
+    int pistonSlot = findClass(PistonBaseBlock.class);
+    int redstoneSlot = findItem(Items.REDSTONE_BLOCK);
+    if (crystalSlot == -1 || pistonSlot == -1 || redstoneSlot == -1) return;
+    CrystalPushPlan plan = findPlan(target);
+    currentPlan = plan;
+    if (plan == null) return;
+    if (breakBlockingCrystal(plan.pos2())) return;
+    if (execute(plan, crystalSlot, pistonSlot, redstoneSlot)) {
+      pendingBreakPos = plan.pos1();
+      pendingBreakTicks = 0;
+      actionCooldown = actionDelay.getValueI();
+    }
+  }
+
+  @Override
+  public void onRender(PoseStack matrices, float partialTicks) {
+    if (!render.isChecked() || currentPlan == null) return;
+    draw(matrices, currentPlan.pos1(), crystalColor.getColorI());
+    for (BlockPos pos : currentPlan.pistonPositions()) draw(matrices, pos, pistonColor.getColorI());
+    for (BlockPos pos : currentPlan.redstonePositions())
+      draw(matrices, pos, redstoneColor.getColorI());
+  }
+
+  private void draw(PoseStack matrices, BlockPos pos, int color) {
+    if (shapeMode.getSelected() != PrinterHack.Shape.LINES)
+      RenderUtils.drawSolidBox(matrices, new AABB(pos), color, false);
+    if (shapeMode.getSelected() != PrinterHack.Shape.SIDES)
+      RenderUtils.drawOutlinedBox(matrices, new AABB(pos), color, false);
+  }
+
+  private CrystalPushPlan findPlan(Player target) {
+    if (searchCandidates == null || searchOrigin.distanceToSqr(target.position()) > 0.25) {
+      searchCandidates = findFinalCandidates(target);
+      searchOrigin = target.position();
+      candidateIndex = directionIndex = 0;
+      solver = null;
+      if (lastBestPos != null && !searchCandidates.isEmpty()) {
+        FinalCandidate best = searchCandidates.get(0);
+        for (int i = 0; i < searchCandidates.size(); i++)
+          if (searchCandidates.get(i).pos().equals(lastBestPos)
+              && searchCandidates.get(i).targetDamage() >= best.targetDamage() * 0.95) {
+            FinalCandidate cached = searchCandidates.remove(i);
+            searchCandidates.add(0, cached);
+            break;
+          }
+      }
+    }
+    while (candidateIndex < searchCandidates.size()) {
+      FinalCandidate candidate = searchCandidates.get(candidateIndex);
+      if (directionIndex >= HORIZONTAL_DIRECTIONS.length) {
+        candidateIndex++;
+        directionIndex = 0;
+        solver = null;
+        continue;
+      }
+      Direction direction = HORIZONTAL_DIRECTIONS[directionIndex], facing = direction.getOpposite();
+      BlockPos source = candidate.pos().relative(direction);
+      if (!yawDeceive.isChecked() && direction != MC.player.getDirection()
+          || !LeavesBlocks.canPlaceCrystal(source) && !LeavesBlocks.hasCrystal(source)) {
+        directionIndex++;
+        solver = null;
+        continue;
+      }
+      if (solver == null)
+        solver =
+            new PistonBuildSolver(
+                new PistonBuildSolver.WorldView() {
+                  public boolean pistonAt(BlockPos pos, Direction face) {
+                    var state = MC.level.getBlockState(pos);
+                    return state.getBlock() instanceof PistonBaseBlock
+                        && state.getValue(PistonBaseBlock.FACING) == face;
+                  }
+
+                  public boolean redstoneAt(BlockPos pos) {
+                    return MC.level.getBlockState(pos).is(Blocks.REDSTONE_BLOCK);
+                  }
+
+                  public boolean replaceable(BlockPos pos) {
+                    return LeavesBlocks.canReplace(pos);
+                  }
+
+                  public boolean canPlace(BlockPos pos, Set<BlockPos> planned) {
+                    return canPlaceVirtual(pos, planned);
+                  }
+                },
+                source,
+                facing,
+                getPistonCandidates(source, facing),
+                maxBuildBlocks.getValueI());
+      List<Placement> steps = solver.step(2048);
+      if (steps != null) {
+        List<BlockPos> pistons = new ArrayList<>(), redstone = new ArrayList<>();
+        for (Placement step : steps)
+          (step.kind() == BlockKind.PISTON ? pistons : redstone).add(step.pos());
+        CrystalPushPlan plan =
+            new CrystalPushPlan(
+                candidate.pos(),
+                source,
+                facing,
+                pistons,
+                redstone,
+                steps,
+                candidate.targetDamage(),
+                candidate.selfDamage());
+        directionIndex++;
+        solver = null;
+        if (isWithinPlaceRange(plan)) {
+          lastBestPos = candidate.pos();
+          searchCandidates = null;
+          return plan;
+        }
+      } else if (solver.done()) {
+        solver = null;
+        directionIndex++;
+      }
+      // Continue the same breadth-first search next tick without blocking input/rendering.
+      return null;
+    }
+    searchCandidates = null;
+    lastBestPos = null;
+    return null;
+  }
+
+  private List<FinalCandidate> findFinalCandidates(Player target) {
+    List<FinalCandidate> candidates = new ArrayList<>();
+    for (BlockPos candidate : LeavesBlocks.getSphere(searchRange.getValue())) {
+      boolean hasPlaceablePos2 = false;
+      for (Direction direction : HORIZONTAL_DIRECTIONS) {
+        BlockPos pos2 = candidate.relative(direction);
+        if (LeavesBlocks.canPlaceCrystal(pos2) || LeavesBlocks.hasCrystal(pos2)) {
+          hasPlaceablePos2 = true;
+          break;
+        }
+      }
+      if (!hasPlaceablePos2) continue;
+
+      Vec3 explosion = crystalVector(candidate);
+      float damage = LeavesDamage.damage(explosion, target, 6, null);
+      float selfDamage = LeavesDamage.damage(explosion, MC.player, 6, null);
+      if (!Float.isFinite(damage) || !Float.isFinite(selfDamage)) continue;
+      if (damage < minDamage.getValue() || selfDamage > maxSelfDamage.getValue()) continue;
+      if (noSuicide.isChecked()
+          && selfDamage > (MC.player.getHealth() + MC.player.getAbsorptionAmount())) continue;
+
+      candidates.add(
+          new FinalCandidate(
+              candidate.immutable(),
+              damage,
+              selfDamage,
+              MC.player.getEyePosition().distanceToSqr(explosion)));
+    }
+    candidates.sort(
+        (a, b) -> {
+          int damageOrder = Float.compare(b.targetDamage(), a.targetDamage());
+          if (damageOrder != 0) return damageOrder;
+          return Double.compare(a.distance(), b.distance());
+        });
+    return candidates;
+  }
+
+  private boolean breakBlockingCrystal(BlockPos pos) {
+    if (LeavesBlocks.canPlaceCrystal(pos)) return false;
+    if (!LeavesBlocks.hasCrystal(pos)) return true;
+    if (System.currentTimeMillis() - lastBreak < breakDelay.getValue()) return true;
+    LeavesBlocks.attackCrystal(pos, rotate.isChecked(), false);
+    lastBreak = System.currentTimeMillis();
+    actionCooldown = actionDelay.getValueI();
+    return true;
+  }
+
+  private List<BlockPos> getPistonCandidates(BlockPos pos2, Direction face1) {
+    BlockPos plane = pos2.relative(face1.getOpposite());
+    Direction horizontal = face1.getClockWise();
+    List<BlockPos> candidates = new ArrayList<>(6);
+    for (int y = 0; y <= 1; y++) {
+      for (int lateral = -1; lateral <= 1; lateral++) {
+        candidates.add(plane.above(y).relative(horizontal, lateral));
+      }
+    }
+    return candidates;
+  }
+
+  private boolean execute(CrystalPushPlan plan, int crystalSlot, int pistonSlot, int redstoneSlot) {
+    Set<BlockPos> planned = new HashSet<>();
+    lastPiston = null;
+    lastPistonDirection = null;
+    for (Placement placement : plan.placements()) {
+      BlockState state = MC.level.getBlockState(placement.pos());
+      if (isExpectedBlock(state, placement)) {
+        // 世界中已有同朝向活塞或红石块时，不重复放置，但仍加入虚拟状态。
+        planned.add(placement.pos());
+        if (placement.kind() == BlockKind.PISTON) {
+          lastPiston = placement.pos();
+          lastPistonDirection = plan.face1();
+        }
+        continue;
+      }
+      if (!canPlaceVirtual(placement.pos(), planned)
+          || !place(
+              placement,
+              planned,
+              placement.kind() == BlockKind.PISTON ? pistonSlot : redstoneSlot)) {
+        return false;
+      }
+      planned.add(placement.pos());
+      if (placement.kind() == BlockKind.PISTON) {
+        lastPiston = placement.pos();
+        lastPistonDirection = plan.face1();
+      }
+    }
+    if (lastPiston == null) {
+      for (BlockPos candidate : getPistonCandidates(plan.pos2(), plan.face1())) {
+        if (LeavesBlocks.getBlock(candidate) instanceof PistonBaseBlock) {
+          lastPiston = candidate;
+          lastPistonDirection = plan.face1();
+          break;
+        }
+      }
+    }
+    if (!LeavesBlocks.canPlaceCrystal(plan.pos2())) return false;
+    if (!placeCrystal(plan.pos2(), crystalSlot)) return false;
+    return true;
+  }
+
+  private boolean place(Placement placement, Set<BlockPos> planned, int slot) {
+    Direction direction = getVirtualPlaceSide(placement.pos(), planned);
+    if (direction == null || slot < 0) return false;
+    try (InventorySwap swap = InventorySwap.acquire(slot)) {
+      if (swap == null) return false;
+      BlockPos neighbor = placement.pos().relative(direction);
+      Vec3 point =
+          Vec3.atCenterOf(neighbor)
+              .add(Vec3.atLowerCornerOf(direction.getOpposite().getNormal()).scale(0.5));
+      if (rotate.isChecked()) {
+        if (placement.kind() == BlockKind.PISTON && yawDeceive.isChecked()) {
+          Direction facing = placement.facing().getOpposite();
+          LeavesUtils.rotate(facing.toYRot(), 5);
+        } else LeavesUtils.look(point);
+      }
+      boolean sneak = !MC.player.isShiftKeyDown();
+      try {
+        if (sneak)
+          MC.player.connection.send(
+              new ServerboundPlayerCommandPacket(
+                  MC.player, ServerboundPlayerCommandPacket.Action.PRESS_SHIFT_KEY));
+        BlockHitResult hit = new BlockHitResult(point, direction.getOpposite(), neighbor, false);
+        if (packetPlace.isChecked())
+          IMC.getInteractionManager().sendPlayerInteractBlockPacket(InteractionHand.MAIN_HAND, hit);
+        else if (!MC.gameMode.useItemOn(MC.player, InteractionHand.MAIN_HAND, hit).consumesAction())
+          return false;
+        WURST.getHax().globalSettingHack.swing(false);
+        WURST.getHax().placeRenderHack.record(placement.pos(), false);
+        return true;
+      } finally {
+        if (sneak)
+          MC.player.connection.send(
+              new ServerboundPlayerCommandPacket(
+                  MC.player, ServerboundPlayerCommandPacket.Action.RELEASE_SHIFT_KEY));
+        if (rotate.isChecked()) LeavesUtils.restoreLook();
+      }
+    }
+  }
+
+  private boolean placeCrystal(BlockPos pos, int slot) {
+    try (InventorySwap swap = InventorySwap.acquire(slot)) {
+      if (swap == null) return false;
+      Vec3 point = Vec3.atCenterOf(pos.below()).add(0, 0.5, 0);
+      if (rotate.isChecked()) LeavesUtils.look(point);
+      try {
+        IMC.getInteractionManager()
+            .sendPlayerInteractBlockPacket(
+                InteractionHand.MAIN_HAND,
+                new BlockHitResult(point, Direction.UP, pos.below(), false));
+        WURST.getHax().globalSettingHack.swing(false);
+        return true;
+      } finally {
+        if (rotate.isChecked()) LeavesUtils.restoreLook();
+      }
+    }
+  }
+
+  private boolean isWithinPlaceRange(CrystalPushPlan plan) {
+    if (MC.player.position().distanceToSqr(Vec3.atCenterOf(plan.pos2())) > placeRange.getValueSq())
+      return false;
+    for (Placement placement : plan.placements()) {
+      if (MC.player.position().distanceToSqr(Vec3.atCenterOf(placement.pos()))
+          > placeRange.getValueSq()) return false;
+    }
+    return true;
+  }
+
+  private boolean isExpectedBlock(BlockState state, Placement placement) {
+    return placement.kind() == BlockKind.PISTON
+            && state.getBlock() instanceof PistonBaseBlock
+            && state.getValue(PistonBaseBlock.FACING) == placement.facing()
+        || placement.kind() == BlockKind.REDSTONE && state.getBlock() == Blocks.REDSTONE_BLOCK;
+  }
+
+  private Vec3 crystalVector(BlockPos pos) {
+    return new Vec3(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+  }
+
+  private int findItem(Item item) {
+    return InventoryUtils.indexOf(item, inventorySwap.isChecked() ? 36 : 9);
+  }
+
+  private int findClass(Class<?> itemClass) {
+    for (int i = 0; i < (inventorySwap.isChecked() ? 36 : 9); i++)
+      if (MC.player.getInventory().getItem(i).getItem() instanceof BlockItem block
+          && itemClass.isInstance(block.getBlock())) return i;
+    return -1;
+  }
+
+  private boolean canPlaceVirtual(BlockPos pos, Set<BlockPos> planned) {
+    if (MC.player.position().distanceToSqr(Vec3.atCenterOf(pos)) > placeRange.getValueSq()
+        || planned.contains(pos)
+        || !LeavesBlocks.canReplace(pos)
+        || LeavesBlocks.hasEntity(pos, false)) return false;
+    return getVirtualPlaceSide(pos, planned) != null;
+  }
+
+  private Direction getVirtualPlaceSide(BlockPos pos, Set<BlockPos> planned) {
+    Direction realSide = LeavesBlocks.getPlaceSide(pos, null);
+    if (realSide != null) return realSide;
+
+    for (Direction side : Direction.values()) {
+      BlockPos support = pos.relative(side);
+      if (planned.contains(support) && isVirtualSupportDirection(support, side.getOpposite()))
+        return side;
+      if (isSolidSupport(support) && LeavesBlocks.isGrimDirection(support, side.getOpposite()))
+        return side;
+    }
+    return null;
+  }
+
+  private boolean isVirtualSupportDirection(BlockPos support, Direction direction) {
+    double minEyeY = MC.player.getY() + 0.4;
+    double maxEyeY = MC.player.getY() + 1.62;
+    AABB eyePositions =
+        new AABB(
+                MC.player.getX(),
+                minEyeY,
+                MC.player.getZ(),
+                MC.player.getX(),
+                maxEyeY,
+                MC.player.getZ())
+            .inflate(0.0002);
+    AABB supportAABB = new AABB(support);
+
+    boolean intersects =
+        supportAABB.maxX - 1.0e-7 > eyePositions.minX
+            && supportAABB.minX + 1.0e-7 < eyePositions.maxX
+            && supportAABB.maxY - 1.0e-7 > eyePositions.minY
+            && supportAABB.minY + 1.0e-7 < eyePositions.maxY
+            && supportAABB.maxZ - 1.0e-7 > eyePositions.minZ
+            && supportAABB.minZ + 1.0e-7 < eyePositions.maxZ;
+    if (intersects) return true;
+
+    return switch (direction) {
+      case NORTH -> eyePositions.minZ <= supportAABB.minZ;
+      case SOUTH -> eyePositions.maxZ >= supportAABB.maxZ;
+      case EAST -> eyePositions.maxX >= supportAABB.maxX;
+      case WEST -> eyePositions.minX <= supportAABB.minX;
+      case UP -> eyePositions.maxY >= supportAABB.maxY;
+      case DOWN -> eyePositions.minY <= supportAABB.minY;
+    };
+  }
+
+  private boolean isSolidSupport(BlockPos pos) {
+    BlockState state = MC.level.getBlockState(pos);
+    return state.isSolidRender(MC.level, pos) || state.getBlock() == Blocks.REDSTONE_BLOCK;
+  }
+
+  private static final Direction[] HORIZONTAL_DIRECTIONS = {
+    Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST
+  };
+
+  private record FinalCandidate(
+      BlockPos pos, float targetDamage, float selfDamage, double distance) {}
+
+  public record CrystalPushPlan(
+      BlockPos pos1,
+      BlockPos pos2,
+      Direction face1,
+      List<BlockPos> pistonPositions,
+      List<BlockPos> redstonePositions,
+      List<Placement> placements,
+      float targetDamage,
+      float selfDamage) {
+    public CrystalPushPlan {
+      pos1 = pos1.immutable();
+      pos2 = pos2.immutable();
+      pistonPositions = List.copyOf(pistonPositions);
+      redstonePositions = List.copyOf(redstonePositions);
+      placements = List.copyOf(placements);
+    }
+  }
 }

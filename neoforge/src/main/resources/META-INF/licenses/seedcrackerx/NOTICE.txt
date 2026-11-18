@@ -1,0 +1,7 @@
+SeedCrackerX 2.14.4, MIT, KaptainWutax / 19MisterX98.
+Official release: https://github.com/19MisterX98/SeedcrackerX/releases/tag/2.14.4
+Bundled jar SHA-256: cd61e1f68ca52218f61961af4ee9f97fcc62962a60acdd4525d075ac1bba42f6
+Source reference: 7b556ed (1.20, mod_version 2.14.4).
+Note: tag 2.14.4 currently points to the later 1.20.2 port.
+Upstream binary and its nested libraries are unmodified. The Wurst bridge is separate.
+Nested dependency metadata and licenses remain in the original jar.

@@ -1,0 +1,6 @@
+SeedCrackerX 2.14.6, MIT, KaptainWutax / 19MisterX98.
+Official release: https://github.com/19MisterX98/SeedcrackerX/releases/tag/2.14.6
+Bundled jar SHA-256: a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5
+Upstream binary is unmodified; its metadata declares Minecraft >=1.20.2.
+The release tag currently points to later sources; do not treat it as an exact binary source revision.
+Nested dependency metadata and licenses remain in the original jar.

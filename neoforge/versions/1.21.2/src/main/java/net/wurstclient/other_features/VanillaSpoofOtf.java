@@ -9,6 +9,7 @@ package net.wurstclient.other_features;
 
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.BrandPayload;
+import net.wurstclient.WurstClient;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.ConnectionPacketOutputListener;
@@ -67,7 +68,7 @@ public final class VanillaSpoofOtf extends OtherFeature
 	@Override
 	public String getPrimaryAction()
 	{
-		return isEnabled() ? "Disable" : "Enable";
+		return isEnabled() ? WurstClient.tr("Disable") : WurstClient.tr("Enable");
 	}
 	
 	@Override

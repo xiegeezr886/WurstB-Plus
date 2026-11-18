@@ -50,11 +50,10 @@ public final class WebBrowserMod extends HUDMod
 				|| !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
 				throw new IllegalStateException("desktop browser unavailable");
 			Desktop.getDesktop().browse(new URI(url.getValue()));
-			ChatUtils.message("Opened in system browser: " + url.getValue());
+			ChatUtils.message("Opened in system browser: %s", url.getValue());
 		}catch(Exception e)
 		{
-			ChatUtils.error("Could not open the system browser: "
-				+ e.getMessage());
+			ChatUtils.error("Could not open the system browser: %s", e.getMessage());
 		}
 	}
 
@@ -62,7 +61,7 @@ public final class WebBrowserMod extends HUDMod
 	protected void draw()
 	{
 		drawBackground(230, 30);
-		drawText("Web Browser (system)", 6, 5, 9, HudFonts.DEMIBOLD);
+		drawText(WURST.translate("Web Browser (system)"), 6, 5, 9, HudFonts.DEMIBOLD);
 		drawText(url.getValue(), 6, 17, 8, HudFonts.REGULAR,
 			getFontColor(200));
 		setSize(230, 30);

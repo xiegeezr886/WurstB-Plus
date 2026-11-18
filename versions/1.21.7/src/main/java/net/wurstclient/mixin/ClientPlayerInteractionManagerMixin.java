@@ -6,10 +6,12 @@
  * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
  */
 package net.wurstclient.mixin;
+import net.wurstclient.hack.HackList;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -51,6 +53,83 @@ public abstract class ClientPlayerInteractionManagerMixin
 	private boolean isDestroying;
 	@Shadow
 	private float destroyProgress;
+
+	@Unique
+	private String wurstIslandBrokenName;
+	@Unique private BlockPos leavesPlacement;
+
+	@Inject(method = "useItemOn", at = @At("HEAD"))
+	private void rememberLeavesPlacement(LocalPlayer player, InteractionHand hand,
+		BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir)
+	{
+		leavesPlacement = null;
+		if(player.getItemInHand(hand).getItem() instanceof net.minecraft.world.item.BlockItem)
+		{
+			var context = new net.minecraft.world.item.context.BlockPlaceContext(player,
+				hand, player.getItemInHand(hand), hit);
+			leavesPlacement = context.getClickedPos().immutable();
+		}
+	}
+
+	@Inject(method = "useItemOn", at = @At("RETURN"))
+	private void recordLeavesPlacement(LocalPlayer player, InteractionHand hand,
+		BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir)
+	{
+		var hax = WurstClient.INSTANCE.getHax();
+		if(hax != null && leavesPlacement != null && cir.getReturnValue().consumesAction())
+			hax.placeRenderHack.record(leavesPlacement, true);
+		leavesPlacement = null;
+	}
+
+	@Inject(method = "startDestroyBlock", at = @At("HEAD"), cancellable = true)
+	private void leavesStartMining(BlockPos pos, Direction direction,
+		CallbackInfoReturnable<Boolean> cir)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if(hax != null && hax.packetMineHack.isEnabled())
+		{
+			hax.packetMineHack.mine(pos);
+			cir.setReturnValue(false);
+		}
+	}
+
+	@Inject(method = {"startDestroyBlock", "continueDestroyBlock"}, at = @At("RETURN"))
+	private void updateIslandMining(BlockPos pos, Direction direction,
+		CallbackInfoReturnable<Boolean> cir)
+	{
+		if(!cir.getReturnValueZ() || minecraft.level == null) return;
+		MultiPlayerGameModeAccessor access = (MultiPlayerGameModeAccessor)this;
+		// Automatic miners can continue the same target after vanilla clears
+		// isDestroying. The progress still advances, so use the successful call
+		// and matching target instead of treating that flag as the source of truth.
+		if(!pos.equals(access.getDestroyBlockPos())
+			|| !access.getIsDestroying() && access.wurst$getDestroyProgress() <= 0) return;
+		var state = minecraft.level.getBlockState(pos);
+		if(state.isAir()) return;
+		var hud = WurstClient.INSTANCE.getHudManager();
+		if(hud != null) hud.recordIslandMining(pos.asLong(),
+			state.getBlock().getName().getString(), access.wurst$getDestroyProgress());
+	}
+
+	@Inject(method = "destroyBlock", at = @At("HEAD"))
+	private void rememberIslandBlock(BlockPos pos, CallbackInfoReturnable<Boolean> cir)
+	{
+		var hud = WurstClient.INSTANCE.getHudManager();
+		wurstIslandBrokenName = null;
+		if(hud == null || !hud.isDynamicIslandEnabled() || minecraft.level == null) return;
+		var state = minecraft.level.getBlockState(pos);
+		if(!state.isAir()) wurstIslandBrokenName = state.getBlock().getName().getString();
+	}
+
+	@Inject(method = "destroyBlock", at = @At("RETURN"))
+	private void finishIslandMining(BlockPos pos, CallbackInfoReturnable<Boolean> cir)
+	{
+		String name = wurstIslandBrokenName;
+		wurstIslandBrokenName = null;
+		if(name == null || !cir.getReturnValueZ()) return;
+		var hud = WurstClient.INSTANCE.getHudManager();
+		if(hud != null) hud.recordIslandMining(pos.asLong(), name, 1);
+	}
 
 	@Inject(at = @At("HEAD"),
 		method = "attack(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;)V")

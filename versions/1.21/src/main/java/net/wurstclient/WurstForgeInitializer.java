@@ -30,7 +30,14 @@ public final class WurstForgeInitializer
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 		modBus.addListener(this::onClientSetup);
 		MinecraftForge.EVENT_BUS.addListener(this::onRegisterClientCommands);
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) -> net.wurstclient.seed.SeedCrackerBridge.disconnect());
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderLevel);
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.client.event.RenderLevelStageEvent event) -> {
+            if(initialized && event.getStage() == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_LEVEL)
+                try(var ignored = net.wurstclient.hud2.nanovg.GlStateGuard.capture()) {
+                    kaptainwutax.seedcrackerX.finder.FinderQueue.get().renderFinders(new org.joml.Matrix4f().rotate(event.getCamera().rotation().conjugate(new org.joml.Quaternionf())), event.getCamera());
+                }
+        });
 	}
 
 	private void onClientSetup(FMLClientSetupEvent event)
@@ -42,6 +49,7 @@ public final class WurstForgeInitializer
 
 			initialized = true;
 			WurstClient.INSTANCE.initialize();
+            net.wurstclient.seed.SeedCrackerBridge.initialize();
 		});
 	}
 
@@ -50,6 +58,7 @@ public final class WurstForgeInitializer
 		if(initialized && WurstClient.INSTANCE.getCmds() != null)
 			WurstClient.INSTANCE.getCmds()
 				.buildBrigadierDispatcher(event.getDispatcher());
+        kaptainwutax.seedcrackerX.init.ClientCommands.registerCommands(event.getDispatcher());
 	}
 
 	private void onRenderLevel(RenderLevelStageEvent event)
@@ -72,6 +81,7 @@ public final class WurstForgeInitializer
 
 		EventManager.fire(new RenderEvent(poseStack, partialTick));
 		WurstClient.INSTANCE.getPostEffectQueue().flush(poseStack, partialTick);
+        net.wurstclient.util.render.MoonEntityGlow.INSTANCE.flush(poseStack, partialTick);
 	}
 
 }

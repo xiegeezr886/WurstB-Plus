@@ -10,7 +10,7 @@ package net.wurstclient.hacks.templatetool;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.util.CommonColors;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hacks.TemplateToolHack;

@@ -63,7 +63,7 @@ public final class MiddleClickExtraHack extends Hack
 	public MiddleClickExtraHack()
 	{
 		super("MiddleClickExtra");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(mode);
 		addSetting(quickSwap);
 		addSetting(swapBack);
@@ -129,8 +129,7 @@ public final class MiddleClickExtraHack extends Hack
 		if(slot == -1 || slot >= 9 && !quickSwap.isChecked())
 		{
 			if(notify.isChecked())
-				ChatUtils.warning("Unable to find " + selectedMode
-					+ " in your hotbar.");
+				ChatUtils.warning("Unable to find %s in your hotbar.", selectedMode);
 			return;
 		}
 

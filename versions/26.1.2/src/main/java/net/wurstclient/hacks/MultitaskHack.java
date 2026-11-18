@@ -15,7 +15,7 @@ public final class MultitaskHack extends Hack
 	public MultitaskHack()
 	{
 		super("Multitask");
-		setCategory(Category.OTHER);
+		setCategory(Category.EXPLOIT);
 		addSetting(attackEntities);
 	}
 

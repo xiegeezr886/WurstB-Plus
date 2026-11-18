@@ -1,61 +1,39 @@
-/*
- * Copyright (c) 2025 Penguin
- *
- * This source code is subject to the terms of the GNU General Public
- * License, version 3. If a copy of the GPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
- */
+/* NeoRaven DelayRemoverModule, GPL-3.0. */
 package net.wurstclient.hacks;
 
-import java.lang.reflect.Method;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.entity.Entity;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
-import net.wurstclient.events.PlayerAttacksEntityListener;
+import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.mixin.LivingEntityAccessor;
+import net.wurstclient.settings.CheckboxSetting;
 
-@SearchTags({"delay remover", "no cooldown", "attack speed"})
-public final class DelayRemoverHack extends Hack
-	implements PlayerAttacksEntityListener
-{
-	private Method resetAttackStrengthTicker;
-	
-	public DelayRemoverHack()
-	{
-		super("DelayRemover");
-		setCategory(Category.COMBAT);
-	}
-	
-	@Override
-	protected void onEnable()
-	{
-		EVENTS.add(PlayerAttacksEntityListener.class, this);
-	}
-	
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(PlayerAttacksEntityListener.class, this);
-	}
-	
-	@Override
-	public void onPlayerAttacksEntity(Entity target)
-	{
-		try
-		{
-			if(resetAttackStrengthTicker == null)
-			{
-				resetAttackStrengthTicker = LocalPlayer.class
-					.getDeclaredMethod("resetAttackStrengthTicker");
-				resetAttackStrengthTicker.setAccessible(true);
-			}
-			
-			resetAttackStrengthTicker.invoke(MC.player);
-			
-		}catch(Exception e)
-		{
-			// method not found in this mapping
-		}
-	}
+public final class DelayRemoverHack extends Hack implements UpdateListener {
+  private final CheckboxSetting hitreg = new CheckboxSetting("1.7 hitreg", true);
+  private final CheckboxSetting jump = new CheckboxSetting("Remove jump ticks", true);
+
+  public DelayRemoverHack() {
+    super("DelayRemover");
+    setCategory(Category.COMBAT);
+    addSetting(hitreg);
+    addSetting(jump);
+  }
+
+  protected void onEnable() {
+    EVENTS.add(UpdateListener.class, this);
+  }
+
+  protected void onDisable() {
+    EVENTS.remove(UpdateListener.class, this);
+  }
+
+  public boolean removesMissDelay() {
+    return isEnabled() && hitreg.isChecked();
+  }
+
+  public void onUpdate() {
+    if (MC.player != null && jump.isChecked()) {
+      var access = (LivingEntityAccessor) MC.player;
+      if (access.wurst_getNoJumpDelay() > 3) access.wurst_setNoJumpDelay(3);
+    }
+  }
 }

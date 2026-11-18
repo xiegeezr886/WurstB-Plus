@@ -38,7 +38,7 @@ public final class PlayerListMod extends HUDMod
 		if(!visible || players.isEmpty())
 		{
 			drawBackground(120, 20);
-			drawText("Tab list hidden", 6, 5, 9, HudFonts.REGULAR,
+			drawText(WURST.translate("Tab list hidden"), 6, 5, 9, HudFonts.REGULAR,
 				getFontColor(200));
 			setSize(120, 20);
 			return;
