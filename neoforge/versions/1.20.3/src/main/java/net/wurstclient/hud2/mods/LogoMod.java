@@ -14,6 +14,8 @@ import net.wurstclient.hud2.nanovg.HudFonts;
 
 public final class LogoMod extends HUDMod
 {
+	private static final Color PLUS_COLOR = new Color(accentColor(255), true);
+
 	public LogoMod()
 	{
 		super("Logo", "Logo", "Shows the client name and version.");
@@ -28,7 +30,7 @@ public final class LogoMod extends HUDMod
 		String brand = WURST.CLIENT_NAME;
 		String version = "v" + WURST.VERSION;
 
-		// Keep the word "Plus" in the theme's accent colour.
+		// Match the Dynamic Island's lavender brand colour.
 		int plusIndex = brand.lastIndexOf(" Plus");
 		String brandMain = plusIndex >= 0 ? brand.substring(0, plusIndex)
 			: brand;
@@ -43,7 +45,7 @@ public final class LogoMod extends HUDMod
 		drawText(brandMain, 6, 5, 9, HudFonts.DEMIBOLD);
 		if(!brandAccent.isEmpty())
 			drawText(brandAccent, 6 + mainWidth, 5, 9, HudFonts.DEMIBOLD,
-				new Color(accentColor(255), true));
+				PLUS_COLOR);
 		drawText(version, 6 + mainWidth + accentWidth + 4, 5, 9,
 			HudFonts.REGULAR, getFontColor(200));
 		setSize(Math.round(width), 20);

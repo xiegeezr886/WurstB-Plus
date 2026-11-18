@@ -88,7 +88,7 @@ public final class AutoNametagHack extends Hack implements UpdateListener, World
 	public AutoNametagHack()
 	{
 		super("AutoNametag");
-		setCategory(Category.OTHER);
+		setCategory(Category.PLAYER);
 		addSetting(nameSetting);
 		addSetting(range);
 		addSetting(targetMode);
@@ -166,9 +166,7 @@ public final class AutoNametagHack extends Hack implements UpdateListener, World
 		String tagName = tagNameComponent.getString();
 		if(!wantedName.isEmpty() && !tagName.equals(wantedName))
 		{
-			ChatUtils.error("The held name tag is called \"" + tagName
-				+ "\", but the configured name is \"" + wantedName
-				+ "\". Rename it in an anvil first.");
+			ChatUtils.error("The held name tag is called \"%s\", but the configured name is \"%s\". Rename it in an anvil first.", tagName, wantedName);
 			setEnabled(false);
 			return;
 		}

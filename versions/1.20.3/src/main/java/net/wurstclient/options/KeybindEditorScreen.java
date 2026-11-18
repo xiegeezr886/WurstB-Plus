@@ -100,13 +100,13 @@ public final class KeybindEditorScreen extends Screen
 		renderBackground(context, mouseX, mouseY, partialTicks);
 		
 		context.drawCenteredString(font,
-			(oldKey != null ? "Edit" : "Add") + " Keybind", width / 2, 20,
+			(oldKey != null ? WurstClient.tr("Edit Keybind") : WurstClient.tr("Add Keybind")), width / 2, 20,
 			0xffffff);
 		
 		context.drawString(font,
-			"Key: " + key.replace("key.keyboard.", ""), width / 2 - 100, 47,
+			WurstClient.tr("Key: %s", key.replace("key.keyboard.", "")), width / 2 - 100, 47,
 			0xa0a0a0);
-		context.drawString(font, "Commands (separated by ';')",
+		context.drawString(font, WurstClient.tr("Commands (separated by ';')"),
 			width / 2 - 100, 87, 0xa0a0a0);
 		
 		commandField.render(context, mouseX, mouseY, partialTicks);

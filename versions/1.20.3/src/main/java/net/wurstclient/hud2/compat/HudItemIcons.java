@@ -47,7 +47,8 @@ public final class HudItemIcons
 	// Access-order map: the least recently drawn icon is evicted first.
 	private static final Map<String, Integer> CACHE =
 		new LinkedHashMap<>(16, 0.75F, true);
-	private static final Set<ItemStack> PENDING = new LinkedHashSet<>();
+	private static final Map<String, ItemStack> PENDING = new LinkedHashMap<>();
+	private static final Set<String> EMPTY = new LinkedHashSet<>();
 	private static TextureTarget target;
 	private static long nvgHandle;
 	private static boolean failed;
@@ -64,15 +65,14 @@ public final class HudItemIcons
 		if(cached != null)
 			return cached;
 
-		if(PENDING.size() < 256)
-			PENDING.add(stack.copy());
+		if(!failed && !EMPTY.contains(key) && PENDING.size() < 256)
+			PENDING.computeIfAbsent(key, ignored -> stack.copy());
 		return 0;
 	}
 
 	public static void capturePending(NanoVGContext nvg, int budget)
 	{
-		if(failed || PENDING.isEmpty() || WurstClient.MC.level == null
-			|| WurstClient.MC.player == null)
+		if(failed || PENDING.isEmpty() || !nvg.create())
 			return;
 
 		nvgHandle = nvg.getHandle();
@@ -90,7 +90,7 @@ public final class HudItemIcons
 				ensureTarget();
 				target.setClearColor(0, 0, 0, 0);
 				int captured = 0;
-				java.util.Iterator<ItemStack> iterator = PENDING.iterator();
+				java.util.Iterator<ItemStack> iterator = PENDING.values().iterator();
 				while(iterator.hasNext() && captured < budget)
 				{
 					ItemStack stack = iterator.next();
@@ -122,6 +122,10 @@ public final class HudItemIcons
 
 	private static void capture(ItemStack stack, NanoVGContext nvg)
 	{
+		RenderSystem.disableScissor();
+		GL11.glDisable(GL11.GL_STENCIL_TEST);
+		RenderSystem.colorMask(true, true, true, true);
+		RenderSystem.depthMask(true);
 		target.setClearColor(0, 0, 0, 0);
 		target.clear(true);
 		target.bindWrite(true);
@@ -141,6 +145,15 @@ public final class HudItemIcons
 			GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
 			GL11.glReadPixels(0, 0, SIZE, SIZE, GL11.GL_RGBA,
 				GL11.GL_UNSIGNED_BYTE, pixels);
+			boolean visible = false;
+			for(int i = 3; i < SIZE * SIZE * 4; i += 4)
+				if(pixels.get(i) != 0) { visible = true; break; }
+			if(!visible)
+			{
+				if(EMPTY.size() >= MAX_CACHE) EMPTY.clear();
+				EMPTY.add(key(stack));
+				return;
+			}
 
 			for(int y = 0; y < SIZE; y++)
 			{
@@ -204,6 +217,7 @@ public final class HudItemIcons
 		}
 		CACHE.clear();
 		PENDING.clear();
+		EMPTY.clear();
 		nvgHandle = 0;
 		failed = false;
 	}

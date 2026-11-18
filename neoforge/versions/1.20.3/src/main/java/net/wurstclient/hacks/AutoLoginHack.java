@@ -1,165 +1,130 @@
-/*
- * Copyright (c) 2025 LeavesHack contributors
- *
- * This source code is subject to the terms of the GNU Affero General Public
- * License, version 3. If a copy of the AGPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
- */
-// Ported from LeavesHack (AGPL-3.0).
+/* AutoLogin adapted from LeavesHack 13daf96.
+ * SPDX-License-Identifier: AGPL-3.0-or-later */
 package net.wurstclient.hacks;
 
-import net.minecraft.client.multiplayer.ClientLevel;
+import java.io.IOException;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
-import net.wurstclient.events.ChatOutputListener;
-import net.wurstclient.events.UpdateListener;
-import net.wurstclient.events.WorldChangeListener;
+import net.wurstclient.events.*;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.leaves.*;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.settings.TextFieldSetting;
 import net.wurstclient.util.ChatUtils;
-import net.wurstclient.util.text.WText;
 
-@SearchTags({"auto login", "login", "register", "password", "AutoLogin"})
-public final class AutoLoginHack extends Hack
-	implements UpdateListener, WorldChangeListener, ChatOutputListener
-{
-	private final TextFieldSetting loginCommand = new TextFieldSetting(
-		"Login command",
-		WText.literal("Command used to log in, without the leading slash."),
-		"login");
+public final class AutoLoginHack extends Hack implements UpdateListener, ChatOutputListener {
+  private final CheckboxSetting autoSave = new CheckboxSetting("AutoSave", true);
+  private final TextFieldSetting login = new TextFieldSetting("LoginCommand", "l"),
+      register = new TextFieldSetting("RegCommand", "reg"),
+      change = new TextFieldSetting("CpCommand", "cp");
+  private final SliderSetting delay =
+      new SliderSetting("Delay", 40, 0, 200, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
+  private LoginAccounts accounts;
+  private Object connection;
+  private int remaining;
+  private boolean pending;
 
-	private final TextFieldSetting registerCommand = new TextFieldSetting(
-		"Register command",
-		WText.literal("Command used to register, without the leading slash."),
-		"register");
+  public AutoLoginHack() {
+    super("AutoLogin");
+    setCategory(Category.MISC);
+    for (Setting s :
+        new Setting[] {
+          autoSave,
+          login,
+          register,
+          change,
+          delay,
+          new ActionSetting(
+              "Accounts",
+              "Manage passwords saved separately for each server and username.",
+              () -> MC.setScreen(new LoginAccountsScreen(MC.screen, getAccounts())))
+        }) addSetting(s);
+  }
 
-	private final TextFieldSetting password = new TextFieldSetting("Password",
-		WText.literal("Password sent to the server. Stored in plain text."), "");
+  public LoginAccounts getAccounts() {
+    if (accounts == null) {
+      LoginAccounts loaded =
+          new LoginAccounts(WURST.getWurstFolder().resolve("leaves-autologin.json"));
+      try {
+        loaded.load();
+        accounts = loaded;
+      } catch (IOException e) {
+        ChatUtils.error(
+            "AutoLogin: couldn't read saved accounts. The existing file was preserved.");
+        return null;
+      }
+    }
+    return accounts;
+  }
 
-	private final CheckboxSetting register = new CheckboxSetting("Register",
-		WText.literal("Runs the register command instead of the login command."),
-		false);
+  @Override
+  protected void onEnable() {
+    connection = null;
+    pending = false;
+    EVENTS.add(UpdateListener.class, this);
+    EVENTS.add(ChatOutputListener.class, this);
+  }
 
-	private final CheckboxSetting autoSave = new CheckboxSetting(
-		"Auto save password",
-		WText.literal("Updates the password whenever you type a matching"
-			+ " login or register command."),
-		true);
+  @Override
+  protected void onDisable() {
+    EVENTS.remove(UpdateListener.class, this);
+    EVENTS.remove(ChatOutputListener.class, this);
+    connection = null;
+    pending = false;
+  }
 
-	private final SliderSetting delay = new SliderSetting("Delay",
-		WText.literal("Ticks to wait after joining before logging in."), 40, 0,
-		200, 5, ValueDisplay.INTEGER.withSuffix(" ticks"));
+  public static String stripSlash(String command) {
+    return command.trim().replaceFirst("^/", "");
+  }
 
-	private boolean pending;
-	private int timer;
+  private String server() {
+    return MC.getCurrentServer() == null
+        ? null
+        : LoginAccounts.normalizeServer(MC.getCurrentServer().ip);
+  }
 
-	public AutoLoginHack()
-	{
-		super("AutoLogin");
-		setCategory(Category.OTHER);
-		addSetting(loginCommand);
-		addSetting(registerCommand);
-		addSetting(password);
-		addSetting(register);
-		addSetting(autoSave);
-		addSetting(delay);
-	}
+  @Override
+  public void onUpdate() {
+    if (MC.getConnection() != connection) {
+      connection = MC.getConnection();
+      pending = connection != null;
+      remaining = delay.getValueI();
+    }
+    if (!pending || MC.player == null || MC.level == null || server() == null) return;
+    if (remaining-- > 0) return;
+    pending = false;
+    LoginAccounts store = getAccounts();
+    if (store == null) return;
+    var account = store.find(server(), MC.getUser().getName());
+    String command = stripSlash(login.getValue());
+    if (account != null && !command.isBlank())
+      MC.getConnection().sendCommand(command + " " + account.password());
+  }
 
-	@Override
-	protected void onEnable()
-	{
-		pending = MC.player != null && MC.level != null;
-		timer = delay.getValueI();
-		EVENTS.add(UpdateListener.class, this);
-		EVENTS.add(WorldChangeListener.class, this);
-		EVENTS.add(ChatOutputListener.class, this);
-	}
+  @Override
+  public void onSentMessage(ChatOutputEvent event) {
+    if (!autoSave.isChecked() || server() == null || !event.getOriginalMessage().startsWith("/"))
+      return;
+    String[] args = stripSlash(event.getOriginalMessage()).split("\\s+");
+    String secret =
+        capturedPassword(
+            args,
+            stripSlash(login.getValue()),
+            stripSlash(register.getValue()),
+            stripSlash(change.getValue()));
+    if (secret == null) return;
+    LoginAccounts store = getAccounts();
+    if (store == null) return;
+    try {
+      store.put(new LoginAccounts.Account(server(), MC.getUser().getName(), secret));
+    } catch (IOException | IllegalArgumentException e) {
+      ChatUtils.error("AutoLogin: couldn't save the account.");
+    }
+  }
 
-	@Override
-	protected void onDisable()
-	{
-		pending = false;
-		EVENTS.remove(UpdateListener.class, this);
-		EVENTS.remove(WorldChangeListener.class, this);
-		EVENTS.remove(ChatOutputListener.class, this);
-	}
-
-	@Override
-	public void onWorldChange(ClientLevel world)
-	{
-		if(world == null)
-		{
-			pending = false;
-			return;
-		}
-
-		pending = true;
-		timer = delay.getValueI();
-	}
-
-	@Override
-	public void onUpdate()
-	{
-		if(!pending)
-			return;
-
-		if(MC.player == null || MC.level == null || MC.getConnection() == null)
-			return;
-
-		if(timer > 0)
-		{
-			timer--;
-			return;
-		}
-
-		pending = false;
-
-		String pw = password.getValue();
-		if(pw.isBlank())
-		{
-			ChatUtils.warning("AutoLogin is enabled, but no password is set.");
-			return;
-		}
-
-		String command = stripSlash(register.isChecked()
-			? registerCommand.getValue() : loginCommand.getValue());
-		if(command.isBlank())
-			return;
-
-		String message = command + " " + pw;
-		if(register.isChecked())
-			message += " " + pw;
-
-		MC.getConnection().sendCommand(message);
-	}
-
-	@Override
-	public void onSentMessage(ChatOutputEvent event)
-	{
-		if(!autoSave.isChecked())
-			return;
-
-		String message = event.getOriginalMessage().trim();
-		if(message.startsWith("/"))
-			message = message.substring(1);
-
-		String[] args = message.split("\\s+");
-		if(args.length < 2)
-			return;
-
-		String command = args[0];
-		if(!command.equals(stripSlash(loginCommand.getValue()))
-			&& !command.equals(stripSlash(registerCommand.getValue())))
-			return;
-
-		password.setValue(args[1]);
-	}
-
-	private static String stripSlash(String command)
-	{
-		return command.startsWith("/") ? command.substring(1) : command;
-	}
+  public static String capturedPassword(
+      String[] args, String login, String register, String change) {
+    if (args.length >= 3 && args[0].equals(change)) return args[2];
+    if (args.length >= 2 && (args[0].equals(login) || args[0].equals(register))) return args[1];
+    return null;
+  }
 }

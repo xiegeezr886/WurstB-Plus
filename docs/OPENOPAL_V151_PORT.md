@@ -1,11 +1,5 @@
 # OpenOpal KillAura / Scaffold source port for v1.5.1
 
-This port uses the checked-in OpenOpal Java sources under
-`reference/clients/OpenOpal/src/client/java/wtf/opal`. The reference targets
-Minecraft 1.21.10 with Yarn mappings. The destination uses Mojmap and the host
-module/settings/event/rendering infrastructure across 66 v1.5.1 projects.
-Root Forge v1.6.0 and the separate v1.5.0 checkout are outside this change.
-
 The original GPL-3.0 license is included in every destination at
 `src/main/resources/META-INF/licenses/openopal/LICENSE`. Copied classes identify
 their origin. The exact reference and destination hashes are recorded under
