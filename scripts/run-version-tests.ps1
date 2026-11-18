@@ -29,6 +29,7 @@ param(
     [string]$GraphicsBackend = "",
     [string]$ScreenshotDir = "",
     [switch]$VerifyNanoVg,
+    [switch]$VerifyCleanExit,
     [switch]$VisibleWindow,
     [switch]$BuildOutputs,
     [switch]$KeepOldJars,
@@ -36,6 +37,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+if ($VerifyCleanExit -and -not $QuickPlayWorld) {
+    throw '-VerifyCleanExit requires -QuickPlayWorld.'
+}
 
 # Resolve defaults from the repository instead of the caller's current directory.
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -773,8 +777,7 @@ function Test-Version($jarPath, $instanceDir) {
     $cp = @($classpath | Select-Object -Unique) -join ";"
 
     # 2. extract natives
-    $nativesDir = Join-Path $NativesBase $name
-    if (Test-Path $nativesDir) { Remove-Item -LiteralPath $nativesDir -Recurse -Force }
+    $nativesDir = Join-Path (Join-Path $NativesBase $name) ([Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $nativesDir -Force | Out-Null
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     foreach ($native in $nativeLibraries) {
@@ -923,11 +926,17 @@ function Test-Version($jarPath, $instanceDir) {
         }
     }
 
+    # Use a writable, per-run location for native library extraction.
+    $runtimeTemp = Join-Path $nativesDir 'tmp'
+    New-Item -ItemType Directory -Path $runtimeTemp -Force | Out-Null
+    $jvmArgs += @('"-Djava.io.tmpdir=' + $runtimeTemp + '"',
+        '"-Djna.tmpdir=' + $runtimeTemp + '"',
+        '"-Dorg.lwjgl.system.SharedLibraryExtractPath=' + $runtimeTemp + '"')
     $argList = @("-Xmx4G") + $jvmArgs + @($j.mainClass) + $gameArgs
     $argList | Set-Content -LiteralPath (Join-Path $outDir "launch-args.txt") -Encoding UTF8
 
     Write-Info "  [launch] $($j.mainClass) args... (pid tracking)"
-    $windowStyle = if ($VisibleWindow) { 'Normal' } else { 'Minimized' }
+    $windowStyle = if ($VisibleWindow) { 'Normal' } else { 'Hidden' }
     $p = Start-Process -FilePath $java -ArgumentList $argList -PassThru `
         -RedirectStandardOutput $stdout -RedirectStandardError $stderr `
         -WindowStyle $windowStyle -WorkingDirectory $instanceDir
@@ -999,7 +1008,7 @@ function Test-Version($jarPath, $instanceDir) {
                 $worldLoadedAt = Get-Date
                 Write-Info "  [progress] world loaded"
             }
-            if ($log -match '\[HUD\] NanoVG GL3 context created') {
+            if ($log -match '\[HUD\] NanoVG (GL3 context created|context created \(GL3\))') {
                 $nanoVgSeen = $true
             }
             if ($log -match '\[HUD\] NanoVG disabled|\[HUD\] Render failed|\[GUI\] NanoVG pass failed') {
@@ -1129,6 +1138,23 @@ function Test-Version($jarPath, $instanceDir) {
         $result = @{ Status = "TIMEOUT"; Note = "did not $timeoutTarget within ${TimeoutSeconds}s" }
     }
 
+    if ($VerifyCleanExit -and $result.Status -eq 'PASS') {
+        $worldFile = Join-Path (Join-Path (Join-Path $instanceDir 'saves') $QuickPlayWorld) 'level.dat'
+        $beforeSave = (Get-Item -LiteralPath $worldFile).LastWriteTimeUtc
+        $p.Refresh()
+        if ($p.HasExited -or -not $p.CloseMainWindow() -or -not $p.WaitForExit(30 * 1000)) {
+            $result = @{ Status = 'FAIL'; Note = 'world loaded, but the client did not close cleanly' }
+        } else {
+            $exitLog = Get-RecentLogText @($stdout, $stderr, $latestLog, $harnessLog)
+            $afterSave = (Get-Item -LiteralPath $worldFile).LastWriteTimeUtc
+            $saved = $afterSave -gt $beforeSave -and $exitLog -match '(?i)Stopping server|Saving worlds'
+            if ($p.ExitCode -ne 0 -or -not $saved) {
+                $result = @{ Status = 'FAIL'; Note = "world loaded, but save/exit was not confirmed (exit code $($p.ExitCode))" }
+            } else {
+                $result.Note += '; world saved; clean exit (0)'
+            }
+        }
+    }
     if (-not $p.HasExited) {
         Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 1
@@ -1198,6 +1224,7 @@ foreach ($jar in $jars) {
         }
     }
     $r.Jar = $jar.Name
+    $r.Sha256 = (Get-FileHash -LiteralPath $jar.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     $r.Version = $info.MC
     $r.Loader = $info.Loader
     $report += $r
@@ -1216,7 +1243,7 @@ $report | ForEach-Object {
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $reportFile = Join-Path $ReportDir "report-$stamp.txt"
 $report | ForEach-Object {
-    "Jar: $($_.Jar)`n  Loader: $($_.Loader)  MC: $($_.Version)`n  Status: $($_.Status)  Elapsed: $($_.Elapsed)s`n  Note: $($_.Note)"
+    "Jar: $($_.Jar)`n  SHA-256: $($_.Sha256)`n  Loader: $($_.Loader)  MC: $($_.Version)`n  Status: $($_.Status)  Elapsed: $($_.Elapsed)s`n  Note: $($_.Note)"
 } | Set-Content -LiteralPath $reportFile -Encoding UTF8
 Write-Host "report saved: $reportFile"
 

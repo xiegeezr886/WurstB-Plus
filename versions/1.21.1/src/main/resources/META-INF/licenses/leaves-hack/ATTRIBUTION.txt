@@ -7,3 +7,46 @@ AutoTree -> TreeBot/SaplingFarm: selected planting sites, bone meal, delay, acti
 Original notices remain applicable. Local adaptation: WurstB+ Plus contributors.
 Source snapshot module hashes:
 reference/tools/LeavesHack-src/src/main/java/com/dev/leavesHack/modules/AutoTree.java SHA-256 1a83d5af01c1119697ce5f20f2549b657b14b65fd0f7a3b154be4c682ea1d607
+
+
+v1.5.2 full module port (2026-11-15)
+Upstream: https://github.com/MrBZBZ/LeavesHack
+Commit: 13daf96bc5998d745fb34debe6f8ea98c403b11b
+Source snapshot: reference/clients/LeavesHack
+Target: fabric/, WurstB+ Plus 1.5.2, Minecraft 1.20.1, Java 17
+License: GNU Affero General Public License version 3 or later.
+Adapted module, shared utility and mixin behavior; Meteor events/settings and
+Minecraft 1.21.11 APIs replaced with Wurst/Fabric 1.20.1 equivalents.
+Excluded by request: Aura and ScaffoldPlus.
+See docs/LEAVESHACK-v1.5.2.md for mappings and compatibility differences.
+Local adaptation: WurstB+ Plus contributors. Original notices remain applicable.
+Source module SHA-256:
+src/main/java/com/dev/leavesHack/modules/AutoAnchor.java c6715d4f9931de056265acb231b706c82ee2a8ef65e47bed24eabbfb62dee501 -> AutoAnchorHack
+src/main/java/com/dev/leavesHack/modules/AutoArmorPlus.java ef56aae165e6dad1f01650e339830fa929b8c530aa75b161a87e99cd3e3fd3a4 -> AutoArmorPlusHack
+src/main/java/com/dev/leavesHack/modules/AutoLogin.java 50a9bc4aaa085890fed2c74b2ed5ca690a202cfaa4e780398b186eefa2b3a65e -> AutoLoginHack
+src/main/java/com/dev/leavesHack/modules/AutoMine.java c2743fade03a3ed72a59dd943f3f7f058852e538cdf070796d866b5be524a18e -> AutoMineHack
+src/main/java/com/dev/leavesHack/modules/AutoOffHand.java 7771004065988e5a5c142eb61de73f536592e228236253f76dbbf15058001be7 -> AutoOffHandHack
+src/main/java/com/dev/leavesHack/modules/AutoPlaceBlock.java 7d2bafb6e1a631949667d9c25003ae789785d684cb40a7b83aadebcc0f81d517 -> AutoPlaceBlockHack
+src/main/java/com/dev/leavesHack/modules/AutoRefreshTrade.java 31de061a88e848964f8c6d43ce630af182428325d16d684998629665646768a4 -> AutoRefreshTradeHack
+src/main/java/com/dev/leavesHack/modules/SprintPlus.java e43b2cffd3ecf57d52dbcb1cf12f1038e950f618d6f6e37cc042652f0d440445 -> AutoSprintHack
+src/main/java/com/dev/leavesHack/modules/AutoTorch.java 66bd374543f539ae073829df76003a9b6c3df2f485848183360915be1003b2c9 -> AutoTorchHack
+src/main/java/com/dev/leavesHack/modules/AutoWeb.java 7b6539e2a61df9ef32a6548841949aad17c4e8444f17423036db8dc7c85328b7 -> AutoWebHack
+src/main/java/com/dev/leavesHack/modules/BreakESP.java a224cac3bd8500ffb0ae9b7cbccdc1394fab77b66bd4194e44662017b1e074b8 -> BreakEspHack
+src/main/java/com/dev/leavesHack/modules/CrystalAuraPlus.java 68641d95aa16fc35898c1b208bccb5585d8cc9862652715f078951b48034d891 -> CrystalAuraPlusHack
+src/main/java/com/dev/leavesHack/modules/DeathRender.java 6823e9de7db4b64eca2fdfdd76b9fad3f6659f78a935da8c65954e2e44e922f9 -> DeathRenderHack
+src/main/java/com/dev/leavesHack/modules/ElytraGrimAccelerate.java 0b0b698c050befceeb8d851594c99d829b345b4f3f51bdb22e02783807275d6b -> ElytraGrimAccelerateHack
+src/main/java/com/dev/leavesHack/modules/FireworkElytraFly.java c5e720e61ae1d33b8033637f26d35389fd370b69a439d837e6186a61cf5ded19 -> FireworkElytraFlyHack
+src/main/java/com/dev/leavesHack/modules/Follower.java a96abc58190c68d748d84e72d913366b91ec83ba2892c9a4eca083fa18dee760 -> FollowHack
+src/main/java/com/dev/leavesHack/modules/FriendsManager.java 93eeff5d7d6b3cd40dac62d10705cbcb43c7cdd273e965df913a031b74886967 -> FriendsManagerHack
+src/main/java/com/dev/leavesHack/modules/GlassFiller.java 7055e18aaa91472e04eb0e14a796e35310889bf9307302ffde2fb83ed2513a9b -> GlassFillerHack
+src/main/java/com/dev/leavesHack/modules/GlobalSetting.java f8438af2a50e238be62940c78b5b1b117de830ce49fcb29a7e33390c1b029682 -> GlobalSettingHack
+src/main/java/com/dev/leavesHack/modules/ModuleList.java 7e7fa7507f58c97f269fbc828246c1d43aad61f80314a6ae0f9b5c61e5328ee6 -> ModuleListHack
+src/main/java/com/dev/leavesHack/modules/NukerPlus.java 7464dd77c3c3236b7fae07bd2f2af3093953f25b097f387e475b190e114a5648 -> NukerHack
+src/main/java/com/dev/leavesHack/modules/PacketLogger.java 01622d18e06ef7a1ed6fa4bfc9a0c6878bc792fd8b23974422acd48f2c21b128 -> PacketLoggerHack
+src/main/java/com/dev/leavesHack/modules/PacketMine.java ef201ce457cce1603b1db8bc2e31242306aa72b0f7ac4e80a961736efa79cf9b -> PacketMineHack
+src/main/java/com/dev/leavesHack/modules/PlaceRender.java 49e8076b1bb5166232c554ba2c8e68e99578c42a1d5e9c222ca4a7a6cf96c59c -> PlaceRenderHack
+src/main/java/com/dev/leavesHack/modules/Printer.java e8b711f6ebdc418f0a1b9a9cd37cb9cf8dd20f94667a10d9cd83865bd0c6bb8f -> PrinterHack
+src/main/java/com/dev/leavesHack/modules/PushCrystal.java d7b66e732487e72fa7c998898f5437032596ad7bc3bd34bd7f471b9c9d02c69b -> PushCrystalHack
+src/main/java/com/dev/leavesHack/modules/Replenish.java ed02f5916989c0b3bbe29cb03bccc0838dddec4a3ab1aeedc2d543d3064e2224 -> ReplenishHack
+src/main/java/com/dev/leavesHack/modules/SelfTrap.java ce88bf22624b3b19e2d6412aa4dab667dc2a8e7bd728ea0f5532d6052975578e -> SelfTrapHack
+src/main/java/com/dev/leavesHack/modules/AutoTree.java 1a83d5af01c1119697ce5f20f2549b657b14b65fd0f7a3b154be4c682ea1d607 -> TreeBotHack

@@ -7,6 +7,7 @@
  */
 package net.wurstclient.command;
 
+import net.wurstclient.WurstClient;
 import net.wurstclient.util.ChatUtils;
 
 public final class CmdError extends CmdException
@@ -16,6 +17,15 @@ public final class CmdError extends CmdException
 		super(message);
 	}
 	
+	/**
+	 * Builds a translated error message. The English text doubles as the
+	 * translation key and may contain {@code %s} placeholders.
+	 */
+	public CmdError(String key, Object... args)
+	{
+		super(WurstClient.INSTANCE.translate(key, args));
+	}
+
 	@Override
 	public void printToChat(Command cmd)
 	{

@@ -68,8 +68,10 @@ configurations {
 	hudNatives
 }
 
+apply from: 'gradle/seedcracker-native1201.gradle'
+
 dependencies {
-    implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
+    minecraftLibrary("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}") { transitive = false }
     runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
     runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
     runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
@@ -93,9 +95,9 @@ dependencies {
     jarJar(group: "io.github.llamalad7", name: "mixinextras-forge",
         version: "[0.5.4,)")
     annotationProcessor "org.spongepowered:mixin:0.8.7:processor"
-    implementation "org.java-websocket:Java-WebSocket:1.5.3"
-    implementation "io.netty:netty-codec-socks:4.1.82.Final"
-    implementation "io.netty:netty-handler-proxy:4.1.82.Final"
+    minecraftLibrary("org.java-websocket:Java-WebSocket:1.5.3") { transitive = false }
+    minecraftLibrary("io.netty:netty-codec-socks:4.1.82.Final") { transitive = false }
+    minecraftLibrary("io.netty:netty-handler-proxy:4.1.82.Final") { transitive = false }
     implementation fg.deobf("baritone:baritone-api-forge:1.20.1")
     jarJar(group: "baritone", name: "baritone-api-forge",
         version: "[1.20.1,1.20.2)")
@@ -157,8 +159,32 @@ tasks.named("jarJar").configure {
 }
 
 processResources {
+    inputs.property("bundledNanoVgApi", !project.hasProperty("devClient"))
+    doFirst {
+        if (project.hasProperty("devClient"))
+            delete new File(destinationDir, "org/lwjgl/nanovg")
+    }
     from({ configurations.hudNatives.collect { zipTree(it) } }) {
-        include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+        if (!project.hasProperty("devClient")) include "org/lwjgl/nanovg/**"
+        include "windows/**", "linux/**", "macos/**"
         exclude "META-INF/**", "module-info.class", "**/*.signature"
     }
 }
+
+// v1.5.2 music and portable tests; game supplies LWJGL core and base Netty.
+dependencies {
+    jarJar(group: "org.java-websocket", name: "Java-WebSocket", version: "[1.5.3,1.5.4)")
+    jarJar(group: "io.netty", name: "netty-codec-socks", version: "[4.1.82.Final,4.1.83.Final)")
+    jarJar(group: "io.netty", name: "netty-handler-proxy", version: "[4.1.82.Final,4.1.83.Final)")
+    minecraftLibrary("com.googlecode.soundlibs:jlayer:1.0.1.4") { transitive = false }
+    jarJar(group: "com.googlecode.soundlibs", name: "jlayer", version: "[1.0.1.4,1.0.1.5)")
+    minecraftLibrary("com.google.zxing:core:3.5.3") { transitive = false }
+    jarJar(group: "com.google.zxing", name: "core", version: "[3.5.3,3.5.4)")
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.2"
+}
+sourceSets.main.java {
+    exclude "net/wurstclient/clickgui2/component/*.java"
+    exclude "net/wurstclient/clickgui2/component.disabled/*.java"
+}
+tasks.withType(Test).configureEach { useJUnitPlatform() }

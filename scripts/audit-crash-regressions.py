@@ -291,7 +291,7 @@ def check_sources(root=ROOT):
     # is compiled into the owning module alongside the loader, not read from packs.
     native_sources = [root / 'src/main/java/net/wurstclient/background/FfmpegNatives.java',
                       root / 'src/main/java/net/wurstclient/render/skia/SkikoNatives.java']
-    # The restored v1.5.1 root has neither the v1.6 loaders nor their payloads.
+    # The restored v1.5.1 root has no FFmpeg/Skiko loaders or payloads.
     # Still reject unpinned payloads if they are accidentally reintroduced.
     native_sources = [source for source in native_sources if source.exists()]
     pinned = ''.join(f.read_text('utf-8-sig') for f in native_sources)
