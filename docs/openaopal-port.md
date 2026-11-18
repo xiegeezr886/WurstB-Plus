@@ -15,11 +15,7 @@
 | 加载器 | Fabric（`splitEnvironmentSourceSets`，代码在 `src/client`） | Forge 47.4.10 |
 | 映射 | Yarn | 官方 Mojmap |
 | Java | 21 | 17 |
-| 渲染后端 | **NanoVG**（`NVGRenderer`，`nvgShapeAntiAlias`、`BLUR_PAINT`） | 原版 `GuiGraphics` + **Skia/Skiko region**（v1.6 新增） |
 | 模块基类 | `Module` + `Property` 体系 | `Hack` + `Setting` 体系 |
-
-所以可搬的是**几何、排版、元素模型与描边组合**，不可搬的是模块框架与 NanoVG 调用。
-这正是 `PROJECT_INDEX.md` 里 v1.6 的 `render.skia` 存在的原因：本工程已经有等价能力。
 
 ---
 
@@ -33,11 +29,6 @@ OpenOpal 的 2D ESP 全部靠 NanoVG 在**屏幕空间**画：把碰撞箱 8 个
 没有圆角、没有描边、没有文字，于是参考那种「细线外包一圈黑边」和铭牌条都做不出来。
 
 **选择**：走既有的 `SkiaRegionRenderer` 区域管线，而不是把 NanoVG 原生库引进来。
-
-- 复用而不是新增原生依赖：Skiko 已随 v1.6 打包（`assets/wurst/skiko/`），NanoVG 要另带
-  `nanovg.dll` + LWJGL 绑定，且与 Skia 功能重叠。
-- 与上次 Twilight Echo 端口的做法一致（`TwilightSkia` + 原版 `blit` 兜底）。
-- 原生库缺失时**逐像素**退回原来的原版路径，行为与打这个补丁之前完全相同。
 
 ---
 
@@ -180,4 +171,3 @@ OpenOpal 的 2D ESP 全部靠 NanoVG 在**屏幕空间**画：把碰撞箱 8 个
 由此新增的纯函数 `vanillaScale` / `vanillaTextTop` 有 4 个单测。
 **仍未实机验证**：兜底路径的实际观感（原版字体缩放后的字形质量、与 Skia 路径的
 并排差异）没有看过；本次只证明了「这条路现在走得到」，没有证明「走得好看」。
-

@@ -1,0 +1,16 @@
+// Optional build-host workaround when maven.neoforged.net times out.
+// CreeperHost hosts the same published NeoForged Maven artifacts. Keep all
+// coordinates, metadata and checksums; never substitute another loader version.
+gradle.beforeProject { project ->
+    project.repositories.all { repo ->
+        if (repo instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository) {
+            // Mojang metadata is served by a separate virtual repository;
+            // it is not mirrored in CreeperHost's releases repository.
+            if (repo.url.host == 'maven.neoforged.net' &&
+                    !repo.url.path.contains('mojang-meta'))
+                repo.url = project.uri('https://maven.creeperhost.net/')
+            if (repo.url.host == 'repo.spongepowered.org')
+                repo.content { includeGroupByRegex('org\\.spongepowered.*') }
+        }
+    }
+}

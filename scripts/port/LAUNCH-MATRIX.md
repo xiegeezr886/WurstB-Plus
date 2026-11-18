@@ -1,11 +1,5 @@
 # 全版本真实启动矩阵（62 / 65）
 
-日期：2026-11-06
-范围：除根目录 Forge 1.20.1（v1.6.0）外的全部 65 个 v1.5.1 工程。
-判定：真实客户端进入单人世界，日志出现 `joined the game`，且出现
-`[HUD] NanoVG GL3 context created`；截图保存在
-`_recon/port/evidence/nanovg/`。
-
 ## 结果
 
 | 分组 | 工程数 | PASS | 备注 |

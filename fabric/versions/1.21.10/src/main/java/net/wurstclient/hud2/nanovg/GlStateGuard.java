@@ -87,6 +87,7 @@ public final class GlStateGuard implements AutoCloseable
 	private final int texture0;
 	private final int sampler0;
 	private final int activeTextureBinding;
+	private final int packAlignment;
 	private final int unpackAlignment;
 	private final int unpackRowLength;
 	private final int unpackSkipPixels;
@@ -195,6 +196,7 @@ public final class GlStateGuard implements AutoCloseable
 		activeTextureBinding =
 			GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
 		srgb = GL11.glIsEnabled(GL30.GL_FRAMEBUFFER_SRGB);
+		packAlignment = GL11.glGetInteger(GL11.GL_PACK_ALIGNMENT);
 		unpackAlignment = GL11.glGetInteger(GL11.GL_UNPACK_ALIGNMENT);
 		unpackRowLength = GL11.glGetInteger(GL11.GL_UNPACK_ROW_LENGTH);
 		unpackSkipPixels = GL11.glGetInteger(GL11.GL_UNPACK_SKIP_PIXELS);
@@ -234,6 +236,7 @@ public final class GlStateGuard implements AutoCloseable
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, activeTextureBinding);
 		GlStateManager._bindTexture(activeTextureBinding);
 		GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, unpackBuffer);
+		GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, packAlignment);
 		GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, unpackAlignment);
 		GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, unpackRowLength);
 		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, unpackSkipPixels);
@@ -284,7 +287,20 @@ public final class GlStateGuard implements AutoCloseable
 
 		GL11.glColorMask(colorMaskR, colorMaskG, colorMaskB, colorMaskA);
 
-		GL11.glScissor(scissorX, scissorY, scissorWidth, scissorHeight);
+		// Immediate rendering restores GL directly; synchronize the cached
+        // state too before Minecraft submits another GPU render pass.
+        if(blend) GlStateManager._enableBlend(); else GlStateManager._disableBlend();
+        GlStateManager._blendFuncSeparate(blendSrcRgb, blendDstRgb, blendSrcAlpha, blendDstAlpha);
+        if(depthTest) GlStateManager._enableDepthTest(); else GlStateManager._disableDepthTest();
+        GlStateManager._depthMask(depthMask);
+        GlStateManager._depthFunc(depthFunc);
+        if(cull) GlStateManager._enableCull(); else GlStateManager._disableCull();
+        GlStateManager._colorMask(colorMaskR, colorMaskG, colorMaskB, colorMaskA);
+        if(scissor) GlStateManager._enableScissorTest(); else GlStateManager._disableScissorTest();
+        var encoder = (com.mojang.blaze3d.opengl.GlCommandEncoder)RenderSystem.getDevice().createCommandEncoder();
+        encoder.lastProgram = null;
+        encoder.lastPipeline = null;
+        GL11.glScissor(scissorX, scissorY, scissorWidth, scissorHeight);
 		if(scissor)
 			GL11.glEnable(GL11.GL_SCISSOR_TEST);
 		else

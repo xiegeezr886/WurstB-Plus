@@ -6,6 +6,7 @@
  * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
  */
 package net.wurstclient.mixin;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 
 import net.minecraft.world.phys.Vec3;
 import net.wurstclient.hack.HackList;
@@ -69,6 +70,18 @@ public abstract class EntityMixin
 		if(event.isCancelled())
 			ci.cancel();
 	}
+
+	// Check the recipient: vanilla applies both participants' impulses here.
+	@WrapWithCondition(method = "push(Lnet/minecraft/world/entity/Entity;)V",
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/world/entity/Entity;push(DDD)V"), require = 2)
+	private boolean epsilon$allowCollisionPush(Entity recipient, double x,
+		double y, double z)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		return recipient != WurstClient.MC.player || hax == null
+			|| !hax.antiKnockbackHack.preventsEntityPush();
+	}
 	
 	/**
 	 * Makes invisible entities render as ghosts if TrueSight is enabled.
@@ -87,6 +100,14 @@ public abstract class EntityMixin
 		if(WurstClient.INSTANCE.getHax().trueSightHack
 			.shouldBeVisible((Entity)(Object)this))
 			cir.setReturnValue(false);
+	}
+
+	@Inject(at = @At("RETURN"), method = "getPickRadius()F", cancellable = true)
+	private void onGetPickRadius(CallbackInfoReturnable<Float> cir)
+	{
+		if(WurstClient.INSTANCE.getHax() == null) return;
+		float extra = WurstClient.INSTANCE.getHax().hitboxesHack.getExtraSize((Entity)(Object)this);
+		if(extra > 0) cir.setReturnValue(cir.getReturnValue() + extra);
 	}
 
 	@Inject(method = "setDeltaMovement(DDD)V", at = @At("HEAD"))
