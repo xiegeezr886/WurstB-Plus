@@ -1,0 +1,4482 @@
+{
+  "schema_version": 2,
+  "baseline": "fabric",
+  "baseline_git_revision": "69067e9060cf67a0b4e27de1717015586ad055e0",
+  "comparison": "working-tree SHA256; text CRLF normalized to LF",
+  "meaning": "file differences only; target_only files must be reviewed and retained when required",
+  "baseline_source_sha256": "ed9b2abcd29863aca6b4d7ecb61392a67939bddd35de13cbad5ce3062dd0c58f",
+  "projects": 67,
+  "targets": 66,
+  "loaders": {
+    "Fabric": 23,
+    "Forge": 21,
+    "NeoForge": 23
+  },
+  "target_bands": {
+    "B1-java17": 11,
+    "B2-java21-legacy": 19,
+    "B3-java21-components": 3,
+    "B4-java21-gui-state": 9,
+    "B5-java21-event-input": 6,
+    "B6-java21-render-setup": 3,
+    "B7-java25": 15
+  },
+  "matrix": [
+    {
+      "project": ".",
+      "loader": "Forge",
+      "minecraft": "1.20.1",
+      "mod_version": "v1.5.2-Forge-1.20.1",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "jarJar",
+      "source_files": 1633,
+      "source_sha256": "d8e376405d30de763cda16e599a74154f0543a834d2017c1ee3b3fe25b7e5657",
+      "build_input_sha256": {
+        "build.gradle": "88a1bcfd38ac4864bcd508c8edf4ff1a7704a689865a76b366f6a70f0bed290c",
+        "settings.gradle": "983997fe4a84448cf71a37934d79043a9c864f1016802dda6d2b692a19b6aad8",
+        "gradle.properties": "7c75d08fe8f59f7d752d99cd95fcb72500dc38732d915f2e7980d3db3abe89f1",
+        "gradle/wrapper/gradle-wrapper.properties": "7c7399fbc78fe6a881fe042fb5043b5b2490d14dea51cd304168959572027ed0"
+      },
+      "delta_counts": {
+        "source_only": 4,
+        "different": 16,
+        "target_only": 87
+      },
+      "delta_categories": {
+        "source_only": {
+          "java-other": 1,
+          "resources": 3
+        },
+        "different": {
+          "gui": 1,
+          "hud-render": 1,
+          "java-other": 4,
+          "mixins": 3,
+          "modules": 4,
+          "seed": 1,
+          "tests": 2
+        },
+        "target_only": {
+          "java-other": 68,
+          "resources": 17,
+          "tests": 2
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "native-source",
+        "upstream_version": "2.14.4",
+        "source_files": 67,
+        "solver_libraries": [
+          {
+            "file": "latticg-1.06.jar",
+            "sha256": "1051fcf70e05808beb1c7f680582b1620df65aa41b1f99ef5f371ab616d6e072"
+          },
+          {
+            "file": "mc_biome-41a42cb9019a552598f12089059538853e18ec78.jar",
+            "sha256": "18fd6bb779f0a59ee779e06f5847c03ff3fd0cb611ebdc09538a207661359405"
+          },
+          {
+            "file": "mc_core-d64d5f90be66300da41ef58f4f1736db2499784f.jar",
+            "sha256": "4aa7d4686b4693312e1dde28c75116e8f6335e8855ee3ada92bc81ee2d1c8b3f"
+          },
+          {
+            "file": "mc_feature-919b7e513cc1e87e029a9cd703fc4e2dc8686229.jar",
+            "sha256": "2a1e45bcc8c1e83938ae61ec03d253a1ed42d7466a4e153deab4a1802e22a537"
+          },
+          {
+            "file": "mc_math-ffd2edcfcc0d18147549c88cc7d8ec6cf21b5b91.jar",
+            "sha256": "851953bcc81c2f85fec88f5066efaa7fa944177c61ab794250de8bde97321370"
+          },
+          {
+            "file": "mc_noise-7e3ba65e181796c4a2a1c8881d840b2254b92962.jar",
+            "sha256": "523d645947e809a0ee5e49341c0d5d9826dd522ca15239930ddcc204d0c5f7f9"
+          },
+          {
+            "file": "mc_reversal-ca64c0890c106f1a2207623c316fce86f250b918.jar",
+            "sha256": "6d2baa4d5c1a02ed524f0edfb02e8c7056b54d9cb31d7ea6679ed952e7d080e8"
+          },
+          {
+            "file": "mc_seed-1ead6fcefe7e8de4b3d60cd6c4e993f1e8f33409.jar",
+            "sha256": "d15d23953ba98b3d2fac8ca001a91db97e5a9d41b0a2d69a04c7852041a90416"
+          },
+          {
+            "file": "mc_terrain-b4246cbd5880c4f8745ccb90e1b102bde3448126.jar",
+            "sha256": "c52df2dfd646e982e2565c2be6f9ec55a92d151183b7ed0051760477ae974d66"
+          }
+        ],
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric",
+      "loader": "Fabric",
+      "minecraft": "1.20.1",
+      "mod_version": "1.5.2-Fabric-1.20.1",
+      "role": "baseline",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "remapJar",
+      "source_files": 1550,
+      "source_sha256": "ed9b2abcd29863aca6b4d7ecb61392a67939bddd35de13cbad5ce3062dd0c58f",
+      "build_input_sha256": {
+        "build.gradle": "fff6837fd527a4509637f3957976279f7040666a4786a3b0ea80962cd7512ae9",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "854e37fb9709f07e44c27136759366b52522b17714771e2ac83d239eaf789880",
+        "gradle/wrapper/gradle-wrapper.properties": "540ddf3a740c593398d65a8bc12eba639427b2344759af35080ab522be9b3294"
+      },
+      "delta_counts": {
+        "source_only": 0,
+        "different": 0,
+        "target_only": 0
+      },
+      "delta_categories": {
+        "source_only": {},
+        "different": {},
+        "target_only": {}
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.14.4",
+        "minecraft_range": ">=1.20",
+        "sha256": "cd61e1f68ca52218f61961af4ee9f97fcc62962a60acdd4525d075ac1bba42f6",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge",
+      "loader": "NeoForge",
+      "minecraft": "1.20.1",
+      "mod_version": "v1.5.2-NeoForge-1.20.1",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "jarJar",
+      "source_files": 1633,
+      "source_sha256": "415a9feb35e4526a2b7c3ff16ed8262403830c7b617940793d01c3c1e4cc1ec1",
+      "build_input_sha256": {
+        "build.gradle": "0e6f2dd7c1f427d0c31b3b7a3eb878deea042a9c2159d029288d39bf1d4b0719",
+        "settings.gradle": "983997fe4a84448cf71a37934d79043a9c864f1016802dda6d2b692a19b6aad8",
+        "gradle.properties": "07e7c619ea6b638e5e71cf302c477b3f718fc5627151f5524c8370a32a426606",
+        "gradle/wrapper/gradle-wrapper.properties": "a96b852574fd3bfbe02b5117ac7447d570332536c1394d51bf276c74ce8ff97b"
+      },
+      "delta_counts": {
+        "source_only": 4,
+        "different": 16,
+        "target_only": 87
+      },
+      "delta_categories": {
+        "source_only": {
+          "java-other": 1,
+          "resources": 3
+        },
+        "different": {
+          "gui": 1,
+          "hud-render": 1,
+          "java-other": 4,
+          "mixins": 3,
+          "modules": 4,
+          "seed": 1,
+          "tests": 2
+        },
+        "target_only": {
+          "java-other": 68,
+          "resources": 17,
+          "tests": 2
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "native-source",
+        "upstream_version": "2.14.4",
+        "source_files": 67,
+        "solver_libraries": [
+          {
+            "file": "latticg-1.06.jar",
+            "sha256": "1051fcf70e05808beb1c7f680582b1620df65aa41b1f99ef5f371ab616d6e072"
+          },
+          {
+            "file": "mc_biome-41a42cb9019a552598f12089059538853e18ec78.jar",
+            "sha256": "18fd6bb779f0a59ee779e06f5847c03ff3fd0cb611ebdc09538a207661359405"
+          },
+          {
+            "file": "mc_core-d64d5f90be66300da41ef58f4f1736db2499784f.jar",
+            "sha256": "4aa7d4686b4693312e1dde28c75116e8f6335e8855ee3ada92bc81ee2d1c8b3f"
+          },
+          {
+            "file": "mc_feature-919b7e513cc1e87e029a9cd703fc4e2dc8686229.jar",
+            "sha256": "2a1e45bcc8c1e83938ae61ec03d253a1ed42d7466a4e153deab4a1802e22a537"
+          },
+          {
+            "file": "mc_math-ffd2edcfcc0d18147549c88cc7d8ec6cf21b5b91.jar",
+            "sha256": "851953bcc81c2f85fec88f5066efaa7fa944177c61ab794250de8bde97321370"
+          },
+          {
+            "file": "mc_noise-7e3ba65e181796c4a2a1c8881d840b2254b92962.jar",
+            "sha256": "523d645947e809a0ee5e49341c0d5d9826dd522ca15239930ddcc204d0c5f7f9"
+          },
+          {
+            "file": "mc_reversal-ca64c0890c106f1a2207623c316fce86f250b918.jar",
+            "sha256": "6d2baa4d5c1a02ed524f0edfb02e8c7056b54d9cb31d7ea6679ed952e7d080e8"
+          },
+          {
+            "file": "mc_seed-1ead6fcefe7e8de4b3d60cd6c4e993f1e8f33409.jar",
+            "sha256": "d15d23953ba98b3d2fac8ca001a91db97e5a9d41b0a2d69a04c7852041a90416"
+          },
+          {
+            "file": "mc_terrain-b4246cbd5880c4f8745ccb90e1b102bde3448126.jar",
+            "sha256": "c52df2dfd646e982e2565c2be6f9ec55a92d151183b7ed0051760477ae974d66"
+          }
+        ],
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.20.2",
+      "loader": "Forge",
+      "minecraft": "1.20.2",
+      "mod_version": "1.5.2-Forge-1.20.2",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "jarJar",
+      "source_files": 1550,
+      "source_sha256": "7211ddcc2b90d7a367b71c19691ccf5bb52d30159cc0baee004a31416c5614f0",
+      "build_input_sha256": {
+        "build.gradle": "989bd69fe22abe601556a30e98393478a307f84de4c2d3591b784670821663d8",
+        "settings.gradle": "983997fe4a84448cf71a37934d79043a9c864f1016802dda6d2b692a19b6aad8",
+        "gradle.properties": "15ef4d158b0170ba3e2947ee16947864f863196f0d172aaa9edd8d5c26d5caf7",
+        "gradle/wrapper/gradle-wrapper.properties": "a96b852574fd3bfbe02b5117ac7447d570332536c1394d51bf276c74ce8ff97b"
+      },
+      "delta_counts": {
+        "source_only": 23,
+        "different": 86,
+        "target_only": 23
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 13,
+          "java-other": 1,
+          "resources": 9
+        },
+        "different": {
+          "gui": 16,
+          "hud-render": 7,
+          "java-other": 25,
+          "mixins": 13,
+          "modules": 20,
+          "music": 1,
+          "resources": 3,
+          "seed": 1
+        },
+        "target_only": {
+          "hud-render": 1,
+          "java-other": 1,
+          "mixins": 1,
+          "resources": 18,
+          "seed": 1,
+          "tests": 1
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.14.6",
+        "upstream_sha256": "a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5",
+        "solver_file": "seedfinding-2.14.6.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "8a724519ef552798016d49d463cab74057ce4c11ae0f2f48eb6dfecdeefabb50",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.20.3",
+      "loader": "Forge",
+      "minecraft": "1.20.3",
+      "mod_version": "1.5.2-Forge-1.20.3",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "jarJar",
+      "source_files": 1562,
+      "source_sha256": "538ec9b442c32a25e58ec7979fc7c71eb0a20eaa7f35a63b82075ab9535f79a5",
+      "build_input_sha256": {
+        "build.gradle": "f6b9a4e4a587293d5ea61b72a8a3d7f272d5a7424f8c4cd6fdc2af642df7d086",
+        "settings.gradle": "983997fe4a84448cf71a37934d79043a9c864f1016802dda6d2b692a19b6aad8",
+        "gradle.properties": "1686c6de06eda51974d89353eea24c123df949c977871e001a56316e493f9a72",
+        "gradle/wrapper/gradle-wrapper.properties": "62ae4f9b02195b38150d80331889fe7732475a49ff77789a28beb771388d78da"
+      },
+      "delta_counts": {
+        "source_only": 11,
+        "different": 87,
+        "target_only": 23
+      },
+      "delta_categories": {
+        "source_only": {
+          "java-other": 1,
+          "mixins": 1,
+          "resources": 9
+        },
+        "different": {
+          "gui": 18,
+          "hud-render": 7,
+          "java-other": 25,
+          "mixins": 14,
+          "modules": 18,
+          "music": 1,
+          "resources": 3,
+          "seed": 1
+        },
+        "target_only": {
+          "hud-render": 1,
+          "java-other": 1,
+          "mixins": 1,
+          "resources": 18,
+          "seed": 1,
+          "tests": 1
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.14.6",
+        "upstream_sha256": "a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5",
+        "solver_file": "seedfinding-2.14.6.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "8a724519ef552798016d49d463cab74057ce4c11ae0f2f48eb6dfecdeefabb50",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.20.4",
+      "loader": "Forge",
+      "minecraft": "1.20.4",
+      "mod_version": "1.5.2-Forge-1.20.4",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "jarJar",
+      "source_files": 1562,
+      "source_sha256": "53b9df2b66628e5b6692149a4e24f49e75cefa9702646a67671c4e4221cce6bb",
+      "build_input_sha256": {
+        "build.gradle": "c6d9855a398193f0d11a93170bd1f5844485bd2b11af971e04be1c986a99019e",
+        "settings.gradle": "983997fe4a84448cf71a37934d79043a9c864f1016802dda6d2b692a19b6aad8",
+        "gradle.properties": "ce7015858c9cc1102c18025210eea6f6ac64e690613df16584f19dab997f3733",
+        "gradle/wrapper/gradle-wrapper.properties": "a96b852574fd3bfbe02b5117ac7447d570332536c1394d51bf276c74ce8ff97b"
+      },
+      "delta_counts": {
+        "source_only": 11,
+        "different": 87,
+        "target_only": 23
+      },
+      "delta_categories": {
+        "source_only": {
+          "java-other": 1,
+          "mixins": 1,
+          "resources": 9
+        },
+        "different": {
+          "gui": 18,
+          "hud-render": 7,
+          "java-other": 25,
+          "mixins": 14,
+          "modules": 18,
+          "music": 1,
+          "resources": 3,
+          "seed": 1
+        },
+        "target_only": {
+          "hud-render": 1,
+          "java-other": 1,
+          "mixins": 1,
+          "resources": 18,
+          "seed": 1,
+          "tests": 1
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.14.6",
+        "upstream_sha256": "a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5",
+        "solver_file": "seedfinding-2.14.6.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "8a724519ef552798016d49d463cab74057ce4c11ae0f2f48eb6dfecdeefabb50",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.20.6",
+      "loader": "Forge",
+      "minecraft": "1.20.6",
+      "mod_version": "1.5.2-Forge-1.20.6",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "jarJar",
+      "source_files": 1589,
+      "source_sha256": "c44050bf9db3eac55bdbd7e336e9520b2e81657337d2f19c6129ee2e80152af4",
+      "build_input_sha256": {
+        "build.gradle": "089979f86f39aba44e6a320d8c7b8815e9672e7e9e10c4444aac1c1f84ce8ffc",
+        "settings.gradle": "983997fe4a84448cf71a37934d79043a9c864f1016802dda6d2b692a19b6aad8",
+        "gradle.properties": "58ad0ae8677f313c97abd880346811b161fa8ae28cbefff56452f1986f0de92b",
+        "gradle/wrapper/gradle-wrapper.properties": "a96b852574fd3bfbe02b5117ac7447d570332536c1394d51bf276c74ce8ff97b"
+      },
+      "delta_counts": {
+        "source_only": 14,
+        "different": 208,
+        "target_only": 53
+      },
+      "delta_categories": {
+        "source_only": {
+          "java-other": 1,
+          "mixins": 4,
+          "resources": 9
+        },
+        "different": {
+          "gui": 23,
+          "hud-render": 11,
+          "java-other": 42,
+          "mixins": 30,
+          "modules": 92,
+          "music": 2,
+          "resources": 4,
+          "seed": 2,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 19,
+          "hud-render": 1,
+          "java-other": 3,
+          "mixins": 2,
+          "modules": 5,
+          "resources": 18,
+          "seed": 1,
+          "tests": 4
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.14.7",
+        "upstream_sha256": "f453bae397cfa66f1667e0ed3ce1983c96006ddde9b90b40ead260fd80a1cded",
+        "solver_file": "seedfinding-2.14.7.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "87606ccba15ae8af0c6276230df7b61db94e1099e62155fd9046bd1a49636a91",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21",
+      "loader": "Forge",
+      "minecraft": "1.21",
+      "mod_version": "1.5.2-Forge-1.21",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "jarJar",
+      "source_files": 1612,
+      "source_sha256": "aa8a1031ce7b32f4ff417d90dc88f721b8cd0b6cfbcbc70226775ed535ba6360",
+      "build_input_sha256": {
+        "build.gradle": "e2257c19a1eadebcc72cddf6574fd5c74b0cd5d1bbdf3cd02a32ab6829e2fe6e",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "332c44cc879face0721c862fcef616a600e2f6af217a2f4826b2c3b6288b03ea",
+        "gradle/wrapper/gradle-wrapper.properties": "62ae4f9b02195b38150d80331889fe7732475a49ff77789a28beb771388d78da"
+      },
+      "delta_counts": {
+        "source_only": 29,
+        "different": 290,
+        "target_only": 91
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 5,
+          "resources": 9
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 11,
+          "java-other": 57,
+          "mixins": 35,
+          "modules": 153,
+          "music": 2,
+          "resources": 4,
+          "seed": 2,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 3,
+          "mixins": 2,
+          "modules": 6,
+          "resources": 17,
+          "seed": 1,
+          "tests": 43
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.0",
+        "upstream_sha256": "52f8e11d95cf65710a051710334556e0d99494f1ce33ea9775d43f36c2d4cce9",
+        "solver_file": "seedfinding-2.15.0.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "2f637f8a5ccbb7c34237d94d222b502de03d14c64144dce83e50babcafe0779b",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21.1",
+      "loader": "Forge",
+      "minecraft": "1.21.1",
+      "mod_version": "1.5.2-Forge-1.21.1",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "jarJar",
+      "source_files": 1612,
+      "source_sha256": "232e9b6293b7066dca2480413505587265d8c9fe29264b89208965a8cb432d26",
+      "build_input_sha256": {
+        "build.gradle": "600782c0697a97d14323a3226104921a2bff2ac5628912fd4fdeb86e6b156be2",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "42dbffe026c91232e01b19d215c8e9ff491a6a0e35532ee150c0ec3193ba6ace",
+        "gradle/wrapper/gradle-wrapper.properties": "62ae4f9b02195b38150d80331889fe7732475a49ff77789a28beb771388d78da"
+      },
+      "delta_counts": {
+        "source_only": 29,
+        "different": 289,
+        "target_only": 91
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 5,
+          "resources": 9
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 11,
+          "java-other": 57,
+          "mixins": 35,
+          "modules": 152,
+          "music": 2,
+          "resources": 4,
+          "seed": 2,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 3,
+          "mixins": 2,
+          "modules": 6,
+          "resources": 17,
+          "seed": 1,
+          "tests": 43
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.0",
+        "upstream_sha256": "52f8e11d95cf65710a051710334556e0d99494f1ce33ea9775d43f36c2d4cce9",
+        "solver_file": "seedfinding-2.15.0.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "2f637f8a5ccbb7c34237d94d222b502de03d14c64144dce83e50babcafe0779b",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21.3",
+      "loader": "Forge",
+      "minecraft": "1.21.3",
+      "mod_version": "1.5.2-Forge-1.21.3",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "allJar",
+      "source_files": 1639,
+      "source_sha256": "3d00532527e6c43af588f0f4b9a188bd632bb3df77faff8bd71bbddebcdc0a25",
+      "build_input_sha256": {
+        "build.gradle": "a7e020a9bee11177686b39f734cb172198dd821bd5ab178b920863a4fae08550",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "5a96fb0e687e9f0c6a4a0232af77edef85a5f005225c499434471f877251fbd5",
+        "gradle/wrapper/gradle-wrapper.properties": "1c88626839a7658437398e8fe9c377851190c3ff2c08f1d0959a900b88a806e5"
+      },
+      "delta_counts": {
+        "source_only": 32,
+        "different": 350,
+        "target_only": 121
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 7,
+          "resources": 10
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 13,
+          "java-other": 72,
+          "mixins": 49,
+          "modules": 178,
+          "music": 2,
+          "resources": 7,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 12,
+          "mixins": 18,
+          "modules": 6,
+          "resources": 21,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.1",
+        "upstream_sha256": "a1529a9c69332c9f5f96c73044b9cfe02f65c355045f99aec8178daebe4f7b76",
+        "solver_file": "seedfinding-2.15.1.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "014bf18c76231b7f0b6ae229f041e0c495456349d65909c3d1ef75d4e8b14471",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21.4",
+      "loader": "Forge",
+      "minecraft": "1.21.4",
+      "mod_version": "1.5.2-Forge-1.21.4",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "allJar",
+      "source_files": 1633,
+      "source_sha256": "9a7209a266934ef8d6b2faeb0b84c776d1f4d65eae61c85372ce87a4f2578404",
+      "build_input_sha256": {
+        "build.gradle": "7bdb9b8c8d21a68fc3e43bba300920776ed1786853ab803f2a8b9c60de377178",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "3b0acbd0af760a183f77e975f083108aa0275a2365d07d3524d0085b21c24165",
+        "gradle/wrapper/gradle-wrapper.properties": "1c88626839a7658437398e8fe9c377851190c3ff2c08f1d0959a900b88a806e5"
+      },
+      "delta_counts": {
+        "source_only": 38,
+        "different": 357,
+        "target_only": 121
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 7,
+          "resources": 16
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 13,
+          "java-other": 72,
+          "mixins": 51,
+          "modules": 184,
+          "music": 2,
+          "resources": 6,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 12,
+          "mixins": 18,
+          "modules": 6,
+          "resources": 21,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.2",
+        "upstream_sha256": "5c961e6a3d24b81fe4d0ee58635911d941a58e192bd7a934808a9f27841ca06a",
+        "solver_file": "seedfinding-2.15.2.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "6f23cdf8cd3739137c49216e15e46164ef83ae7831cfb20d16375dc91ffdadab",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21.5",
+      "loader": "Forge",
+      "minecraft": "1.21.5",
+      "mod_version": "1.5.2-Forge-1.21.5",
+      "role": "target",
+      "band": "B3-java21-components",
+      "jdk": 21,
+      "production_task": "allJar",
+      "source_files": 1640,
+      "source_sha256": "0fc7355d0aed6bc1d2a88b330902ddc7c58eadaf8b148bbb51c2ffaa0f0eeb6f",
+      "build_input_sha256": {
+        "build.gradle": "7b86c01f10259197d0cb5fe2fc60e0653ca44f524f42183525a1f39af1dbeb38",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "2a116b7730f6f9080ea1f43ff30ce813b58081e3ef0aefe10396229abe46692e",
+        "gradle/wrapper/gradle-wrapper.properties": "1c88626839a7658437398e8fe9c377851190c3ff2c08f1d0959a900b88a806e5"
+      },
+      "delta_counts": {
+        "source_only": 32,
+        "different": 404,
+        "target_only": 122
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 13,
+          "java-other": 1,
+          "mixins": 8,
+          "resources": 10
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 17,
+          "java-other": 79,
+          "mixins": 56,
+          "modules": 214,
+          "music": 2,
+          "resources": 7,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 13,
+          "mixins": 13,
+          "modules": 7,
+          "resources": 24,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.3",
+        "upstream_sha256": "2e4d1c106a1f24e7f27a3ae0a2a5ea7fdd633daf39ee3d245b6861b760bd4486",
+        "solver_file": "seedfinding-2.15.3.jar",
+        "solver_sha256": "ff0c1928f71e0ea0ea190bfb59a769dea71cf84dc5ca46646f40824048c09a0d",
+        "source_files": 67,
+        "source_sha256": "821fd38d84dfb0c4fc36f8cf662d766f782aea356dc722ed14012ce4a6155882",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21.6",
+      "loader": "Forge",
+      "minecraft": "1.21.6",
+      "mod_version": "1.5.2-Forge-1.21.6",
+      "role": "target",
+      "band": "B4-java21-gui-state",
+      "jdk": 21,
+      "production_task": "allJar",
+      "source_files": 1647,
+      "source_sha256": "b0a661137d0e3fb6c94437798c8cb47cb3bcf1573bea89f6c6cf655607a0f5ab",
+      "build_input_sha256": {
+        "build.gradle": "fb0fb903c4ad272461f7ddb601d28053d451a3aa72bafcd24bbeed7ad6be1d59",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "d3bcd304afdc7c69e19169484edd37354a3f8c984d98077a490963fd08e0aead",
+        "gradle/wrapper/gradle-wrapper.properties": "1c88626839a7658437398e8fe9c377851190c3ff2c08f1d0959a900b88a806e5"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 503,
+        "target_only": 140
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 17,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 18,
+          "java-other": 107,
+          "mixins": 67,
+          "modules": 245,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 24,
+          "modules": 7,
+          "resources": 26,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.4",
+        "upstream_sha256": "17773800aa5366838aadb2d8b98eaa9a8e03c8ba3b2276c53085e10700e96e24",
+        "solver_file": "seedfinding-2.15.4.jar",
+        "solver_sha256": "55dbae49e494c6fb3ca46342ce40a225019ccc01240b9ad2da8b49fb76bc1316",
+        "source_files": 67,
+        "source_sha256": "a5d76c9e82443c8178bc9d737748f1e0a5463a8227e19bd979ac2cf1a502d8ed",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21.7",
+      "loader": "Forge",
+      "minecraft": "1.21.7",
+      "mod_version": "1.5.2-Forge-1.21.7",
+      "role": "target",
+      "band": "B4-java21-gui-state",
+      "jdk": 21,
+      "production_task": "allJar",
+      "source_files": 1649,
+      "source_sha256": "3ed7b5183da0f27cb06cc8088dfceb24f560313a022e5434f67c7c57a244a976",
+      "build_input_sha256": {
+        "build.gradle": "f13b63fa16b816d4b00f700321a900c83c3359e14dd3aa99df7672cb8d38c1ae",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "e1b0af195151ff9b6eb01cc7f78e973868db8b67680f5c5bc45b5c8898fe6a69",
+        "gradle/wrapper/gradle-wrapper.properties": "1c88626839a7658437398e8fe9c377851190c3ff2c08f1d0959a900b88a806e5"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 503,
+        "target_only": 142
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 17,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 18,
+          "java-other": 107,
+          "mixins": 67,
+          "modules": 245,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 25,
+          "modules": 7,
+          "resources": 26,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.4",
+        "upstream_sha256": "17773800aa5366838aadb2d8b98eaa9a8e03c8ba3b2276c53085e10700e96e24",
+        "solver_file": "seedfinding-2.15.4.jar",
+        "solver_sha256": "55dbae49e494c6fb3ca46342ce40a225019ccc01240b9ad2da8b49fb76bc1316",
+        "source_files": 67,
+        "source_sha256": "a5d76c9e82443c8178bc9d737748f1e0a5463a8227e19bd979ac2cf1a502d8ed",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21.8",
+      "loader": "Forge",
+      "minecraft": "1.21.8",
+      "mod_version": "1.5.2-Forge-1.21.8",
+      "role": "target",
+      "band": "B4-java21-gui-state",
+      "jdk": 21,
+      "production_task": "allJar",
+      "source_files": 1648,
+      "source_sha256": "983566755bdf6d8deb6a9d984f588f6b188390e59f6f7389c00100ee7eb44ae9",
+      "build_input_sha256": {
+        "build.gradle": "c48ff069c82c85276b34e9ed8f20728a01534ab9b77a0a4868082eca00d59cc5",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "fbc1923a075422c7f92fee64e067bdd6368324e0e146caba4a3c2a6850acba51",
+        "gradle/wrapper/gradle-wrapper.properties": "1c88626839a7658437398e8fe9c377851190c3ff2c08f1d0959a900b88a806e5"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 505,
+        "target_only": 141
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 17,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 18,
+          "java-other": 108,
+          "mixins": 68,
+          "modules": 245,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 25,
+          "modules": 7,
+          "resources": 26,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.4",
+        "upstream_sha256": "17773800aa5366838aadb2d8b98eaa9a8e03c8ba3b2276c53085e10700e96e24",
+        "solver_file": "seedfinding-2.15.4.jar",
+        "solver_sha256": "55dbae49e494c6fb3ca46342ce40a225019ccc01240b9ad2da8b49fb76bc1316",
+        "source_files": 67,
+        "source_sha256": "a5d76c9e82443c8178bc9d737748f1e0a5463a8227e19bd979ac2cf1a502d8ed",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21.9",
+      "loader": "Forge",
+      "minecraft": "1.21.9",
+      "mod_version": "1.5.2-Forge-1.21.9",
+      "role": "target",
+      "band": "B5-java21-event-input",
+      "jdk": 21,
+      "production_task": "allJar",
+      "source_files": 1649,
+      "source_sha256": "669c37fcb566936bfd3716f6b42bb8a3611d11e9223a28e41777d6787980fc95",
+      "build_input_sha256": {
+        "build.gradle": "c98049591920481e694969b4d67c433102345b0953b4ed90c0ca012cf306c9ae",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "4301e04533caa37f6bdfab042185da09bbde8d7a95f48ae8ea3349aa7fa56a22",
+        "gradle/wrapper/gradle-wrapper.properties": "1c88626839a7658437398e8fe9c377851190c3ff2c08f1d0959a900b88a806e5"
+      },
+      "delta_counts": {
+        "source_only": 44,
+        "different": 521,
+        "target_only": 143
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 19,
+          "java-other": 110,
+          "mixins": 70,
+          "modules": 256,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 27,
+          "modules": 7,
+          "resources": 26,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.5",
+        "upstream_sha256": "0d3860596669f804dd81446b971ce3a8f77d5f69827f2e1a8b3c1fb1ee3fcc81",
+        "solver_file": "seedfinding-2.15.5.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "670918bb43b39423fbd92e4d3f914d1f203b7cd74af381f7a98766294e7c5aee",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21.10",
+      "loader": "Forge",
+      "minecraft": "1.21.10",
+      "mod_version": "1.5.2-Forge-1.21.10",
+      "role": "target",
+      "band": "B5-java21-event-input",
+      "jdk": 21,
+      "production_task": "allJar",
+      "source_files": 1650,
+      "source_sha256": "485308a1e3996c53f19d6331f28ac881ed45da3425c3fe084c3b5b7b93e5763a",
+      "build_input_sha256": {
+        "build.gradle": "c98049591920481e694969b4d67c433102345b0953b4ed90c0ca012cf306c9ae",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "4e46e4a69c5fbfdc8980c88cfc8f3db43b36ffb5207b191474fa88db3effb080",
+        "gradle/wrapper/gradle-wrapper.properties": "1c88626839a7658437398e8fe9c377851190c3ff2c08f1d0959a900b88a806e5"
+      },
+      "delta_counts": {
+        "source_only": 44,
+        "different": 521,
+        "target_only": 144
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 19,
+          "java-other": 110,
+          "mixins": 70,
+          "modules": 256,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 28,
+          "modules": 7,
+          "resources": 26,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.5",
+        "upstream_sha256": "0d3860596669f804dd81446b971ce3a8f77d5f69827f2e1a8b3c1fb1ee3fcc81",
+        "solver_file": "seedfinding-2.15.5.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "670918bb43b39423fbd92e4d3f914d1f203b7cd74af381f7a98766294e7c5aee",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/1.21.11",
+      "loader": "Forge",
+      "minecraft": "1.21.11",
+      "mod_version": "1.5.2-Forge-1.21.11",
+      "role": "target",
+      "band": "B6-java21-render-setup",
+      "jdk": 21,
+      "production_task": "allJar",
+      "source_files": 1655,
+      "source_sha256": "3e348447ace9d3ded72f92cb986b0a94adc4ff929da2132e4893ca66336da2b5",
+      "build_input_sha256": {
+        "build.gradle": "c8d195a8cda285094289b542814906930b5e0abaa464e5aa26ccb218d53cec8b",
+        "settings.gradle": "382de5b87a114bcd3c21433e5959fe96a95e34422aca4ebd90fd53fb8ab29bd9",
+        "gradle.properties": "c420306be6f57f615664e71414f3dd406e930c4c7aef4236cc2aa690c089b556",
+        "gradle/wrapper/gradle-wrapper.properties": "1c88626839a7658437398e8fe9c377851190c3ff2c08f1d0959a900b88a806e5"
+      },
+      "delta_counts": {
+        "source_only": 44,
+        "different": 552,
+        "target_only": 149
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 22,
+          "java-other": 127,
+          "mixins": 71,
+          "modules": 266,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 30,
+          "modules": 10,
+          "resources": 26,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.6",
+        "upstream_sha256": "8695edc230f832339dc53c6fe3543e6d507ac054ef775082083b819fa8b4f227",
+        "solver_file": "seedfinding-2.15.6.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "8e0405ba48a073c38e3c9eb674c5e34c0a4ca33d0f02927d3d410c70e80c9ba7",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/26.1",
+      "loader": "Forge",
+      "minecraft": "26.1",
+      "mod_version": "1.5.2-Forge-26.1",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "allJar",
+      "source_files": 1662,
+      "source_sha256": "d03ffc28b983b73d4ed27c3e54d2926d39f3e5c8ef186edd2e3fdf1cf0223794",
+      "build_input_sha256": {
+        "build.gradle": "e6eb10884e8a7a473ad87cd72f29e3ea2688441ba3c50270bc5d1ad166447004",
+        "settings.gradle": "12ac152c2e9930a8a9d6ea3c3671621c73573bed675a302ebc26da860134733b",
+        "gradle.properties": "563a0c2add9a3232e45264c861e3f3f16074e40e000824b368dc58d908b66e58",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 583,
+        "target_only": 155
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 24,
+          "java-other": 147,
+          "mixins": 78,
+          "modules": 270,
+          "music": 2,
+          "resources": 6,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 18,
+          "mixins": 34,
+          "modules": 10,
+          "resources": 27,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.16.0",
+        "upstream_sha256": "652d0f13339e54b0b1087431e343db18b2b2ea1b4f546215d31da0abd823217d",
+        "solver_file": "seedfinding-2.16.0.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "0cf2d6b18d1122fcad4e3c3a9f67cd6a16c0a1c86d89c11e6d93dc8417d65030",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/26.1.1",
+      "loader": "Forge",
+      "minecraft": "26.1.1",
+      "mod_version": "1.5.2-Forge-26.1.1",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "allJar",
+      "source_files": 1662,
+      "source_sha256": "ea7b4f0e2f0ad3cc6905d049644b707b7f6b29f642153c03e1032249ccc9a770",
+      "build_input_sha256": {
+        "build.gradle": "e6eb10884e8a7a473ad87cd72f29e3ea2688441ba3c50270bc5d1ad166447004",
+        "settings.gradle": "12ac152c2e9930a8a9d6ea3c3671621c73573bed675a302ebc26da860134733b",
+        "gradle.properties": "b121dd0142ff2ea59e007d4a14f8026ae6ebb9da0eb9776c69384c56cb9f094c",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 583,
+        "target_only": 155
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 24,
+          "java-other": 147,
+          "mixins": 78,
+          "modules": 270,
+          "music": 2,
+          "resources": 6,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 18,
+          "mixins": 34,
+          "modules": 10,
+          "resources": 27,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.16.0",
+        "upstream_sha256": "652d0f13339e54b0b1087431e343db18b2b2ea1b4f546215d31da0abd823217d",
+        "solver_file": "seedfinding-2.16.0.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "0cf2d6b18d1122fcad4e3c3a9f67cd6a16c0a1c86d89c11e6d93dc8417d65030",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/26.1.2",
+      "loader": "Forge",
+      "minecraft": "26.1.2",
+      "mod_version": "1.5.2-Forge-26.1.2",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "allJar",
+      "source_files": 1662,
+      "source_sha256": "f4dd8f901caa64389e9ba2a5613964004d291ccd18ab71d102a2a33e43cc2e81",
+      "build_input_sha256": {
+        "build.gradle": "e6eb10884e8a7a473ad87cd72f29e3ea2688441ba3c50270bc5d1ad166447004",
+        "settings.gradle": "12ac152c2e9930a8a9d6ea3c3671621c73573bed675a302ebc26da860134733b",
+        "gradle.properties": "be8f8dae395f29a5cc02272913e3e2bbd7169f3ed36ca9060de224acb7af7d20",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 585,
+        "target_only": 155
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 24,
+          "java-other": 149,
+          "mixins": 78,
+          "modules": 270,
+          "music": 2,
+          "resources": 6,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 18,
+          "mixins": 34,
+          "modules": 10,
+          "resources": 27,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.16.0",
+        "upstream_sha256": "652d0f13339e54b0b1087431e343db18b2b2ea1b4f546215d31da0abd823217d",
+        "solver_file": "seedfinding-2.16.0.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "0cf2d6b18d1122fcad4e3c3a9f67cd6a16c0a1c86d89c11e6d93dc8417d65030",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/26.2",
+      "loader": "Forge",
+      "minecraft": "26.2",
+      "mod_version": "1.5.2-Forge-26.2",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "allJar",
+      "source_files": 1663,
+      "source_sha256": "ffcbf0e241494f622319c0b1110fa8d2ba02a602be82c421e1ed4f5306bc5d5d",
+      "build_input_sha256": {
+        "build.gradle": "3709247d30871a68b9775dabea10a664b350d3ba3f5f4d7b17bd1ca43467af9f",
+        "settings.gradle": "12ac152c2e9930a8a9d6ea3c3671621c73573bed675a302ebc26da860134733b",
+        "gradle.properties": "0831856b7cfc3aa253f13e8d4dc30a4a045d6deb99ae5678b2a52946e7351fa0",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 44,
+        "different": 631,
+        "target_only": 157
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 57,
+          "hud-render": 26,
+          "java-other": 153,
+          "mixins": 80,
+          "modules": 300,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 19,
+          "mixins": 35,
+          "modules": 10,
+          "resources": 27,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.16.1",
+        "upstream_sha256": "657a6b998d7dc4e5e2c6b7ebd5e2268cfb79c1b6bc4e5976294c3c5b3fcdf89e",
+        "solver_file": "seedfinding-2.16.1.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "267ef8c97ba7dfad55624fe9f57aee48c4e472359c7eba97600a9b358983adfe",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "versions/26.3",
+      "loader": "Forge",
+      "minecraft": "26.3",
+      "mod_version": "1.5.2-Forge-26.3",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "allJar",
+      "source_files": 1671,
+      "source_sha256": "c7947f2674f25b3c8a3b528b9f7c3498d130cb9349aa53d529886fb9e17ddd1b",
+      "build_input_sha256": {
+        "build.gradle": "2532cbf8d611a10503a1bf0a44a7d6a34413003f5f634fbe1b52b11059d396df",
+        "settings.gradle": "12ac152c2e9930a8a9d6ea3c3671621c73573bed675a302ebc26da860134733b",
+        "gradle.properties": "a52d88061b12f8f3b4981f9ac54f60f50f905a1cf8ea2680292f9c9439649476",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 45,
+        "different": 649,
+        "target_only": 166
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 19,
+          "resources": 10
+        },
+        "different": {
+          "gui": 60,
+          "hud-render": 26,
+          "java-other": 157,
+          "mixins": 81,
+          "modules": 305,
+          "music": 2,
+          "resources": 10,
+          "seed": 3,
+          "tests": 5
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 20,
+          "mixins": 41,
+          "modules": 10,
+          "resources": 29,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.16.2",
+        "upstream_sha256": "1767404627d633e033d73b499cb4db27597eebfedf2c1c160df2dfbc42748614",
+        "solver_file": "seedfinding-2.16.2.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "6883743e4bc72f5571e8c02501635eeb2ff00b0da9cd47c818c9f02f265f2788",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.20.2",
+      "loader": "Fabric",
+      "minecraft": "1.20.2",
+      "mod_version": "1.5.2-Fabric-1.20.2",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "remapJar",
+      "source_files": 1552,
+      "source_sha256": "a60ce4214dfaef8897dc349274f542743788b9fe68c745d10ab30e169d40f828",
+      "build_input_sha256": {
+        "build.gradle": "1a9ba37d6e67d8fa49f890ef36a1f32c2c9172b7e6c4fab2508574c0d5757503",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "5d353b001318f97411672265b89c90eaad1d290909742c55ea82423c6961b31a",
+        "gradle/wrapper/gradle-wrapper.properties": "540ddf3a740c593398d65a8bc12eba639427b2344759af35080ab522be9b3294"
+      },
+      "delta_counts": {
+        "source_only": 0,
+        "different": 81,
+        "target_only": 2
+      },
+      "delta_categories": {
+        "source_only": {},
+        "different": {
+          "gui": 16,
+          "hud-render": 6,
+          "java-other": 24,
+          "mixins": 12,
+          "modules": 16,
+          "music": 1,
+          "resources": 5,
+          "seed": 1
+        },
+        "target_only": {
+          "hud-render": 1,
+          "mixins": 1
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.14.6",
+        "minecraft_range": ">=1.20.2",
+        "sha256": "a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.20.3",
+      "loader": "Fabric",
+      "minecraft": "1.20.3",
+      "mod_version": "1.5.2-Fabric-1.20.3",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "remapJar",
+      "source_files": 1551,
+      "source_sha256": "09474277df233e2aee16f67f4dce9f71bef7b5e8dd11fa2e3669599d9be38f9c",
+      "build_input_sha256": {
+        "build.gradle": "4382c032cefe55470a589ee9114dc951b119397e107353fe60a94afdd4c71a12",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "358d87709a413078e6a18d11eee83b7ee4d2659cc0dfebbe071f05088f883043",
+        "gradle/wrapper/gradle-wrapper.properties": "540ddf3a740c593398d65a8bc12eba639427b2344759af35080ab522be9b3294"
+      },
+      "delta_counts": {
+        "source_only": 1,
+        "different": 82,
+        "target_only": 2
+      },
+      "delta_categories": {
+        "source_only": {
+          "mixins": 1
+        },
+        "different": {
+          "gui": 17,
+          "hud-render": 6,
+          "java-other": 24,
+          "mixins": 13,
+          "modules": 15,
+          "music": 1,
+          "resources": 5,
+          "seed": 1
+        },
+        "target_only": {
+          "hud-render": 1,
+          "mixins": 1
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.14.6",
+        "minecraft_range": ">=1.20.2",
+        "sha256": "a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.20.4",
+      "loader": "Fabric",
+      "minecraft": "1.20.4",
+      "mod_version": "1.5.2-Fabric-1.20.4",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "remapJar",
+      "source_files": 1551,
+      "source_sha256": "f760951df894e9c7ead4a22ed694a72a334647dce3513c82a3bdb97a5d488469",
+      "build_input_sha256": {
+        "build.gradle": "dca0055d00f4df0938710e11f4dc783ab3f43ea3d50f85bdfc463cbc51b510a4",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "c69356c0b6aedff738bf7a5c3c803c59a7921cc63b219467c4a3682712de6392",
+        "gradle/wrapper/gradle-wrapper.properties": "540ddf3a740c593398d65a8bc12eba639427b2344759af35080ab522be9b3294"
+      },
+      "delta_counts": {
+        "source_only": 1,
+        "different": 82,
+        "target_only": 2
+      },
+      "delta_categories": {
+        "source_only": {
+          "mixins": 1
+        },
+        "different": {
+          "gui": 17,
+          "hud-render": 6,
+          "java-other": 24,
+          "mixins": 13,
+          "modules": 15,
+          "music": 1,
+          "resources": 5,
+          "seed": 1
+        },
+        "target_only": {
+          "hud-render": 1,
+          "mixins": 1
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.14.6",
+        "minecraft_range": ">=1.20.2",
+        "sha256": "a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.20.5",
+      "loader": "Fabric",
+      "minecraft": "1.20.5",
+      "mod_version": "1.5.2-Fabric-1.20.5",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1602,
+      "source_sha256": "76a96c2ca05f065274e079be0796b50dbd1c08ec2a7b5923f11eca1afe419260",
+      "build_input_sha256": {
+        "build.gradle": "616b7cf0e80e55868961b620b406da62a62930aad7567540fb409c9edaf2a964",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "9540a39c3b50b84cb74374c99813f2c94251b9a8130f5a5f26af78a366a42984",
+        "gradle/wrapper/gradle-wrapper.properties": "540ddf3a740c593398d65a8bc12eba639427b2344759af35080ab522be9b3294"
+      },
+      "delta_counts": {
+        "source_only": 4,
+        "different": 219,
+        "target_only": 56
+      },
+      "delta_categories": {
+        "source_only": {
+          "mixins": 4
+        },
+        "different": {
+          "gui": 21,
+          "hud-render": 11,
+          "java-other": 46,
+          "mixins": 30,
+          "modules": 100,
+          "music": 2,
+          "resources": 7,
+          "seed": 2
+        },
+        "target_only": {
+          "gui": 44,
+          "hud-render": 1,
+          "java-other": 2,
+          "mixins": 2,
+          "modules": 5,
+          "tests": 2
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.14.7-wurstb-mc1.20.5",
+        "minecraft_range": "1.20.5",
+        "sha256": "954fe46f3e3d58eab0a1de6923663f8b30e836a5a52f011271ec6419171b9460",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.20.6",
+      "loader": "Fabric",
+      "minecraft": "1.20.6",
+      "mod_version": "1.5.2-Fabric-1.20.6",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1602,
+      "source_sha256": "c32305785d43ffabe0a03a9c9957b633cbc9ef72d744dcbee222932239891681",
+      "build_input_sha256": {
+        "build.gradle": "1156263427e51d1210a8aa2545992ac9c738950797a53b770fbd31a5b9453ec2",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "566c915745b013fac7762659c820418f4587d42ba8f29bb8b7609e7f8a54d7e3",
+        "gradle/wrapper/gradle-wrapper.properties": "540ddf3a740c593398d65a8bc12eba639427b2344759af35080ab522be9b3294"
+      },
+      "delta_counts": {
+        "source_only": 4,
+        "different": 219,
+        "target_only": 56
+      },
+      "delta_categories": {
+        "source_only": {
+          "mixins": 4
+        },
+        "different": {
+          "gui": 21,
+          "hud-render": 11,
+          "java-other": 46,
+          "mixins": 30,
+          "modules": 100,
+          "music": 2,
+          "resources": 7,
+          "seed": 2
+        },
+        "target_only": {
+          "gui": 44,
+          "hud-render": 1,
+          "java-other": 2,
+          "mixins": 2,
+          "modules": 5,
+          "tests": 2
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.14.7",
+        "minecraft_range": "1.20.6",
+        "sha256": "f453bae397cfa66f1667e0ed3ce1983c96006ddde9b90b40ead260fd80a1cded",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21",
+      "loader": "Fabric",
+      "minecraft": "1.21",
+      "mod_version": "1.5.2-Fabric-1.21",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1601,
+      "source_sha256": "4fe63326c7fc4325ec52485f44519c24eaf54704435455abf79da204aa91de9f",
+      "build_input_sha256": {
+        "build.gradle": "e6563cc418f0baca2473d6b5fbfe374262638c3a357c20a3494d8a1d7a05dbf1",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "678f9c9effbebec76d85ff0846daab6d53c1c34db5983599aca1e9dfc1b2056f",
+        "gradle/wrapper/gradle-wrapper.properties": "540ddf3a740c593398d65a8bc12eba639427b2344759af35080ab522be9b3294"
+      },
+      "delta_counts": {
+        "source_only": 6,
+        "different": 275,
+        "target_only": 57
+      },
+      "delta_categories": {
+        "source_only": {
+          "mixins": 5,
+          "resources": 1
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 11,
+          "java-other": 55,
+          "mixins": 35,
+          "modules": 139,
+          "music": 2,
+          "resources": 7,
+          "seed": 2
+        },
+        "target_only": {
+          "gui": 44,
+          "hud-render": 1,
+          "java-other": 2,
+          "mixins": 2,
+          "modules": 6,
+          "tests": 2
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.0",
+        "minecraft_range": ">=1.21 <=1.21.1",
+        "sha256": "52f8e11d95cf65710a051710334556e0d99494f1ce33ea9775d43f36c2d4cce9",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.1",
+      "loader": "Fabric",
+      "minecraft": "1.21.1",
+      "mod_version": "1.5.2-Fabric-1.21.1",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1641,
+      "source_sha256": "14d738b166d1893d5e3271251d177d9eb0bd5bcb53ff0e93418913c2601bbe3f",
+      "build_input_sha256": {
+        "build.gradle": "57cc9fb6ea3a57ce2cd29415e81f84c7243926c68b0bec4d613c124b32a8dd83",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "bb5fac4e63ab69276457d570cd1e0d6307e6905f68bc7bc9cc95024d24f1bb86",
+        "gradle/wrapper/gradle-wrapper.properties": "540ddf3a740c593398d65a8bc12eba639427b2344759af35080ab522be9b3294"
+      },
+      "delta_counts": {
+        "source_only": 6,
+        "different": 275,
+        "target_only": 97
+      },
+      "delta_categories": {
+        "source_only": {
+          "mixins": 5,
+          "resources": 1
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 11,
+          "java-other": 55,
+          "mixins": 35,
+          "modules": 139,
+          "music": 2,
+          "resources": 7,
+          "seed": 2
+        },
+        "target_only": {
+          "gui": 44,
+          "hud-render": 1,
+          "java-other": 2,
+          "mixins": 2,
+          "modules": 6,
+          "tests": 42
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.0",
+        "minecraft_range": ">=1.21 <=1.21.1",
+        "sha256": "52f8e11d95cf65710a051710334556e0d99494f1ce33ea9775d43f36c2d4cce9",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.2",
+      "loader": "Fabric",
+      "minecraft": "1.21.2",
+      "mod_version": "1.5.2-Fabric-1.21.2",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1607,
+      "source_sha256": "d6e8721f132b74f60963eba2a2266a47fc41c64a3c69af2a0428ebc167ab1676",
+      "build_input_sha256": {
+        "build.gradle": "8c6af6a3f840c4259664ec41c3cc7644e03983ced1542dd9b51d1b821774c5a6",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "38ba24f0a5a08cd250de2911de54f4a7dd9dff6a0988f3c1f58ce03202465a14",
+        "gradle/wrapper/gradle-wrapper.properties": "540ddf3a740c593398d65a8bc12eba639427b2344759af35080ab522be9b3294"
+      },
+      "delta_counts": {
+        "source_only": 9,
+        "different": 339,
+        "target_only": 66
+      },
+      "delta_categories": {
+        "source_only": {
+          "mixins": 7,
+          "resources": 2
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 13,
+          "java-other": 68,
+          "mixins": 47,
+          "modules": 173,
+          "music": 2,
+          "resources": 9,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 44,
+          "hud-render": 1,
+          "java-other": 4,
+          "mixins": 4,
+          "modules": 6,
+          "resources": 5,
+          "tests": 2
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.1",
+        "minecraft_range": ">=1.21.2 <=1.21.3",
+        "sha256": "a1529a9c69332c9f5f96c73044b9cfe02f65c355045f99aec8178daebe4f7b76",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.3",
+      "loader": "Fabric",
+      "minecraft": "1.21.3",
+      "mod_version": "1.5.2-Fabric-1.21.3",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1647,
+      "source_sha256": "39d3401f16988114c900e29a2daaa0ad70f144185240d2b5d40babfb87259916",
+      "build_input_sha256": {
+        "build.gradle": "d5df0ee5235fdf445923dde468ead4fafba0f5e98000320b68c57d95e24868e6",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "bce5604409ecdacbb339da6d584d45299328f54c76bb7e3c6a973cab4756a5ac",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 9,
+        "different": 340,
+        "target_only": 106
+      },
+      "delta_categories": {
+        "source_only": {
+          "mixins": 7,
+          "resources": 2
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 13,
+          "java-other": 68,
+          "mixins": 47,
+          "modules": 173,
+          "music": 2,
+          "resources": 10,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 44,
+          "hud-render": 1,
+          "java-other": 4,
+          "mixins": 4,
+          "modules": 6,
+          "resources": 5,
+          "tests": 42
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.1",
+        "minecraft_range": ">=1.21.2 <=1.21.3",
+        "sha256": "a1529a9c69332c9f5f96c73044b9cfe02f65c355045f99aec8178daebe4f7b76",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.4",
+      "loader": "Fabric",
+      "minecraft": "1.21.4",
+      "mod_version": "1.5.2-Fabric-1.21.4",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1642,
+      "source_sha256": "c44c07bd6ef2c1db2e83c556c89533095a306a3ed82c9eb28864e39555935234",
+      "build_input_sha256": {
+        "build.gradle": "53b8404934a17a49360c68e311f20efd160999b3d2f3000d43dd75fc67b05361",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "edf55095fafe2b59715e6bd52b482a84022eea886e9683c5b3e2b3481f064916",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 14,
+        "different": 347,
+        "target_only": 106
+      },
+      "delta_categories": {
+        "source_only": {
+          "mixins": 7,
+          "resources": 7
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 13,
+          "java-other": 68,
+          "mixins": 49,
+          "modules": 179,
+          "music": 2,
+          "resources": 9,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 44,
+          "hud-render": 1,
+          "java-other": 4,
+          "mixins": 4,
+          "modules": 6,
+          "resources": 5,
+          "tests": 42
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.2",
+        "minecraft_range": ">=1.21.4 <=1.21.4",
+        "sha256": "5c961e6a3d24b81fe4d0ee58635911d941a58e192bd7a934808a9f27841ca06a",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.5",
+      "loader": "Fabric",
+      "minecraft": "1.21.5",
+      "mod_version": "1.5.2-Fabric-1.21.5",
+      "role": "target",
+      "band": "B3-java21-components",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1647,
+      "source_sha256": "e79794a96ff533c4e317f016f34427b72cf17470756347bdd0fa8e8769e0421e",
+      "build_input_sha256": {
+        "build.gradle": "1e0a61669a5703d4c8b5f1bb6cb4ebf2574cd11a722b37a767a42a30bc1ed78f",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "4dca4ea7ab09abbee27bcf4e288a45aa2018fd3bc94e84e518bc83914aaac6ca",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 10,
+        "different": 399,
+        "target_only": 107
+      },
+      "delta_categories": {
+        "source_only": {
+          "mixins": 8,
+          "resources": 2
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 17,
+          "java-other": 76,
+          "mixins": 56,
+          "modules": 211,
+          "music": 2,
+          "resources": 10,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 42,
+          "hud-render": 1,
+          "java-other": 6,
+          "mixins": 4,
+          "modules": 7,
+          "resources": 5,
+          "tests": 42
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.3",
+        "minecraft_range": ">=1.21.5 <1.22",
+        "sha256": "2e4d1c106a1f24e7f27a3ae0a2a5ea7fdd633daf39ee3d245b6861b760bd4486",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.6",
+      "loader": "Fabric",
+      "minecraft": "1.21.6",
+      "mod_version": "1.5.2-Fabric-1.21.6",
+      "role": "target",
+      "band": "B4-java21-gui-state",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1634,
+      "source_sha256": "0d6371a0d676941fa335c9ff0ad1794b6529a53b83daf4dfb6b115000ffdf951",
+      "build_input_sha256": {
+        "build.gradle": "b0d942d022e0d4b6146d3a0bb840b948ed8a0965b3894ae212f30ff1628d188d",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "fc71d0da90a912044660620a531fa8624c5c08e57fb967b4b794ffd4854a4fac",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 34,
+        "different": 501,
+        "target_only": 118
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 17,
+          "resources": 2
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 18,
+          "java-other": 106,
+          "mixins": 67,
+          "modules": 243,
+          "music": 2,
+          "resources": 11,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 17,
+          "mixins": 25,
+          "modules": 7,
+          "resources": 7,
+          "tests": 42
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.4",
+        "minecraft_range": ">=1.21.6 <1.22",
+        "sha256": "17773800aa5366838aadb2d8b98eaa9a8e03c8ba3b2276c53085e10700e96e24",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.7",
+      "loader": "Fabric",
+      "minecraft": "1.21.7",
+      "mod_version": "1.5.2-Fabric-1.21.7",
+      "role": "target",
+      "band": "B4-java21-gui-state",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1634,
+      "source_sha256": "14ec93cb767d82bf6f0cbce12ee77f00ff8519c03cf8b9d93ba75ed8869cd655",
+      "build_input_sha256": {
+        "build.gradle": "8bd55ef608a2211c4e7bc4e29243906aaf604e939b8065032af15328477c3d31",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "d8639bc5b19c8e3091435664844b2f22ceccee4d754ace6ae9af4ec3e1b0d5b0",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 34,
+        "different": 501,
+        "target_only": 118
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 17,
+          "resources": 2
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 18,
+          "java-other": 106,
+          "mixins": 67,
+          "modules": 243,
+          "music": 2,
+          "resources": 11,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 17,
+          "mixins": 25,
+          "modules": 7,
+          "resources": 7,
+          "tests": 42
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.4",
+        "minecraft_range": ">=1.21.6 <1.22",
+        "sha256": "17773800aa5366838aadb2d8b98eaa9a8e03c8ba3b2276c53085e10700e96e24",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.8",
+      "loader": "Fabric",
+      "minecraft": "1.21.8",
+      "mod_version": "1.5.2-Fabric-1.21.8",
+      "role": "target",
+      "band": "B4-java21-gui-state",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1635,
+      "source_sha256": "d94af76579e2577b984c145e6f82282f3ed31b5f501004df3d350fbda433e58d",
+      "build_input_sha256": {
+        "build.gradle": "b0d942d022e0d4b6146d3a0bb840b948ed8a0965b3894ae212f30ff1628d188d",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "7535a3c17811e23fedc39cc0d77afc050897e0833becb0396472217ae2ddeaf8",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 34,
+        "different": 503,
+        "target_only": 119
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 17,
+          "resources": 2
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 18,
+          "java-other": 107,
+          "mixins": 68,
+          "modules": 243,
+          "music": 2,
+          "resources": 11,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 17,
+          "mixins": 26,
+          "modules": 7,
+          "resources": 7,
+          "tests": 42
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.4",
+        "minecraft_range": ">=1.21.6 <1.22",
+        "sha256": "17773800aa5366838aadb2d8b98eaa9a8e03c8ba3b2276c53085e10700e96e24",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.9",
+      "loader": "Fabric",
+      "minecraft": "1.21.9",
+      "mod_version": "1.5.2-Fabric-1.21.9",
+      "role": "target",
+      "band": "B5-java21-event-input",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1637,
+      "source_sha256": "c121e6d9a2b8a5d091562a5a93f2ad733685030242e2ff48877f7a77e7f05960",
+      "build_input_sha256": {
+        "build.gradle": "2de1fad1c6716efeac97e724c092ddbafed17d67d6c4a9e763c8bb48ec82dc69",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "4a4e3cd5556d162a0d4caf0e6f764ac7daec65f51972e992fabe6081032c9199",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 35,
+        "different": 520,
+        "target_only": 122
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 18,
+          "resources": 2
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 19,
+          "java-other": 109,
+          "mixins": 70,
+          "modules": 255,
+          "music": 2,
+          "resources": 11,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 17,
+          "mixins": 29,
+          "modules": 7,
+          "resources": 7,
+          "tests": 42
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.5",
+        "minecraft_range": ">=1.21.9 <1.22",
+        "sha256": "0d3860596669f804dd81446b971ce3a8f77d5f69827f2e1a8b3c1fb1ee3fcc81",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.10",
+      "loader": "Fabric",
+      "minecraft": "1.21.10",
+      "mod_version": "1.5.2-Fabric-1.21.10",
+      "role": "target",
+      "band": "B5-java21-event-input",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1637,
+      "source_sha256": "ba6aa0a9bd9c2c534b38942f8a7a11902b14388890732b16f92a06cfbba6e808",
+      "build_input_sha256": {
+        "build.gradle": "2de1fad1c6716efeac97e724c092ddbafed17d67d6c4a9e763c8bb48ec82dc69",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "20d84bebc652c13096e0f08e0af7d7ba9aba0762e09b78ea4dbab7b3c9a8c4de",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 35,
+        "different": 520,
+        "target_only": 122
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 18,
+          "resources": 2
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 19,
+          "java-other": 109,
+          "mixins": 70,
+          "modules": 255,
+          "music": 2,
+          "resources": 11,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 17,
+          "mixins": 29,
+          "modules": 7,
+          "resources": 7,
+          "tests": 42
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.5",
+        "minecraft_range": ">=1.21.9 <1.22",
+        "sha256": "0d3860596669f804dd81446b971ce3a8f77d5f69827f2e1a8b3c1fb1ee3fcc81",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/1.21.11",
+      "loader": "Fabric",
+      "minecraft": "1.21.11",
+      "mod_version": "1.5.2-Fabric-1.21.11",
+      "role": "target",
+      "band": "B6-java21-render-setup",
+      "jdk": 21,
+      "production_task": "remapJar",
+      "source_files": 1643,
+      "source_sha256": "faa02d1b78edcc96e126820e80f791fa057468e8eeedce6d9c554b367baa17fe",
+      "build_input_sha256": {
+        "build.gradle": "bddabe0545b8160b103a600b06cf5b8fbdc110b9357d7ab2cc48930ac3648bfb",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "de90d5c27b2dc9fadff13e71b3ae697ac9c9cfc73ef94cb7c47579e404e3df4a",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 35,
+        "different": 551,
+        "target_only": 128
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 18,
+          "resources": 2
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 22,
+          "java-other": 126,
+          "mixins": 71,
+          "modules": 265,
+          "music": 2,
+          "resources": 11,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 17,
+          "mixins": 32,
+          "modules": 10,
+          "resources": 7,
+          "tests": 42
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.15.6",
+        "minecraft_range": ">=1.21.11 <1.22",
+        "sha256": "8695edc230f832339dc53c6fe3543e6d507ac054ef775082083b819fa8b4f227",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/26.1",
+      "loader": "Fabric",
+      "minecraft": "26.1",
+      "mod_version": "1.5.2-Fabric-26.1",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "jar",
+      "source_files": 1649,
+      "source_sha256": "2634db2fd4176500a00981b1a6ced6f2b2ebcefa69093075306ee925157547ae",
+      "build_input_sha256": {
+        "build.gradle": "f4e819000f5e9fb724939f392073a42550b3af9f277ed5089af0e575af00b479",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "4cff62cf4333c25783a4da4e61691dbf5e477abd7c00d78b74cd44fd8b35c85b",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 34,
+        "different": 583,
+        "target_only": 133
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "mixins": 18,
+          "resources": 2
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 24,
+          "java-other": 147,
+          "mixins": 78,
+          "modules": 269,
+          "music": 2,
+          "resources": 9,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 17,
+          "mixins": 35,
+          "modules": 10,
+          "resources": 8,
+          "tests": 42
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.16.0",
+        "minecraft_range": ">=26.1 <26.2",
+        "sha256": "652d0f13339e54b0b1087431e343db18b2b2ea1b4f546215d31da0abd823217d",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/26.1.1",
+      "loader": "Fabric",
+      "minecraft": "26.1.1",
+      "mod_version": "1.5.2-Fabric-26.1.1",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "jar",
+      "source_files": 1649,
+      "source_sha256": "8d77c3ff25a84e6ec97b08677156e2d2557a480acd46f3c99f70ab1db50cbcc8",
+      "build_input_sha256": {
+        "build.gradle": "781825cf12381c1778bb13371e01e16ccb825ab3c28f81e7ac7b8141df128994",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "2933f1a81b424cf70550d580484dd21dca636e65bfe767c21bb02a2381f1813a",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 34,
+        "different": 583,
+        "target_only": 133
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "mixins": 18,
+          "resources": 2
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 24,
+          "java-other": 147,
+          "mixins": 78,
+          "modules": 269,
+          "music": 2,
+          "resources": 9,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 17,
+          "mixins": 35,
+          "modules": 10,
+          "resources": 8,
+          "tests": 42
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.16.0",
+        "minecraft_range": ">=26.1 <26.2",
+        "sha256": "652d0f13339e54b0b1087431e343db18b2b2ea1b4f546215d31da0abd823217d",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/26.1.2",
+      "loader": "Fabric",
+      "minecraft": "26.1.2",
+      "mod_version": "1.5.2-Fabric-26.1.2",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "jar",
+      "source_files": 1650,
+      "source_sha256": "66f151efa283072dc9b38b6f65814214714444f7be78e459c166038b71e2a1f6",
+      "build_input_sha256": {
+        "build.gradle": "92d9eed3edf366f8f93a9345e3e7504a96561156052ef825f17d2e649542211a",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "e3af2995f196e520da934038dd0248db7f733ad8d6f2c21e12bd05b53711eae9",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 34,
+        "different": 584,
+        "target_only": 134
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "mixins": 18,
+          "resources": 2
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 24,
+          "java-other": 148,
+          "mixins": 78,
+          "modules": 269,
+          "music": 2,
+          "resources": 9,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 19,
+          "hud-render": 3,
+          "java-other": 17,
+          "mixins": 35,
+          "modules": 10,
+          "resources": 8,
+          "tests": 42
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.16.0",
+        "minecraft_range": ">=26.1 <26.2",
+        "sha256": "652d0f13339e54b0b1087431e343db18b2b2ea1b4f546215d31da0abd823217d",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/26.2",
+      "loader": "Fabric",
+      "minecraft": "26.2",
+      "mod_version": "1.5.2-Fabric-26.2",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "jar",
+      "source_files": 1653,
+      "source_sha256": "7729a0025f804274f130e709271ef5af2002016919a596f8be06ceb2fd19bfa1",
+      "build_input_sha256": {
+        "build.gradle": "11d446f6d3d9caa2092d1683aad6358b455a75228fc49e53a369a9e1a6324b27",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "302612660e4bd4d3abe652973f9d3aa95b997a413d2725eeb5149039888bdce5",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 35,
+        "different": 631,
+        "target_only": 138
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 18,
+          "resources": 2
+        },
+        "different": {
+          "gui": 57,
+          "hud-render": 26,
+          "java-other": 152,
+          "mixins": 80,
+          "modules": 300,
+          "music": 2,
+          "resources": 11,
+          "seed": 3
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 18,
+          "mixins": 39,
+          "modules": 10,
+          "resources": 8,
+          "tests": 42
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.16.1",
+        "minecraft_range": ">=26.2 <26.3",
+        "sha256": "657a6b998d7dc4e5e2c6b7ebd5e2268cfb79c1b6bc4e5976294c3c5b3fcdf89e",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "fabric/versions/26.3",
+      "loader": "Fabric",
+      "minecraft": "26.3",
+      "mod_version": "1.5.2-Fabric-26.3",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "jar",
+      "source_files": 1656,
+      "source_sha256": "15ce3686b972327077ffc16a8dfb5ad577748bfeaf6512a4f4a6c905baae2ad7",
+      "build_input_sha256": {
+        "build.gradle": "84c729979134fe16fec41e324a924daea87023b2cb2b0e8b943094a41036651e",
+        "settings.gradle": "c112caddb07a12f06c0a7e575ad18da2571f5023512f050ef20923237f388e1a",
+        "gradle.properties": "8dbff06e9550c9ff1d7a69a005e0989d392403076d7a6cf37e2dfd7114c4c576",
+        "gradle/wrapper/gradle-wrapper.properties": "8f4b47740c41dc12899cedb62e1791e04f6b31b373bfa8d42cecb11290e27ba3"
+      },
+      "delta_counts": {
+        "source_only": 36,
+        "different": 650,
+        "target_only": 142
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 19,
+          "resources": 2
+        },
+        "different": {
+          "gui": 60,
+          "hud-render": 26,
+          "java-other": 157,
+          "mixins": 81,
+          "modules": 305,
+          "music": 2,
+          "resources": 13,
+          "seed": 3,
+          "tests": 3
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 19,
+          "mixins": 42,
+          "modules": 10,
+          "resources": 8,
+          "tests": 42
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "upstream-fabric",
+        "version": "2.16.2",
+        "minecraft_range": ">=26.3 <26.4",
+        "sha256": "1767404627d633e033d73b499cb4db27597eebfedf2c1c160df2dfbc42748614",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.20.2",
+      "loader": "NeoForge",
+      "minecraft": "1.20.2",
+      "mod_version": "1.5.2-NeoForge-1.20.2",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "jarJar",
+      "source_files": 1548,
+      "source_sha256": "75921946c746903d0c3be67d6089313854fe696dffa9d8d20711ed154d637cab",
+      "build_input_sha256": {
+        "build.gradle": "4c82e94cca77b256c9c7fc4c2fce77f37d269fea1bbf9cf8a4cc6118ca69e70a",
+        "settings.gradle": "ab0c10f2b88c17c4eae43fa00efeb7566f7815e52ffe23d4ad44c571180aa452",
+        "gradle.properties": "28c4d1221c92e969ac944f3e323f38cc7996217a476bdeee8a5679d8b8fb193f",
+        "gradle/wrapper/gradle-wrapper.properties": "62ae4f9b02195b38150d80331889fe7732475a49ff77789a28beb771388d78da"
+      },
+      "delta_counts": {
+        "source_only": 23,
+        "different": 88,
+        "target_only": 21
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 13,
+          "java-other": 1,
+          "resources": 9
+        },
+        "different": {
+          "gui": 16,
+          "hud-render": 7,
+          "java-other": 25,
+          "mixins": 13,
+          "modules": 22,
+          "music": 1,
+          "resources": 3,
+          "seed": 1
+        },
+        "target_only": {
+          "hud-render": 1,
+          "java-other": 1,
+          "mixins": 2,
+          "resources": 14,
+          "seed": 1,
+          "tests": 2
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.14.6",
+        "upstream_sha256": "a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5",
+        "solver_file": "seedfinding-2.14.6.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "8a724519ef552798016d49d463cab74057ce4c11ae0f2f48eb6dfecdeefabb50",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.20.3",
+      "loader": "NeoForge",
+      "minecraft": "1.20.3",
+      "mod_version": "1.5.2-NeoForge-1.20.3",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "jarJar",
+      "source_files": 1560,
+      "source_sha256": "9b62783be5c2a5188da5316e40060e4244110994a72bb1c933a38862b4d2f9f4",
+      "build_input_sha256": {
+        "build.gradle": "3cf3931a3195e85fbb7b8b61cd00fd42ba6301dd4bcc8b2bb1b11c3ff4b40eea",
+        "settings.gradle": "ab0c10f2b88c17c4eae43fa00efeb7566f7815e52ffe23d4ad44c571180aa452",
+        "gradle.properties": "9d7e7aac3e2eedd61c1e004bed8af6b7439b75f2a58967fe98cc669c37e3d3ff",
+        "gradle/wrapper/gradle-wrapper.properties": "62ae4f9b02195b38150d80331889fe7732475a49ff77789a28beb771388d78da"
+      },
+      "delta_counts": {
+        "source_only": 11,
+        "different": 89,
+        "target_only": 21
+      },
+      "delta_categories": {
+        "source_only": {
+          "java-other": 1,
+          "mixins": 1,
+          "resources": 9
+        },
+        "different": {
+          "gui": 18,
+          "hud-render": 7,
+          "java-other": 25,
+          "mixins": 14,
+          "modules": 20,
+          "music": 1,
+          "resources": 3,
+          "seed": 1
+        },
+        "target_only": {
+          "hud-render": 1,
+          "java-other": 1,
+          "mixins": 2,
+          "resources": 14,
+          "seed": 1,
+          "tests": 2
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.14.6",
+        "upstream_sha256": "a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5",
+        "solver_file": "seedfinding-2.14.6.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "8a724519ef552798016d49d463cab74057ce4c11ae0f2f48eb6dfecdeefabb50",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.20.4",
+      "loader": "NeoForge",
+      "minecraft": "1.20.4",
+      "mod_version": "1.5.2-NeoForge-1.20.4",
+      "role": "target",
+      "band": "B1-java17",
+      "jdk": 17,
+      "production_task": "jarJar",
+      "source_files": 1560,
+      "source_sha256": "0f4850b897d1bf237f56f640c8e772c92c158002867df0b6df8bb842ee94e0ad",
+      "build_input_sha256": {
+        "build.gradle": "370f15759115629d78ace06cb718c6eaea7877d91481ba7ab668be6ee4766884",
+        "settings.gradle": "ab0c10f2b88c17c4eae43fa00efeb7566f7815e52ffe23d4ad44c571180aa452",
+        "gradle.properties": "a0cf3ddad02413fc71593acdc7f94f41e912c7364043095632cc7beacf5ba565",
+        "gradle/wrapper/gradle-wrapper.properties": "62ae4f9b02195b38150d80331889fe7732475a49ff77789a28beb771388d78da"
+      },
+      "delta_counts": {
+        "source_only": 11,
+        "different": 89,
+        "target_only": 21
+      },
+      "delta_categories": {
+        "source_only": {
+          "java-other": 1,
+          "mixins": 1,
+          "resources": 9
+        },
+        "different": {
+          "gui": 18,
+          "hud-render": 7,
+          "java-other": 25,
+          "mixins": 14,
+          "modules": 20,
+          "music": 1,
+          "resources": 3,
+          "seed": 1
+        },
+        "target_only": {
+          "hud-render": 1,
+          "java-other": 1,
+          "mixins": 2,
+          "resources": 14,
+          "seed": 1,
+          "tests": 2
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.14.6",
+        "upstream_sha256": "a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5",
+        "solver_file": "seedfinding-2.14.6.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "8a724519ef552798016d49d463cab74057ce4c11ae0f2f48eb6dfecdeefabb50",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.20.5",
+      "loader": "NeoForge",
+      "minecraft": "1.20.5",
+      "mod_version": "1.5.2-NeoForge-1.20.5",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "jarJar",
+      "source_files": 1586,
+      "source_sha256": "728f8e7b77a14e7fd8760c38e0e0f87c8abb73f6433cd2af8f9c106f3dc9f756",
+      "build_input_sha256": {
+        "build.gradle": "3a69e30233db60fbaed77806931a71024003f652e1e1d65793ba047f258e65a4",
+        "settings.gradle": "ab0c10f2b88c17c4eae43fa00efeb7566f7815e52ffe23d4ad44c571180aa452",
+        "gradle.properties": "947a87f2faf16d33414686705763a716351d637e96ee538127192f3c9779e022",
+        "gradle/wrapper/gradle-wrapper.properties": "62ae4f9b02195b38150d80331889fe7732475a49ff77789a28beb771388d78da"
+      },
+      "delta_counts": {
+        "source_only": 14,
+        "different": 223,
+        "target_only": 50
+      },
+      "delta_categories": {
+        "source_only": {
+          "java-other": 1,
+          "mixins": 4,
+          "resources": 9
+        },
+        "different": {
+          "gui": 22,
+          "hud-render": 11,
+          "java-other": 47,
+          "mixins": 30,
+          "modules": 103,
+          "music": 2,
+          "resources": 4,
+          "seed": 2,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 19,
+          "hud-render": 1,
+          "java-other": 3,
+          "mixins": 2,
+          "modules": 5,
+          "resources": 14,
+          "seed": 1,
+          "tests": 5
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.14.7",
+        "upstream_sha256": "f453bae397cfa66f1667e0ed3ce1983c96006ddde9b90b40ead260fd80a1cded",
+        "solver_file": "seedfinding-2.14.7.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "87606ccba15ae8af0c6276230df7b61db94e1099e62155fd9046bd1a49636a91",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.20.6",
+      "loader": "NeoForge",
+      "minecraft": "1.20.6",
+      "mod_version": "1.5.2-NeoForge-1.20.6",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "jarJar",
+      "source_files": 1586,
+      "source_sha256": "b1809b5db365142b6197071a46479ffaf95cec8a5805f87fead7256282cc72bf",
+      "build_input_sha256": {
+        "build.gradle": "5ea805aa235ba5c89b918f3f386eff4a3cbe625dbb63e738f115be7385802a04",
+        "settings.gradle": "ab0c10f2b88c17c4eae43fa00efeb7566f7815e52ffe23d4ad44c571180aa452",
+        "gradle.properties": "2bb04730e698fe60250241deeb79806e613db070bf83047c705b8d6296bb52b1",
+        "gradle/wrapper/gradle-wrapper.properties": "62ae4f9b02195b38150d80331889fe7732475a49ff77789a28beb771388d78da"
+      },
+      "delta_counts": {
+        "source_only": 14,
+        "different": 223,
+        "target_only": 50
+      },
+      "delta_categories": {
+        "source_only": {
+          "java-other": 1,
+          "mixins": 4,
+          "resources": 9
+        },
+        "different": {
+          "gui": 22,
+          "hud-render": 11,
+          "java-other": 47,
+          "mixins": 30,
+          "modules": 103,
+          "music": 2,
+          "resources": 4,
+          "seed": 2,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 19,
+          "hud-render": 1,
+          "java-other": 3,
+          "mixins": 2,
+          "modules": 5,
+          "resources": 14,
+          "seed": 1,
+          "tests": 5
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.14.7",
+        "upstream_sha256": "f453bae397cfa66f1667e0ed3ce1983c96006ddde9b90b40ead260fd80a1cded",
+        "solver_file": "seedfinding-2.14.7.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "87606ccba15ae8af0c6276230df7b61db94e1099e62155fd9046bd1a49636a91",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21",
+      "loader": "NeoForge",
+      "minecraft": "1.21",
+      "mod_version": "1.5.2-NeoForge-1.21",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1610,
+      "source_sha256": "edadf00d3b0c147011c9aa4e7500a9b33a9e688fad1f65e5dad6a74f03da4002",
+      "build_input_sha256": {
+        "build.gradle": "aa4d5f8ef120940c2924c69813fda5839e063abe8d5acb92ef65a573e97af507",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "fa5e9fe1f74016c44d4409d26cec60713969f886c0881dfd2fe36cc2f6e88a65",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 29,
+        "different": 290,
+        "target_only": 89
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 5,
+          "resources": 9
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 11,
+          "java-other": 58,
+          "mixins": 35,
+          "modules": 152,
+          "music": 2,
+          "resources": 4,
+          "seed": 2,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 3,
+          "mixins": 2,
+          "modules": 6,
+          "resources": 14,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.0",
+        "upstream_sha256": "52f8e11d95cf65710a051710334556e0d99494f1ce33ea9775d43f36c2d4cce9",
+        "solver_file": "seedfinding-2.15.0.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "2f637f8a5ccbb7c34237d94d222b502de03d14c64144dce83e50babcafe0779b",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.1",
+      "loader": "NeoForge",
+      "minecraft": "1.21.1",
+      "mod_version": "1.5.2-NeoForge-1.21.1",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1610,
+      "source_sha256": "59aef46be54906eab63cf1030f119a0e9bfc926042d503294cfcc94cc9787080",
+      "build_input_sha256": {
+        "build.gradle": "9dfcecafd83b1196948d703b8fa37899cb1f919fc66299da648be0efe618c64c",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "a98997b3fe3077cbaa71f7540226977e97852a40b8f3a7a971e4179db0daac11",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 29,
+        "different": 290,
+        "target_only": 89
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 5,
+          "resources": 9
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 11,
+          "java-other": 58,
+          "mixins": 35,
+          "modules": 152,
+          "music": 2,
+          "resources": 4,
+          "seed": 2,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 3,
+          "mixins": 2,
+          "modules": 6,
+          "resources": 14,
+          "seed": 1,
+          "tests": 44
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.0",
+        "upstream_sha256": "52f8e11d95cf65710a051710334556e0d99494f1ce33ea9775d43f36c2d4cce9",
+        "solver_file": "seedfinding-2.15.0.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "2f637f8a5ccbb7c34237d94d222b502de03d14c64144dce83e50babcafe0779b",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.2",
+      "loader": "NeoForge",
+      "minecraft": "1.21.2",
+      "mod_version": "1.5.2-NeoForge-1.21.2",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1615,
+      "source_sha256": "5b2e5a7ca523ac00fb239221abc8dafbe2ca06d40ef36d6d1ce1759f43d1a508",
+      "build_input_sha256": {
+        "build.gradle": "eefcc87859188b681605d469d6ee95e57f12007050d4103ad57c2d1996bbc2c1",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "c76d22b1623f3f79d4fc923090211dfd4ea22f686855b54d00a9b893f37d9fda",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 32,
+        "different": 352,
+        "target_only": 97
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 7,
+          "resources": 10
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 13,
+          "java-other": 71,
+          "mixins": 47,
+          "modules": 184,
+          "music": 2,
+          "resources": 6,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 5,
+          "mixins": 3,
+          "modules": 6,
+          "resources": 18,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.1",
+        "upstream_sha256": "a1529a9c69332c9f5f96c73044b9cfe02f65c355045f99aec8178daebe4f7b76",
+        "solver_file": "seedfinding-2.15.1.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "014bf18c76231b7f0b6ae229f041e0c495456349d65909c3d1ef75d4e8b14471",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.3",
+      "loader": "NeoForge",
+      "minecraft": "1.21.3",
+      "mod_version": "1.5.2-NeoForge-1.21.3",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1615,
+      "source_sha256": "199050a76b0d112e80a6baacff4012f8d28fd3d282ea5af2b3b2b6c06daf685e",
+      "build_input_sha256": {
+        "build.gradle": "1dc069fd393ab36be3ea87aadc1b361d2305e61e1668ac67d5848ade1dd4024b",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "c0e8ae1a8b564999a2aa1f97815c34bae3f265f738032943f0c1f09e4f4e98d5",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 32,
+        "different": 353,
+        "target_only": 97
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 7,
+          "resources": 10
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 13,
+          "java-other": 71,
+          "mixins": 47,
+          "modules": 184,
+          "music": 2,
+          "resources": 7,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 5,
+          "mixins": 3,
+          "modules": 6,
+          "resources": 18,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.1",
+        "upstream_sha256": "a1529a9c69332c9f5f96c73044b9cfe02f65c355045f99aec8178daebe4f7b76",
+        "solver_file": "seedfinding-2.15.1.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "014bf18c76231b7f0b6ae229f041e0c495456349d65909c3d1ef75d4e8b14471",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.4",
+      "loader": "NeoForge",
+      "minecraft": "1.21.4",
+      "mod_version": "1.5.2-NeoForge-1.21.4",
+      "role": "target",
+      "band": "B2-java21-legacy",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1614,
+      "source_sha256": "3b8ea5a20a4c8c3862dfb73a5f7e8e0a3ef90fb98e5f221a8342ac0beecd35d3",
+      "build_input_sha256": {
+        "build.gradle": "14bc713a2ac5a1ec994b8ecc007a468e9affa8bc9b7adeeb05c34bc098a6caf6",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "708e9db5c0d873f3a4094f620f83680baaff53a54cd2822347c59a6e2be76373",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 33,
+        "different": 361,
+        "target_only": 97
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 7,
+          "resources": 11
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 13,
+          "java-other": 71,
+          "mixins": 49,
+          "modules": 190,
+          "music": 2,
+          "resources": 7,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 5,
+          "mixins": 3,
+          "modules": 6,
+          "resources": 18,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.2",
+        "upstream_sha256": "5c961e6a3d24b81fe4d0ee58635911d941a58e192bd7a934808a9f27841ca06a",
+        "solver_file": "seedfinding-2.15.2.jar",
+        "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+        "source_files": 67,
+        "source_sha256": "6f23cdf8cd3739137c49216e15e46164ef83ae7831cfb20d16375dc91ffdadab",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.5",
+      "loader": "NeoForge",
+      "minecraft": "1.21.5",
+      "mod_version": "1.5.2-NeoForge-1.21.5",
+      "role": "target",
+      "band": "B3-java21-components",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1619,
+      "source_sha256": "332d49963a6dc9d23a17b6bc3d0d638f12008214d2bde3cb314ea9d9f5b2c8a8",
+      "build_input_sha256": {
+        "build.gradle": "ae4b5829b4c2b0bfaff85f6d58a9965627f14cd8b52021a9559fc7fccf1f5bec",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "24f2336ea70a1808f164d8a638158cd3d2dc84ea3ea9154a8910956dda7f2a2c",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 32,
+        "different": 401,
+        "target_only": 101
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 13,
+          "java-other": 1,
+          "mixins": 8,
+          "resources": 10
+        },
+        "different": {
+          "gui": 24,
+          "hud-render": 17,
+          "java-other": 77,
+          "mixins": 56,
+          "modules": 213,
+          "music": 2,
+          "resources": 7,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 1,
+          "java-other": 7,
+          "mixins": 3,
+          "modules": 7,
+          "resources": 19,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.3",
+        "upstream_sha256": "2e4d1c106a1f24e7f27a3ae0a2a5ea7fdd633daf39ee3d245b6861b760bd4486",
+        "solver_file": "seedfinding-2.15.3.jar",
+        "solver_sha256": "ff0c1928f71e0ea0ea190bfb59a769dea71cf84dc5ca46646f40824048c09a0d",
+        "source_files": 67,
+        "source_sha256": "821fd38d84dfb0c4fc36f8cf662d766f782aea356dc722ed14012ce4a6155882",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.6",
+      "loader": "NeoForge",
+      "minecraft": "1.21.6",
+      "mod_version": "1.5.2-NeoForge-1.21.6",
+      "role": "target",
+      "band": "B4-java21-gui-state",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1643,
+      "source_sha256": "3c244a67b2a2b48f27d4140ccc0abdc2a57ef69b19ccf6da7bfa15caa2671dc6",
+      "build_input_sha256": {
+        "build.gradle": "ae4b5829b4c2b0bfaff85f6d58a9965627f14cd8b52021a9559fc7fccf1f5bec",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "a9adb2b1cf8d435c6f6ed8beb82c75f33ddfaf7bd0d7b162a6942a3956d6c68d",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 503,
+        "target_only": 136
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 17,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 18,
+          "java-other": 107,
+          "mixins": 67,
+          "modules": 245,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 24,
+          "modules": 7,
+          "resources": 21,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.4",
+        "upstream_sha256": "17773800aa5366838aadb2d8b98eaa9a8e03c8ba3b2276c53085e10700e96e24",
+        "solver_file": "seedfinding-2.15.4.jar",
+        "solver_sha256": "55dbae49e494c6fb3ca46342ce40a225019ccc01240b9ad2da8b49fb76bc1316",
+        "source_files": 67,
+        "source_sha256": "a5d76c9e82443c8178bc9d737748f1e0a5463a8227e19bd979ac2cf1a502d8ed",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.7",
+      "loader": "NeoForge",
+      "minecraft": "1.21.7",
+      "mod_version": "1.5.2-NeoForge-1.21.7",
+      "role": "target",
+      "band": "B4-java21-gui-state",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1643,
+      "source_sha256": "db1eb32c62c73d1e41b4f3ac53df287cfe91e019e2f167ba6c8d7803d7ec5216",
+      "build_input_sha256": {
+        "build.gradle": "ae4b5829b4c2b0bfaff85f6d58a9965627f14cd8b52021a9559fc7fccf1f5bec",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "0ee8285810200dd9f934c42e3197469834354932c53a852793174e68af7fc603",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 503,
+        "target_only": 136
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 17,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 18,
+          "java-other": 107,
+          "mixins": 67,
+          "modules": 245,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 24,
+          "modules": 7,
+          "resources": 21,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.4",
+        "upstream_sha256": "17773800aa5366838aadb2d8b98eaa9a8e03c8ba3b2276c53085e10700e96e24",
+        "solver_file": "seedfinding-2.15.4.jar",
+        "solver_sha256": "55dbae49e494c6fb3ca46342ce40a225019ccc01240b9ad2da8b49fb76bc1316",
+        "source_files": 67,
+        "source_sha256": "a5d76c9e82443c8178bc9d737748f1e0a5463a8227e19bd979ac2cf1a502d8ed",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.8",
+      "loader": "NeoForge",
+      "minecraft": "1.21.8",
+      "mod_version": "1.5.2-NeoForge-1.21.8",
+      "role": "target",
+      "band": "B4-java21-gui-state",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1644,
+      "source_sha256": "5b0a1cd9dadf097f088d60d6a4a5a2aa3e40e28f8d8374c3f611da89f3cc127e",
+      "build_input_sha256": {
+        "build.gradle": "ae4b5829b4c2b0bfaff85f6d58a9965627f14cd8b52021a9559fc7fccf1f5bec",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "086d97a0aabaf930070b8d23a5320881f2fe69c2a2adb33108cbd101216c1b93",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 505,
+        "target_only": 137
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 17,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 18,
+          "java-other": 108,
+          "mixins": 68,
+          "modules": 245,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 25,
+          "modules": 7,
+          "resources": 21,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.4",
+        "upstream_sha256": "17773800aa5366838aadb2d8b98eaa9a8e03c8ba3b2276c53085e10700e96e24",
+        "solver_file": "seedfinding-2.15.4.jar",
+        "solver_sha256": "55dbae49e494c6fb3ca46342ce40a225019ccc01240b9ad2da8b49fb76bc1316",
+        "source_files": 67,
+        "source_sha256": "a5d76c9e82443c8178bc9d737748f1e0a5463a8227e19bd979ac2cf1a502d8ed",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.9",
+      "loader": "NeoForge",
+      "minecraft": "1.21.9",
+      "mod_version": "1.5.2-NeoForge-1.21.9",
+      "role": "target",
+      "band": "B5-java21-event-input",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1646,
+      "source_sha256": "78ee487599886a95107cca4417507d7e15ed1144e6df77ed11fca4918590cd79",
+      "build_input_sha256": {
+        "build.gradle": "baf342b57a8b4cb310ce22cb117de7b75cd870538659aefbaa88117c1afda4d8",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "e034da5097bf27f52aa55d841631589a21a545bf4d6d7b009a3209ef789e71d8",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 44,
+        "different": 521,
+        "target_only": 140
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 19,
+          "java-other": 110,
+          "mixins": 70,
+          "modules": 256,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 28,
+          "modules": 7,
+          "resources": 21,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.5",
+        "upstream_sha256": "0d3860596669f804dd81446b971ce3a8f77d5f69827f2e1a8b3c1fb1ee3fcc81",
+        "solver_file": "seedfinding-2.15.5.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "670918bb43b39423fbd92e4d3f914d1f203b7cd74af381f7a98766294e7c5aee",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.10",
+      "loader": "NeoForge",
+      "minecraft": "1.21.10",
+      "mod_version": "1.5.2-NeoForge-1.21.10",
+      "role": "target",
+      "band": "B5-java21-event-input",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1646,
+      "source_sha256": "1026b1aa30cfda2a0c041493550249a49e2ffad33ca2a88df4fb41436d1593dc",
+      "build_input_sha256": {
+        "build.gradle": "baf342b57a8b4cb310ce22cb117de7b75cd870538659aefbaa88117c1afda4d8",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "cbff349fdb52b792fd379c699bee84fba729d90339a5200ffcc05eeaa58b18e6",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 44,
+        "different": 521,
+        "target_only": 140
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 19,
+          "java-other": 110,
+          "mixins": 70,
+          "modules": 256,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 28,
+          "modules": 7,
+          "resources": 21,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 441,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.5",
+        "upstream_sha256": "0d3860596669f804dd81446b971ce3a8f77d5f69827f2e1a8b3c1fb1ee3fcc81",
+        "solver_file": "seedfinding-2.15.5.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "670918bb43b39423fbd92e4d3f914d1f203b7cd74af381f7a98766294e7c5aee",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/1.21.11",
+      "loader": "NeoForge",
+      "minecraft": "1.21.11",
+      "mod_version": "1.5.2-NeoForge-1.21.11",
+      "role": "target",
+      "band": "B6-java21-render-setup",
+      "jdk": 21,
+      "production_task": "jar",
+      "source_files": 1652,
+      "source_sha256": "b937b3b48e7672027c5b44849086f0390726274eb2b6181734135160c092ade4",
+      "build_input_sha256": {
+        "build.gradle": "eed3aaaa3d959ab16e862b9dc873fb2a630d5d07a0ad6e117a01085e3e6a057d",
+        "settings.gradle": "b6ea22b242ebaef4861550c2425908bfdfb35bb79fcab8b0d86ade888f5d0170",
+        "gradle.properties": "335b32daa54a8b5b70ac461174f8b11b21ceb55d0eca85f585a7e381e1702aa8",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 44,
+        "different": 552,
+        "target_only": 146
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 22,
+          "java-other": 127,
+          "mixins": 71,
+          "modules": 266,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 2,
+          "java-other": 18,
+          "mixins": 31,
+          "modules": 10,
+          "resources": 21,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.15.6",
+        "upstream_sha256": "8695edc230f832339dc53c6fe3543e6d507ac054ef775082083b819fa8b4f227",
+        "solver_file": "seedfinding-2.15.6.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "8e0405ba48a073c38e3c9eb674c5e34c0a4ca33d0f02927d3d410c70e80c9ba7",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/26.1",
+      "loader": "NeoForge",
+      "minecraft": "26.1",
+      "mod_version": "1.5.2-NeoForge-26.1",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "jar",
+      "source_files": 1659,
+      "source_sha256": "17a6980b600ff122a5c09d0b702b8611cf0cfb3a24fae6fba1b511ca73d619bd",
+      "build_input_sha256": {
+        "build.gradle": "86d48324c79a757634ef7bef045e2bbfb2865eade737d00b5590c1d10e2e5d28",
+        "settings.gradle": "4ca272f1a16f78eee096d7c7022f35f8a4630fca0446ab17e2435386914c66ef",
+        "gradle.properties": "30a3aa293196e36b4a0dab2ce45698740824c285c2d16b1790b6cc73c6d808f2",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 584,
+        "target_only": 152
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 24,
+          "java-other": 148,
+          "mixins": 78,
+          "modules": 270,
+          "music": 2,
+          "resources": 6,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 18,
+          "mixins": 34,
+          "modules": 10,
+          "resources": 23,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.16.0",
+        "upstream_sha256": "652d0f13339e54b0b1087431e343db18b2b2ea1b4f546215d31da0abd823217d",
+        "solver_file": "seedfinding-2.16.0.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "0cf2d6b18d1122fcad4e3c3a9f67cd6a16c0a1c86d89c11e6d93dc8417d65030",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/26.1.1",
+      "loader": "NeoForge",
+      "minecraft": "26.1.1",
+      "mod_version": "1.5.2-NeoForge-26.1.1",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "jar",
+      "source_files": 1659,
+      "source_sha256": "b9a71240a636e3f5a2786e6212286f718a32f598f51b7c858c05c163027504cf",
+      "build_input_sha256": {
+        "build.gradle": "e3b0bd85915fdbfd0b5d002e9076bcfcb7dfa7f924e2c690c69abe8867a899a2",
+        "settings.gradle": "4ca272f1a16f78eee096d7c7022f35f8a4630fca0446ab17e2435386914c66ef",
+        "gradle.properties": "c1b3df028a2373068e958b8f3ea6d72fd77a7eeb69a6634c218d146f9008b663",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 584,
+        "target_only": 152
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 24,
+          "java-other": 148,
+          "mixins": 78,
+          "modules": 270,
+          "music": 2,
+          "resources": 6,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 18,
+          "mixins": 34,
+          "modules": 10,
+          "resources": 23,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.16.0",
+        "upstream_sha256": "652d0f13339e54b0b1087431e343db18b2b2ea1b4f546215d31da0abd823217d",
+        "solver_file": "seedfinding-2.16.0.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "0cf2d6b18d1122fcad4e3c3a9f67cd6a16c0a1c86d89c11e6d93dc8417d65030",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/26.1.2",
+      "loader": "NeoForge",
+      "minecraft": "26.1.2",
+      "mod_version": "1.5.2-NeoForge-26.1.2",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "jar",
+      "source_files": 1659,
+      "source_sha256": "2dc59427dda00d96fe9c84d5397845678b1105a8590e9941df53ff83fab6eada",
+      "build_input_sha256": {
+        "build.gradle": "e3b0bd85915fdbfd0b5d002e9076bcfcb7dfa7f924e2c690c69abe8867a899a2",
+        "settings.gradle": "4ca272f1a16f78eee096d7c7022f35f8a4630fca0446ab17e2435386914c66ef",
+        "gradle.properties": "489eefd58b2d3e4e045b933353f8a1e9a596ea846cf0dd34f2a7e809c0e16ca6",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 43,
+        "different": 585,
+        "target_only": 152
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 1,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 51,
+          "hud-render": 24,
+          "java-other": 149,
+          "mixins": 78,
+          "modules": 270,
+          "music": 2,
+          "resources": 6,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 18,
+          "mixins": 34,
+          "modules": 10,
+          "resources": 23,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.16.0",
+        "upstream_sha256": "652d0f13339e54b0b1087431e343db18b2b2ea1b4f546215d31da0abd823217d",
+        "solver_file": "seedfinding-2.16.0.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "0cf2d6b18d1122fcad4e3c3a9f67cd6a16c0a1c86d89c11e6d93dc8417d65030",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/26.2",
+      "loader": "NeoForge",
+      "minecraft": "26.2",
+      "mod_version": "1.5.2-NeoForge-26.2",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "jar",
+      "source_files": 1660,
+      "source_sha256": "564864acbd50300864b5bfd6fb78bf995bf91afda19b7405d868a169b4c47e8b",
+      "build_input_sha256": {
+        "build.gradle": "56ac3fcf4cd54fd7e3ff3169133e9c1144cf5f5597683ad5dad7153b83ccd597",
+        "settings.gradle": "4ca272f1a16f78eee096d7c7022f35f8a4630fca0446ab17e2435386914c66ef",
+        "gradle.properties": "3be27761e47633c12ecb717e63ae55bf59d9b0e3ca8568d7adb2b5fd4a51219a",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 44,
+        "different": 631,
+        "target_only": 154
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 18,
+          "resources": 10
+        },
+        "different": {
+          "gui": 57,
+          "hud-render": 26,
+          "java-other": 153,
+          "mixins": 80,
+          "modules": 300,
+          "music": 2,
+          "resources": 8,
+          "seed": 3,
+          "tests": 2
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 19,
+          "mixins": 35,
+          "modules": 10,
+          "resources": 23,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.16.1",
+        "upstream_sha256": "657a6b998d7dc4e5e2c6b7ebd5e2268cfb79c1b6bc4e5976294c3c5b3fcdf89e",
+        "solver_file": "seedfinding-2.16.1.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "267ef8c97ba7dfad55624fe9f57aee48c4e472359c7eba97600a9b358983adfe",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    },
+    {
+      "project": "neoforge/versions/26.3",
+      "loader": "NeoForge",
+      "minecraft": "26.3",
+      "mod_version": "1.5.2-NeoForge-26.3",
+      "role": "target",
+      "band": "B7-java25",
+      "jdk": 25,
+      "production_task": "jar",
+      "source_files": 1666,
+      "source_sha256": "6f8dbbcb7dbd8ad6bbd01c2df2b353dd7a961f54e3eadb755036acf7b9e3a367",
+      "build_input_sha256": {
+        "build.gradle": "275809533bbf50f99f63a354ef224d35f0f877bd9fd0cc0974ab449a60e4d8f9",
+        "settings.gradle": "4ca272f1a16f78eee096d7c7022f35f8a4630fca0446ab17e2435386914c66ef",
+        "gradle.properties": "4e3ee5599410b5e1557d2800b741b4a2f1041fe866eee393a92f95f10275c56c",
+        "gradle/wrapper/gradle-wrapper.properties": "dd49f1d15032472a4aa4f20b15890e1e0ec5b8e25649300d99bd9e4eca1f34b0"
+      },
+      "delta_counts": {
+        "source_only": 45,
+        "different": 650,
+        "target_only": 161
+      },
+      "delta_categories": {
+        "source_only": {
+          "gui": 14,
+          "java-other": 2,
+          "mixins": 19,
+          "resources": 10
+        },
+        "different": {
+          "gui": 60,
+          "hud-render": 26,
+          "java-other": 158,
+          "mixins": 81,
+          "modules": 305,
+          "music": 2,
+          "resources": 10,
+          "seed": 3,
+          "tests": 5
+        },
+        "target_only": {
+          "gui": 18,
+          "hud-render": 3,
+          "java-other": 20,
+          "mixins": 41,
+          "modules": 10,
+          "resources": 23,
+          "seed": 1,
+          "tests": 45
+        }
+      },
+      "hack_fields": 451,
+      "missing_hack_fields": [],
+      "target_only_hack_fields": [
+        "attributeSwapHack",
+        "autoVaultHack",
+        "betterTabHack",
+        "betterTooltipsHack",
+        "maceAuraHack",
+        "maceBreakerProHack",
+        "maceDmgHack",
+        "noStatusEffectsHack",
+        "spearExploitHack",
+        "spearKillHack"
+      ],
+      "seedcracker_binary": {
+        "kind": "shared-native-source",
+        "upstream_version": "2.16.2",
+        "upstream_sha256": "1767404627d633e033d73b499cb4db27597eebfedf2c1c160df2dfbc42748614",
+        "solver_file": "seedfinding-2.16.2.jar",
+        "solver_sha256": "8d382f3a37a6e514bddb4c6cd5a7199e9dd20f29b7a555141c55ef670849bc8f",
+        "source_files": 66,
+        "source_sha256": "6883743e4bc72f5571e8c02501635eeb2ff00b0da9cd47c818c9f02f265f2788",
+        "automatic_cracking": "integrated-not-verified-by-inventory"
+      },
+      "verification": "not-run-by-inventory"
+    }
+  ]
+}

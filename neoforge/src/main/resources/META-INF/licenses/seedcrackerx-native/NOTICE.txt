@@ -1,0 +1,10 @@
+SeedCrackerX 2.14.4 native Forge/NeoForge adaptation.
+Upstream: https://github.com/19MisterX98/SeedcrackerX ; source reference 7b556ed.
+MIT License, Copyright (c) 2020 KaptainWutax and contributors.
+Sources recovered from the pinned official 2.14.4 artifact, mapped with the
+project Mojang mappings, then adapted to native lifecycle/commands/config paths.
+Changes: Forge initialization and commands, FML config directory, Wurst module,
+chunk/hash/tick hooks, session verification and local Baritone handoff.
+Fixes upstream Log.warn(String) recursive overload. No database opt-in.
+Pure seedfinding libraries retain their original notices in this directory.
+Cloth Config Forge 11.0.99 is bundled as a nested mod with its own LGPL notice.

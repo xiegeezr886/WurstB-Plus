@@ -182,7 +182,7 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	public void onCameraTransformViewBobbing(
 		CameraTransformViewBobbingEvent event)
 	{
-		if(renderMode.getSelected() == RenderMode.THREE_D && style.hasLines())
+		if(!moonGlow.isChecked() && renderMode.getSelected() == RenderMode.THREE_D && style.hasLines())
 			event.cancel();
 	}
 	
@@ -190,8 +190,12 @@ public final class PlayerEspHack extends Hack implements UpdateListener,
 	public void onRender(PoseStack matrixStack, float partialTicks)
 	{
 		if(moonGlow.isChecked())
+		{
+			screenBoxes = List.of();
 			net.wurstclient.util.render.MoonEntityGlow.INSTANCE.queue(players,
 				throughWalls.isChecked());
+			return;
+		}
 		if(renderMode.getSelected() == RenderMode.TWO_D)
 		{
 			updateScreenBoxes(matrixStack, partialTicks);

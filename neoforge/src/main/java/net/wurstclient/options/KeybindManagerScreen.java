@@ -136,11 +136,11 @@ public final class KeybindManagerScreen extends Screen
 		renderBackground(context);
 		listGui.render(context, mouseX, mouseY, partialTicks);
 		
-		context.drawCenteredString(font, "Keybind Manager",
+		context.drawCenteredString(font, WurstClient.tr("Keybind Manager"),
 			width / 2, 8, 0xFFFFFF);
 		
 		int count = WurstClient.INSTANCE.getKeybinds().getAllKeybinds().size();
-		context.drawCenteredString(font, "Keybinds: " + count,
+		context.drawCenteredString(font, WurstClient.tr("Keybinds: %s", count),
 			width / 2, 20, 0xFFFFFF);
 		
 		super.render(context, mouseX, mouseY, partialTicks);
@@ -188,7 +188,7 @@ public final class KeybindManagerScreen extends Screen
 			Font tr = minecraft.font;
 			
 			String keyText =
-				"Key: " + keybind.getKey().replace("key.keyboard.", "");
+				WurstClient.tr("Key: %s", keybind.getKey().replace("key.keyboard.", ""));
 			context.drawString(tr, keyText, x + 3, y + 3, 0xA0A0A0, false);
 			
 			String cmdText = "命令: " + keybind.getCommands();

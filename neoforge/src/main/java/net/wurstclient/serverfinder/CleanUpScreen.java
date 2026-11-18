@@ -7,6 +7,7 @@
  */
 package net.wurstclient.serverfinder;
 
+import net.wurstclient.WurstClient;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -48,7 +49,7 @@ public class CleanUpScreen extends Screen
 	public void init()
 	{
 		addRenderableWidget(new CleanUpButton(width / 2 - 100,
-			height / 4 + 168 + 12, () -> "Cancel", "", b -> onClose()));
+			height / 4 + 168 + 12, () -> WurstClient.tr("Cancel"), "", b -> onClose()));
 		
 		addRenderableWidget(cleanUpButton = new CleanUpButton(width / 2 - 100,
 			height / 4 + 144 + 12, () -> "清理",
@@ -219,7 +220,7 @@ public class CleanUpScreen extends Screen
 		context.drawCenteredString(font, "清理", width / 2,
 			20, CommonColors.WHITE);
 		context.drawCenteredString(font,
-			"Please select the servers you want to remove:", width / 2, 36,
+			WurstClient.tr("Please select the servers you want to remove:"), width / 2, 36,
 			0xFFA0A0A0);
 		
 		super.render(context, mouseX, mouseY, partialTicks);

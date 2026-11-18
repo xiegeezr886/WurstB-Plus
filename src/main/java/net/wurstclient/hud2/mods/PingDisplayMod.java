@@ -23,7 +23,7 @@ public final class PingDisplayMod extends SimpleHUDMod
 		super("PingDisplay", "Ping Display", "Shows the current server latency.");
 		setTranslationKey("ping_display");
 		setDefaultPosition(10, 32);
-		setDefaultEnabled(true);
+		setDefaultEnabled(false);
 		addSetting(iconSetting);
 	}
 

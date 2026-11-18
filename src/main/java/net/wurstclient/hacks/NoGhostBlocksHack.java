@@ -56,7 +56,7 @@ public final class NoGhostBlocksHack extends Hack
 	public NoGhostBlocksHack()
 	{
 		super("NoGhostBlocks");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(breaking);
 		addSetting(placing);
 	}

@@ -7,6 +7,7 @@
  */
 package net.wurstclient.other_features;
 
+import net.wurstclient.WurstClient;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;
@@ -69,7 +70,7 @@ public final class VanillaSpoofOtf extends OtherFeature
 	@Override
 	public String getPrimaryAction()
 	{
-		return isEnabled() ? "Disable" : "Enable";
+		return isEnabled() ? WurstClient.tr("Disable") : WurstClient.tr("Enable");
 	}
 	
 	@Override

@@ -26,7 +26,7 @@ public final class PortalGodModeHack extends Hack
 	public PortalGodModeHack()
 	{
 		super("PortalGodMode");
-		setCategory(Category.OTHER);
+		setCategory(Category.EXPLOIT);
 	}
 
 	@Override
