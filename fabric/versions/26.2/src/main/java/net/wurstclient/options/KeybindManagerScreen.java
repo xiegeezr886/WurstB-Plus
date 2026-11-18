@@ -7,12 +7,14 @@
  */
 package net.wurstclient.options;
 
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+
 import java.util.Objects;
 
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.ConfirmScreen;
@@ -129,21 +131,25 @@ public final class KeybindManagerScreen extends Screen
 		editButton.active = selected;
 		removeButton.active = selected;
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		listGui.extractRenderState(context, mouseX, mouseY, partialTicks);
+		listGui.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 		
-		context.centeredText(font, "Keybind Manager",
-			width / 2, 8, 0xFFffffff);
+		context.centeredText(font, WurstClient.tr("Keybind Manager"),
+			width / 2, 8, 0xFFFFFF);
 		
 		int count = WurstClient.INSTANCE.getKeybinds().getAllKeybinds().size();
-		context.centeredText(font, "Keybinds: " + count,
-			width / 2, 20, 0xFFffffff);
+		context.centeredText(font, WurstClient.tr("Keybinds: %s", count),
+			width / 2, 20, 0xFFFFFF);
 		
-		super.extractRenderState(context, mouseX, mouseY, partialTicks);
+		super.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 	}
 	
 	@Override
@@ -173,8 +179,13 @@ public final class KeybindManagerScreen extends Screen
 		{
 			return Component.translatable("narrator.select", "Keybind " + keybind);
 		}
-		
-		@Override
+@Override
+		public void extractContent(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float partialTicks)
+		{
+			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
+				hovered, partialTicks);
+		}
+
 		public void extractContent(GuiGraphicsExtractor context, int mouseX,
 			int mouseY, boolean hovered, float tickDelta)
 		{
@@ -183,8 +194,8 @@ public final class KeybindManagerScreen extends Screen
 			Font tr = minecraft.font;
 			
 			String keyText =
-				"Key: " + keybind.getKey().replace("key.keyboard.", "");
-			context.text(tr, keyText, x + 3, y + 3, 0xFFA0A0A0, false);
+				WurstClient.tr("Key: %s", keybind.getKey().replace("key.keyboard.", ""));
+			context.text(tr, keyText, x + 3, y + 3, 0xA0A0A0, false);
 			
 			String cmdText = "命令: " + keybind.getCommands();
 			context.text(tr, cmdText, x + 3, y + 15, 0xFFA0A0A0, false);

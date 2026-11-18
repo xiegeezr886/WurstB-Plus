@@ -79,7 +79,7 @@ public final class AdaAutoHotbarHack extends Hack implements UpdateListener
 	public AdaAutoHotbarHack()
 	{
 		super("AdaAutoHotbar");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(tickDelay);
 		addSetting(mode);
 		addSetting(fuzzyMatch);
@@ -126,7 +126,7 @@ public final class AdaAutoHotbarHack extends Hack implements UpdateListener
 		if(mode.getSelected() == Mode.CYCLE)
 			cycleNextPreset();
 
-		ChatUtils.message("Applying " + activePreset.getSelected() + ".");
+		ChatUtils.message("Applying %s.", activePreset.getSelected());
 		sorting = true;
 		currentSlotIndex = 0;
 		timer = 0;
@@ -247,12 +247,12 @@ public final class AdaAutoHotbarHack extends Hack implements UpdateListener
 		List<ItemListSetting> slots =
 			presetSlots.get(activePreset.getSelected().ordinal());
 
-		ChatUtils.message("--- " + activePreset.getSelected() + " ---");
+		ChatUtils.message("--- %s ---", activePreset.getSelected());
 		for(int i = 0; i < 9; i++)
 		{
 			List<String> items = slots.get(i).getItemNames();
 			String name = items.isEmpty() ? "empty" : items.get(0);
-			ChatUtils.message("Slot " + (i + 1) + ": " + name);
+			ChatUtils.message("Slot %s: %s", (i + 1), name);
 		}
 	}
 

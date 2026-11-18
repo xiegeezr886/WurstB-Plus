@@ -37,7 +37,7 @@ public final class MinemenHack extends Hack implements KeyPressListener
 	public MinemenHack()
 	{
 		super("Minemen");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(spawnKey);
 		addSetting(refillKey);
 	}

@@ -1,4 +1,5 @@
 package net.wurstclient.hacks;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import java.awt.Color;
 
@@ -52,10 +53,23 @@ public final class TargetShaderHack extends Hack implements RenderListener
 			return;
 		AABB box = EntityUtils.getLerpedBox(target, partialTicks).inflate(0.03);
 		WURST.getPostEffectQueue().queue(effect.getSelected(),
-			(taskMatrices, taskPartialTicks) -> RenderUtils.drawSolidBox(
-				taskMatrices, box, Color.WHITE.getRGB(),
-				!throughWalls.isChecked()));
+			(taskMatrices, taskPartialTicks) -> drawMask(taskMatrices, box));
 	}
+
+    private void drawMask(PoseStack matrices, AABB box)
+    {
+        if(throughWalls.isChecked()) com.mojang.blaze3d.opengl.GlStateManager._disableDepthTest();
+        else com.mojang.blaze3d.opengl.GlStateManager._enableDepthTest();
+        com.mojang.blaze3d.opengl.GlStateManager._disableCull();
+        com.mojang.blaze3d.opengl.GlStateManager._disableBlend(0);
+        try(var vertices = new com.mojang.blaze3d.vertex.ByteBufferBuilder(4096)) {
+        var buffer = new com.mojang.blaze3d.vertex.BufferBuilder(vertices, 
+            com.mojang.blaze3d.PrimitiveTopology.QUADS,
+            com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR);
+        RenderUtils.drawSolidBox(matrices, buffer, box.move(RenderUtils.getCameraPos().reverse()), Color.WHITE.getRGB());
+        net.wurstclient.util.render.V152Gpu.draw(buffer.buildOrThrow());
+        }
+    }
 
 	private Entity resolveTarget()
 	{

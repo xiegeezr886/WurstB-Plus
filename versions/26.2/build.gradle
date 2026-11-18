@@ -81,27 +81,27 @@ dependencies {
     annotationProcessor "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
     // annotationProcessor "org.spongepowered:mixin:0.8.7:processor"
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
-    implementation "io.netty:netty-codec-socks:4.2.7.Final"
-    implementation "io.netty:netty-handler-proxy:4.2.7.Final"
+    implementation("io.netty:netty-codec-socks:4.2.15.Final") { transitive = false }
+    implementation("io.netty:netty-handler-proxy:4.2.15.Final") { transitive = false }
     implementation "baritone:baritone-forge:1.19.0-26.2"
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
 
-    implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+    implementation("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64") { transitive = false }
 }
 
 processResources {
@@ -194,3 +194,40 @@ if(project.hasProperty("graphicsBackend")) {
         args "--graphicsBackend", project.property("graphicsBackend")
     }
 }
+
+// v1.5.2 portable music runtime. Keep host Netty and LWJGL versions.
+configurations { v152MusicRuntime }
+dependencies {
+    v152MusicRuntime("com.googlecode.soundlibs:jlayer:1.0.1.4") { transitive = false }
+    v152MusicRuntime("com.google.zxing:core:3.5.3") { transitive = false }
+    implementation("com.googlecode.soundlibs:jlayer:1.0.1.4") { transitive = false }
+    implementation "com.google.zxing:core:3.5.3"
+    compileOnly "net.java.dev.jna:jna:5.13.0"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.2"
+}
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from({ project.configurations.v152MusicRuntime.collect { zipTree(it) } }) {
+        exclude "META-INF/**", "module-info.class"
+    }
+}
+sourceSets.main.java {
+    exclude "net/wurstclient/clickgui2/component/*.java"
+    exclude "net/wurstclient/clickgui2/component.disabled/*.java"
+}
+tasks.withType(Test).configureEach { useJUnitPlatform() }
+
+// v1.5.2 native network runtime: these APIs are not supplied by Minecraft.
+dependencies {
+    v152MusicRuntime("org.java-websocket:Java-WebSocket:1.5.3") { transitive = false }
+    v152MusicRuntime("io.netty:netty-codec-socks:4.2.15.Final") { transitive = false }
+    v152MusicRuntime("io.netty:netty-handler-proxy:4.2.15.Final") { transitive = false }
+}
+
+sourceSets.main.java { exclude "net/wurstclient/clickgui2/screens.disabled/**" }
+
+dependencies { testImplementation "io.github.llamalad7:mixinextras-common:0.5.5" }
+
+// Native SeedCrackerX source, solver and Cloth Config runtime.
+apply from: "../../gradle/seedcracker-native263.gradle"

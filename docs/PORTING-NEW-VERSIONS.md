@@ -2,8 +2,6 @@
 
 Updated: 2026-09-13（第四轮：全部工程 compileJava 通过）
 
-不改已有工程：根目录 Forge 1.20.1（v1.6）、以及已完成的 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2 三加载器。
-
 新工程从 **v1.5** 最近邻拷贝，再按目标 MC API 修编译。**验收口径：`compileJava` 通过（不启动客户端）。** 有测试源码的工程同时要求 `compileTestJava` 通过。
 
 ## 状态总表（本轮结束，全部 `BUILD SUCCESSFUL`）
@@ -32,7 +30,6 @@ Updated: 2026-09-13（第四轮：全部工程 compileJava 通过）
 2. **移植的"供体"必须选对代。** 1.21.5 的 loader glue 若从 1.21.6/1.21.7 搬，会带进 1.21.6 才有的 `GuiGraphicsExtractor`、`SubmitNodeStorage`、Forge 56 event bus，反而从 0 错变成 42 错；换成同代的 `versions/1.21.4` 供体后立刻降到 7 错。**跨加载器移植时，"同 MC 版本的另一个加载器" > "同加载器的邻近版本"。**
 3. **1.20.5 / 1.20.6 的"过度移植"问题**：这两个版本的 API 其实贴近 1.20.4（`Tesselator.getBuilder()` + `begin(mode,format)`、`BufferBuilder.RenderedBuffer`、`ResourceLocation.tryParse/tryBuild`、`Enchantments.*` 是普通 `Enchantment`、`RenderGuiEvent.Post`），而仓库里的树曾被写成 1.21 风格（`MeshData`、`DeltaTracker`、`DisconnectionDetails`）。正确做法是**反向还原**到 `fabric/versions/1.20.6` 的内容（Fabric 的 1.20.5 与 1.20.6 java 树逐字节相同），并补回缺失的 26 个文件（含 10 个 mixin accessor）。
 4. **Forge 侧编译期访问私有成员：优先 accessor mixin，其次 AT。** FG7 的 `accesstransformer.cfg` 只有在 `minecraft { accessTransformer = true }` 且 AT 用 **official(mojmap) 名字**时才生效——1.21.6/1.21.8/1.21.5 三处都靠这个开关解决。1.21.9/1.21.10 则改用 `GuiGraphicsAccessor` mixin 解决 `GuiGraphics.guiRenderState`。注意 1.21.3/1.21.4 上 FG7 连 `accessTransformer` 属性都不接受，只能用 accessor mixin。
-
 
 ### 本轮固化的做法：**1.21.9 / 1.21.10 共用同一套 shim**
 
@@ -65,8 +62,6 @@ Updated: 2026-09-13（第四轮：全部工程 compileJava 通过）
 第三个坑：**`baritone-maven` 里手工改过的 jar 可能有非法 MANIFEST**。`fabric/versions/26.2` 依赖的 `baritone-api-fabric-1.18.0-26.2.jar` 的 `META-INF/MANIFEST.MF` 把 `MixinConfigs` 放在了空行之后（变成了第二个 section），javac 于是对**每一个** `net.minecraft.*` 导入报 `invalid manifest format (line 5)`（101 个错误，看着像源码全崩，其实是 jar 的锅）。修法：把 `MixinConfigs`/`MixinConnector` 移回主 section 重打包（旧 jar 备份为 `*.jar.badmanifest`）。
 
 第四个坑：**`versions/1.21.3`、`versions/1.21.4` 的测试源码要取自 `fabric/versions/1.21.4`**，不能取自 `neoforge/versions/1.21.5`（后者用 1.21.5 的 API，`ComponentParentTest` / `HudLayoutTest` / `AttributeValuePlannerTest` 会报"找不到符号"）。同理 `neoforge/versions/1.21.3`、`1.21.4` 的测试源码取自 `neoforge/versions/1.21.5` 是可行的（同为 1.21.5 时代的 API）。
-
-
 
 ## 1.21.11 基线 → 1.21.6–1.21.10 的 API 差异表（已用 javap 逐项核对）
 
@@ -124,7 +119,6 @@ Updated: 2026-09-13（第四轮：全部工程 compileJava 通过）
 
 1.21.5 的输入层仍是**旧签名**（`mouseClicked(double,double,int)`、`keyPressed(int,int,int)`、无参 `onPress()`），与 1.21.6–1.21.8 相同。HUD 钩子在 `IngameHudMixin` 触发 `new GUIRenderEvent(...)`（1.21.5 还没有 `GuiMixin`）。
 
-
 ## 基线对照（重要）
 
 | 目录 | 基线 |
@@ -170,7 +164,6 @@ Updated: 2026-09-13（第四轮：全部工程 compileJava 通过）
 ### 健康检查提示
 
 - **`build/classes/java/main` 不是唯一的输出目录**：Forge 26.x 的 class 落在 `build/sourceSets/main/`，NeoForge 的 `build/` 里还含整套反编译 MC 的 class（1 万+）。统计"是否编译成功"要 `Get-ChildItem build -Recurse -Filter *.class`，否则会把已通过的工程误判为 0 个 class。
-
 
 ## 1.21.2 类名映射表（已从 named jar 确认）
 

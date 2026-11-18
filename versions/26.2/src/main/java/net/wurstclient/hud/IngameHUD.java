@@ -7,7 +7,7 @@
  */
 package net.wurstclient.hud;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.events.GUIRenderListener;

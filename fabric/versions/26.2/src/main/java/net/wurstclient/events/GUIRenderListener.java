@@ -9,7 +9,7 @@ package net.wurstclient.events;
 
 import java.util.ArrayList;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.wurstclient.event.Event;
 import net.wurstclient.event.Listener;
 import net.wurstclient.hud2.HackHudElement;

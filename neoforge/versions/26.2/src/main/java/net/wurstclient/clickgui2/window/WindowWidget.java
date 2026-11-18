@@ -4,7 +4,7 @@
  */
 package net.wurstclient.clickgui2.window;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 
 public abstract class WindowWidget {
 

@@ -7,6 +7,7 @@
  */
 package net.wurstclient.other_features;
 
+import net.wurstclient.WurstClient;
 import net.wurstclient.DontBlock;
 import net.wurstclient.SearchTags;
 import net.wurstclient.options.KeybindManagerScreen;
@@ -26,7 +27,7 @@ public final class KeybindManagerOtf extends OtherFeature
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Open Keybind Manager";
+		return WurstClient.tr("Open Keybind Manager");
 	}
 	
 	@Override

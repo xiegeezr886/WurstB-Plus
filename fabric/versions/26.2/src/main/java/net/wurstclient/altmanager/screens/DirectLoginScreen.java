@@ -8,7 +8,6 @@
 package net.wurstclient.altmanager.screens;
 
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
 import net.wurstclient.altmanager.LoginException;
 import net.wurstclient.altmanager.LoginManager;
@@ -24,8 +23,8 @@ public final class DirectLoginScreen extends AltEditorScreen
 	@Override
 	protected String getDoneButtonText()
 	{
-		return getPassword().isEmpty() ? "Change Cracked Name"
-			: "Login with Password";
+		return getPassword().isEmpty() ? "使用离线名称"
+			: "使用密码登录";
 	}
 	
 	@Override
@@ -59,6 +58,6 @@ public final class DirectLoginScreen extends AltEditorScreen
 			}
 		
 		message = "";
-		minecraft.setScreenAndShow(new TitleScreen());
+		minecraft.setScreenAndShow(prevScreen);
 	}
 }

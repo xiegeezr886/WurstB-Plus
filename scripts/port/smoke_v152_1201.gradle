@@ -1,0 +1,19 @@
+// Opt-in client control API and an empty, isolated game directory for port QA.
+// Use together with verify_v152_1201.gradle and -PdevClient=true runClient.
+gradle.projectsEvaluated {
+    def neo = rootProject.rootDir.name == 'neoforge'
+    def repository = neo ? rootProject.rootDir.parentFile : rootProject.rootDir
+    def target = neo ? 'neoforge' : 'forge'
+    def qaRoot = new File(repository, '.dsh-tmp/v152-' + target + '1201-run')
+    def temp = new File(repository, '.dsh-tmp/v152-' + target + '1201-native-tmp')
+    qaRoot.mkdirs()
+    temp.mkdirs()
+    rootProject.minecraft.runs.client.workingDirectory(qaRoot)
+    rootProject.tasks.matching { it.name == 'runClient' }.configureEach {
+        args '--width', '1280', '--height', '720', '--username', 'PortQA'
+        systemProperty 'java.io.tmpdir', temp.absolutePath
+        systemProperty 'jna.tmpdir', temp.absolutePath
+        systemProperty 'org.lwjgl.system.SharedLibraryExtractPath', temp.absolutePath
+        systemProperty 'wurst.test.port', neo ? '18755' : '18754'
+    }
+}

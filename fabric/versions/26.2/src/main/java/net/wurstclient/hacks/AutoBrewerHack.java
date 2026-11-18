@@ -63,7 +63,7 @@ public final class AutoBrewerHack extends Hack implements UpdateListener
 	public AutoBrewerHack()
 	{
 		super("AutoBrewer");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(potion);
 		addSetting(delay);
 	}
@@ -227,9 +227,7 @@ public final class AutoBrewerHack extends Hack implements UpdateListener
 		int slot = findItem(menu, stack -> stack.is(ingredient));
 		if(slot == -1)
 		{
-			ChatUtils.error("Out of "
-				+ BuiltInRegistries.ITEM.getKey(ingredient)
-				+ ". Disabling AutoBrewer.");
+			ChatUtils.error("Out of %s. Disabling AutoBrewer.", BuiltInRegistries.ITEM.getKey(ingredient));
 			setEnabled(false);
 			return true;
 		}

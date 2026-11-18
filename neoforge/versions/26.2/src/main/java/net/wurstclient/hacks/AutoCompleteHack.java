@@ -41,7 +41,7 @@ public final class AutoCompleteHack extends Hack
 	public AutoCompleteHack()
 	{
 		super("AutoComplete");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		
 		modelSettings.forEach(this::addSetting);
 		suggestionHandler.getSettings().forEach(this::addSetting);

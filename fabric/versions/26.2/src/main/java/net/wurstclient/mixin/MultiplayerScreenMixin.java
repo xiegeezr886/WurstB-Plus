@@ -13,6 +13,13 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import java.util.List;
+import java.util.ArrayList;
+import net.minecraft.util.Util;
+
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import net.wurstclient.gui.opai.OpaiSelectionMenu;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
@@ -32,6 +39,10 @@ public class MultiplayerScreenMixin extends Screen implements IMultiplayerScreen
 	protected ServerSelectionList serverSelectionList;
 	
 	private Button lastServerButton;
+ @Shadow @Final private Screen lastScreen;
+ @Unique private OpaiSelectionMenu opai$menu;
+ @Unique private long opai$lastProbe;
+
 	
 	private MultiplayerScreenMixin(WurstClient wurst, Component title)
 	{
@@ -63,8 +74,55 @@ public class MultiplayerScreenMixin extends Screen implements IMultiplayerScreen
 				b -> minecraft.setScreenAndShow(
 					new CleanUpScreen((JoinMultiplayerScreen)(Object)this)))
 			.bounds(width / 2 + 154 + 4, height - 30, 100, 20).build());
+  List<Button> buttons=children().stream().filter(Button.class::isInstance).map(Button.class::cast).toList();
+  String[] labels={"加入服务器","直接连接","添加服务器","编辑","删除","刷新","返回"};
+  for(int i=0;i<labels.length && i<buttons.size();i++)buttons.get(i).setMessage(Component.literal(labels[i]));
+  opai$menu=new OpaiSelectionMenu(this,"服务器列表",this::opai$rows,
+   entry->serverSelectionList.setSelected((ServerSelectionList.Entry)entry),
+   ()->{var selected=serverSelectionList.getSelected(); if(selected!=null)selected.join();},
+   ()->minecraft.setScreenAndShow(lastScreen),buttons,3,4);
+  setFocused(null);
+
 	}
 	
+ @Unique private List<OpaiSelectionMenu.Row> opai$rows(){
+  List<OpaiSelectionMenu.Row> rows=new ArrayList<>();
+  for(var entry:serverSelectionList.children()){
+   if(entry instanceof ServerSelectionList.OnlineServerEntry online){
+    var server=online.getServerData();
+    String detail=server.ping>=0?server.status.getString()+" players · "+server.ping+" ms":server.motd.getString();
+    rows.add(new OpaiSelectionMenu.Row(entry,server.name,detail,server.ip,((OpaiServerEntryAccessor)(Object)online).opai$icon().textureLocation(),true));
+   }else if(entry instanceof ServerSelectionList.NetworkServerEntry lan){
+    var server=((net.wurstclient.mixin.OpaiLanServerEntryAccessor)(Object)lan).opai$serverData();
+    rows.add(new OpaiSelectionMenu.Row(entry,server.getMotd(),"局域网",server.getAddress(),null,true));
+   }
+  }
+  return rows;
+ }
+ @Override public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor g,int x,int y,float delta){
+  if(opai$menu==null){super.extractRenderState(g,x,y,delta);return;}
+  // Vanilla owns ping tasks and favicon upload. Clip its row paint completely.
+  if(Util.getMillis()-opai$lastProbe>1000){
+   opai$lastProbe=Util.getMillis();
+   g.enableScissor(0,0,0,0);
+   for(var entry:serverSelectionList.children())
+    if(entry instanceof ServerSelectionList.OnlineServerEntry)
+     entry.extractContent(g,-100,-100,false,delta);
+   new net.wurstclient.util.render.GuiGraphicsExtractor(g).flush();g.disableScissor();
+  }
+  opai$menu.render(new net.wurstclient.util.render.GuiGraphicsExtractor(g),x,y);
+ }
+ @Override public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) { return mouseClicked(event.x(), event.y(), event.button()); }
+public boolean mouseClicked(double x,double y,int b){return opai$menu!=null?opai$menu.click(x,y,b):super.mouseClicked(new net.minecraft.client.input.MouseButtonEvent(x, y, new net.minecraft.client.input.MouseButtonInfo(b, 0)), false);}
+ @Override public boolean mouseScrolled(double x,double y,double horizontal,double d){return opai$menu!=null?opai$menu.scroll(x,y,d):super.mouseScrolled(x,y,horizontal,d);}
+ @Inject(method="onClose",at=@At("HEAD"),cancellable=true)
+ private void opai$close(CallbackInfo ci){if(opai$menu!=null){opai$menu.close();ci.cancel();}}
+ @Inject(method="keyPressed",at=@At("HEAD"),cancellable=true)
+ private void opai$key(net.minecraft.client.input.KeyEvent event,CallbackInfoReturnable<Boolean> cir){
+ int key=event.key();
+  if(opai$menu!=null && key!=org.lwjgl.glfw.GLFW.GLFW_KEY_F5)cir.setReturnValue(opai$menu.key(key));
+ }
+
 	@Inject(at = @At("HEAD"),
 		method = "join(Lnet/minecraft/client/multiplayer/ServerData;)V")
 	private void onConnect(ServerData entry, CallbackInfo ci)

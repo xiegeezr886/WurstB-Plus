@@ -41,7 +41,7 @@ public final class HypixelHack extends Hack implements KeyPressListener
 	public HypixelHack()
 	{
 		super("Hypixel");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(lobbyKey);
 		addSetting(hubKey);
 		addSetting(rejoinKey);
