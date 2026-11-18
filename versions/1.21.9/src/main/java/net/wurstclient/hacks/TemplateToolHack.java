@@ -41,7 +41,7 @@ public final class TemplateToolHack extends Hack
 	public TemplateToolHack()
 	{
 		super("TemplateTool");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 	}
 	
 	@Override

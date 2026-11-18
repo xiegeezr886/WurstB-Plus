@@ -1,0 +1,11 @@
+SeedCrackerX 2.15.5 native Forge/NeoForge adaptation for Minecraft 1.21.9.
+Upstream: https://github.com/19MisterX98/SeedcrackerX (MIT, KaptainWutax and contributors).
+Shared Mojang-mapped sources and pinned solver provenance: native/seedcrackerx/2.15.5/manifest.json.
+Changes: loader lifecycle, commands, configuration directory, module/chunk/hash/tick hooks,
+local Baritone handoff, Log.warn overload recursion and logout-safe structure persistence.
+Only com/seedfinding classes are extracted from the official upstream artifact.
+The upstream seedfinding library licenses are retained alongside this notice.
+Cloth Config full configuration-screen and math APIs are merged into this mod.
+The pinned official NeoForge artifact has only its distribution annotations mapped to Forge;
+loader entrypoints and AutoConfig are excluded. See native/cloth-config manifests and
+scripts/port/extract_v152_cloth_core.py. Cloth Config is LGPL-3.0; source: https://github.com/shedaniel/cloth-config.

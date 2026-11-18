@@ -15,6 +15,7 @@ import net.wurstclient.Feature;
 import net.wurstclient.hud2.nanovg.HudFont;
 import net.wurstclient.hud2.nanovg.HudFonts;
 import net.wurstclient.hud2.nanovg.NanoVGContext;
+import net.wurstclient.hud2.target.HudGlassBackground;
 
 /**
  * Base class for every HUD module.
@@ -26,7 +27,11 @@ import net.wurstclient.hud2.nanovg.NanoVGContext;
  */
 public abstract class HUDMod extends Feature
 {
+	private static final int ACCENT_RGB = 0xB5BEF0;
 	private static HudTheme theme = HudTheme.NORMAL;
+	private static final HudGlassBackground GLASS = new HudGlassBackground();
+	private static final net.wurstclient.hud2.target.MoonHudGlow MOON_GLOW =
+		new net.wurstclient.hud2.target.MoonHudGlow();
 	private static final int[] LEGACY_COLORS = {0x000000, 0x0000AA,
 		0x00AA00, 0x00AAAA, 0xAA0000, 0xAA00AA, 0xFFAA00, 0xAAAAAA,
 		0x555555, 0x5555FF, 0x55FF55, 0x55FFFF, 0xFF5555, 0xFF55FF,
@@ -126,7 +131,7 @@ public abstract class HUDMod extends Feature
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Toggle";
+		return WURST.translate("Toggle");
 	}
 
 	@Override
@@ -259,9 +264,7 @@ public abstract class HUDMod extends Feature
 
 	public static int accentColor(int alpha)
 	{
-		WURST.getGui().updateColors();
-		float a = Math.max(0, Math.min(255, alpha)) / 255F;
-		return WURST.getGui().getTheme().accent(a);
+		return Math.max(0, Math.min(255, alpha)) << 24 | ACCENT_RGB;
 	}
 
 	public static int accentColor2(int alpha)
@@ -273,7 +276,7 @@ public abstract class HUDMod extends Feature
 		r = Math.round(r + (255 - r) * 0.35F);
 		g = Math.round(g + (255 - g) * 0.35F);
 		b = Math.round(b + (255 - b) * 0.35F);
-		return alpha << 24 | r << 16 | g << 8 | b;
+		return (first & 0xFF000000) | r << 16 | g << 8 | b;
 	}
 
 	private static Color color(int argb)
@@ -308,6 +311,8 @@ public abstract class HUDMod extends Feature
 		float y = this.y + addY * scale;
 		float w = width * scale;
 		float h = height * scale;
+		radius = backgroundRadius(width, height) * scale;
+		drawMoonGlow(nvg, x, y, w, h, radius, scale);
 
 		int color1 = accentColor(220);
 		int color2 = accentColor2(220);
@@ -315,6 +320,10 @@ public abstract class HUDMod extends Feature
 
 		switch(theme)
 		{
+			case RISE_GLASS:
+			drawGlassBackground(nvg, x, y, w, h, radius, scale, partialTicks);
+			break;
+
 			case NORMAL:
 			drawShadowScreen(x, y, w, h, radius);
 			roundedRect(x, y, w, h, radius, 0xA8000000);
@@ -372,6 +381,32 @@ public abstract class HUDMod extends Feature
 		}
 	}
 
+	public static void drawGlassBackground(NanoVGContext nvg, float x,
+		float y, float width, float height, float radius, float scale,
+		float partialTicks)
+	{
+		if(nvg == null || width <= 0 || height <= 0) return;
+		net.wurstclient.hud2.target.TargetHudDrawing.shadow(nvg, x, y,
+			width, height, radius, 12 * scale, new Color(0, 0, 0, 190));
+		GLASS.draw(nvg, x, y, width, height, radius, partialTicks);
+		nvg.drawRoundedRect(x, y, width, height, radius,
+			new Color(0, 0, 0, 110));
+	}
+
+	public static void closeGlassBackground()
+	{
+		GLASS.close();
+		MOON_GLOW.close();
+	}
+
+	public static void drawMoonGlow(NanoVGContext nvg, float x, float y,
+		float width, float height, float radius, float scale)
+	{
+		var manager = net.wurstclient.WurstClient.INSTANCE.getHudManager();
+		if(manager != null && manager.getSettings().hasMoonGlow())
+			MOON_GLOW.draw(nvg, x, y, width, height, radius, scale);
+	}
+
 	private void drawShadowScreen(float x, float y, float width,
 		float height, float radius)
 	{
@@ -414,6 +449,14 @@ public abstract class HUDMod extends Feature
 		if(nvg != null)
 			nvg.drawGradientOutlineRoundedRect(x, y, width, height, radius,
 				strokeWidth, color(color1), color(color2));
+	}
+
+	/** Dynamic Island's capsule-to-expanded-card corner interpolation. */
+	public static float backgroundRadius(float width, float height)
+	{
+		float expansion = Math.max(0, Math.min(1, (height - 23) / 13));
+		float radius = 11.5F - 3 * expansion;
+		return Math.max(0, Math.min(radius, Math.min(width, height) / 2));
 	}
 
 	// --------------------------------------------------------------- drawing

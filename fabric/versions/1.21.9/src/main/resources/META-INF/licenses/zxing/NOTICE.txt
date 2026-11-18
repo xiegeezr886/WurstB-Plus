@@ -1,0 +1,3 @@
+ZXing core 3.5.3, Copyright ZXing authors. Apache-2.0.
+https://github.com/zxing/zxing/tree/zxing-3.5.3
+Unmodified Maven artifact com.google.zxing:core:3.5.3.

@@ -44,7 +44,7 @@ public final class RotationHack extends Hack implements UpdateListener
 	public RotationHack()
 	{
 		super("Rotation");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(yawMode);
 		addSetting(yawAngle);
 		addSetting(pitchMode);

@@ -30,10 +30,10 @@ public abstract class CameraMixin
 			WurstClient.INSTANCE.getHax().cameraDistanceHack;
 		if(cameraDistance.isEnabled())
 			return (float)cameraDistance.getDistance();
-		
+
 		return desiredCameraDistance;
 	}
-	
+
 	@Inject(method = "getMaxZoom(F)F", at = @At("HEAD"), cancellable = true)
 	private void onClipToSpace(float desiredCameraDistance,
 		CallbackInfoReturnable<Float> cir)
@@ -41,7 +41,7 @@ public abstract class CameraMixin
 		if(WurstClient.INSTANCE.getHax().cameraNoClipHack.isEnabled())
 			cir.setReturnValue(desiredCameraDistance);
 	}
-	
+
 	@Inject(
 		method = "getFluidInCamera()Lnet/minecraft/world/level/material/FogType;",
 		at = @At("HEAD"),
@@ -51,4 +51,5 @@ public abstract class CameraMixin
 		if((WurstClient.INSTANCE.getHax().noOverlayHack.isEnabled() || WurstClient.INSTANCE.getHax().clearWaterHack.isEnabled()))
 			cir.setReturnValue(FogType.NONE);
 	}
+
 }

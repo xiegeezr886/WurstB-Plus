@@ -16,6 +16,7 @@
  */
 package net.wurstclient.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,8 +39,12 @@ import java.util.concurrent.TimeUnit;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import net.minecraft.client.Screenshot;
 import net.wurstclient.WurstClient;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.hud2.GuiEditHUD;
+import net.wurstclient.hud2.HUDMod;
+import net.wurstclient.hud2.HudManager;
 
 public final class TestControlServer
 {
@@ -63,6 +68,8 @@ public final class TestControlServer
 			int port = readPort(config);
 			if(port <= 0)
 				return;
+			net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STARTED.register(
+				client -> client.options.pauseOnLostFocus = false);
 
 			token = System.getProperty("wurst.test.token",
 				config.getProperty("token", "")).trim();
@@ -88,10 +95,46 @@ public final class TestControlServer
 			server.start();
 			System.out.println("[WurstTest] listening on http://127.0.0.1:"
 				+ server.getAddress().getPort() + "/");
+			startPauseKeepAlive();
 		}catch(Throwable t)
 		{
 			System.out.println("[WurstTest] failed to start: " + t);
 		}
+	}
+
+	/**
+	 * Dev clients launched from a terminal lose focus between test commands,
+	 * which opens the pause screen and makes every synthetic key press get
+	 * released before it can be observed. Closing auto-pause screens keeps the
+	 * world ticking while the test server is enabled.
+	 */
+	private static void startPauseKeepAlive()
+	{
+		Thread thread = new Thread(() -> {
+			while(true)
+			{
+				try
+				{
+					Thread.sleep(250L);
+				}catch(InterruptedException e)
+				{
+					return;
+				}
+				try
+				{
+					WurstClient.MC.execute(() -> {
+						if(WurstClient.MC.level != null
+							&& !WurstClient.MC.isWindowActive()
+							&& WurstClient.MC.screen != null
+							&& WurstClient.MC.screen.isPauseScreen())
+							WurstClient.MC.setScreen(null);
+					});
+				}catch(Throwable ignored)
+				{}
+			}
+		}, "Wurst-TestKeepAlive");
+		thread.setDaemon(true);
+		thread.start();
 	}
 
 	private static Properties loadConfig() throws IOException
@@ -165,9 +208,103 @@ public final class TestControlServer
 				handleAll(exchange, method, false);
 				break;
 
-				case "/logs":
-				handleLogs(exchange, query);
+					case "/hud":
+					send(exchange, 200, "application/json", listHud());
+					break;
+
+					case "/hud/enableAll":
+					handleHudAll(exchange, method, true);
+					break;
+
+					case "/hud/disableAll":
+					handleHudAll(exchange, method, false);
+					break;
+
+					case "/hud/toggle":
+					handleHudToggle(exchange, method, query);
+					break;
+
+					case "/hud/move":
+					handleHudMove(exchange, method, query);
+					break;
+
+					case "/hud/scale":
+					handleHudScale(exchange, method, query);
+					break;
+
+					case "/hud/open":
+					handleHudEditor(exchange, method, true);
+					break;
+
+					case "/hud/close":
+					handleHudEditor(exchange, method, false);
+					break;
+
+				case "/world/enter":
+				handleWorldEnter(exchange, method, query);
 				break;
+
+				case "/input":
+				handleInput(exchange, method, query);
+				break;
+
+				case "/rotation":
+				handleRotation(exchange, method, query);
+				break;
+
+				case "/player":
+				handlePlayer(exchange, method);
+				break;
+
+				case "/block":
+				handleBlock(exchange, method, query);
+				break;
+
+				case "/column":
+				handleColumn(exchange, method, query);
+				break;
+
+				case "/setting":
+				handleSetting(exchange, method, query);
+				break;
+
+				case "/command":
+				handleCommand(exchange, method, query);
+				break;
+
+					case "/music":
+					send(exchange, 200, "application/json", onClientThread(() -> {
+						var music = net.wurstclient.neoraven.music.MusicManager.get();
+						var data = new com.google.gson.JsonObject();
+						data.addProperty("track", music.current() == null ? "" : music.current().name);
+						data.addProperty("playing", music.isPlaying());
+						data.addProperty("loading", music.isLoadingTrack());
+						data.addProperty("positionMs", music.positionMs());
+						data.addProperty("durationMs", music.durationMs());
+						data.addProperty("volume", music.volume());
+						data.addProperty("output", music.activeOutput());
+						data.addProperty("level", music.engine().level());
+						data.addProperty("error", music.playbackError());
+						data.addProperty("audioError", music.engine().error());
+						data.addProperty("searchCount", music.searchResults().size());
+						data.addProperty("searchError", music.searchError());
+						data.addProperty("localCount", music.localTracks().size());
+						data.addProperty("lyrics", music.lyrics().size());
+						data.addProperty("qrState", music.qrState().name());
+						return data.toString();
+					}));
+					break;
+					case "/screen":
+					handleScreen(exchange, method, query);
+					break;
+
+					case "/screenshot":
+					handleScreenshot(exchange, method, query);
+					break;
+
+					case "/logs":
+					handleLogs(exchange, query);
+					break;
 
 				default:
 				send(exchange, 404, "text/plain", "not found");
@@ -273,6 +410,620 @@ public final class TestControlServer
 					.append('"');
 			}
 			return json.append("]}").toString();
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static String listHud()
+	{
+		HudManager manager = WurstClient.INSTANCE.getHudManager();
+		StringBuilder json = new StringBuilder("{\"modules\":[");
+		boolean first = true;
+		for(HUDMod mod : manager.getMods().values())
+		{
+			if(!first)
+				json.append(',');
+			first = false;
+			json.append("{\"id\":\"").append(escape(mod.getId()))
+				.append("\",\"name\":\"").append(escape(mod.getDisplayName()))
+				.append("\",\"enabled\":").append(mod.isEnabled())
+				.append(",\"x\":").append(mod.getX())
+				.append(",\"y\":").append(mod.getY())
+				.append(",\"scale\":").append(mod.getScale())
+				.append(",\"width\":").append(mod.getWidth())
+				.append(",\"height\":").append(mod.getHeight())
+				.append('}');
+		}
+		return json.append("]}").toString();
+	}
+
+	private static void handleHudAll(HttpExchange exchange, String method,
+		boolean enable) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			int changed = 0;
+			int failed = 0;
+			for(HUDMod mod : WurstClient.INSTANCE.getHudManager().getMods()
+				.values())
+			{
+				try
+				{
+					mod.setEnabled(enable);
+					if(mod.isEnabled() == enable)
+						changed++;
+					else
+						failed++;
+				}catch(Throwable t)
+				{
+					failed++;
+				}
+			}
+			return "{\"ok\":true,\"changed\":" + changed + ",\"failed\":"
+				+ failed + "}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleHudToggle(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String id = query.get("id");
+		boolean enabled = Boolean.parseBoolean(query.getOrDefault("enabled",
+			"true"));
+		String result = onClientThread(() -> {
+			HUDMod mod = WurstClient.INSTANCE.getHudManager().getModule(id);
+			if(mod == null)
+				return "{\"ok\":false,\"error\":\"unknown hud module\"}";
+			mod.setEnabled(enabled);
+			return "{\"ok\":true,\"id\":\"" + escape(mod.getId())
+				+ "\",\"enabled\":" + mod.isEnabled() + "}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleHudMove(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String result = onClientThread(() -> {
+			HUDMod mod = WurstClient.INSTANCE.getHudManager()
+				.getModule(query.get("id"));
+			if(mod == null)
+				return "{\"ok\":false,\"error\":\"unknown hud module\"}";
+			try
+			{
+				mod.setX(Integer.parseInt(query.getOrDefault("x",
+					Integer.toString(mod.getX()))));
+				mod.setY(Integer.parseInt(query.getOrDefault("y",
+					Integer.toString(mod.getY()))));
+				WurstClient.INSTANCE.getHudManager().saveState();
+				return "{\"ok\":true}";
+			}catch(NumberFormatException e)
+			{
+				return "{\"ok\":false,\"error\":\"invalid coordinates\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleHudScale(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String result = onClientThread(() -> {
+			HUDMod mod = WurstClient.INSTANCE.getHudManager()
+				.getModule(query.get("id"));
+			if(mod == null)
+				return "{\"ok\":false,\"error\":\"unknown hud module\"}";
+			try
+			{
+				mod.setScale(Float.parseFloat(query.getOrDefault("scale",
+					Float.toString(mod.getScale()))));
+				WurstClient.INSTANCE.getHudManager().saveState();
+				return "{\"ok\":true}";
+			}catch(NumberFormatException e)
+			{
+				return "{\"ok\":false,\"error\":\"invalid scale\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleHudEditor(HttpExchange exchange, String method,
+		boolean open) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String result = onClientThread(() -> {
+			WurstClient.MC.setScreen(open ? new GuiEditHUD() : null);
+			return "{\"ok\":true}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleWorldEnter(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String name = query.getOrDefault("name", "xray-test");
+		String result = onClientThread(() -> {
+			try
+			{
+				WurstClient.MC.createWorldOpenFlows()
+					.openWorld(name, () -> WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.TitleScreen()));
+				return "{\"ok\":true,\"world\":\"" + escape(name) + "\"}";
+			}catch(Throwable t)
+			{
+				return "{\"ok\":false,\"error\":\"" + escape(t.toString())
+					+ "\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleInput(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+
+		String key = query.get("key");
+		boolean down = Boolean.parseBoolean(query.getOrDefault("down", "true"));
+		String result = onClientThread(() -> {
+			net.minecraft.client.KeyMapping mapping = switch(key == null ? ""
+				: key)
+			{
+				case "forward", "up" -> WurstClient.MC.options.keyUp;
+				case "back", "down" -> WurstClient.MC.options.keyDown;
+				case "left" -> WurstClient.MC.options.keyLeft;
+				case "right" -> WurstClient.MC.options.keyRight;
+				case "jump" -> WurstClient.MC.options.keyJump;
+				case "sneak", "shift" -> WurstClient.MC.options.keyShift;
+				case "use" -> WurstClient.MC.options.keyUse;
+				case "attack" -> WurstClient.MC.options.keyAttack;
+				case "sprint" -> WurstClient.MC.options.keySprint;
+				default -> null;
+			};
+			if(mapping == null)
+				return "{\"ok\":false,\"error\":\"unknown key\"}";
+			mapping.setDown(down);
+			return "{\"ok\":true,\"key\":\"" + escape(key)
+				+ "\",\"down\":" + down + "}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleRotation(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			if(WurstClient.MC.player == null)
+				return "{\"ok\":false,\"error\":\"no player\"}";
+			try
+			{
+				float yaw = Float.parseFloat(query.getOrDefault("yaw",
+					Float.toString(WurstClient.MC.player.getYRot())));
+				float pitch = Float.parseFloat(query.getOrDefault("pitch",
+					Float.toString(WurstClient.MC.player.getXRot())));
+				WurstClient.MC.player.setYRot(yaw);
+				WurstClient.MC.player.setXRot(pitch);
+				return "{\"ok\":true,\"yaw\":" + yaw + ",\"pitch\":" + pitch
+					+ "}";
+			}catch(NumberFormatException e)
+			{
+				return "{\"ok\":false,\"error\":\"invalid rotation\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handlePlayer(HttpExchange exchange, String method)
+		throws Exception
+	{
+		if(!"GET".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "GET required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			if(WurstClient.MC.player == null)
+				return "{\"ok\":false,\"error\":\"no player\"}";
+			var player = WurstClient.MC.player;
+			return "{\"ok\":true,\"fps\":" + WurstClient.MC.getFps()
+				+ ",\"x\":" + player.getX() + ",\"y\":"
+				+ player.getY() + ",\"z\":" + player.getZ() + ",\"yaw\":"
+				+ player.getYRot() + ",\"pitch\":" + player.getXRot()
+				+ ",\"onGround\":" + player.onGround() + ",\"selected\":"
+				+ player.getInventory().getSelectedSlot() + ",\"mainHand\":\""
+				+ escape(player.getMainHandItem().getItem().toString())
+				+ "\",\"offHand\":\""
+				+ escape(player.getOffhandItem().getItem().toString())
+				+ "\",\"sprinting\":" + player.isSprinting()
+				+ ",\"jumping\":" + player.input.keyPresses.jump()
+				+ ",\"forward\":" + player.input.getMoveVector().y
+				+ ",\"sideways\":" + player.input.getMoveVector().x
+				+ ",\"vy\":" + player.getDeltaMovement().y
+				+ ",\"fallDistance\":" + player.fallDistance
+				+ ",\"horizontalCollision\":" + player.horizontalCollision
+				+ ",\"tickCount\":" + player.tickCount
+				+ ",\"destroying\":" + (WurstClient.MC.gameMode != null
+					&& WurstClient.MC.gameMode.isDestroying())
+				+ ",\"destroyProgress\":" + (WurstClient.MC.gameMode == null ? 0
+					: ((net.wurstclient.mixin.MultiPlayerGameModeAccessor)WurstClient.MC.gameMode).wurst$getDestroyProgress())
+				+ ",\"paused\":" + WurstClient.MC.isPaused()
+				+ ",\"screen\":" + (WurstClient.MC.screen == null ? "null"
+					: "\"" + escape(
+						WurstClient.MC.screen.getClass().getSimpleName())
+						+ "\"")
+				+ ",\"pauseOnLostFocus\":"
+				+ WurstClient.MC.options.pauseOnLostFocus
+				+ ",\"serverYaw\":"
+				+ WurstClient.INSTANCE.getRotationFaker().getServerYaw()
+				+ ",\"serverPitch\":"
+				+ WurstClient.INSTANCE.getRotationFaker().getServerPitch()
+				+ ",\"modelRotation\":"
+				+ WurstClient.INSTANCE.getRotationFaker()
+					.isModelRotationActive()
+				+ "}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleBlock(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"GET".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "GET required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			if(WurstClient.MC.level == null)
+				return "{\"ok\":false,\"error\":\"no level\"}";
+			try
+			{
+				int x = Integer.parseInt(query.get("x"));
+				int y = Integer.parseInt(query.get("y"));
+				int z = Integer.parseInt(query.get("z"));
+				var pos = new net.minecraft.core.BlockPos(x, y, z);
+				var state = WurstClient.MC.level.getBlockState(pos);
+				return "{\"ok\":true,\"x\":" + x + ",\"y\":" + y + ",\"z\":"
+					+ z + ",\"block\":\""
+					+ escape(state.getBlock().toString())
+					+ "\",\"replaceable\":" + state.canBeReplaced()
+					+ ",\"air\":" + state.isAir() + "}";
+			}catch(NumberFormatException e)
+			{
+				return "{\"ok\":false,\"error\":\"invalid coordinates\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleColumn(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"GET".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "GET required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			if(WurstClient.MC.level == null)
+				return "{\"ok\":false,\"error\":\"no level\"}";
+			try
+			{
+				int x = Integer.parseInt(query.get("x"));
+				int z = Integer.parseInt(query.get("z"));
+				int y0 = Integer.parseInt(query.get("y0"));
+				int y1 = Integer.parseInt(query.get("y1"));
+				StringBuilder json = new StringBuilder("{\"ok\":true,\"x\":")
+					.append(x).append(",\"z\":").append(z)
+					.append(",\"y0\":").append(y0)
+					.append(",\"blocks\":[");
+				for(int y = y0; y <= y1 && y - y0 < 256; y++)
+				{
+					if(y > y0)
+						json.append(',');
+					json.append('"').append(escape(WurstClient.MC.level
+						.getBlockState(new net.minecraft.core.BlockPos(x, y, z))
+						.getBlock().toString())).append('"');
+				}
+				return json.append("]}").toString();
+			}catch(NumberFormatException e)
+			{
+				return "{\"ok\":false,\"error\":\"invalid coordinates\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleSetting(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String hackName = query.get("hack");
+		String settingName = query.get("name");
+		String value = query.get("value");
+		if(hackName == null || settingName == null || value == null)
+		{
+			send(exchange, 400, "text/plain", "hack, name and value required");
+			return;
+		}
+
+		String result = onClientThread(() -> {
+			Hack hack = WurstClient.INSTANCE.getHax().getHackByName(hackName);
+			if(hack == null)
+				return "{\"ok\":false,\"error\":\"unknown hack\"}";
+			net.wurstclient.settings.Setting setting =
+				hack.getSettings().get(settingName.toLowerCase());
+			if(setting == null)
+				return "{\"ok\":false,\"error\":\"unknown setting\"}";
+			if(setting instanceof net.wurstclient.settings.EnumSetting<?> e)
+				return e.setSelected(value)
+					? "{\"ok\":true,\"value\":\"" + escape(value) + "\"}"
+					: "{\"ok\":false,\"error\":\"invalid enum value\"}";
+			if(setting instanceof net.wurstclient.settings.SliderSetting s)
+			{
+				try
+				{
+					s.setValue(Double.parseDouble(value));
+					return "{\"ok\":true,\"value\":" + s.getValue() + "}";
+				}catch(NumberFormatException e)
+				{
+					return "{\"ok\":false,\"error\":\"invalid number\"}";
+				}
+			}
+			if(setting instanceof net.wurstclient.settings.CheckboxSetting c)
+			{
+				c.setChecked(Boolean.parseBoolean(value));
+				return "{\"ok\":true,\"value\":" + c.isChecked() + "}";
+			}
+			return "{\"ok\":false,\"error\":\"unsupported setting type\"}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleCommand(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String command = query.get("cmd");
+		if(command == null || command.isBlank())
+		{
+			send(exchange, 400, "text/plain", "cmd required");
+			return;
+		}
+		String normalized = command.startsWith("/")
+			? command.substring(1) : command;
+
+		String result = onClientThread(() -> {
+			if(WurstClient.MC.player == null
+				|| WurstClient.MC.player.connection == null)
+				return "{\"ok\":false,\"error\":\"no player\"}";
+			try
+			{
+				WurstClient.MC.player.connection.sendCommand(normalized);
+				return "{\"ok\":true}";
+			}catch(Throwable t)
+			{
+				return "{\"ok\":false,\"error\":\"" + escape(t.toString())
+					+ "\"}";
+			}
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleScreen(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String name = query.getOrDefault("name", "pause");
+		String result = onClientThread(() -> {
+			if(WurstClient.MC == null)
+				return "{\"ok\":false,\"error\":\"no minecraft\"}";
+			switch(name)
+			{
+				case "title":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.TitleScreen());
+				break;
+				case "current":
+				break;
+				case "music":
+				WurstClient.MC.setScreen(new net.wurstclient.neoraven.music.MusicScreen(WurstClient.MC.screen));
+				break;
+				case "loading-progress":
+				var progress = new net.minecraft.client.gui.screens.ProgressScreen(false);
+				progress.progressStart(net.minecraft.network.chat.Component.translatable("menu.generatingTerrain"));
+				progress.progressStagePercentage(42);
+				WurstClient.MC.setScreen(progress);
+				break;
+				case "loading-terrain":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.LevelLoadingScreen(new net.minecraft.client.multiplayer.LevelLoadTracker(), net.minecraft.client.gui.screens.LevelLoadingScreen.Reason.OTHER));
+				break;
+				case "loading-generating":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.LevelLoadingScreen(new net.minecraft.client.multiplayer.LevelLoadTracker(), net.minecraft.client.gui.screens.LevelLoadingScreen.Reason.OTHER));
+				break;
+                case "loading-status":
+				return "{\"ready\":" + net.wurstclient.neoraven.loading.NeoRavenLoadingShape.ready() + "}";
+				case "disconnect":
+                if(WurstClient.MC.level != null) WurstClient.MC.level.disconnect(net.minecraft.network.chat.Component.translatable("menu.disconnect"));
+                WurstClient.MC.disconnectWithSavingScreen();
+                WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.TitleScreen());
+                break;
+                case "seed-create":
+				if(WurstClient.MC.level != null || java.nio.file.Files.exists(WurstClient.MC.gameDirectory.toPath().resolve("saves/seed-mining-qa")))
+					return "{\"ok\":false,\"error\":\"world active or test save exists\"}";
+				WurstClient.MC.createWorldOpenFlows().createFreshLevel("seed-mining-qa",
+					new net.minecraft.world.level.LevelSettings("Seed mining QA", net.minecraft.world.level.GameType.CREATIVE, false,
+						net.minecraft.world.Difficulty.PEACEFUL, true, new net.minecraft.world.level.GameRules(net.minecraft.world.flag.FeatureFlags.DEFAULT_FLAGS), net.minecraft.world.level.WorldDataConfiguration.DEFAULT),
+					new net.minecraft.world.level.levelgen.WorldOptions(8675309L, true, false), net.minecraft.world.level.levelgen.presets.WorldPresets::createNormalWorldDimensions, WurstClient.MC.screen);
+				break;
+				case "seed-test-result":
+				if(WurstClient.MC.getSingleplayerServer() == null || WurstClient.MC.player == null)
+					return "{\"ok\":false,\"error\":\"integrated test world required\"}";
+				long testSeed = query.containsKey("seed") ? Long.parseLong(query.get("seed")) : WurstClient.MC.getSingleplayerServer().overworld().getSeed();
+				new net.wurstclient.seed.SeedCrackerBridge().pushWorldSeed(testSeed);
+				break;
+				case "seed-status":
+				var seedValue = net.wurstclient.seed.SeedCrackerBridge.SESSION.seed();
+				var seedMine = WurstClient.INSTANCE.getHax().seedMineHack;
+				var predictions = seedMine.predictions();
+				long matching = WurstClient.MC.level == null ? 0 : predictions.stream().filter(p -> WurstClient.MC.level.getBlockState(p.pos()).is(p.block())).count();
+				return "{\"seed\":" + (seedValue.isPresent() ? "\"" + seedValue.getAsLong() + "\"" : "null")
+					+ ",\"status\":\"" + escape(seedMine.status()) + "\",\"predictions\":" + predictions.size() + ",\"matching\":" + matching
+					+ ",\"pathing\":" + BaritoneUtils.isPathing() + ",\"collector\":" + kaptainwutax.seedcrackerX.config.Config.get().active + "}";
+				case "chat":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.ChatScreen("", false));
+				break;
+				case "text":
+				if(WurstClient.MC.screen != null)
+					for(char c : query.getOrDefault("text", "").toCharArray())
+						WurstClient.MC.screen.charTyped(new net.minecraft.client.input.CharacterEvent(c, 0));
+				break;
+				case "click":
+				if(WurstClient.MC.screen != null)
+				{
+					double x = Double.parseDouble(query.getOrDefault("x", "0"));
+					double y = Double.parseDouble(query.getOrDefault("y", "0"));
+					WurstClient.MC.screen.mouseClicked(new net.minecraft.client.input.MouseButtonEvent(x, y, new net.minecraft.client.input.MouseButtonInfo(0, 0)), false);
+					WurstClient.MC.screen.mouseReleased(new net.minecraft.client.input.MouseButtonEvent(x, y, new net.minecraft.client.input.MouseButtonInfo(0, 0)));
+				}
+				break;
+				case "scroll":
+				if(WurstClient.MC.screen != null)
+					WurstClient.MC.screen.mouseScrolled(
+						Double.parseDouble(query.getOrDefault("x", "0")),
+						Double.parseDouble(query.getOrDefault("y", "0")),
+						0, Double.parseDouble(query.getOrDefault("delta", "0")));
+				break;
+				case "key":
+				if(WurstClient.MC.screen != null)
+					WurstClient.MC.screen.keyPressed(new net.minecraft.client.input.KeyEvent(Integer.parseInt(query.getOrDefault("key", "256")), 0, 0));
+				break;
+				case "singleplayer":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.worldselection.SelectWorldScreen(
+					new net.minecraft.client.gui.screens.TitleScreen()));
+				break;
+				case "multiplayer":
+				WurstClient.MC.setScreen(new net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen(
+					new net.minecraft.client.gui.screens.TitleScreen()));
+				break;
+				case "accounts":
+				WurstClient.MC.setScreen(new net.wurstclient.altmanager.screens.AltManagerScreen(
+					new net.minecraft.client.gui.screens.TitleScreen(), WurstClient.INSTANCE.getAltManager()));
+				break;
+				case "pause":
+				WurstClient.MC.setScreen(
+					new net.minecraft.client.gui.screens.PauseScreen(true));
+				break;
+
+				case "none":
+				WurstClient.MC.setScreen(null);
+				break;
+
+				case "close":
+					// Exercise the screen lifecycle, including any pending exit animation.
+					if(WurstClient.MC.screen != null) WurstClient.MC.screen.onClose();
+					break;
+
+				default:
+				return "{\"ok\":false,\"error\":\"unknown screen\"}";
+			}
+			var screen = WurstClient.MC.screen;
+			return "{\"ok\":true,\"screen\":\""
+				+ (screen == null ? "none" : escape(screen.getClass().getSimpleName()))
+				+ "\",\"width\":" + (screen == null ? 0 : screen.width)
+				+ ",\"height\":" + (screen == null ? 0 : screen.height) + "}";
+		});
+		send(exchange, 200, "application/json", result);
+	}
+
+	private static void handleScreenshot(HttpExchange exchange, String method,
+		Map<String, String> query) throws Exception
+	{
+		if(!"POST".equalsIgnoreCase(method))
+		{
+			send(exchange, 405, "text/plain", "POST required");
+			return;
+		}
+		String name = query.getOrDefault("name", "hud-test")
+			.replaceAll("[^A-Za-z0-9_-]", "_");
+		String result = onClientThread(() -> {
+			try
+			{
+				File directory = new File(WurstClient.MC.gameDirectory,
+					"screenshots");
+				directory.mkdirs();
+				Screenshot.grab(directory, name,
+					WurstClient.MC.getMainRenderTarget(), 1, component -> {});
+				File[] files = directory
+					.listFiles((dir, fileName) -> fileName.startsWith(name)
+						&& fileName.endsWith(".png"));
+				if(files == null || files.length == 0)
+					return "{\"ok\":true,\"file\":null}";
+				File newest = files[0];
+				for(File file : files)
+					if(file.lastModified() > newest.lastModified())
+						newest = file;
+				return "{\"ok\":true,\"file\":\""
+					+ escape(newest.getAbsolutePath().replace('\\', '/'))
+					+ "\"}";
+			}catch(Throwable t)
+			{
+				return "{\"ok\":false,\"error\":\"" + escape(t.toString())
+					+ "\"}";
+			}
 		});
 		send(exchange, 200, "application/json", result);
 	}
