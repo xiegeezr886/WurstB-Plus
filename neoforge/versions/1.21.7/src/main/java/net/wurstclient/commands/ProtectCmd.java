@@ -49,8 +49,7 @@ public final class ProtectCmd extends Command
 			.orElse(null);
 		
 		if(entity == null)
-			throw new CmdError(
-				"Entity \"" + args[0] + "\" could not be found.");
+			throw new CmdError("Entity \"%s\" could not be found.", args[0]);
 		
 		protectHack.setFriend(entity);
 		protectHack.setEnabled(true);

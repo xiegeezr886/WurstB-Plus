@@ -30,8 +30,8 @@ public abstract class ItemInHandRendererMixin
 		at = @At("HEAD"),
 		cancellable = true)
 	private void onRenderHandsWithItems(float tickProgress, PoseStack matrices,
-		MultiBufferSource.BufferSource entityRenderCommandQueue, LocalPlayer player,
-		int light, CallbackInfo ci)
+		MultiBufferSource.BufferSource buffers, LocalPlayer player, int light,
+		CallbackInfo ci)
 	{
 		if(WurstClient.INSTANCE.getHax().freecamHack.shouldHideHand())
 			ci.cancel();

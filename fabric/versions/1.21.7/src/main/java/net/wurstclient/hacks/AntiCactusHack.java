@@ -20,7 +20,7 @@ public final class AntiCactusHack extends Hack
 	public AntiCactusHack()
 	{
 		super("AntiCactus");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 	}
 	
 	@Override

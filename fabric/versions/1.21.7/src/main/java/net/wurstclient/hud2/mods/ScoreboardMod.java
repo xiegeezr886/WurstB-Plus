@@ -42,7 +42,7 @@ public final class ScoreboardMod extends HUDMod
 			if(isEditing())
 			{
 				drawBackground(120, 20);
-				drawText("No scoreboard", 6, 5, 9, HudFonts.REGULAR,
+				drawText(WURST.translate("No scoreboard"), 6, 5, 9, HudFonts.REGULAR,
 					getFontColor(200));
 				setSize(120, 20);
 			}else

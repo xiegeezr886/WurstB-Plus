@@ -1,0 +1,89 @@
+package kaptainwutax.seedcrackerX.config;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.seedfinding.mccore.version.MCVersion;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
+import kaptainwutax.seedcrackerX.Features;
+import kaptainwutax.seedcrackerX.util.FeatureToggle;
+import net.wurstclient.seed.SeedPlatform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class Config {
+   private static final Logger logger = LoggerFactory.getLogger("config");
+   private static final File file = new File(SeedPlatform.configDir().toFile(), "seedcracker.json");
+   private static Config INSTANCE = new Config();
+   public FeatureToggle buriedTreasure = new FeatureToggle(true);
+   public FeatureToggle desertTemple = new FeatureToggle(true);
+   public FeatureToggle endCity = new FeatureToggle(true);
+   public FeatureToggle jungleTemple = new FeatureToggle(true);
+   public FeatureToggle monument = new FeatureToggle(true);
+   public FeatureToggle swampHut = new FeatureToggle(true);
+   public FeatureToggle shipwreck = new FeatureToggle(true);
+   public FeatureToggle outpost = new FeatureToggle(true);
+   public FeatureToggle igloo = new FeatureToggle(true);
+   public FeatureToggle trialChambers = new FeatureToggle(true);
+   public FeatureToggle endPillars = new FeatureToggle(true);
+   public FeatureToggle endGateway = new FeatureToggle(false);
+   public FeatureToggle dungeon = new FeatureToggle(true);
+   public FeatureToggle emeraldOre = new FeatureToggle(false);
+   public FeatureToggle desertWell = new FeatureToggle(false);
+   public FeatureToggle warpedFungus = new FeatureToggle(false);
+   public FeatureToggle biome = new FeatureToggle(false);
+   public Config.RenderType render = Config.RenderType.XRAY;
+   public boolean active = true;
+   public boolean debug = false;
+   public boolean antiXrayBypass = true;
+   private MCVersion version = MCVersion.latest();
+   public boolean databaseSubmits = false;
+   public boolean anonymusSubmits = false;
+
+   public static void save() {
+      Gson gson = new GsonBuilder().setPrettyPrinting().create();
+      file.getParentFile().mkdirs();
+
+      try (FileWriter writer = new FileWriter(file)) {
+         gson.toJson(INSTANCE, writer);
+      } catch (IOException var6) {
+         logger.error("seedcracker couldn't save config", var6);
+      }
+   }
+
+   public static void load() {
+      Gson gson = new Gson();
+      if (file.exists()) {
+         try (Reader reader = new FileReader(file)) {
+            INSTANCE = (Config)gson.fromJson(reader, Config.class);
+         } catch (Exception var6) {
+            logger.error("seedcracker couldn't load config, deleting it...", var6);
+            file.delete();
+         }
+      }
+   }
+
+   public static Config get() {
+      return INSTANCE;
+   }
+
+   public MCVersion getVersion() {
+      return this.version;
+   }
+
+   public void setVersion(MCVersion version) {
+      if (this.version != version) {
+         this.version = version;
+         Features.init(version);
+      }
+   }
+
+   public static enum RenderType {
+      OFF,
+      ON,
+      XRAY;
+   }
+}

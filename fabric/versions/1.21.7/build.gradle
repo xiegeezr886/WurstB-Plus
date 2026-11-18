@@ -29,20 +29,19 @@ repositories {
 }
 
 dependencies {
-    implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+    include implementation("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64") { transitive = false }
 
 	// Minecraft + Mojang official mappings (matches Forge port source)
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -61,8 +60,8 @@ dependencies {
 	include implementation("org.java-websocket:Java-WebSocket:1.5.3")
 
 	// Proxy support
-	include implementation("io.netty:netty-codec-socks:4.1.118.Final")
-	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
+	include implementation("io.netty:netty-codec-socks:4.1.118.Final") { transitive = false }
+	include implementation("io.netty:netty-handler-proxy:4.1.118.Final") { transitive = false }
 
 	// Baritone 必须与工程的目标 MC 版本一致:官方 v1.15.0 声明支持 1.21.6 / 1.21.7 / 1.21.8。
 	// 切勿改成高版本的 Baritone(例如为 1.21.11 构建的 1.17.0)——intermediary 方法名按版本分配,
@@ -135,7 +134,21 @@ if(project.hasProperty("spWorld")) {
 
 processResources {
     from({ configurations.hudNatives.collect { zipTree(it) } }) {
-        include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+        include "windows/**", "linux/**", "macos/**"
+        into "assets/wurstpenguin/nanovg/natives"
         exclude "META-INF/**", "module-info.class", "**/*.signature"
     }
 }
+
+// v1.5.2 music and seed backend for the 1.20.2-1.20.4 protocol family.
+dependencies {
+    include implementation("com.googlecode.soundlibs:jlayer:1.0.1.4") { transitive = false }
+    include implementation("com.google.zxing:core:3.5.3")
+    compileOnly "net.java.dev.jna:jna:5.13.0"
+    modImplementation "local.seedfinding:seedcrackerX:2.15.4"
+    include "local.seedfinding:seedcrackerX:2.15.4"
+    modImplementation fileTree(dir: "libs/seedcrackerx-deps", include: ["cloth-config*.jar"])
+}
+tasks.withType(Test).configureEach { useJUnitPlatform() }
+
+dependencies { runtimeOnly fileTree(dir: "libs/seedcrackerx-deps", include: ["mc_*.jar", "latticg-*.jar"]) }

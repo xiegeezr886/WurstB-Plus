@@ -6,12 +6,6 @@
 
 ## 审计对象与证据边界
 
-- **当前对象**：`main` 的 `d7d4eba9` 加本次检查时已有的工作区改动。核对 66 个标识为 v1.5.1 的工程；排除根目录 Forge 1.20.1 的 v1.6.0。
-- **历史对象**：`v1.5.1` 标签，提交 `4686900ec86ecdec88bb4eecfd730c1d74537521`。逐项标注问题是否已在标签中存在，避免把当前未提交的回归说成已发布缺陷。未检查线上发布 jar 是否与标签逐字节对应。
-- **官方基准**：本地 `reference/recon/wurst7.git`，来源 `https://github.com/Wurst-Imperium/Wurst7.git`。1.20.1 基准 `d3e6eeb25bfa5c6a2497aeb8c6b3a02ca8e512de`；26.2 基准 `86f5296360cd23a5bc21a78cd6ca66b4413b7eb6`；26.3 基准 `71e3af0f2747937086ef889e34359507d95cc9f8`。
-- 上游仓库是部分克隆，部分 Java blob 的补取受代理／证书吊销检查环境阻碍；相应 1.20.1 文件改用已有官方源码，并核验 Git blob 哈希一致。26.2／26.3 官方 Mixin 配置直接读取现有 Git 对象并核验哈希。这里没有声称基准是在线最新上游。
-- 本次是行为审计。官方没有的本地扩展，以仓库公开的设置／调用契约核对；不把正常的产品差异当成 bug，也不把上游原有行为自动算成本地回归。
-
 ## Standards：本地功能与既有机制的集成
 
 本轴发现 **3 类 P2**。最直接的是 HOLD 状态管理错误；其余两类是新功能未完整接入已有命令机制。没有把命名或重复代码计入缺陷。
@@ -169,7 +163,6 @@ S2／S3 的共同执行证据：[result.txt](C:/Users/ui863/Documents/trae_proje
 | U2 | Fabric 26.x 加入 `freecam/CameraMixin`、`freecam/LocalPlayerMixin`、`freecam/ItemInHandRendererMixin`；Forge 1.21.5 按 1.21.4 补 `freecam/CameraMixin` 并注册（已核对 `Camera.setup(BlockGetter, Entity, boolean, boolean, float)` 与 `detached` 字段） | 6 |
 | U3 | 三处 `@WrapOperation` 的条件由 `isEnabled()` 改为 `isEnabled() && shouldBypassUsingItem()` | 33 |
 | S1 | `processHoldEnable` 在功能已被其他 HOLD 键持有时，把当前键登记为共同持有者；新增 `isHeldByAnyKey`。手动开启的功能（无持有者）不受影响 | 67 |
-| S2 | `CmdUtils.findFeature` 并入 `HudManager.getAllFeatures()`；`WurstClient.getFeatureByName` 增加 HUD 查找（根工程 v1.6.0 的 HUD 元素不是 `Feature`，不适用，后续已回退该处修改） | 66 + 66 |
 | S3 | `CmdUtils.findSetting` 递归查找 `getChildren()`，支持 `父/子` 路径、别名与同名歧义报错 | 66 |
 
 **修复前的复核结论**

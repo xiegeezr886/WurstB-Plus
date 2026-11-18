@@ -7,7 +7,7 @@
  */
 package net.wurstclient.options;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -126,7 +126,7 @@ public final class KeybindProfilesScreen extends Screen
 		loadButton.active = listGui.getSelected() != null;
 	}
 @Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	public void render(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
@@ -137,7 +137,7 @@ public final class KeybindProfilesScreen extends Screen
 		listGui.render(context.getInner(), mouseX, mouseY, partialTicks);
 		
 		context.centeredText(minecraft.font,
-			"Keybind Profiles", width / 2, 12, 0xFFffffff);
+			WurstClient.tr("Keybind Profiles"), width / 2, 12, 0xffffff);
 		
 		super.render(context.getInner(), mouseX, mouseY, partialTicks);
 		
@@ -176,7 +176,7 @@ public final class KeybindProfilesScreen extends Screen
 				"Profile " + path.getFileName());
 		}
 @Override
-		public void render(GuiGraphics graphics, int index, int y, int x,
+		public void render(net.minecraft.client.gui.GuiGraphics graphics, int index, int y, int x,
 			int entryWidth, int entryHeight, int mouseX, int mouseY,
 			boolean hovered, float partialTicks)
 		{

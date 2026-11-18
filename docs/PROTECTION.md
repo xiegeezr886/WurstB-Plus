@@ -13,7 +13,7 @@ Fabric 的 `remapJar`，或对应 NeoForge 工程的最终发布任务。不要�
 Windows，在仓库根目录运行：
 
 ```powershell
-.\scripts\protect-jar.ps1 -InputJar '.\build\libs\WurstB+ Plus-v1.6.0-Forge-1.20.1.jar'
+.\scripts\protect-jar.ps1 -InputJar '.\build\libs\WurstB+ Plus-v1.5.1-Forge-1.20.1.jar'
 ```
 
 默认在输入文件旁输出 `原名-protected.jar`。可以显式指定：
