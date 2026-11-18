@@ -1,0 +1,7 @@
+{
+  "upstream_version": "2.14.6",
+  "upstream_sha256": "a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5",
+  "solver_file": "seedfinding-2.14.6.jar",
+  "solver_sha256": "4ea571a092230333cbb672bca5d87ba769b3e839b520a9ae5040bc39d7a5501d",
+  "source_files": 67
+}

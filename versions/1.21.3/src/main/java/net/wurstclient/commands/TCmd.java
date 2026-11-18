@@ -33,7 +33,7 @@ public final class TCmd extends Command
 		
 		Hack hack = WURST.getHax().getHackByName(args[0]);
 		if(hack == null)
-			throw new CmdError("Unknown hack: " + args[0]);
+			throw new CmdError("Unknown hack: %s", args[0]);
 		
 		if(args.length == 1)
 			setEnabled(hack, !hack.isEnabled());
@@ -59,7 +59,7 @@ public final class TCmd extends Command
 		if(!hack.isEnabled() && tooManyHax.isEnabled()
 			&& tooManyHax.isBlocked(hack))
 		{
-			ChatUtils.error(hack.getName() + " is blocked by TooManyHax.");
+			ChatUtils.error("%s is blocked by TooManyHax.", hack.getName());
 			return;
 		}
 		

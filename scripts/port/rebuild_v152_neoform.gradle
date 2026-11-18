@@ -1,0 +1,42 @@
+// Opt-in repair for stale NeoGradle intermediate output. Use together with
+// -Pwurstb.rebuildNeoForm -Pnet.neoforged.gradle.caching.enabled=false
+// --no-build-cache. Without wurstb.rebuildNeoForm only verified-download guards
+// are installed, preserving the already rebuilt intermediates.
+// This never edits a generated Minecraft source or ignores failed patches.
+gradle.projectsEvaluated {
+    // NeoGradle's offline downloader removes a valid destination before failing.
+    // Skip only downloads whose full contents match Mojang's cached manifest.
+    def mc = rootProject.minecraft_version
+    def cache = new File(rootProject.rootDir, '.gradle/caches/minecraft/versions/' + mc)
+    def manifest = new groovy.json.JsonSlurper().parse(new File(cache, 'metadata.json'))
+    ['ExecutableClient':['client', 'client.jar'], 'ExecutableServer':['server', 'server.jar'],
+        'MappingsClient':['client_mappings', 'client.txt'], 'MappingsServer':['server_mappings', 'server.txt']].each { suffix, spec ->
+        def file = new File(cache, spec[1])
+        def entry = manifest.downloads[spec[0]]
+        if (!file.isFile() || file.length() != entry.size ||
+            java.security.MessageDigest.getInstance('SHA-1').digest(file.bytes).encodeHex().toString() != entry.sha1)
+            throw new GradleException('Restore and verify the Mojang cache first: ' + file)
+        rootProject.tasks.named('cacheVersion' + suffix + mc).configure { onlyIf { false } }
+    }
+    def libraryRoot = new File(rootProject.gradle.gradleUserHomeDir, 'caches/minecraft/libraries')
+    def entries = manifest.libraries.findAll { it.downloads?.artifact }.collect { it.downloads.artifact }
+    def libraries = entries.collect { entry ->
+        def file = new File(libraryRoot, entry.path)
+        if (!file.isFile() || file.length() != entry.size ||
+            java.security.MessageDigest.getInstance('SHA-1').digest(file.bytes).encodeHex().toString() != entry.sha1)
+            throw new GradleException('Restore and verify the library cache first: ' + file)
+        file
+    }
+    rootProject.tasks.named('neoFormListLibraries').configure { task ->
+        def list = task.output.get().asFile
+        list.parentFile.mkdirs()
+        list.text = libraries.collect { '-e=' + it.absolutePath }.join(System.lineSeparator()) + System.lineSeparator()
+        onlyIf { false }
+    }
+    def stages = rootProject.hasProperty('wurstb.rebuildNeoForm') ? ['neoFormDecompile', 'neoFormApplyForgesAccessTransformer',
+        'neoFormApplyUserAccessTransformer', 'neoFormInject', 'neoFormPatch']
+        : []
+    rootProject.tasks.matching { it.name in stages }.configureEach {
+        outputs.upToDateWhen { false }
+    }
+}

@@ -87,7 +87,7 @@ public final class TunnellerHack extends Hack
 	public TunnellerHack()
 	{
 		super("Tunneller");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addConflictGroup(HackConflictGroup.BLOCK_BREAKING_AUTOMATION);
 		addSetting(size);
 		addSetting(limit);

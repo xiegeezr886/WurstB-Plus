@@ -71,7 +71,7 @@ public final class SpawnProoferHack extends Hack implements UpdateListener
 	public SpawnProoferHack()
 	{
 		super("SpawnProofer");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(range);
 		addSetting(interval);
 		addSetting(lightLevel);

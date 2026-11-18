@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
  * 现在先探测本工程用的是哪套架构，再按对应契约断言：
  *
  * <ul>
- * <li>旧架构：钩子在 {@code IngameHudMixin}，事件由 initializer 派发</li>
+ * <li>IngameHudMixin：事件只能由 initializer 或 mixin 其中一处派发</li>
  * <li>新架构：钩子在 {@code GuiMixin}，事件在 mixin 内派发，
  * 并经由 {@code GuiGraphicsExtractor} 包一层</li>
  * </ul>
@@ -42,8 +42,9 @@ final class HudRenderHookTest
 			String mixin = Files.readString(oldArch);
 			assertTrue(mixin.contains("method = \"renderTabList("),
 				"HUD 钩子应注入 Gui.renderTabList");
-			assertTrue(initializer.contains("new GUIRenderEvent"),
-				"旧架构下 GUIRenderEvent 应由 initializer 派发");
+			assertTrue(initializer.contains("new GUIRenderEvent")
+				^ mixin.contains("new GUIRenderEvent("),
+				"GUIRenderEvent 应派发一次，不能遗漏或重复");
 		}else
 		{
 			// ---- 新架构 ----

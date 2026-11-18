@@ -1,0 +1,39 @@
+// Native SeedCrackerX 2.14.4 uses the same Minecraft 1.20.1 API on both loaders.
+// The solver jars contain no game/Fabric classes; shade only their own packages.
+def seedRepository = rootProject.rootDir.name == 'neoforge'
+    ? rootProject.rootDir.parentFile : rootProject.rootDir
+def seedLibraries = files(fileTree(dir: new File(seedRepository, 'native/seedcrackerx/libs'), include: ['*.jar']))
+
+repositories { maven { url = 'https://maven.shedaniel.me/' } }
+configurations { seedSolverLibraries }
+dependencies {
+    implementation seedLibraries
+    seedSolverLibraries seedLibraries
+    implementation fg.deobf('me.shedaniel.cloth:cloth-config-forge:11.0.99')
+    jarJar(group: 'me.shedaniel.cloth', name: 'cloth-config-forge', version: '[11.0.99,11.1)')
+}
+
+processResources {
+    from({ configurations.seedSolverLibraries.collect { zipTree(it) } }) {
+        include 'com/seedfinding/**'
+    }
+}
+
+tasks.register('verifySeedSolverLibraries') {
+    inputs.files(seedLibraries)
+    inputs.file(new File(seedRepository, 'native/seedcrackerx/libraries.json'))
+    doLast {
+        def expected = new groovy.json.JsonSlurper().parse(
+            new File(seedRepository, 'native/seedcrackerx/libraries.json'))
+        if (seedLibraries.files.size() != expected.size())
+            throw new GradleException('Unexpected SeedCracker solver library count')
+        expected.each { entry ->
+            def file = new File(seedRepository, 'native/seedcrackerx/libs/' + entry.file)
+            if (!file.isFile() || java.security.MessageDigest.getInstance('SHA-256')
+                    .digest(file.bytes).encodeHex().toString() != entry.sha256)
+                throw new GradleException('SeedCracker solver hash mismatch: ' + entry.file)
+        }
+    }
+}
+tasks.named('compileJava').configure { dependsOn 'verifySeedSolverLibraries' }
+tasks.named('processResources').configure { dependsOn 'verifySeedSolverLibraries' }

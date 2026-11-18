@@ -33,6 +33,15 @@ import net.wurstclient.gui.MainMenuBackground;
 public abstract class ScreenMixin extends AbstractContainerEventHandler
 	implements Renderable
 {
+	@Inject(method = "renderWithTooltip", at = @At("RETURN"))
+	private void wurst$renderContainerIsland(GuiGraphics graphics, int mouseX,
+		int mouseY, float partialTicks, CallbackInfo ci)
+	{
+		var hud = WurstClient.INSTANCE.getHudManager();
+		if(hud != null && (Object)this instanceof AbstractContainerScreen<?>)
+			hud.renderContainerIsland(graphics, mouseX, mouseY, partialTicks);
+	}
+
 	@Inject(at = @At("HEAD"),
 		method = "renderBackground(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
 		cancellable = true)
