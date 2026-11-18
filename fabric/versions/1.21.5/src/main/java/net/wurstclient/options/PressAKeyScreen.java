@@ -7,6 +7,7 @@
  */
 package net.wurstclient.options;
 
+import net.wurstclient.WurstClient;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -60,7 +61,7 @@ public class PressAKeyScreen extends Screen
 		float partialTicks)
 	{
 		renderBackground(context, mouseX, mouseY, partialTicks);
-		context.drawCenteredString(font, "Press a key",
+		context.drawCenteredString(font, WurstClient.tr("Press a key"),
 			width / 2, height / 4 + 48, CommonColors.WHITE);
 		super.render(context, mouseX, mouseY, partialTicks);
 	}

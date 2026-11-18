@@ -67,7 +67,7 @@ public final class BetterChatHack extends Hack
 	public BetterChatHack()
 	{
 		super("BetterChat");
-		setCategory(Category.CHAT);
+		setCategory(Category.RENDER);
 		addSetting(antiSpam);
 		addSetting(antiSpamDepth);
 		addSetting(antiClear);

@@ -1,0 +1,65 @@
+{
+  "targets": {
+    "swap": {}
+  },
+  "passes": [
+    {
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "minecraft:main",
+          "bilinear": true
+        }
+      ],
+      "output": "swap",
+      "uniforms": [
+        {
+          "name": "BlurDir",
+          "values": [
+            1.0,
+            0.0
+          ],
+          "type": "vec2"
+        },
+        {
+          "name": "Radius",
+          "values": [
+            4.0
+          ],
+          "type": "float"
+        }
+      ],
+      "vertex_shader": "minecraft:post/blur",
+      "fragment_shader": "minecraft:post/box_blur"
+    },
+    {
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "swap",
+          "bilinear": true
+        }
+      ],
+      "output": "minecraft:main",
+      "uniforms": [
+        {
+          "name": "BlurDir",
+          "values": [
+            0.0,
+            1.0
+          ],
+          "type": "vec2"
+        },
+        {
+          "name": "Radius",
+          "values": [
+            4.0
+          ],
+          "type": "float"
+        }
+      ],
+      "vertex_shader": "minecraft:post/blur",
+      "fragment_shader": "minecraft:post/box_blur"
+    }
+  ]
+}
