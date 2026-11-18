@@ -40,7 +40,7 @@ public final class KillPotionHack extends Hack
 	{
 		super("KillPotion");
 		
-		setCategory(Category.ITEMS);
+		setCategory(Category.EXPLOIT);
 		addSetting(potionType);
 	}
 	

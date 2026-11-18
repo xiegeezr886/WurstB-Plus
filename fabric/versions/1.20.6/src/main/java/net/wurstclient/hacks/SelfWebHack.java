@@ -51,7 +51,7 @@ public final class SelfWebHack extends Hack implements UpdateListener
 	public SelfWebHack()
 	{
 		super("SelfWeb");
-		setCategory(Category.COMBAT);
+		setCategory(Category.WORLD);
 		addSetting(mode);
 		addSetting(range);
 		addSetting(doubles);

@@ -48,7 +48,7 @@ public final class QuickSwitchHack extends Hack implements KeyPressListener
 	public QuickSwitchHack()
 	{
 		super("QuickSwitch");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(swordKey);
 		addSetting(blockKey);
 		addSetting(pickaxeKey);

@@ -27,6 +27,10 @@ import net.wurstclient.util.json.JsonException;
 
 public final class HackList implements UpdateListener
 {
+	public final MusicPlayerHack musicPlayerHack = new MusicPlayerHack();
+	public final GlobalSettingHack globalSettingHack = new GlobalSettingHack();
+	public final FriendsManagerHack friendsManagerHack = new FriendsManagerHack();
+	public final ModuleListHack moduleListHack = new ModuleListHack();
 	public final CollisionsHack collisionsHack = new CollisionsHack();
 	public final NoMiningTraceHack noMiningTraceHack = new NoMiningTraceHack();
 	public final GhostHandHack ghostHandHack = new GhostHandHack();
@@ -106,6 +110,9 @@ public final class HackList implements UpdateListener
 	public final BaritoneClearAreaHack baritoneClearAreaHack =
 		new BaritoneClearAreaHack();
 	public final BaritoneMineHack baritoneMineHack = new BaritoneMineHack();
+
+	public final SeedCrackerHack seedCrackerHack = new SeedCrackerHack();
+    public final SeedMineHack seedMineHack = new SeedMineHack();
 	public final BaritoneTreeBotHack baritoneTreeBotHack =
 		new BaritoneTreeBotHack();
 	public final BaritoneWalkHack baritoneWalkHack = new BaritoneWalkHack();
@@ -352,7 +359,6 @@ public final class HackList implements UpdateListener
 	public final QuickSwitchHack quickSwitchHack = new QuickSwitchHack();
 	public final GodbridgeAssistHack godbridgeAssistHack = new GodbridgeAssistHack();
 	public final AncientCitySearchHack ancientCitySearchHack = new AncientCitySearchHack();
-	public final SpearExploitHack spearExploitHack = new SpearExploitHack();
 	public final OdmGearHack odmGearHack = new OdmGearHack();
 	public final PitcherHack pitcherHack = new PitcherHack();
 	public final FlightAntiKickHack flightAntiKickHack = new FlightAntiKickHack();
@@ -423,11 +429,8 @@ public final class HackList implements UpdateListener
 	public final GcoreGTrapHack gcoreGTrapHack = new GcoreGTrapHack();
 	public final TntBomberHack tntBomberHack = new TntBomberHack();
 	public final SwordGapHack swordGapHack = new SwordGapHack();
-	public final SpearKillHack spearKillHack = new SpearKillHack();
 	public final PistonCrystalHack pistonCrystalHack = new PistonCrystalHack();
 	public final MacroAnchorHack macroAnchorHack = new MacroAnchorHack();
-	public final MaceBreakerProHack maceBreakerProHack = new MaceBreakerProHack();
-	public final MaceAuraHack maceAuraHack = new MaceAuraHack();
 	public final CrystalMacroHack crystalMacroHack = new CrystalMacroHack();
 	public final CrossbowAuraHack crossbowAuraHack = new CrossbowAuraHack();
 	public final AutoChestAuraHack autoChestAuraHack = new AutoChestAuraHack();
@@ -441,7 +444,6 @@ public final class HackList implements UpdateListener
 	public final CrystalAuraPlusHack crystalAuraPlusHack = new CrystalAuraPlusHack();
 	public final ShieldEspHack shieldEspHack = new ShieldEspHack();
 	public final ChatHighlightHack chatHighlightHack = new ChatHighlightHack();
-	public final AutoVaultHack autoVaultHack = new AutoVaultHack();
 	public final AutoSmithingHack autoSmithingHack = new AutoSmithingHack();
 	public final AutoDeoxidizerHack autoDeoxidizerHack = new AutoDeoxidizerHack();
 	public final GlassFillerHack glassFillerHack = new GlassFillerHack();

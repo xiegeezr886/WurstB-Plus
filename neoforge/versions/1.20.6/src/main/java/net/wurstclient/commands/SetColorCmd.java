@@ -47,8 +47,7 @@ public final class SetColorCmd extends Command
 		throws CmdError
 	{
 		if(!(setting instanceof ColorSetting))
-			throw new CmdError(feature.getName() + " " + setting.getName()
-				+ " is not a color setting.");
+			throw new CmdError("%s %s is not a color setting.", feature.getName(), setting.getName());
 		
 		return (ColorSetting)setting;
 	}
@@ -62,7 +61,7 @@ public final class SetColorCmd extends Command
 			
 		}catch(JsonException e)
 		{
-			throw new CmdSyntaxError("Invalid color: " + value);
+			throw new CmdSyntaxError("Invalid color: %s", value);
 		}
 	}
 }

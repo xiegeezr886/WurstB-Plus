@@ -112,7 +112,7 @@ public final class SchematicProHack extends Hack
 	public SchematicProHack()
 	{
 		super("SchematicPro");
-		setCategory(Category.ITEMS);
+		setCategory(Category.WORLD);
 		addSetting(operationMode);
 		addSetting(fillMode);
 		addSetting(requirements);
@@ -249,8 +249,7 @@ public final class SchematicProHack extends Hack
 
 			if(!moveItemIntoContainer(menu, item, missing, containerSlots))
 			{
-				ChatUtils.warning("SchematicPro: missing " + missing + "x "
-					+ BuiltInRegistries.ITEM.getKey(item) + ".");
+				ChatUtils.warning("SchematicPro: missing %sx %s.", missing, BuiltInRegistries.ITEM.getKey(item));
 				if(autoClose.isChecked())
 					MC.player.closeContainer();
 				timer = 20;

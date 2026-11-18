@@ -41,8 +41,6 @@ python scripts/run-render263-tests.py --java-home <JDK25目录>
 
 ## 范围与结论
 
-检查当前工作区的 `fabric/versions/26.3`、`neoforge/versions/26.3`、`versions/26.3`。三个工程的 `NanoVGContext`、`GlStateGuard`、`NanoVgBlitter` 各自跨加载器哈希一致。根目录 Forge 1.20.1 的 v1.6.0 不在本次范围。
-
 发现三类可举证的渲染缺陷，均涉及 NanoVG 与 Minecraft GUI 管线交接。它们是当前源码缺陷；尚不能认定全部都是此次用户画面异常的直接原因。没有取得用户使用的加载器、JAR、日志、显卡及光影/渲染模组信息，也没有在游戏中复现用户现象。
 
 历史 `v1.5.1` 标签中不存在此次检查的 `fabric/versions/26.3/.../NanoVgBlitter.java` 路径。因此本文的“v1.5.1”指当前版本号仍为 1.5.1 的源码工程，不把当前缺陷直接归因到该历史标签或用户手上的发布包。

@@ -28,7 +28,7 @@ public final class BorderlessFullscreenHack extends Hack
 	public BorderlessFullscreenHack()
 	{
 		super("BorderlessFullscreen");
-		setCategory(Category.OTHER);
+		setCategory(Category.RENDER);
 	}
 
 	@Override

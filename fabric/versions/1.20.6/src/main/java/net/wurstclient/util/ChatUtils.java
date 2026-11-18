@@ -27,12 +27,6 @@ public enum ChatUtils
 	
 	public static final String WURST_PREFIX =
 		"\u00a7c[\u00a76" + WurstClient.CLIENT_NAME + "\u00a7c]\u00a7r ";
-	private static final String WARNING_PREFIX =
-		"\u00a7c[\u00a76\u00a7lWARNING\u00a7c]\u00a7r ";
-	private static final String ERROR_PREFIX =
-		"\u00a7c[\u00a74\u00a7lERROR\u00a7c]\u00a7r ";
-	private static final String SYNTAX_ERROR_PREFIX =
-		"\u00a74Syntax error:\u00a7r ";
 	
 	private static boolean enabled = true;
 	
@@ -51,24 +45,88 @@ public enum ChatUtils
 		chatHud.addMessage(prefix.append(component));
 	}
 	
+	/**
+	 * Shows a chat message, translated into the current language when a
+	 * translation exists. The English text doubles as the translation key,
+	 * exactly like the setting descriptions do, so callers that already pass
+	 * English keep working unchanged.
+	 */
 	public static void message(String message)
 	{
-		component(Component.literal(message));
+		component(Component.literal(translate(message)));
+	}
+
+	/**
+	 * Shows a formatted chat message. Use {@code %s}/{@code %d} in the format
+	 * string so the translation can reorder or rephrase it.
+	 */
+	public static void message(String format, Object... args)
+	{
+		component(Component.literal(translate(format, args)));
 	}
 	
 	public static void warning(String message)
 	{
-		message(WARNING_PREFIX + message);
+		warningMessage(translate(message));
+	}
+
+	public static void warning(String format, Object... args)
+	{
+		warningMessage(translate(format, args));
+	}
+
+	private static void warningMessage(String message)
+	{
+		if(!enabled)
+			return;
+
+		MutableComponent prefix =
+			Component.literal(prefix("chat.wurst.prefix.warning", "WARNING"));
+		component(prefix.append(Component.literal(message)));
 	}
 	
 	public static void error(String message)
 	{
-		message(ERROR_PREFIX + message);
+		errorMessage(translate(message));
+	}
+
+	public static void error(String format, Object... args)
+	{
+		errorMessage(translate(format, args));
+	}
+
+	private static void errorMessage(String message)
+	{
+		if(!enabled)
+			return;
+
+		MutableComponent prefix =
+			Component.literal(prefix("chat.wurst.prefix.error", "ERROR"));
+		component(prefix.append(Component.literal(message)));
 	}
 	
 	public static void syntaxError(String message)
 	{
-		message(SYNTAX_ERROR_PREFIX + message);
+		component(Component.literal(
+			translate("chat.wurst.prefix.syntax_error", message)));
+	}
+
+	public static void syntaxError(String format, Object... args)
+	{
+		component(Component.literal(
+			translate("chat.wurst.prefix.syntax_error", translate(format, args))));
+	}
+
+	private static String translate(String key, Object... args)
+	{
+		return WurstClient.INSTANCE.translate(key, args);
+	}
+
+	private static String prefix(String key, String fallback)
+	{
+		String translated = WurstClient.INSTANCE.translate(key);
+		String word = translated.equals(key) ? fallback : translated;
+		return "\u00a7c[\u00a76\u00a7l" + word + "\u00a7c]\u00a7r ";
 	}
 	
 	public static String getAsString(GuiMessage.Line visible)

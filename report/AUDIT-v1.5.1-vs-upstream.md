@@ -22,11 +22,6 @@
 
 **结构一致性核对（避免把"漏同步"误报成 bug）**
 
-- Hack / Command / OtherFeature 注册：424 / 54 / 17 个类，**全部已注册**，无遗漏、无重名。
-- Mixin：磁盘 88 个 `@Mixin` 类，配置登记 88 个，**零缺口**；`defaultRequire: 1`；`@Overwrite` 0 个；唯一一处 `require = 0` 与上游同源（Sinytra 兼容，见 §四）。
-- 跨工程：抽样核对 `EventManager`、`Encryption`、`RotationQueue` 在 Fabric 1.20.1 / Fabric 1.20.2 / Forge 1.20.2 / Forge 1.21.11 / NeoForge 1.20.1 五棵树中**逐字节相同**。
-  → 这些缺陷绝大多数位于共享逻辑层，因此修复已同步到全部工程；但**并非每个工程都包含对应代码**：55 棵版本树的 `HudItemIcons` 是 13 行 stub（无缓存，无此缺陷），根工程 v1.6.0 没有 `hacks/aura`、`hacks/scaffold` 子系统（其 Killaura/Scaffold 是另一套实现，不适用 B/C/G/A/E/M）。精确覆盖见 §八。
-
 ---
 
 ## 二、结论摘要
@@ -406,7 +401,6 @@ public void simulateTick()
 | E | `HeypixelScaffoldMode.getRotation` 的 `direct` 先过 `ScaffoldUtils.getVanillaRotation(...)`，与 `getFastRotation()` 路径一致。 |
 | F | `HudItemIcons` 改为 access-order `LinkedHashMap` + `MAX_CACHE = 512` LRU，淘汰与 `clear()` 都调用 `NanoVG.nvgDeleteImage`；`capture()` 用 `try/finally` 保证 `target.unbindWrite()`。 |
 | G | `isInFov` 改为 3D 夹角 + 半角语义（`getAngleToLookVec <= fov/2`，`fov >= 360` 不过滤）；Killaura 的 FOV 滑条改为上游一致的 `30–360 / 默认 360 / DEGREES`；MultiAura 不再自行 `/2`。 |
-| H | `KillauraLegitHack` / `AimAssistHack` 的 `switchAdvantage` 改为 `0–1 / 0.01 / 默认 0.1`；`TargetTracker` 参数改为 fraction，去掉 `/100`（根工程 v1.6.0 的增强版 tracker 同步改为 fraction）。 |
 | I | `hideFakeSwings` 默认改为 `false`，"Swing range"/"Swing CPS" 开箱生效。 |
 | J | Blink 的空引用分支不再 `clearQueuedPackets()`，交给 `onDisable()` 的 `flushQueuedPackets()` 发送。 |
 | K | Flight 进入旁观者时统一 `restoreTrackedPlayer()`，保留并恢复 `previousFlying`。 |
@@ -445,11 +439,6 @@ public void simulateTick()
 | `util/TargetTracker.java` | 67 | 0 | 0 |
 
 合计 **939 个文件实例**获得修复。补充说明：
-
-- **26.2 / 26.3 的 6 棵树**：`ScaffoldWalkHack` 的右键判断用的是 26.x 的 `MC.gui.screen()`，无法套用 1.20.x 的文本锚点，已单独改写这 6 个文件（同样的语义）。
-- **根工程 v1.6.0**：没有 `hacks/aura` 与 `hacks/scaffold`，其 Killaura/MultiAura 走 `CombatTargetUtils`（已含 `IS_ATTACKABLE` 与 3D 半角 FOV），Scaffold 没有右键拦截，因此 B/C/G/A/E/M 不适用；`TargetTracker` 与 `switchAdvantage` 的一致性已同步修复。
-- 版本树里 `hacks/aura`、`hacks/scaffold` 等整包文件在 git 中是 **untracked**，`git status` 默认不显示这些改动；本次核对全部基于磁盘内容。
-- 26.x 工程需要 JDK 25，本机只有 JDK 17，因此只做了语法解析与人工复核，未编译。
 
 ## 九、局限
 

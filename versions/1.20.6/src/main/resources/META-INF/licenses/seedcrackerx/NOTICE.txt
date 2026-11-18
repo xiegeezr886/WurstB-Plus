@@ -1,0 +1,5 @@
+SeedCrackerX 2.14.7, MIT, KaptainWutax / 19MisterX98.
+Unmodified upstream release for Minecraft 1.20.6.
+https://github.com/19MisterX98/SeedcrackerX/releases/tag/2.14.7
+SHA-256: f453bae397cfa66f1667e0ed3ce1983c96006ddde9b90b40ead260fd80a1cded
+Nested metadata and licenses retained.
