@@ -23,3 +23,17 @@ accessible field net/minecraft/network/protocol/game/ClientboundSectionBlocksUpd
 accessible field net/minecraft/client/gui/components/BossHealthOverlay events Ljava/util/Map;
 accessible field net/minecraft/client/renderer/RenderPipelines PIPELINES_BY_LOCATION Ljava/util/Map;
 accessible field net/minecraft/client/player/ClientInput moveVector Lnet/minecraft/world/phys/Vec2;
+
+accessible field net/minecraft/client/renderer/GameRenderer guiRenderer Lnet/minecraft/client/gui/render/GuiRenderer;
+
+accessible field net/minecraft/client/renderer/GameRenderer fogRenderer Lnet/minecraft/client/renderer/fog/FogRenderer;
+
+accessible field net/minecraft/client/gui/render/GuiRenderer renderState Lnet/minecraft/client/gui/render/state/GuiRenderState;
+
+accessible field net/minecraft/client/renderer/PostChain passes Ljava/util/List;
+
+accessible field net/minecraft/client/renderer/PostPass customUniforms Ljava/util/Map;
+
+accessible field com/mojang/blaze3d/opengl/GlCommandEncoder lastProgram Lcom/mojang/blaze3d/opengl/GlProgram;
+
+accessible field com/mojang/blaze3d/opengl/GlCommandEncoder lastPipeline Lcom/mojang/blaze3d/pipeline/RenderPipeline;

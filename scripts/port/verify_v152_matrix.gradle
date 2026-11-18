@@ -1,0 +1,61 @@
+// Keep matrix builds isolated; force real JUnit execution despite local defaults.
+gradle.beforeProject { project ->
+    if (project == project.rootProject) {
+        def repository = project.rootDir
+        while (repository != null && !new File(repository, 'scripts/port/prepare_v152.py').isFile())
+            repository = repository.parentFile
+        if (repository == null) throw new GradleException('Not a WurstB+ checkout')
+        def relative = repository.toPath().relativize(project.rootDir.toPath()).toString().replace('\\', '-')
+        project.layout.buildDirectory.set(new File(repository, '.dsh-tmp/v152-matrix/' + (relative ?: 'root')))
+    }
+}
+gradle.projectsEvaluated {
+    if (rootProject.hasProperty('portQa')) {
+        def repository = rootProject.rootDir
+        while (!new File(repository, 'scripts/port/prepare_v152.py').isFile()) repository = repository.parentFile
+        def relative = repository.toPath().relativize(rootProject.rootDir.toPath()).toString().replace('\\', '-')
+        def game = new File(repository, '.dsh-tmp/v152-matrix-runtime/' + relative)
+        def temp = new File(game, rootProject.findProperty('portQaNativeDirectory') ?: 'native-tmp')
+        temp.mkdirs()
+        def qaPort = rootProject.findProperty('portQaPort') ?: '18757'
+        if (rootProject.plugins.hasPlugin('fabric-loom')) {
+            // Gradle 9 may run on JDK 25, but the game must use its supported
+            // runtime (LWJGL 3.3.x JNI is not built for that newer VM).
+            def mcVersion = rootProject.minecraft_version
+            def gameJava = mcVersion.startsWith('26.') ? 25 :
+                (mcVersion in ['1.20.1', '1.20.2', '1.20.3', '1.20.4'] ? 17 : 21)
+            rootProject.tasks.named('runClient', JavaExec).configure {
+                javaLauncher.set(rootProject.javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(gameJava))
+                })
+                def inheritedOptions = System.getenv('JAVA_TOOL_OPTIONS')
+                if (inheritedOptions != null) {
+                    // The Gradle JVM may be newer than Minecraft's launcher.
+                    // A zipfs patch contains JDK-private classes, so the child
+                    // process must never inherit another JDK's patch bytecode.
+                    environment 'JAVA_TOOL_OPTIONS', inheritedOptions.replaceAll(
+                        /zipfs-patch(?:17|21|25)\.jar/, 'zipfs-patch' + gameJava + '.jar')
+                }
+            }
+            rootProject.loom.runs.client {
+                runDir rootProject.rootDir.toPath().relativize(game.toPath()).toString()
+                programArgs '--width', '1280', '--height', '720', '--username', 'PortQA'
+                vmArg '-Dwurst.test.port=' + qaPort
+                vmArg '-Djava.io.tmpdir=' + temp.absolutePath
+                vmArg '-Djna.tmpdir=' + temp.absolutePath
+                vmArg '-Dorg.lwjgl.system.SharedLibraryExtractPath=' + temp.absolutePath
+            }
+        }
+    }
+}
+gradle.taskGraph.whenReady { graph ->
+    graph.allTasks.findAll { it instanceof Test }.each { task ->
+        task.enabled = true
+        task.useJUnitPlatform()
+        def temp = new File(task.project.layout.buildDirectory.get().asFile, 'test-tmp')
+        temp.mkdirs()
+        task.systemProperty 'java.io.tmpdir', temp.absolutePath
+        task.environment 'TEMP', temp.absolutePath
+        task.environment 'TMP', temp.absolutePath
+    }
+}

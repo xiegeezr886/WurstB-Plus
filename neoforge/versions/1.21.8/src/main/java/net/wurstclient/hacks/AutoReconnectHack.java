@@ -29,7 +29,7 @@ public final class AutoReconnectHack extends Hack implements WorldChangeListener
 	public AutoReconnectHack()
 	{
 		super("AutoReconnect");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(waitTime);
 	}
 	

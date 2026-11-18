@@ -77,7 +77,7 @@ public final class AutoVaultHack extends Hack implements UpdateListener
 	public AutoVaultHack()
 	{
 		super("AutoVault");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(mode);
 		addSetting(range);
 		addSetting(delay);

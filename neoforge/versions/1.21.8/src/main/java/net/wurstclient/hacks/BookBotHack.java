@@ -91,7 +91,7 @@ public final class BookBotHack extends Hack
 	public BookBotHack()
 	{
 		super("BookBot");
-		setCategory(Category.ITEMS);
+		setCategory(Category.EXPLOIT);
 		addSetting(trigger);
 		addSetting(text);
 		addSetting(pages);
@@ -231,8 +231,8 @@ public final class BookBotHack extends Hack
 		updateClientBook(bookPages, bookTitle, signBook);
 
 		if(manualWrite)
-			ChatUtils.message("Wrote " + bookPages.size() + " page"
-				+ (bookPages.size() == 1 ? "" : "s") + " into the book.");
+			ChatUtils.message("Wrote %s pages into the book.",
+				bookPages.size());
 
 		manualWrite = false;
 		delayTimer = 10;

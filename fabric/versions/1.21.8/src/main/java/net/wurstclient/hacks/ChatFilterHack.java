@@ -35,7 +35,7 @@ public final class ChatFilterHack extends Hack implements ChatInputListener
 	public ChatFilterHack()
 	{
 		super("ChatFilter");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(badWords);
 		addSetting(replacement);
 	}
