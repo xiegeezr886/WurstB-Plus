@@ -16,7 +16,7 @@ public final class ScaffoldIsland {
     public float getWidth() { return width; }
     public float getHeight() { return 25; }
     public void onDisable() { blockCounterAnimation = null; }
-    public void render(GuiGraphicsExtractor context, float posX, float posY) {
+    public void extractRenderState(GuiGraphicsExtractor context, float posX, float posY) {
         var mc = WurstClient.MC;
         if(mc.player == null) return;
         ItemStack handStack = mc.player.getMainHandItem().getItem() instanceof BlockItem
@@ -36,7 +36,7 @@ public final class ScaffoldIsland {
             .defaultMapColor().col : -1;
         nvg.drawRoundedRect(posX, posY, width, 25, 12.5F, 0xD0181818);
         nvg.drawRoundedRect(posX + 5.5F, posY + 4, 17, 17, 8.25F, color & 0xFFFFFF | 0x78000000);
-        if(isBlock) NanoVGUI.item(context, handStack, (int)(posX + 6), (int)(posY + 4.5F), false);
+        if(isBlock) NanoVGUI.item(new net.wurstclient.util.render.GuiGraphicsExtractor(context), handStack, (int)(posX + 6), (int)(posY + 4.5F), false);
         nvg.drawRoundedRect(posX + 28, posY + 11.5F, 85, 2.5F, 1.5F, darker(color, 0.55F));
         float scaledWidth = Math.min(stackSize, 64) / 64F * 85;
         if(blockCounterAnimation == null) {

@@ -1,0 +1,37 @@
+// Isolated outputs, real tests, and opt-in isolated client QA for Fabric 1.20.4.
+gradle.beforeProject { project ->
+    if (project == project.rootProject) {
+        if (project.rootDir.name != '1.20.4' || project.rootDir.parentFile.parentFile.name != 'fabric')
+            throw new GradleException('Use only with fabric/versions/1.20.4.')
+        def repository = project.rootDir.parentFile.parentFile.parentFile
+        project.layout.buildDirectory.set(new File(repository, '.dsh-tmp/v152-fabric1204-build'))
+    }
+}
+gradle.projectsEvaluated {
+    if (rootProject.hasProperty('portQa')) {
+        def repository = rootProject.rootDir.parentFile.parentFile.parentFile
+        def game = new File(repository, '.dsh-tmp/v152-fabric1204-run')
+        def temp = new File(repository, '.dsh-tmp/v152-fabric1204-native-tmp')
+        game.mkdirs()
+        temp.mkdirs()
+        rootProject.loom.runs.client {
+            runDir '../../../.dsh-tmp/v152-fabric1204-run'
+            programArgs '--width', '1280', '--height', '720', '--username', 'PortQA'
+            vmArg '-Dwurst.test.port=18756'
+            vmArg '-Djava.io.tmpdir=' + temp.absolutePath
+            vmArg '-Djna.tmpdir=' + temp.absolutePath
+            vmArg '-Dorg.lwjgl.system.SharedLibraryExtractPath=' + temp.absolutePath
+        }
+    }
+}
+gradle.taskGraph.whenReady { graph ->
+    graph.allTasks.findAll { it instanceof Test }.each { task ->
+        task.enabled = true
+        task.useJUnitPlatform()
+        def temp = new File(task.project.layout.buildDirectory.get().asFile, 'test-tmp')
+        temp.mkdirs()
+        task.systemProperty 'java.io.tmpdir', temp.absolutePath
+        task.environment 'TEMP', temp.absolutePath
+        task.environment 'TMP', temp.absolutePath
+    }
+}

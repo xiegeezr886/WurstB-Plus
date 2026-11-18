@@ -1,8 +1,8 @@
 package net.wurstclient.clickgui2;
 
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 
@@ -16,6 +16,7 @@ public enum GuiIcon
 	MISC("misc"),
 	FUN("fun"),
 	PLAYER("player"),
+	EXPLOIT("exploit"),
 	SEARCH("search"),
 	CONFIG("config"),
 	FONT("font"),

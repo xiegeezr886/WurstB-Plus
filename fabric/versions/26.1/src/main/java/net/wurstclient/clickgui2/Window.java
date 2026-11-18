@@ -73,12 +73,9 @@ public class Window
 	public final int getX()
 	{
 		int scaledWidth = WurstClient.MC.getWindow().getGuiScaledWidth();
-		int result;
 		if(width > scaledWidth)
-			result = Math.max(0, x);
-		else
-			result = Mth.clamp(x, 0, Math.max(0, scaledWidth - width));
-		return result;
+			return Math.max(0, x);
+		return Mth.clamp(x, 0, Math.max(0, scaledWidth - width));
 	}
 	
 	/**
@@ -102,13 +99,10 @@ public class Window
 	public final int getY()
 	{
 		int scaledHeight = WurstClient.MC.getWindow().getGuiScaledHeight();
-		int result;
 		if(height > scaledHeight)
-			result = Math.max(0, y);
-		else
-			result = Mth.clamp(y, 0,
-				Math.max(0, scaledHeight - TITLE_BAR_HEIGHT));
-		return result;
+			return Math.max(0, y);
+		return Mth.clamp(y, 0,
+			Math.max(0, scaledHeight - TITLE_BAR_HEIGHT));
 	}
 	
 	/**
