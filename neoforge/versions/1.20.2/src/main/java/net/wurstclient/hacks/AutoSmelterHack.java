@@ -72,7 +72,7 @@ public final class AutoSmelterHack extends Hack implements UpdateListener
 	public AutoSmelterHack()
 	{
 		super("AutoSmelter");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(fuelItems);
 		addSetting(smeltableItems);
 		addSetting(delay);

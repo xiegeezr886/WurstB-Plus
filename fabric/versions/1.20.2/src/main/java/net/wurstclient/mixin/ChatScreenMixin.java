@@ -77,6 +77,12 @@ public abstract class ChatScreenMixin extends Screen
 				minecraft.player.connection.sendChat(newMessage);
 	}
 	
+    @Inject(method = "mouseClicked(DDI)Z", at = @At("HEAD"), cancellable = true)
+    private void music$click(double x, double y, int button, CallbackInfoReturnable<Boolean> cir) {
+        var hud = WurstClient.INSTANCE.getHudManager();
+        if(hud != null && hud.clickMusicIsland(x,y,button)) cir.setReturnValue(true);
+    }
+
 	@Shadow
 	public abstract String normalizeChatMessage(String chatText);
 }

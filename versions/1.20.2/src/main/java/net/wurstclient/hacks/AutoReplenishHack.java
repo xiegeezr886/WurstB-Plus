@@ -51,7 +51,7 @@ public final class AutoReplenishHack extends Hack implements UpdateListener
 	public AutoReplenishHack()
 	{
 		super("AutoReplenish");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(minCount);
 		addSetting(delay);
 		addSetting(unstackable);

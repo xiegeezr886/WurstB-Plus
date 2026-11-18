@@ -31,6 +31,23 @@ class RenderGateTest(unittest.TestCase):
         self.assertIn('new GUIRenderEvent(', self.sources['initializer'])
         self.assertEqual(gate.audit(self.sources), [])
 
+    def test_root_forge_callback_is_audited(self):
+        self.sources = gate.load(ROOT)
+        self.assertIn('new GUIRenderEvent(', self.sources['initializer'])
+        self.assertIn(ROOT, list(gate.projects()))
+        self.assertEqual(gate.audit(self.sources), [])
+        self.sources['registered'].append('GuiMixin')
+        self.sources['gui'] = 'new GUIRenderEvent(graphics, partialTick)'
+        self.assertTrue(any('both initializer' in e for e in gate.audit(self.sources)))
+
+    def test_delegated_frame_still_checks_upload_state(self):
+        self.sources = gate.load(ROOT / 'fabric')
+        frame = gate.method(self.sources['context'], 'public boolean beginFrame(float sampling)')
+        self.assertIn('prepareTextureUpload();', frame)
+        self.sources['context'] = self.sources['context'].replace(
+            frame, frame.replace('prepareTextureUpload();', '', 1), 1)
+        self.assertIn('font atlas uploads must use clean unpack state', gate.audit(self.sources))
+
     def test_unregistered_hud_does_not_duplicate_callback(self):
         self.sources = gate.load(ROOT / 'fabric/versions/1.21.1')
         self.sources['initializer'] += '\nEventManager.fire(new GUIRenderEvent(graphics, partialTick));'

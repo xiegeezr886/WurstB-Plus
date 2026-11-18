@@ -32,7 +32,7 @@ public final class IpCmd extends Command
 		switch(String.join(" ", args).toLowerCase())
 		{
 			case "":
-			ChatUtils.message("IP: " + ip);
+			ChatUtils.message("IP: %s", ip);
 			break;
 			
 			case "copy":
@@ -61,7 +61,7 @@ public final class IpCmd extends Command
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Get IP";
+		return WURST.translate("Get IP");
 	}
 	
 	@Override
