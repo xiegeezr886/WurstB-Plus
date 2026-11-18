@@ -35,7 +35,7 @@ function Write-Info($msg) { if (-not $Quiet) { Write-Host $msg } }
 
 # ---------- project table ----------
 $projects = @(
-    @{ Name = "Forge 1.20.1";    Dir = "";                          MC = "1.20.1"; Tasks = @("jarJar", "test");                     Out = @("build\libs\WurstB+ Plus-v1.6.0-Forge-1.20.1.jar"); V16 = $true },
+    @{ Name = "Forge 1.20.1";    Dir = "";                          MC = "1.20.1"; Tasks = @("jarJar");                             Out = @("build\libs\WurstB+ Plus-v1.5.1-Forge-1.20.1.jar") },
     @{ Name = "Forge 1.21.1";    Dir = "versions\1.21.1";          MC = "1.21.1"; Tasks = @("jarJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.21.1.jar") },
     @{ Name = "Forge 1.21.11";   Dir = "versions\1.21.11";         MC = "1.21.11"; Tasks = @("allJar", "test");                     Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-1.21.11.jar"); Baritone = "META-INF/jarjar/baritone-forge-1.17.0-1.21.11.jar" },
     @{ Name = "Forge 26.1.2";    Dir = "versions\26.1.2";          MC = "26.1.2"; Tasks = @("allJar");                              Out = @("build\libs\WurstB+ Plus-v1.5.0-Forge-26.1.2.jar") },
@@ -345,7 +345,7 @@ function Test-EmbeddedBaritone($artifact, $entryName, $mcVersion) {
     }
 }
 
-function Test-CoreClasses($artifact, $mcVersion, $loader, $isV16) {
+function Test-CoreClasses($artifact, $mcVersion, $loader) {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $archive = $null
     try {
@@ -355,16 +355,6 @@ function Test-CoreClasses($artifact, $mcVersion, $loader, $isV16) {
             $required += @(
                 "net/wurstclient/mixin/WurstMixinConfigPlugin.class",
                 "net/wurstclient/mixin/AbstractSignEditScreenMixin.class"
-            )
-        }
-        if ($isV16) {
-            $required += @(
-                "net/wurstclient/music/NeteaseCloudApi.class",
-                "net/wurstclient/music/apple/AppleTimeline.class",
-                "net/wurstclient/compose/AnimFloat.class",
-                "net/wurstclient/render/skia/SkikoNatives.class",
-                "net/wurstclient/gui/visual/VisualTheme.class",
-                "assets/wurst/skiko/skiko-windows-x64.dll"
             )
         }
         $missing = @($required | Where-Object { -not $archive.GetEntry($_) })
@@ -443,7 +433,7 @@ foreach ($p in $projects) {
 
     $artifact = Join-Path $projDir $p.Out[0]
     $projectLoader = ($p.Name -split " ", 2)[0]
-    $coreCheck = Test-CoreClasses $artifact $p.MC $projectLoader $p.V16
+    $coreCheck = Test-CoreClasses $artifact $p.MC $projectLoader
     if (-not $coreCheck.Passed) {
         Write-Host "[$($p.Name)] FAIL: $($coreCheck.Note)" -ForegroundColor Red
         $report += @{ Name = $p.Name; Status = "FAIL"; Note = $coreCheck.Note; Elapsed = $elapsed }

@@ -71,8 +71,7 @@ public class FriendsCmd extends Command
 		
 		String name = args[1];
 		if(WURST.getFriends().contains(name))
-			throw new CmdError(
-				"\"" + name + "\" is already in your friends list.");
+			throw new CmdError("\"%s\" is already in your friends list.", name);
 		
 		WURST.getFriends().addAndSave(name);
 		ChatUtils.message("已添加 friend \"" + name + "\".");
@@ -85,7 +84,7 @@ public class FriendsCmd extends Command
 		
 		String name = args[1];
 		if(!WURST.getFriends().contains(name))
-			throw new CmdError("\"" + name + "\" is not in your friends list.");
+			throw new CmdError("\"%s\" is not in your friends list.", name);
 		
 		WURST.getFriends().removeAndSave(name);
 		ChatUtils.message("已移除 friend \"" + name + "\".");
@@ -111,7 +110,7 @@ public class FriendsCmd extends Command
 		pages = Math.max(pages, 1);
 		
 		if(page > pages || page < 1)
-			throw new CmdSyntaxError("Invalid page: " + page);
+			throw new CmdSyntaxError("Invalid page: %s", page);
 		
 		ChatUtils.message("当前好友: " + friends.size());
 		
@@ -129,7 +128,7 @@ public class FriendsCmd extends Command
 			return 1;
 		
 		if(!MathUtils.isInteger(args[1]))
-			throw new CmdSyntaxError("Not a number: " + args[1]);
+			throw new CmdSyntaxError("Not a number: %s", args[1]);
 		
 		return Integer.parseInt(args[1]);
 	}

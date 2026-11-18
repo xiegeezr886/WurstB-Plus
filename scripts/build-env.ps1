@@ -4,7 +4,14 @@
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 
-$patch = Join-Path $repo 'tools\build-env\zipfs-patch.jar'
+$patchName = 'zipfs-patch.jar'
+if ($env:JAVA_HOME -and (Test-Path (Join-Path $env:JAVA_HOME 'release'))) {
+    $javaRelease = Get-Content (Join-Path $env:JAVA_HOME 'release') -Raw
+    if ($javaRelease -match 'JAVA_VERSION="(21|25)\.') {
+        $patchName = "zipfs-patch$($Matches[1]).jar"
+    }
+}
+$patch = Join-Path $repo "tools\build-env\$patchName"
 if (-not (Test-Path $patch)) {
     throw "缺少 $patch"
 }

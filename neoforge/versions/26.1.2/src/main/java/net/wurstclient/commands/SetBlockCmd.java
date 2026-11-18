@@ -48,8 +48,7 @@ public final class SetBlockCmd extends Command
 		throws CmdError
 	{
 		if(!(setting instanceof BlockSetting))
-			throw new CmdError(feature.getName() + " " + setting.getName()
-				+ " is not a block setting.");
+			throw new CmdError("%s %s is not a block setting.", feature.getName(), setting.getName());
 		
 		return (BlockSetting)setting;
 	}
@@ -65,7 +64,7 @@ public final class SetBlockCmd extends Command
 		
 		Block block = BlockUtils.getBlockFromNameOrID(value);
 		if(block == null)
-			throw new CmdSyntaxError("\"" + value + "\" is not a valid block.");
+			throw new CmdSyntaxError("\"%s\" is not a valid block.", value);
 		
 		setting.setBlock(block);
 	}

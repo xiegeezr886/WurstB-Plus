@@ -39,7 +39,7 @@ public final class NoInteractHack extends Hack
 	public NoInteractHack()
 	{
 		super("NoInteract");
-		setCategory(Category.OTHER);
+		setCategory(Category.PLAYER);
 		addSetting(blockMine); addSetting(blockMineMode);
 		addSetting(blockInteract); addSetting(blockInteractMode); addSetting(blockHand);
 		addSetting(entityHit); addSetting(entityHitMode);

@@ -48,7 +48,7 @@ public final class ForceOpHack extends Hack implements ChatInputListener
 	public ForceOpHack()
 	{
 		super("ForceOP");
-		setCategory(Category.CHAT);
+		setCategory(Category.EXPLOIT);
 	}
 	
 	@Override
@@ -216,8 +216,7 @@ public final class ForceOpHack extends Hack implements ChatInputListener
 			sendIndexToDialog();
 		}
 		
-		ChatUtils.message("\u00a7c[\u00a74\u00a7lFAILURE\u00a7c]\u00a7f All "
-			+ (lastPW + 1) + " passwords were wrong.");
+		ChatUtils.message("§c[§4§lFAILURE§c]§f All %s passwords were wrong.", (lastPW + 1));
 	}
 	
 	private void sleep(long millis)
@@ -271,9 +270,7 @@ public final class ForceOpHack extends Hack implements ChatInputListener
 			else
 				password = passwords[lastPW - 1];
 			
-			ChatUtils.message(
-				"\u00a7a[\u00a72\u00a7lSUCCESS\u00a7a]\u00a7f The password \""
-					+ password + "\" worked.");
+			ChatUtils.message("§a[§2§lSUCCESS§a]§f The password \"%s\" worked.", password);
 			
 			setEnabled(false);
 			return;

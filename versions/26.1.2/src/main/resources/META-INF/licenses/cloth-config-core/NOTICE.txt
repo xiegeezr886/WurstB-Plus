@@ -1,0 +1,5 @@
+Cloth Config 26.1.154 by shedaniel and contributors.
+LGPL-3.0. Upstream source: https://github.com/shedaniel/cloth-config
+Complete configuration-screen and math API extracted from the fixed official artifact.
+Only Dist/OnlyIn annotation namespaces are changed for Forge; no loader entrypoint or AutoConfig.
+Rebuild instructions and artifact hashes: scripts/port/extract_v152_cloth_core.py and native/cloth-config/.

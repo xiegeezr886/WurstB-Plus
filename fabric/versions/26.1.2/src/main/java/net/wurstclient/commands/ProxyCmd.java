@@ -93,7 +93,7 @@ public final class ProxyCmd extends Command
 		}
 
 		WURST.getProxyManager().add(pc);
-		ChatUtils.message("Proxy added: " + name);
+		ChatUtils.message("Proxy added: %s", name);
 	}
 
 	private void remove(String[] args) throws CmdException
@@ -102,8 +102,8 @@ public final class ProxyCmd extends Command
 			throw new CmdSyntaxError(".proxy remove <name>");
 
 		if(!WURST.getProxyManager().remove(args[1]))
-			throw new CmdError("Unknown proxy: " + args[1]);
-		ChatUtils.message("Proxy removed: " + args[1]);
+			throw new CmdError("Unknown proxy: %s", args[1]);
+		ChatUtils.message("Proxy removed: %s", args[1]);
 	}
 
 	private void set(String[] args) throws CmdException
@@ -112,8 +112,8 @@ public final class ProxyCmd extends Command
 			throw new CmdSyntaxError(".proxy set <name>");
 
 		if(!WURST.getProxyManager().setActiveProxy(args[1]))
-			throw new CmdError("Unknown proxy: " + args[1]);
-		ChatUtils.message("Active proxy set to: " + args[1]);
+			throw new CmdError("Unknown proxy: %s", args[1]);
+		ChatUtils.message("Active proxy set to: %s", args[1]);
 	}
 
 	private void clear()
@@ -127,15 +127,13 @@ public final class ProxyCmd extends Command
 		List<ProxyConfig> proxies = WURST.getProxyManager().getAllProxies();
 		ProxyConfig active = WURST.getProxyManager().getActiveProxy();
 
-		ChatUtils.message("Proxies (" + proxies.size() + "):");
+		ChatUtils.message("Proxies (%s):", proxies.size());
 		for(ProxyConfig pc : proxies)
 		{
 			String activeMark = pc.equals(active) ? " \u00a7a[ACTIVE]\u00a7r"
 				: "";
 			String auth = pc.hasAuth() ? " (auth)" : "";
-			ChatUtils.message("  " + pc.getName() + ": "
-				+ pc.getType().getDisplayName() + " "
-				+ pc.getHost() + ":" + pc.getPort() + auth + activeMark);
+			ChatUtils.message("  %s: %s %s:%s%s%s", pc.getName(), pc.getType().getDisplayName(), pc.getHost(), pc.getPort(), auth, activeMark);
 		}
 
 		if(proxies.isEmpty())

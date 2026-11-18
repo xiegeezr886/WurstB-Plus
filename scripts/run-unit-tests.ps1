@@ -1,10 +1,10 @@
 <#
-  Run the Forge 1.20.1 (v1.6) unit test suite, optionally offline.
+  Run a selected Minecraft 1.20.1 project's unit test suite, optionally offline.
 
   Usage:
     powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1
     powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Offline
-    powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -Class net.wurstclient.music.NeteaseCloudApiTest
+    powershell -ExecutionPolicy Bypass -File scripts\run-unit-tests.ps1 -ProjectRoot .\fabric -Class net.wurstclient.neoraven.music.MusicViewTest
 #>
 [CmdletBinding()]
 param(
@@ -18,6 +18,9 @@ $ErrorActionPreference = "Stop"
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 . (Join-Path $scriptRoot "common.ps1")
 $ProjectRoot = Get-WurstbProjectRoot $ProjectRoot
+if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot 'src\test\java'))) {
+    throw 'Selected project has no test sources. Use -ProjectRoot .\fabric for the v1.5.2 baseline, or scripts/run-crash-unit-tests.py for shared regression tests.'
+}
 
 $jdk = Get-WurstbJdkHome "1.20.1"
 if (-not $jdk) {

@@ -88,7 +88,7 @@ public final class AutoKouZiHack extends Hack implements UpdateListener
 	public AutoKouZiHack()
 	{
 		super("AutoKouZi");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(delay);
 		addSetting(autoDisable);
 		addSetting(commandMode);
