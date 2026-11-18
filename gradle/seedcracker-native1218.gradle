@@ -1,0 +1,48 @@
+// Shared native SeedCrackerX for MC 1.21.5-1.21.8.
+def seedRoot = rootDir
+while (!new File(seedRoot, 'native/seedcrackerx/2.15.3/manifest.json').isFile()) {
+    seedRoot = seedRoot.parentFile
+    if (seedRoot == null) throw new GradleException('Missing native SeedCracker source')
+}
+def seedVersion = minecraft_version == '1.21.5' ? '2.15.3' : '2.15.4'
+def seedBase = new File(seedRoot, 'native/seedcrackerx/' + seedVersion)
+def seedManifest = new groovy.json.JsonSlurper().parse(new File(seedBase, 'manifest.json'))
+def seedLibrary = new File(seedBase, 'libs/' + seedManifest.solver_file)
+def seedNeo = plugins.hasPlugin('net.neoforged.moddev')
+def seedCloth = minecraft_version == '1.21.5' ? '18.0.145' : '19.0.147'
+def clothBase = new File(seedRoot, 'native/cloth-config/' + seedCloth)
+def clothManifest = new groovy.json.JsonSlurper().parse(new File(clothBase, 'manifest.json'))
+def clothCore = new File(clothBase, clothManifest.file)
+if (!seedNeo) sourceSets.main.output.resourcesDir = sourceSets.main.output.classesDirs.singleFile
+repositories { maven { url = 'https://maven.shedaniel.me/' } }
+sourceSets.main.java.srcDir(new File(seedBase, 'src/main/java'))
+dependencies {
+    compileOnly files(seedLibrary)
+    testImplementation files(seedLibrary)
+    if (seedNeo) {
+        jarJar(implementation('me.shedaniel.cloth:cloth-config-neoforge:' + seedCloth))
+    } else {
+        // Complete config-screen API, with only distribution annotations mapped.
+        compileOnly files(clothCore)
+        testImplementation files(clothCore)
+    }
+}
+processResources {
+    from({ zipTree(seedLibrary) }) { include 'com/seedfinding/**' }
+    if (!seedNeo) {
+        from({ zipTree(clothCore) })
+    }
+}
+tasks.register('verifyNativeSeedLibrary') {
+    inputs.files(seedLibrary, new File(seedBase, 'manifest.json'), clothCore,
+        new File(clothBase, 'manifest.json'))
+    doLast {
+        def sha = { f -> java.security.MessageDigest.getInstance('SHA-256').digest(f.bytes).encodeHex().toString() }
+        if (sha(seedLibrary) != seedManifest.solver_sha256)
+            throw new GradleException('Native SeedCracker solver hash mismatch')
+        if (sha(clothCore) != clothManifest.sha256)
+            throw new GradleException('Adapted Cloth core hash mismatch')
+    }
+}
+tasks.named('compileJava').configure { dependsOn 'verifyNativeSeedLibrary' }
+tasks.named('processResources').configure { dependsOn 'verifyNativeSeedLibrary' }

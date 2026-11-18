@@ -55,3 +55,9 @@ python scripts/build-v1.5-release.py
   `zipfs-patch.jar` 打进任何发布产物。
 - `--patch-module` 会改变 `jdk.zipfs` 的行为，仅对当前进程树生效，退出即失效。
 - 已用 JDK 17 验证：Forge 1.20.1 工程 `compileJava` / `jarJar` 构建成功。
+
+
+2026-11-17：先设置与工程一致的 `JAVA_HOME`，再点号加载 `scripts/build-env.ps1`。
+脚本读取该 JDK 的 `release`，Java 21 / 25 分别选择已有的 `zipfs-patch21.jar` /
+`zipfs-patch25.jar`，Java 17 使用 `zipfs-patch.jar`。补丁中的 JDK 内部类不能跨主版本使用；
+如果构建子进程切换 JDK 主版本，也应为它设置匹配补丁，避免 `NoSuchMethodError`。

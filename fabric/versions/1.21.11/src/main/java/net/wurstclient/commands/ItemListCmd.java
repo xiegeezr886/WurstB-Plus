@@ -83,8 +83,7 @@ public final class ItemListCmd extends Command
 		String itemName = BuiltInRegistries.ITEM.getKey(item).toString();
 		int index = Collections.binarySearch(setting.getItemNames(), itemName);
 		if(index >= 0)
-			throw new CmdError(feature.getName() + " " + setting.getName()
-				+ " already contains " + itemName);
+			throw new CmdError("%s %s already contains %s", feature.getName(), setting.getName(), itemName);
 		
 		setting.add(item);
 	}
@@ -100,8 +99,7 @@ public final class ItemListCmd extends Command
 		String itemName = BuiltInRegistries.ITEM.getKey(item).toString();
 		int index = Collections.binarySearch(setting.getItemNames(), itemName);
 		if(index < 0)
-			throw new CmdError(feature.getName() + " " + setting.getName()
-				+ " does not contain " + itemName);
+			throw new CmdError("%s %s does not contain %s", feature.getName(), setting.getName(), itemName);
 		
 		setting.remove(index);
 	}
@@ -118,17 +116,14 @@ public final class ItemListCmd extends Command
 		pages = Math.max(pages, 1);
 		
 		if(page > pages || page < 1)
-			throw new CmdSyntaxError("Invalid page: " + page);
+			throw new CmdSyntaxError("Invalid page: %s", page);
 		
-		String total = "Total: " + items.size() + " item";
-		total += items.size() != 1 ? "s" : "";
-		ChatUtils.message(total);
+		ChatUtils.message("Total: %s items", items.size());
 		
 		int start = (page - 1) * 8;
 		int end = Math.min(page * 8, items.size());
 		
-		ChatUtils.message(feature.getName() + " " + setting.getName()
-			+ " (page " + page + "/" + pages + ")");
+		ChatUtils.message("%s %s (page %s/%s)", feature.getName(), setting.getName(), page, pages);
 		for(int i = start; i < end; i++)
 			ChatUtils.message(items.get(i).toString());
 	}
@@ -139,7 +134,7 @@ public final class ItemListCmd extends Command
 			return 1;
 		
 		if(!MathUtils.isInteger(args[3]))
-			throw new CmdSyntaxError("Not a number: " + args[3]);
+			throw new CmdSyntaxError("Not a number: %s", args[3]);
 		
 		return Integer.parseInt(args[3]);
 	}
@@ -148,8 +143,7 @@ public final class ItemListCmd extends Command
 		Setting setting) throws CmdError
 	{
 		if(!(setting instanceof ItemListSetting))
-			throw new CmdError(feature.getName() + " " + setting.getName()
-				+ " is not a ItemList setting.");
+			throw new CmdError("%s %s is not a ItemList setting.", feature.getName(), setting.getName());
 		
 		return (ItemListSetting)setting;
 	}

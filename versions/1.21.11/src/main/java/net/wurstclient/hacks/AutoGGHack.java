@@ -50,7 +50,7 @@ public final class AutoGGHack extends Hack
 	public AutoGGHack()
 	{
 		super("AutoGG");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(delay);
 		addSetting(message);
 		addSetting(hypixelOnly);

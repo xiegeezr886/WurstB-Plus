@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
@@ -34,15 +34,23 @@ import net.wurstclient.gui.MainMenuBackground;
 public abstract class ScreenMixin extends AbstractContainerEventHandler
 	implements Renderable
 {
-	@Inject(
-		method = "renderTransparentBackground(Lnet/minecraft/client/gui/GuiGraphics;)V",
-		at = @At("HEAD"),
+	@Inject(method = "renderWithTooltipAndSubtitles", at = @At("RETURN"))
+	private void wurst$renderContainerIsland(GuiGraphics graphics, int mouseX,
+		int mouseY, float partialTicks, CallbackInfo ci)
+	{
+		var hud = WurstClient.INSTANCE.getHudManager();
+		if(hud != null && (Object)this instanceof AbstractContainerScreen<?>)
+			hud.renderContainerIsland(new net.wurstclient.util.render.GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	@Inject(at = @At("HEAD"),
+		method = "renderBackground(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
 		cancellable = true)
-	public void onRenderInGameBackground(GuiGraphics context,
-		CallbackInfo ci)
+	public void onRenderBackground(GuiGraphics context, int mouseX, int mouseY,
+		float partialTick, CallbackInfo ci)
 	{
 		Screen screen = (Screen)(Object)this;
-		ButtonStyleRenderer.beginScreen(context, screen);
+		ButtonStyleRenderer.beginScreen(new net.wurstclient.util.render.GuiGraphicsExtractor(context), screen);
 
 		if(WurstClient.INSTANCE.getHax().noBackgroundHack
 			.shouldCancelBackground(screen))
@@ -54,7 +62,7 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 		if(shouldKeepVanillaBackground(screen))
 			return;
 
-		MainMenuBackground.render(context, screen);
+		MainMenuBackground.render(new net.wurstclient.util.render.GuiGraphicsExtractor(context), screen);
 		ci.cancel();
 	}
 
@@ -87,7 +95,7 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 	private void wurst$drawStyledButtons(GuiGraphics graphics, int mouseX,
 		int mouseY, float partialTicks, CallbackInfo ci)
 	{
-		ButtonStyleRenderer.beginScreen(graphics, (Screen)(Object)this);
+		ButtonStyleRenderer.beginScreen(new net.wurstclient.util.render.GuiGraphicsExtractor(graphics), (Screen)(Object)this);
 	}
 
 	@Inject(at = @At("RETURN"),
@@ -95,6 +103,18 @@ public abstract class ScreenMixin extends AbstractContainerEventHandler
 	private void wurst$finishStyledButtons(GuiGraphics graphics, int mouseX,
 		int mouseY, float partialTicks, CallbackInfo ci)
 	{
-		ButtonStyleRenderer.endScreen(graphics);
+		ButtonStyleRenderer.endScreen(new net.wurstclient.util.render.GuiGraphicsExtractor(graphics));
+	}
+
+	@Inject(at = @At("HEAD"),
+		method = "renderBlurredBackground",
+		cancellable = true)
+	public void onRenderBlurredBackground(CallbackInfo ci)
+	{
+		Screen screen = (Screen)(Object)this;
+
+		if(Minecraft.getInstance().level != null
+			&& screen.getClass().getName().startsWith("net.wurstclient."))
+			ci.cancel();
 	}
 }

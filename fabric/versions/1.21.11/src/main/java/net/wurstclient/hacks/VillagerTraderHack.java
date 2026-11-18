@@ -101,12 +101,12 @@ public final class VillagerTraderHack extends Hack implements UpdateListener
 		VillagerType.values(), VillagerType.FARMER);
 
 	private final ItemListSetting sellItems = new ItemListSetting(
-		"Sell items", WText.literal(
+		"Sell items", WText.translated(
 			"Items to sell to villagers for emeralds."),
 		"minecraft:rotten_flesh");
 
 	private final ItemListSetting buyItems = new ItemListSetting("Buy items",
-		WText.literal("Items to buy from villagers with emeralds."));
+		WText.translated("Items to buy from villagers with emeralds."));
 
 	private final SliderSetting delay = new SliderSetting("Delay",
 		"Ticks between state machine actions.", 10, 1, 40, 1,
@@ -138,7 +138,7 @@ public final class VillagerTraderHack extends Hack implements UpdateListener
 	public VillagerTraderHack()
 	{
 		super("VillagerTrader");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(debug);
 		addSetting(supplyQty);
 		addSetting(supplyRange);
@@ -610,7 +610,7 @@ public final class VillagerTraderHack extends Hack implements UpdateListener
 	private void debug(String message)
 	{
 		if(debug.isChecked())
-			ChatUtils.message("VillagerTrader: " + message);
+			ChatUtils.message("VillagerTrader: %s", message);
 	}
 
 	private static final class TradeRecord

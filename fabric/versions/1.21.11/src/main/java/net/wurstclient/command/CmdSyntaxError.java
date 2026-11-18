@@ -7,6 +7,7 @@
  */
 package net.wurstclient.command;
 
+import net.wurstclient.WurstClient;
 import net.wurstclient.util.ChatUtils;
 
 public final class CmdSyntaxError extends CmdException
@@ -19,6 +20,15 @@ public final class CmdSyntaxError extends CmdException
 		super(message);
 	}
 	
+	/**
+	 * Builds a translated syntax error. The English text doubles as the
+	 * translation key and may contain {@code %s} placeholders.
+	 */
+	public CmdSyntaxError(String key, Object... args)
+	{
+		super(WurstClient.INSTANCE.translate(key, args));
+	}
+
 	@Override
 	public void printToChat(Command cmd)
 	{

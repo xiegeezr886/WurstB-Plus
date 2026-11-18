@@ -157,7 +157,7 @@ public final class FurnaceUncloggerHack extends Hack
 	public FurnaceUncloggerHack()
 	{
 		super("FurnaceUnclogger");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(autoClean);
 		addSetting(cleanMode);
 		addSetting(probeOnlyUnlit);
@@ -402,7 +402,7 @@ public final class FurnaceUncloggerHack extends Hack
 		nextProbeTick.put(target, ticks + recheckDelay.getValueI());
 
 		if(messages.isChecked())
-			ChatUtils.message("Cleaned clogged furnace at " + formatPos(target));
+			ChatUtils.message("Cleaned clogged furnace at %s", formatPos(target));
 
 		startClosing();
 	}
@@ -413,8 +413,7 @@ public final class FurnaceUncloggerHack extends Hack
 		nextProbeTick.put(target, ticks + recheckDelay.getValueI());
 
 		if(messages.isChecked())
-			ChatUtils.warning("Furnace clean failed: " + reason + " at "
-				+ formatPos(target));
+			ChatUtils.warning("Furnace clean failed: %s at %s", reason, formatPos(target));
 
 		startClosing();
 	}

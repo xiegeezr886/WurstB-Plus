@@ -7,8 +7,7 @@
  */
 package net.wurstclient.options;
 
-import net.minecraft.client.gui.GuiGraphics;
-
+import net.wurstclient.WurstClient;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.Font;
 import net.wurstclient.util.render.GuiGraphicsExtractor;
@@ -89,7 +88,7 @@ public final class EnterProfileNameScreen extends Screen
 	{
 	}
 @Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	public void render(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
@@ -97,8 +96,9 @@ public final class EnterProfileNameScreen extends Screen
 	private void renderContents(GuiGraphicsExtractor context, int mouseX,
 		int mouseY, float partialTicks)
 	{
-		context.centeredText(minecraft.font, "Name your new profile", width / 2,
-			20, CommonColors.WHITE);
+		renderBackground(context.getInner(), mouseX, mouseY, partialTicks);
+		context.centeredText(minecraft.font,
+			WurstClient.tr("Name your new profile"), width / 2, 20, 0xFFFFFF);
 		
 		valueField.render(context.getInner(), mouseX, mouseY, partialTicks);
 		for(Renderable drawable : renderables)

@@ -51,7 +51,7 @@ public final class BlinkHack extends Hack
 	public BlinkHack()
 	{
 		super("Blink");
-		setCategory(Category.MOVEMENT);
+		setCategory(Category.PLAYER);
 		addSetting(limit);
 		addSetting(allPackets);
 	}
