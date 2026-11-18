@@ -47,7 +47,9 @@ public class FluidRendererMixin
 		XRayHack xray = WurstClient.INSTANCE.getHax().xRayHack;
 		
 		// Note: the null BlockPos is here to skip the "exposed only" check
-		Boolean shouldDrawSide = xray.shouldDrawSide(blockState, null);
+		var event = new net.wurstclient.events.ShouldDrawSideListener.ShouldDrawSideEvent(blockState, null);
+		 net.wurstclient.event.EventManager.fire(event);
+		Boolean shouldDrawSide = event.isRendered();
 		
 		if(!xray.isOpacityMode() || xray.isVisible(blockState.getBlock(), pos))
 			currentOpacity.set(1F);

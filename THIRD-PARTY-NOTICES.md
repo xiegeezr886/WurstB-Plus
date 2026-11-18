@@ -4,6 +4,11 @@
 
 ## SeedCrackerX / OpenSeed
 
+Fabric 1.20.4 开发移植使用官方 SeedCrackerX **2.14.6** 原始发布包（MIT），
+SHA-256：`a2822c54df0de02c7935d87db41be1588e2153f100ec964b890cff0c3d5188d5`。
+四项原始嵌套库和许可证保留；开发环境单独提取其副本供 Loom 重映射使用。
+该发布标签现指向后来的源码，不能将标签视为二进制的精确源码版本。
+
 Fabric 1.20.1 内嵌 [SeedCrackerX](https://github.com/19MisterX98/SeedcrackerX) 官方 2.14.4 发布包（MIT），保留其嵌套库及元数据，新增独立结果桥接和 Baritone 联动。普通/散布矿脉重放算法改编自 [kuxiaole/OpenSeed](https://github.com/kuxiaole/OpenSeed) 提交 `3411dd42cbb17cf9e937f872bce7ec0cb19eeccc` 的 OreXrayManager。该公开仓库声明为反编译重建，MIT 只适用于 SeedCrackerX 部分，其额外代码授权未明确，不能宣称整个仓库均为 MIT。原用户提供的 OpenSeed-Crack 地址不可访问，无法确认此镜像的继承关系。随包保留 `META-INF/licenses/seedcrackerx/`、`META-INF/licenses/openseed/` 来源与许可说明；没有引入 OpenSeed 原版 JAR、认证或云端上传功能。详见 [适配说明](docs/SEED-MINING-v1.5.2.md)。
 
 本文件列出 WurstB+ Plus 随包分发或内嵌的第三方组件及其许可情况。
@@ -99,11 +104,6 @@ MIT 与项目的 AGPL-3.0-or-later 兼容；MIT 要求保留版权与许可声�
    LGPL 对"允许用户替换该库"有额外要求，relocate 后的动态替换路径需要确认。
 
 #### 第 1、2 步已完成（2026-10-07）
-
-实测了根工程产物 `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar` 的
-`META-INF/jarjar/metadata.json`：**内嵌依赖 17 个**（不是 18），其中
-**只有 2 个 jar 自带许可文件** —— `mixinextras-forge`（`LICENSE_MixinExtras`）与
-`vorbis-support`（`META-INF/license.txt`）；**其余 15 个产物内零许可文本**。
 
 核实许可时踩到一个坑，记下来：**这批 POM 里 `<licenses>` 元素普遍不存在**
 （先按该元素解析，17 个全部报"无声明"，看起来像全都没写）。
@@ -245,16 +245,6 @@ SHA-256）与许可正文。
 
 **发布产物已验证（2026-10-12）**：重跑 `gradlew build` 后确认许可文本确实进了发布产物 ——
 
-    WurstB+ Plus-v1.6.0-Forge-1.20.1.jar
-        55,722,520 B   EOCD: True   CRC: OK
-        1823 条目 / 1516 class / jarJar 内嵌 17
-        META-INF/licenses: 59 文件 / 19 组件（17 个依赖 + cozyui）
-
-**顺带发现并修掉一个会阻塞发布的问题**：先前那次被中途杀死的构建在 `build/libs`
-留下了一个**截断的** `WurstB+ Plus-v1.6.0-Forge-1.20.1.jar` —— 它大小正常（9.5 MB）、
-时间正常、文件名正常，但**没有 zip 的 EOCD**，打开就报「找不到中央目录结尾记录」。
-从外面完全看不出来。这类文件已实测出现两次，两次都是发布用的那个产物（不是 -dev）。
-
 为此新增 `scripts/verify-jars.ps1`：逐个检查 EOCD、中央目录可解析性、以及
 （`-Deep` 时）每个条目的 CRC；不通过就以非零码退出并提示"删掉重新构建，不要发布"。
 已双向验证：对完好的 3 个产物报通过（exit 0），对人为截断的副本报出
@@ -320,7 +310,6 @@ Wallpaper Engine 的官方 Steam 商店 logo（app 431960 的 `logo.png`），�
 缩放到 88×88 并重新着色为白色。Wallpaper Engine 及其图标版权归 Kristjan Skutta /
 Wallpaper Engine 所有；此处仅用于在背景选择界面标识「从该来源导入」，不表示任何
 隶属或背书关系。
-
 
 ## LeavesHack v1.5.2 移植
 

@@ -33,7 +33,7 @@ public final class SettingsWindow extends Window
 
 	private SettingsWindow(Feature feature)
 	{
-		super(feature.getDisplayName() + " 璁剧疆");
+		super(feature.getDisplayName() + " 设置");
 		settings = new ArrayList<>(feature.getSettings().values());
 		
 		setClosable(true);
@@ -111,5 +111,4 @@ public final class SettingsWindow extends Window
 		else
 			setY(Math.max(0, y));
 	}
-
 }

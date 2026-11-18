@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
@@ -47,20 +47,21 @@ public abstract class TitleScreenMixin extends Screen
 		wurstPenguin$titleMenu =
 			new WurstTitleMenu((TitleScreen)(Object)this);
 		wurstPenguin$titleMenu.init(minecraft, width, height,
-			this::addRenderableWidget);
+			widget -> addRenderableWidget(widget));
 	}
 
-	@Inject(
-		method = "extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V",
+	@Inject(method = "extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V",
 		at = @At("HEAD"),
 		cancellable = true)
-	private void onExtractRenderState(GuiGraphicsExtractor graphics, int mouseX,
-		int mouseY, float partialTicks, CallbackInfo ci)
+	private void onRender(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY,
+		float partialTicks, CallbackInfo ci)
 	{
 		if(!wurstPenguin$customMenu || wurstPenguin$titleMenu == null)
 			return;
 
-		wurstPenguin$titleMenu.render(graphics, mouseX, mouseY, partialTicks,
+		// Own the entire frame, including transitions. Injecting at the logo
+		// allowed vanilla's panorama and initial fade to render first.
+		wurstPenguin$titleMenu.render(new net.wurstclient.util.render.GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks,
 			width, height);
 		super.extractRenderState(graphics, mouseX, mouseY, partialTicks);
 		ci.cancel();
