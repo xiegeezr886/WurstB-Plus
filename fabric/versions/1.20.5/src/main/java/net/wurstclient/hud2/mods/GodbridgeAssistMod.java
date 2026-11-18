@@ -30,8 +30,8 @@ public final class GodbridgeAssistMod extends HUDMod
 		float pitch = MC.player == null ? 0 : MC.player.getXRot();
 		boolean aligned = yaw < 5 && pitch > 70;
 
-		String[] lines = {String.format("Yaw: %.1f", yaw),
-			String.format("Pitch: %.1f", pitch),
+		String[] lines = {WURST.translate("Yaw: %.1f", yaw),
+			WURST.translate("Pitch: %.1f", pitch),
 			aligned ? "Aligned" : "Not aligned"};
 		float width = 110;
 		for(String line : lines)

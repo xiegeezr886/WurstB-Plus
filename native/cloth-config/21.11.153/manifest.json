@@ -1,0 +1,7 @@
+{
+  "upstream": "me.shedaniel.cloth:cloth-config-neoforge:21.11.153",
+  "upstream_sha256": "cf0d6218092579491c4006b98e1ee749c16a724998ba4ab8bc6f7bfa75b25bc5",
+  "file": "cloth-config-core-21.11.153-forge.jar",
+  "sha256": "fd4751c3e0ec6a8c729c04cf0f189bd3025d174f7cfb5c9b12e274677e33d6b7",
+  "changes": "Full config-screen and math API; distribution annotations mapped to Forge. No loader entrypoints or AutoConfig."
+}

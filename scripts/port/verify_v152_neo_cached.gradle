@@ -1,0 +1,32 @@
+// NeoGradle's offline download task deletes its output before checking offline
+// mode. Reuse only artifacts whose size and SHA-1 match Mojang metadata.
+gradle.projectsEvaluated {
+    if (!rootProject.plugins.hasPlugin('net.neoforged.gradle.userdev')) return
+    def mc = rootProject.property('minecraft_version')
+    def cache = new File(rootProject.rootDir, '.gradle/caches/minecraft/versions/' + mc)
+    def metadata = new groovy.json.JsonSlurper().parse(new File(cache, 'metadata.json'))
+    ['client':'client.jar', 'server':'server.jar', 'client_mappings':'client.txt', 'server_mappings':'server.txt'].each { key, name ->
+        def file = new File(cache, name)
+        def expected = metadata.downloads[key]
+        if (!file.isFile() || file.length() != expected.size ||
+            java.security.MessageDigest.getInstance('SHA-1').digest(file.bytes).encodeHex().toString() != expected.sha1)
+            throw new GradleException('Missing or unverified Mojang cache: ' + file)
+    }
+    rootProject.tasks.matching {
+        it.name.startsWith('cacheVersionExecutable') || it.name.startsWith('cacheVersionMappings')
+    }.configureEach { enabled = false }
+    def libraries = new File(gradle.gradleUserHomeDir, 'caches/minecraft/libraries')
+    def entries = metadata.libraries.findAll { it.downloads?.artifact }.collect { it.downloads.artifact }
+    entries.each { entry ->
+        def file = new File(libraries, entry.path)
+        if (!file.isFile() || file.length() != entry.size ||
+            java.security.MessageDigest.getInstance('SHA-1').digest(file.bytes).encodeHex().toString() != entry.sha1)
+            throw new GradleException('Missing or unverified Mojang library: ' + file)
+    }
+    rootProject.tasks.matching { it.name == 'neoFormListLibraries' }.configureEach {
+        def list = outputs.files.files.find { it.name == 'libraries.txt' }
+        list.parentFile.mkdirs()
+        list.text = entries.collect { '-e=' + new File(libraries, it.path).absolutePath }.join('\n') + '\n'
+        enabled = false
+    }
+}

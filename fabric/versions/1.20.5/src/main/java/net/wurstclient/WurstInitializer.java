@@ -36,6 +36,14 @@ public final class WurstInitializer implements ClientModInitializer
 		{
 			initialized = true;
 			WurstClient.INSTANCE.initialize();
+			net.wurstclient.seed.SeedCrackerBridge.initialize();
+            net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.LAST.register(context -> {
+                var matrices = context.matrixStack();
+                float delta = context.tickDelta();
+                net.wurstclient.event.EventManager.fire(new net.wurstclient.events.RenderListener.RenderEvent(matrices, delta));
+                WurstClient.INSTANCE.getPostEffectQueue().flush(matrices, delta);
+                net.wurstclient.util.render.MoonEntityGlow.INSTANCE.flush(matrices, delta);
+            });
 		}
 	}
 }

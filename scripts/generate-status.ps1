@@ -138,17 +138,6 @@ function Count-Tests([string]$Dir) {
     return $n
 }
 
-# --- v1.6 feature gate -------------------------------------------------------
-# Historical package names, not a version/capability assertion. The old v1.6
-# root was archived on 2026-11-17; newer independent implementations may reuse names.
-$V16Packages = @(
-    'net\wurstclient\clickgui2\component', 'net\wurstclient\music', 'net\wurstclient\twilight',
-    'net\wurstclient\background', 'net\wurstclient\compose', 'net\wurstclient\clickgui2\epsilon',
-    'net\wurstclient\clickgui2\supersoft', 'net\wurstclient\render\skia', 'net\wurstclient\gui\visual',
-    'net\wurstclient\hud2\render', 'net\wurstclient\perimeter', 'net\wurstclient\seed',
-    'net\wurstclient\clickgui2\music'
-)
-
 Write-Host 'Scanning project roots...' -ForegroundColor Cyan
 $projectRoots = Get-ProjectRoots
 
@@ -158,11 +147,6 @@ foreach ($rel in $projectRoots) {
     $gp = Join-Path $full 'gradle.properties'
     $srcJava = Join-Path $full 'src/main/java'
     $testJava = Join-Path $full 'src/test/java'
-
-    $v16Count = 0
-    foreach ($pkg in $V16Packages) {
-        if (Test-Path -LiteralPath (Join-Path $srcJava $pkg.Replace('\', '/'))) { $v16Count++ }
-    }
 
     $rows.Add([PSCustomObject]@{
         Path         = if ($rel -eq '.') { '.' } else { $rel }
@@ -178,7 +162,6 @@ foreach ($rel in $projectRoots) {
         MainJava     = (Count-Java $srcJava)
         TestClasses  = (Count-Java $testJava)
         TestMethods  = (Count-Tests $testJava)
-        V16Packages  = $v16Count
         WrapperJar   = (Test-Path (Join-Path $full 'gradle/wrapper/gradle-wrapper.jar'))
         License      = ((Test-Path (Join-Path $full 'LICENSE.txt')) -or (Test-Path (Join-Path $full 'LICENSE')))
     })
@@ -201,7 +184,6 @@ $totalTests = ($rows | Measure-Object -Property TestMethods -Sum).Sum
 $rootRow = $rows | Where-Object { $_.Path -eq '.' }
 # @(...) is required: under Set-StrictMode a single-item pipeline result is a
 # scalar and has no .Count property.
-$withV16 = @($rows | Where-Object { $_.V16Packages -gt 0 }).Count
 $uniqueMc = @($rows | Select-Object -ExpandProperty Minecraft -Unique | Sort-Object).Count
 $loaders = @($rows | Select-Object -ExpandProperty Loader -Unique | Sort-Object)
 $uniqueModVersions = @($rows | Select-Object -ExpandProperty ModVersion -Unique).Count
@@ -229,7 +211,6 @@ W ("| 加载器 | **{0}** |" -f ($loaders -join ' / '))
 W ("| `src/main/java` 文件 | **{0:N0}** |" -f $totalMain)
 W ("| 测试类 / 测试方法（全部工程合计） | **{0:N0} / {1:N0}** |" -f $totalTestClasses, $totalTests)
 W ("| 根工程源码 / 测试类 / 测试方法 | **{0:N0} / {1:N0} / {2:N0}** |" -f $rootRow.MainJava, $rootRow.TestClasses, $rootRow.TestMethods)
-W ("| 含历史 v1.6 同名包的工程（不代表功能移植） | **{0} / {1}** |" -f $withV16, $rows.Count)
 W ("| 含 gradle-wrapper.jar 的工程 | **{0} / {1}** |" -f ($rows | Where-Object { $_.WrapperJar }).Count, $rows.Count)
 W ("| 含 LICENSE.txt 的工程 | **{0} / {1}** |" -f ($rows | Where-Object { $_.License }).Count, $rows.Count)
 W ("| `mod_version` 不同取值数 | **{0}** |" -f $uniqueModVersions)
@@ -245,7 +226,6 @@ W '| Reach 常量冲突 | 11 份 legacy 注入改为可选 | 冲突时超过 6 �
 W '| 启动期翻译 / OpenOpal | 67 份翻译已守卫；66 份旋转与 tick 初始化已守卫 | 保留客户端禁用时的旋转清理 |'
 W '| Fullbright 保存越界 | 67 个工程注册保存包装器 | 仅保存期间使用合法亮度，finally 恢复渲染值 |'
 W '| MixinExtras 旧版转换器 | 23 个 Fabric 工程内嵌 0.5.5；Loader 最低 0.17.0 | Windows 日志中的旧版缺陷；不是 Android 特有问题 |'
-W '| 原生库被资源包替换 | 根工程 FFmpeg / Skiko 使用模块资源与编译期 SHA-256 | 本机行为测试；不通过资源包管理器读取可执行内容 |'
 W '| 旧密钥反序列化 | common 与 66 个副本均加类型、深度、引用、字节、数组限制 | 验证旧密钥可迁移，恶意类型不会执行 readObject |'
 W '| NanoVG 缓存损坏 / 架构混用 | 66 份实现按版本、平台、架构和 SHA-256 隔离并原子写入 | 验证损坏修复、不同内容与架构隔离、失败不发布 |'
 W '| Accessor / Invoker 漏注册 | NeoForge 1.20.1 补 10 个；其它版本同类遗漏补 21 个 | 67 工程实际调用注册检查；同版本已注册源码比对 |'
@@ -255,12 +235,12 @@ W '源码修复不会更新已发布的旧 JAR。完整构建、游戏启动及�
 W ''
 W '## 工程清单'
 W ''
-W '| 工程 | 加载器 | MC | 加载器版本 | Java | Gradle | mod_version | 组 | 源码 | 测试类 | 测试方法 | 历史同名包 | wrapper | LICENSE |'
-W '| --- | --- | --- | --- | ---: | ---: | --- | --- | ---: | ---: | ---: | ---: | :---: | :---: |'
+W '| 工程 | 加载器 | MC | 加载器版本 | Java | Gradle | mod_version | 组 | 源码 | 测试类 | 测试方法 | wrapper | LICENSE |'
+W '| --- | --- | --- | --- | ---: | ---: | --- | --- | ---: | ---: | ---: | :---: | :---: |'
 foreach ($r in $rows | Sort-Object @{E={$_.Loader}}, @{E={$_.Minecraft}}) {
-    W ("| `{0}` | {1} | {2} | {3} | {4} | {5} | `{6}` | `{7}` | {8} | {9} | {10} | {11}/13 | {12} | {13} |" -f `
+    W ("| `{0}` | {1} | {2} | {3} | {4} | {5} | `{6}` | `{7}` | {8} | {9} | {10} | {11} | {12} |" -f `
         $r.Path, $r.Loader, $r.Minecraft, $r.LoaderVer, $r.Java, $r.Gradle, $r.ModVersion, $r.Group,
-        $r.MainJava, $r.TestClasses, $r.TestMethods, $r.V16Packages,
+        $r.MainJava, $r.TestClasses, $r.TestMethods,
         $(if ($r.WrapperJar) { 'yes' } else { '**NO**' }), $(if ($r.License) { 'yes' } else { '**NO**' }))
 }
 W ''
@@ -285,13 +265,6 @@ W '| --- | ---: |'
 foreach ($g in $rows | Group-Object ModVersion | Sort-Object Name) {
     W ("| `{0}` | {1} |" -f $g.Name, $g.Count)
 }
-W ''
-W '## 历史 v1.6 包名检查'
-W ''
-W '2026-11-17：根工程已替换为 Forge 1.20.1 v1.5.1，旧 v1.6.0 移至仓库外备份。这里仅检查历史 13 个包名是否存在，同名目录不表示具备旧版功能。以下工程没有这些包名：'
-W ''
-$missingV16 = @($rows | Where-Object { $_.V16Packages -eq 0 } | Select-Object -ExpandProperty Path)
-W ("共 **{0}** 个：{1}" -f $missingV16.Count, (($missingV16 | ForEach-Object { "``$_``" }) -join '、'))
 W ''
 W '> 版本以工程清单的 mod_version 为准，功能与验证边界见各版本开发文档。'
 W '> 根工程替换及备份恢复说明见 [ROOT-FORGE-1.5.1.md](ROOT-FORGE-1.5.1.md)。'

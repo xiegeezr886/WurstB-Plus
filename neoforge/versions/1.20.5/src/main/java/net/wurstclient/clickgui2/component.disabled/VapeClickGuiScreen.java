@@ -70,11 +70,11 @@ public class VapeClickGuiScreen extends Screen
 		panels.add(createPanel(x += PANEL_WIDTH + PANEL_GAP, y,
 			categorized.get(Category.COMBAT), 0xFFD61846, "战斗类"));
 		panels.add(createPanel(x += PANEL_WIDTH + PANEL_GAP, y,
-			combined(categorized, Category.BLOCKS, Category.ITEMS),
+			combined(categorized, Category.WORLD, Category.PLAYER),
 			0xFF4466B0, "世界类"));
 		panels.add(createPanel(x += PANEL_WIDTH + PANEL_GAP, y,
-			combined(categorized, Category.CHAT, Category.FUN,
-				Category.OTHER), 0xFFDB5A05, "其他类"));
+			combined(categorized, Category.MISC, Category.FUN,
+				Category.MISC), 0xFFDB5A05, "其他类"));
 	}
 	
 	private CategoryPanelComponent createPanel(int x, int y,
