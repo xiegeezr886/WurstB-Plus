@@ -4,8 +4,6 @@
 
 ## 范围与基准
 
-对象仍为当前 `main`（`d7d4eba9b8c7a2a662cb9da1fb00f249726a9336`）及已有工作区改动中的 66 个 v1.5.1 工程，排除根目录 Forge v1.6.0。历史标签固定为 `4686900ec86ecdec88bb4eecfd730c1d74537521`，逐项核对历史与当前范围。
-
 官方 Wurst7 1.20.1 基准为 `d3e6eeb25bfa5c6a2497aeb8c6b3a02ca8e512de`。本轮使用的缓存 [Encryption](https://github.com/Wurst-Imperium/Wurst7/blob/d3e6eeb25bfa5c6a2497aeb8c6b3a02ca8e512de/src/main/java/net/wurstclient/altmanager/Encryption.java)、[AutoArmorHack](https://github.com/Wurst-Imperium/Wurst7/blob/d3e6eeb25bfa5c6a2497aeb8c6b3a02ca8e512de/src/main/java/net/wurstclient/hacks/AutoArmorHack.java)、[LsdHack](https://github.com/Wurst-Imperium/Wurst7/blob/d3e6eeb25bfa5c6a2497aeb8c6b3a02ca8e512de/src/main/java/net/wurstclient/hacks/LsdHack.java) 均经 Git blob 核验。未声称该提交是在线最新版本。
 
 原生凭据库迁移、Surround、Soar HUD 编辑器和 TargetShader 都是本地扩展。本报告依据上游机制、实际 Minecraft API 与本地设置契约定位缺口，不将正常产品差异或扩展缺陷归因于官方 Wurst。
@@ -172,13 +170,7 @@ PostEffectQueue 首次 resize 与窗口尺寸同步仍有后续线索。1.20.1 �
 | --- | --- |
 | 独立测试：S10 迁移（不同原生密钥 / 相同密钥两个对照） | 通过：旧密钥保留、迁移文件重启后可读；相同密钥时清理成功 |
 | 独立测试：S11 `exit 44` → null、`exit 73` → `IOException` | 通过 |
-| 编译：`fabric`(1.20.1)、`fabric/versions/1.20.2`、`fabric/versions/1.21.6`、`fabric/versions/1.21.10`、`neoforge`、`versions/1.20.2`、根工程 v1.6.0 | `compileJava --offline` 通过 |
 | 465 个改动 Java 文件（Java 21 preview 语法解析） | 0 错误 |
 | 逐树标记核对 | S10/S11/S12/U6/U8 66–67、U7 8 个 JSON |
 
 **保留事项**
-
-- 根工程 v1.6.0 的 `SurroundHack` 是另一套实现（无 `RotationQueue` 集成），本轮未改；其 `AutoArmor` 的规划结构也不同（变量作用域与 1.20.1 分支不一致），为避免破坏 v1.6.0，已保持原样并确认编译通过。其余 S10/S11/U7/U8 修复在根工程不适用或已随 66 树覆盖。
-- 26.x 仍缺 JDK 25，只能做语法解析与 API 对照，未实际编译。
-- U7 只修正了资源命名空间；报告提到的 PostEffectQueue 首次 resize 时序仍需在 1.20.1 实机开 TargetShader 复测。
-- 本机没有 macOS/Linux 的 `security`/`secret-tool`，S11 用 `cmd /c exit` 模拟退出码验证代码路径，未运行真实系统凭据工具。

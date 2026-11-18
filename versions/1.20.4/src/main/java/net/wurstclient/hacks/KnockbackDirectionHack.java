@@ -136,8 +136,8 @@ public final class KnockbackDirectionHack extends Hack
 		double newOffset = Mth
 			.wrapDegrees(yawOffset.getValue() + amount * scrollStep.getValue());
 		yawOffset.setValue(newOffset);
-		ChatUtils.message(
-			"Yaw offset: " + String.format("%.1f", newOffset));
+		ChatUtils.message("Yaw offset: %s",
+			String.format("%.1f", newOffset));
 	}
 
 	private double interpolate(double start, double end, double factor)

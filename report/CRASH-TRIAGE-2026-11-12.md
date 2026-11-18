@@ -18,7 +18,6 @@
 | C4 | `错误报告-2026-11-11_19.59.37.zip` | Forge **26.3** | Baritone `IRenderer.<clinit>` → `ClassCastException: RenderPipelines` | 工程根目录一份陈旧的 19 条 `mixins.baritone.json` 遮蔽了 Baritone jar 的 21 条配置，`MixinRenderPipelines` 从未应用 | **仍存在**（`versions/26.3`） | 本仓库移植 |
 | C5 | `minecraft-exported-crash-info-2026-11-09T18-57-3.zip` | Fabric **1.20.1** 整合包（乌托邦 3.5.2） | `ReachLegacyRendererMixin` 注入 `(0/1)` | 与 `reach-entity-attributes` 的 `@ModifyConstant` 同优先级冲突，Mixin 跳过 → 因 `defaultRequire:1` 升级为致命 | **仍存在**（11 个 1.20.x 工程） | 本仓库 |
 | C6 | `错误报告-2026-11-1_13.45.28.zip` | Fabric **26.1.2** | `WurstTranslator.translateEnglish` NPE | 启动期翻译 + `mcEnglish` 尚未赋值 | **已修**（26.1.2 已有守卫） | 已修 |
-| C7 | `错误报告-2026-11-1_14.35.35.zip` | Fabric **1.21.11** | 同上（`class_1078`） | 同上 | **已修**；但**根工程 `src/`（v1.6.0）仍未修** | 部分 |
 | C8 | `latest (2).log` | Fabric 26.3 / 1.5.0 | Freecam 开 → `Entity.getId()` | 26.2+ 对未分配 ID 的实体抛异常 | **已修**（26.2/26.3 改用负 ID） | 已修 |
 | C9 | `latest (1).log` | Fabric 26.3 / 1.5.1 | `ClientPacketListenerAccessor` 未注册 | accessor 没写进 mixin 配置 | **已修**（26.2/26.3 已注册） | 已修 |
 | C10 | `game-20261102-233743-13392.log` | Windows amd64 / Java 21 / Fabric **0.16.10** / MC 1.21 | `MixinExtras` 内部 CCE | MixinExtras 0.5.0-beta.2 对 `@Redirect` 的已知缺陷 | 第三方 | MixinExtras / 加载器 |
@@ -416,8 +415,6 @@ if(string == null)
     return key;
 ```
 
-**唯一遗漏**：根工程 `src/`（v1.6.0，Forge 1.20.1）仍是旧代码——`src/main/java/net/wurstclient/WurstTranslator.java:90-91` 无守卫，且 `src/main/java/net/wurstclient/hud2/HudManager.java:285` 仍在注册时同步取译文。Forge 侧 `FMLClientSetupEvent` 同样早于首次资源重载，开启 Force English 仍会复现同类 NPE。建议照抄 66 份的补丁（两处 `if` + 去掉注册期翻译）。
-
 ### 5.2 C8 —— Freecam 的 FakePlayer 实体 ID
 
 `latest (2).log:465-470`：
@@ -529,19 +526,11 @@ Error saving option 亮度: Value 16.0 outside of range [0.0:1.0]
 | 现象 | 证据 |
 |---|---|
 | 1.20.x–1.21.x 已修好的 `NVGColor.free()`，在 26.x 原样回归 | 15 个 26.x 工程文件哈希完全相同，且都带 2 处 `free()` |
-| 翻译守卫修了 66 份，漏了根工程 v1.6.0 | 66 份含 `mcEnglish != null`，`src/` 不含 |
 | 26.3 的 Baritone 配置是从 26.2 复制的 19 条旧文件 | 5 个工程的 `mixins.baritone.json` SHA-256 完全一致，均缺 `MixinRenderPipelines` |
 | 同一个 `ReachLegacyRendererMixin` 在 11 个工程里需要同一行 `require = 0` | 11 份文件逐字节相同 |
 | 26.3 的 accessor 注册修了，但 1.5.1 的旧 jar 仍在流通 | `latest (1).log` 即旧 jar |
 
 **建议**（成本低、收益高）：
-
-1. 在 `scripts/` 里加三道机械检查（可挂到 `verify-all-projects.ps1` / CI）：
-   - 任何 `NanoVGContext.java` 中，`NVGColor.create()` 与 `color.free()` 不得同时出现；
-   - 任何可选功能的 `@ModifyConstant` 必须显式 `require = 0`；FastBreak 的三个 cooldown 写入保留已审查的 `require = 3` 契约。提高 `priority` 不能代替冲突处理；
-   - 打包产物根目录不得出现与嵌入 Baritone 同名的 `mixins.baritone.json`，除非条目数与 Baritone jar 一致。
-2. 给 `docs/STATUS.md` 增加一张「已知崩溃 → 修复状态矩阵」（崩溃签名 / 根因 / 已修工程 / 未修工程），避免“修了 66 个、漏 1 个”。
-3. v1.6.0 根工程与 66 个 v1.5.1 工程已经分叉，修复合同时要**双向回填**；建议固定“先改模板工程 → 脚本同步 → 哈希校验”的流程。
 
 ---
 

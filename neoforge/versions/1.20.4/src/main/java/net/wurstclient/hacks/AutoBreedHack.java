@@ -96,7 +96,7 @@ public final class AutoBreedHack extends Hack implements UpdateListener, WorldCh
 	public AutoBreedHack()
 	{
 		super("AutoBreed");
-		setCategory(Category.OTHER);
+		setCategory(Category.PLAYER);
 		addSetting(range);
 		addSetting(cows);
 		addSetting(sheep);

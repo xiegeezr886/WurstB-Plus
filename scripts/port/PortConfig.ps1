@@ -80,7 +80,7 @@ function Get-PortProjects {
         $rootPath = Join-Path $script:RepoRoot $root.Path
         if (-not (Test-Path $rootPath)) { continue }
 
-        # Root project, except the Forge 1.20.1 v1.6.0 source tree.
+        # Historical target list; the current full matrix is in prepare_v152.py.
         if ($root.Path -ne 'versions') {
             $mc = Get-McVersionOf $rootPath
             $mod = Get-ModVersionOf $rootPath
