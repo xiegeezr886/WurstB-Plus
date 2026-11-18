@@ -59,9 +59,9 @@ public class IngameHudMixin
 	}
 
 	@Inject(at = @At("HEAD"),
-		method = "renderHotbar(FLnet/minecraft/client/gui/GuiGraphics;)V",
+		method = "renderItemHotbar(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
 		cancellable = true)
-	private void onRenderHotbar(float partialTicks, GuiGraphics context,
+	private void onRenderHotbar(GuiGraphics context, net.minecraft.client.DeltaTracker tracker,
 		CallbackInfo ci)
 	{
 		WurstClient wurst = WurstClient.INSTANCE;
@@ -95,14 +95,13 @@ public class IngameHudMixin
 	}
 
 	@Inject(at = @At("HEAD"),
-		method = "renderEffects(Lnet/minecraft/client/gui/GuiGraphics;)V",
+		method = "renderEffects(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
 		cancellable = true)
-	private void onRenderEffects(GuiGraphics context, CallbackInfo ci)
+	private void onRenderEffects(GuiGraphics context, net.minecraft.client.DeltaTracker tracker, CallbackInfo ci)
 	{
 		if(isHudModuleEnabled("PotionStatus"))
 			ci.cancel();
 	}
-
 	private static boolean isHudModuleEnabled(String id)
 	{
 		WurstClient wurst = WurstClient.INSTANCE;

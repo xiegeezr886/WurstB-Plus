@@ -76,7 +76,7 @@ public final class TpCmd extends Command
 			.orElse(null);
 		
 		if(entity == null)
-			throw new CmdError("Entity \"" + name + "\" could not be found.");
+			throw new CmdError("Entity \"%s\" could not be found.", name);
 		
 		return BlockPos.containing(entity.position());
 	}

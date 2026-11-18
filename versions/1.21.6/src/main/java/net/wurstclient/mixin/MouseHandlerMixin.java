@@ -32,10 +32,11 @@ public abstract class MouseHandlerMixin
 	private double accumulatedDY;
 	
 	@Inject(method = "onPress(JIII)V", at = @At("HEAD"))
-	private void onOnPress(long windowHandle, int button, int action,
+	private void onOnButton(long windowHandle, int button, int action,
 		int modifiers, CallbackInfo ci)
 	{
 		EventManager.fire(new MouseButtonPressEvent(button, action));
+        EventManager.fire(new net.wurstclient.events.MouseButtonListener.MouseButtonEvent(button, action));
 	}
 	
 	@Inject(method = "onScroll(JDD)V", at = @At("RETURN"))

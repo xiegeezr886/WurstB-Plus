@@ -50,7 +50,7 @@ public final class TargetStrafeHack extends Hack implements UpdateListener
 	public TargetStrafeHack()
 	{
 		super("TargetStrafe");
-		setCategory(Category.COMBAT);
+		setCategory(Category.MOVEMENT);
 		addSetting(range);
 		addSetting(speed);
 		addSetting(direction);
