@@ -124,6 +124,12 @@ inventoried in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). FFmpeg is an LG
 > compatibility (X-Ray / Vulkan)" section of [docs/RELEASE.md](docs/RELEASE.md) and in
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md).
 
+---
+
+## Downloader
+
+Use **WDownloader** to select a release, Minecraft version and mod loader. It saves files to your Downloads folder by default, checks download routes and verifies file integrity. See the [downloader guide](downloader/README.md) for setup and build instructions.
+
 <div align="center">
 <sub>WurstB+ Plus · mod id <code>wurstpenguin</code> · by Penguin</sub>
 </div>

@@ -20,14 +20,6 @@ Minecraft 客户端（utility mod）。同一套功能被移植到 **Forge / Neo
 
 ---
 
-## Windows 下载器
-
-提供使用 Axolotl 实际 Vue 组件源码构建的 Fluent / Material 风格桌面下载器 **WDownloader**，支持分步选择 **发布版本、Minecraft 游戏版本和加载器**。
-默认保存到系统下载文件夹，使用 **4 路多线程下载**（可选 1 / 2 / 4 / 8），内置 GitHub 直连与多个加速代理，下载前自动测速、失败切换线路并校验文件完整性。
-使用和构建方法见 [下载器说明](downloader/README.md)。
-
----
-
 ## 版本支持矩阵
 
 | Minecraft | Forge | NeoForge | Fabric | Java |
@@ -126,6 +118,14 @@ FFmpeg 为 LGPL-2.1 构建，其**对应源码**（构建脚本、`COPYING.*`、
 > 仍只有编译/打包验证。Vulkan 仅 26.2/26.3 支持，且 NeoForge 26.2 的 Vulkan 启动受加载器 bug 阻塞。
 > 逐版本状态见 [docs/RELEASE.md](docs/RELEASE.md) 的「渲染兼容性（X-Ray / Vulkan）」与
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md)。
+
+---
+
+## 下载器
+
+桌面下载器 **WDownloader** 支持分步选择发布版本、Minecraft 版本和加载器。
+文件默认保存到系统下载文件夹。下载器支持 1、2、4 或 8 路并发（默认 4 路），会自动测试下载线路、在失败时切换线路并校验文件完整性。
+使用和构建方法见 [下载器说明](downloader/README.md)。
 
 <div align="center">
 <sub>WurstB+ Plus · mod id <code>wurstpenguin</code> · 作者 Penguin</sub>
