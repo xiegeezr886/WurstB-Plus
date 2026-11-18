@@ -62,14 +62,14 @@ public final class PathCmd extends Command
 			{
 				case "-debug":
 				debugMode.setChecked(!debugMode.isChecked());
-				ChatUtils.message("Debug mode "
-					+ (debugMode.isChecked() ? "on" : "off") + ".");
+				ChatUtils.message(debugMode.isChecked()
+					? "Debug mode on." : "Debug mode off.");
 				return;
 				
 				case "-depth":
 				depthTest.setChecked(!depthTest.isChecked());
-				ChatUtils.message("Depth test "
-					+ (depthTest.isChecked() ? "on" : "off") + ".");
+				ChatUtils.message(depthTest.isChecked()
+					? "Depth test on." : "Depth test off.");
 				return;
 				
 				case "-refresh":
@@ -138,7 +138,7 @@ public final class PathCmd extends Command
 			.orElse(null);
 		
 		if(entity == null)
-			throw new CmdError("Entity \"" + name + "\" could not be found.");
+			throw new CmdError("Entity \"%s\" could not be found.", name);
 		
 		return BlockPos.containing(entity.position());
 	}

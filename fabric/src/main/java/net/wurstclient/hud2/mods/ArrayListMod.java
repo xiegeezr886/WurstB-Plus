@@ -22,6 +22,7 @@ public final class ArrayListMod extends HUDMod
         super("ArrayList", "ArrayList", "Lists enabled modules in the RedFix style.");
         setTranslationKey("array_list");
         setDefaultPosition(700, 10);
+        setDefaultEnabled(true);
         setSize(100, 13);
         addSetting(tags); addSetting(spaced); addSetting(alignment); addSetting(order);
     }

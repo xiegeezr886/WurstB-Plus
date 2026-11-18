@@ -51,4 +51,5 @@ public abstract class CameraMixin
 		if((WurstClient.INSTANCE.getHax().noOverlayHack.isEnabled() || WurstClient.INSTANCE.getHax().clearWaterHack.isEnabled()))
 			cir.setReturnValue(FogType.NONE);
 	}
+	
 }

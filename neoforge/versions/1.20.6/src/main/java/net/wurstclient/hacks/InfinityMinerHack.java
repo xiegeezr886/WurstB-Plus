@@ -104,7 +104,7 @@ public final class InfinityMinerHack extends Hack implements UpdateListener
 	public InfinityMinerHack()
 	{
 		super("InfinityMiner");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(targetBlocks);
 		addSetting(repairBlocks);
 		addSetting(repairThreshold);

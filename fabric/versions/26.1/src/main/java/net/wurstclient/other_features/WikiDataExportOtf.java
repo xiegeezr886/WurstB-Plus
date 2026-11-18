@@ -7,6 +7,7 @@
  */
 package net.wurstclient.other_features;
 
+import net.wurstclient.WurstClient;
 import java.nio.file.Path;
 
 import com.google.gson.JsonArray;
@@ -35,7 +36,7 @@ public final class WikiDataExportOtf extends OtherFeature
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Export Data";
+		return WurstClient.tr("Export Data");
 	}
 	
 	@Override
@@ -53,7 +54,7 @@ public final class WikiDataExportOtf extends OtherFeature
 			
 		}catch(Exception e)
 		{
-			ChatUtils.error("Failed to export data: " + e.getMessage());
+			ChatUtils.error("Failed to export data: %s", e.getMessage());
 			e.printStackTrace();
 		}
 	}

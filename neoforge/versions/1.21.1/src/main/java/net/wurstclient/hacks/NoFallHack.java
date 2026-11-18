@@ -51,7 +51,7 @@ public final class NoFallHack extends Hack
 	public NoFallHack()
 	{
 		super("NoFall");
-		setCategory(Category.MOVEMENT);
+		setCategory(Category.PLAYER);
 		addSetting(mode);
 		addSetting(triggerDistance);
 		addSetting(resetDistance);

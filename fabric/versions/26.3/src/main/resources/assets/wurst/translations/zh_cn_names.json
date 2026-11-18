@@ -194,5 +194,6 @@
   "hack.name.twerk": "潜行",
   "hack.name.veinminer": "连锁挖矿",
   "hack.name.vomit": "呕吐",
-  "hack.name.x-ray": "矿物透视"
+  "hack.name.x-ray": "矿物透视",
+  "hack.name.entityculling": "实体遮挡剔除"
 }

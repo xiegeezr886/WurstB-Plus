@@ -224,7 +224,7 @@ public final class RTsearchHack extends Hack
 
 	private void finish(String message)
 	{
-		ChatUtils.message("RTsearch: " + message);
+		ChatUtils.message("RTsearch: %s", message);
 		setEnabled(false);
 
 		if(disconnectOnReach.isChecked() && MC.getConnection() != null)

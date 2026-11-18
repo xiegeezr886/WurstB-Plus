@@ -1,6 +1,6 @@
 package net.wurstclient.clickgui2;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.wurstclient.clickgui2.theme.FlatTheme;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 import net.wurstclient.util.RenderUtils;
@@ -50,8 +50,8 @@ public final class FlatRenderer
 		int x2, int y2, int radius, FlatTheme theme, float hover,
 		boolean active)
 	{
-		NanoVGUI.fillRounded(x1, y1, x2, y2, Math.min(2, radius),
-			theme.controlFill(hover, active));
+		net.wurstclient.gui.IslandButtonStyle.draw(x1, y1, x2 - x1,
+			y2 - y1, true, hover, active, theme.accent(1));
 	}
 
 	public static void drawSliderTrack(GuiGraphicsExtractor context, int x1, int y1,

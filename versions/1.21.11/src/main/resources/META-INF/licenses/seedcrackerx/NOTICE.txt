@@ -1,0 +1,3 @@
+SeedCrackerX 2.15.6, MIT, unmodified upstream release for Minecraft 1.21.11.
+https://github.com/19MisterX98/SeedcrackerX/releases/tag/2.15.6
+SHA-256: 8695edc230f832339dc53c6fe3543e6d507ac054ef775082083b819fa8b4f227

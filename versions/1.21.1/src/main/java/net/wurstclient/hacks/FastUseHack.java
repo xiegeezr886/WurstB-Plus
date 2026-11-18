@@ -60,7 +60,7 @@ public final class FastUseHack extends Hack implements UpdateListener
 	public FastUseHack()
 	{
 		super("FastUse");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(mode);
 		addSetting(multiCount);
 		addSetting(throwablesOnly);

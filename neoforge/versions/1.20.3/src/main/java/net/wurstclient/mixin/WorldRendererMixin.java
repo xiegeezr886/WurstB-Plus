@@ -22,6 +22,14 @@ import net.wurstclient.WurstClient;
 @Mixin(LevelRenderer.class)
 public class WorldRendererMixin
 {
+	@Inject(method = "entityTarget()Lcom/mojang/blaze3d/pipeline/RenderTarget;",
+		at = @At("HEAD"), cancellable = true)
+	private void moon$outlineTarget(CallbackInfoReturnable<com.mojang.blaze3d.pipeline.RenderTarget> cir)
+	{
+		var target = net.wurstclient.util.render.MoonEntityGlow.INSTANCE.captureTarget();
+		if(target != null) cir.setReturnValue(target);
+	}
+
 	@Inject(at = @At("HEAD"),
 		method = "renderEntity(Lnet/minecraft/world/entity/Entity;DDDFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V",
 		cancellable = true)

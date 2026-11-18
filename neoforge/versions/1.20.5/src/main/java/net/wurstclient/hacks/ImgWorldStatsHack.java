@@ -119,7 +119,7 @@ public final class ImgWorldStatsHack extends Hack
 	public ImgWorldStatsHack()
 	{
 		super("ImgWorldStats");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(showTicks);
 		addSetting(showDays);
 		addSetting(showBiome);

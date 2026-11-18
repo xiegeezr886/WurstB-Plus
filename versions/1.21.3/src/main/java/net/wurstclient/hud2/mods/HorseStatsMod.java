@@ -29,17 +29,17 @@ public final class HorseStatsMod extends HUDMod
 		if(horse == null)
 		{
 			drawBackground(120, 20);
-			drawText("No horse", 6, 5, 9, HudFonts.REGULAR,
+			drawText(WURST.translate("No horse"), 6, 5, 9, HudFonts.REGULAR,
 				getFontColor(200));
 			setSize(120, 20);
 			return;
 		}
 
 		String[] lines = {
-			String.format("Health: %.1f / %.1f", horse.health(),
+			WURST.translate("Health: %.1f / %.1f", horse.health(),
 				horse.maxHealth()),
-			String.format("Speed: %.2f", horse.speed() * 43.17),
-			String.format("Jump: %.2f", horse.jump() * 5.5)};
+			WURST.translate("Speed: %.2f", horse.speed() * 43.17),
+			WURST.translate("Jump: %.2f", horse.jump() * 5.5)};
 
 		float width = 140;
 		for(String line : lines)

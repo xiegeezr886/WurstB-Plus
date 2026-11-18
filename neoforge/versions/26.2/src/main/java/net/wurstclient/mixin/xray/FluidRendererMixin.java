@@ -31,7 +31,7 @@ public class FluidRendererMixin
 	@Unique
 	private static final ThreadLocal<Float> currentOpacity =
 		ThreadLocal.withInitial(() -> 1F);
-
+	
 	/**
 	 * Hides and shows fluids when using X-Ray without Sodium installed.
 	 */
@@ -45,21 +45,23 @@ public class FluidRendererMixin
 		BlockState blockState, FluidState fluidState)
 	{
 		XRayHack xray = WurstClient.INSTANCE.getHax().xRayHack;
-
+		
 		// Note: the null BlockPos is here to skip the "exposed only" check
-		Boolean shouldDrawSide = xray.shouldDrawSide(blockState, null);
-
+		var event = new net.wurstclient.events.ShouldDrawSideListener.ShouldDrawSideEvent(blockState, null);
+		 net.wurstclient.event.EventManager.fire(event);
+		Boolean shouldDrawSide = event.isRendered();
+		
 		if(!xray.isOpacityMode() || xray.isVisible(blockState.getBlock(), pos))
 			currentOpacity.set(1F);
 		else
 			currentOpacity.set(xray.getOpacityFloat());
-
+		
 		if(shouldDrawSide != null)
 			return !shouldDrawSide;
-
+		
 		return original.call(side, height, neighborState);
 	}
-
+	
 	/**
 	 * Modifies opacity of fluids when using X-Ray without Sodium installed.
 	 */
@@ -72,7 +74,7 @@ public class FluidRendererMixin
 		float opacity = currentOpacity.get();
 		if(opacity >= 1F)
 			return color;
-
+		
 		return ARGB.color(Math.round(255F * opacity), ARGB.red(color),
 			ARGB.green(color), ARGB.blue(color));
 	}

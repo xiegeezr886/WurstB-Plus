@@ -69,7 +69,7 @@ public final class FlamethrowerHack extends Hack implements UpdateListener
 	public FlamethrowerHack()
 	{
 		super("Flamethrower");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(range);
 		addSetting(mode);
 		addSetting(targetBabies);

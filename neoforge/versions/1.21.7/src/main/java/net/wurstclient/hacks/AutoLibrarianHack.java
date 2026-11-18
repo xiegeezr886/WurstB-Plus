@@ -123,7 +123,7 @@ public final class AutoLibrarianHack extends Hack
 	public AutoLibrarianHack()
 	{
 		super("AutoLibrarian");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(wantedBooks);
 		addSetting(lockInTrade);
 		addSetting(updateBooks);
@@ -203,9 +203,7 @@ public final class AutoLibrarianHack extends Hack
 		int experience = tradeScreen.getMenu().getTraderXp();
 		if(experience > 0)
 		{
-			ChatUtils.warning("Villager at "
-				+ villager.blockPosition().toShortString()
-				+ " is already experienced, meaning it can't be trained anymore.");
+			ChatUtils.warning("Villager at %s is already experienced, meaning it can't be trained anymore.", villager.blockPosition().toShortString());
 			ChatUtils.message("正在寻找另一个村民...");
 			experiencedVillagers.add(villager);
 			villager = null;
@@ -227,9 +225,7 @@ public final class AutoLibrarianHack extends Hack
 			return;
 		}
 		
-		ChatUtils.message(
-			"Villager is selling " + bookOffer.getEnchantmentNameWithLevel()
-				+ " for " + bookOffer.getFormattedPrice() + ".");
+		ChatUtils.message("Villager is selling %s for %s.", bookOffer.getEnchantmentNameWithLevel(), bookOffer.getFormattedPrice());
 		
 		// if wrong enchantment, break job site and start over
 		if(!wantedBooks.isWanted(bookOffer))
@@ -472,8 +468,7 @@ public final class AutoLibrarianHack extends Hack
 					+ " already experienced.)";
 			
 			ChatUtils.error(errorMsg);
-			ChatUtils.message("请确保图书管理员和讲台"
-				+ " are reachable from where you are standing.");
+			ChatUtils.message("请确保图书管理员和讲台在你站立位置的可达范围内。");
 			setEnabled(false);
 			return;
 		}
@@ -501,8 +496,7 @@ public final class AutoLibrarianHack extends Hack
 		if(jobSite == null)
 		{
 			ChatUtils.error("找不到图书管理员的讲台。");
-			ChatUtils.message("请确保图书管理员和讲台"
-				+ " are reachable from where you are standing.");
+			ChatUtils.message("请确保图书管理员和讲台在你站立位置的可达范围内。");
 			setEnabled(false);
 			return;
 		}

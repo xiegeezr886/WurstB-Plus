@@ -32,7 +32,7 @@ import net.wurstclient.settings.ColorSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 
 /**
  * Renders a configurable world information panel: in-game time, days, biome,
@@ -119,7 +119,7 @@ public final class ImgWorldStatsHack extends Hack
 	public ImgWorldStatsHack()
 	{
 		super("ImgWorldStats");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(showTicks);
 		addSetting(showDays);
 		addSetting(showBiome);
@@ -240,7 +240,7 @@ public final class ImgWorldStatsHack extends Hack
 		if(lines.isEmpty())
 			return;
 
-		renderBackground(context);
+		extractBackground(context);
 
 		double scale = textScale.getValue();
 		double y = textY.getValue();
@@ -341,7 +341,7 @@ public final class ImgWorldStatsHack extends Hack
 		return MC.player.getStats().getValue(Stats.CUSTOM, id);
 	}
 
-	private void renderBackground(GuiGraphicsExtractor context)
+	private void extractBackground(GuiGraphicsExtractor context)
 	{
 		int x = bgX.getValueI();
 		int y = bgY.getValueI();

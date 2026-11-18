@@ -1,215 +1,278 @@
 /*
  * Copyright (c) 2026 WurstB+ Plus contributors
- *
- * This source code is subject to the terms of the GNU Affero General Public
- * License, version 3. If a copy of the AGPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
+ * SPDX-License-Identifier: AGPL-3.0-only
  */
-// Ported from Soar Client v7.1.2 (LGPL-3.0).
 package net.wurstclient.hud2.mods;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
+import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 import org.joml.Vector3f;
-
 import net.minecraft.client.Camera;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.monster.Enemy;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
-import net.wurstclient.hacks.KillauraHack;
+import net.wurstclient.events.PlayerAttacksEntityListener;
+import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hud2.HUDMod;
 import net.wurstclient.hud2.compat.HudCompat;
+import net.wurstclient.hud2.compat.HudTextures;
 import net.wurstclient.hud2.nanovg.HudFonts;
 import net.wurstclient.hud2.nanovg.HudIcon;
+import net.wurstclient.hud2.target.TargetHudMotion;
+import net.wurstclient.hud2.target.TargetHudDrawing;
 import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.SliderSetting;
-import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.EntityUtils;
+import net.minecraft.world.phys.Vec3;
 
+/** Independent Modern-style target card; uses the existing NanoVG HUD renderer. */
 public final class TargetInfoMod extends HUDMod
+	implements PlayerAttacksEntityListener, UpdateListener
 {
-	private static final float RING_RADIUS = 9F;
-
-	private final SliderSetting range = new SliderSetting("Range",
-		"How far to search for nearby entities.", 12, 1, 32, 1,
-		ValueDisplay.INTEGER);
-	private final SliderSetting maxTargets = new SliderSetting("Max targets",
-		"How many entity cards to show.", 5, 1, 10, 1,
-		ValueDisplay.INTEGER);
-
-	private final CheckboxSetting targetPlayers = new CheckboxSetting(
-		"Target players", "Shows other players.", true);
-	private final CheckboxSetting targetHostile = new CheckboxSetting(
-		"Target hostile", "Shows hostile mobs.", true);
-	private final CheckboxSetting targetPassive = new CheckboxSetting(
-		"Target passive", "Shows passive animals.", true);
-	private final CheckboxSetting targetFriendly = new CheckboxSetting(
-		"Target friendly",
-		"Shows other living entities (villagers, golems).", true);
+	private static final Color ACCENT = new Color(accentColor(255), true);
+	private static final Color ACCENT_DARK = new Color(0x818DC8);
+	private static final Color GLASS = new Color(0, 0, 0, 110);
+	private static final Color TRACK_TOP = new Color(0, 0, 0, 64);
+	private static final Color HEAD_OUTLINE = new Color(0, 0, 0, 40);
+	private static final String SKELETON = "minecraft:textures/entity/skeleton/skeleton.png";
+	private final TargetHudDrawing drawing = new TargetHudDrawing();
+	private final CheckboxSetting follow = new CheckboxSetting("Follow Player",
+		"Anchors the card next to the attacked target instead of the HUD editor position.", false);
+	private final CheckboxSetting particles = new CheckboxSetting("Particles",
+		"Shows a small burst when the target takes damage.", true);
+	private TargetHudMotion motion = new TargetHudMotion();
+	private LivingEntity target;
+	private HudCompat.TargetInfo info;
+	private long lastAttack;
+	private String healthText = "0.0";
+	private int previousHurt;
+	private boolean wasPreview;
+	private final ArrayList<HitParticle> sparks = new ArrayList<>();
 
 	public TargetInfoMod()
 	{
 		super("TargetInfo", "Target Info",
-			"Shows nearby entities and the pursuit target.");
+			"Modern target card with animated health and damage feedback.");
 		setTranslationKey("target_info");
 		setDefaultPosition(180, 54);
-		addSetting(range);
-		addSetting(maxTargets);
-		addSetting(targetPlayers);
-		addSetting(targetHostile);
-		addSetting(targetPassive);
-		addSetting(targetFriendly);
+		addSetting(follow);
+		addSetting(particles);
 	}
 
-	@Override
-	protected void draw()
+	@Override protected void onEnable()
 	{
-		// The editor keeps a normal 2D preview so the module can be seen and
-		// selected, while in-game the card is anchored next to the target.
-		if(isEditing())
-		{
-			HudCompat.TargetInfo preview = HudCompat.localPlayerTarget();
-			if(preview == null)
-			{
-				setSize(0, 0);
-				return;
-			}
-			drawCard(preview, computeWidth(preview));
-			return;
-		}
-
-		List<LivingEntity> targets = collectTargets();
-		if(targets.isEmpty())
-		{
-			setSize(0, 0);
-			return;
-		}
-
-		for(LivingEntity entity : targets)
-			drawEntityCard(entity);
-		setSize(140, 46);
+		reset();
+		EVENTS.add(PlayerAttacksEntityListener.class, this);
+		EVENTS.add(UpdateListener.class, this);
 	}
 
-	/**
-	 * Killaura's current target first, then every other living entity within
-	 * the configured player range. Both are capped by the target limit.
-	 */
-	private List<LivingEntity> collectTargets()
+	@Override protected void onDisable()
+	{
+		EVENTS.remove(PlayerAttacksEntityListener.class, this);
+		EVENTS.remove(UpdateListener.class, this);
+		reset();
+		drawing.close();
+	}
+
+	private void reset()
+	{
+		target = null;
+		info = null;
+		motion = new TargetHudMotion();
+		sparks.clear();
+		previousHurt = 0;
+		wasPreview = false;
+		setSize(0, 0);
+	}
+
+	private static long now() {return System.nanoTime() / 1_000_000;}
+
+	@Override public void onPlayerAttacksEntity(Entity entity)
+	{
+		if(!(entity instanceof LivingEntity living) || living == MC.player
+			|| !living.isAlive() || living.isSpectator()) return;
+		boolean changed = target != living;
+		target = living;
+		lastAttack = now();
+		if(changed)
+		{
+			sparks.clear();
+			previousHurt = 0;
+		}
+		sample(lastAttack, changed);
+		motion.setVisible(true, lastAttack);
+	}
+
+	@Override public void onUpdate()
+	{
+		if(MC.player == null || MC.level == null
+			|| target != null && target.level() != MC.level)
+		{
+			reset();
+			return;
+		}
+		long time = now();
+		if(target != null) sample(time, false);
+		sparks.removeIf(p -> time - p.born() >= 650);
+		if(!particles.isChecked()) sparks.clear();
+		if(target != null && target.hurtTime > previousHurt
+			&& particles.isChecked() && motion.scale(time) > 0)
+		{
+			ThreadLocalRandom random = ThreadLocalRandom.current();
+			for(int i = 0; i < 6 && sparks.size() < 24; i++)
+				sparks.add(new HitParticle(time, random.nextFloat() * 2 - 1,
+					random.nextFloat() * 2 - 1, 2 + random.nextFloat() * 3));
+		}
+		previousHurt = target == null ? 0 : target.hurtTime;
+	}
+
+	private void sample(long time, boolean changed)
+	{
+		info = HudCompat.infoFor(target);
+		float health = target.isAlive() ? target.getHealth() : 0;
+		motion.setHealth(health, target.getMaxHealth(), changed, time);
+		healthText = String.format(Locale.ROOT, "%.1f",
+			Float.isFinite(health) ? Math.max(0, Math.min(health, target.getMaxHealth())) : 0);
+	}
+
+	@Override protected void draw()
 	{
 		if(MC.player == null || MC.level == null)
-			return List.of();
-
-		List<LivingEntity> result = new ArrayList<>();
-		double searchRange = range.getValue();
-
-		KillauraHack aura = WURST.getHax().killauraHack;
-		if(aura != null && aura.isEnabled())
 		{
-			searchRange = Math.max(searchRange, 6);
-			Entity auraTarget = aura.getCurrentTarget();
-			if(auraTarget instanceof LivingEntity living && living.isAlive()
-				&& living != MC.player && isValidTarget(living))
-				result.add(living);
-		}
-
-		AABB area = MC.player.getBoundingBox().inflate(searchRange);
-		for(LivingEntity entity : MC.level.getEntitiesOfClass(
-			LivingEntity.class, area, e -> e != MC.player && e.isAlive()
-				&& !e.isSpectator() && isValidTarget(e)))
-			if(!result.contains(entity))
-				result.add(entity);
-
-		result.sort(Comparator
-			.comparingDouble(e -> MC.player.distanceToSqr(e)));
-		int limit = maxTargets.getValueI();
-		return result.size() > limit
-			? new ArrayList<>(result.subList(0, limit)) : result;
-	}
-
-	private boolean isValidTarget(LivingEntity entity)
-	{
-		if(entity instanceof Player)
-			return targetPlayers.isChecked();
-		if(entity instanceof Enemy)
-			return targetHostile.isChecked();
-		if(entity instanceof Animal)
-			return targetPassive.isChecked();
-		return targetFriendly.isChecked();
-	}
-
-	private void drawEntityCard(LivingEntity entity)
-	{
-		HudCompat.TargetInfo info = HudCompat.infoFor(entity);
-		float[] screen = project(entity);
-		if(screen == null)
+			reset();
 			return;
-
-		float width = computeWidth(info);
-		int cardWidth = Math.round(width * getScale());
-		int cardHeight = Math.round(46 * getScale());
-		int cardX = Math.round(screen[0]) + 14;
-		int cardY = Math.round(screen[1]) - cardHeight / 2;
-
-		int screenWidth = MC.getWindow().getGuiScaledWidth();
-		int screenHeight = MC.getWindow().getGuiScaledHeight();
-		cardX = Math.max(0, Math.min(cardX, screenWidth - cardWidth));
-		cardY = Math.max(0, Math.min(cardY, screenHeight - cardHeight));
-
-		int oldX = getX();
-		int oldY = getY();
-		setX(cardX);
-		setY(cardY);
+		}
+		long time = now();
+		boolean preview = isEditing() || MC.screen instanceof ChatScreen;
+		if(preview)
+		{
+			boolean changed = target != MC.player;
+			if(changed) sparks.clear();
+			wasPreview = true;
+			target = MC.player;
+			lastAttack = time;
+			sample(time, changed);
+		}else if(wasPreview) wasPreview = false;
+		boolean valid = target != null && target.isAlive() && !target.isRemoved()
+			&& target.level() == MC.level;
+		motion.setVisible(preview || TargetHudMotion.shouldShow(time, lastAttack, valid), time);
+		float opening = isEditing() ? 1 : motion.scale(time);
+		if(info == null || opening <= .001F)
+		{
+			setSize(0, 0);
+			if(!valid || time - lastAttack >= 1400) {target = null; info = null;}
+			return;
+		}
+		float nameWidth = getTextWidth(info.name(), 11, HudFonts.MEDIUM);
+		float hpWidth = getTextWidth(healthText, 11, HudFonts.MEDIUM);
+		float barWidth = Math.max(nameWidth + 32 - hpWidth, 65);
+		float width = 48 + barWidth + 4 + hpWidth + 8;
+		int oldX = getX(), oldY = getY();
+		if(follow.isChecked() && !preview && target != MC.player)
+		{
+			float[] point = project(target);
+			if(point == null) {setSize(0, 0); return;}
+			setX(Math.max(0, Math.min(Math.round(point[0]) + 14,
+				MC.getWindow().getGuiScaledWidth() - Math.round(width * getScale()))));
+			setY(Math.max(0, Math.min(Math.round(point[1] - 24 * getScale()),
+				MC.getWindow().getGuiScaledHeight() - Math.round(48 * getScale()))));
+		}
+		save();
 		try
 		{
-			drawCard(info, width);
+			scale(0, 0, width, 48, opening);
+			float unit = getScale();
+			drawBackground(width - 1, 48);
+			Color text = ACCENT;
+			drawText(info.name(), 47, 14.5F, 11, HudFonts.MEDIUM, text);
+			gradient(47, 29, barWidth, 6, 3, TRACK_TOP, GLASS);
+			float fill = barWidth * motion.health(time);
+			if(fill > .01F)
+				gradient(47, 29, fill, 6, Math.min(3, fill / 2),
+					ACCENT_DARK, text);
+			drawText(healthText, 51 + barWidth, 28, 11, HudFonts.MEDIUM, text);
+			float hurt = preview ? 0 : Math.max(0, target.hurtTime - partialTicks) * .5F;
+			// Transform a constant-size head: avoids creating texture-cache entries per hurt size.
+			save();
+			try
+			{
+				scale(8, 8, 32, 32, 1 - hurt / 32);
+				TargetHudDrawing.shadow(nvg, getX() + 8 * unit, getY() + 8 * unit,
+					32 * unit, 32 * unit, 10 * unit, 5 * unit, HEAD_OUTLINE);
+				drawPortrait(hurt);
+				drawRoundedOutline(7.5F, 7.5F, 33, 33, 10, .5F, HEAD_OUTLINE);
+			}finally {restore();}
+			if(particles.isChecked() && !preview)
+				for(HitParticle p : sparks)
+				{
+					float age = Math.max(0, (time - p.born()) / 650F);
+					if(age >= 1) continue;
+					float travel = (float)(1 - Math.exp(-age * 2)) * 45;
+					float px = 20 + p.dx() * travel, py = 20 + p.dy() * travel;
+					int alpha = Math.round(180 * (1 - age));
+					drawCircle(px, py, p.size(), new Color(accentColor(alpha / 5), true));
+					drawCircle(px, py, p.size() / 2, new Color(accentColor(alpha), true));
+				}
+			setSize(Math.round(width), 48);
+			markDrawn();
 		}finally
 		{
+			restore();
 			setX(oldX);
 			setY(oldY);
 		}
 	}
 
-	private float computeWidth(HudCompat.TargetInfo target)
+	private void gradient(float x, float y, float width, float height,
+		float radius, Color top, Color bottom)
 	{
-		boolean hasHead = target.skin() != null;
-		float textX = hasHead ? 45.5F : 8F;
-		float nameWidth = getTextWidth(target.name(), 10.2F,
-			HudFonts.MEDIUM);
-		return Math.max(140, textX + Math.max(nameWidth, 46F) + 8F);
+		float unit = getScale();
+		TargetHudDrawing.gradient(nvg, getX() + x * unit, getY() + y * unit,
+			width * unit, height * unit, radius * unit, top, bottom);
 	}
 
-	private void drawCard(HudCompat.TargetInfo target, float width)
+	private void drawPortrait(float hurt)
 	{
-		boolean hasHead = target.skin() != null;
-		float textX = hasHead ? 45.5F : 8F;
-		float height = 46;
-		drawBackground(width, height);
-
-		if(hasHead)
-			drawPlayerHead(target.skin(), 5, 5, 36, 36, 6);
-
-		drawText(target.name(), textX, 8F, 10.2F, HudFonts.MEDIUM);
-
-		// Health and armour as circular gauges, like Soar's target HUD.
-		float health = (float)Math.max(0,
-			Math.min(1, target.health() / Math.max(target.maxHealth(), 0.001)));
-		float armor = Math.max(0, Math.min(1, target.armor() / 20F));
-		drawGauge(textX, 30.5F, HudIcon.HEART_FILL, health);
-		drawGauge(textX + 24F, 30.5F, HudIcon.SHIELD_FILL, armor);
-
-		setSize(Math.round(width), Math.round(height));
+		String path = info.skin();
+		int textureHeight = 64;
+		float faceHeight = 8;
+		if(!target.isAlive() || target.isRemoved())
+		{
+			path = SKELETON;
+			textureHeight = 32;
+		}else if(path == null)
+		{
+			if(target instanceof net.minecraft.world.entity.monster.Zombie)
+				path = "minecraft:textures/entity/zombie/zombie.png";
+			else if(target instanceof net.minecraft.world.entity.monster.AbstractSkeleton)
+			{
+				path = SKELETON;
+				textureHeight = 32;
+			}else if(target instanceof net.minecraft.world.entity.monster.Creeper)
+			{
+				path = "minecraft:textures/entity/creeper/creeper.png";
+				textureHeight = 32;
+			}else if(target instanceof net.minecraft.world.entity.npc.AbstractVillager)
+			{
+				path = "minecraft:textures/entity/villager/villager.png";
+				faceHeight = 10;
+			}
+		}
+		float unit = getScale();
+		if(path != null)
+			drawing.face(nvg, HudTextures.id(path), 64, textureHeight, 8, 8,
+				8, faceHeight, getX() + 8 * unit, getY() + 8 * unit, 32 * unit, 10 * unit, hurt);
+		else
+		{
+			drawRoundedRect(8, 8, 32, 32, 10, ACCENT_DARK);
+			drawCenteredText(HudIcon.HEART_FILL, 24, 16, 16, HudFonts.ICON, Color.WHITE);
+		}
 	}
 
-	/**
-	 * Projects the entity's centre to GUI coordinates using the camera basis.
-	 */
+	private record HitParticle(long born, float dx, float dy, float size) {}
+
+
 	private float[] project(Entity entity)
 	{
 		Vec3 point = EntityUtils.getLerpedPos(entity, partialTicks)
@@ -246,18 +309,4 @@ public final class TargetInfoMod extends HUDMod
 		return new float[]{x, y};
 	}
 
-	private void drawGauge(float baseX, float centerY, String icon,
-		float ratio)
-	{
-		float centerX = baseX + RING_RADIUS + 2;
-
-		drawArc(centerX, centerY, RING_RADIUS, -90, 270, 1.6F,
-			getFontColor(120));
-		if(ratio > 0.001F)
-			drawArc(centerX, centerY, RING_RADIUS, -90,
-				-90 + 360 * ratio, 1.6F, new Color(accentColor(255), true));
-
-		// The glyph is centred inside the ring, like Soar's target HUD.
-		drawText(icon, centerX - 4.5F, centerY - 4.5F, 9, HudFonts.ICON);
-	}
 }

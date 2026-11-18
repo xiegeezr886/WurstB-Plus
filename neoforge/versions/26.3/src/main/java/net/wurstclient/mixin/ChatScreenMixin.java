@@ -6,6 +6,7 @@
  * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
  */
 package net.wurstclient.mixin;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -77,6 +78,13 @@ public abstract class ChatScreenMixin extends Screen
 				minecraft.player.connection.sendChat(newMessage);
 	}
 	
+    @Inject(method = "mouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;Z)Z", at = @At("HEAD"), cancellable = true)
+    private void music$click(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
+ double x=event.x(), y=event.y(); int button=event.button();
+        var hud = WurstClient.INSTANCE.getHudManager();
+        if(hud != null && hud.clickMusicIsland(x,y,button)) cir.setReturnValue(true);
+    }
+
 	@Shadow
 	public abstract String normalizeChatMessage(String chatText);
 }

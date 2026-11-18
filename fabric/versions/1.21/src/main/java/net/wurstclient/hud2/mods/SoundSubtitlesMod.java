@@ -107,7 +107,7 @@ public final class SoundSubtitlesMod extends HUDMod
 		if(subtitles.isEmpty())
 		{
 			drawBackground(160, 20);
-			drawText("No sounds", 6, 5, 9, HudFonts.REGULAR,
+			drawText(WURST.translate("No sounds"), 6, 5, 9, HudFonts.REGULAR,
 				getFontColor(200));
 			setSize(160, 20);
 			return;

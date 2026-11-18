@@ -51,8 +51,7 @@ public abstract class TitleScreenMixin extends Screen
 	}
 
 	@Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/gui/components/LogoRenderer;renderLogo(Lnet/minecraft/client/gui/GuiGraphics;IF)V"),
+		at = @At("HEAD"),
 		cancellable = true)
 	private void onRender(GuiGraphics graphics, int mouseX, int mouseY,
 		float partialTicks, CallbackInfo ci)
@@ -60,6 +59,8 @@ public abstract class TitleScreenMixin extends Screen
 		if(!wurstPenguin$customMenu || wurstPenguin$titleMenu == null)
 			return;
 
+		// Own the entire frame, including transitions. Injecting at the logo
+		// allowed vanilla's panorama and initial fade to render first.
 		wurstPenguin$titleMenu.render(graphics, mouseX, mouseY, partialTicks,
 			width, height);
 		super.render(graphics, mouseX, mouseY, partialTicks);

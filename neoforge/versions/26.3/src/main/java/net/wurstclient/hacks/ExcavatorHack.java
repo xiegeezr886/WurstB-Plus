@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
@@ -62,7 +62,7 @@ public final class ExcavatorHack extends Hack
 	public ExcavatorHack()
 	{
 		super("Excavator");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addConflictGroup(HackConflictGroup.BLOCK_BREAKING_AUTOMATION);
 		addSetting(range);
 		addSetting(mode);

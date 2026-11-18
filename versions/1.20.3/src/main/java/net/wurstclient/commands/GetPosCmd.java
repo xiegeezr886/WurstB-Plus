@@ -30,7 +30,7 @@ public final class GetPosCmd extends Command
 		switch(String.join(" ", args).toLowerCase())
 		{
 			case "":
-			ChatUtils.message("Position: " + posString);
+			ChatUtils.message("Position: %s", posString);
 			break;
 			
 			case "copy":
@@ -46,7 +46,7 @@ public final class GetPosCmd extends Command
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Get Position";
+		return WURST.translate("Get Position");
 	}
 	
 	@Override

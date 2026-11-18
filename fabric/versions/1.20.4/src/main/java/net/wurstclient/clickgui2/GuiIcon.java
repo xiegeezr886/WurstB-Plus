@@ -15,6 +15,7 @@ public enum GuiIcon
 	MISC("misc"),
 	FUN("fun"),
 	PLAYER("player"),
+	EXPLOIT("exploit"),
 	SEARCH("search"),
 	CONFIG("config"),
 	FONT("font"),

@@ -1,0 +1,3 @@
+SeedCrackerX 2.15.4, MIT, unmodified upstream release for Minecraft 1.21.6-1.21.8.
+https://github.com/19MisterX98/SeedcrackerX/releases/tag/2.15.4
+SHA-256: 17773800aa5366838aadb2d8b98eaa9a8e03c8ba3b2276c53085e10700e96e24

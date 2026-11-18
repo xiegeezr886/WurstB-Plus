@@ -290,8 +290,8 @@ public final class GAntiExplosionHack extends Hack implements PacketInputListene
 
 		if(bestPos != null && lowestDamage > maxDamage)
 		{
-			ChatUtils.warning("GAntiExplosion: no safe spot found ("
-				+ String.format("%.1f", lowestDamage) + " damage).");
+			ChatUtils.warning("GAntiExplosion: no safe spot found (%s damage).",
+				String.format("%.1f", lowestDamage));
 			return null;
 		}
 

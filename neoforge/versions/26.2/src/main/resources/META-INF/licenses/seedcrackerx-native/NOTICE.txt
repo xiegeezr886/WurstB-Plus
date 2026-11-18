@@ -1,0 +1,8 @@
+SeedCrackerX 2.16.1 native Forge/NeoForge adaptation for Minecraft 26.2.
+Upstream: https://github.com/19MisterX98/SeedcrackerX (MIT, KaptainWutax and contributors).
+Shared Mojang-mapped sources and pinned solver provenance: native/seedcrackerx/2.16.1/manifest.json.
+Changes: loader lifecycle, commands, configuration directory, module/chunk/hash/tick hooks,
+local Baritone handoff, Log.warn overload recursion and logout-safe structure persistence.
+Only com/seedfinding classes are extracted from the official upstream artifact.
+The upstream seedfinding library licenses are retained alongside this notice.
+Cloth Config is bundled as a native nested mod with its own LGPL notice.

@@ -6,6 +6,11 @@
  * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
  */
 package net.wurstclient.mixin;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.wurstclient.event.EventManager;
+import net.wurstclient.events.ShouldDrawSideListener.ShouldDrawSideEvent;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -38,5 +43,29 @@ public abstract class BlockMixin implements ItemLike
 		
 		if(cir.getReturnValueF() < 1)
 			cir.setReturnValue(1F);
+	}
+
+	/**
+	 * X-Ray culling hook for versions whose renderer calls
+	 * Block.shouldRenderFace directly. Both overloads are targeted because
+	 * the position-aware one is not present in every 1.21.x build.
+	 */
+	@Inject(at = @At("HEAD"),
+		method = "shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z",
+		cancellable = true)
+	private static void onShouldDrawSide3Arg(BlockState state,
+		BlockState neighborState, Direction direction,
+		CallbackInfoReturnable<Boolean> cir)
+	{
+		fireShouldDrawSide(state, null, cir);
+	}
+	private static void fireShouldDrawSide(BlockState state, BlockPos pos,
+		CallbackInfoReturnable<Boolean> cir)
+	{
+		ShouldDrawSideEvent event = new ShouldDrawSideEvent(state, pos);
+		EventManager.fire(event);
+
+		if(event.isRendered() != null)
+			cir.setReturnValue(event.isRendered());
 	}
 }

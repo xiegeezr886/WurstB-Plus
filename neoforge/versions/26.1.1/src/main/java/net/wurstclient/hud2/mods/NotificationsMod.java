@@ -39,6 +39,8 @@ public final class NotificationsMod extends HUDMod
 	@Override
 	protected void draw()
 	{
+		if(manager.isDynamicIslandEnabled())
+			return;
 		float scale = getScale();
 		if(isEditing())
 		{

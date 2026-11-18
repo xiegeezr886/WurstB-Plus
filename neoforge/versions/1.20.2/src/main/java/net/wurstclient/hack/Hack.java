@@ -33,7 +33,7 @@ public abstract class Hack extends Feature
 	{
 		this.name = Objects.requireNonNull(name);
 		description = "description.wurst.hack." + name.toLowerCase();
-		addPossibleKeybind(name, "Toggle " + name);
+		addPossibleKeybind(name, "Toggle %s", name);
 	}
 
 	public Hack(String name, Setting... settings)

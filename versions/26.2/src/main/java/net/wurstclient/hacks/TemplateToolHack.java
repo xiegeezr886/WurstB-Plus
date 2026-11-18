@@ -11,7 +11,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -41,7 +41,7 @@ public final class TemplateToolHack extends Hack
 	public TemplateToolHack()
 	{
 		super("TemplateTool");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 	}
 	
 	@Override

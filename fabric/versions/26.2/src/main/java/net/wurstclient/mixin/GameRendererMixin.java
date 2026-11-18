@@ -29,6 +29,12 @@ import net.wurstclient.hacks.FullbrightHack;
 @Mixin(GameRenderer.class)
 public abstract class GameRendererMixin implements AutoCloseable
 {
+    @org.spongepowered.asm.mixin.injection.Inject(method = "mainRenderTarget", at = @org.spongepowered.asm.mixin.injection.At("HEAD"), cancellable = true)
+    private void wurst$v152ItemTarget(org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<com.mojang.blaze3d.pipeline.RenderTarget> cir) {
+        var target = net.wurstclient.util.render.V152Gpu.targetOverride();
+        if (target != null) cir.setReturnValue(target);
+    }
+
 	@Inject(method = "close()V", at = @At("HEAD"))
 	private void wurst$closeGuiSnapshots(CallbackInfo ci)
 	{
@@ -106,9 +112,22 @@ public abstract class GameRendererMixin implements AutoCloseable
 	private void onPrepareHud(DeltaTracker deltaTracker,
 		boolean renderLevel, CallbackInfo ci)
 	{
+        if(WurstClient.INSTANCE.getHax() != null)
+            WurstClient.INSTANCE.getHax().lsdHack.prepareFrame();
 		if(WurstClient.INSTANCE.getHudManager() != null)
 			WurstClient.INSTANCE.getHudManager().prepareFrame(
 				deltaTracker.getGameTimeDeltaPartialTick(false));
 	}
 
+
+    @Inject(method = "renderLevel(Lnet/minecraft/client/DeltaTracker;)V", at = @At("RETURN"))
+    private void wurst$renderLsd(CallbackInfo ci) {
+        if(WurstClient.INSTANCE.getHax() != null)
+            WurstClient.INSTANCE.getHax().lsdHack.renderFrame();
+    }
+
+    @Inject(method = "close()V", at = @At("HEAD"))
+    private void wurst$closeLsd(CallbackInfo ci) {
+        net.wurstclient.util.render.LsdPostEffect.INSTANCE.close();
+    }
 }

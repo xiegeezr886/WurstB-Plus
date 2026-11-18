@@ -67,22 +67,21 @@ public final class SettingsCmd extends Command
 		try
 		{
 			WURST.loadSettingsProfile(name);
-			ChatUtils.message("Settings loaded: " + name);
+			ChatUtils.message("Settings loaded: %s", name);
 			
 		}catch(NoSuchFileException e)
 		{
-			throw new CmdError("Profile '" + name + "' doesn't exist.");
+			throw new CmdError("Profile '%s' doesn't exist.", name);
 			
 		}catch(JsonException e)
 		{
 			e.printStackTrace();
-			throw new CmdError(
-				"Profile '" + name + "' is corrupted: " + e.getMessage());
+			throw new CmdError("Profile '%s' is corrupted: %s", name, e.getMessage());
 			
 		}catch(IOException e)
 		{
 			e.printStackTrace();
-			throw new CmdError("Couldn't load profile: " + e.getMessage());
+			throw new CmdError("Couldn't load profile: %s", e.getMessage());
 		}
 	}
 	
@@ -96,12 +95,12 @@ public final class SettingsCmd extends Command
 		try
 		{
 			WURST.saveSettingsProfile(name);
-			ChatUtils.message("Settings saved: " + name);
+			ChatUtils.message("Settings saved: %s", name);
 			
 		}catch(IOException | JsonException e)
 		{
 			e.printStackTrace();
-			throw new CmdError("Couldn't save profile: " + e.getMessage());
+			throw new CmdError("Couldn't save profile: %s", e.getMessage());
 		}
 	}
 	
@@ -125,11 +124,9 @@ public final class SettingsCmd extends Command
 		pages = Math.max(pages, 1);
 		
 		if(page > pages || page < 1)
-			throw new CmdSyntaxError("Invalid page: " + page);
+			throw new CmdSyntaxError("Invalid page: %s", page);
 		
-		String total = "Total: " + files.size() + " profile";
-		total += files.size() != 1 ? "s" : "";
-		ChatUtils.message(total);
+		ChatUtils.message("Total: %s profiles", files.size());
 		
 		int start = (page - 1) * 8;
 		int end = Math.min(page * 8, files.size());
@@ -146,7 +143,7 @@ public final class SettingsCmd extends Command
 			return 1;
 		
 		if(!MathUtils.isInteger(args[1]))
-			throw new CmdSyntaxError("Not a number: " + args[1]);
+			throw new CmdSyntaxError("Not a number: %s", args[1]);
 		
 		return Integer.parseInt(args[1]);
 	}

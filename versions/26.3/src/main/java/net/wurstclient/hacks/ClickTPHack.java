@@ -37,7 +37,7 @@ public final class ClickTPHack extends Hack implements UpdateListener
 	public ClickTPHack()
 	{
 		super("ClickTP");
-		setCategory(Category.MOVEMENT);
+		setCategory(Category.EXPLOIT);
 	}
 
 	@Override

@@ -2899,6 +2899,7 @@
   "hud.dynamic_island.break_progress": "破坏进度：%s",
   "hud.dynamic_island.player": "玩家",
   "hud.dynamic_island.singleplayer": "单人游戏",
+  "setting.name.show_fps_and_ping": "显示帧率和延迟",
   "hud.dynamic_island.to": " → ",
   "hud.dynamic_island.exclamation": "！",
   "hud.notification.preview_title": "通知",

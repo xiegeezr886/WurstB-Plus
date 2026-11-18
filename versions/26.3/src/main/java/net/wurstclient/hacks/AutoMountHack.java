@@ -66,7 +66,7 @@ public final class AutoMountHack extends Hack implements UpdateListener
 	public AutoMountHack()
 	{
 		super("AutoMount");
-		setCategory(Category.OTHER);
+		setCategory(Category.PLAYER);
 		addSetting(horses);
 		addSetting(boats);
 		addSetting(minecarts);

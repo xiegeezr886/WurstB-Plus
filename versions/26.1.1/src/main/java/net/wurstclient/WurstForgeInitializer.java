@@ -21,6 +21,7 @@ public final class WurstForgeInitializer
 		var modBusGroup = context.getModBusGroup();
 		FMLClientSetupEvent.getBus(modBusGroup).addListener(this::onClientSetup);
 		RegisterClientCommandsEvent.BUS.addListener(this::onRegisterClientCommands);
+        net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggingOut.BUS.addListener(event -> net.wurstclient.seed.SeedCrackerBridge.disconnect());
 	}
 
 	private void onClientSetup(FMLClientSetupEvent event)
@@ -32,6 +33,7 @@ public final class WurstForgeInitializer
 
 			initialized = true;
 			WurstClient.INSTANCE.initialize();
+            net.wurstclient.seed.SeedCrackerBridge.initialize();
 		});
 	}
 
@@ -40,5 +42,6 @@ public final class WurstForgeInitializer
 		if(initialized && WurstClient.INSTANCE.getCmds() != null)
 			WurstClient.INSTANCE.getCmds()
 				.buildBrigadierDispatcher(event.getDispatcher());
+        kaptainwutax.seedcrackerX.init.ClientCommands.registerCommands(event.getDispatcher());
 	}
 }

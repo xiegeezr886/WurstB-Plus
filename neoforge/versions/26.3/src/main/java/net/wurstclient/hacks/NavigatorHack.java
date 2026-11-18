@@ -30,7 +30,8 @@ public final class NavigatorHack extends Hack
 		if(!(MC.gui.screen() instanceof NavigatorScreen))
 			MC.setScreenAndShow(new NavigatorScreen());
 		if(WURST.getHudManager() != null)
-			WURST.getHudManager().addNotification("Info", getDisplayName(),
+			WURST.getHudManager().addNotification(
+				WURST.translate("hud.notification.info"), getDisplayName(),
 				NotificationSeverity.INFO);
 		setEnabled(false);
 	}

@@ -40,7 +40,7 @@ public final class ItemGeneratorHack extends Hack implements UpdateListener
 	{
 		super("ItemGenerator");
 		
-		setCategory(Category.ITEMS);
+		setCategory(Category.EXPLOIT);
 		addSetting(speed);
 		addSetting(stackSize);
 	}

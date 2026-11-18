@@ -21,6 +21,7 @@ public final class WurstForgeInitializer
 
 		modBus.addListener(this::onClientSetup);
 		NeoForge.EVENT_BUS.addListener(this::onRegisterClientCommands);
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) -> net.wurstclient.seed.SeedCrackerBridge.disconnect());
 	}
 
 	private void onClientSetup(FMLClientSetupEvent event)
@@ -32,6 +33,7 @@ public final class WurstForgeInitializer
 
 			initialized = true;
 			WurstClient.INSTANCE.initialize();
+            net.wurstclient.seed.SeedCrackerBridge.initialize();
 		});
 	}
 
@@ -40,6 +42,7 @@ public final class WurstForgeInitializer
 		if(initialized && WurstClient.INSTANCE.getCmds() != null)
 			WurstClient.INSTANCE.getCmds()
 				.buildBrigadierDispatcher(event.getDispatcher());
+        kaptainwutax.seedcrackerX.init.ClientCommands.registerCommands(event.getDispatcher());
 	}
 
 }

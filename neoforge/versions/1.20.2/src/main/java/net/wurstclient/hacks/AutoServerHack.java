@@ -58,7 +58,7 @@ public final class AutoServerHack extends Hack implements UpdateListener
 	public AutoServerHack()
 	{
 		super("AutoServer");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(serverAddress);
 		addSetting(commands);
 		addSetting(initialDelay);
@@ -110,8 +110,7 @@ public final class AutoServerHack extends Hack implements UpdateListener
 			timer = initialDelay.getValueI();
 
 			if(showFeedback.isChecked() && !queue.isEmpty())
-				ChatUtils.message("AutoServer: running " + queue.size()
-					+ " command(s) on this connection.");
+				ChatUtils.message("AutoServer: running %s command(s) on this connection.", queue.size());
 		}
 
 		if(queue.isEmpty() || index >= queue.size())
@@ -128,7 +127,7 @@ public final class AutoServerHack extends Hack implements UpdateListener
 		{
 			sendCommand(command);
 			if(showFeedback.isChecked())
-				ChatUtils.message("AutoServer: " + redact(command));
+				ChatUtils.message("AutoServer: %s", redact(command));
 		}
 
 		if(index < queue.size())

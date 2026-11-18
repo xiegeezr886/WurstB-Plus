@@ -34,6 +34,12 @@ public final class AltsFile
 		this.path = path;
 		this.encFolder = encFolder;
 	}
+
+	AltsFile(Path path, Path encFolder, Encryption encryption)
+	{
+		this(path, encFolder);
+		this.encryption = encryption;
+	}
 	
 	public void load(AltManager altManager)
 	{

@@ -73,7 +73,7 @@ public final class HexChatHack extends Hack implements ChatOutputListener
 	public HexChatHack()
 	{
 		super("HexChat");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(mode);
 		addSetting(color);
 		addSetting(color1);

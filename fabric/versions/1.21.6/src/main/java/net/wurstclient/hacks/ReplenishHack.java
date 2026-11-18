@@ -1,201 +1,130 @@
-/*
- * Copyright (c) 2026 Wurst-Imperium and contributors.
- *
- * This source code is subject to the terms of the GNU Affero General Public
- * License, version 3. If a copy of the AGPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
- */
-
-/* Ported from LeavesHack (AGPL-3.0). */
+/* Replenish behavior ported from MrBZBZ/LeavesHack, commit 13daf96.
+ * SPDX-License-Identifier: AGPL-3.0-or-later */
 package net.wurstclient.hacks;
 
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
+import java.util.Arrays;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.item.*;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.util.InventoryUtils;
 
-/**
- * Simplified port of LeavesHack's Replenish. The original snapshots the whole
- * hotbar and refills any slot whose item changed; this version refills the
- * currently held stack (or the item that was there before it ran out) from the
- * main inventory once its count drops to the configured threshold.
- */
-@SearchTags({"replenish", "refill", "auto refill"})
-public final class ReplenishHack extends Hack implements UpdateListener
-{
-	private final SliderSetting minCount = new SliderSetting("Min count",
-		"Refill the held stack when its count reaches this value.", 8, 1, 63,
-		1, ValueDisplay.INTEGER);
+/** Snapshots every hotbar slot, including unselected slots and consumed potions. */
+public final class ReplenishHack extends Hack implements UpdateListener {
+  private final CheckboxSetting pauseWhileUsing =
+      new CheckboxSetting("Pause while using", "Pauses while you are using an item.", true);
+  private final SliderSetting pauseTime =
+      new SliderSetting(
+          "Pause time",
+          "Time after using an item before refilling resumes.",
+          200,
+          0,
+          1000,
+          10,
+          ValueDisplay.INTEGER.withSuffix(" ms"));
+  private final CheckboxSetting noPotion =
+      new CheckboxSetting("No potion", "Do not replenish potions.", true);
+  private final CheckboxSetting noTools =
+      new CheckboxSetting("No tools", "Do not replace tools or weapons.", true);
+  private final ItemListSetting blacklist =
+      new ItemListSetting(
+          "Blacklist", "Items that must not be replenished.", "minecraft:shulker_box");
+  private final ItemStack[] previous = new ItemStack[9];
+  private LocalPlayer owner;
+  private boolean snapshot;
+  private long resumeAt;
 
-	private final SliderSetting delay = new SliderSetting("Delay",
-		"Ticks to wait between refill attempts.", 1, 0, 20, 1,
-		ValueDisplay.INTEGER.withSuffix(" ticks"));
+  public ReplenishHack() {
+    super("Replenish");
+    setCategory(Category.PLAYER);
+    addSetting(pauseWhileUsing);
+    addSetting(pauseTime);
+    addSetting(noPotion);
+    addSetting(noTools);
+    addSetting(blacklist);
+    Arrays.fill(previous, ItemStack.EMPTY);
+  }
 
-	private final CheckboxSetting blocksOnly = new CheckboxSetting(
-		"Blocks only",
-		"Only refill held block stacks, leaving tools and other items alone.",
-		true);
+  @Override
+  protected void onEnable() {
+    reset();
+    EVENTS.add(UpdateListener.class, this);
+  }
 
-	private final CheckboxSetting pauseWhileUsing = new CheckboxSetting(
-		"Pause while using", "Pauses while you are using an item.", true);
+  @Override
+  protected void onDisable() {
+    EVENTS.remove(UpdateListener.class, this);
+    reset();
+  }
 
-	private final ItemStack[] lastHeld = new ItemStack[9];
+  private void reset() {
+    Arrays.fill(previous, ItemStack.EMPTY);
+    snapshot = false;
+    owner = MC.player;
+    resumeAt = 0;
+  }
 
-	private int tickDelayLeft;
+  @Override
+  public void onUpdate() {
+    if (owner != MC.player) reset();
+    if (MC.player == null
+        || MC.level == null
+        || MC.gameMode == null
+        || MC.player.isCreative()
+        || MC.screen != null
+        || MC.player.containerMenu != MC.player.inventoryMenu
+        || !MC.player.containerMenu.getCarried().isEmpty()) {
+      reset();
+      return;
+    }
+    if (!snapshot) saveSnapshot();
+    if (pauseWhileUsing.isChecked() && (MC.options.keyUse.isDown() || MC.player.isUsingItem())) {
+      resumeAt = System.nanoTime() + pauseTime.getValueI() * 1_000_000L;
+      return;
+    }
+    if (System.nanoTime() < resumeAt) return;
+    var inventory = MC.player.getInventory();
+    for (int slot = 0; slot < 9; slot++) {
+      ItemStack wanted = previous[slot];
+      ItemStack current = inventory.getItem(slot);
+      if (skip(wanted)) continue;
+      boolean consumed = current.getItem() != wanted.getItem();
+      if (!consumed) continue;
+      for (int source = 9; source < 36; source++) {
+        ItemStack candidate = inventory.getItem(source);
+        if (candidate.isEmpty() || !ItemStack.isSameItemSameComponents(wanted, candidate)) continue;
+        click(source, slot, ClickType.SWAP);
+        break;
+      }
+    }
+    saveSnapshot();
+  }
 
-	public ReplenishHack()
-	{
-		super("Replenish");
-		setCategory(Category.ITEMS);
-		addSetting(minCount);
-		addSetting(delay);
-		addSetting(blocksOnly);
-		addSetting(pauseWhileUsing);
-	}
+  private boolean skip(ItemStack stack) {
+    if (stack.isEmpty()
+        || blacklist
+            .getItemNames()
+            .contains(
+                net.minecraft.core.registries.BuiltInRegistries.ITEM
+                    .getKey(stack.getItem())
+                    .toString())) return true;
+    if (noPotion.isChecked() && stack.getItem() instanceof PotionItem) return true;
+    return noTools.isChecked()
+        && (stack.has(net.minecraft.core.component.DataComponents.TOOL)
+            || stack.is(net.minecraft.tags.ItemTags.SWORDS)
+            || stack.getItem() instanceof TridentItem);
+  }
 
-	@Override
-	protected void onEnable()
-	{
-		fillLastHeld();
-		tickDelayLeft = 0;
-		EVENTS.add(UpdateListener.class, this);
-	}
+  private void click(int slot, int button, ClickType type) {
+    MC.gameMode.handleInventoryMouseClick(
+        MC.player.inventoryMenu.containerId, slot, button, type, MC.player);
+  }
 
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(UpdateListener.class, this);
-		clearLastHeld();
-	}
-
-	@Override
-	public void onUpdate()
-	{
-		if(MC.player == null)
-			return;
-
-		if(MC.screen != null || MC.player.containerMenu.containerId != 0
-			|| !MC.player.containerMenu.getCarried().isEmpty()
-			|| MC.player.getAbilities().instabuild)
-			return;
-
-		if(pauseWhileUsing.isChecked() && MC.options.keyUse.isDown())
-			return;
-
-		if(tickDelayLeft > 0)
-		{
-			tickDelayLeft--;
-			return;
-		}
-
-		Inventory inventory = MC.player.getInventory();
-		int slot = inventory.getSelectedSlot();
-		ItemStack current = inventory.getItem(slot);
-		ItemStack previous = lastHeld[slot];
-
-		ItemStack wanted = current.isEmpty() ? previous : current;
-		if(!shouldReplenish(current, wanted, slot))
-		{
-			lastHeld[slot] = current.copy();
-			return;
-		}
-
-		int fromSlot = findItem(wanted, slot);
-		if(fromSlot == -1)
-		{
-			lastHeld[slot] = current.copy();
-			return;
-		}
-
-		moveToHotbar(fromSlot, slot);
-		tickDelayLeft = delay.getValueI();
-		lastHeld[slot] = inventory.getItem(slot).copy();
-	}
-
-	private boolean shouldReplenish(ItemStack current, ItemStack wanted,
-		int slot)
-	{
-		if(wanted.isEmpty() || wanted.getMaxStackSize() <= 1)
-			return false;
-		if(blocksOnly.isChecked() && !(wanted.getItem() instanceof BlockItem))
-			return false;
-
-		int threshold = minCount.getValueI();
-		if(current.isEmpty())
-			return true;
-		if(current.getCount() > threshold)
-			return false;
-
-		// Don't bother when there is no matching stack left.
-		return findItem(wanted, slot) != -1;
-	}
-
-	private int findItem(ItemStack lookFor, int excludedSlot)
-	{
-		int bestSlot = -1;
-		int bestCount = 0;
-
-		for(int slot = 35; slot >= 9; slot--)
-		{
-			if(slot == excludedSlot)
-				continue;
-
-			ItemStack stack = MC.player.getInventory().getItem(slot);
-			if(stack.isEmpty()
-				|| !ItemStack.isSameItemSameComponents(lookFor, stack))
-				continue;
-
-			if(stack.getCount() > bestCount)
-			{
-				bestSlot = slot;
-				bestCount = stack.getCount();
-			}
-		}
-
-		return bestSlot;
-	}
-
-	/**
-	 * Merges the stack in {@code fromSlot} into the hotbar slot
-	 * {@code hotbarSlot} using three pickup clicks: take the source stack,
-	 * place it onto the hotbar stack (or into the empty slot), then put any
-	 * remainder back into the source slot.
-	 */
-	private void moveToHotbar(int fromSlot, int hotbarSlot)
-	{
-		int source = InventoryUtils.toNetworkSlot(fromSlot);
-		int target = InventoryUtils.toNetworkSlot(hotbarSlot);
-
-		IMC.getInteractionManager().windowClick_PICKUP(source);
-		IMC.getInteractionManager().windowClick_PICKUP(target);
-		IMC.getInteractionManager().windowClick_PICKUP(source);
-	}
-
-	private void fillLastHeld()
-	{
-		for(int slot = 0; slot < 9; slot++)
-		{
-			if(MC.player == null)
-			{
-				lastHeld[slot] = ItemStack.EMPTY;
-				continue;
-			}
-
-			lastHeld[slot] =
-				MC.player.getInventory().getItem(slot).copy();
-		}
-	}
-
-	private void clearLastHeld()
-	{
-		for(int slot = 0; slot < 9; slot++)
-			lastHeld[slot] = ItemStack.EMPTY;
-	}
+  private void saveSnapshot() {
+    for (int i = 0; i < 9; i++) previous[i] = MC.player.getInventory().getItem(i).copy();
+    snapshot = true;
+  }
 }

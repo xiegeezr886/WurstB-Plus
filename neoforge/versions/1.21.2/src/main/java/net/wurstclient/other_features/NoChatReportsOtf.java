@@ -96,8 +96,8 @@ public final class NoChatReportsOtf extends OtherFeature
 		HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 			Component.literal("原始消息: ").append(originalText));
 		
-		ChatUtils.component(Component.literal(
-			"The server is refusing to let you chat without enabling chat reports. Click \u00a7nhere\u00a7r to learn more.")
+		ChatUtils.component(Component.literal(WURST.translate(
+			"The server is refusing to let you chat without enabling chat reports. Click \u00a7nhere\u00a7r to learn more."))
 			.withStyle(
 				s -> s.withClickEvent(clickEvent).withHoverEvent(hoverEvent)));
 	}
@@ -119,10 +119,11 @@ public final class NoChatReportsOtf extends OtherFeature
 			return indicator;
 		
 		return new GuiMessageTag(0xE84F58, Icon.CHAT_MODIFIED,
-			Component.literal(ChatUtils.WURST_PREFIX + "\u00a7cReportable\u00a7r - "
+			Component.literal(ChatUtils.WURST_PREFIX
+				+ WURST.translate("\u00a7cReportable\u00a7r - ")
 				+ WURST.translate(
 					"description.wurst.nochatreports.message_is_reportable")),
-			"Reportable");
+			WURST.translate("Reportable"));
 	}
 	
 	@Override
@@ -152,7 +153,7 @@ public final class NoChatReportsOtf extends OtherFeature
 	@Override
 	public Category getCategory()
 	{
-		return Category.CHAT;
+		return Category.MISC;
 	}
 	
 	// See ChatHudMixin, ClientPlayNetworkHandlerMixin.onOnServerMetadata(),

@@ -40,7 +40,7 @@ public final class ModernHotbarMod extends HUDMod
 	{
 		List<ItemStack> items = HudCompat.hotbarItems();
 		int selected = MC.player == null ? 0
-			: MC.player.getInventory().selected;
+			: net.wurstclient.leaves.LeavesSlots.INSTANCE.displaySlot(MC.player.getInventory().selected);
 		setX(Math.round((MC.getWindow().getGuiScaledWidth()
 			- WIDTH * getScale()) / 2F));
 		setY(Math.round(MC.getWindow().getGuiScaledHeight()

@@ -77,7 +77,7 @@ public final class VeinMinerHack extends Hack
 	public VeinMinerHack()
 	{
 		super("VeinMiner");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addConflictGroup(HackConflictGroup.BLOCK_BREAKING_AUTOMATION);
 		addSetting(range);
 		addSetting(flat);

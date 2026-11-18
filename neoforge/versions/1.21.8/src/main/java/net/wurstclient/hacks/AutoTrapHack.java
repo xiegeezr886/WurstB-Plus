@@ -55,7 +55,7 @@ public final class AutoTrapHack extends Hack implements UpdateListener
 	public AutoTrapHack()
 	{
 		super("AutoTrap");
-		setCategory(Category.COMBAT);
+		setCategory(Category.WORLD);
 		addSetting(range);
 		addSetting(onlyObsidian);
 		addSetting(disableAfter);

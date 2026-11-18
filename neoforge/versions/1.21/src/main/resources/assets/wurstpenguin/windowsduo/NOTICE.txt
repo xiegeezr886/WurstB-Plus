@@ -1,0 +1,13 @@
+WindowsDuo glass animation adaptation for WurstB+ Plus.
+Source: https://github.com/kaedeharakazuha1029/windowsduo
+Commit: 69dab2ceaf17255643848856ba58140cdee3dc26
+Copyright (c) 2026 KaedeharaKazuha1029. MIT license; see LICENSE.
+
+duo_glass.frag adapts win/glass_overlay.py FS_DUO: bottom-edge inverse
+projection, Vogel disk sampling, mip LOD, edge coverage and darkening.
+DuoGlassMotion adapts its 0.22-per-frame angle smoothing to elapsed time.
+The GUI uses premultiplied transparent render targets instead of desktop
+screenshots. Maximum tilt 88 degrees, eye distance 2x height, spread 0.42,
+darkening 0.001 follow win/config.json. Sampling is reduced from 32 to 12 taps,
+with a cached input and 540p effect target. A final fade removes
+the hinge at full close. No screen capture, hardware sensor or lock action.

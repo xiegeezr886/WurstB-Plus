@@ -7,7 +7,7 @@
  */
 package net.wurstclient.options;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,19 +61,19 @@ public class WurstOptionsScreen extends Screen
 		
 		new WurstOptionsButton(-154, 24,
 			() -> "Click Friends: "
-				+ (middleClickFriends.isChecked() ? "ON" : "OFF"),
+				+ (middleClickFriends.isChecked() ? WurstClient.tr("ON") : WurstClient.tr("OFF")),
 			middleClickFriends.getWrappedDescription(200),
 			b -> middleClickFriends
 				.setChecked(!middleClickFriends.isChecked()));
 		
 		new WurstOptionsButton(-154, 48,
 			() -> "Spoof Vanilla: "
-				+ (vanillaSpoofOtf.isEnabled() ? "ON" : "OFF"),
+				+ (vanillaSpoofOtf.isEnabled() ? WurstClient.tr("ON") : WurstClient.tr("OFF")),
 			vanillaSpoofOtf.getDescription(),
 			b -> vanillaSpoofOtf.doPrimaryAction());
 		
 		new WurstOptionsButton(-154, 72,
-			() -> "Translations: " + (!forceEnglish.isChecked() ? "ON" : "OFF"),
+			() -> "Translations: " + (!forceEnglish.isChecked() ? WurstClient.tr("ON") : WurstClient.tr("OFF")),
 			"Allows text in Wurst to be displayed in other languages than"
 				+ " English. It will use the same language that Minecraft is"
 				+ " set to.\n\n" + "This is an experimental feature!",
@@ -116,7 +116,7 @@ public class WurstOptionsScreen extends Screen
 		return false;
 	}
 @Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	public void render(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		extractContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
@@ -139,12 +139,12 @@ public class WurstOptionsScreen extends Screen
 		context.centeredText(tr, WurstClient.CLIENT_NAME + " 设置", middleX, y1,
 			0xFFffffff);
 		
-		context.centeredText(tr, "Settings", middleX - 104, y2,
-			0xFFcccccc);
-		context.centeredText(tr, "Managers", middleX, y2,
-			0xFFcccccc);
-		context.centeredText(tr, "Links", middleX + 104, y2,
-			0xFFcccccc);
+		context.centeredText(tr, WurstClient.tr("Settings"), middleX - 104, y2,
+			0xcccccc);
+		context.centeredText(tr, WurstClient.tr("Managers"), middleX, y2,
+			0xcccccc);
+		context.centeredText(tr, WurstClient.tr("Links"), middleX + 104, y2,
+			0xcccccc);
 	}
 	
 	private void renderButtonTooltip(GuiGraphicsExtractor context, int mouseX,
@@ -205,11 +205,10 @@ public class WurstOptionsScreen extends Screen
 			setMessage(Component.literal(messageSupplier.get()));
 		}
 
-		@Override
-		protected void renderWidget(GuiGraphics graphics, int mouseX,
-			int mouseY, float partialTicks)
+		@Override protected void renderWidget(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) { renderWidget(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks); }
+protected void renderWidget(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
 		{
-			graphics.drawCenteredString(font, getMessage(),
+			graphics.centeredText(font, getMessage(),
 				getX() + getWidth() / 2,
 				getY() + (getHeight() - font.lineHeight) / 2,
 				active ? 0xFFFFFF : 0xA0A0A0);

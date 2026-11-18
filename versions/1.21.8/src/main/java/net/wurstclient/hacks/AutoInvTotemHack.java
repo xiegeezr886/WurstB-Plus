@@ -58,7 +58,7 @@ public final class AutoInvTotemHack extends Hack
 	public AutoInvTotemHack()
 	{
 		super("AutoInvTotem");
-		setCategory(Category.COMBAT);
+		setCategory(Category.PLAYER);
 		addSetting(minDelay);
 		addSetting(maxDelay);
 		addSetting(moveFromHotbar);

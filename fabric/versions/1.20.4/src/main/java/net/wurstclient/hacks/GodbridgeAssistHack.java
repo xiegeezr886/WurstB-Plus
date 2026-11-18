@@ -50,7 +50,7 @@ public final class GodbridgeAssistHack extends Hack implements UpdateListener
 	public GodbridgeAssistHack()
 	{
 		super("GodbridgeAssist");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(placeDelay);
 		addSetting(minPitch);
 		addSetting(range);

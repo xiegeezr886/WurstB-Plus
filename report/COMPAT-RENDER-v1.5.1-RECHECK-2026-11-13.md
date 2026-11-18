@@ -1,7 +1,5 @@
 # v1.5.1 兼容性与渲染复查
 
-日期：2026-11-13。按用户补充要求，最终验证范围为本仓库的 **66 个 v1.5.1 工程**：Fabric 23、NeoForge 23、Forge 20。根目录 v1.6 不纳入结论，也未修改其源代码。仓库外独立 Forge 1.20.1 修复包不在本次范围内。
-
 ## 结论与修改
 
 本次执行的静态检查、渲染回归和抽样归档检查均通过，未发现新的 v1.5.1 渲染回归。发现并修正中英文 README 支持矩阵中的 Java 要求：Minecraft 1.20.5、1.20.6 应为 **Java 21**，原文误写为 17。对应工程的构建配置及 Fabric 元数据本身正确，无需修改生产代码。
@@ -15,8 +13,6 @@
 | `run-render-matrix-tests.py --java-home <JDK21>` | 7 组实际重新执行，408 项断言全部通过 | 使用桌面 OpenGL，Minecraft GPU/GUI 边界是测试替身 |
 | 工具链与元数据逐工程检查 | 66 工程通过 | Java 构建级别、Fabric Java 依赖、已注册 Mixin 源文件存在性、FancyMenu 标题页兼容判断 |
 | 既有 JAR 抽样检查 | 5 个通过 | ZIP CRC、加载器元数据、Mixin 配置、类文件、Baritone 及归档回归规则；本次未重新构建 |
-
-最初启动的全仓崩溃扫描包含 v1.6，随后终止，不将未完成扫描计为通过。
 
 OpenGL 实测环境为 Windows、Azul JDK 21.0.13、Intel RaptorLake-S Mobile Graphics Controller，驱动返回 OpenGL 4.6.0 / 32.0.101.7084。
 

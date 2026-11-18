@@ -60,7 +60,7 @@ public final class BossHealthMod extends HUDMod
 		if(bars.isEmpty())
 		{
 			drawBackground(120, 20);
-			drawText("No boss", 6, 5, 9, HudFonts.REGULAR,
+			drawText(WURST.translate("No boss"), 6, 5, 9, HudFonts.REGULAR,
 				getFontColor(200));
 			setSize(120, 20);
 			return;

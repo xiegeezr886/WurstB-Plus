@@ -145,7 +145,7 @@ public final class AutoMineSandHack extends Hack
 	public AutoMineSandHack()
 	{
 		super("AutoMineSand");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(searchRadius);
 		addSetting(autoKillAura);
 		addSetting(delay);

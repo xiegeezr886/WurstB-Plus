@@ -7,7 +7,6 @@
  */
 package net.wurstclient.hacks;
 
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import java.util.ArrayList;
 import java.util.Arrays;
 import net.minecraft.client.KeyMapping;
@@ -15,11 +14,13 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.mixin.CreativeModeInventoryScreenAccessor;
 import net.wurstclient.mixinterface.IKeyBinding;
 import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.util.ScreenRegistry;
@@ -97,7 +98,7 @@ public final class InvWalkHack extends Hack implements UpdateListener
 	
 	private boolean isAllowedScreen(Screen screen)
 	{
-		if(screen instanceof InventoryScreen
+		if(screen instanceof AbstractContainerScreen
 			&& !isCreativeSearchBarOpen(screen))
 			return true;
 		
@@ -117,8 +118,8 @@ public final class InvWalkHack extends Hack implements UpdateListener
 		if(!(screen instanceof CreativeModeInventoryScreen))
 			return false;
 		
-		return ((net.wurstclient.mixin.CreativeModeInventoryScreenAccessor)(Object)screen).getSelectedTab() == CreativeModeTabs
-			.searchTab();
+		return CreativeModeInventoryScreenAccessor.getSelectedTab()
+			== CreativeModeTabs.searchTab();
 	}
 	
 	private boolean hasTextBox(Screen screen)

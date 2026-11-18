@@ -352,7 +352,6 @@ public final class GuiPreferences
 		}
 		return fontPackFilesReady;
 	}
-
 	public enum TargetType
 	{
 		PLAYERS,

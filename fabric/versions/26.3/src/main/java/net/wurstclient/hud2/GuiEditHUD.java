@@ -13,7 +13,7 @@ import java.util.Map;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -46,14 +46,13 @@ public final class GuiEditHUD extends Screen
 
 	public GuiEditHUD()
 	{
-		super(Component.literal("HUD Editor"));
+		super(Component.literal(WurstClient.tr("HUD Editor")));
 		manager = WURST.getHudManager();
 		mods = manager.getMods();
 	}
 
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX,
-		int mouseY, float partialTicks)
+	@Override public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) { render(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks); }
+public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		hoveredId = findHovered(mouseX, mouseY);
 		HudItemIcons.capturePending(NanoVGUI.context(), 4);
@@ -124,7 +123,7 @@ public final class GuiEditHUD extends Screen
 			return true;
 		}
 
-		if(button == InputConstants.MOUSE_BUTTON_LEFT)
+		if(event.button() == InputConstants.MOUSE_BUTTON_LEFT)
 		{
 			// Keep the snap preference the user chose with right-click; the
 			// toolbar documents right-click as the on/off switch.
@@ -156,6 +155,7 @@ public final class GuiEditHUD extends Screen
 	{
 		double mouseX = event.x();
 		double mouseY = event.y();
+
 		HUDMod dragged = null;
 		for(HUDMod mod : mods.values())
 			if(mod.isDragging())
@@ -178,8 +178,7 @@ public final class GuiEditHUD extends Screen
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX,
-		double scrollY)
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
 	{
 		HUDMod hovered = hoveredId == null ? null : mods.get(hoveredId);
 		if(hovered == null || scrollY == 0)

@@ -43,7 +43,7 @@ public final class PacketCancellerHack extends Hack
 	public PacketCancellerHack()
 	{
 		super("PacketCanceller");
-		setCategory(Category.OTHER);
+		setCategory(Category.EXPLOIT);
 		addSetting(cancelBossEvent);
 		addSetting(cancelEntityData);
 		addSetting(cancelMovement);

@@ -23,7 +23,8 @@ public enum HudTheme
 	VANILLA_GLOW,
 	SHADOW,
 	DARK,
-	LIGHT;
+	LIGHT,
+	RISE_GLASS;
 
 	public String getId()
 	{
@@ -52,6 +53,8 @@ public enum HudTheme
 			return "Dark";
 			case LIGHT:
 			return "Light";
+			case RISE_GLASS:
+			return "Rise Glass";
 			default:
 			return name();
 		}

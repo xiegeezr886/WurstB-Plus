@@ -32,7 +32,8 @@ dependencies {
 	// Minecraft (non-obfuscated, no mappings needed for 26.x)
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.2"
 
 	// Fabric API
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
@@ -44,8 +45,8 @@ dependencies {
 	include implementation("org.java-websocket:Java-WebSocket:1.5.3")
 
 	// Proxy support
-	include implementation("io.netty:netty-codec-socks:4.1.118.Final")
-	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
+	include implementation("io.netty:netty-codec-socks:4.2.16.Final") { transitive = false }
+	include implementation("io.netty:netty-handler-proxy:4.2.16.Final") { transitive = false }
 
 	// The 26.3 artifact carries loader metadata compatible with Minecraft 26.3.
 	include implementation("baritone:baritone-api-fabric:1.20.0-26.3")
@@ -56,20 +57,20 @@ dependencies {
 	include(implementation("io.github.llamalad7:mixinextras-fabric:0.5.5"))
 
 	// NanoVG HUD renderer
-	implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
-	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
-	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
-	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
-	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
-	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
-	runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
-	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
-	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
-	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
-	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
-	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
-	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
-	hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+	include implementation("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}") { transitive = false }
+	runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows") { transitive = false }
+	runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64") { transitive = false }
+	runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux") { transitive = false }
+	runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64") { transitive = false }
+	runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos") { transitive = false }
+	runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64") { transitive = false }
+	hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}") { transitive = false }
+	hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows") { transitive = false }
+	hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64") { transitive = false }
+	hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux") { transitive = false }
+	hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64") { transitive = false }
+	hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos") { transitive = false }
+	hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64") { transitive = false }
 }
 
 loom {
@@ -85,7 +86,8 @@ processResources {
 	// Ship the NanoVG classes and native libraries inside the mod jar. This
 	// avoids loader-specific nested-jar handling and matches NanoVGNativeLoader.
 	from({ configurations.hudNatives.collect { zipTree(it) } }) {
-		include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+		include "windows/**", "linux/**", "macos/**"
+        into "assets/wurstpenguin/nanovg/natives"
 		exclude "META-INF/**", "module-info.class", "**/*.signature"
 	}
 }
@@ -128,3 +130,19 @@ if(project.hasProperty("graphicsBackend")) {
         args "--graphicsBackend", project.property("graphicsBackend")
     }
 }
+// v1.5.2 music and seed backend for the 1.20.2-1.20.4 protocol family.
+dependencies {
+    include implementation("com.googlecode.soundlibs:jlayer:1.0.1.4") { transitive = false }
+    include implementation("com.google.zxing:core:3.5.3")
+    compileOnly "net.java.dev.jna:jna:5.13.0"
+    implementation "local.seedfinding:seedcrackerX:2.16.2"
+    include "local.seedfinding:seedcrackerX:2.16.2"
+    implementation fileTree(dir: "libs/seedcrackerx-deps", include: ["cloth-config*.jar"])
+}
+tasks.withType(Test).configureEach { useJUnitPlatform() }
+
+
+
+dependencies { runtimeOnly fileTree(dir: "libs/seedcrackerx-deps", include: ["mc_*.jar", "latticg-*.jar"]) }
+
+sourceSets.main.java { exclude "net/wurstclient/clickgui2/component.disabled/**"; exclude "net/wurstclient/clickgui2/screens.disabled/**" }

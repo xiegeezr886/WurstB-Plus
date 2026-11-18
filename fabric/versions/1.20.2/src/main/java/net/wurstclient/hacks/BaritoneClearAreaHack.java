@@ -12,6 +12,7 @@ import net.wurstclient.events.RightClickListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.DontSaveState;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.hack.HackConflictGroup;
 import net.wurstclient.util.BaritoneUtils;
 import net.wurstclient.util.RenderUtils;
 
@@ -32,7 +33,8 @@ public final class BaritoneClearAreaHack extends Hack
 	public BaritoneClearAreaHack()
 	{
 		super("BaritoneClearArea");
-		setCategory(Category.BLOCKS);
+		addConflictGroup(HackConflictGroup.BARITONE_CONTROL);
+		setCategory(Category.WORLD);
 	}
 
 	@Override

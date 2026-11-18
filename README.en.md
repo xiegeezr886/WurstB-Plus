@@ -9,7 +9,7 @@
 [![Loaders](https://img.shields.io/badge/Loaders-Forge%20%7C%20NeoForge%20%7C%20Fabric-6E6E6E?style=flat-square)](#version-support)
 [![Java](https://img.shields.io/badge/Java-17%20%7C%2021%20%7C%2025-E76F00?style=flat-square)](#version-support)
 [![Gradle projects](https://img.shields.io/badge/Gradle_projects-67-4C1D95?style=flat-square)](#repository-layout)
-[![preview](https://img.shields.io/badge/preview-v1.5.2-8A2BE2?style=flat-square)](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2)
+[![v1.5.2](https://img.shields.io/badge/version-v1.5.2-8A2BE2?style=flat-square)](docs/RELEASE-v1.5.2.md)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-2E7D32?style=flat-square)](LICENSE.txt)
 
 </div>
@@ -25,7 +25,7 @@ independent Gradle projects.
 
 | Minecraft | Forge | NeoForge | Fabric | Java |
 | --- | :---: | :---: | :---: | :---: |
-| **1.20.1** | ✓ <sup>v1.5.1</sup> | ✓ | ✓ | 17 |
+| **1.20.1** | ✓ | ✓ | ✓ | 17 |
 | 1.20.2 · 1.20.3 · 1.20.4 | ✓ | ✓ | ✓ | 17 |
 | 1.20.5 | — | ✓ | ✓ | 21 |
 | 1.20.6 | ✓ | ✓ | ✓ | 21 |
@@ -40,21 +40,17 @@ ship NeoForge and Fabric only.</sub>
 **Asset naming** (the version number carries no `v`):
 
 ```text
-WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.1-Forge-1.21.5.jar
+WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.2-Fabric-1.20.1.jar
 ```
 
 | Release | Contents | Notes |
 | --- | --- | --- |
 | [**v1.5.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 assets | The historical release of the 1.5.0 line |
-| [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | **67 assets (full matrix)** | **Latest release**: 66 v1.5.1 projects + one fixed Forge 1.20.1 build, 67 jars in total |
-| [**v1.5.2**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2) | Fabric 1.20.1 | Prerelease; JAR updated on 2026-11-16 |
-| [**v1.6.0**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.6.0) | Forge 1.20.1 | Historical prerelease; root source archived outside the repository |
+| [**v1.5.1**](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | 67 assets | Previous full-matrix release |
+| [**v1.5.2**](docs/RELEASE-v1.5.2.md) | 67 source projects | Stable version number; see GitHub Releases for available assets |
 
-> **Current source (2026-11-17):** The root Forge 1.20.1 project now uses the
-> v1.5.1 source from `dist/VAP-v1.5.1-Forge-1.20.1`. Fabric 1.20.1 is v1.5.2;
-> all other maintained projects are v1.5.1. The old v1.6.0 root source was moved
-> to a separate local archive outside this repository. Existing release assets
-> and historical tags remain unchanged. See [migration notes](docs/ROOT-FORGE-1.5.1.md).
+Fabric 1.20.1 is the v1.5.2 baseline. The table describes source coverage; match the actual JAR to your Minecraft version and loader.
+See the [v1.5.2 release notes](docs/RELEASE-v1.5.2.md) for changes and validation, and the [porting plan](docs/PORTING-v1.5.2.md) for per-generation results.
 
 ---
 
@@ -62,9 +58,9 @@ WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.1-Forge-1.21
 
 ```text
 .
-├── src/                    root project  · Forge 1.20.1   · v1.5.1
+├── src/                    root project  · Forge 1.20.1   · v1.5.2
 ├── fabric/                 Fabric 1.20.1                  · v1.5.2
-├── neoforge/               NeoForge 1.20.1                · v1.5.1
+├── neoforge/               NeoForge 1.20.1                · v1.5.2
 ├── versions/               Forge new-version projects      20
 ├── fabric/versions/        Fabric new-version projects     22
 ├── neoforge/versions/      NeoForge new-version projects   22
@@ -77,17 +73,14 @@ WurstB+.Plus-<version>-<loader>-<mc>.jar      e.g. WurstB+.Plus-1.5.1-Forge-1.21
 Gradle builds** in total. Every project carries a complete `gradle-wrapper.jar`, so the Gradle
 distribution resolves even offline.
 
-> Authoritative per-project numbers (toolchain, source/test file counts, v1.6 feature gaps) are
-> **not hand-written here** — see the generated [docs/STATUS.md](docs/STATUS.md)
-> (`scripts/generate-status.ps1`).
-
 ---
 
 ## Documentation
 
 | Document | Contents |
 | --- | --- |
-| [docs/STATUS.md](docs/STATUS.md) | **Authoritative status numbers (generated, do not edit)**: project inventory, toolchains, test counts, v1.6 gaps |
+| [docs/STATUS.md](docs/STATUS.md) | Generated project, toolchain, source and test counts |
+| [docs/PORTING-v1.5.2.md](docs/PORTING-v1.5.2.md) | Scope, batches and acceptance criteria for the full v1.5.2 port |
 | [CHANGELOG.md](CHANGELOG.md) | Version history, including known limitations and deviations |
 | [PROJECT_INDEX.md](PROJECT_INDEX.md) | Per-project index: toolchain, source file count, entry classes, artifact names |
 | [docs/RELEASE.md](docs/RELEASE.md) | **Release and maintenance handbook** (the original README): **feature documentation** (new subsystems, the new-hack inventory, HUD elements, refactored internals, architecture), **installation**, **building and running**, artifact matrix, packaging validation, verification status, **rendering compatibility (NanoVG / X-Ray / Vulkan)** |
@@ -116,10 +109,8 @@ inventoried in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). FFmpeg is an LG
 **corresponding source** (build scripts, `COPYING.*`, the JNI shim source) ships in
 [`native/ffmpeg/`](native/ffmpeg).
 
-> **Verification scope:** all 67 v1.5.1 assets passed compilation and packaging validation and
-> have been uploaded to the v1.5.1 release. In-game launch verification only covers part of the
-> matrix (1.21.11 / 26.2 and others); Forge/NeoForge 1.20.x–1.21.1 combinations still have
-> compile/packaging validation only. Vulkan is available only on 26.2/26.3, and NeoForge 26.2's
+> **Verification scope:** see the [v1.5.2 release notes](docs/RELEASE-v1.5.2.md) for available builds and runtime coverage.
+> Vulkan is available only on 26.2/26.3, and NeoForge 26.2's
 > Vulkan startup is blocked by a loader bug. Per-version status is in the "Rendering
 > compatibility (X-Ray / Vulkan)" section of [docs/RELEASE.md](docs/RELEASE.md) and in
 > [docs/PORTING-NEW-VERSIONS.md](docs/PORTING-NEW-VERSIONS.md).

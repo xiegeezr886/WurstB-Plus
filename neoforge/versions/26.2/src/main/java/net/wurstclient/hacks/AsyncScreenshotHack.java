@@ -27,7 +27,7 @@ public final class AsyncScreenshotHack extends Hack
 	public AsyncScreenshotHack()
 	{
 		super("AsyncScreenshot");
-		setCategory(Category.OTHER);
+		setCategory(Category.RENDER);
 		addSetting(showMessage);
 	}
 

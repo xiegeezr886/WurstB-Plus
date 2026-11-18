@@ -20,7 +20,7 @@ public final class FancyChatHack extends Hack implements ChatOutputListener
 	public FancyChatHack()
 	{
 		super("FancyChat");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 	}
 	
 	@Override

@@ -23,7 +23,7 @@ public final class FPSDisplayMod extends SimpleHUDMod
 		super("FPSDisplay", "FPS Display", "Shows the current frame rate.");
 		setTranslationKey("fps_display");
 		setDefaultPosition(10, 10);
-		setDefaultEnabled(true);
+		setDefaultEnabled(false);
 		addSetting(iconSetting);
 	}
 

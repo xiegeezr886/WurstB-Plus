@@ -97,7 +97,7 @@ public final class TooManyHaxCmd extends Command
 		String typeAndName = getType(feature) + " '" + name + "'";
 		
 		if(!feature.isSafeToBlock())
-			throw new CmdError("The " + typeAndName + " is not safe to block.");
+			throw new CmdError("The %s is not safe to block.", typeAndName);
 		
 		TooManyHaxHack tooManyHax = WURST.getHax().tooManyHaxHack;
 		if(tooManyHax.isBlocked(feature))
@@ -125,7 +125,7 @@ public final class TooManyHaxCmd extends Command
 		
 		TooManyHaxHack tooManyHax = WURST.getHax().tooManyHaxHack;
 		if(!tooManyHax.isBlocked(feature))
-			throw new CmdError("The " + typeAndName + " is not blocked.");
+			throw new CmdError("The %s is not blocked.", typeAndName);
 		
 		tooManyHax.setBlocked(feature, false);
 		ChatUtils.message("已移除 " + typeAndName + " 从太多功能列表。");
@@ -150,8 +150,7 @@ public final class TooManyHaxCmd extends Command
 	{
 		Feature feature = WURST.getFeatureByName(name);
 		if(feature == null)
-			throw new CmdSyntaxError(
-				"A feature named '" + name + "' could not be found");
+			throw new CmdSyntaxError("A feature named '%s' could not be found", name);
 		
 		return feature;
 	}
@@ -182,11 +181,9 @@ public final class TooManyHaxCmd extends Command
 		pages = Math.max(pages, 1);
 		
 		if(page > pages || page < 1)
-			throw new CmdSyntaxError("Invalid page: " + page);
+			throw new CmdSyntaxError("Invalid page: %s", page);
 		
-		String total = "Total: " + blocked.size() + " blocked feature";
-		total += blocked.size() != 1 ? "s" : "";
-		ChatUtils.message(total);
+		ChatUtils.message("Total: %s blocked features", blocked.size());
 		
 		int start = (page - 1) * 8;
 		int end = Math.min(page * 8, blocked.size());
@@ -202,7 +199,7 @@ public final class TooManyHaxCmd extends Command
 			return 1;
 		
 		if(!MathUtils.isInteger(args[1]))
-			throw new CmdSyntaxError("Not a number: " + args[1]);
+			throw new CmdSyntaxError("Not a number: %s", args[1]);
 		
 		return Integer.parseInt(args[1]);
 	}
@@ -217,22 +214,21 @@ public final class TooManyHaxCmd extends Command
 		try
 		{
 			WURST.getHax().tooManyHaxHack.loadProfile(name);
-			ChatUtils.message("TooManyHax profile loaded: " + name);
+			ChatUtils.message("TooManyHax profile loaded: %s", name);
 			
 		}catch(NoSuchFileException e)
 		{
-			throw new CmdError("Profile '" + name + "' doesn't exist.");
+			throw new CmdError("Profile '%s' doesn't exist.", name);
 			
 		}catch(JsonException e)
 		{
 			e.printStackTrace();
-			throw new CmdError(
-				"Profile '" + name + "' is corrupted: " + e.getMessage());
+			throw new CmdError("Profile '%s' is corrupted: %s", name, e.getMessage());
 			
 		}catch(IOException e)
 		{
 			e.printStackTrace();
-			throw new CmdError("Couldn't load profile: " + e.getMessage());
+			throw new CmdError("Couldn't load profile: %s", e.getMessage());
 		}
 	}
 	
@@ -246,12 +242,12 @@ public final class TooManyHaxCmd extends Command
 		try
 		{
 			WURST.getHax().tooManyHaxHack.saveProfile(name);
-			ChatUtils.message("TooManyHax profile saved: " + name);
+			ChatUtils.message("TooManyHax profile saved: %s", name);
 			
 		}catch(IOException | JsonException e)
 		{
 			e.printStackTrace();
-			throw new CmdError("Couldn't save profile: " + e.getMessage());
+			throw new CmdError("Couldn't save profile: %s", e.getMessage());
 		}
 	}
 	
@@ -275,17 +271,14 @@ public final class TooManyHaxCmd extends Command
 		pages = Math.max(pages, 1);
 		
 		if(page > pages || page < 1)
-			throw new CmdSyntaxError("Invalid page: " + page);
+			throw new CmdSyntaxError("Invalid page: %s", page);
 		
-		String total = "Total: " + files.size() + " profile";
-		total += files.size() != 1 ? "s" : "";
-		ChatUtils.message(total);
+		ChatUtils.message("Total: %s profiles", files.size());
 		
 		int start = (page - 1) * 8;
 		int end = Math.min(page * 8, files.size());
 		
-		ChatUtils.message(
-			"TooManyHax profile list (page " + page + "/" + pages + ")");
+		ChatUtils.message("TooManyHax profile list (page %s/%s)", page, pages);
 		for(int i = start; i < end; i++)
 			ChatUtils.message(files.get(i).getFileName().toString());
 	}

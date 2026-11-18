@@ -8,6 +8,8 @@
 // Ported from Soar Client v7.1.2 (LGPL-3.0).
 package net.wurstclient.hud2.mods;
 
+import java.awt.Color;
+
 import org.lwjgl.glfw.GLFW;
 
 import net.wurstclient.hud2.HUDMod;
@@ -48,8 +50,8 @@ public final class MouseStrokesMod extends HUDMod
 		drawBackground(x, 0, 28, 28);
 		save();
 		scale(x, 0, 28, 28, animation.getValue());
-		drawRoundedRect(x, 0, 28, 28, 6,
-			getFontColor((int)(120 * animation.getValue())));
+		drawRoundedRect(x, 0, 28, 28, backgroundRadius(28, 28),
+			new Color(accentColor((int)(120 * animation.getValue())), true));
 		restore();
 		drawCenteredText(label, x + 14, 9, 12, HudFonts.REGULAR);
 	}

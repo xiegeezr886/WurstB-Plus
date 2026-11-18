@@ -57,7 +57,7 @@ public final class TillauraHack extends Hack implements HandleInputListener
 	{
 		super("Tillaura");
 		
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(range);
 		addSetting(multiTill);
 		addSetting(checkLOS);

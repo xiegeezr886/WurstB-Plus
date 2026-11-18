@@ -28,7 +28,7 @@ public final class FpsLimiterHack extends Hack implements UpdateListener
 	public FpsLimiterHack()
 	{
 		super("FPSLimiter");
-		setCategory(Category.OTHER);
+		setCategory(Category.RENDER);
 		addSetting(maxFps);
 	}
 

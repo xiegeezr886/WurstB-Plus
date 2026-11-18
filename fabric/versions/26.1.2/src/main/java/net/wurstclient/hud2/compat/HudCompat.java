@@ -33,8 +33,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Objective;
-import net.minecraft.world.scores.PlayerScoreEntry;
 import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.PlayerScoreEntry;
 import net.minecraft.world.scores.Scoreboard;
 import net.wurstclient.WurstClient;
 import net.wurstclient.mixinterface.IBossHealthOverlay;
@@ -69,10 +69,10 @@ public final class HudCompat
 	public static String serverIp()
 	{
 		if(WurstClient.MC.hasSingleplayerServer())
-			return "Singleplayer";
+			return WurstClient.INSTANCE.translate("hud.compat.singleplayer");
 		ServerData server = WurstClient.MC.getCurrentServer();
 		if(server == null)
-			return "Not connected";
+			return WurstClient.INSTANCE.translate("hud.compat.not_connected");
 		return server.ip == null || server.ip.isBlank() ? server.name
 			: server.ip;
 	}
@@ -80,7 +80,9 @@ public final class HudCompat
 	public static String serverName()
 	{
 		ServerData server = WurstClient.MC.getCurrentServer();
-		return server == null ? "Singleplayer" : server.name;
+		return server == null
+			? WurstClient.INSTANCE.translate("hud.compat.singleplayer")
+			: server.name;
 	}
 
 	public static String serverVersion()
@@ -105,13 +107,17 @@ public final class HudCompat
 	public static String gameMode()
 	{
 		if(WurstClient.MC.gameMode == null)
-			return "Mode: Error";
+			return WurstClient.INSTANCE.translate("hud.compat.mode.error");
 		return switch(WurstClient.MC.gameMode.getPlayerMode())
 		{
-			case SURVIVAL -> "Mode: Survival";
-			case CREATIVE -> "Mode: Creative";
-			case SPECTATOR -> "Mode: Spectator";
-			case ADVENTURE -> "Mode: Adventure";
+			case SURVIVAL -> WurstClient.INSTANCE.translate(
+				"hud.compat.mode.survival");
+			case CREATIVE -> WurstClient.INSTANCE.translate(
+				"hud.compat.mode.creative");
+			case SPECTATOR -> WurstClient.INSTANCE.translate(
+				"hud.compat.mode.spectator");
+			case ADVENTURE -> WurstClient.INSTANCE.translate(
+				"hud.compat.mode.adventure");
 		};
 	}
 
@@ -226,7 +232,9 @@ public final class HudCompat
 			MobEffect type = instance.getEffect().value();
 			effects.add(new EffectInfo(type.getDisplayName().getString(),
 				instance.getAmplifier(), instance.getDuration(),
-				type.getColor(), -1, 0, 0, 1, 1));
+				type.getColor(), -1, 0, 0, 1, 1,
+				net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT
+					.getKey(type).toString()));
 		}
 		return effects;
 	}
@@ -237,8 +245,7 @@ public final class HudCompat
 			return Collections.emptyList();
 
 		Scoreboard scoreboard = WurstClient.MC.level.getScoreboard();
-		Objective objective = scoreboard
-			.getDisplayObjective(net.minecraft.world.scores.DisplaySlot.SIDEBAR);
+		Objective objective = scoreboard.getDisplayObjective(net.minecraft.world.scores.DisplaySlot.SIDEBAR);
 		if(objective == null)
 			return Collections.emptyList();
 
@@ -267,8 +274,7 @@ public final class HudCompat
 		if(WurstClient.MC.level == null)
 			return "";
 		Objective objective = WurstClient.MC.level.getScoreboard()
-			.getDisplayObjective(
-				net.minecraft.world.scores.DisplaySlot.SIDEBAR);
+			.getDisplayObjective(net.minecraft.world.scores.DisplaySlot.SIDEBAR);
 		return objective == null ? ""
 			: toLegacy(objective.getDisplayName());
 	}
@@ -465,7 +471,7 @@ public final class HudCompat
 	public static String packName()
 	{
 		var repository = WurstClient.MC.getResourcePackRepository();
-		String result = "Vanilla";
+		String result = WurstClient.INSTANCE.translate("hud.compat.vanilla");
 		for(var pack : repository.getSelectedPacks())
 			result = pack.getTitle().getString();
 		return result;
@@ -483,7 +489,7 @@ public final class HudCompat
 
 	public record EffectInfo(String name, int amplifier, int durationTicks,
 		int color, int iconTexture, float iconU0, float iconV0, float iconU1,
-		float iconV1)
+		float iconV1, String id)
 	{}
 
 	public record ScoreLine(String name, int score)

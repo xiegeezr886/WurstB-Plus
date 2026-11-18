@@ -60,7 +60,7 @@ public final class MechvibesHack extends Hack
 	public MechvibesHack()
 	{
 		super("Mechvibes");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(keyboard);
 		addSetting(keyboardSound);
 		addSetting(mouse);

@@ -59,7 +59,7 @@ public final class AutoToolHack extends Hack
 	{
 		super("AutoTool");
 		
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(useSwords);
 		addSetting(useHands);
 		addSetting(repairMode);

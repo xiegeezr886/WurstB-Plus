@@ -10,7 +10,7 @@ package net.wurstclient.hacks;
 import java.util.Map;
 import java.util.UUID;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.BossEvent;
 import net.wurstclient.Category;

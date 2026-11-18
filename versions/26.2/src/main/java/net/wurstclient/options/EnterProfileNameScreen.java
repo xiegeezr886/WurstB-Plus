@@ -7,9 +7,10 @@
  */
 package net.wurstclient.options;
 
+import net.wurstclient.WurstClient;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
@@ -86,17 +87,22 @@ public final class EnterProfileNameScreen extends Screen
 	public void tick()
 	{
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX,
 		int mouseY, float partialTicks)
 	{
-		context.centeredText(minecraft.font, "Name your new profile", width / 2,
-			20, CommonColors.WHITE);
+		extractBackground(context.getInner(), mouseX, mouseY, partialTicks);
+		context.centeredText(minecraft.font,
+			WurstClient.tr("Name your new profile"), width / 2, 20, 0xFFFFFF);
 		
-		valueField.extractRenderState(context, mouseX, mouseY, partialTicks);
+		valueField.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 		for(Renderable drawable : renderables)
-			drawable.extractRenderState(context, mouseX, mouseY, partialTicks);
+			drawable.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 	}
 	
 	@Override

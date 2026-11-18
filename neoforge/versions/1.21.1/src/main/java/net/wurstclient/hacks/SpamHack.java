@@ -39,7 +39,7 @@ public final class SpamHack extends Hack implements UpdateListener
 	public SpamHack()
 	{
 		super("Spam");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(message);
 		addSetting(delay);
 		addSetting(disableOnDisconnect);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2026 Wurst-Imperium and contributors.
+ * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
  *
  * This source code is subject to the terms of the GNU General Public
  * License, version 3. If a copy of the GPL was not distributed with this
@@ -11,16 +11,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.scores.Objective;
 import net.wurstclient.WurstClient;
-import net.wurstclient.event.EventManager;
-import net.wurstclient.events.GUIRenderListener.GUIRenderEvent;
 import net.wurstclient.hack.HackList;
 import net.wurstclient.hud2.HUDMod;
 import net.wurstclient.hud2.HudManager;
@@ -28,27 +24,11 @@ import net.wurstclient.hud2.HudManager;
 @Mixin(Gui.class)
 public class IngameHudMixin
 {
-	// runs after renderScoreboardSidebar()
-	// and before playerListHud.setVisible()
-	@Inject(
-		method = "extractTabList(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V",
-		at = @At("HEAD"))
-	private void onRenderPlayerList(GuiGraphicsExtractor context,
-		DeltaTracker tickCounter, CallbackInfo ci)
-	{
-		if(WurstClient.MC.debugEntries.isOverlayVisible())
-			return;
-		
-		float tickDelta = tickCounter.getGameTimeDeltaPartialTick(true);
-		EventManager.fire(new GUIRenderEvent(context, tickDelta));
-	}
-	
-	@Inject(
+	@Inject(at = @At("HEAD"),
 		method = "extractTextureOverlay(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/resources/Identifier;F)V",
-		at = @At("HEAD"),
 		cancellable = true)
-	private void onRenderOverlay(GuiGraphicsExtractor context,
-		Identifier texture, float opacity, CallbackInfo ci)
+	private void onRenderOverlay(net.minecraft.client.gui.GuiGraphicsExtractor context, Identifier texture,
+		float opacity, CallbackInfo ci)
 	{
 		if(texture == null)
 			return;
@@ -65,9 +45,11 @@ public class IngameHudMixin
 			ci.cancel();
 	}
 	
-	@Inject(method = "extractVignette", at = @At("HEAD"), cancellable = true)
-	private void onRenderVignetteOverlay(GuiGraphicsExtractor context,
-		Entity entity, CallbackInfo ci)
+	@Inject(at = @At("HEAD"),
+		method = "extractVignette",
+		cancellable = true)
+	private void onRenderVignetteOverlay(net.minecraft.client.gui.GuiGraphicsExtractor context, Entity entity,
+		CallbackInfo ci)
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
 		if(hax == null || !hax.noVignetteHack.isEnabled())
@@ -77,9 +59,9 @@ public class IngameHudMixin
 	}
 
 	@Inject(at = @At("HEAD"),
-		method = "renderHotbar(FLnet/minecraft/client/gui/GuiGraphicsExtractor;)V",
+		method = "extractItemHotbar(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V",
 		cancellable = true)
-	private void onRenderHotbar(float partialTicks, GuiGraphicsExtractor context,
+	private void onRenderHotbar(net.minecraft.client.gui.GuiGraphicsExtractor context, net.minecraft.client.DeltaTracker tracker,
 		CallbackInfo ci)
 	{
 		WurstClient wurst = WurstClient.INSTANCE;
@@ -105,7 +87,7 @@ public class IngameHudMixin
 	@Inject(at = @At("HEAD"),
 		method = "displayScoreboardSidebar(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/world/scores/Objective;)V",
 		cancellable = true)
-	private void onDisplayScoreboardSidebar(GuiGraphicsExtractor context,
+	private void onDisplayScoreboardSidebar(net.minecraft.client.gui.GuiGraphicsExtractor context,
 		Objective objective, CallbackInfo ci)
 	{
 		if(isHudModuleEnabled("Scoreboard"))
@@ -113,14 +95,13 @@ public class IngameHudMixin
 	}
 
 	@Inject(at = @At("HEAD"),
-		method = "renderEffects(Lnet/minecraft/client/gui/GuiGraphicsExtractor;)V",
+		method = "extractEffects(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V",
 		cancellable = true)
-	private void onRenderEffects(GuiGraphicsExtractor context, CallbackInfo ci)
+	private void onRenderEffects(net.minecraft.client.gui.GuiGraphicsExtractor context, net.minecraft.client.DeltaTracker tracker, CallbackInfo ci)
 	{
 		if(isHudModuleEnabled("PotionStatus"))
 			ci.cancel();
 	}
-
 	private static boolean isHudModuleEnabled(String id)
 	{
 		WurstClient wurst = WurstClient.INSTANCE;

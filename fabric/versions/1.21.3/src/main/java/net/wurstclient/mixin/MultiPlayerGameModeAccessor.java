@@ -29,4 +29,7 @@ public interface MultiPlayerGameModeAccessor
 	
 	@Accessor("destroyProgress")
 	float getDestroyProgress();
+
+	@Accessor("destroyBlockPos")
+	net.minecraft.core.BlockPos getDestroyBlockPos();
 }

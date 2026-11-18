@@ -54,7 +54,7 @@ public final class CopyItemCmd extends Command
 			return player;
 		}
 		
-		throw new CmdError("Player \"" + name + "\" could not be found.");
+		throw new CmdError("Player \"%s\" could not be found.", name);
 	}
 	
 	private ItemStack getItem(AbstractClientPlayer player, String slot)

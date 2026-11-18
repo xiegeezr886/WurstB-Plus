@@ -28,7 +28,7 @@ public final class EXPThrowerHack extends Hack implements UpdateListener
 	public EXPThrowerHack()
 	{
 		super("EXPThrower");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(lookDown);
 		addSetting(restoreSlot);
 	}

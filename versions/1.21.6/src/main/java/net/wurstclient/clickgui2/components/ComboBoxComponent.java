@@ -36,8 +36,9 @@ public final class ComboBoxComponent<T extends Enum<T>> extends Component
 	public ComboBoxComponent(EnumSetting<T> setting)
 	{
 		this.setting = setting;
-		popupWidth = Arrays.stream(setting.getValues()).map(T::toString)
-			.mapToInt(s -> TR.width(s)).max().getAsInt();
+		popupWidth = Arrays.stream(setting.getValues())
+			.map(setting::getTranslatedValueName).mapToInt(TR::width).max()
+			.getAsInt();
 		
 		setWidth(getDefaultWidth());
 		setHeight(getDefaultHeight());
@@ -87,9 +88,8 @@ public final class ComboBoxComponent<T extends Enum<T>> extends Component
 		return popup != null && !popup.isClosing();
 	}
 	
-	@Override
-	public void render(GuiGraphicsExtractor context, int mouseX, int mouseY,
-		float partialTicks)
+	public void render(net.minecraft.client.gui.GuiGraphics context, int mouseX, int mouseY, float partialTicks) { render(new GuiGraphicsExtractor(context), mouseX, mouseY, partialTicks); }
+@Override public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTicks)
 	{
 		int x1 = getX();
 		int x2 = x1 + getWidth();
@@ -124,7 +124,7 @@ public final class ComboBoxComponent<T extends Enum<T>> extends Component
 		if(NanoVGUI.width(name, 9F) > nameWidth)
 			name = NanoVGUI.plainSubstrByWidth(name, Math.max(0, nameWidth),
 				9F);
-		String value = "" + setting.getSelected();
+		String value = setting.getTranslatedValueName(setting.getSelected());
 		int txtColor = GUI.getTxtColor();
 		NanoVGUI.text(name, x1, y1 + 2, txtColor, 9F);
 		NanoVGUI.text(value, x4 + 2, y1 + 2, txtColor, 9F);

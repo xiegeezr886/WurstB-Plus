@@ -61,7 +61,7 @@ public final class InventoryTweaksHack extends Hack implements UpdateListener
 	public InventoryTweaksHack()
 	{
 		super("InventoryTweaks");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(sortOnOpen);
 		addSetting(mergeStacks);
 		addSetting(sortHotbar);

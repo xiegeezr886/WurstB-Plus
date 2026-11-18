@@ -22,14 +22,15 @@ import com.google.gson.JsonObject;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 
-import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.wurstclient.Feature;
 import net.wurstclient.WurstClient;
-import net.wurstclient.event.EventManager;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.wurstclient.events.GUIRenderListener;
+import net.wurstclient.event.EventManager;
 import net.wurstclient.hud2.mods.NotificationsMod;
+import net.wurstclient.hud2.mods.DynamicIslandMod;
+import net.wurstclient.hud2.nanovg.SoftwareText;
 import net.wurstclient.hud2.nanovg.GlStateGuard;
 import net.wurstclient.hud2.nanovg.NanoVGContext;
 import net.wurstclient.hud2.nanovg.NanoVgBlitter;
@@ -75,6 +76,11 @@ public final class HudManager implements GUIRenderListener
 	private Path stateFile;
 	private boolean started;
 	private boolean stopping;
+	private boolean glesHudNoticeLogged;
+	private byte[] skiaPixels;
+	private int skiaWidth;
+	private int skiaHeight;
+	private net.wurstclient.hud2.nanovg.SkiaHudTexture skiaTexture;
 
 	public HudManager()
 	{
@@ -110,9 +116,10 @@ public final class HudManager implements GUIRenderListener
 				}
 
 		started = true;
-		EventManager eventManager = WURST.getEventManager();
-		if(eventManager != null)
-			eventManager.add(GUIRenderListener.class, this);
+        EventManager eventManager = WURST.getEventManager();
+        if(eventManager != null) eventManager.add(GUIRenderListener.class, this);
+		if("aarch64".equals(System.getProperty("os.arch")))
+			net.wurstclient.hud2.nanovg.SkiaNative.probe();
 		System.out.println("[HUD] Soar v7 HUD started (" + mods.size()
 			+ " modules)");
 	}
@@ -120,21 +127,14 @@ public final class HudManager implements GUIRenderListener
 	public void stop()
 	{
 		stopping = true;
+        EventManager eventManager = WURST.getEventManager();
+        if(eventManager != null) eventManager.remove(GUIRenderListener.class, this);
 		saveState();
-		EventManager eventManager = WURST.getEventManager();
-		if(eventManager != null)
-			eventManager.remove(GUIRenderListener.class, this);
 		for(HUDMod mod : mods.values())
 			if(mod.isEnabled())
 				mod.onDisable();
 		stopping = false;
 		started = false;
-	}
-
-	@Override
-	public void onRenderGUI(GuiGraphicsExtractor graphics, float partialTicks)
-	{
-		renderFrame(graphics, partialTicks);
 	}
 
 	public boolean isStopping()
@@ -147,6 +147,12 @@ public final class HudManager implements GUIRenderListener
 		// Reserved for texture/item capture scheduling.
 	}
 
+	@Override
+	public void onRenderGUI(GuiGraphicsExtractor graphics, float partialTicks)
+	{
+		renderFrame(graphics, partialTicks);
+	}
+
 	public void renderFrame(GuiGraphicsExtractor graphics, float partialTicks)
 	{
 		if(!started || WURST.MC.gui.screen() instanceof GuiEditHUD
@@ -156,10 +162,64 @@ public final class HudManager implements GUIRenderListener
 		boolean screenBlocked = isScreenBlocked();
 
 		NanoVGContext nvg = NanoVGContext.get();
+		net.wurstclient.hud2.nanovg.SkiaTextCache.enabled = false;
 		if(!nvg.create())
 			return;
 
-		net.wurstclient.hud2.compat.HudItemIcons.capturePending(nvg, 6);
+		if(false)
+		{
+			int width = WURST.MC.getWindow().getGuiScaledWidth();
+			int height = WURST.MC.getWindow().getGuiScaledHeight();
+			net.wurstclient.hud2.nanovg.SkiaHudSurface surface =
+				net.wurstclient.hud2.nanovg.SkiaHudSurface.get();
+			if(surface.ensure(width, height))
+			{
+				surface.begin();
+				try
+				{
+					// TEST: single opaque red square, no modules.
+					surface.fillRect(100, 100, 200, 200, 0xFFFF0000);
+					if(skiaWidth == 0)
+					{
+						byte[] probe = surface.pixels();
+						int idx = (150 * width + 150) * 4;
+						System.out.println("[HUD] Skia test surface "
+							+ width + "x" + height + " pixel@150,150="
+							+ (probe[idx] & 0xFF) + ","
+							+ (probe[idx + 1] & 0xFF) + ","
+							+ (probe[idx + 2] & 0xFF) + ","
+							+ (probe[idx + 3] & 0xFF));
+					}
+				}finally
+				{
+					surface.end();
+				}
+
+				skiaPixels = surface.pixels();
+				skiaWidth = width;
+				skiaHeight = height;
+				return;
+			}
+		}
+
+		// Krypton/GLES wrappers corrupt the main framebuffer when NanoVG
+		// uploads its font atlas mid-frame, which turns the whole screen
+		// black in-game. When the Android Skia text backend is available we
+		// keep the HUD by rasterizing glyphs with Skia; otherwise the
+		// in-game HUD must stay off there.
+		if(nvg.isGles())
+		{
+			if(!glesHudNoticeLogged)
+			{
+				glesHudNoticeLogged = true;
+				System.out.println(
+					"[HUD] In-game HUD disabled on GLES/Krypton renderer");
+			}
+			return;
+		}
+
+		if(!nvg.isGles())
+			net.wurstclient.hud2.compat.HudItemIcons.capturePending(nvg, 6);
 
 		try(GlStateGuard ignored = GlStateGuard.capture())
 		{
@@ -191,7 +251,7 @@ public final class HudManager implements GUIRenderListener
 	 * so the screen overlay dims them instead of being covered by them.
 	 */
 	private static final String[] SCREEN_PERSISTENT_MODULES = {"Scoreboard",
-		"PotionStatus", "ModernHotbar"};
+		"PotionStatus", "ModernHotbar", "DynamicIsland"};
 
 	private void drawScreenOverlayModules(NanoVGContext nvg, float partialTicks)
 	{
@@ -200,6 +260,7 @@ public final class HudManager implements GUIRenderListener
 
 		for(String id : SCREEN_PERSISTENT_MODULES)
 		{
+			if(id.equals("DynamicIsland") && hasContainerScreen()) continue;
 			HUDMod mod = mods.get(id);
 			if(mod == null || !mod.isEnabled())
 				continue;
@@ -219,6 +280,7 @@ public final class HudManager implements GUIRenderListener
 		{
 			if(mod == notifications || !mod.isEnabled())
 				continue;
+			if(mod instanceof DynamicIslandMod && hasContainerScreen()) continue;
 
 			mod.clampToScreen(screenWidth, screenHeight);
 			mod.render(nvg, partialTicks);
@@ -277,7 +339,8 @@ public final class HudManager implements GUIRenderListener
 		boolean hovered = mod.getId().equals(editor.getHoveredId());
 		int color = hovered ? 0xFFFFFFFF : 0x66FFFFFF;
 		nvg.drawOutlineRoundedRect(mod.getX(), mod.getY(), mod.getWidth(),
-			mod.getHeight(), Math.max(2, 6F * mod.getScale()), 1F,
+			mod.getHeight(), HUDMod.backgroundRadius(mod.getUnscaledWidth(),
+				mod.getUnscaledHeight()) * mod.getScale(), 1F,
 			new java.awt.Color(color, true));
 
 		// Label every enabled module so empty overlays are identifiable.
@@ -294,8 +357,7 @@ public final class HudManager implements GUIRenderListener
 			return false;
 		if(WURST.MC.gui.hud.isHidden())
 			return false;
-		if(settings.hideWithDebug()
-			&& WURST.MC.getDebugOverlay().showDebugScreen())
+		if(settings.hideWithDebug() && WURST.MC.debugEntries.isOverlayVisible())
 			return false;
 
 		return true;
@@ -311,20 +373,104 @@ public final class HudManager implements GUIRenderListener
 	public void addNotification(String title, String message,
 		NotificationSeverity severity)
 	{
-		if(settings.showNotifications())
+		if(!settings.showNotifications())
+			return;
+		if(isDynamicIslandEnabled())
+			((DynamicIslandMod)mods.get("DynamicIsland")).notify(title, message, severity);
+		else
 			notificationRenderer.addNotification(title, message, severity);
 	}
 
 	public void addNotification(Feature feature)
 	{
+		if(!settings.showNotifications())
+			return;
+		if(isDynamicIslandEnabled())
+		{
+			((DynamicIslandMod)mods.get("DynamicIsland")).notify(feature);
+			return;
+		}
 		NotificationSeverity severity = feature.isEnabled()
 			? NotificationSeverity.ENABLED : NotificationSeverity.DISABLED;
-		String title = feature.isEnabled() ? "Enabled" : "Disabled";
+		String title = WURST.translate(feature.isEnabled()
+			? "hud.notification.enabled" : "hud.notification.disabled");
 		addNotification(title, feature.getDisplayName(), severity);
 	}
 
+	public boolean isDynamicIslandEnabled()
+	{
+		HUDMod island = mods.get("DynamicIsland");
+		return island != null && island.isEnabled();
+	}
+
+	public void recordIslandMining(long position, String name, float progress)
+	{
+		if(WURST.isEnabled() && isDynamicIslandEnabled())
+			((DynamicIslandMod)mods.get("DynamicIsland")).recordMining(position, name, progress);
+	}
+
+	private boolean hasContainerScreen()
+	{
+		return WURST.MC.gui.screen() instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?>;
+	}
+
+	/** Container backgrounds otherwise dim the island along with the world. */
+	public void renderContainerIsland(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		if(!started || !WURST.isEnabled() || !hasContainerScreen()
+			|| !isBaseVisible() || !isDynamicIslandEnabled()) return;
+		var mod = (DynamicIslandMod)mods.get("DynamicIsland");
+		mod.updateContainerHover(mouseX, mouseY);
+		net.wurstclient.hud2.nanovg.NanoVGUI.pass(graphics,
+			() -> mod.render(NanoVGContext.get(), partialTicks));
+		var stack = mod.hoveredContainerStack(mouseX, mouseY);
+		if(!stack.isEmpty()) graphics.renderTooltip(WURST.MC.font, stack, mouseX, mouseY);
+	}
+
+	public boolean clickContainerIsland(double mouseX, double mouseY, int button)
+	{
+		return started && WURST.isEnabled() && isBaseVisible() && hasContainerScreen()
+			&& isDynamicIslandEnabled()
+			&& ((DynamicIslandMod)mods.get("DynamicIsland")).clickContainer(mouseX, mouseY, button);
+	}
+
+    public boolean clickMusicIsland(double x, double y, int button) {
+        return started && WURST.isEnabled() && isBaseVisible() && isDynamicIslandEnabled()
+            && ((DynamicIslandMod)mods.get("DynamicIsland")).clickMusic(x,y,button);
+    }
+
 	void onModuleEnabledChanged(HUDMod mod)
 	{
+		if(mod instanceof DynamicIslandMod) notificationRenderer.clear();
+		saveState();
+	}
+
+	public HUDMod getMod(String id)
+	{
+		return getModule(id);
+	}
+
+	public void setModEnabled(String id, boolean enabled)
+	{
+		setModuleEnabled(id, enabled);
+	}
+
+	public void moveMod(String id, int x, int y)
+	{
+		HUDMod mod = getModule(id);
+		if(mod == null)
+			return;
+		mod.setX(x);
+		mod.setY(y);
+		saveState();
+	}
+
+	public void scaleMod(String id, float scale)
+	{
+		HUDMod mod = getModule(id);
+		if(mod == null)
+			return;
+		mod.setScale(scale);
 		saveState();
 	}
 
@@ -435,6 +581,7 @@ public final class HudManager implements GUIRenderListener
 	private void registerDefaults()
 	{
 		register(new NotificationsMod(this));
+		register(new DynamicIslandMod());
 		register(new net.wurstclient.hud2.mods.FPSDisplayMod());
 		register(new net.wurstclient.hud2.mods.PingDisplayMod());
 		register(new net.wurstclient.hud2.mods.CoordsMod());
@@ -472,6 +619,7 @@ public final class HudManager implements GUIRenderListener
 		register(new net.wurstclient.hud2.mods.PotionCounterMod());
 		register(new net.wurstclient.hud2.mods.ArrayListMod());
 		register(new net.wurstclient.hud2.mods.LogoMod());
+		register(new net.wurstclient.hud2.mods.MoonLogoMod());
 		register(new net.wurstclient.hud2.mods.PlayerDisplayMod());
 		register(new net.wurstclient.hud2.mods.PackDisplayMod());
 		register(new net.wurstclient.hud2.mods.CalendarMod());
@@ -487,6 +635,7 @@ public final class HudManager implements GUIRenderListener
 		register(new net.wurstclient.hud2.mods.MinimapMod());
 		register(new net.wurstclient.hud2.mods.RearviewMod());
 		register(new net.wurstclient.hud2.mods.MusicInfoMod());
+		register(new net.wurstclient.hud2.mods.MusicLyricsMod());
 		register(new net.wurstclient.hud2.mods.WebBrowserMod());
 		register(new net.wurstclient.hud2.mods.GodbridgeAssistMod());
 		register(new net.wurstclient.hud2.mods.Skin3DMod());

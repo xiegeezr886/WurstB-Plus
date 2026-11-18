@@ -1,272 +1,140 @@
-/*
- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
- * Copyright (c) 2015-2026 CCBlueX
- *
- * This source code is subject to the terms of the GNU General Public
- * License, version 3. If a copy of the GPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
- */
+/* Adapted from Epsilon AutoArmor.kt (GPL-3.0), with cursor-safe 1.20.1 swaps. */
 package net.wurstclient.hacks;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.*;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
-import net.wurstclient.events.PacketOutputListener;
+import net.wurstclient.epsilon.EpsilonTargets;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.util.EnchantmentUtils;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
-@SearchTags({"auto armor"})
-public final class AutoArmorHack extends Hack
-	implements UpdateListener, PacketOutputListener
-{
-	private final CheckboxSetting useEnchantments = new CheckboxSetting(
-		"Use enchantments",
-		"Whether or not to consider the Protection enchantment when calculating armor strength.",
-		true);
-	
-	private final CheckboxSetting swapWhileMoving = new CheckboxSetting(
-		"Swap while moving",
-		"Whether or not to swap armor pieces while the player is moving.\n\n"
-			+ "\u00a7c\u00a7lWARNING:\u00a7r This would not be possible without cheats. It may raise suspicion.",
-		false);
-	
-	private final SliderSetting delay = new SliderSetting("Delay",
-		"Amount of ticks to wait before swapping the next piece of armor.", 2,
-		0, 20, 1, ValueDisplay.INTEGER);
+public final class AutoArmorHack extends Hack implements UpdateListener {
+  private enum EnchantPriority {
+    PROTECTION,
+    BLAST
+  }
 
-	private final CheckboxSetting antiBreak = new CheckboxSetting("Anti break",
-		"Skips armor that is close to breaking.", true);
+  private enum ElytraPriority {
+    NONE,
+    ALWAYS,
+    KEEP_EQUIPPED
+  }
 
-	private final SliderSetting minDurability = new SliderSetting(
-		"Minimum durability", "Armor at or below this durability is skipped.",
-		5, 1, 50, 1, ValueDisplay.PERCENTAGE)
-			.visibleWhen(antiBreak::isChecked);
+  private final EnumSetting<EnchantPriority> head = priority("Head"),
+      body = priority("Body"),
+      legs = priority("Legs"),
+      feet = priority("Feet");
+  private final EnumSetting<ElytraPriority> elytra =
+      new EnumSetting<>("Elytra priority", ElytraPriority.values(), ElytraPriority.KEEP_EQUIPPED);
+  private final CheckboxSetting noMove = new CheckboxSetting("No move", true);
+  private final CheckboxSetting strict = new CheckboxSetting("Strict", false);
+  private final CheckboxSetting ignoreCurse = new CheckboxSetting("Ignore binding curse", true);
+  private final SliderSetting delay = new SliderSetting("Delay", 5, 0, 20, 1, ValueDisplay.INTEGER);
+  private int timer;
+  private Object player, world;
 
-	private final CheckboxSetting keepElytra = new CheckboxSetting(
-		"Keep elytra", "Does not replace an equipped elytra.", true);
-	
-	private int timer;
-	
-	public AutoArmorHack()
-	{
-		super("AutoArmor");
-		setCategory(Category.COMBAT);
-		addSetting(useEnchantments);
-		addSetting(swapWhileMoving);
-		addSetting(delay);
-		addSetting(antiBreak);
-		addSetting(minDurability);
-		addSetting(keepElytra);
-	}
-	
-	@Override
-	protected void onEnable()
-	{
-		timer = 0;
-		EVENTS.add(UpdateListener.class, this);
-		EVENTS.add(PacketOutputListener.class, this);
-	}
-	
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(UpdateListener.class, this);
-		EVENTS.remove(PacketOutputListener.class, this);
-		WURST.getInventoryActionQueue().cancel(this);
-	}
-	
-	@Override
-	public void onUpdate()
-	{
-		if(MC.player == null || MC.player.isSpectator())
-			return;
+  private static EnumSetting<EnchantPriority> priority(String name) {
+    return new EnumSetting<>(name, EnchantPriority.values(), EnchantPriority.PROTECTION);
+  }
 
-		// wait for timer
-		if(timer > 0)
-		{
-			timer--;
-			return;
-		}
-		
-		// check screen
-		if(MC.screen instanceof AbstractContainerScreen
-			&& !(MC.screen instanceof InventoryScreen))
-			return;
+  public AutoArmorHack() {
+    super("AutoArmor");
+    setCategory(Category.COMBAT);
+    addSetting(head);
+    addSetting(body);
+    addSetting(legs);
+    addSetting(feet);
+    addSetting(elytra);
+    addSetting(noMove);
+    addSetting(strict);
+    addSetting(ignoreCurse);
+    addSetting(delay);
+  }
 
-		if(WURST.getInventoryActionQueue().hasPending(this))
-			return;
-		
-		LocalPlayer player = MC.player;
-		Inventory inventory = player.getInventory();
-		
-		if(!swapWhileMoving.isChecked() && (player.input.forwardImpulse != 0
-			|| player.input.leftImpulse != 0))
-			return;
-		
-		// store slots and values of best armor pieces
-		int[] bestArmorSlots = new int[4];
-		int[] bestArmorValues = new int[4];
-		int[] equippedArmorValues = new int[4];
-		
-		// initialize with currently equipped armor
-		for(int type = 0; type < 4; type++)
-		{
-			bestArmorSlots[type] = -1;
-			
-			ItemStack stack = inventory.getArmor(type);
-			if(type == 2 && keepElytra.isChecked() && stack.is(Items.ELYTRA))
-			{
-				bestArmorValues[type] = Integer.MAX_VALUE;
-				continue;
-			}
-			if(stack.isEmpty() || !(stack.getItem() instanceof ArmorItem))
-				continue;
-			if(EnchantmentUtils.getLevel(Enchantments.BINDING_CURSE,
-				stack) > 0)
-			{
-				bestArmorValues[type] = Integer.MAX_VALUE;
-				continue;
-			}
-			
-			bestArmorValues[type] = getArmorValue(stack);
-			equippedArmorValues[type] = bestArmorValues[type];
-		}
-		
-		// search inventory for better armor
-		for(int slot = 0; slot < 36; slot++)
-		{
-			ItemStack stack = inventory.getItem(slot);
-			
-			if(stack.isEmpty() || !(stack.getItem() instanceof ArmorItem))
-				continue;
-			if(isLowDurability(stack)
-				|| EnchantmentUtils.getLevel(Enchantments.BINDING_CURSE,
-					stack) > 0)
-				continue;
-			
-			int armorType = stack.getEquipmentSlot().getIndex();
-			int armorValue = getArmorValue(stack);
-			
-			if(armorValue > bestArmorValues[armorType])
-			{
-				bestArmorSlots[armorType] = slot;
-				bestArmorValues[armorType] = armorValue;
-			}
-		}
-		
-		// Equip the largest deterministic upgrade first.
-		ArrayList<Integer> types = new ArrayList<>(Arrays.asList(0, 1, 2, 3));
-		types.sort(Comparator.<Integer>comparingInt(type ->
-			bestArmorValues[type] - equippedArmorValues[type]).reversed());
-		for(int type : types)
-		{
-			// check if better armor was found
-			int slot = bestArmorSlots[type];
-			if(slot == -1)
-				continue;
-				
-			// check if armor can be swapped
-			// needs 1 free slot where it can put the old armor
-			ItemStack oldArmor = inventory.getArmor(type);
-			if(!oldArmor.isEmpty() && inventory.getFreeSlot() == -1)
-				continue;
-			
-			int inventorySlot = slot;
-			ItemStack expectedArmor = inventory.getItem(inventorySlot).copy();
-			ItemStack expectedEquipped = oldArmor.copy();
+  protected void onEnable() {
+    timer = 0;
+    EVENTS.add(UpdateListener.class, this);
+  }
 
-			// hotbar fix
-			if(slot < 9)
-				slot += 36;
+  protected void onDisable() {
+    EVENTS.remove(UpdateListener.class, this);
+  }
 
-			int sourceSlot = slot;
-			int armorSlot = 8 - type;
-			boolean hasOldArmor = !oldArmor.isEmpty();
-			WURST.getInventoryActionQueue().submit(this, 50,
-				() -> MC.player != null
-					&& MC.player.containerMenu.containerId == 0
-					&& ItemStack.isSameItemSameComponents(expectedArmor,
-						MC.player.getInventory().getItem(inventorySlot))
-					// The equipment slot can change between planning and the next
-					// queue tick (manual swap, ChestSwap, elytra). Never run a stale
-					// plan against a different piece.
-					&& ItemStack.isSameItemSameComponents(expectedEquipped,
-						MC.player.getInventory().getArmor(type))
-					&& !(keepElytra.isChecked()
-						&& MC.player.getInventory().getArmor(type).is(Items.ELYTRA)),
-				hasOldArmor
-					? new Runnable[]{() -> IMC.getInteractionManager()
-						.windowClick_QUICK_MOVE(armorSlot),
-						() -> IMC.getInteractionManager()
-							.windowClick_QUICK_MOVE(sourceSlot)}
-					: new Runnable[]{() -> IMC.getInteractionManager()
-						.windowClick_QUICK_MOVE(sourceSlot)});
-			
-			break;
-		}
-	}
-	
-	@Override
-	public void onSentPacket(PacketOutputEvent event)
-	{
-		if(event.getPacket() instanceof ServerboundContainerClickPacket)
-			timer = delay.getValueI();
-	}
-	
-	private int getArmorValue(ItemStack stack)
-	{
-		// 1.21.2: 防御/韧性移入 ATTRIBUTE_MODIFIERS 组件
-		java.util.concurrent.atomic.AtomicInteger armorPoints =
-			new java.util.concurrent.atomic.AtomicInteger();
-		java.util.concurrent.atomic.AtomicInteger armorToughness =
-			new java.util.concurrent.atomic.AtomicInteger();
-		stack.forEachModifier(
-			net.minecraft.world.entity.EquipmentSlotGroup.ARMOR,
-			(holder, modifier) -> {
-				if(holder.is(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR))
-					armorPoints.addAndGet((int)modifier.amount());
-				if(holder.is(
-					net.minecraft.world.entity.ai.attributes.Attributes.ARMOR_TOUGHNESS))
-					armorToughness.addAndGet((int)modifier.amount());
-			});
-		int prtPoints = 0;
-		int durabilityScore = stack.isDamageableItem()
-			? (stack.getMaxDamage() - stack.getDamageValue()) * 5
-				/ Math.max(1, stack.getMaxDamage())
-			: 5;
-		
-		if(useEnchantments.isChecked())
-		{
-			prtPoints = EnchantmentUtils.getLevel(Enchantments.PROTECTION,
-				stack);
-		}
-		
-		return armorPoints.get() * 5 + prtPoints * 3 + armorToughness.get()
-			+ durabilityScore;
-	}
+  public void onUpdate() {
+    if (player != MC.player || world != MC.level) {
+      timer = 0;
+      player = MC.player;
+      world = MC.level;
+    }
+    if (!EpsilonTargets.ready()
+        || MC.screen != null && !(MC.screen instanceof InventoryScreen)
+        || MC.player.containerMenu != MC.player.inventoryMenu
+        || !MC.player.inventoryMenu.getCarried().isEmpty()) return;
+    if (noMove.isChecked()
+        && (MC.player.input.forwardImpulse != 0 || MC.player.input.leftImpulse != 0)) return;
+    if (timer > 0) {
+      timer--;
+      return;
+    }
+    var inv = MC.player.getInventory();
+    for (int type = 0; type < 4; type++) {
+      ItemStack equipped = inv.getArmor(type);
+      if (!MC.player.isCreative() && net.wurstclient.util.V152ItemCompat.bindingCurse(equipped)) continue;
+      if (type == 2
+          && equipped.is(Items.ELYTRA)
+          && elytra.getSelected() == ElytraPriority.KEEP_EQUIPPED) continue;
+      int best = -1, value = score(equipped, type);
+      for (int i = 0; i < 36; i++) {
+        ItemStack stack = inv.getItem(i);
+        if (type(stack) != type) continue;
+        int next = score(stack, type);
+        if (next > value) {
+          value = next;
+          best = i;
+        }
+      }
+      if (best < 0) continue;
+      if (strict.isChecked()) MC.player.setSprinting(false);
+      int source = best < 9 ? best + 36 : best;
+      MC.gameMode.handleInventoryMouseClick(0, source, 0, ClickType.PICKUP, MC.player);
+      MC.gameMode.handleInventoryMouseClick(0, 8 - type, 0, ClickType.PICKUP, MC.player);
+      if (!MC.player.inventoryMenu.getCarried().isEmpty())
+        MC.gameMode.handleInventoryMouseClick(0, source, 0, ClickType.PICKUP, MC.player);
+      timer = delay.getValueI();
+      return;
+    }
+  }
 
-	private boolean isLowDurability(ItemStack stack)
-	{
-		if(!antiBreak.isChecked() || !stack.isDamageableItem())
-			return false;
+  private static int type(ItemStack stack) {
+    if (stack.is(Items.ELYTRA)) return 2;
+    return net.wurstclient.util.V152ItemCompat.armorType(stack);
+  }
 
-		int remaining = stack.getMaxDamage() - stack.getDamageValue();
-		return remaining * 100 <= stack.getMaxDamage()
-			* minDurability.getValueI();
-	}
+  private int score(ItemStack stack, int type) {
+    if (stack.isEmpty()) return -1;
+    if (ignoreCurse.isChecked() && net.wurstclient.util.V152ItemCompat.bindingCurse(stack)) return -999;
+    int value = 0;
+    if (stack.is(Items.ELYTRA)) {
+      if (!(stack.getDamageValue() < stack.getMaxDamage() - 1)) return 0;
+      if (elytra.getSelected() == ElytraPriority.ALWAYS) value = 999;
+    } else if (stack.getItem() instanceof ArmorItem item)
+      value = net.wurstclient.util.V152ItemCompat.armorValue(stack) * 10;
+    else return 0;
+    EnchantPriority choice =
+        switch (type) {
+          case 0 -> feet.getSelected();
+          case 1 -> legs.getSelected();
+          case 2 -> body.getSelected();
+          default -> head.getSelected();
+        };
+    return value
+        + net.wurstclient.util.EnchantmentUtils.getLevel(Enchantments.PROTECTION, stack)
+            * (choice == EnchantPriority.PROTECTION ? 2 : 1)
+        + net.wurstclient.util.EnchantmentUtils.getLevel(Enchantments.BLAST_PROTECTION, stack)
+            * (choice == EnchantPriority.BLAST ? 2 : 1);
+  }
 }

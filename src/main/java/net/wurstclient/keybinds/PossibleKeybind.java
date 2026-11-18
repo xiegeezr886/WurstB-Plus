@@ -7,15 +7,34 @@
  */
 package net.wurstclient.keybinds;
 
+import net.wurstclient.WurstClient;
+
 public final class PossibleKeybind
 {
 	private final String command;
 	private final String description;
+	private final String translationKey;
+	private final Object[] args;
 	
 	public PossibleKeybind(String command, String description)
 	{
 		this.command = command;
 		this.description = description;
+		translationKey = null;
+		args = null;
+	}
+
+	/**
+	 * Creates a keybind whose description is translated into the current
+	 * language. The key doubles as the English text and may contain
+	 * {@code %s} placeholders.
+	 */
+	public PossibleKeybind(String command, String key, Object... args)
+	{
+		this.command = command;
+		description = key;
+		translationKey = key;
+		this.args = args;
 	}
 	
 	public String getCommand()
@@ -25,6 +44,7 @@ public final class PossibleKeybind
 	
 	public String getDescription()
 	{
-		return description;
+		return translationKey == null ? description
+			: WurstClient.INSTANCE.translate(translationKey, args);
 	}
 }

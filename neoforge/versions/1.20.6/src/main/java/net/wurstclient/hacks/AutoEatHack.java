@@ -94,7 +94,7 @@ public final class AutoEatHack extends Hack implements UpdateListener
 	public AutoEatHack()
 	{
 		super("AutoEat");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		
 		addSetting(targetHunger);
 		addSetting(minHunger);

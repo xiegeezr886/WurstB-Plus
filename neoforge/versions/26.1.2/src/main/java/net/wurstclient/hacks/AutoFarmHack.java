@@ -90,7 +90,7 @@ public final class AutoFarmHack extends Hack
 	{
 		super("AutoFarm");
 		
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(range);
 		addSetting(replant);
 	}

@@ -43,7 +43,7 @@ public final class EditAltScreen extends AltEditorScreen
 	@Override
 	protected String getDoneButtonText()
 	{
-		return "Save";
+		return "保存";
 	}
 	
 	@Override

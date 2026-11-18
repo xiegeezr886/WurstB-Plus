@@ -50,7 +50,7 @@ public final class CmdProcessor implements ChatOutputListener
 				WurstClient.INSTANCE.getHax().tooManyHaxHack;
 			if(tooManyHax.isEnabled() && tooManyHax.isBlocked(cmd))
 			{
-				ChatUtils.error(cmd.getName() + " is blocked by TooManyHax.");
+				ChatUtils.error("%s is blocked by TooManyHax.", cmd.getName());
 				return;
 			}
 			

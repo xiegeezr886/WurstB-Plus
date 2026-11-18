@@ -36,7 +36,7 @@ public final class SpeedMineHack extends Hack implements UpdateListener
 	public SpeedMineHack()
 	{
 		super("SpeedMine");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(mode);
 		addSetting(hasteLevel);
 		addSetting(cooldown);

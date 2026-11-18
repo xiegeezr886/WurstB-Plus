@@ -25,7 +25,7 @@ public final class NoMiningTraceHack extends Hack
 	public NoMiningTraceHack()
 	{
 		super("NoMiningTrace");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(onlyPickaxe);
 		addSetting(excludedEntities);
 	}

@@ -10,6 +10,7 @@ package net.wurstclient.mixin.xray;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -47,7 +48,9 @@ public class FluidRendererMixin
 		XRayHack xray = WurstClient.INSTANCE.getHax().xRayHack;
 
 		// Note: the null BlockPos is here to skip the "exposed only" check
-		Boolean shouldDrawSide = xray.shouldDrawSide(blockState, null);
+		var event = new net.wurstclient.events.ShouldDrawSideListener.ShouldDrawSideEvent(blockState, null);
+        net.wurstclient.event.EventManager.fire(event);
+        Boolean shouldDrawSide = event.isRendered();
 
 		if(!xray.isOpacityMode() || xray.isVisible(blockState.getBlock(), pos))
 			currentOpacity.set(1F);
@@ -62,17 +65,8 @@ public class FluidRendererMixin
 
 	/**
 	 * Modifies opacity of fluids when using X-Ray without Sodium installed.
-	 *
-	 * <p>
-	 * Forge's LiquidBlockRenderer patch turns the hardcoded 1F alpha into an
-	 * extra trailing float parameter, so the constant injection used on
-	 * Fabric cannot match here. Slot 11 is that alpha parameter.
 	 */
-	@ModifyVariable(
-		method = "vertex(Lcom/mojang/blaze3d/vertex/VertexConsumer;FFFFFFFFIF)V",
-		at = @At("HEAD"),
-		argsOnly = true,
-		index = 11)
+	@ModifyVariable(method = "vertex(Lcom/mojang/blaze3d/vertex/VertexConsumer;FFFFFFFFIF)V", at = @At("HEAD"), argsOnly = true, index = 11)
 	private float modifyOpacity(float original)
 	{
 		return currentOpacity.get();

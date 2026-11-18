@@ -7,6 +7,8 @@
  */
 package net.wurstclient.clickgui2.screens;
 
+
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -17,7 +19,7 @@ import javax.imageio.ImageIO;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -162,17 +164,21 @@ public final class EditColorScreen extends Screen
 	public void tick()
 	{
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		extractBackground(context, mouseX, mouseY, partialTicks);
-		hexValueField.extractRenderState(context, mouseX, mouseY, partialTicks);
-		redValueField.extractRenderState(context, mouseX, mouseY, partialTicks);
-		greenValueField.extractRenderState(context, mouseX, mouseY, partialTicks);
-		blueValueField.extractRenderState(context, mouseX, mouseY, partialTicks);
-		super.extractRenderState(context, mouseX, mouseY, partialTicks);
+		extractBackground(context.getInner(), mouseX, mouseY, partialTicks);
+		hexValueField.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		redValueField.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		greenValueField.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		blueValueField.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		super.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 
 		NanoVGUI.pass(context, () -> {
 			NanoVGUI.centeredText(colorSetting.getTranslatedName(), width / 2,

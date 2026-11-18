@@ -1,0 +1,10 @@
+NeoRaven world loading animation port
+Upstream: https://github.com/Matr1ze/NeoRaven
+Commit: 1a4ae731837f28087c263763cf176d9ec0261c37
+License: GPL-3.0; see LICENSE in this directory.
+Sources: gui/onyx/LoadingOverlay.java, render/M3LoadingIndicator.java,
+assets/onyx/shaders/core/m3_loading.fsh.
+Original copyright remains with upstream authors and contributors.
+Adaptations: GLSL 150 core rendering, Fabric 1.20.1 screen hooks, pale-purple
+accent, existing client wallpaper and fonts, real world-generation progress.
+Original four-form SDF, 900 ms morph, 1800 ms rotation and 5% pulse retained.

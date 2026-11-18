@@ -25,7 +25,8 @@ public abstract class MusicManagerMixin
 	@Inject(at = @At("HEAD"), method = "tick", cancellable = true)
 	private void wurst$stopMenuMusic(CallbackInfo ci)
 	{
-		if(Minecraft.getInstance().level == null)
+		if(Minecraft.getInstance().level == null
+            || net.wurstclient.neoraven.music.MusicManager.get().isPlaying())
 		{
 			((MusicManager)(Object)this).stopPlaying();
 			ci.cancel();

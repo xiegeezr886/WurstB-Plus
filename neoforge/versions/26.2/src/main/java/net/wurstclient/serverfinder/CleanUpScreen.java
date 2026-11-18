@@ -7,6 +7,7 @@
  */
 package net.wurstclient.serverfinder;
 
+import net.wurstclient.WurstClient;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -15,7 +16,7 @@ import org.lwjgl.glfw.GLFW;
 
 import net.wurstclient.util.ScreenUtils;
 import net.minecraft.SharedConstants;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -51,7 +52,7 @@ public class CleanUpScreen extends Screen
 	public void init()
 	{
 		addRenderableWidget(new CleanUpButton(width / 2 - 100,
-			height / 4 + 168 + 12, () -> "Cancel", "", b -> onClose()));
+			height / 4 + 168 + 12, () -> WurstClient.tr("Cancel"), "", b -> onClose()));
 		
 		addRenderableWidget(cleanUpButton = new CleanUpButton(width / 2 - 100,
 			height / 4 + 144 + 12, () -> "清理",
@@ -213,18 +214,22 @@ public class CleanUpScreen extends Screen
 		
 		return super.mouseClicked(context, doubleClick);
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
 		context.centeredText(font, "清理", width / 2,
 			20, CommonColors.WHITE);
 		context.centeredText(font,
-			"Please select the servers you want to remove:", width / 2, 36,
+			WurstClient.tr("Please select the servers you want to remove:"), width / 2, 36,
 			0xFFA0A0A0);
 		
-		super.extractRenderState(context, mouseX, mouseY, partialTicks);
+		super.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 		renderButtonTooltip(context, mouseX, mouseY);
 	}
 	
@@ -286,13 +291,13 @@ public class CleanUpScreen extends Screen
 			setMessage(Component.literal(messageSupplier.get()));
 		}
 
-		@Override
-		protected void extractContents(GuiGraphicsExtractor context, int mouseX,
-			int mouseY, float partialTicks)
+		@Override protected void extractContents(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) { renderWidget(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks); }
+protected void renderWidget(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
 		{
-			extractDefaultSprite(context);
-			extractDefaultLabel(context.textRendererForWidget(this,
-				GuiGraphicsExtractor.HoveredTextEffects.NONE));
+			graphics.centeredText(font, getMessage(),
+				getX() + getWidth() / 2,
+				getY() + (getHeight() - font.lineHeight) / 2,
+				active ? 0xFFFFFF : 0xA0A0A0);
 		}
 	}
 }

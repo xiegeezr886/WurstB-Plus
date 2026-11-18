@@ -1,0 +1,6 @@
+MixinExtras Forge 0.5.4 by LlamaLad7
+MIT License. Upstream: https://github.com/LlamaLad7/MixinExtras
+Bundled as META-INF/jarjar/mixinextras-forge-0.5.4.jar.
+License copied verbatim from that artifact: LICENSE_MixinExtras.
+Artifact SHA-256: 7922899a121a27f63a69a9ffe57470d8719cc52d239dfa9408e15d32a7b4c264
+License SHA-256: 7a9004d4183dc1596d15d332618274a4f013f1c453f1e90b791d73ecc6bf6199

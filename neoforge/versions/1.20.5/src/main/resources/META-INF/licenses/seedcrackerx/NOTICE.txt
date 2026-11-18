@@ -1,0 +1,5 @@
+SeedCrackerX 2.14.7, MIT, rebuilt from source for Minecraft 1.20.5.
+https://github.com/19MisterX98/SeedcrackerX/tree/0ae7b3649e4cd386f89a13003598a88e3beab16a
+Recipe: scripts/port/prepare_seedcracker1205.py
+SHA-256: 954fe46f3e3d58eab0a1de6923663f8b30e836a5a52f011271ec6419171b9460
+Minecraft-facing classes compiled against Yarn 1.20.5+build.1; shaded pure-Java seedfinding and the nested Cloth dependency retain upstream licenses.

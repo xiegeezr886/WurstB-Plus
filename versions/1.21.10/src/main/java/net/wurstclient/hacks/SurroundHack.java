@@ -69,7 +69,7 @@ public final class SurroundHack extends Hack implements UpdateListener
 	public SurroundHack()
 	{
 		super("Surround");
-		setCategory(Category.COMBAT);
+		setCategory(Category.WORLD);
 		addSetting(support);
 		addSetting(bpt);
 		addSetting(autocenter);

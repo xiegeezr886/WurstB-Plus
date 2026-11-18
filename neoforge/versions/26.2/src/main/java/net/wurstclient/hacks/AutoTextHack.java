@@ -100,7 +100,7 @@ public final class AutoTextHack extends Hack
 	public AutoTextHack()
 	{
 		super("AutoText");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(text1);
 		addSetting(key1);
 		addSetting(text2);

@@ -22,15 +22,15 @@ import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.textures.TextureFormat;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.state.gui.BlitRenderState;
 import net.minecraft.client.renderer.state.gui.GuiRenderState;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 
 /**
  * Copies NanoVG's offscreen framebuffer into a GPU texture and queues a blit
- * in the current GUI render state. Used by 26.1/26.2.
+ * in the current GUI render state. Used by 1.21.6-1.21.11.
  */
 public final class NanoVgBlitter
 {
@@ -48,7 +48,7 @@ public final class NanoVgBlitter
 		if(graphics == null || ctx == null)
 			return;
 
-		GuiRenderState state = getState(graphics);
+		GuiRenderState state = graphics.getRenderState();
 		if(state == null)
 			return;
 
@@ -60,25 +60,12 @@ public final class NanoVgBlitter
 
 		int guiWidth = graphics.guiWidth();
 		int guiHeight = graphics.guiHeight();
+		state.nextStratum();
 		state.addBlitToCurrentLayer(new BlitRenderState(
 			RenderPipelines.GUI_TEXTURED,
 			TextureSetup.singleTexture(slot.view, sampler),
 			new Matrix3x2f(), 0, 0, guiWidth, guiHeight, 0F, 1F, 1F, 0F,
 			0xFFFFFFFF, null));
-	}
-
-	private static GuiRenderState getState(GuiGraphicsExtractor graphics)
-	{
-		if(GuiGraphicsExtractorAccessor.Holder.FIELD == null)
-			return null;
-		try
-		{
-			return (GuiRenderState)GuiGraphicsExtractorAccessor.Holder.FIELD
-				.get(graphics);
-		}catch(ReflectiveOperationException e)
-		{
-			return null;
-		}
 	}
 
 	public static synchronized void releaseFrame(GuiRenderState state)
@@ -171,32 +158,6 @@ public final class NanoVgBlitter
 			}
 			width = 0;
 			height = 0;
-		}
-	}
-
-	/** Kept separate so the accessor failure is reported once. */
-	private static final class GuiGraphicsExtractorAccessor
-	{
-		private static final class Holder
-		{
-			private static final java.lang.reflect.Field FIELD = findField();
-
-			private static java.lang.reflect.Field findField()
-			{
-				try
-				{
-					java.lang.reflect.Field field =
-						GuiGraphicsExtractor.class
-							.getDeclaredField("guiRenderState");
-					field.setAccessible(true);
-					return field;
-				}catch(ReflectiveOperationException e)
-				{
-					System.out.println(
-						"[HUD] NanoVG: no guiRenderState field: " + e);
-					return null;
-				}
-			}
 		}
 	}
 }

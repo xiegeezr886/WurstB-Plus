@@ -34,7 +34,7 @@ public final class JumpCmd extends Command
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Jump";
+		return WURST.translate("Jump");
 	}
 	
 	@Override

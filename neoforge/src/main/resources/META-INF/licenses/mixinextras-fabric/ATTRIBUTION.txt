@@ -1,0 +1,6 @@
+MixinExtras Fabric
+Coordinate: io.github.llamalad7:mixinextras-fabric:0.5.5
+License: MIT
+Source: https://github.com/LlamaLad7/MixinExtras
+License copied from the published dependency jar (LICENSE_MixinExtras).
+License SHA-256: 7a9004d4183dc1596d15d332618274a4f013f1c453f1e90b791d73ecc6bf6199

@@ -1,19 +1,19 @@
-#version 150
+#version 330
+#extension GL_ARB_separate_shader_objects : require
 
-uniform sampler2D DiffuseSampler;
-uniform vec2 InSize;
-uniform float Time;
-uniform int Mode;
+uniform sampler2D InSampler;
+layout(std140) uniform SamplerInfo { vec2 OutSize; vec2 InSize; };
+layout(std140) uniform WurstEffect { int Mode; float Time; };
 
-in vec2 texCoord;
-out vec4 fragColor;
+layout(location = 0) in vec2 texCoord;
+layout(location = 0) out vec4 fragColor;
 
 const vec3 PRIMARY = vec3(0.0, 0.388, 0.4);
 const vec3 SECONDARY = vec3(0.25, 0.9, 0.84);
 
 float alphaAt(vec2 offset)
 {
-    return texture(DiffuseSampler, texCoord + offset / InSize).a;
+    return texture(InSampler, texCoord + offset / InSize).a;
 }
 
 void main()

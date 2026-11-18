@@ -10,21 +10,23 @@ package net.wurstclient.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.resources.ResourceLocation;
 import net.wurstclient.hud2.nanovg.NanoVGUI;
 
 /**
- * The title-screen gradient, shared by every screen background.
+ * User-provided, preblurred wallpaper shared by menu screen backgrounds.
  *
  * <p>{@code alpha} lets in-game screens keep a hint of the world behind the
- * same colours while menu screens use the fully opaque title look.
+ * wallpaper while menu screens use the fully opaque title look.
  */
 public final class MainMenuBackground
 {
 	public static final int MENU_ALPHA = 255;
 	public static final int INGAME_ALPHA = 255;
 
-	private static final int TOP = 0xFF02090A;
-	private static final int BOTTOM = 0xFF006366;
+	private static final ResourceLocation WALLPAPER = new ResourceLocation("wurstpenguin", "backgrounds/menu.png");
+	private static final float IMAGE_WIDTH = 1672;
+	private static final float IMAGE_HEIGHT = 941;
 
 	private MainMenuBackground() {}
 
@@ -42,16 +44,21 @@ public final class MainMenuBackground
 			return;
 
 		int a = Math.max(0, Math.min(255, alpha));
-		NanoVGUI.fillGradient(0, 0, width, height, withAlpha(TOP, a),
-			withAlpha(BOTTOM, a));
-		NanoVGUI.fillGradient(0, 0, width, height,
-			withAlpha(0x000000, a * 0xD9 / 255), 0x00000000);
-		NanoVGUI.fill(0, 0, width, height,
-			withAlpha(0x000000, a * 0x18 / 255));
-	}
-
-	private static int withAlpha(int color, int alpha)
-	{
-		return Math.max(0, Math.min(255, alpha)) << 24 | color & 0xFFFFFF;
+		if(a == 0) return;
+		float scale = Math.max(width / IMAGE_WIDTH, height / IMAGE_HEIGHT);
+		float drawWidth = IMAGE_WIDTH * scale;
+		float drawHeight = IMAGE_HEIGHT * scale;
+		// Blur is baked into the asset; no per-frame blur or additional framebuffer.
+		// Center-crop without stretching; the texture manager caches the image.
+		NanoVGUI.pushScissor(0, 0, width, height);
+		try
+		{
+			NanoVGUI.image(WALLPAPER, (width - drawWidth) / 2,
+				(height - drawHeight) / 2, drawWidth, drawHeight, 0,
+				a << 24 | 0xFFFFFF);
+		}finally
+		{
+			NanoVGUI.popScissor();
+		}
 	}
 }

@@ -65,7 +65,7 @@ public final class AutoTrashHack extends Hack implements UpdateListener
 	public AutoTrashHack()
 	{
 		super("AutoTrash");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(items);
 		addSetting(keepItems);
 		addSetting(delay);
@@ -118,7 +118,7 @@ public final class AutoTrashHack extends Hack implements UpdateListener
 		}catch(IllegalArgumentException e)
 		{
 			if(!bookRules.getValue().equals(lastInvalidRules))
-				ChatUtils.error("AutoTrash paused: " + e.getMessage());
+				ChatUtils.error("AutoTrash paused: %s", e.getMessage());
 			lastInvalidRules = bookRules.getValue();
 			return;
 		}

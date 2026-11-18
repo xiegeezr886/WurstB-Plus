@@ -56,6 +56,7 @@ public final class NanoVgBlitter
 
 		int guiWidth = graphics.guiWidth();
 		int guiHeight = graphics.guiHeight();
+		state.nextStratum();
 		state.submitBlitToCurrentLayer(new BlitRenderState(
 			RenderPipelines.GUI_TEXTURED,
 			TextureSetup.singleTexture(slot.view),

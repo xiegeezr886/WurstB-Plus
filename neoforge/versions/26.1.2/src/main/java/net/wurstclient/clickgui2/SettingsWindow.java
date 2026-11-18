@@ -82,8 +82,7 @@ public final class SettingsWindow extends Window
 		
 		// Clamp against the window's own size, not just the screen size.
 		// Clamping to getGuiScaledWidth() alone still allowed this window to
-		// hang off the right/bottom edge by up to its full width/height, which
-		// is what pushed the settings panel off-screen.
+		// hang off the right/bottom edge by up to its full width/height.
 		x = Mth.clamp(x, 0,
 			Math.max(0, mcWindow.getGuiScaledWidth() - getWidth()));
 		y = Mth.clamp(y, 0,

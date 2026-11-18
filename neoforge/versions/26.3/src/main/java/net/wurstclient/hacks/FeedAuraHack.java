@@ -69,7 +69,7 @@ public final class FeedAuraHack extends Hack
 	public FeedAuraHack()
 	{
 		super("FeedAura");
-		setCategory(Category.OTHER);
+		setCategory(Category.PLAYER);
 		addSetting(range);
 		addSetting(filterBabies);
 		addSetting(filterUntamed);

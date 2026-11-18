@@ -1,178 +1,80 @@
-/*
- * Copyright (c) 2026 WurstB+ Plus contributors
- *
- * This source code is subject to the terms of the GNU Affero General Public
- * License, version 3. If a copy of the AGPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/agpl-3.0.txt
- */
-// Ported from LeavesHack (AGPL-3.0).
+/* GlassFiller ported from MrBZBZ/LeavesHack 13daf96. SPDX-License-Identifier: AGPL-3.0-or-later */
 package net.wurstclient.hacks;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import java.util.LinkedHashSet;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.ItemListSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.leaves.LeavesUtils;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.util.BlockPlacer;
-import net.wurstclient.util.BlockPlacer.BlockPlacingParams;
-import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.InventoryUtils;
 
-/**
- * Fills the blocks around the player with glass (or any configured block),
- * similar to obsidian/crystal placement helpers.
- */
-@SearchTags({"glass filler", "fill glass", "block filler", "feet filler",
-	"glass"})
-public final class GlassFillerHack extends Hack implements UpdateListener
-{
-	private final ItemListSetting blocks = new ItemListSetting("Blocks",
-		"Blocks to place. The first matching item in your inventory is used.",
-		"minecraft:glass");
+public final class GlassFillerHack extends Hack implements UpdateListener {
+  private final SliderSetting targetRange =
+      new SliderSetting("TargetRange", 6, 0, 8, 1, ValueDisplay.INTEGER);
+  private final SliderSetting delay =
+      new SliderSetting("PlaceDelay", 50, 0, 500, 1, ValueDisplay.INTEGER);
+  private final SliderSetting range =
+      new SliderSetting("PlaceRange", 4.5, 0, 6, 0.1, ValueDisplay.DECIMAL);
+  private final CheckboxSetting pause = new CheckboxSetting("UsingPause", true);
+  private final CheckboxSetting onlyMain = new CheckboxSetting("OnlyMain", true);
+  private final CheckboxSetting skipPhased = new CheckboxSetting("SkipPhased", true);
+  private final CheckboxSetting rotate = new CheckboxSetting("Rotate", true);
+  private final CheckboxSetting inventory = new CheckboxSetting("InventorySwap", true);
+  private long next;
 
-	private final SliderSetting radius = new SliderSetting("Radius",
-		"How many blocks around the player to fill.", 4, 1, 8, 1,
-		ValueDisplay.INTEGER);
+  public GlassFillerHack() {
+    super("GlassFiller");
+    setCategory(Category.WORLD);
+    for (Setting s :
+        new Setting[] {targetRange, delay, range, pause, onlyMain, skipPhased, rotate, inventory})
+      addSetting(s);
+  }
 
-	private final SliderSetting delay = new SliderSetting("Delay",
-		"Time between placements.", 50, 0, 500, 10,
-		ValueDisplay.INTEGER.withSuffix(" ms"));
+  @Override
+  protected void onEnable() {
+    next = 0;
+    EVENTS.add(UpdateListener.class, this);
+  }
 
-	private final CheckboxSetting onlyBelow = new CheckboxSetting(
-		"Only below feet",
-		"Only fill blocks at or below the player's feet. Otherwise also fills"
-			+ " the surrounding feet level and one block above.",
-		false);
+  @Override
+  protected void onDisable() {
+    EVENTS.remove(UpdateListener.class, this);
+  }
 
-	private long nextPlace;
-
-	public GlassFillerHack()
-	{
-		super("GlassFiller");
-		setCategory(Category.BLOCKS);
-		addSetting(blocks);
-		addSetting(radius);
-		addSetting(delay);
-		addSetting(onlyBelow);
-	}
-
-	@Override
-	protected void onEnable()
-	{
-		nextPlace = 0;
-		EVENTS.add(UpdateListener.class, this);
-	}
-
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(UpdateListener.class, this);
-	}
-
-	@Override
-	public void onUpdate()
-	{
-		if(MC.player == null || MC.level == null || MC.gameMode == null)
-			return;
-
-		long now = System.currentTimeMillis();
-		if(now < nextPlace)
-			return;
-
-		Set<String> names = new HashSet<>(blocks.getItemNames());
-		if(names.isEmpty())
-			return;
-
-		BlockPlacingParams target = findPlacement();
-		if(target == null)
-		{
-			nextPlace = now + 50;
-			return;
-		}
-
-		if(!ensureBlockSelected(names))
-			return;
-
-		WURST.getRotationFaker().faceVectorPacket(target.hitVec());
-		InteractionResult result = MC.gameMode.useItemOn(MC.player,
-			InteractionHand.MAIN_HAND, target.toHitResult());
-
-		if(result.consumesAction())
-			MC.player.swing(InteractionHand.MAIN_HAND);
-
-		nextPlace = now + (long)delay.getValue();
-	}
-
-	private BlockPlacingParams findPlacement()
-	{
-		BlockPos center = MC.player.blockPosition();
-		int r = radius.getValueI();
-		int minY = -1;
-		int maxY = onlyBelow.isChecked() ? 0 : 1;
-		BlockPlacingParams best = null;
-		double bestDistance = Double.MAX_VALUE;
-		double maxDistanceSq = 4.5 * 4.5;
-
-		for(int x = -r; x <= r; x++)
-			for(int z = -r; z <= r; z++)
-				for(int y = minY; y <= maxY; y++)
-				{
-					BlockPos pos = center.offset(x, y, z);
-					if(!BlockUtils.getState(pos).canBeReplaced())
-						continue;
-
-					if(MC.player.getBoundingBox().intersects(new AABB(pos)))
-						continue;
-
-					BlockPlacingParams params =
-						BlockPlacer.getBlockPlacingParams(pos);
-					if(params == null || params.distanceSq() > maxDistanceSq)
-						continue;
-
-					double distance =
-						MC.player.distanceToSqr(Vec3.atCenterOf(pos));
-					if(distance < bestDistance)
-					{
-						bestDistance = distance;
-						best = params;
-					}
-				}
-
-		return best;
-	}
-
-	private boolean ensureBlockSelected(Set<String> names)
-	{
-		if(matches(MC.player.getMainHandItem(), names))
-			return true;
-
-		for(int i = 0; i < 9; i++)
-			if(matches(MC.player.getInventory().getItem(i), names))
-			{
-				MC.player.getInventory().selected = i;
-				return true;
-			}
-
-		InventoryUtils.selectItem(stack -> matches(stack, names), 36);
-		return matches(MC.player.getMainHandItem(), names);
-	}
-
-	private boolean matches(ItemStack stack, Set<String> names)
-	{
-		return !stack.isEmpty() && names
-			.contains(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
-	}
+  @Override
+  public void onUpdate() {
+    if (WURST.getHax().crystalAuraPlusHack.isBusy() || WURST.getHax().autoAnchorHack.isBusy())
+      return;
+    if (!LeavesUtils.ready()
+        || System.nanoTime() < next
+        || pause.isChecked() && LeavesUtils.using(onlyMain.isChecked())) return;
+    var target = LeavesUtils.enemy(targetRange.getValue());
+    if (target == null
+        || skipPhased.isChecked() && !MC.level.noCollision(target, target.getBoundingBox())) return;
+    AABB box = target.getBoundingBox().deflate(0.01, 0.1, 0.01);
+    var candidates = new LinkedHashSet<BlockPos>();
+    for (int x = (int) Math.floor(box.minX); x <= Math.floor(box.maxX); x++)
+      for (int z = (int) Math.floor(box.minZ); z <= Math.floor(box.maxZ); z++)
+        for (Direction dir : Direction.Plane.HORIZONTAL)
+          candidates.add(new BlockPos(x, target.blockPosition().getY(), z).relative(dir));
+    for (BlockPos pos : candidates) {
+      if (!MC.level
+          .getEntities(
+              (net.minecraft.world.entity.Entity) null,
+              new AABB(pos),
+              e ->
+                  e.isAlive()
+                      && !(e instanceof net.minecraft.world.entity.item.ItemEntity)
+                      && !(e instanceof net.minecraft.world.entity.ExperienceOrb))
+          .isEmpty()) continue;
+      if (LeavesUtils.place(
+          pos, Items.GLASS, range.getValue(), inventory.isChecked(), rotate.isChecked()))
+        next = System.nanoTime() + delay.getValueI() * 1_000_000L;
+    }
+  }
 }

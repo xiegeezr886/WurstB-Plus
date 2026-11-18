@@ -53,7 +53,7 @@ public final class EChestFarmerHack extends Hack implements UpdateListener
 	public EChestFarmerHack()
 	{
 		super("EChestFarmer");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(range);
 		addSetting(cooldown);
 	}

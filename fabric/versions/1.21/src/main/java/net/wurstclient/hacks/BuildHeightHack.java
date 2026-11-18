@@ -18,7 +18,7 @@ public final class BuildHeightHack extends Hack implements PacketOutputListener
 	public BuildHeightHack()
 	{
 		super("BuildHeight");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 	}
 
 	@Override

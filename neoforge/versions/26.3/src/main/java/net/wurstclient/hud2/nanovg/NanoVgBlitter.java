@@ -6,30 +6,31 @@ import java.util.Deque;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+
 import java.util.OptionalDouble;
 
 import org.joml.Matrix3x2f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 
+import com.mojang.renderpearl.backend.opengl.GlTexture;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.textures.AddressMode;
 import com.mojang.renderpearl.api.textures.FilterMode;
 import com.mojang.renderpearl.api.textures.GpuSampler;
 import com.mojang.renderpearl.api.textures.GpuTexture;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
-import com.mojang.renderpearl.backend.opengl.GlTexture;
+import com.mojang.renderpearl.api.GpuFormat;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.state.gui.BlitRenderState;
 import net.minecraft.client.renderer.state.gui.GuiRenderState;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 
 /**
- * Copies NanoVG's offscreen framebuffer into a RenderPearl texture and queues a
- * vanilla GUI blit for the current frame.
+ * Copies NanoVG's offscreen framebuffer into a GPU texture and queues a blit
+ * in the current GUI render state. Used by 1.21.6-1.21.11.
  */
 public final class NanoVgBlitter
 {
@@ -47,12 +48,11 @@ public final class NanoVgBlitter
 		if(graphics == null || ctx == null)
 			return;
 
-		GuiRenderState state = getState(graphics);
+		GuiRenderState state = graphics.getRenderState();
 		if(state == null)
 			return;
 
-		// GuiRenderState is reused across frames. A snapshot stays leased until
-		// that state's reset() discards its queued elements after rendering.
+		// The state is reused across frames; reset() releases its snapshots.
 		Slot slot = copySnapshot(ctx);
 		if(slot == null)
 			return;
@@ -60,12 +60,12 @@ public final class NanoVgBlitter
 
 		int guiWidth = graphics.guiWidth();
 		int guiHeight = graphics.guiHeight();
-		BlitRenderState blit = new BlitRenderState(
+		state.nextStratum();
+		state.addGuiElement(new BlitRenderState(
 			RenderPipelines.GUI_TEXTURED,
 			TextureSetup.singleTexture(slot.view, sampler),
 			new Matrix3x2f(), 0, 0, guiWidth, guiHeight, 0F, 1F, 1F, 0F,
-			0xFFFFFFFF, null);
-		state.addGuiElement(blit);
+			0xFFFFFFFF, null));
 	}
 
 	public static synchronized void releaseFrame(GuiRenderState state)
@@ -88,20 +88,6 @@ public final class NanoVgBlitter
 		{
 			sampler.close();
 			sampler = null;
-		}
-	}
-
-	private static GuiRenderState getState(GuiGraphicsExtractor graphics)
-	{
-		if(GuiGraphicsExtractorAccessorHolder.FIELD == null)
-			return null;
-		try
-		{
-			return (GuiRenderState)GuiGraphicsExtractorAccessorHolder.FIELD
-				.get(graphics);
-		}catch(ReflectiveOperationException e)
-		{
-			return null;
 		}
 	}
 
@@ -172,27 +158,6 @@ public final class NanoVgBlitter
 			}
 			width = 0;
 			height = 0;
-		}
-	}
-
-	/** Kept separate so the accessor failure is reported once. */
-	private static final class GuiGraphicsExtractorAccessorHolder
-	{
-		private static final java.lang.reflect.Field FIELD = findField();
-
-		private static java.lang.reflect.Field findField()
-		{
-			try
-			{
-				java.lang.reflect.Field field = GuiGraphicsExtractor.class
-					.getDeclaredField("guiRenderState");
-				field.setAccessible(true);
-				return field;
-			}catch(ReflectiveOperationException e)
-			{
-				System.out.println("[HUD] NanoVG: no guiRenderState field: " + e);
-				return null;
-			}
 		}
 	}
 }

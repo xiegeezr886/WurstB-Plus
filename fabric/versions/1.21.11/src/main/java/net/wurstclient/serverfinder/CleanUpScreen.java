@@ -7,8 +7,7 @@
  */
 package net.wurstclient.serverfinder;
 
-import net.minecraft.client.gui.GuiGraphics;
-
+import net.wurstclient.WurstClient;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -53,7 +52,7 @@ public class CleanUpScreen extends Screen
 	public void init()
 	{
 		addRenderableWidget(new CleanUpButton(width / 2 - 100,
-			height / 4 + 168 + 12, () -> "Cancel", "", b -> onClose()));
+			height / 4 + 168 + 12, () -> WurstClient.tr("Cancel"), "", b -> onClose()));
 		
 		addRenderableWidget(cleanUpButton = new CleanUpButton(width / 2 - 100,
 			height / 4 + 144 + 12, () -> "清理",
@@ -216,7 +215,7 @@ public class CleanUpScreen extends Screen
 		return super.mouseClicked(context, doubleClick);
 	}
 @Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	public void render(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
 	}
@@ -227,7 +226,7 @@ public class CleanUpScreen extends Screen
 		context.centeredText(font, "清理", width / 2,
 			20, CommonColors.WHITE);
 		context.centeredText(font,
-			"Please select the servers you want to remove:", width / 2, 36,
+			WurstClient.tr("Please select the servers you want to remove:"), width / 2, 36,
 			0xFFA0A0A0);
 		
 		super.render(context.getInner(), mouseX, mouseY, partialTicks);
@@ -292,12 +291,10 @@ public class CleanUpScreen extends Screen
 			setMessage(Component.literal(messageSupplier.get()));
 		}
 
-		@Override
-		protected void renderContents(GuiGraphics graphics, int mouseX,
-			int mouseY, float partialTicks)
+		@Override protected void renderContents(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) { renderWidget(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks); }
+protected void renderWidget(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
 		{
-			renderDefaultSprite(graphics);
-			graphics.drawCenteredString(font, getMessage(),
+			graphics.centeredText(font, getMessage(),
 				getX() + getWidth() / 2,
 				getY() + (getHeight() - font.lineHeight) / 2,
 				active ? 0xFFFFFF : 0xA0A0A0);

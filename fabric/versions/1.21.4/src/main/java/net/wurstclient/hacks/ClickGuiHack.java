@@ -54,7 +54,8 @@ public final class ClickGuiHack extends Hack
 	{
 		MC.setScreen(new ClickGuiScreen());
 		if(WURST.getHudManager() != null)
-			WURST.getHudManager().addNotification("Info", getDisplayName(),
+			WURST.getHudManager().addNotification(
+				WURST.translate("hud.notification.info"), getDisplayName(),
 				NotificationSeverity.INFO);
 		setEnabled(false);
 	}

@@ -28,20 +28,16 @@ public class OpenOpalInputMixin {
         if (hax.scaffoldWalkHack.isEnabled()) hax.scaffoldWalkHack.onUpdate();
         if (hax.killauraHack.isEnabled()) hax.killauraHack.onUpdate();
     }
-    @Inject(method = "handleKeybinds()V", at = @At(value = "INVOKE",
-        target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z", ordinal = 0))
-    private void opalMouseInput(CallbackInfo ci) {
-        if (!WurstClient.INSTANCE.isEnabled() || WurstClient.INSTANCE.getHax() == null) return;
-        var hax = WurstClient.INSTANCE.getHax();
-        if (hax.scaffoldWalkHack.isEnabled()) hax.scaffoldWalkHack.onOpalMouseInput();
-        if (hax.killauraHack.isEnabled()) hax.killauraHack.onOpalMouseInput();
-    }
     @Inject(method = "handleKeybinds()V", at = @At("TAIL"))
     private void opalInputTail(CallbackInfo ci) { MouseHelper.getInstance().tick(); }
 
     @Redirect(method = "handleKeybinds()V", at = @At(value = "INVOKE",
         target = "Lnet/minecraft/client/KeyMapping;isDown()Z"))
     private boolean opalIsPressed(KeyMapping key) {
+        if (key == WurstClient.MC.options.keyUse && WurstClient.INSTANCE.isEnabled()
+            && WurstClient.INSTANCE.getHax() != null
+            && (WurstClient.INSTANCE.getHax().killauraHack.shouldHoldUseKey()
+                || WurstClient.INSTANCE.getHax().autoGapHack.shouldHoldUseKey())) return true;
         MouseButton button = MouseHelper.getButtonFromBinding(key);
         return button == null ? key.isDown() : button.isPressed();
     }

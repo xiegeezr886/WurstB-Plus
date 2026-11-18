@@ -132,11 +132,11 @@ public final class PotionCmd extends Command
 				
 			}catch(ResourceLocationException e)
 			{
-				throw new CmdSyntaxError("Invalid effect: " + input);
+				throw new CmdSyntaxError("Invalid effect: %s", input);
 			}
 		
 		if(effect == null)
-			throw new CmdSyntaxError("Invalid effect: " + input);
+			throw new CmdSyntaxError("Invalid effect: %s", input);
 		
 		return BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect).value();
 	}
@@ -159,7 +159,7 @@ public final class PotionCmd extends Command
 			
 		}catch(NumberFormatException e)
 		{
-			throw new CmdSyntaxError("Not a number: " + s);
+			throw new CmdSyntaxError("Not a number: %s", s);
 		}
 	}
 }

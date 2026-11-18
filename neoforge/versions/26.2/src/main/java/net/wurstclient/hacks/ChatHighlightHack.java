@@ -68,7 +68,7 @@ public final class ChatHighlightHack extends Hack
 	public ChatHighlightHack()
 	{
 		super("ChatHighlight");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(keywords);
 		addSetting(color);
 		addSetting(caseSensitive);

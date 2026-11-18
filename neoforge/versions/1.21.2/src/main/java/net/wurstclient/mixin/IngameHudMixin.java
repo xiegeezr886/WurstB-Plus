@@ -129,7 +129,6 @@ public class IngameHudMixin
 		if(isHudModuleEnabled("PotionStatus"))
 			ci.cancel();
 	}
-
 	private static boolean isHudModuleEnabled(String id)
 	{
 		WurstClient wurst = WurstClient.INSTANCE;

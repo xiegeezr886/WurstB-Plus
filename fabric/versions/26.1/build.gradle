@@ -32,7 +32,8 @@ dependencies {
 	// Minecraft (non-obfuscated, no mappings needed for 26.x)
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.2"
 
 	// Fabric API
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
@@ -44,8 +45,8 @@ dependencies {
 	include implementation("org.java-websocket:Java-WebSocket:1.5.3")
 
 	// Proxy support
-	include implementation("io.netty:netty-codec-socks:4.1.118.Final")
-	include implementation("io.netty:netty-handler-proxy:4.1.118.Final")
+	include implementation("io.netty:netty-codec-socks:4.2.7.Final") { transitive = false }
+	include implementation("io.netty:netty-handler-proxy:4.2.7.Final") { transitive = false }
 
 	// Baritone 1.18.0 is built from the bundled 26.1.x source tree.
 	include implementation("baritone:baritone-api-fabric:1.18.0")
@@ -55,20 +56,19 @@ dependencies {
 	annotationProcessor "io.github.llamalad7:mixinextras-common:0.5.5"
 	include(implementation("io.github.llamalad7:mixinextras-fabric:0.5.5"))
 
-    implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
-    runtimeOnly "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos"
-    hudNatives "org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64"
+    include implementation("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos") { transitive = false }
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-windows-arm64") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-linux-arm64") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos") { transitive = false }
+    hudNatives("org.lwjgl:lwjgl-nanovg:${lwjgl_nanovg_version}:natives-macos-arm64") { transitive = false }
 
 }
 
@@ -83,7 +83,8 @@ processResources {
 	}
 
     from({ configurations.hudNatives.collect { zipTree(it) } }) {
-        include "org/lwjgl/nanovg/**", "windows/**", "linux/**", "macos/**"
+        include "windows/**", "linux/**", "macos/**"
+        into "assets/wurstpenguin/nanovg/natives"
         exclude "META-INF/**", "module-info.class", "**/*.signature"
     }
 }
@@ -121,3 +122,36 @@ if(project.hasProperty("spWorld")) {
 		args "--quickPlayPath", project.property("spLog")
 	}
 }
+
+// v1.5.2 music and seed backend for the 1.20.2-1.20.4 protocol family.
+dependencies {
+    include implementation("com.googlecode.soundlibs:jlayer:1.0.1.4") { transitive = false }
+    include implementation("com.google.zxing:core:3.5.3")
+    compileOnly "net.java.dev.jna:jna:5.13.0"
+    implementation "local.seedfinding:seedcrackerX:2.16.0"
+    include "local.seedfinding:seedcrackerX:2.16.0"
+    implementation fileTree(dir: "libs/seedcrackerx-deps", include: ["cloth-config*.jar"])
+}
+tasks.withType(Test).configureEach { useJUnitPlatform() }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+dependencies { runtimeOnly fileTree(dir: "libs/seedcrackerx-deps", include: ["mc_*.jar", "latticg-*.jar"]) }
+
+sourceSets.main.java { exclude "net/wurstclient/clickgui2/component.disabled/**"; exclude "net/wurstclient/clickgui2/screens.disabled/**" }

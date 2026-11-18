@@ -18,36 +18,18 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.StringJoiner;
 
-import org.jetbrains.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import com.google.gson.JsonObject;
 
-import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
-import net.wurstclient.util.ScreenUtils;
-import net.minecraft.util.Util;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.AbstractWidget;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.ObjectSelectionList;
-import net.minecraft.client.gui.components.Renderable;
-import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.AlertScreen;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.Style;
-import net.minecraft.util.Mth;
-import net.minecraft.util.StringUtil;
+import net.minecraft.resources.Identifier;
+import net.wurstclient.gui.opai.OpaiSelectionMenu;
 import net.wurstclient.WurstClient;
 import net.wurstclient.altmanager.*;
 import net.wurstclient.mixinterface.IMinecraftClient;
@@ -56,6 +38,7 @@ import net.wurstclient.util.json.JsonException;
 import net.wurstclient.util.json.JsonUtils;
 import net.wurstclient.util.json.WsonObject;
 
+/** Shared Opai list presentation over the existing Wurst account backend. */
 public final class AltManagerScreen extends Screen
 {
 	private static final HashSet<Alt> failedLogins = new HashSet<>();
@@ -63,9 +46,12 @@ public final class AltManagerScreen extends Screen
 	private final Screen prevScreen;
 	private final AltManager altManager;
 	
-	private ListGui listGui;
+	private Alt selectedAlt;
+	private String statusMessage = "";
 	private boolean shouldAsk = true;
-	private int errorTimer;
+	private OpaiSelectionMenu menu;
+	private static final Identifier ACCOUNT_ICON =
+		Identifier.fromNamespaceAndPath("wurst", "textures/gui/fdp/user.png");
 	
 	private Button useButton;
 	private Button starButton;
@@ -75,6 +61,9 @@ public final class AltManagerScreen extends Screen
 	private Button importButton;
 	private Button exportButton;
 	private Button logoutButton;
+	private Button backButton;
+	private Button clearButton;
+	private Button randomButton;
 	
 	public AltManagerScreen(Screen prevScreen, AltManager altManager)
 	{
@@ -86,9 +75,6 @@ public final class AltManagerScreen extends Screen
 	@Override
 	public void init()
 	{
-		listGui = new ListGui(minecraft, this, altManager.getList());
-		addWidget(listGui);
-		
 		WurstClient wurst = WurstClient.INSTANCE;
 		
 		Exception folderException = altManager.getFolderException();
@@ -101,143 +87,143 @@ public final class AltManagerScreen extends Screen
 			Component buttonText = Component.translatable("gui.done");
 			
 			// This just sets shouldAsk to false and closes the message.
-			Runnable action = () -> confirmGenerate(false);
+			Runnable action = this::dismissFolderError;
 			
 			AlertScreen screen =
 				new AlertScreen(action, title, message, buttonText, false);
 			minecraft.setScreen(screen);
 			
-		}else if(altManager.getList().isEmpty() && shouldAsk)
-		{
-			Component title = Component
-				.literal(wurst.translate("gui.wurst.altmanager.empty.title"));
-			Component message = Component
-				.literal(wurst.translate("gui.wurst.altmanager.empty.message"));
-			BooleanConsumer callback = this::confirmGenerate;
-			
-			ConfirmScreen screen = new ConfirmScreen(callback, title, message);
-			minecraft.setScreen(screen);
 		}
 		
-		addRenderableWidget(useButton =
-			Button.builder(Component.literal("登录"), b -> pressLogin())
-				.bounds(width / 2 - 154, height - 52, 100, 20).build());
-		
-		addRenderableWidget(Button
-			.builder(Component.literal("直接登录"),
-				b -> minecraft.setScreen(new DirectLoginScreen(this)))
-			.bounds(width / 2 - 50, height - 52, 100, 20).build());
-		
-		addRenderableWidget(Button
-			.builder(Component.literal("添加"),
-				b -> minecraft.setScreen(new AddAltScreen(this, altManager)))
-			.bounds(width / 2 + 54, height - 52, 100, 20).build());
-		
-		addRenderableWidget(starButton =
-			Button.builder(Component.literal("收藏"), b -> pressFavorite())
-				.bounds(width / 2 - 154, height - 28, 75, 20).build());
-		
-		addRenderableWidget(editButton =
-			Button.builder(Component.literal("编辑"), b -> pressEdit())
-				.bounds(width / 2 - 76, height - 28, 74, 20).build());
-		
-		addRenderableWidget(deleteButton =
-			Button.builder(Component.literal("删除"), b -> pressDelete())
-				.bounds(width / 2 + 2, height - 28, 74, 20).build());
-		
-		addRenderableWidget(Button
-			.builder(Component.literal("取消"), b -> minecraft.setScreen(prevScreen))
-			.bounds(width / 2 + 80, height - 28, 75, 20).build());
-		
-		addRenderableWidget(importButton =
-			Button.builder(Component.literal("导入"), b -> pressImportAlts())
-				.bounds(8, 8, 50, 20).build());
-		
-		addRenderableWidget(exportButton =
-			Button.builder(Component.literal("导出"), b -> pressExportAlts())
-				.bounds(58, 8, 50, 20).build());
-		
-		addRenderableWidget(logoutButton =
-			Button.builder(Component.literal("登出"), b -> pressLogout())
-				.bounds(width - 50 - 8, 8, 50, 20).build());
-		
+		useButton = button("登录", b -> pressLogin());
+		Button add = button("添加账号", b -> minecraft.setScreen(new AddAltScreen(this, altManager)));
+		Button direct = button("直接登录", b -> minecraft.setScreen(new DirectLoginScreen(this)));
+		deleteButton = button("删除", b -> pressDelete());
+		logoutButton = button("恢复会话", b -> pressLogout());
+		backButton = button("返回", b -> onClose());
+		editButton = button("编辑", b -> pressEdit());
+		starButton = button("收藏", b -> pressFavorite());
+		randomButton = button("随机账号", b -> pressRandom());
+		clearButton = button("清空列表", b -> pressClear());
+		importButton = button("导入", b -> pressImportAlts());
+		exportButton = button("导出", b -> pressExportAlts());
+		Alt previousSelection = selectedAlt;
+		menu = new OpaiSelectionMenu(this, "账号管理", this::accountRows,
+			item -> { selectedAlt = (Alt)item; updateAltButtons(); },
+			this::pressLogin, () -> minecraft.setScreen(prevScreen),
+			List.of(useButton, add, direct, deleteButton, logoutButton, backButton,
+				editButton, starButton, randomButton, clearButton, importButton, exportButton), 3, 3);
+		if(altManager.getList().contains(previousSelection)) menu.selectItem(previousSelection);
+		menu.subtitle(() -> statusMessage.isBlank()
+			? "当前账号：" + minecraft.getUser().getName() : statusMessage);
+		setFocused(null);
 		updateAltButtons();
-		boolean windowMode = !minecraft.options.fullscreen().get();
-		importButton.active = windowMode;
-		exportButton.active = windowMode;
 	}
-	
+
+	private Button button(String label, Button.OnPress action)
+	{
+		return Button.builder(Component.literal(label), action).build();
+	}
+
+	private List<OpaiSelectionMenu.Row> accountRows()
+	{
+		List<OpaiSelectionMenu.Row> rows = new ArrayList<>();
+		String current = minecraft.getUser().getName();
+		for(Alt alt : altManager.getList())
+		{
+			String detail = alt.isCracked() ? "离线账号" : "正版账号";
+			if(alt.isFavorite()) detail += " · 已收藏";
+			String extra = failedLogins.contains(alt) ? "登录失败"
+				: current.equalsIgnoreCase(alt.getName()) ? "当前使用" : "";
+			rows.add(new OpaiSelectionMenu.Row(alt, alt.getDisplayName(), detail,
+				extra, ACCOUNT_ICON, true));
+		}
+		return rows;
+	}
+
 	private void updateAltButtons()
 	{
-		boolean altSelected = listGui.getSelected() != null;
+		boolean altSelected = selectedAlt != null
+			&& altManager.getList().contains(selectedAlt);
 		useButton.active = altSelected;
 		starButton.active = altSelected;
 		editButton.active = altSelected;
 		deleteButton.active = altSelected;
-		
+		clearButton.active = !altManager.getList().isEmpty();
+		randomButton.active = true;
 		logoutButton.active =
 			((IMinecraftClient)minecraft).getWurstSession() != null;
+		backButton.active = true;
+		boolean windowMode = !minecraft.options.fullscreen().get();
+		importButton.active = windowMode;
+		exportButton.active = windowMode;
+		starButton.setMessage(Component.literal(altSelected && selectedAlt.isFavorite()
+			? "取消收藏" : "收藏"));
 	}
 	
-	@Override
-	public boolean keyPressed(KeyEvent context)
+	@Override public boolean keyPressed(net.minecraft.client.input.KeyEvent event) { return keyPressed(event.key(), event.scancode(), event.modifiers()); }
+public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if(context.key() == GLFW.GLFW_KEY_ENTER)
-			useButton.onPress(context);
-		
-		return super.keyPressed(context);
+		return menu != null && menu.key(keyCode);
 	}
-	
-	@Override
-	public boolean mouseClicked(MouseButtonEvent context, boolean doubleClick)
+
+	@Override public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) { return mouseClicked(event.x(), event.y(), event.button()); }
+public boolean mouseClicked(double x, double y, int button)
 	{
-		if(context.button() == GLFW.GLFW_MOUSE_BUTTON_4)
-		{
-			onClose();
-			return true;
-		}
-		
-		return super.mouseClicked(context, doubleClick);
+		return menu != null && menu.click(x, y, button);
 	}
-	
+
+	@Override
+	public boolean mouseScrolled(double x, double y, double horizontal, double delta)
+	{
+		return menu != null && menu.scroll(x, y, delta);
+	}
+
 	private void pressLogin()
 	{
-		Alt alt = listGui.getSelectedAlt();
-		if(alt == null)
+		Alt alt = selectedAlt;
+		if(alt == null || !altManager.getList().contains(alt))
 			return;
-		
+		login(alt);
+	}
+
+	private void login(Alt alt)
+	{
 		try
 		{
 			altManager.login(alt);
 			failedLogins.remove(alt);
-			minecraft.setScreen(prevScreen);
+			statusMessage = "已登录：" + alt.getDisplayName();
 			
 		}catch(LoginException e)
 		{
-			errorTimer = 8;
 			failedLogins.add(alt);
+			statusMessage = e.getMessage() == null ? "登录失败。" : e.getMessage();
 		}
+		updateAltButtons();
 	}
 	
 	private void pressLogout()
 	{
 		((IMinecraftClient)minecraft).setWurstSession(null);
+		statusMessage = "已恢复原会话。";
 		updateAltButtons();
 	}
 	
 	private void pressFavorite()
 	{
-		Alt alt = listGui.getSelectedAlt();
+		Alt alt = selectedAlt;
 		if(alt == null)
 			return;
 		
 		altManager.toggleFavorite(alt);
-		listGui.setSelected(null);
+		statusMessage = alt.isFavorite() ? "已添加收藏。" : "已取消收藏。";
+		updateAltButtons();
 	}
 	
 	private void pressEdit()
 	{
-		Alt alt = listGui.getSelectedAlt();
+		Alt alt = selectedAlt;
 		if(alt == null)
 			return;
 		
@@ -246,19 +232,43 @@ public final class AltManagerScreen extends Screen
 	
 	private void pressDelete()
 	{
-		Alt alt = listGui.getSelectedAlt();
+		Alt alt = selectedAlt;
 		if(alt == null)
 			return;
 		
 		Component text = Component.literal("确定要删除此账号？");
 		
 		String altName = alt.getDisplayName();
-		Component message = Component.literal(
-			"\"" + altName + "\" will be lost forever! (A long time!)");
+		Component message = Component.literal(WurstClient.tr(
+			"\"%s\" will be lost forever! (A long time!)", altName));
 		
 		ConfirmScreen screen = new ConfirmScreen(this::confirmRemove, text,
 			message, Component.literal("删除"), Component.literal("取消"));
 		minecraft.setScreen(screen);
+	}
+
+	private void pressClear()
+	{
+		if(altManager.getList().isEmpty())
+			return;
+		ConfirmScreen screen = new ConfirmScreen(confirmed -> {
+			if(confirmed)
+			{
+				altManager.clear();
+				selectedAlt = null;
+				statusMessage = "账号列表已清空。";
+			}
+			minecraft.setScreen(this);
+		}, Component.literal("确定清空已保存的账号？"),
+			Component.literal("当前登录会话将会保留。"),
+			Component.literal("清空"), Component.literal("取消"));
+		minecraft.setScreen(screen);
+	}
+
+	private void pressRandom()
+	{
+		Alt alt = new CrackedAlt(NameGenerator.generateName());
+		login(alt);
 	}
 	
 	private void pressImportAlts()
@@ -276,10 +286,13 @@ public final class AltManagerScreen extends Screen
 				importAsJSON(path);
 			else
 				importAsTXT(path);
+			statusMessage = "账号已导入。";
+				updateAltButtons();
 			
 		}catch(IOException | InterruptedException | JsonException e)
 		{
-			e.printStackTrace();
+			statusMessage = "文件操作已取消或失败。";
+			if(e instanceof InterruptedException) Thread.currentThread().interrupt();
 		}
 	}
 	
@@ -330,10 +343,12 @@ public final class AltManagerScreen extends Screen
 				exportAsJSON(path);
 			else
 				exportAsTXT(path);
+			statusMessage = "账号已导出。";
 			
 		}catch(IOException | InterruptedException | JsonException e)
 		{
-			e.printStackTrace();
+			statusMessage = "文件操作已取消或失败。";
+			if(e instanceof InterruptedException) Thread.currentThread().interrupt();
 		}
 	}
 	
@@ -376,294 +391,40 @@ public final class AltManagerScreen extends Screen
 		Files.write(path, lines);
 	}
 	
-	private void confirmGenerate(boolean confirmed)
+	private void dismissFolderError()
 	{
-		if(confirmed)
-		{
-			ArrayList<Alt> alts = new ArrayList<>();
-			for(int i = 0; i < 8; i++)
-				alts.add(new CrackedAlt(NameGenerator.generateName()));
-			
-			altManager.addAll(alts);
-		}
-		
 		shouldAsk = false;
 		minecraft.setScreen(this);
 	}
 	
 	private void confirmRemove(boolean confirmed)
 	{
-		Alt alt = listGui.getSelectedAlt();
+		Alt alt = selectedAlt;
 		if(alt == null)
 			return;
 		
 		if(confirmed)
+		{
 			altManager.remove(alt);
+			selectedAlt = null;
+			statusMessage = "账号已删除。";
+		}
+		updateAltButtons();
 		
 		minecraft.setScreen(this);
 	}
 	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY,
-		float partialTicks)
+	@Override public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTicks) { render(new GuiGraphicsExtractor(context), mouseX, mouseY, partialTicks); }
+public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTicks)
 	{
-		listGui.extractRenderState(context, mouseX, mouseY, partialTicks);
-		
-		// skin preview
-		Alt alt = listGui.getSelectedAlt();
-		if(alt != null)
-		{
-			AltRenderer.drawAltBack(context, alt.getName(),
-				(width / 2 - 125) / 2 - 32, height / 2 - 64 - 9, 64, 128);
-			AltRenderer.drawAltBody(context, alt.getName(),
-				width - (width / 2 - 140) / 2 - 32, height / 2 - 64 - 9, 64,
-				128);
-		}
-		
-		// title text
-		context.centeredText(font, "账号管理",
-			width / 2, 4, 0xFFffffff);
-		context.centeredText(font,
-			"Alts: " + altManager.getList().size(), width / 2, 14, 0xFFA0A0A0);
-		context.centeredText(
-			font, "premium: " + altManager.getNumPremium()
-				+ ", cracked: " + altManager.getNumCracked(),
-			width / 2, 24, 0xFFA0A0A0);
-		
-		// red flash for errors
-		if(errorTimer > 0)
-		{
-			int alpha = (int)(Math.min(1, errorTimer / 16F) * 255);
-			int color = 0xFF0000 | alpha << 24;
-			context.fill(0, 0, width, height, color);
-			errorTimer--;
-		}
-		
-		for(Renderable drawable : renderables)
-			drawable.extractRenderState(context, mouseX, mouseY, partialTicks);
-		
-		renderButtonTooltip(context, mouseX, mouseY);
-		renderAltTooltip(context, mouseX, mouseY);
+		updateAltButtons();
+		if(menu != null) menu.render(context, mouseX, mouseY);
 	}
-	
-	private void renderAltTooltip(GuiGraphicsExtractor context, int mouseX, int mouseY)
-	{
-		if(!listGui.isMouseOver(mouseX, mouseY))
-			return;
-		
-		Entry hoveredEntry = listGui.getHoveredEntry(mouseX, mouseY);
-		if(hoveredEntry == null)
-			return;
-		
-		int hoveredIndex = listGui.children().indexOf(hoveredEntry);
-		int itemX = mouseX - listGui.getRowLeft();
-		int itemY = mouseY - listGui.getRowTop(hoveredIndex);
-		
-		if(itemX < 31 || itemY < 15 || itemY >= 25)
-			return;
-		
-		Alt alt = hoveredEntry.alt;
-		ArrayList<Component> tooltip = new ArrayList<>();
-		
-		if(itemX >= 31 + font.width(hoveredEntry.getBottomText()))
-			return;
-		
-		if(alt.isCracked())
-			addTooltip(tooltip, "cracked");
-		else
-		{
-			addTooltip(tooltip, "premium");
-			
-			if(failedLogins.contains(alt))
-				addTooltip(tooltip, "failed");
-			
-			if(alt.isCheckedPremium())
-				addTooltip(tooltip, "checked");
-			else
-				addTooltip(tooltip, "unchecked");
-		}
-		
-		if(alt.isFavorite())
-			addTooltip(tooltip, "favorite");
-		
-		context.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
-	}
-	
-	private void renderButtonTooltip(GuiGraphicsExtractor context, int mouseX,
-		int mouseY)
-	{
-		for(AbstractWidget button : ScreenUtils.getButtons(this))
-		{
-			if(!button.isHoveredOrFocused())
-				continue;
-			
-			if(button != importButton && button != exportButton)
-				continue;
-			
-			ArrayList<Component> tooltip = new ArrayList<>();
-			addTooltip(tooltip, "window");
-			
-			if(minecraft.options.fullscreen().get())
-				addTooltip(tooltip, "fullscreen");
-			else
-				addTooltip(tooltip, "window_freeze");
-			
-			context.setComponentTooltipForNextFrame(font, tooltip, mouseX,
-				mouseY);
-			break;
-		}
-	}
-	
-	private void addTooltip(ArrayList<Component> tooltip, String trKey)
-	{
-		// translate
-		String translated = WurstClient.INSTANCE
-			.translate("description.wurst.altmanager." + trKey);
-		
-		// line-wrap
-		StringJoiner joiner = new StringJoiner("\n");
-		font.getSplitter().splitLines(translated, 200, Style.EMPTY)
-			.stream().map(FormattedText::getString)
-			.forEach(s -> joiner.add(s));
-		String wrapped = joiner.toString();
-		
-		// add to tooltip
-		for(String line : wrapped.split("\n"))
-			tooltip.add(Component.literal(line));
-	}
-	
+
 	@Override
 	public void onClose()
 	{
-		minecraft.setScreen(prevScreen);
-	}
-	
-	private final class Entry
-		extends ObjectSelectionList.Entry<AltManagerScreen.Entry>
-	{
-		private final Alt alt;
-		private long lastClickTime;
-		
-		public Entry(Alt alt)
-		{
-			this.alt = Objects.requireNonNull(alt);
-		}
-		
-		@Override
-		public Component getNarration()
-		{
-			return Component.translatable("narrator.select", "Alt " + alt + ", "
-				+ StringUtil.stripColor(getBottomText()));
-		}
-		
-		@Override
-		public boolean mouseClicked(MouseButtonEvent context,
-			boolean doubleClick)
-		{
-			if(context.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT)
-				return false;
-			
-			long timeSinceLastClick = Util.getMillis() - lastClickTime;
-			lastClickTime = Util.getMillis();
-			
-			if(timeSinceLastClick < 250)
-				pressLogin();
-			
-			return true;
-		}
-		
-		@Override
-		public void extractContent(GuiGraphicsExtractor context, int mouseX,
-			int mouseY, boolean hovered, float tickDelta)
-		{
-			int x = getContentX();
-			int y = getContentY();
-			// green glow when logged in
-			if(minecraft.getUser().getName().equals(alt.getName()))
-			{
-				float opacity =
-					0.3F - Math.abs(Mth.sin(System.currentTimeMillis()
-						% 10000L / 10000F * (float)Math.PI * 2.0F) * 0.15F);
-				
-				int color = 0x00FF00 | (int)(opacity * 255) << 24;
-				context.fill(x - 2, y - 2, x + 218, y + 28, color);
-			}
-			
-			// face
-			AltRenderer.drawAltFace(context, alt.getName(), x + 1, y + 1, 24,
-				24, listGui.getSelected() == this);
-			
-			Font tr = minecraft.font;
-			
-			// name / email
-			context.text(tr, "Name: " + alt.getDisplayName(), x + 31, y + 3,
-				0xFFA0A0A0, false);
-			
-			// status
-			context.text(tr, getBottomText(), x + 31, y + 15, 0xFFA0A0A0,
-				false);
-		}
-		
-		private String getBottomText()
-		{
-			String text = alt.isCracked() ? "\u00a78cracked" : "\u00a72premium";
-			
-			if(alt.isFavorite())
-				text += "\u00a7r, \u00a7efavorite";
-			
-			if(failedLogins.contains(alt))
-				text += "\u00a7r, \u00a7cwrong password?";
-			else if(alt.isUncheckedPremium())
-				text += "\u00a7r, \u00a7cunchecked";
-			
-			return text;
-		}
-	}
-	
-	private final class ListGui
-		extends ObjectSelectionList<AltManagerScreen.Entry>
-	{
-		public ListGui(Minecraft minecraft, AltManagerScreen screen,
-			List<Alt> list)
-		{
-			super(minecraft, screen.width, screen.height - 92, 36, 30);
-			
-			list.stream().map(AltManagerScreen.Entry::new)
-				.forEach(this::addEntry);
-		}
-		
-		@Override
-		public void setSelected(@Nullable AltManagerScreen.Entry entry)
-		{
-			super.setSelected(entry);
-			updateAltButtons();
-		}
-		
-		// This method sets selected to null without calling setSelected().
-		@Override
-		public void clearEntries()
-		{
-			super.clearEntries();
-			updateAltButtons();
-		}
-		
-		/**
-		 * @return The selected Alt, or null if no Alt is selected.
-		 */
-		public Alt getSelectedAlt()
-		{
-			AltManagerScreen.Entry selected = getSelected();
-			return selected != null ? selected.alt : null;
-		}
-		
-		/**
-		 * @return The hovered Entry, or null if no Entry is hovered.
-		 */
-		public AltManagerScreen.Entry getHoveredEntry(double mouseX,
-			double mouseY)
-		{
-			Optional<GuiEventListener> hovered = getChildAt(mouseX, mouseY);
-			return hovered.map(e -> ((AltManagerScreen.Entry)e)).orElse(null);
-		}
+		if(menu != null) menu.close();
+		else minecraft.setScreen(prevScreen);
 	}
 }

@@ -24,7 +24,7 @@ public final class ThrowHack extends Hack implements RightClickListener
 	{
 		super("Throw");
 		
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(amount);
 	}
 	

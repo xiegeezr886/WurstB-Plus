@@ -8,11 +8,9 @@
   "client": [
     "OptionsMixin",
     "FogRendererAccessor",
-
     "OpenOpalEntityRotationMixin",
     "OpenOpalInventoryViewMixin",
     "OpenOpalMovementAccess",
-    "OpenOpalPostMoveMixin",
     "OpenOpalHandsMixin",
     "OpenOpalScrollMixin",
     "OpenOpalSlotInputMixin",
@@ -23,7 +21,6 @@
     "OpenOpalCameraMixin",
     "OpenOpalKeyAccessor",
     "OpenOpalInputMixin",
-    "OpenOpalSkipTickMixin",
     "WeatherChangerLevelMixin",
     "ReachLegacyRendererMixin",
     "TimeChangerLevelMixin",
@@ -131,7 +128,27 @@
     "KeyboardInputMixin",
     "MusicManagerMixin",
     "OptionsSubScreenMixin",
-    "SelectWorldScreenMixin"
+    "SelectWorldScreenMixin",
+    "SeedSessionMixin",
+    "NeoRavenLevelLoadingMixin",
+    "NeoRavenReceivingLevelMixin",
+    "NeoRavenProgressMixin",
+    "NeoRavenConnectMixin",
+    "NeoRavenPreparingLevelMixin",
+    "LeavesCrystalSpawnMixin",
+    "LeavesPacketDecoderMixin",
+    "LeavesFovMixin",
+    "LeavesHotbarMixin",
+    "LeavesPlayerRendererMixin",
+    "LeavesLivingAnimationMixin",
+    "LeavesFireworkAccessor",
+    "LeavesFireworkMixin",
+    "LeavesFlightMixin",
+    "IslandContainerScreenMixin",
+    "KeyMappingAccessor",
+    "OpaiWorldListAccessor",
+    "OpaiWorldEntryAccessor",
+    "OpaiServerEntryAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

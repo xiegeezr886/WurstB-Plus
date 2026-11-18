@@ -28,6 +28,7 @@ public final class WurstForgeInitializer
 
 		modBus.addListener(this::onClientSetup);
 		NeoForge.EVENT_BUS.addListener(this::onRegisterClientCommands);
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) -> net.wurstclient.seed.SeedCrackerBridge.disconnect());
 		NeoForge.EVENT_BUS.addListener(this::onRenderLevel);
 	}
 
@@ -40,6 +41,7 @@ public final class WurstForgeInitializer
 
 			initialized = true;
 			WurstClient.INSTANCE.initialize();
+            net.wurstclient.seed.SeedCrackerBridge.initialize();
 		});
 	}
 
@@ -48,6 +50,7 @@ public final class WurstForgeInitializer
 		if(initialized && WurstClient.INSTANCE.getCmds() != null)
 			WurstClient.INSTANCE.getCmds()
 				.buildBrigadierDispatcher(event.getDispatcher());
+        kaptainwutax.seedcrackerX.init.ClientCommands.registerCommands(event.getDispatcher());
 	}
 
 	private void onRenderLevel(RenderLevelStageEvent event)
@@ -70,7 +73,9 @@ public final class WurstForgeInitializer
 		poseStack.mulPose(viewMatrix);
 
 		EventManager.fire(new RenderEvent(poseStack, partialTick));
+        kaptainwutax.seedcrackerX.finder.FinderQueue.get().renderNative(poseStack, camera);
 		WurstClient.INSTANCE.getPostEffectQueue().flush(poseStack, partialTick);
+        net.wurstclient.util.render.MoonEntityGlow.INSTANCE.flush(poseStack, partialTick);
 	}
 
 }

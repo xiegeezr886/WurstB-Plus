@@ -43,7 +43,7 @@ public final class AutoMendHack extends Hack implements UpdateListener
 	public AutoMendHack()
 	{
 		super("AutoMend");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(force);
 		addSetting(autoDisable);
 		addSetting(delay);

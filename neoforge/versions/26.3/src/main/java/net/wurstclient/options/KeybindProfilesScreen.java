@@ -7,7 +7,8 @@
  */
 package net.wurstclient.options;
 
-import com.mojang.blaze3d.Blaze3D;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -18,7 +19,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.Screen;
@@ -68,8 +69,8 @@ public final class KeybindProfilesScreen extends Screen
 	
 	private void openFolder()
 	{
-		Blaze3D
-			.openPath(WurstClient.INSTANCE.getKeybinds().getProfilesFolder());
+		com.mojang.blaze3d.Blaze3D.openPath(
+			WurstClient.INSTANCE.getKeybinds().getProfilesFolder());
 	}
 	
 	private void newProfile(String name)
@@ -125,17 +126,21 @@ public final class KeybindProfilesScreen extends Screen
 	{
 		loadButton.active = listGui.getSelected() != null;
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		listGui.extractRenderState(context, mouseX, mouseY, partialTicks);
+		listGui.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 		
 		context.centeredText(minecraft.font,
-			"Keybind Profiles", width / 2, 12, 0xFFffffff);
+			WurstClient.tr("Keybind Profiles"), width / 2, 12, 0xffffff);
 		
-		super.extractRenderState(context, mouseX, mouseY, partialTicks);
+		super.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 		
 		if(loadButton.isHoveredOrFocused() && !loadButton.active)
 			context.setComponentTooltipForNextFrame(font,
@@ -171,8 +176,13 @@ public final class KeybindProfilesScreen extends Screen
 			return Component.translatable("narrator.select",
 				"Profile " + path.getFileName());
 		}
-		
-		@Override
+@Override
+		public void extractContent(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float partialTicks)
+		{
+			extractContent(new GuiGraphicsExtractor(graphics), mouseX, mouseY,
+				hovered, partialTicks);
+		}
+
 		public void extractContent(GuiGraphicsExtractor context, int mouseX,
 			int mouseY, boolean hovered, float tickDelta)
 		{

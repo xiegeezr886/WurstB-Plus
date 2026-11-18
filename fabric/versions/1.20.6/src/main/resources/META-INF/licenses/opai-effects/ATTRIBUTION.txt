@@ -1,0 +1,15 @@
+Opai potion HUD adaptation
+Source: https://github.com/snmwdd/OpaiBounce
+Reference: src/routes/hud/elements/Effects.svelte
+Assets: public/opai/samsara/potion/*.png (17 effect icons, no digits)
+
+Effects.svelte layout, formatting and transitions adapted to native Java/NanoVG.
+Icons converted to white RGB with original alpha retained, matching CSS masks.
+The original texture dimensions and silhouettes are preserved.
+Upstream integration: CCBlueX and contributors, GPL-3.0-or-later.
+Visual resources: Opai / StylesFoundation and Samsara contributors.
+See LICENSE, LICENSE-OPAI-SHELL and UPSTREAM-NOTICE.md for retained attribution.
+
+The existing Soar-derived HUD host, position, scale and duration setting remain.
+Bundled MiSans font is used instead of upstream fonts; unknown effects use the
+Minecraft status-effect atlas. Only PotionStatus is replaced.

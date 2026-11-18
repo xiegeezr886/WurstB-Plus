@@ -52,6 +52,19 @@ public class EnumSetting<T extends Enum<T>> extends Setting
 		return values;
 	}
 	
+	/**
+	 * Returns the display name of a value, translated into the current
+	 * language. The enum constant name is what gets saved to the settings
+	 * file, so {@link #getSelected()} and the ".set" commands keep using the
+	 * raw value.
+	 */
+	public String getTranslatedValueName(T value)
+	{
+		String key = "setting.value." + translationKey(value.name());
+		String translated = WurstClient.INSTANCE.translate(key);
+		return translated.equals(key) ? value.toString() : translated;
+	}
+
 	public T getSelected()
 	{
 		return selected;
@@ -151,16 +164,17 @@ public class EnumSetting<T extends Enum<T>> extends Setting
 		
 		String command = ".setmode " + featureName.toLowerCase() + " "
 			+ getName().toLowerCase().replace(" ", "_") + " ";
-		String description = "Set " + fullName + " to ";
 		
 		LinkedHashSet<PossibleKeybind> pkb = new LinkedHashSet<>();
-		pkb.add(new PossibleKeybind(command + "next", "Next " + fullName));
-		pkb.add(new PossibleKeybind(command + "prev", "Previous " + fullName));
+		pkb.add(new PossibleKeybind(command + "next", "Next %s", fullName));
+		pkb.add(new PossibleKeybind(command + "prev", "Previous %s",
+			fullName));
 		
 		for(T v : values)
 		{
 			String vName = v.toString().replace(" ", "_").toLowerCase();
-			pkb.add(new PossibleKeybind(command + vName, description + v));
+			pkb.add(new PossibleKeybind(command + vName, "Set %s to %s",
+				fullName, v.toString()));
 		}
 		
 		return pkb;

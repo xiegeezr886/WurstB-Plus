@@ -37,7 +37,7 @@ public class GuiMixin
 			return;
 		
 		float tickDelta = tickCounter.getGameTimeDeltaPartialTick(true);
-		EventManager.fire(new GUIRenderEvent(context, tickDelta));
+		EventManager.fire(new GUIRenderEvent(new net.wurstclient.util.render.GuiGraphicsExtractor(context), tickDelta));
 	}
 	
 	@Inject(

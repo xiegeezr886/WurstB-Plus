@@ -30,7 +30,7 @@ public final class RawInputHack extends Hack
 	public RawInputHack()
 	{
 		super("RawInput");
-		setCategory(Category.OTHER);
+		setCategory(Category.RENDER);
 	}
 
 	@Override

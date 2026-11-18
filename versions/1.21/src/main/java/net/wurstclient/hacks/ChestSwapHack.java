@@ -41,7 +41,7 @@ public final class ChestSwapHack extends Hack
 	public ChestSwapHack()
 	{
 		super("ChestSwap");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(chestplate);
 		addSetting(stayOn);
 		addSetting(closeInventory);

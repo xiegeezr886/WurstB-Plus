@@ -37,7 +37,7 @@ public final class PotionSaverHack extends Hack implements PacketOutputListener
 	public PotionSaverHack()
 	{
 		super("PotionSaver");
-		setCategory(Category.OTHER);
+		setCategory(Category.PLAYER);
 		addSetting(allEffects);
 		addSetting(effects);
 		addSetting(onlyWhenStationary);

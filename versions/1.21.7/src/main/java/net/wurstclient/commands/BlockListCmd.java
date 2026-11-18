@@ -80,13 +80,11 @@ public final class BlockListCmd extends Command
 		String inputBlockName = args[3];
 		Block block = BlockUtils.getBlockFromNameOrID(inputBlockName);
 		if(block == null)
-			throw new CmdSyntaxError(
-				"\"" + inputBlockName + "\" is not a valid block.");
+			throw new CmdSyntaxError("\"%s\" is not a valid block.", inputBlockName);
 		
 		String blockName = BlockUtils.getName(block);
 		if(setting.contains(blockName))
-			throw new CmdError(feature.getName() + " " + setting.getName()
-				+ " already contains " + blockName);
+			throw new CmdError("%s %s already contains %s", feature.getName(), setting.getName(), blockName);
 		
 		setting.add(block);
 	}
@@ -100,14 +98,12 @@ public final class BlockListCmd extends Command
 		String inputBlockName = args[3];
 		Block block = BlockUtils.getBlockFromNameOrID(inputBlockName);
 		if(block == null)
-			throw new CmdSyntaxError(
-				"\"" + inputBlockName + "\" is not a valid block.");
+			throw new CmdSyntaxError("\"%s\" is not a valid block.", inputBlockName);
 		
 		String blockName = BlockUtils.getName(block);
 		int index = setting.indexOf(blockName);
 		if(index < 0)
-			throw new CmdError(feature.getName() + " " + setting.getName()
-				+ " does not contain " + blockName);
+			throw new CmdError("%s %s does not contain %s", feature.getName(), setting.getName(), blockName);
 		
 		setting.remove(index);
 	}
@@ -124,17 +120,14 @@ public final class BlockListCmd extends Command
 		pages = Math.max(pages, 1);
 		
 		if(page > pages || page < 1)
-			throw new CmdSyntaxError("Invalid page: " + page);
+			throw new CmdSyntaxError("Invalid page: %s", page);
 		
-		String total = "Total: " + blocks.size() + " block";
-		total += blocks.size() != 1 ? "s" : "";
-		ChatUtils.message(total);
+		ChatUtils.message("Total: %s blocks", blocks.size());
 		
 		int start = (page - 1) * 8;
 		int end = Math.min(page * 8, blocks.size());
 		
-		ChatUtils.message(feature.getName() + " " + setting.getName()
-			+ " (page " + page + "/" + pages + ")");
+		ChatUtils.message("%s %s (page %s/%s)", feature.getName(), setting.getName(), page, pages);
 		for(int i = start; i < end; i++)
 			ChatUtils.message(blocks.get(i).toString());
 	}
@@ -145,7 +138,7 @@ public final class BlockListCmd extends Command
 			return 1;
 		
 		if(!MathUtils.isInteger(args[3]))
-			throw new CmdSyntaxError("Not a number: " + args[3]);
+			throw new CmdSyntaxError("Not a number: %s", args[3]);
 		
 		return Integer.parseInt(args[3]);
 	}
@@ -154,8 +147,7 @@ public final class BlockListCmd extends Command
 		Setting setting) throws CmdError
 	{
 		if(!(setting instanceof BlockListSetting))
-			throw new CmdError(feature.getName() + " " + setting.getName()
-				+ " is not a BlockList setting.");
+			throw new CmdError("%s %s is not a BlockList setting.", feature.getName(), setting.getName());
 		
 		return (BlockListSetting)setting;
 	}

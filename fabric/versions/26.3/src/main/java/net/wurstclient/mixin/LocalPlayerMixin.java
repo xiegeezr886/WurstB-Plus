@@ -48,59 +48,62 @@ import net.wurstclient.events.UpdateListener.UpdateEvent;
 import net.wurstclient.hack.HackList;
 import net.wurstclient.mixinterface.ILocalPlayer;
 import net.wurstclient.util.MovementPlanner;
+import net.wurstclient.util.Rotation;
+import net.wurstclient.events.IsPlayerInLavaListener.IsPlayerInLavaEvent;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerMixin extends AbstractClientPlayer
-	implements ILocalPlayer
+	implements ILocalPlayer, net.wurstclient.mixinterface.IClientPlayerEntity
 {
 	@Shadow
 	@Final
 	protected Minecraft minecraft;
-	
+
 	private Screen tempCurrentScreen;
-	
+
 	private LocalPlayerMixin(WurstClient wurst, ClientLevel world,
 		GameProfile profile)
 	{
 		super(world, profile);
 	}
-	
+
 	@Inject(method = "tick()V", at = @At("HEAD"))
 	private void onTickHead(CallbackInfo ci)
 	{
 		InputFaker.swapIfNeeded();
 	}
-	
+
 	@Inject(method = "tick()V", at = @At("RETURN"))
 	private void onTickReturn(CallbackInfo ci)
 	{
 		InputFaker.restoreIfNeeded();
 	}
-	
+
 	@Inject(method = "rideTick()V", at = @At("HEAD"))
 	private void onRideTickHead(CallbackInfo ci)
 	{
 		InputFaker.swapIfNeeded();
 	}
-	
+
 	@Inject(method = "rideTick()V", at = @At("RETURN"))
 	private void onRideTickReturn(CallbackInfo ci)
 	{
 		InputFaker.restoreIfNeeded();
 	}
-	
+
 	@Inject(method = "tick()V",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/client/player/AbstractClientPlayer;tick()V",
 			ordinal = 0))
 	private void onTick(CallbackInfo ci)
 	{
-		try(TempRealInput _ = new TempRealInput())
+		try(TempRealInput ignore = new TempRealInput())
 		{
 			EventManager.fire(UpdateEvent.INSTANCE);
 		}
 	}
-	
+
 	/**
 	 * This mixin makes AutoSprint's "Omnidirectional Sprint" setting work.
 	 */
@@ -113,7 +116,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	{
 		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldOmniSprint())
 			return MovementPlanner.isMoving(input);
-		
+
 		return original.call(input);
 	}
 
@@ -135,10 +138,10 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
 			&& WurstClient.INSTANCE.getHax().noSlowdownHack.shouldBypassUsingItem())
 			return false;
-		
+
 		return original.call(instance);
 	}
-	
+
 	/**
 	 * Prevents item-use movement slowdown while NoSlowdown is enabled.
 	 */
@@ -153,10 +156,10 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
 			&& WurstClient.INSTANCE.getHax().noSlowdownHack.shouldBypassUsingItem())
 			return false;
-		
+
 		return original.call(instance);
 	}
-	
+
 	/**
 	 * Allows sprinting to start while using an item when NoSlowdown is enabled.
 	 */
@@ -170,22 +173,22 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		if(WurstClient.INSTANCE.getHax().noSlowdownHack.isEnabled()
 			&& WurstClient.INSTANCE.getHax().noSlowdownHack.shouldBypassUsingItem())
 			return false;
-		
+
 		return original.call(instance);
 	}
-	
+
 	@Inject(method = "sendPosition()V", at = @At("HEAD"))
 	private void onSendMovementPacketsHEAD(CallbackInfo ci)
 	{
 		EventManager.fire(PreMotionEvent.INSTANCE);
 	}
-	
+
 	@Inject(method = "sendPosition()V", at = @At("TAIL"))
 	private void onSendMovementPacketsTAIL(CallbackInfo ci)
 	{
 		EventManager.fire(PostMotionEvent.INSTANCE);
 	}
-	
+
 	@Inject(
 		method = "move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V",
 		at = @At("HEAD"))
@@ -193,7 +196,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	{
 		EventManager.fire(PlayerMoveEvent.INSTANCE);
 	}
-	
+
 	@Inject(method = "isAutoJumpEnabled()Z",
 		at = @At("HEAD"),
 		cancellable = true)
@@ -202,7 +205,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		if(!WurstClient.INSTANCE.getHax().stepHack.isAutoJumpAllowed())
 			cir.setReturnValue(false);
 	}
-	
+
 	/**
 	 * When PortalGUI is enabled, this mixin temporarily sets the current screen
 	 * to null to prevent the updateNausea() method from closing it.
@@ -215,11 +218,11 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	{
 		if(!WurstClient.INSTANCE.getHax().portalGuiHack.isEnabled())
 			return;
-		
+
 		tempCurrentScreen = minecraft.gui.screen();
 		minecraft.gui.setScreen(null);
 	}
-	
+
 	/**
 	 * This mixin restores the current screen as soon as the updateNausea()
 	 * method is done looking at it.
@@ -233,11 +236,11 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	{
 		if(tempCurrentScreen == null)
 			return;
-		
+
 		minecraft.gui.setScreen(tempCurrentScreen);
 		tempCurrentScreen = null;
 	}
-	
+
 	/**
 	 * This mixin allows AutoSprint to enable sprinting even when the player is
 	 * too hungry.
@@ -251,7 +254,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		if(WurstClient.INSTANCE.getHax().autoSprintHack.shouldSprintHungry())
 			cir.setReturnValue(true);
 	}
-	
+
 	/**
 	 * Getter method for what used to be airStrafingSpeed.
 	 * Overridden to allow for the speed to be modified by hacks.
@@ -264,7 +267,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		EventManager.fire(event);
 		return event.getSpeed();
 	}
-	
+
 	@Override
 	public void lerpMotion(Vec3 vec)
 	{
@@ -272,40 +275,43 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		EventManager.fire(event);
 		super.lerpMotion(new Vec3(event.getX(), event.getY(), event.getZ()));
 	}
-	
+
 	@Override
 	public boolean isInWater()
 	{
 		boolean inWater = super.isInWater();
 		IsPlayerInWaterEvent event = new IsPlayerInWaterEvent(inWater);
 		EventManager.fire(event);
-		
+
 		return event.isInWater();
 	}
-	
+
 	@Override
 	public boolean isTouchingWaterBypass()
 	{
 		return super.isInWater();
 	}
-	
+
 	@Override
 	protected float getJumpPower()
 	{
 		return super.getJumpPower() + WurstClient.INSTANCE.getHax().highJumpHack
 			.getAdditionalJumpMotion();
 	}
-	
+
 	/**
 	 * This is the part that makes SafeWalk work.
 	 */
 	@Override
 	protected boolean isStayingOnGroundSurface()
 	{
+		HackList hax = WurstClient.INSTANCE.getHax();
 		return super.isStayingOnGroundSurface()
-			|| WurstClient.INSTANCE.getHax().safeWalkHack.isEnabled();
+			|| hax != null && (hax.safeWalkHack.shouldClipEdges()
+				|| hax.printerHack.shouldSafeWalk()
+				|| hax.scaffoldWalkHack.shouldSafeWalk());
 	}
-	
+
 	/**
 	 * This mixin allows SafeWalk to sneak visibly when the player is
 	 * near a ledge.
@@ -314,57 +320,104 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	protected Vec3 maybeBackOffFromEdge(Vec3 movement, MoverType type)
 	{
 		Vec3 result = super.maybeBackOffFromEdge(movement, type);
-		
+
 		if(movement != null)
 			WurstClient.INSTANCE.getHax().safeWalkHack
 				.onClipAtLedge(!movement.equals(result));
-		
+
 		return result;
 	}
-	
+
 	@Override
 	public boolean hasEffect(Holder<MobEffect> effect)
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
-		
+
 		if(effect == MobEffects.NIGHT_VISION
 			&& hax.fullbrightHack.isNightVisionActive())
 			return true;
-		
+
 		if(hax.noLevitationHack.shouldBlock(effect.value()))
 			return false;
-		
+
 		if(effect == MobEffects.BLINDNESS && hax.antiBlindHack.isEnabled())
 			return false;
-		
+
 		if(effect == MobEffects.DARKNESS && hax.antiBlindHack.isEnabled())
 			return false;
-		
+
 		return super.hasEffect(effect);
 	}
-	
+
 	@Override
 	public MobEffectInstance getEffect(Holder<MobEffect> effect)
 	{
 		HackList hax = WurstClient.INSTANCE.getHax();
-		
+
 		if(hax.noLevitationHack.shouldBlock(effect.value()))
 			return null;
-		
+
 		return super.getEffect(effect);
 	}
-	
+
 	@Override
 	public float maxUpStep()
 	{
 		return WurstClient.INSTANCE.getHax().stepHack
 			.adjustStepHeight(super.maxUpStep());
 	}
-	
 
-	
 
-	
+
+
+
+
+	@Inject(method = "moveTowardsClosestSpace(DD)V", at = @At("HEAD"),
+		cancellable = true)
+	private void epsilon$preventBlockPush(double x, double z, CallbackInfo ci)
+	{
+		HackList hax = WurstClient.INSTANCE.getHax();
+		if((Object)this == WurstClient.MC.player && hax != null
+			&& hax.antiKnockbackHack.preventsBlockPush())
+			ci.cancel();
+	}
+
+	@ModifyExpressionValue(method = {"sendPosition", "tick"},
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/client/player/LocalPlayer;getYRot()F"))
+	private float useSilentYaw(float original)
+	{
+		Rotation rotation =
+			WurstClient.INSTANCE.getRotationFaker().getCurrentRotation();
+		return rotation == null ? original : rotation.yaw();
+	}
+
+	@ModifyExpressionValue(method = {"sendPosition", "tick"},
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/client/player/LocalPlayer;getXRot()F"))
+	private float useSilentPitch(float original)
+	{
+		Rotation rotation =
+			WurstClient.INSTANCE.getRotationFaker().getCurrentRotation();
+		return rotation == null ? original : rotation.pitch();
+	}
+
+	@Override
+	public boolean isInLava()
+	{
+		boolean inLava = super.isInLava();
+		IsPlayerInLavaEvent event = new IsPlayerInLavaEvent(inLava);
+		EventManager.fire(event);
+
+		return event.isInLava();
+	}
+
+	@Override
+	public boolean isSpectator()
+	{
+		return super.isSpectator()
+			|| WurstClient.INSTANCE.getHax().freecamHack.isEnabled();
+	}
 	/**
 	 * This is the part that makes Liquids work.
 	 */

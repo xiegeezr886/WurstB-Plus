@@ -6,6 +6,9 @@
  * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
  */
 package net.wurstclient.mixin;
+import net.wurstclient.hud2.HudManager;
+import net.wurstclient.hud2.HUDMod;
+import net.minecraft.world.scores.Objective;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -73,5 +76,38 @@ public class IngameHudMixin
 			return;
 		
 		ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"),
+		method = "displayScoreboardSidebar(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/scores/Objective;)V",
+		cancellable = true)
+	private void onDisplayScoreboardSidebar(GuiGraphics context,
+		Objective objective, CallbackInfo ci)
+	{
+		if(isHudModuleEnabled("Scoreboard"))
+			ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"),
+		method = "renderEffects(Lnet/minecraft/client/gui/GuiGraphics;F)V",
+		cancellable = true)
+	private void onRenderEffects(GuiGraphics context, float partialTicks,
+		CallbackInfo ci)
+	{
+		if(isHudModuleEnabled("PotionStatus"))
+			ci.cancel();
+	}
+	private static boolean isHudModuleEnabled(String id)
+	{
+		WurstClient wurst = WurstClient.INSTANCE;
+		if(wurst == null || WurstClient.MC == null)
+			return false;
+
+		HudManager hud = wurst.getHudManager();
+		if(hud == null)
+			return false;
+
+		HUDMod mod = hud.getModule(id);
+		return mod != null && mod.isEnabled();
 	}
 }

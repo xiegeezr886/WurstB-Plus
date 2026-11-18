@@ -45,7 +45,7 @@ public final class AutoWalkHack extends Hack
 	public AutoWalkHack()
 	{
 		super("AutoWalk");
-		setCategory(Category.MOVEMENT);
+		setCategory(Category.PLAYER);
 		addSetting(mode);
 		addSetting(direction);
 		addSetting(disableOnInput);

@@ -33,7 +33,7 @@ public final class LeaveCmd extends Command
 	@Override
 	public String getPrimaryAction()
 	{
-		return "Leave";
+		return WURST.translate("Leave");
 	}
 	
 	@Override

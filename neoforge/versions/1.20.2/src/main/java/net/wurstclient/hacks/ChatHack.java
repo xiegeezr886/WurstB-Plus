@@ -93,7 +93,7 @@ public final class ChatHack extends Hack
 	public ChatHack()
 	{
 		super("Chat");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(antiClear);
 		addSetting(timestamps);
 		addSetting(showSeconds);

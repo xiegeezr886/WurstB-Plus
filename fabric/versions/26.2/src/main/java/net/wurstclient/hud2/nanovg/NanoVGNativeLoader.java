@@ -36,7 +36,7 @@ import org.lwjgl.system.Configuration;
 public final class NanoVGNativeLoader
 {
 	/** Replaced by the propagation script for each Minecraft version. */
-	private static final String LIB_VERSION = "3.4.3";
+	private static final String LIB_VERSION = "3.4.1";
 	private static final String LIBRARY_NAME = "lwjgl_nanovg";
 
 	private static boolean attempted;

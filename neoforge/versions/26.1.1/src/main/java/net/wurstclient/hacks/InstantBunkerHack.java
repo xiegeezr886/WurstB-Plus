@@ -42,7 +42,7 @@ public final class InstantBunkerHack extends Hack implements UpdateListener
 	public InstantBunkerHack()
 	{
 		super("InstantBunker");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 	}
 	
 	@Override

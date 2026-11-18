@@ -1,181 +1,152 @@
-/*
- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
- *
- * This source code is subject to the terms of the GNU General Public
- * License, version 3. If a copy of the GPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
- *
- * Ported from Meteor Client (GPL-3.0).
- */
+/* Adapted from Epsilon AutoWeapon.kt (GPL-3.0), Fabric 1.20.1. */
 package net.wurstclient.hacks;
 
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.*;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
+import net.wurstclient.epsilon.EpsilonTargets;
 import net.wurstclient.events.PlayerAttacksEntityListener;
+import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.EnumSetting;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
-@SearchTags({"auto weapon", "best weapon", "weapon swap", "AutoWeapon"})
 public final class AutoWeaponHack extends Hack
-	implements PlayerAttacksEntityListener
-{
-	private final EnumSetting<Weapon> weapon = new EnumSetting<>("Weapon",
-		"What type of weapon to use.", Weapon.values(), Weapon.SWORD);
+    implements PlayerAttacksEntityListener, UpdateListener {
+  private enum Mode {
+    SIMPLE,
+    SMART
+  }
 
-	private final SliderSetting threshold = new SliderSetting("Threshold",
-		"If the non-preferred weapon produces this much more damage,"
-			+ " this will favor it over your preferred weapon.",
-		4, 0, 20, 1, ValueDisplay.DECIMAL);
+  private final EnumSetting<Mode> mode = new EnumSetting<>("Mode", Mode.values(), Mode.SMART);
+  private final SliderSetting slot =
+      new SliderSetting("Target slot", 1, 1, 9, 1, ValueDisplay.INTEGER);
+  private final CheckboxSetting pauseEat = new CheckboxSetting("Pause on eat", true);
+  private final CheckboxSetting onlyWeapon = new CheckboxSetting("Only on weapon", false);
+  private final CheckboxSetting swapBack = new CheckboxSetting("Swap back", true);
+  private final SliderSetting delay =
+      new SliderSetting("Swap back delay", 200, 0, 500, 10, ValueDisplay.INTEGER);
+  private final CheckboxSetting shield = new CheckboxSetting("Smart shield breaker", true);
+  private final CheckboxSetting durability = new CheckboxSetting("Smart durability saver", false);
+  private int original = -1, owned = -1;
+  private Object player, world;
+  private long restoreAt;
 
-	private final CheckboxSetting antiBreak = new CheckboxSetting("Anti break",
-		"Prevents you from breaking your weapon.", false);
+  public AutoWeaponHack() {
+    super("AutoWeapon");
+    setCategory(Category.COMBAT);
+    addSetting(mode);
+    addSetting(slot);
+    addSetting(pauseEat);
+    addSetting(onlyWeapon);
+    addSetting(swapBack);
+    addSetting(delay);
+    addSetting(shield);
+    addSetting(durability);
+  }
 
-	public AutoWeaponHack()
-	{
-		super("AutoWeapon");
-		setCategory(Category.COMBAT);
-		addSetting(weapon);
-		addSetting(threshold);
-		addSetting(antiBreak);
-	}
+  protected void onEnable() {
+    original = owned = -1;
+    EVENTS.add(PlayerAttacksEntityListener.class, this);
+    EVENTS.add(UpdateListener.class, this);
+  }
 
-	@Override
-	protected void onEnable()
-	{
-		EVENTS.add(PlayerAttacksEntityListener.class, this);
-	}
+  protected void onDisable() {
+    EVENTS.remove(PlayerAttacksEntityListener.class, this);
+    EVENTS.remove(UpdateListener.class, this);
+    restore();
+  }
 
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(PlayerAttacksEntityListener.class, this);
-	}
+  private void restore() {
+    if (player == MC.player
+        && world == MC.level
+        && MC.player != null
+        && original >= 0
+        && MC.player.getInventory().selected == owned) MC.player.getInventory().selected = original;
+    original = owned = -1;
+  }
 
-	@Override
-	public void onPlayerAttacksEntity(Entity target)
-	{
-		if(!(target instanceof LivingEntity living))
-			return;
+  public void onUpdate() {
+    if (player != MC.player || world != MC.level) {
+      original = owned = -1;
+      player = MC.player;
+      world = MC.level;
+    }
+    if (original >= 0
+        && (System.nanoTime() >= restoreAt || MC.screen != null || !EpsilonTargets.ready()))
+      restore();
+    if (original >= 0 && MC.player.getInventory().selected != owned) original = owned = -1;
+  }
 
-		int slot = getBestWeapon(living);
-		if(slot >= 0)
-			MC.player.getInventory().selected = slot;
-	}
+  public void onPlayerAttacksEntity(Entity entity) {
+    onUpdate();
+    if (!EpsilonTargets.ready()
+        || !(entity instanceof LivingEntity target)
+        || original >= 0
+        || pauseEat.isChecked() && MC.player.isUsingItem()
+        || onlyWeapon.isChecked() && !EpsilonTargets.weapon()
+        || WURST.getHax().scaffoldWalkHack.isEnabled()) return;
+    int selected = mode.getSelected() == Mode.SIMPLE ? slot.getValueI() - 1 : bestSlot(target);
+    if (selected < 0 || selected == MC.player.getInventory().selected) return;
+    player = MC.player;
+    world = MC.level;
+    if (swapBack.isChecked()) {
+      original = MC.player.getInventory().selected;
+      owned = selected;
+      restoreAt = System.nanoTime() + delay.getValueI() * 1_000_000L;
+    }
+    MC.player.getInventory().selected = selected;
+    // The attack event runs before vanilla synchronizes the selected hotbar slot.
+  }
 
-	private int getBestWeapon(LivingEntity target)
-	{
-		int slotS = MC.player.getInventory().selected;
-		int slotA = MC.player.getInventory().selected;
-		double damageS = 0;
-		double damageA = 0;
+  private int bestSlot(LivingEntity target) {
+    var inv = MC.player.getInventory();
+    if (shield.isChecked() && target.isBlocking()) {
+      if (inv.getSelected().is(ItemTags.AXES)) return -1;
+      for (int i = 0; i < 9; i++) if (inv.getItem(i).is(ItemTags.AXES)) return i;
+    }
+    int best = -1;
+    double value = score(inv.getSelected(), target);
+    for (int i = 0; i < 9; i++) {
+      double candidate = score(inv.getItem(i), target);
+      if (candidate > value) {
+        value = candidate;
+        best = i;
+      }
+    }
+    return best;
+  }
 
-		for(int i = 0; i < 9; i++)
-		{
-			ItemStack stack = MC.player.getInventory().getItem(i);
-			if(stack.isEmpty())
-				continue;
+  private double score(ItemStack stack, LivingEntity target) {
+    double score =
+        durability.isChecked()
+            ? (!stack.isDamageableItem() ? 4 : level(stack, Enchantments.UNBREAKING) * .05)
+            : 0;
+    if (stack.isEmpty()) return score;
+    boolean protectedFire = target.hasEffect(MobEffects.FIRE_RESISTANCE);
+    for (ItemStack armor : target.getArmorSlots())
+      protectedFire |= level(armor, Enchantments.FIRE_PROTECTION) > 0;
+    if (!target.isOnFire() && !protectedFire && level(stack, Enchantments.FIRE_ASPECT) > 0)
+      score += 30;
+    if (!(target instanceof Player))
+      score +=
+          level(stack, Enchantments.LOOTING)
+              * (target.getHealth() < 20 || target.isOnFire() ? 10 : 5);
+    int sharp = level(stack, Enchantments.SHARPNESS);
+    double damage = sharp > 0 ? (1 + .5 * (sharp - 1)) * 3 : 0;
+    if (target.getType().is(net.minecraft.tags.EntityTypeTags.UNDEAD)) damage += level(stack, Enchantments.SMITE) * 5;
+    if (target.getType().is(net.minecraft.tags.EntityTypeTags.ARTHROPOD))
+      damage += level(stack, Enchantments.BANE_OF_ARTHROPODS) * 5;
+    score += damage * (target.isOnFire() ? 1.5 : 1) + level(stack, Enchantments.SWEEPING_EDGE) * 3;
+    if (target.getType().is(net.minecraft.tags.EntityTypeTags.AQUATIC)) score += level(stack, Enchantments.IMPALING) * 5;
+    return score;
+  }
 
-			if(stack.is(ItemTags.SWORDS))
-			{
-				if(antiBreak.isChecked() && isAboutToBreak(stack))
-					continue;
-
-				double damage = getAttackDamage(stack);
-				if(damage > damageS)
-				{
-					damageS = damage;
-					slotS = i;
-				}
-
-			}else if(stack.is(ItemTags.AXES))
-			{
-				if(antiBreak.isChecked() && isAboutToBreak(stack))
-					continue;
-
-				double damage = getAttackDamage(stack);
-				if(damage > damageA)
-				{
-					damageA = damage;
-					slotA = i;
-				}
-			}
-		}
-
-		int thresholdI = threshold.getValueI();
-
-		if(weapon.getSelected() == Weapon.SWORD)
-		{
-			if(thresholdI > damageA - damageS)
-				return slotS;
-			if(thresholdI < damageA - damageS)
-				return slotA;
-		}else
-		{
-			if(thresholdI > damageS - damageA)
-				return slotA;
-			if(thresholdI < damageS - damageA)
-				return slotS;
-		}
-
-		return MC.player.getInventory().selected;
-	}
-
-	private boolean isAboutToBreak(ItemStack stack)
-	{
-		if(!stack.isDamageableItem())
-			return false;
-
-		return stack.getMaxDamage() - stack.getDamageValue() <= 10;
-	}
-
-	private double getAttackDamage(ItemStack stack)
-	{
-		double damage = 1;
-
-		double[] bonus = {0};
-		stack.forEachModifier(EquipmentSlot.MAINHAND,
-			(attribute, modifier) -> {
-				if(attribute.equals(Attributes.ATTACK_DAMAGE))
-					bonus[0] += modifier.amount();
-			});
-		damage += bonus[0];
-
-		int sharpness = EnchantmentHelper.getItemEnchantmentLevel(
-			Enchantments.SHARPNESS, stack);
-		if(sharpness > 0)
-			damage += 1 + 0.5 * (sharpness - 1);
-
-		return damage;
-	}
-
-	private enum Weapon
-	{
-		SWORD("Sword"),
-		AXE("Axe");
-
-		private final String name;
-
-		private Weapon(String name)
-		{
-			this.name = name;
-		}
-
-		@Override
-		public String toString()
-		{
-			return name;
-		}
-	}
+  private static int level(ItemStack stack, Enchantment enchantment) {
+    return net.wurstclient.util.EnchantmentUtils.getLevel(enchantment, stack);
+  }
 }

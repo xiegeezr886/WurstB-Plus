@@ -82,7 +82,7 @@ public final class AncientCitySearchHack extends Hack
 	public AncientCitySearchHack()
 	{
 		super("AncientCitySearch");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(command);
 		addSetting(sendOnEnable);
 		addSetting(searchNow);
@@ -152,9 +152,7 @@ public final class AncientCitySearchHack extends Hack
 
 		if(attempts >= maxAttempts.getValueI())
 		{
-			ChatUtils.warning(
-				"AncientCitySearch: no reply after " + attempts
-					+ " attempts. Check command permissions.");
+			ChatUtils.warning("AncientCitySearch: no reply after %s attempts. Check command permissions.", attempts);
 			finished = true;
 			return;
 		}
@@ -181,8 +179,7 @@ public final class AncientCitySearchHack extends Hack
 		awaitingReply = true;
 		nextActionTick = tickCounter + retryDelay.getValueI();
 
-		ChatUtils.message("AncientCitySearch: running /" + value + " (attempt "
-			+ attempts + "/" + maxAttempts.getValueI() + ")");
+		ChatUtils.message("AncientCitySearch: running /%s (attempt %s/%s)", value, attempts, maxAttempts.getValueI());
 		MC.getConnection().sendCommand(value);
 	}
 
@@ -202,8 +199,7 @@ public final class AncientCitySearchHack extends Hack
 
 		awaitingReply = false;
 		finished = true;
-		ChatUtils.message("AncientCitySearch: nearest ancient city at " + x
-			+ ", " + z + ".");
+		ChatUtils.message("AncientCitySearch: nearest ancient city at %s, %s.", x, z);
 
 		if(!autoWalk.isChecked())
 			return;

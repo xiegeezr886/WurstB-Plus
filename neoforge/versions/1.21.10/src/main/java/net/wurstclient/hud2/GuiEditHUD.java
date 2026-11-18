@@ -46,19 +46,18 @@ public final class GuiEditHUD extends Screen
 
 	public GuiEditHUD()
 	{
-		super(Component.literal("HUD Editor"));
+		super(Component.literal(WurstClient.tr("HUD Editor")));
 		manager = WURST.getHudManager();
 		mods = manager.getMods();
 	}
 
-	@Override
-	public void render(net.minecraft.client.gui.GuiGraphics graphics,
-		int mouseX, int mouseY, float partialTicks)
+	@Override public void render(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) { render(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks); }
+public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		hoveredId = findHovered(mouseX, mouseY);
 		HudItemIcons.capturePending(NanoVGUI.context(), 4);
 
-		NanoVGUI.pass(new GuiGraphicsExtractor(graphics), () -> {
+		NanoVGUI.pass(graphics, () -> {
 			NanoVGUI.fill(0, 0, width, height, 0x50000000);
 			for(int x = 0; x < width; x += GRID_SIZE)
 				NanoVGUI.fill(x, 0, x + 1, height, 0x08FFFFFF);

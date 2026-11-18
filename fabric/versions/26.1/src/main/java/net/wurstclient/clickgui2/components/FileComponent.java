@@ -9,7 +9,7 @@ package net.wurstclient.clickgui2.components;
 
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.wurstclient.clickgui2.FlatRenderer;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
 import net.wurstclient.clickgui2.ClickGui;
@@ -45,9 +45,8 @@ public final class FileComponent extends Component
 		MC.setScreen(new SelectFileScreen(MC.screen, setting));
 	}
 	
-	@Override
-	public void render(GuiGraphicsExtractor context, int mouseX, int mouseY,
-		float partialTicks)
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTicks) { render(new GuiGraphicsExtractor(context), mouseX, mouseY, partialTicks); }
+@Override public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTicks)
 	{
 		int x1 = getX();
 		int x2 = x1 + getWidth();
@@ -63,7 +62,8 @@ public final class FileComponent extends Component
 		if(hText)
 			GUI.setTooltip(setting.getWrappedDescription(200));
 		else if(hBox)
-			GUI.setTooltip("\u00a7e[left-click]\u00a7r to select file");
+			GUI.setTooltip(
+				WURST.translate("gui.wurst.component.file_hint"));
 		
 		float hover = hoverAnimation.update(hBox);
 		FlatRenderer.drawControl(context, x1, y1, x2, y2, 3,

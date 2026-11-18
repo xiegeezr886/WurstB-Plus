@@ -29,7 +29,7 @@ public final class ChatHiderHack extends Hack implements UpdateListener
 	public ChatHiderHack()
 	{
 		super("ChatHider");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(openOpacity);
 	}
 
