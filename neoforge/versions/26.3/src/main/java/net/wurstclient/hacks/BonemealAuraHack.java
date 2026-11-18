@@ -75,7 +75,7 @@ public final class BonemealAuraHack extends Hack implements HandleInputListener
 	{
 		super("BonemealAura");
 		
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 		addSetting(range);
 		addSetting(mode);
 		addSetting(automationLevel);

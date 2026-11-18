@@ -128,7 +128,7 @@ public final class ElytraFollowerHack extends Hack
 	@Override
 	public void onMouseButton(int button, int action)
 	{
-		if(!middleClickLock.isChecked() || button != 2 || action != 1
+		if(!middleClickLock.isChecked() || button != com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_MIDDLE || action != 1
 			|| MC.gui.screen() != null || MC.player == null)
 			return;
 

@@ -7,14 +7,19 @@
  */
 package net.wurstclient.options;
 
+import net.wurstclient.WurstClient;
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
+
+import com.mojang.blaze3d.platform.InputConstants;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.CommonColors;
+import com.mojang.blaze3d.platform.InputConstants;
 
 public class PressAKeyScreen extends Screen
 {
@@ -60,15 +65,18 @@ public class PressAKeyScreen extends Screen
 	{
 		return false;
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		context.centeredText(font, "请按下键盘按键或鼠标按钮", width / 2,
-			height / 4 + 48, CommonColors.WHITE);
-
-		for(Renderable drawable : renderables)
-			drawable.extractRenderState(context, mouseX, mouseY, partialTicks);
+		extractBackground(context.getInner(), mouseX, mouseY, partialTicks);
+		context.centeredText(font, WurstClient.tr("Press a key"),
+			width / 2, height / 4 + 48, CommonColors.WHITE);
+		super.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 	}
 }

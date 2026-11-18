@@ -7,10 +7,12 @@
  */
 package net.wurstclient.clickgui2.screens;
 
+
+
 import com.mojang.blaze3d.platform.InputConstants;
 import org.joml.Matrix3x2fStack;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -262,15 +264,19 @@ public final class EditBookOfferScreen extends Screen
 			offerToSave != null && offerToSave.price() > 1;
 		
 	}
-	
-	@Override
-	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY,
+@Override
+	public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
+	{
+		renderContents(new GuiGraphicsExtractor(graphics), mouseX, mouseY, partialTicks);
+	}
+
+	private void renderContents(GuiGraphicsExtractor context, int mouseX, int mouseY,
 		float partialTicks)
 	{
-		extractBackground(context, mouseX, mouseY, partialTicks);
-		levelField.extractRenderState(context, mouseX, mouseY, partialTicks);
-		priceField.extractRenderState(context, mouseX, mouseY, partialTicks);
-		super.extractRenderState(context, mouseX, mouseY, partialTicks);
+		extractBackground(context.getInner(), mouseX, mouseY, partialTicks);
+		levelField.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		priceField.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
+		super.extractRenderState(context.getInner(), mouseX, mouseY, partialTicks);
 
 		NanoVGUI.pass(context, () -> {
 			NanoVGUI.centeredText("编辑附魔书报价", width / 2, 12, 0xFFFFFFFF,

@@ -22,7 +22,7 @@ public final class NoRotateHack extends Hack
 	public NoRotateHack()
 	{
 		super("NoRotate");
-		setCategory(Category.MOVEMENT);
+		setCategory(Category.PLAYER);
 		addSetting(preserveYaw);
 		addSetting(preservePitch);
 	}

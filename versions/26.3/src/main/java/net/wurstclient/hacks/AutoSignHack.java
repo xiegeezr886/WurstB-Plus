@@ -21,7 +21,7 @@ public final class AutoSignHack extends Hack
 	public AutoSignHack()
 	{
 		super("AutoSign");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.WORLD);
 	}
 	
 	@Override

@@ -41,7 +41,7 @@ public final class DamageCmd extends Command
 	private int parseAmount(String dmgString) throws CmdSyntaxError
 	{
 		if(!MathUtils.isInteger(dmgString))
-			throw new CmdSyntaxError("Not a number: " + dmgString);
+			throw new CmdSyntaxError("Not a number: %s", dmgString);
 		
 		int dmg = Integer.parseInt(dmgString);
 		

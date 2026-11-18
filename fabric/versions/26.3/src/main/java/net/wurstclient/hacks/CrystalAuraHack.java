@@ -1,444 +1,309 @@
-/*
- * Copyright (c) 2014-2025 Wurst-Imperium and contributors.
- * Copyright (c) 2025 Penguin
- *
- * This source code is subject to the terms of the GNU General Public
- * License, version 3. If a copy of the GPL was not distributed with this
- * file, You can obtain one at: https://www.gnu.org/licenses/gpl-3.0.txt
- */
+/* Epsilon CrystalAura / CrystalCombatRules / CrystalTiming, GPL-3.0.
+ * Native Fabric 1.20.1 placement and shared motion arbitration adapter. */
 package net.wurstclient.hacks;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import java.util.*;
+import net.minecraft.core.*;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.*;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 import net.wurstclient.Category;
-import net.wurstclient.SearchTags;
-import net.wurstclient.events.UpdateListener;
-import net.wurstclient.hack.Hack;
-import net.wurstclient.hack.HackConflictGroup;
-import net.wurstclient.settings.CheckboxSetting;
-import net.wurstclient.settings.EnumSetting;
-import net.wurstclient.settings.FacingSetting;
-import net.wurstclient.settings.FacingSetting.Facing;
-import net.wurstclient.settings.SliderSetting;
+import net.wurstclient.epsilon.*;
+import net.wurstclient.events.*;
+import net.wurstclient.hack.*;
+import net.wurstclient.settings.*;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
-import net.wurstclient.settings.SwingHandSetting;
-import net.wurstclient.settings.SwingHandSetting.SwingHand;
-import net.wurstclient.settings.filterlists.CrystalAuraFilterList;
-import net.wurstclient.settings.filterlists.EntityFilterList;
-import net.wurstclient.util.BlockUtils;
-import net.wurstclient.util.CrystalAuraPlanner;
-import net.wurstclient.util.DamageUtils;
-import net.wurstclient.util.FakePlayerEntity;
-import net.wurstclient.util.InventoryUtils;
-import net.wurstclient.util.RotationQueue;
-import net.wurstclient.util.RotationUtils;
-
-@SearchTags({"crystal aura"})
-public final class CrystalAuraHack extends Hack implements UpdateListener
-{
-	private final SliderSetting range = new SliderSetting("Range",
-		"Determines how far CrystalAura will reach to place and detonate crystals.",
-		6, 1, 10, 0.05, ValueDisplay.DECIMAL);
-
-	private final CheckboxSetting autoPlace = new CheckboxSetting(
-		"Auto-place crystals",
-		"When enabled, CrystalAura will automatically place crystals near valid entities.\n"
-			+ "When disabled, CrystalAura will only detonate manually placed crystals.",
-		true);
-
-	private final FacingSetting faceBlocks =
-		FacingSetting.withPacketSpam("Face crystals",
-			"Whether or not CrystalAura should face the correct direction when"
-				+ " placing and left-clicking end crystals.\n\n"
-				+ "Slower but can help with anti-cheat plugins.",
-			Facing.OFF);
-
-	private final CheckboxSetting checkLOS = new CheckboxSetting(
-		"Check line of sight",
-		"Ensures that you don't reach through blocks when placing or left-clicking end crystals.\n\n"
-			+ "Slower but can help with anti-cheat plugins.",
-		false);
-
-	private final SwingHandSetting swingHand =
-		new SwingHandSetting(this, SwingHand.CLIENT);
-
-	private final EnumSetting<TakeItemsFrom> takeItemsFrom =
-		new EnumSetting<>("Take items from", "Where to look for end crystals.",
-			TakeItemsFrom.values(), TakeItemsFrom.INVENTORY);
-
-	private final SliderSetting breakDelay = new SliderSetting("Break delay",
-		"Ticks between each crystal detonation.\nHigher = slower but harder to detect.",
-		0, 0, 5, 1, ValueDisplay.INTEGER);
-
-	private final SliderSetting minDamage = new SliderSetting("Min damage",
-		"Minimum damage a crystal must deal to be worth detonating.\nRange: 0=any, 36=max",
-		4, 0, 36, 0.5, ValueDisplay.DECIMAL);
-
-	private final SliderSetting maxSelfDamage = new SliderSetting("Max self damage",
-		"Maximum damage you are willing to take from your own crystal.",
-		8, 0, 36, 0.5, ValueDisplay.DECIMAL);
-
-	private final SliderSetting minDamageAdvantage = new SliderSetting(
-		"Min damage advantage",
-		"Minimum target damage minus self damage required for an action.", 0,
-		-20, 20, 0.5, ValueDisplay.DECIMAL);
-
-	private final CheckboxSetting antiSuicide = new CheckboxSetting(
-		"Anti suicide", "Rejects crystals that could kill the local player.",
-		true);
-
-	private final SliderSetting minCrystalAge = new SliderSetting(
-		"Min crystal age", "Ticks a crystal must exist before detonation.", 0,
-		0, 10, 1, ValueDisplay.INTEGER.withSuffix(" ticks"));
-
-	private final SliderSetting placeSpeed = new SliderSetting("Place speed",
-		"Ticks between each crystal placement.\n0 = instant.",
-		0, 0, 10, 1, ValueDisplay.INTEGER);
-
-	private final EntityFilterList entityFilters =
-		CrystalAuraFilterList.create();
-
-	private int breakTimer;
-	private int placeTimer;
-	private RotationQueue rotationQueue;
-
-	public CrystalAuraHack()
-	{
-		super("CrystalAura");
-
-		setCategory(Category.COMBAT);
-		addConflictGroup(HackConflictGroup.COMBAT_TARGETING);
-		addSetting(range);
-		addSetting(autoPlace);
-		addSetting(faceBlocks);
-		addSetting(checkLOS);
-		addSetting(swingHand);
-		addSetting(takeItemsFrom);
-		addSetting(breakDelay);
-		addSetting(minDamage);
-		addSetting(maxSelfDamage);
-		addSetting(minDamageAdvantage);
-		addSetting(antiSuicide);
-		addSetting(minCrystalAge);
-		addSetting(placeSpeed);
-
-		entityFilters.forEach(this::addSetting);
-	}
-
-	@Override
-	public String getRenderName()
-	{
-		return getName() + (autoPlace.isChecked() ? " [Auto]" : " [Manual]");
-	}
-
-	@Override
-	protected void onEnable()
-	{
-
-		breakTimer = 0;
-		placeTimer = 0;
-		rotationQueue =
-			new RotationQueue(RotationQueue.Priority.COMBAT);
-		rotationQueue.start();
-		EVENTS.add(UpdateListener.class, this);
-	}
-
-	@Override
-	protected void onDisable()
-	{
-		EVENTS.remove(UpdateListener.class, this);
-		rotationQueue.stop();
-		rotationQueue = null;
-	}
-
-	@Override
-	public void onUpdate()
-	{
-		if(breakTimer > 0)
-			breakTimer--;
-		if(placeTimer > 0)
-			placeTimer--;
-
-		ArrayList<Entity> targets = getNearbyTargets();
-		if(targets.isEmpty())
-			return;
-
-		ArrayList<Entity> crystals = getNearbyCrystals();
-		CrystalAuraPlanner.Candidate<Entity> crystal = findBestCrystal(crystals,
-			targets, minCrystalAge.getValueI());
-		if(crystal != null)
-		{
-			if(breakTimer == 0)
-			{
-				detonate(crystal.value());
-				breakTimer = breakDelay.getValueI() + 1;
-			}
-			return;
-		}
-		if(minCrystalAge.getValueI() > 0
-			&& findBestCrystal(crystals, targets, 0) != null)
-			return;
-
-		if(!autoPlace.isChecked())
-			return;
-
-		if(InventoryUtils.indexOf(Items.END_CRYSTAL,
-			takeItemsFrom.getSelected().maxInvSlot) == -1)
-			return;
-
-		if(placeTimer > 0)
-			return;
-
-		CrystalAuraPlanner.Candidate<BlockPos> placement =
-			findBestPlacement(targets);
-		if(placement != null && placeCrystal(placement.value()))
-		{
-			swingHand.swing(InteractionHand.MAIN_HAND);
-			placeTimer = placeSpeed.getValueI() + 1;
-		}
-	}
-
-	private CrystalAuraPlanner.Candidate<Entity> findBestCrystal(
-		ArrayList<Entity> crystals, ArrayList<Entity> targets, int minAge)
-	{
-		ArrayList<CrystalAuraPlanner.Candidate<Entity>> candidates =
-			new ArrayList<>();
-		for(Entity crystal : crystals)
-		{
-			Vec3 crystalPos = crystal.position();
-			float targetDamage = getBestTargetDamage(crystalPos, targets);
-			float selfDamage = DamageUtils.calculateDamage(crystalPos, MC.player);
-			candidates.add(new CrystalAuraPlanner.Candidate<>(crystal,
-				targetDamage, selfDamage, MC.player.distanceToSqr(crystal),
-				crystal.tickCount));
-		}
-
-		return selectBest(candidates, minAge);
-	}
-
-	private void detonate(Entity crystal)
-	{
-		face(crystal.getBoundingBox().getCenter());
-		MC.gameMode.attack(MC.player, crystal);
-		swingHand.swing(InteractionHand.MAIN_HAND);
-	}
-
-	private CrystalAuraPlanner.Candidate<BlockPos> findBestPlacement(
-		ArrayList<Entity> targets)
-	{
-		HashSet<BlockPos> positions = new HashSet<>();
-		for(Entity target : targets)
-			positions.addAll(getFreeBlocksNear(target));
-
-		ArrayList<CrystalAuraPlanner.Candidate<BlockPos>> candidates =
-			new ArrayList<>();
-		Vec3 eyesPos = RotationUtils.getEyesPos();
-		for(BlockPos pos : positions)
-		{
-			Vec3 crystalPos = new Vec3(pos.getX() + 0.5, pos.getY(),
-				pos.getZ() + 0.5);
-			float targetDamage = getBestTargetDamage(crystalPos, targets);
-			float selfDamage = DamageUtils.calculateDamage(crystalPos, MC.player);
-			candidates.add(new CrystalAuraPlanner.Candidate<>(pos.immutable(),
-				targetDamage, selfDamage, eyesPos.distanceToSqr(crystalPos),
-				Integer.MAX_VALUE));
-		}
-
-		return selectBest(candidates, 0);
-	}
-
-	private <T> CrystalAuraPlanner.Candidate<T> selectBest(
-		ArrayList<CrystalAuraPlanner.Candidate<T>> candidates, int minAge)
-	{
-		return CrystalAuraPlanner.selectBest(candidates, minDamage.getValueF(),
-			maxSelfDamage.getValueF(), minDamageAdvantage.getValueF(),
-			MC.player.getHealth() + MC.player.getAbsorptionAmount(),
-			antiSuicide.isChecked(), minAge);
-	}
-
-	private float getBestTargetDamage(Vec3 crystalPos,
-		ArrayList<Entity> targets)
-	{
-		float bestDamage = 0;
-		for(Entity target : targets)
-			if(target instanceof LivingEntity living)
-				bestDamage = Math.max(bestDamage,
-					DamageUtils.calculateDamage(crystalPos, living));
-		return bestDamage;
-	}
-
-	private boolean placeCrystal(BlockPos pos)
-	{
-		Vec3 eyesPos = RotationUtils.getEyesPos();
-		double rangeSq = Math.pow(range.getValue(), 2);
-		Vec3 posVec = Vec3.atCenterOf(pos);
-		double distanceSqPosVec = eyesPos.distanceToSqr(posVec);
-
-		for(Direction side : Direction.values())
-		{
-			BlockPos neighbor = pos.relative(side);
-
-			if(!isClickableNeighbor(neighbor))
-				continue;
-
-			Vec3 dirVec = Vec3.atLowerCornerOf(side.getUnitVec3i());
-			Vec3 hitVec = posVec.add(dirVec.scale(0.5));
-
-			if(eyesPos.distanceToSqr(hitVec) > rangeSq)
-				continue;
-
-			if(distanceSqPosVec > eyesPos.distanceToSqr(posVec.add(dirVec)))
-				continue;
-
-			if(checkLOS.isChecked()
-				&& !BlockUtils.hasLineOfSight(eyesPos, hitVec))
-				continue;
-
-			InventoryUtils.selectItem(Items.END_CRYSTAL,
-				takeItemsFrom.getSelected().maxInvSlot);
-			if(!MC.player.isHolding(Items.END_CRYSTAL))
-				return false;
-
-			face(hitVec);
-
-			IMC.getInteractionManager().rightClickBlock(neighbor,
-				side.getOpposite(), hitVec);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	private ArrayList<Entity> getNearbyCrystals()
-	{
-		LocalPlayer player = MC.player;
-		double rangeSq = Math.pow(range.getValue(), 2);
-
-		return StreamSupport.stream(MC.level.entitiesForRendering().spliterator(), false)
-			.filter(EndCrystal.class::isInstance)
-			.filter(e -> !e.isRemoved())
-			.filter(e -> player.distanceToSqr(e) <= rangeSq)
-			.collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	private ArrayList<Entity> getNearbyTargets()
-	{
-		double rangeSq = Math.pow(range.getValue(), 2);
-
-		Comparator<Entity> closestToPlayer = Comparator
-			.comparingDouble(e -> MC.player.distanceToSqr(e));
-
-		Stream<Entity> stream =
-			StreamSupport.stream(MC.level.entitiesForRendering().spliterator(), false)
-				.filter(e -> !e.isRemoved())
-				.filter(e -> e instanceof LivingEntity
-					&& ((LivingEntity)e).getHealth() > 0)
-				.filter(e -> e != MC.player)
-				.filter(e -> !(e instanceof FakePlayerEntity))
-				.filter(e -> !WURST.getFriends().contains(e.getScoreboardName()))
-				.filter(e -> MC.player.distanceToSqr(e) <= rangeSq);
-
-		stream = entityFilters.applyTo(stream);
-
-		return stream.sorted(closestToPlayer)
-			.collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	private ArrayList<BlockPos> getFreeBlocksNear(Entity target)
-	{
-		Vec3 eyesVec = RotationUtils.getEyesPos().subtract(0.5, 0.5, 0.5);
-		double rangeD = range.getValue();
-		double rangeSq = Math.pow(rangeD + 0.5, 2);
-		int rangeI = 2;
-
-		BlockPos center = target.blockPosition();
-		BlockPos min = center.offset(-rangeI, -rangeI, -rangeI);
-		BlockPos max = center.offset(rangeI, rangeI, rangeI);
-		Vec3 targetEyesVec =
-			target.position().add(0, target.getEyeHeight(target.getPose()), 0);
-
-		Comparator<BlockPos> closestToTarget =
-			Comparator.<BlockPos>comparingDouble(
-				pos -> targetEyesVec.distanceToSqr(Vec3.atCenterOf(pos)));
-
-		return BlockUtils.getAllInBoxStream(min, max)
-			.filter(pos -> eyesVec.distanceToSqr(Vec3.atLowerCornerOf(pos)) <= rangeSq)
-			.filter(this::isReplaceable).filter(this::hasCrystalBase)
-			.filter(this::isCrystalSpaceClear)
-			.sorted(closestToTarget)
-			.collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	private boolean isCrystalSpaceClear(BlockPos pos)
-	{
-		AABB box = new AABB(pos.getX(), pos.getY(), pos.getZ(),
-			pos.getX() + 1, pos.getY() + 2, pos.getZ() + 1);
-		return MC.level.getEntities((Entity)null, box).isEmpty();
-	}
-
-	private boolean isReplaceable(BlockPos pos)
-	{
-		return BlockUtils.getState(pos).canBeReplaced();
-	}
-
-	private boolean hasCrystalBase(BlockPos pos)
-	{
-		Block block = BlockUtils.getBlock(pos.below());
-		return block == Blocks.BEDROCK || block == Blocks.OBSIDIAN;
-	}
-
-	private boolean isClickableNeighbor(BlockPos pos)
-	{
-		return BlockUtils.canBeClicked(pos)
-			&& !BlockUtils.getState(pos).canBeReplaced();
-	}
-
-	private void face(Vec3 vec)
-	{
-		Facing mode = faceBlocks.getSelected();
-		if(mode == Facing.SERVER)
-			rotationQueue.setRotation(
-				RotationUtils.getNeededRotations(vec));
-		else
-			mode.face(vec);
-	}
-
-	private enum TakeItemsFrom
-	{
-		HOTBAR("Hotbar", 9),
-
-		INVENTORY("Inventory", 36);
-
-		private final String name;
-		private final int maxInvSlot;
-
-		private TakeItemsFrom(String name, int maxInvSlot)
-		{
-			this.name = name;
-			this.maxInvSlot = maxInvSlot;
-		}
-
-		@Override
-		public String toString()
-		{
-			return name;
-		}
-	}
+import net.wurstclient.settings.filterlists.*;
+import net.wurstclient.util.*;
+
+public final class CrystalAuraHack extends Hack
+    implements UpdateListener, PreMotionListener, PostMotionListener {
+  private final SliderSetting range = number("Range", 4.5, 1, 6, .1);
+  private final SliderSetting wallRange = number("Wall range", 3, 0, 6, .1);
+  private final SliderSetting searchRange = number("Search range", 8, 1, 12, .5);
+  private final CheckboxSetting autoPlace = new CheckboxSetting("Auto-place crystals", true);
+  private final CheckboxSetting rotate = new CheckboxSetting("Rotate", true);
+  private final SliderSetting breakDelay = number("Break delay", 50, 0, 1000, 10);
+  private final SliderSetting placeDelay = number("Place delay", 100, 0, 1000, 10);
+  private final SliderSetting minAge = number("Min crystal age", 0, 0, 20, 1);
+  private final SliderSetting attempts = number("Attack attempts", 5, 1, 20, 1);
+  private final SliderSetting minDamage = number("Min damage", 4, 0, 36, .5);
+  private final SliderSetting maxSelf = number("Max self damage", 8, 0, 36, .5);
+  private final SliderSetting ratio = number("Damage ratio", 1.2, 0, 5, .1);
+  private final CheckboxSetting safety = new CheckboxSetting("Anti suicide", true);
+  private final CheckboxSetting override = new CheckboxSetting("Safety override", false);
+  private final CheckboxSetting force = new CheckboxSetting("Force low health", true);
+  private final SliderSetting forceHealth = number("Force health", 8, 0, 36, .5);
+  private final SliderSetting forceDamage = number("Force damage", 2, 0, 36, .5);
+  private final CheckboxSetting armorBreaker = new CheckboxSetting("Armor breaker", true);
+  private final SliderSetting armorScale = number("Armor scale", 5, 1, 20, 1);
+  private final SliderSetting lethal = number("Lethal multiplier", 1.5, 0, 4, .1);
+  private final EntityFilterList filters = CrystalAuraFilterList.create();
+  private final MotionActionQueue<Plan> actions = new MotionActionQueue<>();
+  private final Map<Integer, Integer> attacked = new HashMap<>();
+  private final Map<BlockPos, Long> placed = new HashMap<>();
+  private RotationQueue rotations;
+  private Plan pending;
+  private Object player, world;
+  private long nextBreak, nextPlace;
+
+  private record Plan(
+      EndCrystal crystal, BlockPos base, LivingEntity target, Vec3 aim, double damage) {}
+
+  private static SliderSetting number(
+      String name, double value, double min, double max, double step) {
+    return new SliderSetting(name, value, min, max, step, ValueDisplay.DECIMAL);
+  }
+
+  private static long now() {
+    return System.nanoTime() / 1_000_000;
+  }
+
+  public CrystalAuraHack() {
+    super("CrystalAura");
+    setCategory(Category.COMBAT);
+    addConflictGroup(HackConflictGroup.COMBAT_TARGETING);
+    for (Setting s :
+        new Setting[] {
+          range,
+          wallRange,
+          searchRange,
+          autoPlace,
+          rotate,
+          breakDelay,
+          placeDelay,
+          minAge,
+          attempts,
+          minDamage,
+          maxSelf,
+          ratio,
+          safety,
+          override,
+          force,
+          forceHealth,
+          forceDamage,
+          armorBreaker,
+          armorScale,
+          lethal
+        }) addSetting(s);
+    filters.forEach(this::addSetting);
+  }
+
+  protected void onEnable() {
+    reset();
+    rotations = new RotationQueue(RotationQueue.Priority.COMBAT);
+    rotations.start();
+    EVENTS.add(UpdateListener.class, this);
+    EVENTS.add(PreMotionListener.class, this);
+    EVENTS.add(PostMotionListener.class, this);
+  }
+
+  protected void onDisable() {
+    EVENTS.remove(UpdateListener.class, this);
+    EVENTS.remove(PreMotionListener.class, this);
+    EVENTS.remove(PostMotionListener.class, this);
+    rotations.stop();
+    reset();
+  }
+
+  private void reset() {
+    actions.clear();
+    pending = null;
+    attacked.clear();
+    placed.clear();
+    nextBreak = nextPlace = 0;
+    player = MC.player;
+    world = MC.level;
+  }
+
+  private boolean ready() {
+    return EpsilonTargets.ready()
+        && MC.gui.screen() == null
+        && !MC.player.isUsingItem()
+        && !WURST.getHax().scaffoldWalkHack.isEnabled();
+  }
+
+  public void onUpdate() {
+    if (player != MC.player || world != MC.level) {
+      reset();
+      rotations.clear();
+    }
+    pending = null;
+    actions.clear();
+    if (!ready()) {
+      rotations.clear();
+      return;
+    }
+    long time = now();
+    attacked.keySet().removeIf(id -> !(MC.level.getEntity(id) instanceof EndCrystal));
+    placed.entrySet().removeIf(e -> time - e.getValue() > 500);
+    List<LivingEntity> targets =
+        filters
+            .applyTo(
+                EpsilonTargets.acquire(searchRange.getValue(), 360, 15, true, true).stream()
+                    .map(e -> (Entity) e))
+            .map(e -> (LivingEntity) e)
+            .limit(8)
+            .toList();
+    if (targets.isEmpty()) {
+      rotations.clear();
+      return;
+    }
+    if (time >= nextBreak)
+      for (Entity entity :
+          MC.level.getEntities(
+              MC.player,
+              MC.player.getBoundingBox().inflate(range.getValue()),
+              e -> e instanceof EndCrystal)) {
+        EndCrystal crystal = (EndCrystal) entity;
+        if (crystal.tickCount < minAge.getValueI()
+            || attacked.getOrDefault(crystal.getId(), 0) >= attempts.getValueI()
+            || !reachable(crystal.getBoundingBox().getCenter())) continue;
+        Plan plan =
+            evaluate(
+                crystal, null, crystal.position(), crystal.getBoundingBox().getCenter(), targets);
+        if (plan != null && (pending == null || plan.damage > pending.damage)) pending = plan;
+      }
+    if (pending == null && autoPlace.isChecked() && time >= nextPlace && crystalSlot() != -1) {
+      BlockPos center = MC.player.blockPosition();
+      int r = (int) Math.ceil(range.getValue());
+      for (BlockPos base :
+          BlockPos.betweenClosed(center.offset(-r, -r, -r), center.offset(r, r, r))) {
+        if (!canPlace(base) || placed.containsKey(base)) continue;
+        Vec3 aim = Vec3.atBottomCenterOf(base.above());
+        if (!reachable(aim)) continue;
+        Plan plan = evaluate(null, base.immutable(), aim, aim, targets);
+        if (plan != null && (pending == null || plan.damage > pending.damage)) pending = plan;
+      }
+    }
+    if (pending == null) rotations.clear();
+  }
+
+  private EpsilonCrystalRules rules() {
+    return new EpsilonCrystalRules(
+        minDamage.getValue(),
+        maxSelf.getValue(),
+        ratio.getValue(),
+        safety.isChecked(),
+        override.isChecked(),
+        force.isChecked(),
+        forceHealth.getValue(),
+        forceDamage.getValue(),
+        armorBreaker.isChecked(),
+        armorScale.getValueI(),
+        lethal.getValue());
+  }
+
+  private EpsilonCrystalRules.Target snapshot(LivingEntity target) {
+    double min = 100, max = 0;
+    boolean any = false;
+    for (ItemStack stack : net.wurstclient.util.V152ItemCompat.armorSlots(target))
+      if (!stack.isEmpty() && stack.isDamageableItem()) {
+        double durability =
+            (stack.getMaxDamage() - stack.getDamageValue()) * 100.0 / stack.getMaxDamage();
+        min = Math.min(min, durability);
+        max = Math.max(max, durability);
+        any = true;
+      }
+    return new EpsilonCrystalRules.Target(
+        target.getHealth() + target.getAbsorptionAmount(), any ? min : 0, max);
+  }
+
+  private Plan evaluate(
+      EndCrystal crystal, BlockPos base, Vec3 explosion, Vec3 aim, List<LivingEntity> targets) {
+    double self = DamageUtils.calculateDamage(explosion, MC.player),
+        health = MC.player.getHealth() + MC.player.getAbsorptionAmount();
+    EpsilonCrystalRules rules = rules();
+    Plan best = null;
+    if (rules.unsafe(self, health, MC.player.isCreative()) && !override.isChecked()) return null;
+    for (LivingEntity target : targets) {
+      double damage = DamageUtils.calculateDamage(explosion, target);
+      if (rules.accepts(damage, self, health, MC.player.isCreative(), snapshot(target))
+          && (best == null || damage > best.damage))
+        best = new Plan(crystal, base, target, aim, damage);
+    }
+    return best;
+  }
+
+  public void onPreMotion() {
+    if (pending == null || !ready()) return;
+    actions.begin(MC.player, MC.level, MC.player.tickCount);
+    actions.schedule(pending);
+    if (rotate.isChecked()) rotations.setRotation(RotationUtils.getNeededRotations(pending.aim));
+  }
+
+  public void onPostMotion() {
+    if (MC.player == null) return;
+    Plan plan = actions.consume(MC.player, MC.level, MC.player.tickCount);
+    pending = null;
+    if (plan == null
+        || !ready()
+        || rotate.isChecked() && !rotations.wasApplied()
+        || !EpsilonTargets.valid(plan.target)
+        || !reachable(plan.aim)) return;
+    Vec3 explosion =
+        plan.crystal != null ? plan.crystal.position() : Vec3.atBottomCenterOf(plan.base.above());
+    if (evaluate(plan.crystal, plan.base, explosion, plan.aim, List.of(plan.target)) == null)
+      return;
+    if (plan.crystal != null) {
+      if (plan.crystal.isRemoved() || MC.level.getEntity(plan.crystal.getId()) != plan.crystal)
+        return;
+      MC.gameMode.attack(MC.player, plan.crystal);
+      MC.player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false);
+      attacked.merge(plan.crystal.getId(), 1, Integer::sum);
+      nextBreak = now() + breakDelay.getValueI();
+      return;
+    }
+    if (!canPlace(plan.base)) return;
+    int slot = crystalSlot();
+    if (slot == -1) return;
+    int previous = MC.player.getInventory().getSelectedSlot();
+    InteractionHand hand = slot == 40 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+    try {
+      if (slot != 40) MC.player.getInventory().setSelectedSlot(slot);
+      var result =
+          MC.gameMode.useItemOn(
+              MC.player, hand, new BlockHitResult(plan.aim, Direction.UP, plan.base, false));
+      if (result.consumesAction()) {
+        MC.player.swing(hand, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false);
+        placed.put(plan.base, now());
+        nextPlace = now() + placeDelay.getValueI();
+      }
+    } finally {
+      MC.player.getInventory().setSelectedSlot(previous);
+    }
+  }
+
+  private boolean reachable(Vec3 point) {
+    Vec3 eye = MC.player.getEyePosition();
+    BlockHitResult hit =
+        MC.level.clip(
+            new ClipContext(
+                eye, point, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, MC.player));
+    boolean visible =
+        hit.getType() == HitResult.Type.MISS || hit.getLocation().distanceToSqr(point) < .01;
+    return eye.distanceTo(point)
+        <= (visible ? range.getValue() : Math.min(range.getValue(), wallRange.getValue()));
+  }
+
+  private boolean canPlace(BlockPos base) {
+    var block = MC.level.getBlockState(base);
+    if (!block.is(Blocks.OBSIDIAN) && !block.is(Blocks.BEDROCK)) return false;
+    if (!MC.level.isEmptyBlock(base.above()) || !MC.level.getWorldBorder().isWithinBounds(base))
+      return false;
+    return MC.level
+        .getEntities((Entity) null, new AABB(base.above()).expandTowards(0, 1, 0))
+        .isEmpty();
+  }
+
+  private int crystalSlot() {
+    if (MC.player.getOffhandItem().is(Items.END_CRYSTAL)) return 40;
+    for (int i = 0; i < 9; i++)
+      if (MC.player.getInventory().getItem(i).is(Items.END_CRYSTAL)) return i;
+    return -1;
+  }
 }

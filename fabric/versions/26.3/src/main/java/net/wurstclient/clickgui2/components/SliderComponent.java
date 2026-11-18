@@ -8,8 +8,9 @@
 package net.wurstclient.clickgui2.components;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.wurstclient.util.render.GuiGraphicsExtractor;
 import net.wurstclient.clickgui2.animation.HoverAnimation;
 import net.wurstclient.clickgui2.ClickGui;
 import net.wurstclient.clickgui2.Component;
@@ -45,10 +46,8 @@ public final class SliderComponent extends Component
 		switch(mouseButton)
 		{
 			case InputConstants.MOUSE_BUTTON_LEFT:
-			if(InputConstants.isKeyDown(
-				InputConstants.KEY_LCONTROL)
-				|| InputConstants.isKeyDown(
-					InputConstants.KEY_RCONTROL))
+			if(InputConstants.isKeyDown(InputConstants.KEY_LCONTROL)
+				|| InputConstants.isKeyDown(InputConstants.KEY_RCONTROL))
 				MC.setScreenAndShow(new EditSliderScreen(MC.gui.screen(), setting));
 			else
 				dragging = true;

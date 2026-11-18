@@ -42,7 +42,6 @@ public abstract class AltModelBlockRendererImplMixin
 	 */
 	@Inject(method = "shouldCullFace",
 		at = @At("HEAD"),
-		require = 0,
 		cancellable = true)
 	private void onShouldCullFace(Direction face,
 		CallbackInfoReturnable<Boolean> cir)
@@ -58,7 +57,7 @@ public abstract class AltModelBlockRendererImplMixin
 	 * Applies X-Ray's opacity mask after Indigo has already done its shading
 	 * and tinting.
 	 */
-	@Inject(method = "transform", at = @At("RETURN"), require = 0)
+	@Inject(method = "transform", at = @At("RETURN"))
 	private void onTransform(MutableQuadView quad,
 		CallbackInfoReturnable<Boolean> cir)
 	{

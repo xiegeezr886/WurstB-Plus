@@ -1,0 +1,38 @@
+[
+  {
+    "file": "latticg-1.06.jar",
+    "sha256": "1051fcf70e05808beb1c7f680582b1620df65aa41b1f99ef5f371ab616d6e072"
+  },
+  {
+    "file": "mc_biome-41a42cb9019a552598f12089059538853e18ec78.jar",
+    "sha256": "18fd6bb779f0a59ee779e06f5847c03ff3fd0cb611ebdc09538a207661359405"
+  },
+  {
+    "file": "mc_core-d64d5f90be66300da41ef58f4f1736db2499784f.jar",
+    "sha256": "4aa7d4686b4693312e1dde28c75116e8f6335e8855ee3ada92bc81ee2d1c8b3f"
+  },
+  {
+    "file": "mc_feature-919b7e513cc1e87e029a9cd703fc4e2dc8686229.jar",
+    "sha256": "2a1e45bcc8c1e83938ae61ec03d253a1ed42d7466a4e153deab4a1802e22a537"
+  },
+  {
+    "file": "mc_math-ffd2edcfcc0d18147549c88cc7d8ec6cf21b5b91.jar",
+    "sha256": "851953bcc81c2f85fec88f5066efaa7fa944177c61ab794250de8bde97321370"
+  },
+  {
+    "file": "mc_noise-7e3ba65e181796c4a2a1c8881d840b2254b92962.jar",
+    "sha256": "523d645947e809a0ee5e49341c0d5d9826dd522ca15239930ddcc204d0c5f7f9"
+  },
+  {
+    "file": "mc_reversal-ca64c0890c106f1a2207623c316fce86f250b918.jar",
+    "sha256": "6d2baa4d5c1a02ed524f0edfb02e8c7056b54d9cb31d7ea6679ed952e7d080e8"
+  },
+  {
+    "file": "mc_seed-1ead6fcefe7e8de4b3d60cd6c4e993f1e8f33409.jar",
+    "sha256": "d15d23953ba98b3d2fac8ca001a91db97e5a9d41b0a2d69a04c7852041a90416"
+  },
+  {
+    "file": "mc_terrain-b4246cbd5880c4f8745ccb90e1b102bde3448126.jar",
+    "sha256": "c52df2dfd646e982e2565c2be6f9ec55a92d151183b7ed0051760477ae974d66"
+  }
+]

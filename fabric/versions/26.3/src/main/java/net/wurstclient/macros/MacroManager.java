@@ -25,6 +25,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.wurstclient.WurstClient;
 import net.wurstclient.clickgui2.ClickGuiScreen;
+import net.wurstclient.clickgui2.NavigatorScreen;
 import net.wurstclient.command.CmdProcessor;
 import net.wurstclient.events.KeyPressListener;
 import net.wurstclient.events.UpdateListener;
@@ -128,6 +129,8 @@ public final class MacroManager implements KeyPressListener, UpdateListener
 			return;
 
 		Screen screen = WurstClient.MC.gui.screen();
+		if(screen instanceof NavigatorScreen)
+			return;
 		if(screen != null && !ScreenRegistry.isAny(screen,
 			ScreenRegistry.CLICK_GUI, ScreenRegistry.NAVIGATOR))
 			return;
