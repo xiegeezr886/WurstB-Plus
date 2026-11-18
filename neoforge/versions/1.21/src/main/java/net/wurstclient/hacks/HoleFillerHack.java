@@ -43,7 +43,7 @@ public final class HoleFillerHack extends Hack implements UpdateListener
 	public HoleFillerHack()
 	{
 		super("HoleFiller");
-		setCategory(Category.COMBAT);
+		setCategory(Category.WORLD);
 		addSetting(range);
 		addSetting(onlyObsidian);
 		addSetting(swingHand);

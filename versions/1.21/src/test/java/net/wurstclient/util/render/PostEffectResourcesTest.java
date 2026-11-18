@@ -26,8 +26,8 @@ class PostEffectResourcesTest
 				ROOT.resolve("post/target_" + name + ".json")))
 				.getAsJsonObject();
 			assertEquals(2, json.getAsJsonArray("passes").size());
-			assertTrue(json.getAsJsonArray("targets").contains(
-				JsonParser.parseString("\"swap\"")));
+			assertTrue(json.getAsJsonArray("targets").contains(JsonParser.parseString("\"swap\"")));
+            assertEquals("wurst:target_effect", json.getAsJsonArray("passes").get(0).getAsJsonObject().get("name").getAsString());
 		}
 	}
 

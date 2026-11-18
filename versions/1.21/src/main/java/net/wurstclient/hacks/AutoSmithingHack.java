@@ -111,7 +111,7 @@ public final class AutoSmithingHack extends Hack implements UpdateListener
 	public AutoSmithingHack()
 	{
 		super("AutoSmithing");
-		setCategory(Category.ITEMS);
+		setCategory(Category.PLAYER);
 		addSetting(mode);
 		addSetting(delay);
 		addSetting(autoDrop);

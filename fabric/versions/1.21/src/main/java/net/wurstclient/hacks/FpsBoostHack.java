@@ -57,7 +57,7 @@ public final class FpsBoostHack extends Hack implements UpdateListener
 	public FpsBoostHack()
 	{
 		super("FpsBoost");
-		setCategory(Category.OTHER);
+		setCategory(Category.RENDER);
 		addSetting(fastGraphics);
 		addSetting(minimalParticles);
 		addSetting(reduceEntityDistance);

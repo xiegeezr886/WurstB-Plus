@@ -66,7 +66,7 @@ public final class KillSoundsHack extends Hack implements UpdateListener,
 	public KillSoundsHack()
 	{
 		super("KillSounds");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(soundId);
 		addSetting(volume);
 		addSetting(pitch);

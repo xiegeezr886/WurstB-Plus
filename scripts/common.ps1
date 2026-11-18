@@ -145,7 +145,7 @@ function Get-WurstbJdkHome {
 function Get-WurstbGradleProjects {
     param([string]$ProjectRoot)
     @(
-        @{ Name = "Forge 1.20.1";     Dir = "";                           MC = "1.20.1";  Version = "v1.6.0"; Loader = "Forge";    Wrapper = "8.11";   Artifact = "WurstB+ Plus-v1.6.0-Forge-1.20.1.jar" }
+        @{ Name = "Forge 1.20.1";     Dir = "";                           MC = "1.20.1";  Version = "v1.5.1"; Loader = "Forge";    Wrapper = "8.11";   Artifact = "WurstB+ Plus-v1.5.1-Forge-1.20.1.jar" }
         @{ Name = "Forge 1.21.1";     Dir = "versions\1.21.1";            MC = "1.21.1";  Version = "v1.5.0"; Loader = "Forge";    Wrapper = "8.11";   Artifact = "WurstB+ Plus-v1.5.0-Forge-1.21.1.jar" }
         @{ Name = "Forge 1.21.11";    Dir = "versions\1.21.11";           MC = "1.21.11"; Version = "v1.5.0"; Loader = "Forge";    Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-Forge-1.21.11.jar" }
         @{ Name = "Forge 26.1.2";     Dir = "versions\26.1.2";            MC = "26.1.2";  Version = "v1.5.0"; Loader = "Forge";    Wrapper = "9.4.1";  Artifact = "WurstB+ Plus-v1.5.0-Forge-26.1.2.jar" }

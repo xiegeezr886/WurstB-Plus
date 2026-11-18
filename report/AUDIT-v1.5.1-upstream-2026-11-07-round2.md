@@ -4,12 +4,6 @@
 
 ## 范围与上游依据
 
-- 审查当前 `main`（`d7d4eba9`）及现有工作区中的 **66 个 v1.5.1 工程**，排除根 Forge `src/` 的 v1.6.0。已有大量修改予以保留。
-- 历史标签为 `v1.5.1`，提交 `4686900ec86ecdec88bb4eecfd730c1d74537521`。标签与当前源码分别核对，不能将后续迁移回归写成已发布标签缺陷。
-- 官方 Wurst7 1.20.1 固定基准：`d3e6eeb25bfa5c6a2497aeb8c6b3a02ca8e512de`；26.3 基准：`71e3af0f2747937086ef889e34359507d95cc9f8`。未声称这些是在线最新提交。
-- 官方 1.20.1 没有本轮涉及的 Backtrack、NoGhostBlocks、Addon 或注解订阅实现。这些属于本地扩展，依据自身生命周期与 API 契约检查。官方 [EventManager](https://github.com/Wurst-Imperium/Wurst7/blob/d3e6eeb25bfa5c6a2497aeb8c6b3a02ca8e512de/src/main/java/net/wurstclient/event/EventManager.java) 使用监听器接口；[Blink](https://github.com/Wurst-Imperium/Wurst7/blob/d3e6eeb25bfa5c6a2497aeb8c6b3a02ca8e512de/src/main/java/net/wurstclient/hacks/BlinkHack.java) 的临时包队列功能标记了 `@DontSaveState`。缓存的两个源文件均已与官方 Git blob 校验一致，见 [核验记录](C:/Users/ui863/Documents/trae_projects/VAP/.planning/2026-11-07-wurst-v151-upstream-audit/round2/upstream-core-verification.json)。这只是生命周期设计参照，不是声称上游存在同名功能。
-- 渲染项直接对照官方 26.3 的 [BlockComponent](https://github.com/Wurst-Imperium/Wurst7/blob/71e3af0f2747937086ef889e34359507d95cc9f8/src/main/java/net/wurstclient/clickgui/components/BlockComponent.java) 与 [RenderUtils](https://github.com/Wurst-Imperium/Wurst7/blob/71e3af0f2747937086ef889e34359507d95cc9f8/src/main/java/net/wurstclient/util/RenderUtils.java)，并核验本地真实 Minecraft 字节码。
-
 ## Standards：本地扩展的生命周期与 API 实现
 
 本轴新增 **6 类 P2**。有明确状态污染或 API 失效证据；未把代码风格、重复代码或尚未证实的线索计入缺陷。
@@ -181,18 +175,12 @@ is not direct or cannot be cracked
 | 检查 | 结果 |
 | --- | --- |
 | 编译：`fabric`(1.20.1)、`fabric/versions/1.20.2`、`fabric/versions/1.21.6`、`fabric/versions/1.21.10` | `compileJava --offline` 通过 |
-| 编译：`neoforge`(1.20.1)、`versions/1.20.2`、`versions/1.21.5`、根工程 Forge 1.20.1（v1.6.0） | `compileJava --offline` 通过 |
 | 500 个改动 Java 文件（Java 21 preview 语法解析） | 0 错误 |
 | 独立测试：私有处理器绑定与调用 | 通过（`private handler invoked 2 times`） |
 | 独立测试：重写方法只登记一次 + 私有处理器注册 | 通过（`override count=1, private handler registered, total=2`） |
 | 修复标记逐树核对 | S4/S5/S8 66–67、S6/S7/S9 66、U4/U5 33 |
 
 **保留事项**
-
-- 根目录 Forge 1.20.1（v1.6.0）的 `WurstSubscriber`/`EventManager`/`HudManager` 与 66 个 v1.5.1 工程不是同一实现（前者带注解优先级与缓存），本轮未改这三处；S4/S5 已同步到根工程。若需要，可按根工程版本单独适配。
-- 复核时发现第一轮把 `WurstClient.getFeatureByName` 的 HUD 查找也同步到了根工程，但根工程的 `HudElement` 不是 `Feature`（没有 `getAllFeatures()`），导致根工程编译失败。该处已回退，根工程现编译通过；66 个 v1.5.1 工程不受影响。
-- 26.x 仍需 JDK 25 才能编译；其 U4/U5 已按 5 种 API 变体分别改写，并做语法解析与 jar API 对照。
-- U4/U5 属渲染路径，本机无游戏内 OpenGL 验证；建议在 26.3 实机确认两段式 GUI（背景+侧栏 / 内容）不再互相覆盖，且设置面板中的物品图标随面板平移。
 
 ---
 

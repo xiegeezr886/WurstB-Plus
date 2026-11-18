@@ -56,7 +56,7 @@ public final class ChatTranslatorHack extends Hack
 	public ChatTranslatorHack()
 	{
 		super("ChatTranslator");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(whatToTranslate);
 		addSetting(playerLanguage);
 		addSetting(otherLanguage);

@@ -21,6 +21,7 @@ public final class BaritoneUtils
 	private static final int PRELOAD_PENDING = 0;
 	private static final int PRELOAD_STARTED = 1;
 	private static final int PRELOAD_READY = 2;
+	private static final int PRELOAD_FAILED = 3;
 	private static volatile int miningPreloadState;
 
 	/**
@@ -51,23 +52,16 @@ public final class BaritoneUtils
 	{
 		try
 		{
-			Class<?> stub = Class.forName(
-				"baritone.api.utils.BlockOptionalMeta$ServerLevelStub");
-			try
-			{
-				stub.getMethod("registryAccess");
-			}catch(NoSuchMethodException e)
-			{
-				return;
-			}
-			Object instance = stub.getMethod("fastCreate").invoke(null);
-			stub.getMethod("registryAccess").invoke(instance);
+			// Warm the public API, without relying on Fabric's patched private stub
+			// or reflection names for remapped Minecraft methods.
+			Class.forName("baritone.api.utils.BlockOptionalMeta")
+				.getConstructor(Block.class)
+				.newInstance(net.minecraft.world.level.block.Blocks.STONE);
+			miningPreloadState = PRELOAD_READY;
 		}catch(Throwable e)
 		{
+			miningPreloadState = PRELOAD_FAILED;
 			System.err.println("Baritone preload failed: " + e);
-		}finally
-		{
-			miningPreloadState = PRELOAD_READY;
 		}
 	}
 	public static boolean startMining(Block... blocks)

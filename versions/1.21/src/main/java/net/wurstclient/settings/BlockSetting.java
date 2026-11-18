@@ -177,7 +177,7 @@ public final class BlockSetting extends Setting
 		// user to choose a block after selecting this option.
 		// pkb.add(new PossibleKeybind(command + "dirt", "Set " + fullName + "
 		// to dirt"));
-		pkb.add(new PossibleKeybind(command + "reset", "Reset " + fullName));
+		pkb.add(new PossibleKeybind(command + "reset", "Reset %s", fullName));
 		
 		return pkb;
 	}

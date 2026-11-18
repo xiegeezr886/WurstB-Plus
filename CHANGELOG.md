@@ -2,16 +2,42 @@
 
 WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖 **23 个 MC 版本（1.20.1–26.3）× Forge / NeoForge / Fabric = 67 个独立 Gradle 工程**；发布资产与下载入口见 [README.md](README.md)。
 
-> **版本分布（2026-11-17）：** 根目录 Forge 1.20.1 已恢复为 **v1.5.1**；
-> `fabric/` 1.20.1 为 **v1.5.2**，其余工程保持 v1.5.1。v1.6.0 源码已独立备份到仓库外。
-
 ---
+
+## v1.5.2 正式版（2026-11-18）
+
+- 以 Fabric 1.20.1 为基线，移植到 23 个 Minecraft 版本的 67 个加载器工程；构建版本统一为 1.5.2。
+- 统一开始菜单、单人／多人／账号页面、导航器和 ClickGUI；更新 Soar HUD、Rise TargetHUD、Opai 灵动岛和音乐歌词。
+- 新配置默认启用 RedFix HackList 和 LogoHUD 辉光，默认隐藏帧率、延迟与坐标；Moon 实体辉光只显示模型轮廓。
+- 安装、兼容性、构建与实机结果见 [正式版说明](docs/RELEASE-v1.5.2.md) 和 [全版本移植记录](docs/PORTING-v1.5.2.md)。以下各批是当时的开发记录。
+
+## v1.5.2 Fabric 1.20.4 移植（2026-11-17，开发中）
+
+- 基于 v1.5.1 三方合并新界面、HUD、模块、音乐和种子联动，保留 1.20.4 皮肤与网络适配。
+- 更新滚轮、世界加载、实体加入和加载文本注入；禁止 NanoVG 原生依赖传递带入 LWJGL core，解决 GLFW 版本冲突。
+- 接入官方 SeedCrackerX 2.14.6 并固定校验值，保留原始嵌套库、来源和许可。
+- 编译、146 项测试、生产重映射及产物崩溃检查通过；界面、已知种子预览、Baritone 挖矿/拾取与退出清理已做开发客户端验证。
+- 当前三个目标已接入 dev 移植，其余 63 个目标尚未同步；完整功能验收仍按 [同步计划](docs/PORTING-v1.5.2.md) 推进。
+
+## v1.5.2 首批跨加载器移植（2026-11-17，开发中）
+
+- 根 Forge 与 NeoForge 1.20.1 同步基线菜单、CGUI、HUD、战斗、音乐、加载动画和资源；保留加载器入口与元数据。
+- 已知种子的会话校验、矿脉预测及 Baritone 联动接入；自动 SeedCracker 后端待适配，暂不注册破解模块。
+- 两端编译、各 146 项单元测试、生产打包及既有产物崩溃检查通过；开发客户端界面、挖矿与退出清理验证通过，完整验收待完成。
+- 修正渲染检查器漏读重载方法造成的误报，并纳入根 Forge；67 工程静态渲染检查和 17 项负例测试通过。
+- 本批实施两个目标，后续进度和验收边界见 [同步计划](docs/PORTING-v1.5.2.md)。
 
 ## 根工程恢复 Forge 1.20.1 v1.5.1（2026-11-17）
 
-- 将原根工程 v1.6.0 源码、资源与测试移出主项目，连同原构建脚本、共享源码、原生源码及文档保存到仓库旁的独立备份目录。
-- 以 `dist/VAP-v1.5.1-Forge-1.20.1` 的完整 `src/`、Gradle 配置、wrapper 和 Baritone 构建输入替换根工程；共享的其他版本目录及仓库许可保留。
-- 逐文件 SHA-256 核对备份及替换内容，更新开发文档、状态生成器、版本分支标签及发布构建脚本；详细验证见 [迁移记录](docs/ROOT-FORGE-1.5.1.md)。
+- 使用项目内 `dist/VAP-v1.5.1-Forge-1.20.1` 替换根源码及构建输入，1,268 个文件逐项校验一致。
+- Forge 1.20.1 编译打包通过；验证结果与产物摘要见 [根工程说明](docs/ROOT-FORGE-1.5.1.md)。
+- 更新当前版本文档、构建任务和状态生成器，清理退役版本的功能说明及历史入口。
+
+## v1.5.2 全版本同步准备（2026-11-17）
+
+- 新建 `codex/v1.5.2-all-versions`，以 Fabric 1.20.1 为基线，盘点其余 66 个同步目标。
+- 新增只读准备工具、67 工程差异矩阵，以及按 API 代际分批的 [开发计划](docs/PORTING-v1.5.2.md)。
+- 当前未批量覆盖目标源码或调整版本号，SeedCrackerX 和渲染/输入接口需分别适配。
 
 ---
 
@@ -110,8 +136,6 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 
 ## v1.5.1 — OpenOpal KillAura／自动搭路源码移植（2026-11-08，未发布）
 
-直接使用仓库内 OpenOpal 源码移植 KillAura、Scaffold 及其核心行为依赖，适配现有模块、设置、事件与渲染接口。覆盖本仓库 66 个 v1.5.1 工程（Fabric 23、NeoForge 23、Forge 20）；根目录 v1.6.0 与独立 Forge 1.20.1 工程不在本次范围内。
-
 - **KillAura**：接入原版输入阶段的点击／按住调度、CPS 与攻击冷却、连击计时、Grim 受伤窗口、武器选择、自动格挡和目标前瞻；目标排序使用生命值加吸收量及距上次攻击的经过时间，FOV 按 OpenOpal 的水平偏航角判断。
 - **转向与输入**：移植六种旋转模型、鼠标插值和客户端视角保持；统一转向请求优先级与动作执行时序，清除失效的一次性请求，协调 KillAura、MultiAura 与 Scaffold。
 - **自动搭路**：移植候选落点搜索、射线与放置校验、移动预测、同高度搭路、自动／手动跳跃，以及 Telly、Heypixel、Hypixel、SilenceTelly 的对应逻辑；接入 SkipTick 回救、最终发包旋转修正和搭路状态显示。
@@ -138,7 +162,6 @@ WurstB+ Plus 是由 Penguin 开发的 Wurst 增强客户端。仓库当前覆盖
 | --- | --- | --- |
 | 本仓库 `fabric/`、`neoforge/` 及三个 `versions/` 版本树，共 66 个工程 | v1.5.1 | 已合入；第 18 批完成时的全矩阵 `compileJava` 为 66/66 通过 |
 | 独立目录 `VAP-v1.5.0-1.20.1` 的根工程，Forge 1.20.1 | v1.5.1 | 已合入 86 个源码／资源文件，并生成生产 JAR；其 8 个子工程未修改 |
-| 本仓库根目录 `src/`，Forge 1.20.1 | v1.6.0 | 未合入本次四客户端移植，不属于本次 v1.5.1 目标范围 |
 
 ### 批次记录
 
@@ -335,36 +358,11 @@ ClickGUI 与 HUD 图片全部被跳过；改为从资源包读取 PNG、`NativeI
 
 ## 未发布 — Soar v8.0 新增 6 个模块（2026-10-25）
 
-- 并入 v8.0 相对 v7.1.2 新增的 **AutoGG、ForceMainHand、JumpResetIndicator、
-  PitchDisplay、SnapTap、YawDisplay**，同步 66 个 v1.5.1 工程与根 Forge v1.6.0。
-- 新增 `PlayerMixin`/`AvatarMixin` 主手钩子（1.21.9+ 的 `getMainArm` 已迁到
-  `Avatar`），以及 `KeyBindingMixin`/`KeyMappingMixin` 的 SnapTap 同时按键消解。
-- JumpResetIndicator 用 `hurtTime` 和跳跃状态在本端计算，不需要额外 Mixin。
-- 实机验证：1.21.11 逐项启用 6 个模块无异常；`disableAll` 后
-  `enabled-hacks.json` 为 `[]`。
-
 ---
-
 
 ## 未发布 — Soar 剩余 30 个模块（2026-10-25）
 
-- **并入 Soar v7.1.2 剩余 30 个模块**，并同步到 66 个 v1.5.1 工程和根 Forge v1.6.0：
-  ChunkAnimator、ClearGlass、ClearWater、ColorSaturation、CustomHeldItems、DamageTilt、
-  DamageTint、EntityCulling、FPSSpoofer、GlintColor、HitColor、HitDelayFix、ItemPhysics、
-  Items2D、MinimalDamageShake、MoBends、MotionBlur、OldAnimations、OverlayEditor、
-  ParticleCustomizer、RawInput、Rearview、Skin3D、SkinProtect、SlowSwing、SoundModifier、
-  SoundSubtitles、ViaVersion、WaveyCapes、WebBrowser。
-- **新增/扩展 Mixin 钩子**：FPS 伪装、命中延迟修复、慢速挥手、伤害倾斜、手持物品变换、
-  皮肤保护、清水/覆盖层、实体距离剔除；26.x 的 `shouldRender(float)` 与
-  `FirstPersonHandsAndItemsRenderer` 已单独适配。
-- **HUD 兼容三套 API**：1.20.2–1.21.5 的 `GuiGraphics`、1.21.6–1.21.11 的 Wurst
-  `GuiGraphicsExtractor`、26.x 的原生 `GuiGraphicsExtractor`。
-- **验证**：66 个发布 jar 全部含新类且版本为 1.5.1；Fabric 1.20.2、1.21.11、26.3 与
-  Forge 1.20.2、NeoForge 26.3 实机启动无 Mixin 注入错误；1.21.11 进入世界后逐个启用
-  30 个模块，无异常日志。
-
 ---
-
 
 ## 未发布 — 许可证切换为 AGPL-3.0（2026-10-24）
 
@@ -374,78 +372,6 @@ ClickGUI 与 HUD 图片全部被跳过；改为从资源包读取 PNG、`NativeI
   以 AGPL-3.0 发布的整体作品。
 - `README.md`、`README.en.md`、`THIRD-PARTY-NOTICES.md` 已同步；v1.5.0 及更早的已发布版本仍按
   GPL-3.0 授权，不可撤回。
-
----
-
-## 未发布 — v1.6 开发（2026-10-24）
-
-- **新增 `AutoClicker`（左键连点，Combat）**：1–20 CPS 可调、可选仅在按住左键时连点、
-  启动延迟 0–1000ms；通过 `IKeyBinding.simulatePress()` 走原版真实左键事件，方块 / 实体 /
-  空气都适用，界面打开或正在使用物品时自动暂停。中文名「连点器」。
-- **修复根工程 `gradlew build` 失败**：`accesstransformer.cfg` 把
-  `AbstractContainerScreen.slotClicked` 提为 public 后，ForgeGradle 重新编译反编译源码时
-  4 个原版子类的 protected 覆盖报“cannot override”。改为 `@Invoker` Mixin
-  （`AbstractContainerScreenInvoker`），`AutoSteal` 通过它调用，删除该 AT 条目。
-  根工程 `compileJava` / `build` 恢复通过。
-- **测试控制口绑定 IPv4**：`InetAddress.getLoopbackAddress()` 在部分 JVM 上返回 `::1`，
-  与文档和脚本使用的 `127.0.0.1` 不一致；67 个工程统一显式绑定 `127.0.0.1`。
-- **背景选择界面滚动裁剪**：卡片网格原先没有 scissor，854×480 下加号/导入卡片会整张画到
-  面板外、压在壁纸上；现在按面板内容视口裁剪，越界部分不可见也不可点击。实机 854×480 验证：
-  未滚动时不再外溢，滚动后导入卡片完整显示在面板内。
-- **背景选择界面平滑滚动**：滚轮不再按 36px 整格跳，改为记录目标位置并按时间缓动
-  （约 60ms 时间常数），滚动条与卡片位置同步动画。
-- **标题界面资料卡头像**：主动调用 `SkinManager.registerSkins` 请求本地账号皮肤，
-  并通过回调接收**真实皮肤贴图位置**（账号资料里的 textures 属性在标题界面往往还没
-  拉取，之前会一直显示默认的 Alex/Steve）。真实皮肤是 `HttpTexture`（`SimpleTexture`），
-  取不到像素，因此从 `SkinManager.skinsDirectory` 的下载缓存读文件；文件未下载完成时
-  先显示默认皮肤并每秒重试，下载完成后自动切换。`PlayerSkinProviderMixin` 从
-  「整个替换 registerSkins」改为 TAIL 追加 Wurst 披风，不再遮挡 CustomSkinLoader /
-  离线皮肤启动器。头像改为**CPU 预生成圆角方块贴图**（按当前 GUI scale 渲染、
-  边缘 8×8 超采样抗锯齿），不再用逐行 scissor，避免小尺寸下出现阶梯状像素点。
-- **代理环境变量桥接**：Java 不读取 `HTTP_PROXY` / `HTTPS_PROXY`。客户端启动时把这两个
-  环境变量写成 JVM 代理属性，避免皮肤、音乐等 HTTP 请求直连超时（PCL 自身未设置代理时
-  仍需在 PCL 里配置代理，或使用系统代理）。
-- **背景选择界面精简**：移除顶部的「运动：无」和「扫描 Steam 库」两个按钮及其点击
-  处理，标题栏只保留标题与关闭按钮。
-- **移除壁纸卡片右上角的类型徽章**：视频 / GIF 卡片不再在右上角显示「视频」「GIF」
-  「不能播放」等标签；主界面右上角的设置齿轮保持不变。
-- **壁纸音频（全部来源）**：
-  - 视频背景：FFmpeg 新增 AAC / MP3 / Opus / Vorbis / FLAC / ALAC / AC-3 / PCM
-    解码与 swresample；`FfmpegVideoDecoder` 暴露音频接口，`VideoAudioPlayer` 用
-    Java Sound `SourceDataLine` 播放，离开标题/选择界面自动暂停，播完循环。
-  - Wallpaper Engine 场景：解析 `sound` / `volume` / `playbackmode` 音频对象，从
-    `scene.pkg` 提取 MP3/OGG 等文件，由 `WeSceneAudioPlayer`（java-stream-player）播放；
-    同样只在标题/选择界面发声。
-  - 图片 / GIF 本身没有音轨。FFmpeg natives 从 7 个 DLL 增加到 8 个（新增
-    `swresample-5.dll`）。
-  - 实机验证：场景音频日志 `[Background] Scene audio: ...`、视频音频日志
-    `[Background] Video audio: 48000 Hz, 2 ch`，均无异常；全量单测 1433 项 0 失败。
-- **关闭原版主界面音乐**：`MusicManagerMixin` 在 `TitleScreen` 上取消
-  `MusicManager.startPlaying`；游戏内音乐不受影响。壁纸本身也没有音轨——视频背景
-  只解码画面，Wallpaper Engine 场景不播放声音。
-- **背景导入卡片**：修复导入按钮无反应（Minecraft JVM 是 headless，进程内 Swing
-  会抛 `HeadlessException`；改为在独立 JVM 中运行文件选择器，并从 `<gameDir>/mods`
-  找 mod jar 作为 classpath）。导入卡片去掉下方文字，文件选择器支持图片 / GIF /
-  视频（png、jpg、jpeg、bmp、gif、mp4、m4v）；视频导入后不自动选中，点击卡片时
-  再探测可播放性。
-- **Wallpaper Engine 导入卡片**：在导入卡片右侧新增带官方 Wallpaper Engine 图标的
-  卡片，点击后扫描 Steam 库并导入 WE 壁纸（原顶部「扫描 Steam 库」按钮的功能）。
-  图标取自 Wallpaper Engine 官方 Steam 商店 logo，归属见 `THIRD-PARTY-NOTICES.md`。
-- **修复窗口缩放后头像变 Alex**：调整窗口会重新执行 `init()`，此前每次都重新调用
-  `getInsecureSkinLocation`，在标题界面它常返回默认皮肤并覆盖已解析出的真实皮肤。
-  现在只有当前没有皮肤、或当前仍是默认皮肤时才会更新皮肤位置。
-- **修复头像先正确、随后变成 Alex**：皮肤管理器的回调可能先报告一个尚未下载完成的
-  `skins/<hash>`；此前会立即切到默认皮肤。现在回调只有在目标位置**可读**时才更新，
-  且屏幕上已有的头像不会被新位置的一次加载失败替换掉——只有首次完全没有头像时才用
-  默认皮肤兜底。
-- **测试脚本识别根工程 Baritone**：`run-version-tests.ps1` 原先只匹配 `[Baritone]` /
-  `Baritone 1.x` 等横幅，根 Forge 1.20.1 输出的是 `Baritone world data dir` /
-  `Baritone settings file`，导致世界已加载却被记为 TIMEOUT。已补充这些标记。
-- **实机验证（生产版 Forge 1.20.1，世界 WurstSmokeFresh）**：按 `RELEASE.md` 的
-  `run-version-tests.ps1` 真实客户端流程运行，**PASS（68.6s）**，日志确认世界加载、
-  Wurst 与 Baritone 均已启动；`/hacks` 中 `AutoClicker` 已注册、无 `LeftClicker` 残留，
-  启用/关闭均返回成功，无崩溃报告、无新 `hs_err`。启用期间此前测得约 8.25 CPS
-  （配置 8–12），关闭后点击立即停止。
 
 ---
 
@@ -636,279 +562,6 @@ X-Ray + MobESP 同帧检查：NeoForge 26.3、Fabric 26.2/26.3、Forge 26.2/26.3
 - Forge/NeoForge 1.20.x–1.21.1、Forge 1.21.3 本轮未做游戏内启动验证（源码钩子已覆盖）。
 - Fabric pre-26 的 Baritone mixin 仍处于禁用状态：不会因 Baritone 崩溃，但 Baritone
   功能本身不可用。
-
----
-
-## v1.6.0 - 根目录 Forge 1.20.1（仅此工程）
-
-### 新增子系统（191 个 Java 文件，14 个平台工程中不存在）
-
-| 包 | 文件数 | 说明 |
-| --- | ---: | --- |
-| `clickgui2/component` | 27 | VAPE 风格组件层：`VapeClickGuiScreen`、`SuperSoftClickGuiScreen` / `SuperSoftRowsWindow` / `SuperSoftSettingsWindow`、`ModuleCardComponent`、`InlineSettingComponents`、`CategoryPanelComponent`、`VapeTextInputComponent` 等 |
-| `music` + `music/apple` | 17 | 网易云音乐：`NeteaseCloudApi`、`NeteaseMusicPlayer`、`MusicAccountManager`、`LyricParser`；`apple/` 提供逐字歌词动画（`AppleLyricPlayer`、`AppleTimeline`、`AppleLayout`、`LyricWordSplitter`、`Spring`） |
-| `twilight` | 17 | Twilight Echo 音乐界面（已替换旧网易云 GUI）：`TwilightShellScreen`（外壳 + 主页 + 内容页 + 沉浸播放页）、`TwilightShellLayout` / `TwilightHomeLayout` / `TwilightListLayout`（几何）、`TwilightSkia`（Skia 绘制）、`TwilightTheme` / `TwilightAccent` / `TwilightEasing` / `TwilightGeometry`、`TwilightMusicService` + `TwilightApiEndpoint`（本地增强服务）、`TwilightCoverCache` / `TwilightCornerMask` / `TwilightCoverFit` / `CoverBlur`、`TwilightVanilla` / `TwilightHomeCopy` |
-| `background` + `gui/title/BackgroundSelectScreen` | 20 | 标题界面自定义背景：`BackgroundManager`（单例、异步解码、原版 `blit` 绘制）、`BackgroundStorage` / `BackgroundEntry` / `BackgroundThumbnail`、`BackgroundMotion` / `BackgroundPose`（Ken Burns 等运动）、`GifFrames` / `BackgroundAnimation` / `BackgroundClip`（动图解码、帧时钟与上传）、`BackgroundVideo` / `VideoPacing` / `Mp4Probe` / `FfmpegNatives` / `FfmpegVideoDecoder`（视频解码：自带的精简版 FFmpeg 原生解码，按挂钟配速）、`WallpaperEngineImporter` / `SteamLocator` / `VdfParser` / `ProjectJson`（Wallpaper Engine 导入）、`BackgroundFilePicker` / `BackgroundFileChooser` |
-| `clickgui2/music` | 1 | 仅剩 `NeteaseImageCache`（封面下载 / 解码 / 取色），由 Twilight 界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用 |
-| `compose` | 11 | 声明式 UI 布局树：`UiNode` / `UiRow` / `UiColumn` / `UiBox` / `UiText` / `UiSpacer`，配合 `AnimFloat`、`FlowingGradient`、`ModuleColors` |
-| `clickgui2/epsilon` | 8 | Epsilon 风格下拉式 GUI：`EpsilonDropdownScreen`、`EpsilonDropdownPanel`、`EpsilonDropdownTheme`、`EpsilonModuleButton`、`EpsilonCategoryPanel`，以及面板布局版 `EpsilonPanelLayout` / `EpsilonPanelNavigatorScreen` / `EpsilonPanelTheme` |
-| `clickgui2/supersoft` | 5 | `EpsilonMd3Theme`（Material Design 3 TonalSpot 暗色调色板）、`SuperSoftTheme`、`SuperSoftRenderer`、`UiMotion`、`UiTween` |
-| `render/skia` | 6 | Skiko 矢量渲染：`SkikoNatives`（解压并加载原生库）、`SkiaGlBackend`、`SkiaFontManager`、`SkiaRegionRenderer`，以及 ESP 用的 `EspSkia` / `EspIndicatorGlyphs` |
-| `gui/visual` | 3 | `VisualTheme`（语义色 token）、`VisualRenderer`、`VisualScreenMotion` |
-| `hud2/render` | 2 | `RiseFrostedGlass`（磨砂玻璃）、`RiseHudFont` |
-| `perimeter` | 35 | 周界挖掘全套：区域模型与游标、液体策略与边界封闭、方块限制与批次、导航 / 交互 / 装备 / 补给策略、28 状态自动化编排、双语文本 |
-| `perimeter.config` | 11 | 按服务器 / 存档分存的配置模型、迁移与原子写盘（`PerimeterConfigStore`） |
-| `perimeter.detect` | 2 | 不规则区域边界检测（`BoundaryDetector` / `PerimeterGrid`） |
-| `seed` | 8 | 种子矿透核心：种子存储、纯 Java 矿物预测（含字节码对齐的抽样数学）、Baritone 目标挖掘作业 |
-| `seed.structure` | 3 | 结构定位：调用原版公开放置方法、频率削减、群系校验 |
-| `seed.search` | 4 | 种子反解：结构观测、零分配 LCG 候选搜索、后台任务与自检 |
-| `seed.crack` | 2 | 无范围反解：位块分解 + 陪集求交的精确求解器 |
-| `seed.scan` | 1 | 自动观测：方块特征识别 6 类结构 |
-
-### 新增 Hack（14 个）
-
-`AirJump`、`EntityCulling`、`MusicPlayer`、`NoMissCooldown`、`NoRotate`、`PerimeterDigger`、`ProjectilePuncher`、`ReverseStep`、`RightClicker`、`SeedOreESP`、`SeedStructureESP`、`SuperKnockback`、`VehicleBoost`、`WTap`。
-
-`MusicPlayer`（OTHER 分类）打开 `TwilightShellScreen`，自身带 `@DontSaveState` / `@DontBlock`。
-
-### 视频背景播放（MP4，原生 FFmpeg 解码，新增 4 个类）
-
-标题界面的视频壁纸**从「只能导入、不能播放」变成真的会放**。此前 `BackgroundKind.canPlay()` 对 `VIDEO` 直接返回 false（卡片带「视频 · 不能播放」徽章），现在四种类型在原理上都能放，**某个视频文件**能不能放改由 `BackgroundVideo.probe(Path)` 决定。
-
-- **解码器换成了随模组发布的精简版 FFmpeg 7.1.1（LGPL、仅解码器）+ 自写的 JNI shim**。上一版用的纯 Java JCodec 解同一段 4K 素材只有 **3.8 fps**，实测不可用；换成 native 之后同一段素材软解 **95~235 fps**（取决于输出尺寸，见下表）。JCodec 的两个依赖、`unpackJcodec` 解包任务与 `sourceClasses.main.output.classesDirs.from(...)` 接线**已全部删除**（`gradle.properties` 里的 `jcodec_version` 一并删掉）。
-- **native 怎么发、怎么加载**：7 个 DLL（`avcodec-61` / `avformat-61` / `avutil-59` / `swscale-8` / `zlib1` / `libwinpthread-1` / `vf_ffmpeg`，合计 **7,605,466 字节 = 7.25 MiB**）作为**普通资源**放在 `src/main/resources/assets/wurst/ffmpeg/`，运行时由 `FfmpegNatives` 解压到 `gameDir/ffmpeg/` 再按**依赖顺序**逐个 `System.load`（Windows 只从进程搜索路径解析 DLL 自己的导入，所以 `libwinpthread-1` 与 `zlib1` 必须先于 `avutil-59` / `avformat-61`）。刻意不走 jarJar：jarJar 会重定位资源路径，而 DLL 之间是按文件名互相依赖的。命令行排障可用 `-Dwurst.ffmpeg.dir=<目录>` 直接指定目录跳过解压。
-- **LGPL 义务**：这套构建是 **LGPL v2.1-or-later，没有启用任何 GPL / nonfree 组件**（`native/ffmpeg/build-ffmpeg.sh` 里有构建期闸门，`configure` 打印 `License: LGPL version 2.1 or later`）。许可文本 `COPYING.LGPLv2.1` 与 `LICENSE.md` **随模组 jar 一起分发**（在资源目录里改名为 `copying-lgplv2.1.txt` / `license-ffmpeg.txt`，内容逐字节相同——Minecraft 的资源路径只允许小写）；可复现的构建脚本 `build-ffmpeg.sh` / `build-shim.sh`、shim 源码与 configure 行都在仓库的 `native/ffmpeg/` 下（对应源码的提供方式）。FFmpeg 以**动态库**形式链接，用户可以自行替换 `avcodec-61.dll`，符合 LGPL 的「可替换」要求。
-- **上传尺寸（这次修掉的「模糊」）**：不再固定 1280x720，改成**按绘制尺寸**——壁纸铺满整屏，所以取窗口的**帧缓冲**尺寸（物理像素，不是 GUI 缩放后的逻辑尺寸），再被**源尺寸**（永不放大）与**上限 2560x1440**夹住。窗口缩放（拖窗口、切全屏、改 GUI 缩放）时解码线程会换一套复用缓冲并调 `setOutputSize`，`BackgroundManager` 跟着换同尺寸的纹理——纹理尺寸不跟着换的话 `NativeImage.copyFrom` 的尺寸检查会让画面停在旧的那一帧。**「上传尺寸变大几乎不要钱」这个说法实测不成立**：同一台机器、同一段 4K/16fps 素材，输出从 720p 加到 1440p，软解从 235 fps 掉到 95.5 fps、硬解从 115 fps 掉到 67.9 fps（缩放与显存带宽是按输出像素算的），所以上限取的是「画质够、端到端仍有 30fps 上限两倍余量」的那个点。
-- **流式而不是全解**：解码线程（`WurstB-BackgroundVideo`）按挂钟一次解一帧，帧在 **3 个复用缓冲**里交接给渲染线程，只有新帧才 `upload()`。渲染线程超过 1 秒不来取帧（标题界面不在了）解码线程直接停下——否则一段 4K 的视频会在玩家游戏里一直解码白烧 CPU。**帧率上限 30fps**（不足 1/30 秒的帧解但不转换、不上传），规则仍集中在纯算术类 `VideoPacing`，可单测。
-- **时间轴改为自己算**：shim 只交图像、不给逐帧 PTS，所以第 n 帧的显示时刻是 `n * 1000 / fps`（容器帧率，拿不到就用「帧数 / 时长」推，再没有按 30fps）。代价是可变帧率的源会累积偏差；收益是时间轴一定单调向前——旧那条路上「坏时间戳跳到几小时后」的失败模式没有了。落后挂钟 1.5 秒时**重新对齐一次**（把这一轮的起点挪到当下），因为这套 native 接口只有「回第 0 帧」、没有任意定位：这样既不跳回片头，也不会把落下的几百帧一帧帧解完。
-- **硬件解码是可选的**：先按 D3D11VA 打开（设备建不出来时 shim 自己退回软解），解到一半返回负值就用软解重开接着放。这条降级路径**实测会被走到**：320x240 的 baseline H.264 在 D3D11VA 上第一帧就返回 `AVERROR_INVALIDDATA`（-1094995529），而软解完全正常——所以解码探测也改成"硬件解不出第一帧就再用纯软件试一次"，否则一个能放的文件会被判成放不了。
-- **支持范围（如实说明）**：MP4 容器 + **H.264（`avc1` / `avc3`）、HEVC（`hvc1` / `hev1`）、VP9（`vp09`）、AV1（`av01`）、MPEG-4 Part 2（`mp4v`）、Motion JPEG（`jpeg`）**。**AV1 只有硬解**：FFmpeg 里没有软件 AV1 解码器（`av1dec` 在没有 hwaccel 时直接返回 ENOSYS），没有 AV1 硬解的机器上会落到「这个编码本版放不了（实际：AV1）」。VP8、ProRes **没有**编进这套构建，仍然放不了；WebM / MKV 容器仍然不收（扩展名只认 `.mp4` / `.m4v`）；**音轨一律忽略**；10 位 / HDR **没有测过**；手机竖拍的**旋转矩阵不再被应用**（旧的 JCodec 路径会转，现在会横过来显示，见 docs/title-background.md 第 7 节）。
-- **失败行为（固定三条不变）**：退回内置默认背景、把该条目记进 `failedId` 不再每帧重试、日志留**一行** `[Background] 视频背景 <id> 不能播放：<原因>`。原因仍然是 `Reason` 枚举（文件不在 / 0 字节 / 不是 MP4 / 没有视频轨道 / 编码放不了 / 没有帧 / 解码失败），**任何异常都不会漏给渲染线程**；放到一半坏掉走同一条降级路径。判定「没有视频轨道 / 编码放不了 / 文件坏了」的那部分改由 `Mp4Probe`（只读文件头的盒子扫描）回答，语义与旧的 JCodec 诊断一一对应。
-- **选择界面**：卡片渲染时按条目 id 发起一次异步探测并缓存（与缩略图同一套做法），探测期间徽章是「视频 · 检测中…」；能放才允许选中，放不了时点击在状态栏里说明具体原因（含实际编码名），不再让选择静默失败。
-- **实测（无客户端，进程内真跑）**：见下面的「视频解码实测」表与 docs/title-background.md 第 6 节。端到端用例改用**随仓库发布的素材**（`src/test/resources/.../fixture-*.mp4`，四段共约 262 KB；旧版本用 JCodec 的编码器现编，换掉 JCodec 之后就编不出新素材了，因为这套构建只带解码器），四象限素材逐象限判「哪一路占优」，红蓝写反或行序翻转都会红；**第四段是 720p**（`fixture-hd.mp4`），专门用来走"硬解第一次就成功"那条分支。
-- **实机验证（2026-10-06，dev 客户端 1296x672）**：4K（3840x2160、369 帧 / 23.0 秒）的 H.264 壁纸**正常播放**，日志只有一行 `[Background] Video <id>: 1195x672 (源 3840x2160), 369 帧 / 23062ms, 上限 30fps`——上传尺寸就是窗口的帧缓冲尺寸（1195x672），不再是旧的 1280x720 上限；选择界面里视频卡片**全部**显示「视频」（可播放），没有一张「不能播放」。
-- **修掉一个让实机"所有视频都不能播放"的探测 bug**：`BackgroundVideo.probe` 里**成功那条路漏了返回**——原写法 `if(probe == null){…软解重试…}` 之后不管成败都落到 `diagnose(track, attempt.failure())`，于是"硬解第一次就成功"的文件带着**空原因**进诊断，卡片与日志一律显示 `DECODE_FAILED / avc1 / `，看起来像解码器全坏了（native 其实完全正常）。单元测试漏掉它的原因是三段素材都是 320x240，而这个尺寸的 D3D11VA 第一帧就失败，测试实际跑的是"硬解失败 → 软解重试成功"这条能正确返回的分支。已补 720p 素材与回归用例 `BackgroundVideoTest.probesAnHdFixtureThatHardwareCanDecode`（**把 bug 放回去这条用例就会红**，失败信息正好是 `DECODE_FAILED / avc1 / `）。顺带把 `libraryFailure()` 的兜底文案从「解码器打不开」改成「原因不明（解码库正常）」——旧文案会在库明明正常时写进日志，把排查方向带偏。
-- **修掉「拖动窗口，画面撕裂」——根因在原生 shim 里**：`frame_to_rgba` 缓存的 swscale 上下文原来只在**源**格式/尺寸变化时重建，而 `setOutputSize` 改的是**输出**尺寸，`vf_set_output_size` 又没有把缓存丢掉。于是换过尺寸之后 `sws_scale` 仍按旧尺寸写像素、却用新 stride 排，行全部错位——画面撕裂成"两帧混在一起"。**输出缩小时更严重**：它会写过 Java `byte[]` 的末尾（那块数组经 `GetPrimitiveArrayCritical` 拿到，就是堆上对象，实测最多越界 1.7 MB）。Java 侧两条都发现不了：`setOutputSize` 返回的字节数是**算**出来的，`bytes != frameBytes` 那条校验恒过。这个坑只在**后续**换尺寸时出现（第一次 `setOutputSize` 时 `h->sws` 还是 NULL），所以"加载时正常、一拖窗口就花"。修法：`vf_set_output_size` 在输出尺寸真的变化时 `sws_freeContext` + 置空。已重建 `vf_ffmpeg.dll`（86,485 字节，7 个 DLL 合计仍是 7,605,466）。回归用例 `FfmpegVideoDecoderNativeTest.keepsThePictureCorrectWhenTheOutputSizeChanges`：**在旧 DLL 上会红**（`左上 的另外两路应当很低，实际 R=236 G=238 B=238`），在新 DLL 上绿——旧的 `scalesTheOutputSize` 只断言字节数，从来没看过像素，所以漏了它。
-- **拖动窗口已实机验证**：窗口依次 1000x560 / 1536x800 / 800x620 / 1296x672，解码尺寸一帧内跟上（996x560 / 1422x800 / 800x450 / 1195x672），四张截图都是完整、正确 cover 裁切的画面。
-- **「视频每隔几秒抖一下」只做到部分定位（如实说明）**：解码侧查不出问题——用假的 60fps 渲染循环把 `超时空辉夜姬4k`（4K HEVC、23.976fps）跑满 20 秒是 **479 帧 / 23.9 fps、平均间隔 41.8ms、0 次重新对齐**；实机打点整场只记录到一次 >90ms 的交帧间隔（开机第一帧）。上面那个越界写很可能是它的来源，但**抖动本身没有单独复现，也没有在修后长时间观察确认消失**。
-- **仍未实机验证**：旋转视频、10 位 / HDR、AV1（本机 GPU 是否支持未测）、播放时的 CPU 占用、资源重载后重新加载；视频卡片仍然**没有缩略图**（`NativeImage` 与 ImageIO 都读不了 mp4）。
-
-
-#### 视频解码实测（本机，无客户端，走 Java 路径）
-
-素材是仓库里那段真实壁纸 `run/wurst/backgrounds/ayaka-sakura-spirit/media.mp4`（**3840x2160 H.264 High L5.1, yuv420p, 16 fps, 369 帧, 23.06 s, 39 Mbps**），测量方法是 `FfmpegVideoDecoder` 逐帧解到复用缓冲 + 逐像素写进 `NativeImage`（就是模组里真正做的那两步），每一档都跑满 369 帧，用的工具是仓库里的 `FfmpegVideoDecoderTest`（走 Java 路径，不是 ffmpeg 命令行）：
-
-| 输出尺寸 | 软解 | 硬解（d3d11va） | 每帧写 NativeImage | 端到端（软解 / 硬解） |
-| --- | ---: | ---: | ---: | ---: |
-| 1280x720 | 196.7 fps | 113.3 fps | 1.3 / 0.7 ms | 157 / 105 fps |
-| 1920x1080 | 137.1 fps | 88.6 fps | 2.3 / 1.7 ms | 104 / 77 fps |
-| **2560x1440（本版上限）** | **87.5 fps** | **65.9 fps** | **3.7 / 3.1 ms** | **66 / 55 fps** |
-| 3840x2160（源尺寸） | 224.8 fps | 53.5 fps | 8.5 / 7.1 ms | 77 / 39 fps |
-
-同一台机器重复跑有 5~10% 抖动（早几轮 720p 软解到过 235 fps、1440p 软解 95.5 fps），上表是同一轮跑齐的一组，最差一组也在 30fps 上限两倍以上。每一帧 `bytes/frame` 都等于 `宽×高×4`、alpha 恒为 255、三通道跑满 0..255，软解与硬解均值一致（1440p 都是 R=137.4 G=94.1 B=105.5）——**不是空白帧也不是乱数据**。两个反直觉但可解释的数字：① **4K 原生解码反而比缩到 1440p 快**——`swscale` 在尺寸相同时只做 YUV→RGBA 转换（SIMD 快路），一旦要缩放就要跑缩放器的多抽头滤波，`SWS_FAST_BILINEAR` 在 2160→1440 这种非整数比上比转换还贵；② 硬解随输出像素线性变慢（GPU→CPU 回读是按输出算的），所以硬解在 4K 上只剩 53 fps。选 1440p 作上限正是因为它在两端都留了 30fps 上限两倍以上的余量，而内存/显存代价是复用缓冲 3×14.7 MB（加上纹理与解码缓冲一共约 74 MB）。
-
-### 种子矿透（SeedOreESP，新增 10 个文件）
-
-`net.wurstclient.seed`（8 个文件）+ `hacks/SeedOreEspHack` + `commands/SeedCmd`，**零新增依赖、不注入 Baritone 内部类**。
-
-- **种子存储**（`SeedStore` / `SeedEntry`）：按 `server:<ip>` / `singleplayer:<path>` / `local:<dim>` 身份分存；单人模式直接读取集成服务器种子；`parseSeed` 支持纯数字，其他文本取 `hashCode`。
-- **矿物预测**（`OrePredictor` / `OreRules` / `OreRule` / `OreCount` / `OreHeight`）：纯 Java 复刻原版矿物生成数学——`WorldgenRandom`（**Xoroshiro**，与原版 `applyBiomeDecoration` 一致）→ `setDecorationSeed` → 逐条 `setFeatureSeed(populationSeed, index, step)` → `count.sample` / rarity / `height_range` / 矿脉椭圆与 `discardOnAirChance`。规则表覆盖主世界 20 条、下界 10 条 placed_feature。
-- **抽样数学逐条对齐字节码**：`UniformInt` / `ConstantInt` / `UniformHeight` / `TrapezoidHeight`（含「先 `nextInt(0, large)`、再 `nextInt(0, small)`」的顺序）/ `VerticalAnchor`（absolute / above_bottom / below_top）与 `Mth.nextInt` 均按 1.20.1 字节码核对后重写为纯值类型，`OreSamplingTest` 用记录型随机源把边界与顺序钉死。之所以不直接用原版 provider：`IntProvider` / `ChunkGenerator` 的静态 codec 会拉起原版 bootstrap，而 Forge 的 `Bootstrap.bootStrap()` 在单元测试环境会卡在 `NetworkHooks.init`。
-- **ESP 与自动挖掘**（`SeedOreEspHack` / `SeedMineJob`）：按区块半径预测并缓存（每 tick 限量），`RenderListener` + `ESP_QUADS` 渲染；`Auto Mine` 通过官方 Baritone 公开 API（`ICustomGoalProcess#setGoalAndPath(new GoalComposite(GoalBlock...))`）按距离分批下发目标，把「目标方块变成空气」视为已挖到，支持暂停 / 恢复 / 取消。
-- **命令**：`.seed` / `.seed get|set|clear|list|mine`。
-
-**与参考实现的偏差（如实说明）**：① 不按生物群系过滤规则（`OreContext` 拿不到 biome 源），预测结果是原版超集，非该矿生物群系可能出现假阳性；② 高度图以「自上而下第一个非空气方块」近似原版 `OCEAN_FLOOR_WG`，只影响「矿脉是否位于地表之上」的判定，不消耗随机数；③ 方块判定用 `isAir` 而非 `canOcclude`，玻璃等非遮挡方块略有差异；④ 未实现种子反推（需 seedfinding/latticg，探测到的坐标 404）与结构 / Cubiomes 定位；⑤ **未在真实世界生成中逐格校验预测坐标**，单测只能验证确定性、区间与抽样契约。
-
-
-- `org.jetbrains.skiko:skiko-awt:0.8.19`（jarJar）+ `kotlin-stdlib` + `kotlinx-coroutines-core-jvm`
-- 视频背景：**自带的精简版 FFmpeg 7.1.1（LGPL，仅解码器）+ JNI shim**，7 个 DLL 共 7,605,466 字节，作为普通资源放在 `src/main/resources/assets/wurst/ffmpeg/`（**不 jarJar**——jarJar 会重定位资源路径，DLL 之间按文件名互相依赖），运行时解压到 `gameDir/ffmpeg/` 并按依赖顺序加载。原来的 `org.jcodec:jcodec:0.2.5` + `jcodec-javase` 已随这次改动删除。构建方式、许可与体积见 `native/ffmpeg/README.md`。
-- 音乐播放链：`java-stream-player`、`mp3spi`、`jlayer`、`jflac-codec`、`vorbis-support`、`tritonus-all`、`jorbis`、`jaudiotagger`
-- Skiko 原生库（`skiko-windows-x64.dll` 16.5 MB、`icudtl.dat` 10.0 MB）**不 jarJar**——jarJar 会重定位资源路径导致 Skiko 无法在 jar 内定位原生库。改为随 mod 资源打包到 `assets/wurst/skiko/`，运行时由 `SkikoNatives` 解压到 gameDir，并通过 `skiko.library.path` / `skiko.data.path` 系统属性显式加载。
-- 根工程 jarJar 共内嵌 19 个依赖 jar；产物体积由 v1.5 的约 29 MB 增至 **68.1 MB**（主要来自 Skiko 原生库）。
-- **内嵌库重定位与 Skiko 的冲突（已修）**：为解决整合包里的 JPMS split package，构建会把部分内嵌库改名到 `net/wurstclient.shaded.*`。但 `kotlin/` **不能改**——Skiko 的原生初始化 `Library._nAfterLoad` 需要原包名的 `kotlin.*`，改名后一碰 Skia 就让 JVM 直接硬崩（`EXCEPTION_ACCESS_VIOLATION`，**不写 crash-report**，只在实例目录留 `hs_err_pid*.log`）。现改为给 `kotlin-stdlib` / `kotlinx-coroutines` / `skiko-awt` 打包时生成 `module-info`，用**限定导出**（`exports kotlin to wurstb.skiko`）做隔离：Skiko 看得到原包名，其它模块看不到 `kotlin`，与 KotlinForForge 那类整合包的冲突不再发生；其余内嵌库照旧重定位。
-
-### 结构定位与结构 ESP（SeedStructureESP，新增 4 个文件）
-
-`net.wurstclient.seed.structure`（3 个文件）+ `hacks/SeedStructureEspHack`，**零新增依赖**，与矿透共用同一份种子存储。
-
-- **放置数学不重写**：1.20.1 的 `RandomSpreadStructurePlacement#getPotentialStructureChunk(long,int,int)` 是 public，因此直接调用原版方法（`StructureFinder`）——预测与原版**构造上一致**，数据包 / 模组新增的结构集自动生效。1.20.1 原版共 **19 个结构集：18 个 `random_spread` + 1 个 `concentric_rings`（要塞）**，后者是另一套算法，已明确跳过。
-- **频率削减已实现**（`PlacementFrequency`）：`buried_treasures`（spacing=1, frequency=0.01）、`mineshafts`（0.004）、`pillager_outposts`（0.2）靠 `frequency`/`frequency_reducer` 控稀有度，不实现会让它们在每个区块命中。这两个字段是 protected 且无公开读取口，故通过**放置编解码器导出为 JSON**（即数据包 schema）读取，再按 1.20.1 字节码复刻四种削减器的判定——含 `legacy_type_1` 的 `regionX ^ regionZ << 4` 分组，以及 DEFAULT 变体把 salt 传在 chunkX 位置这一原版细节；随机数仍由原版 `WorldgenRandom` 产生。
-- **群系校验（仅已加载区块）**：候选区块若已被客户端加载，则用 `Structure#biomes()` 与 `Level#getBiome` 核对；未加载区块无法校验，如实标注 `biome unknown`。
-- **命令**：`.seed structures [半径]` 输出候选列表（结构集、区块、方块坐标、距离、群系状态）；`.seed structesp` 开关结构 ESP（已加载区块地表三点标记，青色）。
-- **未实现 / 已知局限**：① `exclusion_zone` 被忽略（原版仅 `pillager_outposts` 用它排除村庄），结果为超集；② 要塞（同心环）跳过；③ 未实现种子反推——依赖 `maven.seedfinding.com` / `maven.latticg.com` 的 `mc_*` 与 `latticg`，实测这些地址 301 到 `nexus.seedfinding.com` 后制品 **404**，Maven Central 亦无，只能自研格基归约，本轮未做；④ **未在真实世界生成中逐格校验**，只验证了编译与单测（区域扫描、频率削减速率与分组性质）。
-
-### 种子反解（结构观测 → 种子，新增 4 个文件）
-
-`net.wurstclient.seed.search`（4 个文件），**零新增依赖**，把「正向结构定位」变成可用的**反解工具**。
-
-- **能力边界（如实说明）**：这不是 Seedcracker 那种「从零反推」，而是**候选确认式搜索**——玩家提供一个结构集 + 坐标作为观测，工具在给定种子范围内找出所有能复现该观测的种子。每个观测把种子约束到约 `2 * log2(spacing - separation)` 比特；同集合的多个观测**并不独立**（同一水平种子加已知偏移派生），实测候选密度高于理论值，因此工具会返回多个候选，玩家用更多结构逐步收敛，而不是声称唯一解。
-- **热循环零分配**：搜索每秒要评估上亿候选，若每候选构造一个 `WorldgenRandom` 太慢，故用 thread-local 的纯 LCG（`PlacementFrequency.Rng`：倍乘 25214903917、加数 11、48 位掩码、`nextInt` 的 2 的幂快速路径、`nextFloat`/`nextDouble` 的 2^-24 / 2^-53 定标）——`RngEquivalenceTest` 把这些与原版 `WorldgenRandom` **逐位对照**（含 `next(31)`/`nextInt(bound)`/`nextLong`/`nextFloat`/`nextDouble`、两种播种方法，以及 5000+ 组频率削减判定）全部一致。
-- **运行时自检**：搜索开始前，`StructureFinder` 会用原版 `getPotentialStructureChunk` 对 32 个采样区块逐一比对快路径；一旦不一致就报告 `MISMATCH`，命令层**拒绝启动搜索**。
-- **命令**：`.seed observe <结构集> <x> <z>`（记录观测，`observe list` / `observe clear`）、`.seed search <from> <to>`（后台线程搜索，每 20 tick 报进度）、`.seed search status` / `search cancel`；命中后直接给出 `.seed set <seed>` 命令与候选列表。
-- **可自证的闭环**：`SeedSearchTest` 的观测值由**原版** `WorldgenRandom` + 原版偏移公式生成，再要求搜索找出来源种子——含 2/8 观测收敛性对比、多线程与单线程结果一致、进度计数、取消、不可用结构集（`buried_treasures` 间距 1）被排除、跨结构集组合等 12 例。
-- **未实现 / 已知局限**：① 不做格基归约（LLL），因此**不能**在 2^48 全域内无范围反解，只能确认候选或搜索给定范围；② 观测需玩家手动提供（客户端拿不到服务端结构数据）；③ 未在真实存档中验证反解结果；④ `exclusion_zone` 与要塞（同心环）仍不参与。
-
-
-- 根工程 `test` 通过（2026-10-04 实测）：**176 个测试类、1114 项、0 失败**（含种子矿透的抽样契约、预测确定性与种子存储、结构区域扫描与频率削减速率、LCG 与原版逐位一致性、种子反解闭环、格基替代解法的闭环还原、结构扫描器 28 例；含 ClickGUI 三布局切换、AMLL 歌词优化流水线/视觉公式/遮罩几何/缓动/强调动画/过渡/断行平衡/掩码、YRC/翻译/音译/背景人声、间奏三点、网易云 JSON 安全解析、周界挖掘的区域几何与进度/ETA、Twilight 外壳与主页/列表几何、封面圆角蒙版与模糊、标题背景的存储/运动/壁纸引擎导入与 GIF 合成/预算/帧时钟）。
-- 视频背景接入后重跑（2026-10-05 实测）：**189 个测试类、1223 项、0 失败、0 跳过**（比上一轮多 `VideoPacingTest` 13 例与 `BackgroundVideoTest` 18 例，后者含用 JCodec 现编 mp4 的端到端解码、颜色与时间戳检查，以及无客户端的播放实测）；`--offline` 构建通过。
-- **解码器换成原生 FFmpeg 后重跑**（2026-10-05 实测）：**192 个测试类、1248 项、0 失败、0 跳过**（`--offline`）。新增/改写的用例：`Mp4ProbeTest` 10 例（盒子扫描的编码 / 轨道 / 帧数，64 位与 0 长度字段，坏文件与全零不转圈）、`FfmpegVideoDecoderNativeTest` 6 例（真加载 natives：每帧字节数、EOF 与错误的区分、`seekToStart`、`setOutputSize`、硬件失败退回软解）、`FfmpegNativesTest` 5 例（7 个 DLL 与许可文本真的在资源目录里、文件名全是合法资源路径、加载顺序、开发工具不发布）、`BackgroundVideoTest` 22 例（尺寸策略按绘制尺寸 / 上限 / 不放大，四象限素材的颜色与行序，真实播放与 **30fps 上限**，**背景不显示时停止解码**，窗口换尺寸）；解码用例通过 `-Dwurst.ffmpeg.dir=native/ffmpeg/dll` 在无客户端下真解码，环境不满足时自跳过（本机 0 跳过）。
-- 端到端颜色与行序的判据：同一段 mp4 用旧 JCodec 路径与新的 FFmpeg 路径各解一遍、逐像素比对——**正着放的平均差是 2.6（三通道合计），上下翻转 450.8、左右翻转 461.6、红蓝互换 217.7**，四象限素材（左上红 / 右上绿 / 左下蓝 / 右下白）逐象限断言占优通道。所以新的 native 路径**不需要翻转行序、也不需要交换通道**（旧的 `argbToAbgr()` 是为了补 `BufferedImage.getRGB()` 的打包 ARGB，不是行序问题）。
-- 产物：`build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（约 68.7 MB）。体积账（以 `jar` 任务产物实测）：**加进去** 7 个 DLL 加两份许可文本 = 7,636,368 字节（7.28 MiB，其中 DLL 本身 7,605,466 = 7.25 MiB），zip 之后 2,688,654 字节；**减掉** JCodec 及其传递依赖 jaad 共 4,082,683 字节（JCodec 3,406,502 + jaad 676,153，989+95 个 class），zip 之后约 1.7 MB；**净增 589,605 字节**（68,102,772 → 68,692,377）。DLL 在 jar 里的位置是 `assets/wurst/ffmpeg/`。
-- 产物：`build/libs/WurstB+ Plus-v1.6.0-Forge-1.20.1.jar`（约 68 MB，见下面解码器更换后的体积账）。
-- 仅验证构建与单元测试；v1.6 新子系统（GUI / 音乐 / Skia / 周界挖掘 / 种子矿透 / 结构定位）**未经游戏内运行验证**。
-- 开发工具：`scripts/doctor.ps1`、`scripts/run-unit-tests.ps1`、`scripts/seed-gradle-wrapper.ps1`；`build-all.ps1` 根工程产物已对齐 v1.6.0。
-
-### 无范围反解、热循环优化与自动观测（新增 3 个文件）
-
-- **无范围反解（`seed.crack`，2 个文件）**：不做格基归约，而是**精确的位块分解 + 陪集求交**——把 LCG 状态拆成 `2^17·b + e` 与 `2^18·u + v`，使每条约束变成 13 位高位上的短等差数列（range 奇部）或区间（2 的幂 range 走原版 `nextInt` 快速路径），多约束求交即 `Z/2^13` 上的小 CRT；低 17 位用 `gcd(a·r1, r2, 2^31)` 的必要条件一次 bitmap 扫描压缩；每个候选**必须经原版 LCG 回放全部约束**才返回。`.seed crack [超时秒]` 在后台线程调用，客户端不卡。
-  **实测边界（如实标注）**：支持 range 2..64；1~8 个观测（2~16 条约束）耗时 30 ms ~ 1.5 s；8 个偶部 range 观测（约 66 bit）**精确还原原种子**（约 0.2 s）；**只有奇数 range 的强约束集**（例如 7 个 ruined portal）没有可用 pin，会在超时后返回 `success=false` 并写明 "timed out … no seed found so far"，**不假装成功**；**弱约束集（≤4 观测）在数学上不唯一**（1 观测 2 约束约 4×10¹¹ 个解），此时契约是「返回的种子确实复现全部观测」，不保证等于原始种子。
-- **热循环优化（`seed.search`）**：候选无关量全部预计算——`regionX/regionZ`、`wantX/wantZ`，以及 LCG 种子偏移 `base = regionX·341873128712 + regionZ·132897987541 + salt`（于是每个候选只需**一次加法**），`Target` 数组化去掉 `List.get`。**实测约 3800~4800 万候选/秒/线程**（2000 万候选约 0.4~0.5 s）：2³² 约 90 s 单线程 / 约 12 s（8 线程），2⁴⁰ 约 6.4 h / 约 48 min，**2⁴⁵ 以上不实用**。另修正报告口径：结果被 `maxResults` 截断时会明说「已达结果上限，范围未搜完」。
-- **自动观测（`seed.scan`，1 个文件）**：`.seed observe scan [半径 1..8]` 扫描已加载区块的方块特征，认出 6 类结构并直接登记为观测（同结构集同区块自动去重）。判据均为「唯一来源/组合证据」：海底神殿（`sea_lantern≥2` 且棱镜石族 `≥16`）、远古城市（`reinforced_deepslate≥1` 或 `deepslate_bricks≥24` 且 `deepslate_tiles≥8`，强制 y<0）、古迹废墟（`mud_bricks≥8`）、沙漠神殿（`chiseled_sandstone≥2` 且 `chiseled+cut≥8` 且 `orange_terracotta≥4`）、冰屋（`snow_block≥16` 且内部方块≥2）、埋藏宝藏（沙滩/积雪沙滩/石岸群系中箱子**恰为 1**，群系未知则不报）。
-  **已知风险（如实标注）**：阈值**未在真实存档标定**（漏报多时优先下调古城/古迹废墟阈值）；玩家自建（棱镜农场、深板岩砖房）会误报；跨区块切割与部分加载会漏报；沙滩区块里的地牢/搁浅沉船/海底废墟也含箱子，埋藏宝藏仍有残余误报。**冰屋判据修正**：1.20.1 冰屋模板实测为 94×`snow_block` + 白/浅灰地毯 + 红床 + 活板门等，**没有 `white_wool`**，故不以白羊毛为必要条件。
-### 已知问题（本轮已修复）
-
-- `VisualThemeTest` 的两个断言仍指向 v1.5 时期的强调色 `#4677FF`，与统一后的 `#007CFF` 不符，导致 `test` 任务失败。已对齐断言与 `VisualTheme.ACCENT` / `EpsilonMd3Theme.PRIMARY`。
-
-### 本轮补齐
-
-- ClickGUI 入口按 `ClickGuiStyle` 在 **Epsilon / SuperSoft / Vape** 三套布局间切换；`SuperSoftClickGuiScreen` 现在可从主面板与 ClickGUI 设置打开。旧 `vapeMode` JSON 仍映射为 Vape。
-- `NotificationSeverity.INFO` 已对齐统一强调色 `#007CFF`。
-- 网易云歌词按 GitHub [applemusic-like-lyrics](https://github.com/Steve-xmh/applemusic-like-lyrics) `packages/core` / `packages/lyric` 移植：YRC 解析（含背景人声括号）、翻译行、AMLL 间奏三点（入场/呼吸/点亮/回弹）、长词强调辉光与上浮。原仓库是 TypeScript DOM，Minecraft 侧用 Java + Skia/GuiGraphics 实现同等视觉。
-
-### 歌词视觉一比一复原（对齐 AMLL 源码）
-
-按 `packages/core` 源码逐条复刻视觉公式，替换此前凭观感调出的近似值：
-
-- **透明度**（`resolveOpacity`）：高亮行 **0.85**（原先误用 1），逐行歌词未高亮 **0.2**，逐字歌词未高亮 **1**（不靠透明度压暗，改由遮罩的 0.2 均匀 alpha 与模糊表达层次）；`hidePassedLines` 用 1e-4。
-- **模糊**（`resolveBlurLevel`）：焦点之后 `1 + |i − latest|`、焦点之前额外 +1，窄视口（≤1024px）×0.8，上限 5px；Skia 路径用真实 `ImageFilter.makeBlur`，MC 字体路径用按 σ 采样的高斯重绘近似。
-- **缩放**（`group.ts`）：主歌词统一 1em 字号，非激活只经弹簧缩放到 **97%**；背景人声 **75%**、CSS 透明度 0.4、`backgroundSlideY` 弹簧从 ±80 滑入。
-- **字号体系**：取消原先「激活 20 / 非激活 16」的双字号，改为 AMLL 的单一基准字号（默认 24，即 1em），翻译行 `max(0.5em, 10px)` / 透明度 0.3，背景人声 `max(0.7em, 10px)`。
-- **卡拉 OK 遮罩**：未唱部分按 `--dark-mask-alpha: 0.4` 压暗，交界处渐变带宽 = 字高 × 0.5。Skia 路径改为**单次渐变绘制**（alpha 由 1 过渡到 0.4），此前分两次绘制会让暗部叠两次而偏亮。
-- **遮罩模型修正与 CSS 过渡**（`lyric-player.module.css`）：`AmlVisual` 补齐 `--bright-mask-alpha` / `--dark-mask-alpha` 的真实取值——**非激活的逐字行只有 0.2 的均匀遮罩**（SOLID 模式亮暗同值），因此 `opacity(1) × 0.2 = 0.2`，此前直接按 1.0 绘制会**亮 5 倍**；激活行取 1.0 / 0.4。新增 `AmlTween` 模拟 CSS `transition`（遮罩 alpha 激活 0.3s、退回 0.45s 且 `ease-out`，`opacity` / `filter` 0.4s `ease`），并在 rebuild-view / 配置变更时按 AMLL 的 `tmpDisableTransition` 语义瞬移。
-- **MC 字体路径的真实高斯模糊**（取代此前的字重 + 透明度近似）：按 σ 生成归一化二维高斯采样表（权重阈值 0.02、上限 16 个采样点、按 σ 量化缓存），逐采样重绘字形；σ < 0.5px 时退化为单次绘制。逐字行的模糊与遮罩渐变不会叠加——AMLL 中激活行 `resolveBlurLevel` 恒为 0。可用 `setMcBlurEnabled(false)` 关闭。
-- **MC 字体路径的精确渐变遮罩**：改为**三段互不重叠**的裁切带（渐变带前亮部、渐变带内按 1px 一档插值、渐变带后暗部），取消原先「先整词压暗再叠画亮部」的双重合成；顺带修掉 Minecraft `Font.drawInBatch` 在 `alpha < 4` 时强制不透明的坑——近乎隐形的行（如 `hidePassedLines`）过去会整行变实。几何也一并纠正：AMLL 的遮罩是「两端带渐变的遮罩图 + 平移」，`generateFadeGradient` 缩放后亮部停靠点落在元素右缘 `C`、暗部停靠点在 `C + fadeWidth`，遮罩位置从 `−(C + fadeWidth)` 线性走到 `0`，因此**渐变整段位于亮部边界右侧、并不居中于交界处**（只有 `p = 0.5` 时两者重合，两端各差 `fadeWidth / 2`）。该几何抽成 `AmlVisual.maskEdges` / `maskAlphaAt`，MC 与 Skia 两条路径共用并有单元测试锁定。强调词的遮罩与辉光同样改为「先按变换前尺寸定遮罩、再整体缩放」。
-- **断行平衡**（`utils/lyric-line-break.ts`）：新增 `AmlLineBalancer`，用动态规划挑选换行点——超宽惩罚 ×1000、标点后换行奖励 0.6、空格后 0.4、CJK 边界 0.15、普通 0.5，避免末行只剩一两个字。逐字与非逐字行都走该路径，单个词就超宽时退化回贪心换行。
-- **音译行**：`LyricLine` 新增 `romanLyric`，`LyricParser.parseBest` 增加第四个参数并新增 `attachRomanizations`（±800ms 配对），`NeteaseCloudApi` 转发网易云 `romalrc`；渲染顺序与 AMLL 一致——翻译行在前、音译行在后，透明度均为 0.3。
-- **注音与不雅词掩码**：新增 `LyricRuby` 与 `AmlMask`（`DISABLED` / `FULL` / `PARTIAL`，`PARTIAL` 保留首尾字符，词长 ≤ 2 退回整词掩码，空白不受影响，行文本与词文本同步）。注音绘制于词上方居中、字号 0.5em 并计入行高。**注意**：网易云接口不提供注音与不雅词标记，这两条路径当前无数据源，属于为完整性预先移植、已被单元测试覆盖的能力。
-- **强调动画**（`lyric-line.ts` `initEmphasizeAnimation`）：逐字绕字心缩放 `1 + transX×0.1×amount`、横向让位 `−transX×0.03×amount×(n/2−i)`、纵向抬升 `−transX×0.025×amount`、白色辉光 `rgba(255,255,255,transX×blur)`；`amount`/`blur` 由词时长经 `sqrt`/立方分段后取 0.6 / 0.5 系数并封顶 1.2 / 0.8，行末词放大 1.6 / 1.5 倍且时长 ×1.2。缓动为 `empEasing` 脉冲（`cubic-bezier(0.2,0.4,0.58,1)` 与 `(0.3,0,0.58,1)` 镜像，中点峰值 1）。
-- **上浮动画**：由原先的 `sin(π·p)` 改为 AMLL 的 CSS `ease-out` 单调上升至 `−0.05em`（背景人声 −0.1em），时长 `max(1000ms, 词时长)`、延迟取词相对行的偏移；强调词再叠加一次正弦附加上浮。
-- **排版策略表**（`LayoutReasonStrategyMap`）：`AmlLayoutReason` 完整移植九个场景的 `disableStagger` / `resetInterlude` / `snapPosY`。要点是**只有连续拖动才瞬移**——载入歌词（rebuild-view）刻意保留弹簧，新歌词行 `posY` 初值设在容器高两倍处，实现 AMLL 的「从下方飞入」。
-- **歌词优化流水线**（`optimize-lyric.ts`）：`AmlOptimize` 移植 7 步——空格规范化、行时间戳回填字级、连续背景人声降级、主/背景时间同步（取并集）、按主歌词起始时间稳定排序、无逐字时间戳的行按 `parseLrc` 补齐结束时间、清洗非刻意重叠（≥500ms 有意；≤100ms 或 ≤下一行 10% 截断）、尝试提前开始时间（间隔 600ms / 重叠 400ms / 不足则 70%）。因提前开始会改动起始时间，`lineTime()` 单独保留解析器给出的原始时间用于拖动进度条。
-- **间奏点**：尺寸改用 CSS `clamp(0.5em, 1vh, 3em)`，左右内边距 0.75em、上下外边距 0.4em（原先为固定 4.5px 半径）。
-- 新增 `AmlEasing`、`AmlVisual`、`AmlEmphasize`、`AmlOptimize`、`AmlLayoutReason`、`AmlTween`、`AmlLineBalancer`、`AmlMask` 八个可独立测试的类，视觉常量不再散落在渲染代码里。
-- 源码包总数 94 → **98** 个 Java 文件，其中 `music` + `music/apple` 由 24 → **28**。
-
-### 周界挖掘（v1.6 原生实现）
-
-社区模组 [Perimeter Digger](https://github.com/HackerRouter/Perimeter-Digger) 是 **Fabric / MC 26.1.1 / Java 25** 工程，且强依赖 HackerRouter 的**修改版 Baritone**（自定义 XZ 区域挖掘 + 扩展 Elytra/寻路 API），因此无法以「内置第三方模组」的方式进入 Forge 1.20.1 的 v1.6 工程。本轮按同等用途**原生实现**了第一里程碑：
-
-- **区域规划**：`.perimeter plan rectangle <x0> <z0> <x1> <z1> <minY> <maxY>`，XZ 两角与 Y 上下限**均为闭区间**，坐标支持 `~` 与 `~<偏移>`；两角顺序任意，内部归一化。
-- **启停控制**：`.perimeter start | pause | resume | stop | clear | status`，可反复暂停/继续；`status` 输出状态、区域、已挖/总数、百分比、已用时间与 ETA。
-- **矩形挖掘**：复用已验证过的 `ExcavatorHack`（`Area` 扫描 + `ExcavatorPathFinder` + `BlockBreaker`）按 Y 范围自顶向下开挖；计划区超过 800 万格时给出提示。
-- **进度统计**：`PerimeterCursor` 按「顶层优先（Y 递减）→ Z 递增 → X 递增」零分配遍历，`PerimeterProgress` 负责总数/剩余/百分比/耗时/ETA；计数按每 tick 8192 格预算分摊，超大周界不会卡住客户端。
-- **安全暂停**：背包无空位时自动暂停（自动卸货尚未实现）；挖掘器自行停止时最多自动重启 3 次，之后进入 `STALLED` 等待 `resume`。
-- **液体**：沿用 `BlockUtils.canBeClicked`（按方块轮廓形状判定），流体没有可点击轮廓，所以**默认不会被挖掘**；封闭与替换液体尚未实现。
-- **里程碑 1 的实现范围**：矩形规划（闭区间）、启停控制、按 Y 自顶向下开挖、零分配进度遍历、背包满自动暂停。
-- **里程碑 2 已实现**（本节初稿写于里程碑 1 完成时）：不规则区域检测、液体 avoid / replace / seal_boundary、自动拾取与多卸货点卸货、工具 / 鞘翅耐久替换、自动进食 / 补给 / 睡觉、跨维度熔炉修复、行走与鞘翅寻路、按服务器·存档分存配置、中英双语文本与 `/perimeterdig`，详见下方「周界挖掘里程碑 2」。
-- 新增 `PerimeterDigger` Hack（Blocks 分类，`@DontSaveState`）与 `.perimeter` 命令；v1.6 源码包 98 → **134**，测试类 94 → **103**、用例 352 → **436**。
-
-### 周界挖掘里程碑 2（原生等价移植，已完成）
-
-不规则区域检测、液体 avoid/replace/seal_boundary、自动拾取与多卸货点卸货、工具/鞘翅耐久替换、自动进食/补给/睡觉、跨维度熔炉修复、行走与鞘翅寻路、按服务器·存档分存配置、中英双语文本与 `/perimeterdig`（含 Tab 补全）均已实现：
-  - **区域**：`/perimeterdig area detect <block> <y>` 用与原模组同源的扫描算法（8 邻接连通分量 + 奇偶遍历 + 外边界判定）识别任意形状边界，输出逐 Z 扫描线；`PerimeterRegion` / `PerimeterColumnArea` 支持游程合并与二分查找。
-  - **液体**：`PerimeterMiningSchematic` 逐格复刻原模组 `AreaMiningSchematic` 的判定（区域内 / 边界外沿 / `touchesSideOrTopBoundary`），`AVOID` 额外跳过与流体相邻的方块；封堵方块取配置列表中第一个可放置者。
-  - **背包与批次**：`PerimeterMiningJob` 统计区域内「实心变空气」的方块、按空槽位计算批次上限、达上限自动暂停并记录原因；`PerimeterInventoryPolicy` 决定何时卸货、哪些槽位可丢。
-  - **卸货 / 补给 / 维修 / 睡觉**：命名卸货点，靠近后潜行、俯视竖井中心、逐槽 `THROW` 丢出可丢物品；补给点、床、周界传送门、维修传送门与熔炉行坐标均可配置，跨维度经传送门取熔炉产物。
-  - **导航**：`PerimeterNavigation` 统一行走与鞘翅飞行，切换时保存/恢复 Baritone 的 `allowPlace`、`allowPlaceInFluidsSource/Flow`、`elytraTermsAccepted` 等开关。
-  - **配置**：`PerimeterConfigStore` 按「服务器地址 / 单人存档路径 / 本地维度」生成稳定 UUID 文件名，写盘用临时文件 + `ATOMIC_MOVE`；`PerimeterConfigMigration` 负责 schema 版本迁移。
-  - **文本与命令**：`PerimeterText` 内置英文与简体中文两套文案（跟随游戏语言），`PerimeterTextTest` 校验两套键集完全一致，`PerimeterSourceTextCoverageTest` 直接扫描自动化 / 命令 / Hack 源码，任何未配中文的新文案都会让测试失败；`/perimeterdig` 为 Brigadier 命令树，子命令/键名/取值全部有 Tab 补全。
-- **与参考实现的偏差（如实说明）**：原模组依赖 HackerRouter 的修改版 Baritone（`IAreaMineProcess`、`MovementHelper.avoidBreakingDueToLiquid`、边界封堵优先放置通道、`sourceLiquids`/`areaInteriorNeighbors` 目标等）。本移植改为：(1) 把区域挖掘语义放进本项目自己的 `PerimeterMiningSchematic`（`AbstractSchematic` 子类）交给**官方 Baritone** 的 `BuilderProcess.build(...)`；(2) 用 `inSchematic` 内的「流体相邻即跳过」守卫代替 `avoidBreakingDueToLiquid`；(3) 批次上限、已挖计数与暂停原因在本项目内实现；(4) 补给/维修/睡觉为同状态、同导航、同容器点击方式的功能等价实现，而非逐行移植；(5) 文本使用本项目自带中英对照表而非 Minecraft 语言文件。
-
-### Twilight Echo 音乐界面（替换旧网易云 GUI）
-
-参考项目 `Px-asen/Twilight_Echo` v1.2.1（Apache-2.0）移植的音乐界面，**已整体替换**原 `NeteaseMusicScreen`。接线细节见 [docs/twilight-echo-port/wiring-status.md](docs/twilight-echo-port/wiring-status.md)。
-
-- **旧界面删除**：`clickgui2/screens/NeteaseMusicScreen.java`，`clickgui2/music/` 下除 `NeteaseImageCache` 以外的全部子组件（15 个类），`clickgui2/music/PlayerDetailLayoutTest`，以及只被它们引用的 `assets/wurst/textures/gui/netease/` 贴图。`NeteaseImageCache` 保留——它现在由新界面、`TwilightCoverCache` 与 `MusicIslandHudElement` 共用。
-- **入口 3/3 替换**：`MusicPlayerHack`、`SuperSoftClickGuiScreen`、`EpsilonDropdownScreen` 三处均改为 `new TwilightShellScreen(...)`（带父界面，ESC 返回）；`.twilight` 命令同样打开新界面。`VisualScreenMotion` 的 `SELF_ANIMATED_SCREENS` 保留通用淡入，新界面没有自绘转场。
-- **界面能力**：应用外壳 + 主页 + 内容页（每日推荐 / 推荐歌单 / 我喜欢 / 搜索 / 私人漫游）、歌单详情页、沉浸播放页、底部播放条（封面 / 曲名 / 歌手 / 进度点击跳转）。播放控制、侧栏切页、歌曲行与歌单卡片点击均可用。
-- **封面**：真图走原版 `GuiGraphics.blit`，裁剪按 CSS `object-fit: cover`（`TwilightCoverFit.sourceRect`）；圆角**烘进纹理的 alpha**（`TwilightCornerMask`，4×4 超采样抗锯齿），而不是靠裁剪——Skia `clipRoundRect` 只在 region 内有效、原版 scissor 只能裁矩形。蒙版按源分辨率生成、半径随绘制尺寸缩放，一屏小封面共用一张蒙版纹理。
-- **沉浸播放页**：自绘渐变背景 + 300px 大封面 + 曲名 / 歌手 + 返回 / 上一首 / 播放 / 下一首 / 进度 / 时间；ESC 先退出沉浸页再关界面。**歌词复用现有 `AppleLyricPlayer`**（AMLL 一比一），驱动方式与 `MusicLyricsHudElement` 一致。
-- **数据层**：新增 `TwilightMusicService` + `TwilightApiEndpoint`，说 **NeteaseCloudMusicApiEnhanced** 的 REST 协议（本地增强服务）；**服务不可达或返回空时回退**到原 `NeteaseCloudApi` 直连，未装本地服务的玩家行为不变，状态栏标出本次数据来源。
-- **扫码登录**：`/login/qr/key` → `/login/qr/create?qrimg=true` → 每 40 帧 `/login/qr/check`；二维码直接画服务返回的 base64 PNG，成功后把 cookie 交给 `NeteaseMusicPlayer.loginWithCookie(cookie)`，让直连与本地服务登录到同一账号。
-- **未做 / 已知局限（如实说明）**：① 搜索框没有中文输入法**预编辑**显示（1.20.1 没有 IME 预编辑 API；已提交的中文经 `charTyped` 进入搜索串，并由 PingFang 矢量字体渲染）；② 只做扫码登录，没有手机验证码 / 邮箱登录；③ 歌单详情缺简介与创建者——`NeteasePlaylist` 只有 `id / name / coverUrl / playCount`，要补须先扩数据层。
-
-### 播放进度条改横向渐变（补上 fidelity-map 里唯一「能做但没做」的缺口）
-
-参考实现的进度条填充是 `linear-gradient(90deg, var(--accent-color, #2563eb), #0d9488)`（`PlayerBar.css:1382`，见 [docs/twilight-echo-port/spec-player-and-lyrics.md](docs/twilight-echo-port/spec-player-and-lyrics.md) §1.6）。原版 `GuiGraphics.fillGradient` **只沿 y 插值**，所以这条横向渐变一直没做。本轮补上：
-
-- `RoundedRectRenderer.fillCornersHorizontalGradient`：与既有的 `fillCornersVerticalGradient` 同一套几何（圆角由轮廓裁出，渐变由顶点色插值），只是每个顶点的颜色按 **x** 插值——圆角条上的横向渐变因此也是对的，不需要 Skia。
-- `FlatRenderer.fillRoundedRectHorizontalGradient` / `fillRoundedRectCornersHorizontalGradient` 是它的调用入口；直角退化时切成 ≤48 条竖带自行插值（原版没有横向 `fillGradient` 可用）。
-- `TwilightSkia.fillHorizontalGradient`：Skia 侧走真的 `Shader.makeLinearGradient`，原版回退分支转调上面的 `FlatRenderer`。
-- 三个进度条填充点全部改用它：播放条常驻层（`drawLiveProgress`）、播放条 Skia 实时层、沉浸播放页。终点色是 `TwilightTheme.PLAYER_PROGRESS_FILL_END = 0xFF0D9488`——参考实现把它写死在 CSS 里，**不跟主题**，第一个色标才跟。
-- 新增 `RoundedRectRendererTest`：插值比例 `axisRatio`（边界、越界、退化与反区间）与逐通道颜色插值 `lerpColor`（两端、越界、中点 `#197cba`、alpha 通道）。
-
-### 标题界面自定义背景与 Wallpaper Engine 导入
-
-新增 `net.wurstclient.background`（13 个类）+ `gui/title/BackgroundSelectScreen`，主菜单齿轮菜单里的「背景」进入：
-
-- **绘制**：全程只用原版 `GuiGraphics.blit`，在 Skia 通道之前完成——与有状态的 Skia GL 后端混用没有收益。`BackgroundManager` 是客户端级单例（选择要在界面之间存续），用固定纹理 id 复用同一个注册槽位，切换不会泄漏纹理。
-- **存储**：`BackgroundStorage` 把每个背景存成 `<wurst 文件夹>/backgrounds/<id>/`（媒体 + 缩略图 + 元数据），`BackgroundEntry` / `BackgroundThumbnail` 负责列表与预览。
-- **运动**：`BackgroundMotion` 提供 Ken Burns 等运镜，`BackgroundPose` 输出额外的缩放与平移；因为裁切已按屏幕比例做过 `cover`，运镜只是在其之上再放大，所以平移不会露出边缘。强度可在界面里调。
-- **导入**：`BackgroundFilePicker` / `BackgroundFileChooser` 选本地图片；`WallpaperEngineImporter` + `SteamLocator` + `VdfParser` + `ProjectJson` 直接扫描 Steam 创意工坊的 Wallpaper Engine 库（解析 `libraryfolders.vdf` 与各壁纸的 `project.json`），把找到的候选批量导入。
-- **持久化**：选择、运动方式与强度写进 `GuiPreferences`，随 GUI 偏好一起存盘。
-- **动图（GIF）**：`GifFrames` 用 ImageIO 解码并**逐帧合成**——GIF 的每帧是要画到画布上的矩形，上一帧还可以要求清掉该矩形或把画布倒回（`none` / `doNotDispose` / `restoreToBackgroundColor` / `restoreToPrevious`），不做这一步局部帧会像花屏。解码按预算缩小（单边 ≤ 1600px、总像素 ≤ 1200 万、≤ 150 帧），`BackgroundAnimation` 用帧延迟决定当前该显示第几帧并沿用浏览器对 0/10 ms 延迟的 100 ms 规则，`BackgroundManager` **只在帧号变化时**把该帧拷进纹理自己的图像再 `upload()`（`DynamicTexture` 会关掉交给它的 `NativeImage`，所以纹理与帧各持一份）。动图卡片预览改用第一帧生成（`NativeImage` 读不了 GIF），颜色转换时交换红蓝（`NativeImage` 的整数像素接口是 ABGR）。
-- **视频壁纸（如实说明）**：`BackgroundKind.canPlay()` 对 `VIDEO` 返回 false——mp4 需要 H.264 解码器，本项目不引入该依赖。这类卡片带「视频 · 不能播放」徽章，点击只在状态栏说明原因，不再静默回退到默认背景。
-- **未做 / 已知局限**：只支持静态图片与 GIF；没有裁剪与对焦点设置，构图完全由 `cover` 决定。
-
-### Wallpaper Engine 场景壁纸（自研 `scene.pkg` 渲染）
-
-Scene 型壁纸此前只能导入预览图。本轮把格式读通并**在游戏里画出来了**（格式推导、逐字节核对与未实现部分见 [docs/wallpaper-engine-scene.md](docs/wallpaper-engine-scene.md)）：
-
-- **包与贴图**：新增 `WePackage`（PKGV0013，条目偏移**相对条目表尾**成基准）、`WeTexture`（`TEXV0005` / `TEXI0001` 是 **NUL 结尾**而不是长度前缀；`TEXB0003` 头八个 int32，末一个是载荷长度）。五张真实贴图的载荷**全是完整的 PNG / JPEG**（`dataSize` 与「文件长度 − 载荷起点」严格相等），所以不需要 DXT 解压，直接交给 `NativeImage.read`；`isStandardImage()` 按魔数判断而不是信 `format` 表。
-- **图层树**：`WeScene` 读 `scene.json`——画布来自 `general.orthogonalprojection`（Persica 是作者在 4K 上摆的 3840×2160）、`zoom` 1.0、`cameraparallax*`，每个对象按 `image → models → materials → passes[].textures[0]` 解析出 `materials/<名字>.tex`。Persica 的 20 个对象里只有 3 层真的要画，其余是分隔层、粒子层、时钟文字层与音频。
-- **绘制**：`WeSceneLayout` 做画布到屏幕的换算（cover 缩放 + 视差位移），`WeSceneWallpaper` 在后台解包解码、回客户端线程上传，逐层 `blit`。
-- **顺滑**：视差做了两件必要的事——① **亚像素定位**（位置取整后把小数部分交给模型矩阵）：视差系数只有 0.025～0.045，直接 `Math.round` 会变成「攒够一格才跳一次」，也就是用户反馈的"不够流畅"；② **按帧时间的指数阻尼跟随**，时间常数取自场景的 `cameraparallaxdelay`（Persica 0.5 → 0.125 秒），并做了帧率无关处理（一帧拆两半与整帧结果一致，有单测）。
-- **有意不做**：不套用场景里记录的相机机位（照它平移会让底图偏出画布、边缘露出 clearcolor）；不跑 godrays / 模糊 / 胶片颗粒 / 水波这些 GLSL 后期；粒子、时钟与音频都不实现。所以画面比 Wallpaper Engine 里淡一些。
-- **内置默认壁纸**：本机装了工坊 2359043440「Persica」就导入并渲染场景本身，没装才退回内置底图（`Candidate.thumbnail` 让场景卡片用预览图当缩略图）。修掉两个此前一直藏着的问题：① 内置资源的命名空间写成了 `WurstClient.MOD_ID`（`wurstpenguin`）而资源实际在 `assets/wurst/` 下，**异常被静默吞掉，内置壁纸一个版本都没导入成功过**；② 两个一次性导入原本放在 `ensureLoaded()` 里，而 `render()` 在"选中项是内置默认"时就早退了，全新配置下**永远走不到**——现在移到了早退之前。
-- **实机验证**：dev 客户端实机截图确认场景渲染成功（日志 `[Background] Scene persica: 3 layers, canvas 3840x2160`），并核对了图层随鼠标的错动与图层的相对深度关系。
-
-### 标题主界面按参考图重做（版式 / i18n / 齿轮菜单）
-
-主菜单不再是屏幕中间一列卡片，而是按用户给的参考截图重排（量到的像素、版式表与全部差异见 [docs/title-menu.md](docs/title-menu.md)）：
-
-- **版式**：全屏壁纸 + 底部渐变压暗；左上角账号胶囊（皮肤头像 + 账号名 + 「欢迎回来」）；右上角齿轮；左下角 v1.6 白色字标（`logo.png` 那张彩色手写体转成全白）；底部一整条动作条，里面 4 个等宽按钮：单人游戏 / 多人游戏 / 游戏设置 / 退出游戏。
-- **几何**：新增 `TitleMenuLayout`，每个尺寸都是「屏幕尺寸 × 参考图比例」。用比例而不是固定像素，是因为物理尺寸 = 比例 × 逻辑尺寸 × guiScale，而 guiScale = 物理高 / 逻辑高，相乘正好约掉——同一套比例在任何分辨率、任何 GUI scale 下都落在同一个物理位置。`TitleMenuLayoutTest` 第一条用例就是把逻辑值 ×2 拿回参考帧（1296×672）对数，容差 4 物理像素。
-- **齿轮菜单**：背景 / 账号 / 模组三行挂在齿轮下方，用 `AbstractWidget.visible` 开关，不动态增删控件（渲染途中改控件表会 `ConcurrentModificationException`）；**Minecraft Realms 入口去掉**。
-- **i18n 与字体**：新增 `assets/wurst/lang/en_us.json` 与 `zh_cn.json`（本仓库此前没有任何语言文件），主界面与背景选择屏的文案全部走 `Component.translatable`，跟随 Minecraft 语言设置。字体用**原版那套**（`GuiPreferences` 的内置项 `CozyUI` 就是"不覆盖字体"）：苹方 provider 的图集只有 18px，GUI scale 4 放大到 36 物理像素必然发虚，原版位图字体则是整数倍像素放大。新增 `TitleLangFilesTest`：两种语言的键集合、空值、`%s` 占位符数量对齐，以及「标题界面源码里用到的键两种语言都得有」（键写错时原版会把键名本身画到屏幕上）。
-- **实机验证**：dev 客户端（`gradlew runClient`）跑起来 + 游戏自己的 F2 截图，确认网格背景、账号胶囊、齿轮与其下拉菜单、白色字标、动作条与 4 个按钮都按设计渲染；截图见 [docs/title-menu.md](docs/title-menu.md)。**踩坑记录**：`PrintWindow` 抓 OpenGL 窗口会返回残缺/陈旧的帧（曾据此误判"动作条没渲染"），判定 MC 界面内容只能用 F2；`SetForegroundWindow` 会被 Windows 前台锁拒绝，需要 `AttachThreadInput` 才拿得到焦点。字标素材的转白也踩了两坑：原图字母的孔是**不透明白色填充**（只取 alpha 会把字母填死），以及任何"加粗"滤波都会糊死 s / b 的圈。
-- **如实说明**：① 头像是圆角方块而不是正圆——原版 GUI 只有矩形裁剪，皮肤脸部贴图只有 8×8 像素，按列切片拼圆的粒度太粗；② 图标沿用仓库原有的实心图标，只新生成一个 `fdp/power.png`（参考图的「退出」用电源符号）；③ 旧的版本号 / Forge 版本角标去掉（参考图上没有）；④ `BackgroundSelectScreen` 的版式仍是旧的（文案已跟上 i18n）；⑤ 其他 14 个平台工程的 `gui/title/` 拷贝未同步。
-
-### 原版控件改为 LumaGlass 玻璃面板（按钮 / 滑块 / 复选框 / 滚动条）
-
-客户端里**原版控件**的底色从扁平圆角换成液态玻璃：透出界面自己的背景、圆角带边缘折射与高光。整条链子移植自 [LumaGlass](https://github.com/Sunny5349/LumaGlass) 0.2.9（MIT，Copyright © 2026 Sunny5349），**不是运行时依赖**——产物里没有它的 jar，源码移植进本仓库，许可正文随包分发在 `META-INF/licenses/lumaglass/`。
-
-- **四个注入点**：`AbstractButtonMixin`（按钮）、`AbstractSliderButtonMixin`（滑块：一条圆角 10 的玻璃滑轨 + 一块 8 宽圆角 4 的玻璃把手）、`CheckboxMixin`（复选框：20 宽圆角 7 的玻璃方块 + 画出来的勾与标签）、`SelectionListMixin`（列表滚动条的轨道与滑块，`@Redirect` 三次 `GuiGraphics.fill` 里的两次）。只换底色，布局 / 命中判定 / 输入全用原版算好的值。
-- **管线**：`ScreenEvent.Render.Pre` → 本趟标记未抓帧 → 第一个控件绘制时抓一次主 framebuffer（`wurst:blur` 逐级降采样 + 两趟 33 抽头高斯）→ 每个控件用 `wurst:glass` 画一块（圆角 / 折射 / 边缘高光 / 柔和投影）→ 文字画在面板之后。同一趟里所有控件共用同一张背景快照。
-- **材质**取上游配置的默认值：模糊 4.8、折射 24、磨砂 1、底色 0、高光 1、泛光关；悬停按上游 `VanillaGlass.style()` 追加 +0.13 底色 / +0.7 高光，但**按悬停动画进度插值**（本工程控件本来有 20 帧动画，上游是布尔跳变）；滚动条另用上游那套细条材质。
-- **回退路径**：着色器没装上、uniform 名字对不上、或任何 `RuntimeException` / `LinkageError`，都会**永久**退回原样（按钮与滑块回扁平样式、复选框回原版贴图、滚动条回原版 `fill`）并只在 stderr 记一行。这几个混入覆盖所有原版控件，异常逃出去等于每个带控件的界面都崩，所以回退是必需的。
-- **如实说明**：① 旧的按文案判断的"危险色"（删除 / 登出等红色）在玻璃上没有等价物，只保留在回退路径；② 列表的底色、顶底边与选中行**没有**移植（上游还接管 `renderBackground` / `renderTopAndBottom` 与 `renderSelection`），只做了滚动条；③ 客户端自绘控件（标题界面 `WurstTitleButton`、ClickGUI）与 `ImageButton`、输入框不在范围内；④ 只有根工程（Forge 1.20.1）有，其余 66 个工程仍是扁平控件。
-- **验证**：新增 3 个测试类 / 24 项全通过（含一个从 `GlassRenderer.java` 源码解析出所有 `safeGetUniform` / `setSampler` 名字、逐个核对 shader JSON 声明的对账测试）；`.vsh` / `.fsh` 与上游逐字节相同；dev 客户端带这四个混入正常启动（日志无 `Mixin apply failed` / `InvalidInjectionException`，说明 `require = 3` 的重定向确实命中），**按钮的玻璃已在实机截图里确认**。滑块 / 复选框 / 滚动条的实机外观与性能等 7 项未验证，逐项列在 [docs/glass-controls.md](docs/glass-controls.md) §7。
-
-### Skia 区域上传加固（防 GL 驱动崩溃）
-
-`SkiaRegionRenderer.uploadRegion()` 曾把 Skia 像素按 `GL_UNPACK_ROW_LENGTH` 直接丢给 `glTexSubImage2D`，**这套用法已经让 NVIDIA OpenGL 驱动崩过一次**（访问冲突，进程直接消失）。本轮重写：
-
-- 上传前校验 `Pixmap` 的地址、行字节数与行像素数，任何一项不可信就**跳过这一帧**而不是调用驱动——跳一帧永远好过崩驱动。
-- 行距不能整除 4 字节时 `GL_UNPACK_ROW_LENGTH`（以像素计）无法表达 Skia 的字节填充，改为 `packRows()` 拷进紧凑行再上传；该方法不含 GL 与 Skia 类型，可单测（`SkiaRegionRendererTest`）。
-- 通过 `RenderSystem.pixelStore` 显式重置 `UNPACK_ALIGNMENT` / `SKIP_ROWS` / `SKIP_PIXELS` / `ROW_LENGTH`，不再假设它们是干净的。
-- 资源重载会释放已注册纹理，`bindRegionTexture()` 发现纹理管理器不再持有它时**只重建纹理**（`recreateRegionTexture`），绝不动持有当前帧的 surface。
-- 单位测试新增 `SkiaRegionRendererTest`（行打包的边界与填充场景）。
-
-### 待办
-
-- 将 v1.6 子系统移植到其余 14 个平台工程（1.21.1 / 1.21.11 / 26.1.2 / 26.2 × Forge/NeoForge/Fabric）。
-- 实机验证：v1.6 的 GUI / 音乐 / Skia 子系统仍未在游戏内跑过（见 [docs/ingame-verification-checklist.md](docs/ingame-verification-checklist.md)）；标题主界面与 Wallpaper Engine 场景背景**已经实机跑通**（F2 截图见 [docs/title-menu.md](docs/title-menu.md) 与 [docs/wallpaper-engine-scene.md](docs/wallpaper-engine-scene.md)）。
-- 场景壁纸剩下的部分：`TEXB0003` 之外的容器版本、粒子层、时钟文字层、音频，以及 godrays / 模糊 / 颗粒 / 水波这几个 GLSL 后期。
 
 ---
 

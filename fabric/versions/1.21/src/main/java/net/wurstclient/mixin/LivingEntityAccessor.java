@@ -23,6 +23,9 @@ public interface LivingEntityAccessor
 	public int wurst_getSwingTime();
 
 	@Accessor("noJumpDelay")
+	public int wurst_getNoJumpDelay();
+
+	@Accessor("noJumpDelay")
 	public void wurst_setNoJumpDelay(int delay);
 
 	@Invoker("jumpFromGround")
