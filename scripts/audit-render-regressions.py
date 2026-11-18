@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Static render regression gate for the 66 v1.5.1 projects.
+"""Static render regression gate for all 67 client projects.
 
 Checks lifecycle and GL state invariants, not visual correctness. Run the real
 OpenGL tests separately with run-render263-tests.py --project <project>.
-The restored root dist/v1.5.1 snapshot is outside this historical 66-project
-render gate; its baseline/build verification is in docs/ROOT-FORGE-1.5.1.md.
 """
 import json
 from pathlib import Path
@@ -14,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def projects(root=ROOT):
+    yield root
     yield root / 'fabric'
     yield root / 'neoforge'
     for parent in ('fabric/versions', 'neoforge/versions', 'versions'):
@@ -48,6 +47,9 @@ def load(project):
     }.items():
         path = java / relative
         sources[name] = path.read_text(encoding='utf-8') if path.exists() else ''
+    if not sources['initializer']:
+        path = java / 'WurstForgeInitializer.java'
+        sources['initializer'] = path.read_text(encoding='utf-8') if path.exists() else ''
     resources = project / 'src/main/resources'
     config = resources / ('wurstpenguin.mixins.json' if 'fabric' in project.parts else 'wurst.mixins.json')
     sources['registered'] = json.loads(config.read_text(encoding='utf-8'))['client']
@@ -79,6 +81,8 @@ def audit(s):
                   'GL_UNPACK_ROW_LENGTH, 0', 'GL_UNPACK_SKIP_ROWS, 0', 'GL_UNPACK_SKIP_PIXELS, 0'):
         require(token in upload, 'unsafe upload state: ' + token)
     frame = method(ctx, 'public boolean beginFrame()')
+    if re.search(r'return\s+beginFrame\(1\);', frame):
+        frame = method(ctx, 'public boolean beginFrame(float sampling)')
     require('prepareTextureUpload();' in frame, 'font atlas uploads must use clean unpack state')
     for token in ('glColorMask(true, true, true, true)', 'glDepthMask(true)', 'glStencilMask(~0)', 'glClearStencil(0)'):
         require(token in frame and frame.index(token) < frame.index('GL11.glClear('), 'clear must set ' + token)
@@ -133,13 +137,13 @@ def main():
             failures.extend(f'{project.relative_to(ROOT)}: {e}' for e in audit(sources))
         except (ValueError, IndexError, KeyError, OSError) as e:
             failures.append(f'{project.relative_to(ROOT)}: missing or invalid render source: {e}')
-    if count != 66:
-        failures.append(f'expected 66 v1.5.1 projects, found {count}')
+    if count != 67:
+        failures.append(f'expected 67 client projects, found {count}')
     for error in failures:
         print('FAIL: ' + error)
     if failures:
         raise SystemExit(1)
-    print(f'PASS: {count} v1.5.1 projects; {delayed} delayed / {count - delayed} immediate rendering paths')
+    print(f'PASS: {count} client projects; {delayed} delayed / {count - delayed} immediate rendering paths')
 
 
 if __name__ == '__main__':

@@ -1,0 +1,4 @@
+JLayer 1.0.1.4 (soundlibs repackaging). Original JavaLayer by JavaZOOM.
+License: LGPL-2.1-or-later. https://www.javazoom.net/javalayer/javalayer.html
+Unmodified binary from Maven Central com.googlecode.soundlibs:jlayer:1.0.1.4.
+Source distribution: https://repo.maven.apache.org/maven2/com/googlecode/soundlibs/jlayer/1.0.1.4/jlayer-1.0.1.4-sources.jar

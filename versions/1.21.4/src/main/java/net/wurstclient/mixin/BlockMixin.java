@@ -53,26 +53,13 @@ public abstract class BlockMixin implements ItemLike
 	 */
 	@Inject(at = @At("HEAD"),
 		method = "shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z",
-		cancellable = true,
-		require = 0)
+		cancellable = true)
 	private static void onShouldDrawSide3Arg(BlockState state,
 		BlockState neighborState, Direction direction,
 		CallbackInfoReturnable<Boolean> cir)
 	{
 		fireShouldDrawSide(state, null, cir);
 	}
-
-	@Inject(at = @At("HEAD"),
-		method = "shouldRenderFace(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z",
-		cancellable = true,
-		require = 0)
-	private static void onShouldDrawSide5Arg(BlockGetter level, BlockPos pos,
-		BlockState state, BlockState neighborState, Direction direction,
-		CallbackInfoReturnable<Boolean> cir)
-	{
-		fireShouldDrawSide(state, pos, cir);
-	}
-
 	private static void fireShouldDrawSide(BlockState state, BlockPos pos,
 		CallbackInfoReturnable<Boolean> cir)
 	{

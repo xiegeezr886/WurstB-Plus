@@ -85,7 +85,7 @@ public final class RemoteViewHack extends Hack
 		fakePlayer = new FakePlayerEntity();
 		
 		// success message
-		ChatUtils.message("Now viewing " + entity.getName().getString() + ".");
+		ChatUtils.message("Now viewing %s.", entity.getName().getString());
 		
 		// add listener
 		EVENTS.add(UpdateListener.class, this);
@@ -102,8 +102,7 @@ public final class RemoteViewHack extends Hack
 		// reset entity
 		if(entity != null)
 		{
-			ChatUtils.message(
-				"No longer viewing " + entity.getName().getString() + ".");
+			ChatUtils.message("No longer viewing %s.", entity.getName().getString());
 			entity.setInvisible(wasInvisible);
 			entity = null;
 		}

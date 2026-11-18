@@ -134,7 +134,7 @@ public final class KeybindProfilesScreen extends Screen
 		listGui.render(context, mouseX, mouseY, partialTicks);
 		
 		context.drawCenteredString(minecraft.font,
-			"Keybind Profiles", width / 2, 12, 0xffffff);
+			WurstClient.tr("Keybind Profiles"), width / 2, 12, 0xffffff);
 		
 		super.render(context, mouseX, mouseY, partialTicks);
 		

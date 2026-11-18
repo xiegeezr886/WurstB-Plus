@@ -7,7 +7,7 @@
  */
 package net.wurstclient.options;
 
-
+import net.wurstclient.WurstClient;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -92,7 +92,7 @@ public final class EnterProfileNameScreen extends Screen
 	{
 		renderBackground(context, mouseX, mouseY, partialTicks);
 		context.drawCenteredString(minecraft.font,
-			"Name your new profile", width / 2, 20, 0xFFFFFF);
+			WurstClient.tr("Name your new profile"), width / 2, 20, 0xFFFFFF);
 		
 		valueField.render(context, mouseX, mouseY, partialTicks);
 		super.render(context, mouseX, mouseY, partialTicks);

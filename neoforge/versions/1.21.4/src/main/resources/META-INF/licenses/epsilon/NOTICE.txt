@@ -1,0 +1,7 @@
+Epsilon combat/scaffold behavioral source adaptation
+Upstream: https://github.com/NekoyaHouse/Epsilon
+Commit: 2fb4aad7d1b7c45480785315543ecc67e2f048fc
+License: GPL-3.0 (upstream LICENSE included).
+Original copyright remains with upstream authors and contributors.
+Fabric 1.20.1 adaptation: WurstB+ Plus contributors, 2026.
+Module mappings and adaptation limits: docs/COMBAT-EPSILON-v1.5.2.md

@@ -57,7 +57,7 @@ public final class BedwarsStatsOverlayMod extends HUDMod
 		if(!HudCompat.isHypixel())
 		{
 			drawBackground(226, 20);
-			drawText("Bedwars Stats (Hypixel only)", 6, 5, 9,
+			drawText(WURST.translate("Bedwars Stats (Hypixel only)"), 6, 5, 9,
 				HudFonts.REGULAR, getFontColor(200));
 			setSize(226, 20);
 			return;
@@ -69,7 +69,7 @@ public final class BedwarsStatsOverlayMod extends HUDMod
 		float height = 34 + count * ROW_HEIGHT;
 
 		drawBackground(WIDTH, height);
-		drawText("Bedwars Stats", 6, 4, 9, HudFonts.DEMIBOLD);
+		drawText(WURST.translate("Bedwars Stats"), 6, 4, 9, HudFonts.DEMIBOLD);
 		drawRect(6, 17, WIDTH - 12, 1, getFontColor(70));
 
 		drawCenteredText("Name", 45, 21, 8, HudFonts.MEDIUM,

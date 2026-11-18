@@ -36,7 +36,7 @@ public final class FakePlayerHack extends Hack implements UpdateListener
 	public FakePlayerHack()
 	{
 		super("FakePlayer");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		addSetting(spinSpeed);
 		addSetting(sneak);
 	}

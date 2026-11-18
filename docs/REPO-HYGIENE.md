@@ -160,7 +160,6 @@ JSON 中间结果；体积与内容见 [clients/README.md](../reference/clients/
 | `reference/vendor/` | 12.7 MB | 第三方配置与 profile dump，外部来源 |
 | `reference/decompiled/` | 0.1 MB | Mojang 字节码 dump，删了需重新 `javap` |
 | `reference/porting-stale/` | 1.7 MB | 已被取代的移植产物，仅供比对 |
-| `download/` | 526 MB | v1.5/v1.6 发布产物；**发布件不要随手删** |
 | `baritone-maven/` | 310 MB | **构建输入**，见 §4，不要删 |
 | `native/` | 7.5 MB | 部分跟踪（LGPL "corresponding source" 义务），见 `.gitignore` |
 
