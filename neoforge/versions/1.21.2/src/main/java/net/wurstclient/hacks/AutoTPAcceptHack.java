@@ -69,7 +69,7 @@ public final class AutoTPAcceptHack extends Hack
 	public AutoTPAcceptHack()
 	{
 		super("AutoTPAccept");
-		setCategory(Category.CHAT);
+		setCategory(Category.MISC);
 		addSetting(action);
 		addSetting(keywords);
 		addSetting(delay);
@@ -111,7 +111,7 @@ public final class AutoTPAcceptHack extends Hack
 		timer = delay.getValueI();
 
 		if(debug.isChecked())
-			ChatUtils.message("AutoTPAccept: queued /" + stripSlash(command));
+			ChatUtils.message("AutoTPAccept: queued /%s", stripSlash(command));
 	}
 
 	private String findCommand(Component message, String raw)
@@ -126,7 +126,7 @@ public final class AutoTPAcceptHack extends Hack
 		collectCommands(message, found);
 
 		if(debug.isChecked())
-			ChatUtils.message("AutoTPAccept: found commands " + found);
+			ChatUtils.message("AutoTPAccept: found commands %s", found);
 
 		boolean accept = action.getSelected() == Action.ACCEPT;
 		for(String command : found)
@@ -229,7 +229,7 @@ public final class AutoTPAcceptHack extends Hack
 		MC.getConnection().sendCommand(stripSlash(command));
 
 		if(debug.isChecked())
-			ChatUtils.message("AutoTPAccept: ran /" + stripSlash(command));
+			ChatUtils.message("AutoTPAccept: ran /%s", stripSlash(command));
 	}
 
 	private static String stripSlash(String command)

@@ -68,7 +68,7 @@ public final class AntiAfkHack extends Hack
 	{
 		super("AntiAFK");
 		
-		setCategory(Category.OTHER);
+		setCategory(Category.PLAYER);
 		addSetting(useAi);
 		addSetting(aiRange);
 		addSetting(nonAiRange);

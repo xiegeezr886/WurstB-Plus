@@ -1,6 +1,6 @@
 #version 150
 
-uniform sampler2D DiffuseSampler;
+uniform sampler2D InSampler;
 uniform vec2 InSize;
 uniform float Time;
 uniform int Mode;
@@ -13,7 +13,7 @@ const vec3 SECONDARY = vec3(0.25, 0.9, 0.84);
 
 float alphaAt(vec2 offset)
 {
-    return texture(DiffuseSampler, texCoord + offset / InSize).a;
+    return texture(InSampler, texCoord + offset / InSize).a;
 }
 
 void main()

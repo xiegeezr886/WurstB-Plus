@@ -21,7 +21,7 @@ public final class GhostHandHack extends Hack implements RightClickListener
 	public GhostHandHack()
 	{
 		super("GhostHand");
-		setCategory(Category.BLOCKS);
+		setCategory(Category.EXPLOIT);
 	}
 
 	@Override

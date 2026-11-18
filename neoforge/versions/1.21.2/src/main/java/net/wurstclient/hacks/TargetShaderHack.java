@@ -52,10 +52,22 @@ public final class TargetShaderHack extends Hack implements RenderListener
 			return;
 		AABB box = EntityUtils.getLerpedBox(target, partialTicks).inflate(0.03);
 		WURST.getPostEffectQueue().queue(effect.getSelected(),
-			(taskMatrices, taskPartialTicks) -> RenderUtils.drawSolidBox(
-				taskMatrices, box, Color.WHITE.getRGB(),
-				!throughWalls.isChecked()));
+			(taskMatrices, taskPartialTicks) -> drawMask(taskMatrices, box));
 	}
+
+    private void drawMask(PoseStack matrices, AABB box)
+    {
+        com.mojang.blaze3d.systems.RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_COLOR);
+        if(throughWalls.isChecked()) com.mojang.blaze3d.systems.RenderSystem.disableDepthTest();
+        else com.mojang.blaze3d.systems.RenderSystem.enableDepthTest();
+        com.mojang.blaze3d.systems.RenderSystem.disableCull();
+        com.mojang.blaze3d.systems.RenderSystem.disableBlend();
+        var buffer = com.mojang.blaze3d.vertex.Tesselator.getInstance().begin(
+            com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS,
+            com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR);
+        RenderUtils.drawSolidBox(matrices, buffer, box.move(RenderUtils.getCameraPos().reverse()), Color.WHITE.getRGB());
+        com.mojang.blaze3d.vertex.BufferUploader.drawWithShader(buffer.buildOrThrow());
+    }
 
 	private Entity resolveTarget()
 	{

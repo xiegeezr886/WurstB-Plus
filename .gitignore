@@ -60,8 +60,10 @@ logs/
 !fabric/libs/*.jar
 !fabric/libs/seedcrackerx-deps/*.jar
 !fabric/versions/*/libs/*.jar
+!fabric/versions/*/libs/seedcrackerx-deps/*.jar
 !neoforge/versions/*/libs/*.jar
 !baritone-api-forge-*.jar
+!native/seedcrackerx/libs/*.jar
 
 # Keep the noisy local-only backups out of the checked-in Maven repo.
 baritone-maven/**/*.rejected/**
@@ -198,3 +200,5 @@ _recon/release-v1.5.1/
 
 # Build-environment zipfs patches are real tooling inputs despite the global *.jar rule.
 !/tools/build-env/*.jar
+!/native/seedcrackerx/*/libs/*.jar
+!/native/cloth-config/*/*.jar

@@ -1,0 +1,69 @@
+// Shared native SeedCrackerX for MC 1.21.2-1.21.4.
+def seedRoot = rootDir
+while (!new File(seedRoot, 'native/seedcrackerx/2.14.6/manifest.json').isFile()) {
+    seedRoot = seedRoot.parentFile
+    if (seedRoot == null) throw new GradleException('Missing native SeedCracker source')
+}
+def seedVersion = minecraft_version == '1.21.4' ? '2.15.2' : '2.15.1'
+def seedBase = new File(seedRoot, 'native/seedcrackerx/' + seedVersion)
+def seedManifest = new groovy.json.JsonSlurper().parse(new File(seedBase, 'manifest.json'))
+def seedLibrary = new File(seedBase, 'libs/' + seedManifest.solver_file)
+def seedModdev = plugins.hasPlugin('net.neoforged.moddev')
+def seedNeo = seedModdev || plugins.hasPlugin('net.neoforged.gradle.userdev')
+
+// Forge 49 discovers metadata on the classpath and scans that same root for
+// @Mod classes. Its development launcher no longer merges split output roots.
+if (!seedNeo)
+    sourceSets.main.output.resourcesDir = sourceSets.main.output.classesDirs.singleFile
+def seedCloth = minecraft_version == '1.21.4' ? '17.0.144' : '16.0.143'
+def seedCoordinate = 'me.shedaniel.cloth:cloth-config-' + (seedNeo ? 'neoforge:' : 'forge:') + seedCloth
+
+if (seedNeo && !seedModdev) {
+    jarJar.enable()
+    tasks.named('jar').configure {
+        archiveClassifier = 'plain'
+        archiveFileName = "${project.base.archivesName.get()}-${project.version}-plain.jar"
+    }
+    tasks.named('jarJar').configure {
+        archiveClassifier = ''
+        archiveFileName = "${project.base.archivesName.get()}-${project.version}.jar"
+    }
+}
+
+repositories { maven { url = 'https://maven.shedaniel.me/' } }
+configurations { seedNativeCloth }
+sourceSets.main.java.srcDir(new File(seedBase, 'src/main/java'))
+dependencies {
+    // Classes are merged into this mod's resources. An additional runtime jar
+    // would export the same packages twice under modern FML module loading.
+    compileOnly files(seedLibrary)
+    testImplementation files(seedLibrary)
+    if (seedModdev) {
+        jarJar(implementation(seedCoordinate))
+    } else if (seedNeo) {
+        implementation seedCoordinate
+        jarJar(seedCoordinate)
+    } else {
+        implementation seedCoordinate
+        seedNativeCloth(seedCoordinate) { transitive = false }
+    }
+}
+processResources {
+    from({ zipTree(seedLibrary) }) { include 'com/seedfinding/**' }
+}
+tasks.register('verifyNativeSeedLibrary') {
+    inputs.file(seedLibrary)
+    inputs.file(new File(seedBase, 'manifest.json'))
+    doLast {
+        if (java.security.MessageDigest.getInstance('SHA-256').digest(seedLibrary.bytes).encodeHex().toString() != seedManifest.solver_sha256)
+            throw new GradleException('Native SeedCracker solver hash mismatch')
+    }
+}
+tasks.named('compileJava').configure { dependsOn 'verifyNativeSeedLibrary' }
+tasks.named('processResources').configure { dependsOn 'verifyNativeSeedLibrary' }
+
+if (!seedNeo) {
+    tasks.named('allJar', Jar).configure {
+        from(configurations.seedNativeCloth) { into 'META-INF/jarjar' }
+    }
+}

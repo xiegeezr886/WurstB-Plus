@@ -37,7 +37,7 @@ public final class TooManyHaxHack extends Hack
 	public TooManyHaxHack()
 	{
 		super("TooManyHax");
-		setCategory(Category.OTHER);
+		setCategory(Category.MISC);
 		
 		Path wurstFolder = WURST.getWurstFolder();
 		profilesFolder = wurstFolder.resolve("toomanyhax");

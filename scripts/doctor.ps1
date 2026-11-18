@@ -1,5 +1,5 @@
 <#
-  Diagnose the local toolchain: JDKs, Gradle wrappers, and v1.6 unit-test sources.
+  Diagnose the local toolchain: JDKs, Gradle wrappers, and test-source availability.
 
   Usage:
     powershell -ExecutionPolicy Bypass -File scripts\doctor.ps1
@@ -61,22 +61,9 @@ Write-Host "-- Root unit tests --"
 $testRoot = Join-Path $ProjectRoot "src\test\java"
 $testFiles = @(Get-ChildItem -LiteralPath $testRoot -Recurse -Filter "*Test.java" -ErrorAction SilentlyContinue)
 Write-Host ("  test classes: {0}" -f $testFiles.Count)
-$v16 = @(
-    "net\wurstclient\music\NeteaseCloudApiTest.java"
-    "net\wurstclient\music\LyricParserTest.java"
-    "net\wurstclient\music\apple\LyricWordSplitterTest.java"
-    "net\wurstclient\music\apple\SpringTest.java"
-    "net\wurstclient\music\apple\AppleTimelineTest.java"
-    "net\wurstclient\music\apple\AppleLayoutTest.java"
-    "net\wurstclient\compose\AnimFloatTest.java"
-    "net\wurstclient\compose\ModuleColorsTest.java"
-)
-$missingTests = @($v16 | Where-Object { -not (Test-Path -LiteralPath (Join-Path $testRoot $_)) })
-if ($missingTests.Count -eq 0) {
-    Write-Host "  v1.6 baseline tests present"
-} else {
-    Write-Host ("  missing v1.6 tests: {0}" -f ($missingTests -join ", ")) -ForegroundColor Yellow
-}
+$baselineTests = Join-Path $ProjectRoot "fabric\src\test\java"
+$baselineCount = @(Get-ChildItem -LiteralPath $baselineTests -Recurse -Filter "*Test.java" -ErrorAction SilentlyContinue).Count
+Write-Host ("  Fabric 1.20.1 baseline test classes: {0}" -f $baselineCount)
 
 Write-Host ""
 if ($missingJars -gt 0) {

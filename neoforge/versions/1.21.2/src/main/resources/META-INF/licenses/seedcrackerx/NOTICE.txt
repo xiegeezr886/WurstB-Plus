@@ -1,0 +1,5 @@
+SeedCrackerX 2.15.1, MIT, KaptainWutax / 19MisterX98.
+Official unmodified binary for Minecraft 1.21.2.
+https://github.com/19MisterX98/SeedcrackerX/releases/tag/2.15.1
+Bundled jar SHA-256: a1529a9c69332c9f5f96c73044b9cfe02f65c355045f99aec8178daebe4f7b76
+Nested metadata and licenses retained.

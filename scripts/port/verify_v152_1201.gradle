@@ -1,0 +1,27 @@
+// Isolated build outputs and explicit test execution for the first port batch.
+// Root: ./gradlew -I scripts/port/verify_v152_1201.gradle test jarJar
+// Neo:  ./neoforge/gradlew -p neoforge -I scripts/port/verify_v152_1201.gradle test jarJar
+gradle.beforeProject { project ->
+    if (project == project.rootProject) {
+        def neo = project.rootDir.name == 'neoforge'
+        def repository = neo ? project.rootDir.parentFile : project.rootDir
+        if (!new File(repository, 'scripts/port/sync_v152_1201.py').isFile())
+            throw new GradleException('Use this init script only for the repository root or neoforge/.')
+        def target = neo ? 'neoforge' : 'forge'
+        project.layout.buildDirectory.set(new File(repository, '.dsh-tmp/v152-' + target + '1201-build'))
+    }
+}
+
+// Some local release init scripts disable Test after project evaluation.
+// Apply this only once the actual task graph has been configured.
+gradle.taskGraph.whenReady { graph ->
+    graph.allTasks.findAll { it instanceof Test }.each { task ->
+        task.enabled = true
+        task.useJUnitPlatform()
+        def temp = new File(task.project.layout.buildDirectory.get().asFile, 'test-tmp')
+        temp.mkdirs()
+        task.systemProperty 'java.io.tmpdir', temp.absolutePath
+        task.environment 'TEMP', temp.absolutePath
+        task.environment 'TMP', temp.absolutePath
+    }
+}
