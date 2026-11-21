@@ -104,6 +104,7 @@ public enum WurstClient
 	private AddonManager addonManager;
 	private ProxyManager proxyManager;
 	private boolean shutdownHookRegistered;
+	private boolean shutdownComplete;
 	
 	public void initialize()
 	{
@@ -248,8 +249,10 @@ public enum WurstClient
 		watcher.setDaemon(true);
 		watcher.start();
 	}
-	public void shutdown()
+	public synchronized void shutdown()
 	{
+		if(!shutdownHookRegistered || shutdownComplete)
+			return;
 		if(hudManager != null)
 			hudManager.saveState();
 		shutdownBaritoneExecutor();
@@ -262,6 +265,7 @@ public enum WurstClient
 		if(inventoryActionQueue != null && eventManager != null)
 			inventoryActionQueue.stop();
 		AsyncTextureLoader.shutdown();
+		shutdownComplete = true;
 	}
 	
 	/**

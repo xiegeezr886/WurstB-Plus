@@ -291,6 +291,13 @@ public abstract class MinecraftClientMixin
 		net.wurstclient.util.render.MoonGlowProgram.INSTANCE.close();
 	}
 
+	// The NeoForge module loader is still available here, but not in a late JVM hook.
+	@Inject(method = "close()V", at = @At("RETURN"))
+	private void wurst$closeClient(CallbackInfo ci)
+	{
+		WurstClient.INSTANCE.shutdown();
+	}
+
 	@Inject(method = "getFps()I", at = @At("RETURN"), cancellable = true)
 	private void soar$onGetFps(
 		org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir)

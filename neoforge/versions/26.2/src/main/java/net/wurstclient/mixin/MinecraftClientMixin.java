@@ -290,6 +290,15 @@ public abstract class MinecraftClientMixin
 		net.wurstclient.util.render.MoonGlowProgram.INSTANCE.close();
 	}
 
+	@Inject(method = "close()V", at = @At("RETURN"))
+	private void wurst$closeBundledWorkers(CallbackInfo ci)
+	{
+		kaptainwutax.seedcrackerX.cracker.storage.TimeMachine.SERVICE.shutdown();
+		net.wurstclient.util.BaritoneCacheWorkers.close();
+		// FML closes its module loader before the JVM shutdown hooks run.
+		WurstClient.INSTANCE.shutdown();
+	}
+
 	@Inject(method = "getFps()I", at = @At("RETURN"), cancellable = true)
 	private void soar$onGetFps(
 		org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir)

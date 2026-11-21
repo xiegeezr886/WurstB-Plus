@@ -19,6 +19,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 configurations {
 	hudNatives
     allJarEmbed
+    mixinExtrasJarJar
 }
 
 minecraft {
@@ -100,6 +101,7 @@ dependencies {
     implementation minecraft.dependency("net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}")
 
     implementation "io.github.llamalad7:mixinextras-forge:${project.mixinextras_version}"
+    mixinExtrasJarJar("io.github.llamalad7:mixinextras-forge:${project.mixinextras_version}") { transitive = false }
     compileOnly "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
@@ -171,7 +173,8 @@ tasks.register('allJar', Jar) {
     from sourceSets.main.output
     from("src/main/resources/META-INF/jarjar/metadata.json") {
         into "META-INF/jarjar"
-        expand(baritone_version: project.baritone_version,
+        expand(mixinextras_version: project.mixinextras_version,
+               baritone_version: project.baritone_version,
                baritone_version_next: baritoneUpperBound(project.baritone_version))
     }
     from {
@@ -187,6 +190,7 @@ tasks.register('allJar', Jar) {
     from("../../baritone-maven/baritone/baritone-forge/${project.baritone_version}/baritone-forge-${project.baritone_version}.jar") {
         into "META-INF/jarjar"
     }
+    from(configurations.mixinExtrasJarJar) { into 'META-INF/jarjar' }
     exclude 'net/minecraft/**', 'net/minecraftforge/**'
     exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'module-info.class'
 }
