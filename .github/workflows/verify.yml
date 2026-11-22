@@ -67,6 +67,9 @@ jobs:
       - name: 崩溃闸门负例测试
         run: python -m unittest discover -s scripts/tests -p "test_crash_regressions.py"
 
+      - name: NeoForge 网络依赖唯一性
+        run: python -m unittest discover -s scripts/tests -p "test_neoforge_network_packaging.py"
+
       - name: v1.5.1 渲染回归闸门及负例测试
         run: |
           python scripts/audit-render-regressions.py

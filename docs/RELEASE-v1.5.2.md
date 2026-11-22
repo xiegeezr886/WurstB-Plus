@@ -8,6 +8,8 @@ GitHub Release `v1.5.2` 于 **2026-11-18 22:04（UTC+8）**发布，标签指向
 
 本地旧目录 `build/release-v1.5` 中的 67 个 1.5.1 JAR 不属于此清单。后续审查提交 `3900f680`、`5709fb20` 的兼容性修复与模块移除也不在这些线上 JAR 中。资产摘要一致不代表每个整合包都通过启动、保存和读回测试。
 
+发布后合入 `main` 的具体修复见[变更记录的“未发布”一节](../CHANGELOG.md#post-v152-fixes)。下文“主要变更”只描述 11 月 18 日的正式版。
+
 ## 安装
 
 1. 从 [GitHub Release](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2) 检查实际可下载的 JAR，按自己的 Minecraft 版本和加载器选择。可用组合见 [README 版本支持矩阵](../README.md#版本支持矩阵)。Forge 没有 1.20.5 和 1.21.2 两个组合。
