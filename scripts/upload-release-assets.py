@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-r"""把 build/release-v1.5/ 的产物上传到 GitHub Release（默认 v1.5.0）。
+r"""把通过本地预检的产物上传到显式指定的 GitHub Release。
 
 设计约束：
   * **只动 assets，不改 release 简介**。本脚本从不调用 PATCH /releases/{id}，
@@ -10,9 +10,7 @@ r"""把 build/release-v1.5/ 的产物上传到 GitHub Release（默认 v1.5.0）
     不从命令行或文件读取，也不打印。
 
 用法：
-    python scripts/upload-release-assets.py --dry-run        # 只报告会做什么
-    python scripts/upload-release-assets.py                  # 真正上传
-    python scripts/upload-release-assets.py --only Fabric-1.20.2
+    python scripts/release_preflight.py --tag v1.5.2          # 仅离线检查
 """
 import argparse
 import json
@@ -24,6 +22,8 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+
+from release_preflight import check as check_inputs
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, 'build', 'release-v1.5')
@@ -125,7 +125,7 @@ def patch_body_26_3(rel, tok):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--tag', default='v1.5.0')
+    ap.add_argument('--tag', required=True)
     ap.add_argument('--dry-run', action='store_true')
     ap.add_argument('--only', nargs='*')
     ap.add_argument('--skip-existing', action='store_true',
@@ -136,13 +136,19 @@ def main():
                     help='只补简介的 26.3，不上传任何 assets')
     args = ap.parse_args()
 
+    if not args.body_only:
+        from pathlib import Path
+        errors = check_inputs(Path(ROOT), Path(DIST), args.tag, args.only)
+        if errors:
+            raise SystemExit('发布输入检查失败，未访问 GitHub：\n' + '\n'.join(errors))
+
     if not os.path.isdir(DIST):
         raise SystemExit('没有 %s，先跑 scripts/build-v1.5-release.py' % DIST)
     files = sorted(f for f in os.listdir(DIST)
                    if f.endswith('.jar') and f.startswith('WurstB+.Plus-'))
     if args.only:
-        files = [f for f in files
-                 if any(o in f for o in args.only)]
+        wanted = {f'WurstB+.Plus-{args.tag[1:]}-{target}.jar' for target in args.only}
+        files = [f for f in files if f in wanted]
     if not files:
         raise SystemExit('没有可上传的 jar')
 

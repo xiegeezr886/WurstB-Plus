@@ -1,0 +1,337 @@
+[
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.20.1.jar",
+    "digest": "sha256:a2e9cf025aa1aa057ddc4fb16fdafaa5ce0e46717a57c64baebaca70667ccbdb",
+    "size": 58324629
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.20.2.jar",
+    "digest": "sha256:4e0f1830b261e9df392850718949e6850acc3737b27b7595338f69ce4eda44eb",
+    "size": 61798850
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.20.3.jar",
+    "digest": "sha256:48997ddc6b2c3df426cef32311fed706248f45c6573af1540f64bd9f67b72792",
+    "size": 61797568
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.20.4.jar",
+    "digest": "sha256:1be2ccdd54e255888d94119e729f41e75f30bb5f4c2a72afaed427aa51377a47",
+    "size": 61797563
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.20.5.jar",
+    "digest": "sha256:879a7f6ada0792dbcae2a09ee0653991085ca3c3e712c141ab372a1b2d24d06f",
+    "size": 61674088
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.20.6.jar",
+    "digest": "sha256:432b9b1c92875bdb7d58449de83b6617238ff0314914404e86b3020d79d35a07",
+    "size": 61826399
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.1.jar",
+    "digest": "sha256:528f03e9748b9dbc46e03ee9cba41cee0e75625465f759a14e4d0eb82594a242",
+    "size": 58394881
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.10.jar",
+    "digest": "sha256:183fa055da512e849300ed41bb0346e032f05568dd653d03079e2f93bd12a387",
+    "size": 61984484
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.11.jar",
+    "digest": "sha256:aaf3da4c676ba56c36cd9e947607f0be6b99cf79527a8833cf6e381fceba14cc",
+    "size": 62260177
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.2.jar",
+    "digest": "sha256:d30a1ad0f97ab3bebb5dc2a468bf3b4cbbdf3152232bb187c38d52f0d956af64",
+    "size": 61853367
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.3.jar",
+    "digest": "sha256:e0b456101cfc2f9511abb2ee97be58f2ee1e048becfa503f4247a761c2b42609",
+    "size": 61626366
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.4.jar",
+    "digest": "sha256:438076de4d474d22fbdf374a79bebd473f83403db6106ccf20c609e27b21c708",
+    "size": 58396023
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.5.jar",
+    "digest": "sha256:c6f6d73660fa94d4d63fde5c4bed5487ad821396ce024fab0a72488848d01e05",
+    "size": 58546565
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.6.jar",
+    "digest": "sha256:ab51edbdacdd7c01486781ba7c9a24f18a0c79992b973b68f3b09731103713c4",
+    "size": 58621267
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.7.jar",
+    "digest": "sha256:c773bc624fc6b0d9cd1eafc5261621411a0fb3e4a466bda2987117a203204c42",
+    "size": 58621354
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.8.jar",
+    "digest": "sha256:2d91630a50988fb29389f0b5b415922a2c257b8be3d4bc57c0658153543f1bca",
+    "size": 58622353
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.9.jar",
+    "digest": "sha256:340dd11b9ae2d7297e5827f002d1dff69da018d8d576f89b27d9ad85c058d8f1",
+    "size": 61984497
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-1.21.jar",
+    "digest": "sha256:59e219f48efd9a110f00b7320452d0ac138a189fee11f6034a639b416286cf66",
+    "size": 58394873
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-26.1.1.jar",
+    "digest": "sha256:8f1267cecb0b4f179224634292eea1e256839e4bd86bb41c52aee1209c35733b",
+    "size": 62046203
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-26.1.2.jar",
+    "digest": "sha256:ae86228bd977ffe3f9f89775f5ccb7742f70e0505c61f4427bfbaad32cbced56",
+    "size": 62050431
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-26.1.jar",
+    "digest": "sha256:0eef972afce32938061f460fea10295bebbbfd7100367f8ca18ea7f3e97701e7",
+    "size": 62046098
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-26.2.jar",
+    "digest": "sha256:a8ba7360f3727031c9248b3dc8cba86f56aea3315cdb6eef1a5966608bbba604",
+    "size": 61859055
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Fabric-26.3.jar",
+    "digest": "sha256:e2ae57e47aea118ef3a7b1c39b7d46296352997766ab427575b92a7f1fafda61",
+    "size": 62109253
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.20.1.jar",
+    "digest": "sha256:6f033c90bcdc4b2b0357468db2a86bd6985931de2e1cfbf8c8964226b760820d",
+    "size": 60829640
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.20.2.jar",
+    "digest": "sha256:91583089944934befb2636cc8495cba37b3e488c1d1b4739e83ee2039da525d7",
+    "size": 61946816
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.20.3.jar",
+    "digest": "sha256:3fb5c8be64340a288db5b4696ce020e8e9881ce35eb782e44f4dbf4c16aa0d87",
+    "size": 61946379
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.20.4.jar",
+    "digest": "sha256:3ae7fda5bd52ba4266ad173e6cd754bfdcbd8fe518fd235ea519c7af9f69afc5",
+    "size": 61946379
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.20.6.jar",
+    "digest": "sha256:ab8b901e5d247ff898d6a0f7769028b1e1940fedfa58505717ef836b7f4b6d16",
+    "size": 61893657
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.1.jar",
+    "digest": "sha256:62550f84926341f905d426e953cd6bf296adac6eaee19d4c08c6888efa3cb2b5",
+    "size": 58703381
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.10.jar",
+    "digest": "sha256:f7e5b67afe907f59e61e38be9265fd7c2f3252c95b03620c452a5e06b2d8c254",
+    "size": 60798875
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.11.jar",
+    "digest": "sha256:3507a0f3622680849614f670b968586311e6982a0a3bff73342d80ac11631ef2",
+    "size": 61040350
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.3.jar",
+    "digest": "sha256:45df445bf87f6c7b19f6530e348db8f6b260a2d74091daae444a38d470b27f06",
+    "size": 61384361
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.4.jar",
+    "digest": "sha256:5feb8aa3d79b3fa2be2a9fb995d21d0c45b11775fb85e1d715af5eae1ccee3a9",
+    "size": 57246290
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.5.jar",
+    "digest": "sha256:667e57b3051d05800e2b0752f81b5ed00111e0213da664fae7b7ef1ffe289ffd",
+    "size": 57524105
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.6.jar",
+    "digest": "sha256:2d9bccaa26f68a5f6e4f2175487a1b116ff5b40d8906d95cf9bfa69cebf88b12",
+    "size": 57554529
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.7.jar",
+    "digest": "sha256:22e7cb5d1e5ac0d211f4f1d2ebaac43f7fd99c4f15210ce5ff66dc266816b63e",
+    "size": 57555729
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.8.jar",
+    "digest": "sha256:5b0fc46de44282e862bed339784fe5143b5e7c18b1744fc9f6c64d2e48e03901",
+    "size": 57554711
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.9.jar",
+    "digest": "sha256:68a9d57680e2d81519b426197345ecc2f50d733201020f572d9088f2883ac746",
+    "size": 60798358
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-1.21.jar",
+    "digest": "sha256:2cb99603fc5bbf100351a63b12dd4ce12b42790cd143f6873521723b16addb74",
+    "size": 58703466
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-26.1.1.jar",
+    "digest": "sha256:57de37f367a6ea6e42b851a9df8e49dbaacacad2821c0888ab1074288b0b818b",
+    "size": 60822096
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-26.1.2.jar",
+    "digest": "sha256:9580fda61d6343806f96f5b046c979a86da66edf5d97df5f0c2f96fc6d223d83",
+    "size": 60822673
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-26.1.jar",
+    "digest": "sha256:bef149f9f60439cbd60965067c2781c10fa603f42da52c6bc1fca0caea772e24",
+    "size": 60821988
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-26.2.jar",
+    "digest": "sha256:3164fb548066cd0b00a7740e322974d7e1b3ad35992a5e21d2952194c2624033",
+    "size": 60615737
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-Forge-26.3.jar",
+    "digest": "sha256:e0454bda96ab7f954462608dbd97d10370685841ed0ef1f83e4f679314b16769",
+    "size": 61490174
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.20.1.jar",
+    "digest": "sha256:4c7e523b930f16fb3294a7439c5c91daad824af4521f11967fb771e980f215ce",
+    "size": 60829646
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.20.2.jar",
+    "digest": "sha256:e0a9462d92e14a1d979d8161ed7d705f453bd1dee9138b6faa79f6d2494df6f8",
+    "size": 61302161
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.20.3.jar",
+    "digest": "sha256:c55c234b74e5e86b7ac168ad150d8bc0b597f8b2f1dd6b15b79b78b742566825",
+    "size": 61301173
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.20.4.jar",
+    "digest": "sha256:4eadb59b97b5561407d76d200e63688150ad9421d45b9a54dedce9d03b622465",
+    "size": 61301171
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.20.5.jar",
+    "digest": "sha256:6c76e80c3bf7f33442567af2303c88acbe10bbb3e3104d90aeb24286174c09b3",
+    "size": 61320681
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.20.6.jar",
+    "digest": "sha256:40a8565253f49ad69306e5c05762155ec3f269f1d89fd56ce5cfb853641b311c",
+    "size": 61320578
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.1.jar",
+    "digest": "sha256:0033b37f774dd169bc408096160e4a2a29ef6af7a9da340a6a0042c7b55c2af4",
+    "size": 61653334
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.10.jar",
+    "digest": "sha256:46901b55025ffd94361dfe19ddb49eac95fce91bf336d36ad7892a6721c96b25",
+    "size": 61476822
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.11.jar",
+    "digest": "sha256:d9202b711a1ad19dc731de1ebdcd2012176311aa8479a58bbe6da4fbf09d9137",
+    "size": 61734738
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.2.jar",
+    "digest": "sha256:98f5ca505fa89db2e3b4a5abd13fabc71778d5e8b153b8209029030e881a3efb",
+    "size": 61577442
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.3.jar",
+    "digest": "sha256:0fa1c485b9481750faeaf88bc77ea28d77614e2c5b52ed531c10273cacc69689",
+    "size": 61583851
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.4.jar",
+    "digest": "sha256:dc3abfb19ede16a9d4ef80874d3c5423298bef9984f7ecfb62530a81e550cecc",
+    "size": 57447705
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.5.jar",
+    "digest": "sha256:55d656f5ec6b8bef0248e06bde8a516a70c5b49225c6a822b9580ee115d5d7d7",
+    "size": 58185918
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.6.jar",
+    "digest": "sha256:6091d01b0be102af3c94a382977509336e14c0cd9943acaa61524b1ff97603cb",
+    "size": 58231553
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.7.jar",
+    "digest": "sha256:7f8d2c5b7dc483aff75e3174fd4b3545cbd319a50876a8d89a432d414e5a9766",
+    "size": 58231306
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.8.jar",
+    "digest": "sha256:32cba7ee074d9449e2e3b581ce5270d4faaf3c62ec673fa5c0fd7f35a2dbec51",
+    "size": 58232820
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.9.jar",
+    "digest": "sha256:fb79c80137eb247213a0ece56218c81bba95344a762efd43fbe05b59cf471570",
+    "size": 61476817
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-1.21.jar",
+    "digest": "sha256:742c0cc399985812a7a8b298ede20a4f163f3672d6e700dd23c1dc2f21879114",
+    "size": 58397075
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-26.1.1.jar",
+    "digest": "sha256:4f324a0460d2bb3a7ecc803ed851077097c6766d4b766ef831d24aa93c0ef3a1",
+    "size": 61506671
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-26.1.2.jar",
+    "digest": "sha256:918e1bb77ef44bce6a3fd5ce6b8e7af0e320e5840b3fff19c964379cc7cd8239",
+    "size": 61506821
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-26.1.jar",
+    "digest": "sha256:0217d0e1ff77f35162047d7d46c8c79ae346baabb88bda67869709a7c3e23dab",
+    "size": 61506568
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-26.2.jar",
+    "digest": "sha256:42f3d24de64f1cbe2478854423b4b832dcd173a7a9b000371fe1d90541aaf925",
+    "size": 61300391
+  },
+  {
+    "name": "WurstB+.Plus-1.5.2-NeoForge-26.3.jar",
+    "digest": "sha256:a65c32f177022d3f767d19807a1bc3eb3637c5989e1e987514f56d0bd69711d1",
+    "size": 61540838
+  }
+]
