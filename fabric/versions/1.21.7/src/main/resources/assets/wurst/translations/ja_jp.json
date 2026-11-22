@@ -180,7 +180,6 @@
   "description.wurst.hack.speednuker": "NoCheat+の検知を回避できない速いNuker。",
   "description.wurst.hack.spider": "クモのように壁を登ることができるようになる。",
   "description.wurst.hack.step": "普通のブロックを階段のように上ることができるようになる。",
-  "description.wurst.hack.throw": "アイテムを複数回使用する。大量の雪玉や卵を投げたり、モブのスポーンエッグの使用や、トロッコの設置などに使用可能。\n\nサーバーにラグやクラッシュを引き起こす可能性あり。",
   "description.wurst.hack.tillaura": "土ブロックや草ブロックなどを自動で耕す。\nKillauraとの混合に注意。",
   "description.wurst.hack.timer": "ほぼゲーム全体の速度を変更する。",
   "description.wurst.hack.tired": "2015年4月当時のAlexander（Wurstクライアント開発者）のような姿になる。\n他のプレイヤーにのみ表示される。",

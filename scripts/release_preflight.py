@@ -1,8 +1,10 @@
 """Offline release input checks. Never builds, signs in or uploads."""
 import argparse
 import io
+import json
 import re
 import sys
+import tomllib
 from pathlib import Path
 from zipfile import BadZipFile, ZipFile
 
@@ -12,7 +14,8 @@ LOADERS = {'Forge': '.', 'Fabric': 'fabric', 'NeoForge': 'neoforge'}
 VERSIONS = ('1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20.6',
             '1.21', *(f'1.21.{i}' for i in range(1, 12)),
             '26.1', '26.1.1', '26.1.2', '26.2', '26.3')
-BLOCKED_SOURCES = ('hacks/ForceOpHack.java', 'util/ForceOpDialog.java', 'hacks/CrashChestHack.java')
+BLOCKED_SOURCES = ('hacks/ForceOpHack.java', 'util/ForceOpDialog.java', 'hacks/CrashChestHack.java',
+                   'hacks/ThrowHack.java')
 MARKERS = tuple(Path(name).stem.lower().encode('ascii') for name in BLOCKED_SOURCES)
 
 
@@ -25,10 +28,48 @@ def projects(root):
             yield f'{loader}-{mc}', path if mc == '1.20.1' else path / 'versions' / mc
 
 
-def artifact_errors(archive, depth=0):
+def verify_metadata(z, target, release):
+    loader, mc = target.split('-', 1)
+    legacy_neo = loader == 'NeoForge' and mc in ('1.20.1', '1.20.2', '1.20.3', '1.20.4')
+    descriptor = ('fabric.mod.json' if loader == 'Fabric' else 'META-INF/mods.toml'
+                  if loader == 'Forge' or legacy_neo else 'META-INF/neoforge.mods.toml')
+    if z.namelist().count(descriptor) != 1:
+        raise ValueError(f'missing or duplicate {descriptor}')
+    if z.getinfo(descriptor).file_size > 1024 * 1024:
+        raise ValueError(f'oversized {descriptor}')
+    text = z.read(descriptor).decode('utf-8-sig')
+    if loader == 'Fabric':
+        meta = json.loads(text)
+        deps = meta['depends']
+        if (meta['id'] != 'wurstpenguin' or 'fabricloader' not in deps or
+                deps['minecraft'] not in (mc, '~' + mc, '=' + mc)):
+            raise ValueError(f'{descriptor}: wrong mod, loader or Minecraft target')
+        version = meta['version']
+    else:
+        meta = tomllib.loads(text)
+        versions = [m['version'] for m in meta['mods'] if m['modId'] == 'wurstpenguin']
+        if len(versions) != 1:
+            raise ValueError(f'{descriptor}: expected exactly one wurstpenguin mod')
+        version = versions[0]
+        deps = meta['dependencies']['wurstpenguin']
+        runtime = 'forge' if loader == 'Forge' or target == 'NeoForge-1.20.1' else 'neoforge'
+        ranges = [d['versionRange'] for d in deps if d['modId'] == 'minecraft']
+        if (not any(d['modId'] == runtime for d in deps) or len(ranges) != 1 or
+                not re.fullmatch(r'\[' + re.escape(mc) + r'(?:\]|,\d+(?:\.\d+)+\))', ranges[0])):
+            raise ValueError(f'{descriptor}: wrong loader or Minecraft target')
+    allowed = {f'{release}-{target}'}
+    if loader == 'NeoForge' and mc.startswith('26.'):
+        allowed.add(release)  # These builds also use a plain version with an exact MC dependency.
+    if version not in allowed:
+        raise ValueError(f'{descriptor}: wrong internal version {version!r} for {release}-{target}')
+
+
+def artifact_errors(archive, depth=0, *, target=None, release=None):
     if depth > 8:
         raise ValueError('nested JAR depth limit')
     with ZipFile(archive) as z:
+        if target is not None:
+            verify_metadata(z, target, release)
         for item in z.infolist():
             name = item.filename.lower()
             if name.endswith('.class'):
@@ -70,9 +111,9 @@ def check(root, dist, tag, only=None):
         if name not in actual:
             continue
         try:
-            errors.extend(f'{name}: {e}' for e in artifact_errors(dist / name))
-        except (BadZipFile, OSError, ValueError, RuntimeError) as e:
-            errors.append(f'{name}: unreadable archive: {e}')
+            errors.extend(f'{name}: {e}' for e in artifact_errors(dist / name, target=target, release=tag[1:]))
+        except (BadZipFile, KeyError, OSError, TypeError, ValueError, RuntimeError) as e:
+            errors.append(f'{name}: invalid archive or metadata: {e}')
     return errors
 
 

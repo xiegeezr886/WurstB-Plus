@@ -217,7 +217,6 @@
   "description.wurst.hack.spider": "Pozwala wspinać się po ścianach jak pająk.",
   "description.wurst.hack.step": "Pozwala wchodzić na pełne bloki (bez skakania).",
   "description.wurst.hack.templatetool": "Pozwala tworzyć niestandardowe szablony dla AutoBuild, skanując istniejące budowle.",
-  "description.wurst.hack.throw": "Używa przedmiotu wielokrotnie. Może być wykorzystany do rzucania śnieżkami i jajkami, spawnowania mobów, umieszczania wagoników itp. w bardzo dużych ilościach.\n\nMoże to wywołać dużo lagów, a nawet zcrashować serwer.",
   "description.wurst.hack.tillaura": "Automatycznie zamienia ziemię, trawę itp. w pola uprawne.\nNie mylić z Killaurą!",
   "description.wurst.hack.timer": "Zmienia prędkość prawie wszystkiego.",
   "description.wurst.hack.tired": "Sprawia, że wyglądasz jak Alexander w kwietniu 2015.\nWidoczne tylko dla innych graczy.",

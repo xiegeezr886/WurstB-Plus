@@ -977,7 +977,6 @@
   "description.wurst.hack.surround": "在自己周围放置防爆方块，防止被水晶或TNT炸死。",
   "description.wurst.hack.targetstrafe": "自动围绕最近的攻击目标环绕移动，保持设定距离。",
   "description.wurst.hack.templatetool": "使用模板文件快速建造结构。",
-  "description.wurst.hack.throw": "多次使用你手中的物品，可以用于丢雪球、鸡蛋、刷怪蛋、矿车，诸如此类。\n\n会生成大量的数量，这会产生巨大的延迟且可能导致服务器崩溃。",
   "description.wurst.hack.tillaura": "自动将泥土、草块等方块转化为耕地。\n不要和 Killaura 搞混。",
   "description.wurst.hack.timer": "改变大部分东西的速度。",
   "description.wurst.hack.tired": "让你看起来很像 2015 年 4 月的 Alexander。\n仅限其他玩家可见。",

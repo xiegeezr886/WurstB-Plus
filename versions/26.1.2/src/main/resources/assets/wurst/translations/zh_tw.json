@@ -140,7 +140,6 @@
   "description.wurst.hack.speednuker": "一個比Nuker更快的版本，但會無法繞過反作弊。",
   "description.wurst.hack.spider": "像蜘蛛一樣能够爬牆。",
   "description.wurst.hack.step": "允許你走上更高高度（取決於你的設定）的格子方塊。",
-  "description.wurst.hack.throw": "迅速丟你手中種類的物品，可以用於丟雪球、雞蛋、刷怪蛋、礦車，諸如此類。\n\n會生成大量的數量，這會產生大量的lag且可能會導致服務器崩潰。",
   "description.wurst.hack.tillaura": "自動將泥土、草塊、諸如此類。轉化為耕地。\n不要和Killaura搞混。",
   "description.wurst.hack.timer": "改變大部分東西的速度。",
   "description.wurst.hack.tired": "讓你看起來很像2015年的Alexander。\n僅限其他玩家可視。",

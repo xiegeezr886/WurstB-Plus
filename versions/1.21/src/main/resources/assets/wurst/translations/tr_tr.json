@@ -216,7 +216,6 @@
   "description.wurst.hack.spider": "Bir örümcek gibi duvarlara tırmanmanıza olanak tanır.",
   "description.wurst.hack.step": "Tam bloklara tırmanmanızı sağlar.",
   "description.wurst.hack.templatetool": "AutoBuild için özel şablonlar oluşturmanıza olanak tanır.",
-  "description.wurst.hack.throw": "Bir öğeyi birden çok kez kullanır. Büyük miktarlarda kar topları, yumurtalar atabilir, yaratık çıkarabilir veya minecart yerleştirebilir.\n\nBu, ciddi gecikmelere ve hatta sunucu çökmesine neden olabilir.",
   "description.wurst.hack.tillaura": "Toprak, çim vb. blokları otomatik olarak tarım alanına çevirir.\nKillaura ile karıştırılmamalıdır.",
   "description.wurst.hack.timer": "Neredeyse her şeyin hızını değiştirir.",
   "description.wurst.hack.tired": "Sizi Nisan 2015'teki Alexander gibi gösterir.\nYalnızca diğer oyunculara görünür.",
