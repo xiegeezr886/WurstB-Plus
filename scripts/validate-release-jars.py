@@ -12,6 +12,8 @@ docs/RELEASE.md 记录当初用 tmp-recon/validate-jars.py（已随仓库外目�
 
 用法：python scripts/validate-release-jars.py
 """
+import io
+import json
 import os
 import sys
 import zipfile
@@ -34,6 +36,27 @@ _crash_checks = module_from_spec(_spec)
 _spec.loader.exec_module(_crash_checks)
 
 
+def forge_split_packages(z):
+    """JarJar modules must not share their Java packages with the outer mod."""
+    meta = 'META-INF/jarjar/metadata.json'
+    if meta not in z.namelist():
+        return []
+
+    def packages(archive):
+        return {n.rsplit('/', 1)[0] for n in archive.namelist()
+                if n.endswith('.class') and '/' in n and not n.startswith('META-INF/')}
+
+    outer = packages(z)
+    errors = []
+    for item in json.loads(z.read(meta))['jars']:
+        path = item['path']
+        with zipfile.ZipFile(io.BytesIO(z.read(path))) as nested:
+            overlap = sorted(outer & packages(nested))
+        if overlap:
+            errors.append(f'{path}: split package with outer mod: {", ".join(overlap)}')
+    return errors
+
+
 def check(path):
     name = os.path.basename(path)
     problems = []
@@ -46,6 +69,11 @@ def check(path):
         bad = z.testzip()
         if bad:
             problems.append('zip 损坏于 %s' % bad)
+        if loader == 'Forge' and not bad:
+            try:
+                problems.extend(forge_split_packages(z))
+            except (KeyError, ValueError, TypeError, zipfile.BadZipFile) as err:
+                problems.append(f'invalid Forge JarJar metadata or nested archive: {err}')
         names = set(z.namelist())
         if not any(m in names for m in LOADER_META[loader]):
             problems.append('缺加载器元数据 %s'
