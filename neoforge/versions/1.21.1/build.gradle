@@ -211,12 +211,7 @@ sourceSets.main.java {
 }
 tasks.withType(Test).configureEach { useJUnitPlatform() }
 
-// v1.5.2 native network runtime: these APIs are not supplied by Minecraft.
-dependencies {
-    v152MusicRuntime("org.java-websocket:Java-WebSocket:1.5.3") { transitive = false }
-    v152MusicRuntime("io.netty:netty-codec-socks:4.1.82.Final") { transitive = false }
-    v152MusicRuntime("io.netty:netty-handler-proxy:4.1.82.Final") { transitive = false }
-}
+// v1.5.2 native network runtime: JarJar already provides these libraries; do not unpack them.
 
 // Native SeedCrackerX source, solver and Cloth Config runtime.
 apply from: "../../../gradle/seedcracker-native1206.gradle"
