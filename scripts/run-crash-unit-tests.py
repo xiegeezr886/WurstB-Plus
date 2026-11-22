@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -117,17 +118,26 @@ def run_menu_tests(work, cp, java, javac, deps):
     variants = {}
     for root in roots:
         source = root / 'main/java/net/wurstclient/mixin/WurstMixinConfigPlugin.java'
+        fabric = root.is_relative_to(ROOT / 'fabric')
+        if fabric and not source.is_file():
+            raise FileNotFoundError(source)
         if source.is_file():
-            variants.setdefault(source.read_text('utf-8'), source)
-    for index, source in enumerate(variants.values()):
-        classes = work / ('menu-classes-' + str(index))
-        classes.mkdir(exist_ok=True)
-        subprocess.run([javac, '-proc:none', '-encoding', 'UTF-8', '--release', '17',
-                        '-cp', cp, '-d', str(classes), str(source),
-                        str(ROOT / 'scripts/tests/java/MenuOwnershipTest.java')], check=True, cwd=ROOT)
-        subprocess.run([java, '-jar', str(deps / 'junit.jar'), 'execute', '--class-path',
-                        str(classes) + os.pathsep + cp, '--scan-class-path', '--details',
-                        'summary', '--disable-ansi-colors'], check=True, cwd=ROOT)
+            variants.setdefault((fabric, source.read_text('utf-8')), []).append(root)
+    for (fabric, _), group in variants.items():
+        source = group[0] / 'main/java/net/wurstclient/mixin/WurstMixinConfigPlugin.java'
+        tests = [ROOT / 'scripts/tests/java/MenuOwnershipTest.java']
+        if fabric:
+            tests.extend(ROOT / 'scripts/tests/java' / path for path in (
+                'fixtures/net/fabricmc/loader/api/FabricLoader.java', 'CameraOwnershipTest.java'))
+            print('Fabric camera/menu policy:', ', '.join(
+                str(root.parent.relative_to(ROOT)) for root in group), flush=True)
+        with tempfile.TemporaryDirectory(dir=work, prefix='menu-classes-') as classes:
+            subprocess.run([javac, '-proc:none', '-encoding', 'UTF-8', '--release', '17',
+                            '-cp', cp, '-d', classes, str(source),
+                            *map(str, tests)], check=True, cwd=ROOT)
+            subprocess.run([java, '-jar', str(deps / 'junit.jar'), 'execute', '--class-path',
+                            classes + os.pathsep + cp, '--scan-class-path', '--details',
+                            'summary', '--disable-ansi-colors'], check=True, cwd=ROOT)
 
 
 def run_sodium_tests(work, cp, java, javac, deps):
@@ -164,6 +174,7 @@ public interface ShouldDrawSideListener {
     sources.extend((base / 'sodium/AbstractBlockRenderContextMixin.java',
                     base / 'sodium/DefaultFluidRendererMixin.java',
                     base / 'WurstMixinConfigPlugin.java',
+                    ROOT / 'scripts/tests/java/fixtures/net/fabricmc/loader/api/FabricLoader.java',
                     ROOT / 'scripts/tests/java/SodiumXRayMixinTest.java'))
     classes = work / 'sodium-classes'
     classes.mkdir(exist_ok=True)
