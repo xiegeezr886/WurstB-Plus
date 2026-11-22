@@ -154,6 +154,16 @@ def windows_x64_library(library):
     return result
 
 
+def windows_runtime_libraries(vanilla, fabric):
+    # Fabric inherits the game profile, but replaces matching Maven artifacts.
+    selected = {}
+    for library in (*vanilla, *fabric):
+        if windows_x64_library(library):
+            group, name, _, *classifier = library['name'].split(':')
+            selected[(group, name, *classifier)] = library
+    return selected.values()
+
+
 def prepare_runtime(instance):
     """Resolve the official client, assets and pack-pinned Fabric loader."""
     context = tls_context()
@@ -189,9 +199,7 @@ def prepare_runtime(instance):
     (runtime / 'fabric.json').write_text(json.dumps(fabric, indent=2), encoding='utf-8')
 
     artifacts = {}
-    for lib in version['libraries'] + fabric['libraries']:
-        if not windows_x64_library(lib):
-            continue
+    for lib in windows_runtime_libraries(version['libraries'], fabric['libraries']):
         downloads = lib.get('downloads', {})
         if downloads.get('artifact'):
             artifact = downloads['artifact']
