@@ -25,12 +25,12 @@ Branch layout produced for version V:
 
 plus, for 1.20.1 only, the three 1.20.1 root projects src/, fabric/, neoforge/.
 """
+import argparse
 import os
 import subprocess
 import sys
 import tempfile
 
-CHUNK = 30                      # index entries per git invocation (Windows arg limit)
 MAIN = "main"
 
 # branch -> project roots that branch keeps
@@ -97,25 +97,22 @@ def repo_root():
 REPO = repo_root()
 
 
-def run(args, env=None, inp=None, check=True):
+def run(args, env=None, inp=None, check=True, raw=False):
     # stdin has to be fed as raw bytes.  With text=True Python translates "\n"
     # to os.linesep on write, so on Windows `git hash-object --stdin` used to
     # hash a CRLF copy of BRANCH.md.  That made this script non-idempotent
     # across platforms: every Windows run produced 22 spurious commits (tree
     # differs), CI on Linux then flipped them back to LF, and the two kept
     # ping-ponging.  Feeding bytes skips the translation entirely.
-    binary_in = isinstance(inp, str)
-    if binary_in:
+    if isinstance(inp, str):
         inp = inp.encode("utf-8")
     r = subprocess.run(["git", *args], cwd=REPO, env=env, input=inp,
-                       capture_output=True, text=not binary_in,
-                       **({} if binary_in
-                          else {"encoding": "utf-8", "errors": "replace"}))
+                       capture_output=True)
     if check and r.returncode != 0:
         print("GIT FAILED:", " ".join(args)[:200], file=sys.stderr)
         print(r.stdout[:800], r.stderr[:800], file=sys.stderr)
         raise SystemExit(1)
-    return r.stdout.decode("utf-8", "replace") if binary_in else r.stdout
+    return r.stdout if raw else r.stdout.decode("utf-8", "replace")
 
 
 def ensure_identity():
@@ -137,24 +134,6 @@ def ensure_identity():
 def ok(args, env=None):
     return subprocess.run(["git", *args], cwd=REPO, env=env,
                           capture_output=True, text=True).returncode == 0
-
-
-def add_entries(chunk, env):
-    """Add one batch of index entries, halving the batch if the OS rejects the
-    command line as too long (Windows caps it around 32k characters)."""
-    args = ["update-index", "--add"]
-    for mode, sha, path in chunk:
-        args += ["--cacheinfo", f"{mode},{sha},{path}"]
-    try:
-        run(args, env=env)
-        return
-    except FileNotFoundError:
-        pass
-    if len(chunk) == 1:
-        raise SystemExit(f"single entry still too long: {chunk[0][2]}")
-    half = len(chunk) // 2
-    add_entries(chunk[:half], env)
-    add_entries(chunk[half:], env)
 
 
 def branch_keeps(path, roots, v):
@@ -191,10 +170,14 @@ def label(root):
 
 
 def main():
-    args = sys.argv[1:]
-    dry = "--dry-run" in args
-    push = "--no-push" not in args
-    wanted = [a for a in args if not a.startswith("--")]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--no-push", action="store_true")
+    parser.add_argument("--main-ref", default=f"refs/remotes/origin/{MAIN}",
+                        help="source commit/ref (default: origin/main)")
+    parser.add_argument("versions", nargs="*")
+    args = parser.parse_args()
+    dry, push, wanted = args.dry_run, not args.no_push, args.versions
 
     if wanted:
         unknown = [v for v in wanted if v not in BRANCHES]
@@ -206,9 +189,10 @@ def main():
 
     ensure_identity()
 
-    if not ok(["rev-parse", "--verify", "--quiet", f"refs/remotes/origin/{MAIN}"]):
+    if args.main_ref == f"refs/remotes/origin/{MAIN}" and not ok(
+            ["rev-parse", "--verify", "--quiet", args.main_ref]):
         run(["fetch", "origin", MAIN], check=False)
-    main_sha = run(["rev-parse", f"refs/remotes/origin/{MAIN}"]).strip()
+    main_sha = run(["rev-parse", "--verify", f"{args.main_ref}^{{commit}}"]).strip()
     print(f"main tip: {main_sha[:8]}")
 
     # GitHub lists a branch's commits as "main..branch", so on a version branch the
@@ -218,13 +202,10 @@ def main():
     # reading as 55 identical "sync with main <sha>" entries.
     main_subject = run(["log", "-1", "--format=%s", main_sha]).strip().replace("\n", " ")
 
-    entries = []  # (mode, sha, path) of the current main tree
-    for line in run(["ls-tree", "-r", main_sha]).splitlines():
-        if not line:
-            continue
-        meta, path = line.split("\t", 1)
-        mode, _typ, sha = meta.split()
-        entries.append((mode, sha, path))
+    # ls-tree -z records are also valid update-index -z --index-info input.
+    # Never feed Git's printable, C-quoted representation back as a file name.
+    entries = [(record.split(b"\t", 1)[1].decode("utf-8", "surrogateescape"), record)
+               for record in run(["ls-tree", "-rz", main_sha], raw=True).split(b"\0") if record]
     print(f"main tracks {len(entries)} paths")
 
     updated, unchanged, problems = [], [], []
@@ -233,13 +214,13 @@ def main():
     for v in todo:
         roots = BRANCHES[v]
         missing = [r for r in roots
-                   if not any(p == r or p.startswith(r + "/") for _, _, p in entries)]
+                   if not any(p == r or p.startswith(r + "/") for p, _ in entries)]
         if missing:
             problems.append(f"{v}: main has no {', '.join(missing)}")
             print(f"{v:8s} SKIP  main no longer has {', '.join(missing)}")
             continue
 
-        keep = [(m, s, p) for (m, s, p) in entries
+        keep = [record for p, record in entries
                 if p != "BRANCH.md" and branch_keeps(p, roots, v)]
 
         fh = tempfile.NamedTemporaryFile("w", suffix=".index", delete=False)
@@ -249,8 +230,8 @@ def main():
         env["GIT_INDEX_FILE"] = index_path
         try:
             run(["read-tree", "--empty"], env=env)
-            for i in range(0, len(keep), CHUNK):
-                add_entries(keep[i:i + CHUNK], env)
+            run(["update-index", "-z", "--index-info"], env=env,
+                inp=b"\0".join(keep) + b"\0")
             note = BRANCH_NOTE.format(
                 v=v, base=main_sha[:8],
                 projects="\n".join(f"- {label(r)}" for r in roots),
@@ -298,7 +279,7 @@ def main():
             continue
 
         run(["update-ref", f"refs/heads/{v}", commit])
-        n = len(run(["ls-tree", "-r", "--name-only", tree]).splitlines())
+        n = len(keep) + 1
         print(f"{v:8s} synced {old[:8] if old else '(new)'} -> {commit[:8]} "
               f"files={n}")
         updated.append(v)
