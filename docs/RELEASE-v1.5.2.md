@@ -2,6 +2,12 @@
 
 版本日期：2026-11-18。以 Fabric 1.20.1 为功能基线，源码覆盖 Minecraft 1.20.1 至 26.3 的 23 个版本、67 个工程：Fabric 23、Forge 21、NeoForge 23。全部工程使用 1.5.2 正式构建编号。
 
+## 发布资产核验（2026-11-22）
+
+GitHub Release `v1.5.2` 于 **2026-11-18 22:04（UTC+8）**发布，标签指向 `f9d6be04f8f5e9aaf746ffe30a81164853d1d737`。截至核验日，67 个已上传 JAR 的文件名、字节数和 SHA-256 均与本地归档记录一致。详见[资产清单](v1.5.2-release-assets.json)：`name` 是完整文件名，`size` 以字节为单位，`digest` 是带 `sha256:` 前缀的摘要。在 PowerShell 中可用 `Get-FileHash -Algorithm SHA256 -LiteralPath <文件路径>` 对照摘要的十六进制部分，字母大小写不影响结果。
+
+本地旧目录 `build/release-v1.5` 中的 67 个 1.5.1 JAR 不属于此清单。后续审查提交 `3900f680`、`5709fb20` 的兼容性修复与模块移除也不在这些线上 JAR 中。资产摘要一致不代表每个整合包都通过启动、保存和读回测试。
+
 ## 安装
 
 1. 从 [GitHub Release](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2) 检查实际可下载的 JAR，按自己的 Minecraft 版本和加载器选择。可用组合见 [README 版本支持矩阵](../README.md#版本支持矩阵)。Forge 没有 1.20.5 和 1.21.2 两个组合。
