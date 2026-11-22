@@ -38,6 +38,9 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Test snapshot paths and history
+        run: python3 -m unittest discover -s scripts/tests -p test_version_snapshots.py
+
       - name: Show what will change
         env:
           PYTHONIOENCODING: utf-8
