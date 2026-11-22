@@ -14,6 +14,13 @@ spec.loader.exec_module(modpack)
 
 
 class ModpackPreparationTest(unittest.TestCase):
+    def test_fabric_profile_replaces_parent_version_but_keeps_native_classifier(self):
+        vanilla = [{'name': 'org.ow2.asm:asm:9.6'}, {'name': 'org.lwjgl:lwjgl:3.3.1'},
+                   {'name': 'org.lwjgl:lwjgl:3.3.1:natives-windows'}]
+        fabric = [{'name': 'org.ow2.asm:asm:9.8'}, {'name': 'org.lwjgl:lwjgl:3.3.2'},
+                  {'name': 'org.ow2.asm:asm:9.9', 'rules': [{'action': 'allow', 'os': {'name': 'linux'}}]}]
+        self.assertEqual([fabric[0], fabric[1], vanilla[2]], list(modpack.windows_runtime_libraries(vanilla, fabric)))
+
     def test_runtime_selects_only_matching_native_architecture(self):
         for classifier in ('natives-windows-arm64', 'natives-windows-x86', 'natives-linux'):
             self.assertFalse(modpack.windows_x64_library({'name': 'org.lwjgl:lwjgl:3.3.1:' + classifier}))
