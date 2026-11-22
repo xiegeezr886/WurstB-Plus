@@ -36,12 +36,14 @@ public abstract class EntityMixin
 	/**
 	 * This mixin makes the VelocityFromFluidEvent work, which is used by
 	 * AntiWaterPush.
+	 * NeoForge 26.2.0.75 delegates this work to EntityFluidInteraction;
+	 * leave its fluid handling untouched when the vanilla call is absent.
 	 */
 	@WrapOperation(method = "updateFluidInteraction()Z",
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/entity/Entity;isPushedByFluid()Z",
 			ordinal = 0),
-        require = 1)
+		require = 0)
 	private boolean wrapUpdateFluidInteractionIsPushedByFluid(Entity instance,
 		Operation<Boolean> original)
 	{

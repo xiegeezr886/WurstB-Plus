@@ -11,6 +11,8 @@ import org.spongepowered.asm.mixin.injection.*;
 public abstract class NeoRavenConnectMixin {
   @Redirect(
       method = "extractRenderState",
+      // A customized connection screen may no longer draw this label.
+      require = 0,
       at =
           @At(
               value = "INVOKE",

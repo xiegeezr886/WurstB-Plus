@@ -3,6 +3,7 @@ package net.wurstclient.mixin;
 import java.util.List;
 import java.util.Set;
 
+import net.fabricmc.loader.api.FabricLoader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -24,6 +25,10 @@ public final class WurstMixinConfigPlugin implements IMixinConfigPlugin
 	public boolean shouldApplyMixin(String targetClassName,
 		String mixinClassName)
 	{
+		// Let Better Third Person own the camera rotation reads when installed.
+		if(mixinClassName.endsWith(".OpenOpalCameraMixin"))
+			return !FabricLoader.getInstance().isModLoaded("betterthirdperson");
+
 		// FancyMenu owns both the title layout and its input widgets. Replacing
 		// only the layout leaves visible Wurst buttons without clickable targets.
 		if(mixinClassName.endsWith(".TitleScreenMixin"))
