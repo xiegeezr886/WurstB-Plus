@@ -26,7 +26,7 @@ v1.5.2 的兼容性和验收条件见
 | --- | --- | --- |
 | [v1.5.0](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.0) | 67 个历史资产 | 历史发布 |
 | [v1.5.1](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.1) | 67 个 JAR | 历史全矩阵发布 |
-| [v1.5.2](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2) | 以页面资产为准 | 正式版本编号；本地构建与远端上传分别验收 |
+| [v1.5.2](https://github.com/xiegeezr886/WurstB-Plus/releases/tag/v1.5.2) | 67 个 JAR：Forge 21、Fabric 23、NeoForge 23 | 标签提交 `f9d6be04`；[逐文件大小和 SHA-256](v1.5.2-release-assets.json) |
 
 发布时须使用当前源码的生产任务重新构建，按实际 JAR 的元数据和 SHA-256 核验后上传。
 
